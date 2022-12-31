@@ -4,7 +4,7 @@ namespace Utils
 {
 	Utils::Memory::Allocator Memory::MemAllocator;
 
-	void* Memory::AllocateAlign(size_t length, size_t alignment)
+	void* Memory::AllocateAlign(std::size_t length, std::size_t alignment)
 	{
 		auto* data = _aligned_malloc(length, alignment);
 		assert(data);
@@ -12,26 +12,23 @@ namespace Utils
 		return data;
 	}
 
-	void* Memory::Allocate(size_t length)
+	void* Memory::Allocate(std::size_t length)
 	{
-		auto* data = calloc(length, 1);
+		auto* data = std::calloc(length, 1);
 		assert(data);
 		return data;
 	}
 
 	char* Memory::DuplicateString(const std::string& string)
 	{
-		auto* newString = Memory::AllocateArray<char>(string.size() + 1);
+		auto* newString = AllocateArray<char>(string.size() + 1);
 		std::memcpy(newString, string.data(), string.size());
 		return newString;
 	}
 
 	void Memory::Free(void* data)
 	{
-		if (data)
-		{
-			::free(data);
-		}
+		std::free(data);
 	}
 
 	void Memory::Free(const void* data)
@@ -53,11 +50,11 @@ namespace Utils
 	}
 
 	// Complementary function for memset, which checks if memory is filled with a char
-	bool Memory::IsSet(void* mem, char chr, size_t length)
+	bool Memory::IsSet(void* mem, char chr, std::size_t length)
 	{
 		auto* memArr = static_cast<char*>(mem);
 
-		for (size_t i = 0; i < length; ++i)
+		for (std::size_t i = 0; i < length; ++i)
 		{
 			if (memArr[i] != chr)
 			{

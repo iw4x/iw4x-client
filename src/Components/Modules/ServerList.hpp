@@ -57,7 +57,7 @@ namespace Components
 		static bool UseMasterServer;
 
 	private:
-		enum Column
+		enum class Column : int
 		{
 			Password,
 			Matchtype,
@@ -69,6 +69,8 @@ namespace Components
 			Gametype,
 			Mod,
 			Ping,
+
+			Count
 		};
 
 		static constexpr auto* FavouriteFile = "players/favourites.json";
@@ -83,13 +85,13 @@ namespace Components
 				uint16_t port;
 			};
 
-			bool IsEndToken()
+			bool IsEndToken() const
 			{
 				// End of transmission or file token
 				return (token[0] == 'E' && token[1] == 'O' && (token[2] == 'T' || token[2] == 'F'));
 			}
 
-			bool HasSeparator()
+			bool HasSeparator() const
 			{
 				return (token[6] == '\\');
 			}

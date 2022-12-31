@@ -1,10 +1,11 @@
 #include <STDInclude.hpp>
+#include "Security.hpp"
 
 namespace Components
 {
-	int Security::MsgReadBitsCompressCheckSV(const char* from, char* to, int size)
+	int Security::MsgReadBitsCompressCheckSV(const unsigned char* from, unsigned char* to, int size)
 	{
-		static char buffer[0x8000];
+		static unsigned char buffer[0x8000];
 
 		if (size > 0x800) return 0;
 		size = Game::MSG_ReadBitsCompress(from, buffer, size);
@@ -15,9 +16,9 @@ namespace Components
 		return size;
 	}
 
-	int Security::MsgReadBitsCompressCheckCL(const char* from, char* to, int size)
+	int Security::MsgReadBitsCompressCheckCL(const unsigned char* from, unsigned char* to, int size)
 	{
-		static char buffer[0x100000];
+		static unsigned char buffer[0x100000];
 
 		if (size > 0x20000) return 0;
 		size = Game::MSG_ReadBitsCompress(from, buffer, size);

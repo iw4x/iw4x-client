@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "ConnectProtocol.hpp"
 
 namespace Components
 {
@@ -7,17 +8,17 @@ namespace Components
 
 	bool ConnectProtocol::IsEvaluated()
 	{
-		return ConnectProtocol::Evaluated;
+		return Evaluated;
 	}
 
 	bool ConnectProtocol::Used()
 	{
-		if (!ConnectProtocol::IsEvaluated())
+		if (!IsEvaluated())
 		{
-			ConnectProtocol::EvaluateProtocol();
+			EvaluateProtocol();
 		}
 
-		return (!ConnectProtocol::ConnectString.empty());
+		return (!ConnectString.empty());
 	}
 
 	bool ConnectProtocol::InstallProtocol()
@@ -25,8 +26,8 @@ namespace Components
 		HKEY hKey = nullptr;
 		std::string data;
 
-		char ownPth[MAX_PATH] = {0};
-		char workdir[MAX_PATH] = {0};
+		char ownPth[MAX_PATH]{};
+		char workdir[MAX_PATH]{};
 
 		DWORD dwsize = MAX_PATH;
 		HMODULE hModule = GetModuleHandleA(nullptr);
@@ -65,13 +66,13 @@ namespace Components
 		LONG openRes = RegOpenKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x\\shell\\open\\command", 0, KEY_ALL_ACCESS, &hKey);
 		if (openRes == ERROR_SUCCESS)
 		{
-			char regred[MAX_PATH] = { 0 };
+			char regred[MAX_PATH]{};
 
 			// Check if the game has been moved.
 			openRes = RegQueryValueExA(hKey, nullptr, nullptr, nullptr, reinterpret_cast<BYTE*>(regred), &dwsize);
 			if (openRes == ERROR_SUCCESS)
 			{
-				char* endPtr = strstr(regred, "\" \"%1\"");
+				auto* endPtr = std::strstr(regred, "\" \"%1\"");
 				if (endPtr != nullptr)
 				{
 					*endPtr = 0;
@@ -82,7 +83,8 @@ namespace Components
 				}
 
 				RegCloseKey(hKey);
-				if (strcmp(regred + 1, ownPth))
+
+				if (std::strcmp(regred + 1, ownPth) != 0)
 				{
 					RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
 				}
@@ -173,8 +175,8 @@ namespace Components
 
 	void ConnectProtocol::EvaluateProtocol()
 	{
-		if (ConnectProtocol::Evaluated) return;
-		ConnectProtocol::Evaluated = true;
+		if (Evaluated) return;
+		Evaluated = true;
 
 		std::string cmdLine = GetCommandLineA();
 
@@ -190,15 +192,15 @@ namespace Components
 				cmdLine = cmdLine.substr(0, pos);
 			}
 
-			ConnectProtocol::ConnectString = cmdLine;
+			ConnectString = cmdLine;
 		}
 	}
 
 	void ConnectProtocol::Invocation()
 	{
-		if (ConnectProtocol::Used())
+		if (Used())
 		{
-			Command::Execute(Utils::String::VA("connect %s", ConnectProtocol::ConnectString.data()), false);
+			Command::Execute(std::format("connect {}", ConnectString), false);
 		}
 	}
 
@@ -209,28 +211,28 @@ namespace Components
 		// IPC handler
 		IPCPipe::On("connect", [](const std::string& data)
 		{
-			Command::Execute(Utils::String::VA("connect %s", data.data()), false);
+			Command::Execute(std::format("connect {}", data), false);
 		});
 
 		// Invocation handler
-		Scheduler::OnGameInitialized(ConnectProtocol::Invocation, Scheduler::Pipeline::MAIN);
+		Scheduler::OnGameInitialized(Invocation, Scheduler::Pipeline::MAIN);
 
-		ConnectProtocol::InstallProtocol();
-		ConnectProtocol::EvaluateProtocol();
+		InstallProtocol();
+		EvaluateProtocol();
 
 		// Fire protocol handlers
 		// Make sure this happens after the pipe-initialization!
-		if (ConnectProtocol::Used())
+		if (Used())
 		{
 			if (!Singleton::IsFirstInstance())
 			{
-				IPCPipe::Write("connect", ConnectProtocol::ConnectString);
+				IPCPipe::Write("connect", ConnectString);
 				ExitProcess(0);
 			}
 			else
 			{
 				// Only skip intro here, invocation will be done later.
-				Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
+				Utils::Hook::Set<std::uint8_t>(0x60BECF, 0xEB);
 
 				Scheduler::Once([]
 				{

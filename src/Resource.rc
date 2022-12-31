@@ -2,7 +2,8 @@
 //
 #pragma code_page(65001)
 
-#include "STDInclude.hpp"
+#include <STDInclude.hpp>
+#include <version.hpp>
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -70,7 +71,7 @@ BEGIN
 #endif
             VALUE "FileVersion", SHORTVERSION 
             VALUE "InternalName", "iw4x"
-            VALUE "LegalCopyright", "Copyright 2017 The IW4x Team. All rights reserved."
+            VALUE "LegalCopyright", "Copyright 2022 The IW4x Team. All rights reserved."
             VALUE "OriginalFilename", "iw4x.dll"
             VALUE "ProductName", "IW4x"
             VALUE "ProductVersion", SHORTVERSION

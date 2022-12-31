@@ -1,4 +1,8 @@
 #include <STDInclude.hpp>
+#include "Console.hpp"
+
+#include <version.hpp>
+
 #include "AssetInterfaces/ILocalizeEntry.hpp"
 
 namespace Components
@@ -8,7 +12,8 @@ namespace Components
 
 	bool ZoneBuilder::MainThreadInterrupted;
 	DWORD ZoneBuilder::InterruptingThreadId;
-	volatile bool ZoneBuilder::Terminate = false;
+
+	volatile bool ZoneBuilder::CommandThreadTerminate = false;
 	std::thread ZoneBuilder::CommandThread;
 
 	Dvar::Var ZoneBuilder::PreferDiskAssetsDvar;
@@ -20,7 +25,7 @@ namespace Components
 		// Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
 		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
 		buffer(0xC800000),
-		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{ nullptr }, assetDepth(0)
+		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{nullptr}, assetDepth(0)
 	{
 	}
 
@@ -43,7 +48,7 @@ namespace Components
 
 			if (!found)
 			{
-				Logger::Print("Asset {} of type {} was loaded, but not written!", name, Game::DB_GetXAssetTypeName(subAsset.type));
+				Logger::Print("Asset {} of type {} was loaded, but not written!\n", name, Game::DB_GetXAssetTypeName(subAsset.type));
 			}
 		}
 
@@ -63,16 +68,17 @@ namespace Components
 
 			if (!found)
 			{
-				Logger::Error(Game::ERR_FATAL, "Asset {} of type {} was written, but not loaded!", name, Game::DB_GetXAssetTypeName(alias.first.type));
+				Logger::Error(Game::ERR_FATAL, "Asset {} of type {} was written, but not loaded!\n", name, Game::DB_GetXAssetTypeName(alias.first.type));
 			}
 		}
 #endif
 
 		// Unload our fastfiles
-		Game::XZoneInfo info;
+		Game::XZoneInfo info{};
 		info.name = nullptr;
 		info.allocFlags = 0;
 		info.freeFlags = 0x20;
+
 
 		Game::DB_LoadXAssets(&info, 1, true);
 
@@ -116,7 +122,7 @@ namespace Components
 		this->writeZone();
 	}
 
-	void ZoneBuilder::Zone::loadFastFiles()
+	void ZoneBuilder::Zone::loadFastFiles() const
 	{
 		Logger::Print("Loading required FastFiles...\n");
 
@@ -155,10 +161,15 @@ namespace Components
 			if (this->dataMap.getElementAt(i, 0) == "localize"s)
 			{
 				const auto filename = this->dataMap.getElementAt(i, 1);
-				FileSystem::File file(std::format("localizedstrings/{}.str", filename));
-				if (file.exists())
+				if (FileSystem::File file = std::format("localizedstrings/{}.str", filename))
 				{
 					Assets::ILocalizeEntry::ParseLocalizedStringsFile(this, filename, file.getName());
+					continue;
+				}
+
+				if (FileSystem::File file = std::format("localizedstrings/{}.json", filename))
+				{
+					Assets::ILocalizeEntry::ParseLocalizedStringsJson(this, file);
 					continue;
 				}
 			}
@@ -217,6 +228,9 @@ namespace Components
 		// Sanitize name for empty assets
 		if (name[0] == ',') name.erase(name.begin());
 
+		// Fix forward slashes for FXEffectDef (and probably other assets)
+		std::replace(name.begin(), name.end(), '\\', '/');
+
 		if (this->findAsset(type, name) != -1 || this->findSubAsset(type, name).data) return true;
 
 		if (type == Game::XAssetType::ASSET_TYPE_INVALID || type >= Game::XAssetType::ASSET_TYPE_COUNT)
@@ -237,6 +251,9 @@ namespace Components
 		asset.type = type;
 		asset.header = assetHeader;
 
+		// Handle script strings
+		AssetHandler::ZoneMark(asset, this);
+
 		if (isSubAsset)
 		{
 			this->loadedSubAssets.push_back(asset);
@@ -246,8 +263,6 @@ namespace Components
 			this->loadedAssets.push_back(asset);
 		}
 
-		// Handle script strings
-		AssetHandler::ZoneMark(asset, this);
 
 		return true;
 	}
@@ -262,8 +277,9 @@ namespace Components
 
 			if (asset->type != type) continue;
 
-			const char* assetName = Game::DB_GetXAssetName(asset);
-			if (assetName[0] == ',') ++assetName;
+			const auto* assetName = Game::DB_GetXAssetName(asset);
+			if (!assetName) return -1;
+			if (assetName[0] == ',' && assetName[1] != '\0') ++assetName;
 
 			if (this->getAssetName(type, assetName) == name)
 			{
@@ -414,6 +430,10 @@ namespace Components
 #endif
 
 		Utils::IO::WriteFile("uncompressed", zoneBuffer);
+		const auto _0 = gsl::finally([]
+		{
+			Utils::IO::RemoveFile("uncompressed");
+		});
 
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
 		outBuffer.append(zoneBuffer);
@@ -433,38 +453,30 @@ namespace Components
 		Utils::Stream::ClearPointer(&zoneHeader.assetList.assets);
 
 		// Increment ScriptStrings count (for empty script string) if available
-		if (!this->scriptStrings.empty())
-		{
-			zoneHeader.assetList.stringList.count = this->scriptStrings.size() + 1;
-			Utils::Stream::ClearPointer(&zoneHeader.assetList.stringList.strings);
-		}
+		zoneHeader.assetList.stringList.count = this->scriptStrings.size() + 1;
+		Utils::Stream::ClearPointer(&zoneHeader.assetList.stringList.strings);
 
 		// Write header
 		this->buffer.save(&zoneHeader, sizeof(Game::ZoneHeader));
 		this->buffer.pushBlock(Game::XFILE_BLOCK_VIRTUAL); // Push main stream onto the stream stack
 
 		// Write ScriptStrings, if available
-		if (!this->scriptStrings.empty())
+		this->buffer.saveNull(4);
+		// Empty script string?
+		// This actually represents a NULL string, but as scriptString.
+		// So scriptString loading for NULL scriptStrings from fastfile results in a NULL scriptString.
+		// That's the reason why the count is incremented by 1, if scriptStrings are available.
+
+		// Write ScriptString pointer table
+		for (std::size_t i = 0; i < this->scriptStrings.size(); ++i)
 		{
-			this->buffer.saveNull(4);
-			// Empty script string?
-			// This actually represents a NULL string, but as scriptString.
-			// So scriptString loading for NULL scriptStrings from fastfile results in a NULL scriptString.
-			// That's the reason why the count is incremented by 1, if scriptStrings are available.
+			this->buffer.saveMax(4);
+		}
 
-			// Write ScriptString pointer table
-			for (std::size_t i = 0; i < this->scriptStrings.size(); ++i)
-			{
-				this->buffer.saveMax(4);
-			}
-
-			this->buffer.align(Utils::Stream::ALIGN_4);
-
-			// Write ScriptStrings
-			for (auto ScriptString : this->scriptStrings)
-			{
-				this->buffer.saveString(ScriptString.data());
-			}
+		// Write ScriptStrings
+		for (auto ScriptString : this->scriptStrings)
+		{
+			this->buffer.saveString(ScriptString.data());
 		}
 
 		// Align buffer (4 bytes) to get correct offsets for pointers
@@ -513,8 +525,10 @@ namespace Components
 	// Add branding asset
 	void ZoneBuilder::Zone::addBranding()
 	{
-		const char* data = "FastFile built using the IW4x ZoneBuilder!";
-		this->branding = { this->zoneName.data(), static_cast<int>(strlen(data)), 0, data };
+		constexpr auto* data = "Built using the IW4x Zone:B:uilder Version 4";
+		auto dataLen = std::strlen(data); // + 1 is added by the save code
+
+		this->branding = {this->zoneName.data(), 0, static_cast<int>(dataLen), data};
 
 		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
 		{
@@ -573,7 +587,7 @@ namespace Components
 
 	int ZoneBuilder::Zone::addScriptString(const std::string& str)
 	{
-		return this->addScriptString(Game::SL_GetString(str.data(), 0));
+		return this->addScriptString(static_cast<std::uint16_t>(Game::SL_GetString(str.data(), 0)));
 	}
 
 	// Mark a scriptString for writing and map it.
@@ -625,9 +639,9 @@ namespace Components
 	}
 
 	// Remap a scriptString to it's corresponding value in the local scriptString table.
-	void ZoneBuilder::Zone::mapScriptString(unsigned short* gameIndex)
+	void ZoneBuilder::Zone::mapScriptString(unsigned short& gameIndex)
 	{
-		*gameIndex = 0xFFFF & this->scriptStringMap[*gameIndex];
+		gameIndex = 0xFFFF & this->scriptStringMap[gameIndex];
 	}
 
 	// Store a new name for a given asset
@@ -781,7 +795,8 @@ namespace Components
 		return GetCurrentThreadId() == Utils::Hook::Get<DWORD>(0x1CDE7FC);
 	}
 
-	static Game::XZoneInfo baseZones_old[] = {
+	static Game::XZoneInfo baseZones_old[] =
+	{
 		{ "code_pre_gfx_mp", Game::DB_ZONE_CODE, 0 },
 		{ "localized_code_pre_gfx_mp", Game::DB_ZONE_CODE_LOC, 0 },
 		{ "code_post_gfx_mp", Game::DB_ZONE_CODE, 0 },
@@ -793,7 +808,8 @@ namespace Components
 	};
 
 
-	static Game::XZoneInfo baseZones[] = {
+	static Game::XZoneInfo baseZones[] =
+	{
 		{ "defaults", Game::DB_ZONE_CODE, 0 },
 		{ "techsets",  Game::DB_ZONE_CODE, 0 },
 		{ "common_mp",  Game::DB_ZONE_COMMON, 0 },
@@ -807,50 +823,55 @@ namespace Components
 		ExitProcess(0);
 	}
 
-	int APIENTRY ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
+	void ZoneBuilder::CommandThreadCallback()
 	{
-		Utils::Hook::Call<void()>(0x42F0A0)();	// Com_InitCriticalSections
-		Utils::Hook::Call<void()>(0x4301B0)();  // Com_InitMainThread
-		Utils::Hook::Call<void(int)>(0x406D10)(0);  // Win_InitLocalization
-		Utils::Hook::Call<void()>(0x4FF220)();  // Com_InitParse
-		Utils::Hook::Call<void()>(0x4D8220)();  // Dvar_Init
-		Utils::Hook::Call<void()>(0x4D2280)();  // SL_Init
-		Utils::Hook::Call<void()>(0x48F660)();  // Cmd_Init
-		Utils::Hook::Call<void()>(0x4D9210)();  // Cbuf_Init
-		Utils::Hook::Call<void()>(0x47F390)();  // Swap_Init
-		Utils::Hook::Call<void()>(0x60AD10)();  // Com_InitDvars
-		Utils::Hook::Call<void()>(0x420830)();  // Com_InitHunkMemory
-		Utils::Hook::Call<void()>(0x4A62A0)();  // LargeLocalInit
-		Utils::Hook::Call<void()>(0x4DCC10)();  // Sys_InitCmdEvents
-		Utils::Hook::Call<void()>(0x64A020)();  // PMem_Init
+		Com_InitThreadData();
+
+		while (!ZoneBuilder::CommandThreadTerminate)
+		{
+			ZoneBuilder::AssumeMainThreadRole();
+			Utils::Hook::Call<void(int, int)>(0x4E2C80)(0, 0); // Cbuf_Execute
+			ZoneBuilder::ResetThreadRole();
+			std::this_thread::sleep_for(1ms);
+		}
+	}
+
+	BOOL APIENTRY ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
+	{
+		Utils::Hook::Call<void()>(0x42F0A0)(); // Com_InitCriticalSections
+		Utils::Hook::Call<void()>(0x4301B0)(); // Com_InitMainThread
+		Utils::Hook::Call<void(int)>(0x406D10)(0); // Win_InitLocalization
+		Utils::Hook::Call<void()>(0x4FF220)(); // Com_InitParse
+		Utils::Hook::Call<void()>(0x4D8220)(); // Dvar_Init
+		Utils::Hook::Call<void()>(0x4D2280)(); // SL_Init
+		Utils::Hook::Call<void()>(0x48F660)(); // Cmd_Init
+		Utils::Hook::Call<void()>(0x4D9210)(); // Cbuf_Init
+		Utils::Hook::Call<void()>(0x47F390)(); // Swap_Init
+		Utils::Hook::Call<void()>(0x60AD10)(); // Com_InitDvars
+		Utils::Hook::Call<void()>(0x420830)(); // Com_InitHunkMemory
+		Utils::Hook::Call<void()>(0x4A62A0)(); // LargeLocalInit
+		Utils::Hook::Call<void()>(0x4DCC10)(); // Sys_InitCmdEvents
+		Utils::Hook::Call<void()>(0x64A020)(); // PMem_Init
+
 		if (!Flags::HasFlag("stdout"))
 		{
 			Console::ShowAsyncConsole();
 			Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
 		}
+		
+
 		Utils::Hook::Call<void(unsigned int)>(0x502580)(static_cast<unsigned int>(__rdtsc())); // Netchan_Init
-		Utils::Hook::Call<void()>(0x429080)();  // FS_InitFileSystem
-		Utils::Hook::Call<void()>(0x4BFBE0)();  // Con_InitChannels
-		Utils::Hook::Call<void()>(0x4E0FB0)();  // DB_InitThread
-		Utils::Hook::Call<void()>(0x5196C0)();  // R_RegisterDvars
+		Utils::Hook::Call<void()>(0x429080)(); // FS_InitFileSystem
+		Utils::Hook::Call<void()>(0x4BFBE0)(); // Con_InitChannels
+		Utils::Hook::Call<void()>(0x4E0FB0)(); // DB_InitThread
+		Utils::Hook::Call<void()>(0x5196C0)(); // R_RegisterDvars
 		Game::NET_Init();
-		Utils::Hook::Call<void()>(0x4F5090)();  // SND_InitDriver
-		Utils::Hook::Call<void()>(0x46A630)();  // SND_Init
-		//Utils::Hook::Call<void()>(0x4D3660)();  // SV_Init
-		//Utils::Hook::Call<void()>(0x4121E0)();  // SV_InitServerThread
-		//Utils::Hook::Call<void()>(0x464A90)();  // Com_ParseCommandLine
+		Utils::Hook::Call<void()>(0x4F5090)(); // SND_InitDriver
+		Utils::Hook::Call<void()>(0x46A630)(); // SND_Init
 		Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
 
-		ZoneBuilder::CommandThread = std::thread([]
-		{
-			while (!ZoneBuilder::Terminate)
-			{
-				ZoneBuilder::AssumeMainThreadRole();
-				Utils::Hook::Call<void(int, int)>(0x4E2C80)(0, 0); // Cbuf_Execute
-				ZoneBuilder::ResetThreadRole();
-				std::this_thread::sleep_for(1ms);
-			}
-		});
+		ZoneBuilder::CommandThread = Utils::Thread::CreateNamedThread("Command Thread", ZoneBuilder::CommandThreadCallback);
+		ZoneBuilder::CommandThread.detach();
 
 		Command::Add("quit", ZoneBuilder::Com_Quitf_t);
 
@@ -861,8 +882,7 @@ namespace Components
 		}
 		else
 		{
-			Logger::Warning(Game::CON_CHANNEL_DONT_FILTER,
-				"Missing new init zones (defaults.ff & techsets.ff). You will need to load fastfiles to manually obtain techsets.\n");
+			Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Missing new init zones (defaults.ff & techsets.ff). You will need to load fastfiles to manually obtain techsets.\n");
 			Game::DB_LoadXAssets(baseZones_old, ARRAYSIZE(baseZones_old), 0);
 		}
 
@@ -896,7 +916,7 @@ namespace Components
 		}
 
 		Logger::Print(" --------------------------------------------------------------------------------\n");
-		Logger::Print(" IW4x ZoneBuilder (" VERSION ")\n");
+		Logger::Print(" IW4x ZoneBuilder ({})\n", VERSION);
 		Logger::Print(" Commands:\n");
 		Logger::Print("\t-buildzone [zone]: builds a zone from a csv located in zone_source\n");
 		Logger::Print("\t-buildall: builds all zones in zone_source\n");
@@ -990,6 +1010,31 @@ namespace Components
 		return "";
 	}
 
+	void ZoneBuilder::ReallocateLoadedSounds(void*& data, [[maybe_unused]] void* a2)
+	{
+		assert(data);
+		auto* sound = Utils::Hook::Get<Game::MssSound*>(0x112AE04);
+		const auto length = sound->info.data_len;
+		const auto allocatedSpace = Game::Z_Malloc(static_cast<int>(length));
+		memcpy_s(allocatedSpace, length, data, length);
+
+		data = allocatedSpace;
+		sound->data = static_cast<char*>(allocatedSpace);
+		sound->info.data_ptr = allocatedSpace;
+	}
+
+	Game::Sys_File ZoneBuilder::Sys_CreateFile_Stub(const char* dir, const char* filename)
+	{
+		auto file = Game::Sys_CreateFile(dir, filename);
+
+		if (file.handle == INVALID_HANDLE_VALUE)
+		{
+			file = Game::Sys_CreateFile("zone\\zonebuilder\\", filename);
+		}
+	
+		return file;
+	}
+
 	ZoneBuilder::ZoneBuilder()
 	{
 		// ReSharper disable CppStaticAssertFailure
@@ -997,12 +1042,12 @@ namespace Components
 		AssertSize(Game::XFile, 40);
 		static_assert(Game::MAX_XFILE_COUNT == 8, "XFile block enum is invalid!");
 
-		ZoneBuilder::EndAssetTrace();
-
 		if (ZoneBuilder::IsEnabled())
 		{
 			// Prevent loading textures (preserves loaddef)
 			//Utils::Hook::Set<BYTE>(Game::Load_Texture, 0xC3);
+
+			Utils::Hook(0x5BC832, Sys_CreateFile_Stub, HOOK_CALL).install()->quick();
 
 			// Store the loaddef
 			Utils::Hook(Game::Load_Texture, StoreTexture, HOOK_JUMP).install()->quick();
@@ -1010,10 +1055,10 @@ namespace Components
 			// Release the loaddef
 			Game::DB_ReleaseXAssetHandlers[Game::XAssetType::ASSET_TYPE_IMAGE] = ZoneBuilder::ReleaseTexture;
 
-			//r_loadForrenderer = 0
+			// r_loadForrenderer = 0
 			Utils::Hook::Set<BYTE>(0x519DDF, 0);
 
-			//r_delayloadimage retn
+			// r_delayloadimage ret
 			Utils::Hook::Set<BYTE>(0x51F450, 0xC3);
 
 			// r_registerDvars hack
@@ -1031,8 +1076,8 @@ namespace Components
 			// Don't mark assets
 			//Utils::Hook::Nop(0x5BB632, 5);
 
-			// Don't load sounds
-			//Utils::Hook::Set<BYTE>(0x413430, 0xC3);
+			// Load sounds
+			Utils::Hook(0x492EFC, ReallocateLoadedSounds, HOOK_CALL).install()->quick();
 
 			// Don't display errors when assets are missing (we might manually build those)
 			Utils::Hook::Nop(0x5BB3F2, 5);
@@ -1067,14 +1112,14 @@ namespace Components
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
 
-			// change fs_game domain func
+			// change FS_GameDirDomainFunc
 			Utils::Hook::Set<int(*)(Game::dvar_t*, Game::DvarValue)>(0x643203, [](Game::dvar_t* dvar, Game::DvarValue value)
 			{
 				int result = Utils::Hook::Call<int(Game::dvar_t*, Game::DvarValue)>(0x642FC0)(dvar, value);
 
 				if (result)
 				{
-					if (std::string(value.string) != dvar->current.string)
+					if (std::strcmp(value.string, dvar->current.string) != 0)
 					{
 						dvar->current.string = value.string;
 						Game::FS_Restart(0, 0);
@@ -1093,7 +1138,7 @@ namespace Components
 			// handle Com_error Calls
 			Utils::Hook(Game::Com_Error, ZoneBuilder::HandleError, HOOK_JUMP).install()->quick();
 
-			// thread fuckery hooks
+			// Sys_IsMainThread hook
 			Utils::Hook(0x4C37D0, ZoneBuilder::IsThreadMainThreadHook, HOOK_JUMP).install()->quick();
 
 			// Don't exec startup config in fs_restart
@@ -1109,31 +1154,16 @@ namespace Components
 			{
 				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 				{
-					ZoneBuilder::TraceAssets.push_back({ type, name });
-					OutputDebugStringA((name + "\n").data());
+					ZoneBuilder::TraceAssets.emplace_back(std::make_pair(type, name));
+#ifdef _DEBUG
+					OutputDebugStringA(Utils::String::Format("%s\n", name));
+#endif
 				}
 			});
 
 			Command::Add("verifyzone", [](Command::Params* params)
 			{
 				if (params->size() < 2) return;
-				/*
-				Utils::Hook(0x4AE9C2, []
-				{
-					Game::WeaponCompleteDef** varPtr = (Game::WeaponCompleteDef**)0x112A9F4;
-					Game::WeaponCompleteDef* var = *varPtr;
-					OutputDebugStringA("");
-					Utils::Hook::Call<void()>(0x4D1D60)(); // DB_PopStreamPos
-				}, HOOK_JUMP).install()->quick();
-
-				Utils::Hook(0x4AE9B4, []
-				{
-					Game::WeaponCompleteDef** varPtr = (Game::WeaponCompleteDef**)0x112A9F4;
-					Game::WeaponCompleteDef* var = *varPtr;
-					OutputDebugStringA("");
-					Utils::Hook::Call<void()>(0x4D1D60)(); // DB_PopStreamPos
-				}, HOOK_JUMP).install()->quick();
-				*/
 
 				std::string zone = params->get(1);
 
@@ -1180,9 +1210,10 @@ namespace Components
 				Zone(zoneName).build();
 			});
 
-			Command::Add("buildall", [](Command::Params*)
+			Command::Add("buildall", []([[maybe_unused]] Command::Params* params)
 			{
-				auto zoneSources = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").get<std::string>() + "\\zone_source", "csv", false);
+				auto path = std::format("{}\\zone_source", Dvar::Var("fs_basepath").get<std::string>());
+				auto zoneSources = FileSystem::GetSysFileList(path, "csv", false);
 
 				for (auto source : zoneSources)
 				{
@@ -1191,7 +1222,7 @@ namespace Components
 						source = source.substr(0, source.find(".csv"));
 					}
 
-					Command::Execute(Utils::String::VA("buildzone %s", source.data()), true);
+					Command::Execute(std::format("buildzone {}", source), true);
 				}
 			});
 
@@ -1207,6 +1238,41 @@ namespace Components
 					{
 						curTechsets_list.emplace(name);
 						techsets_list.emplace(name);
+					}
+				}
+			});
+
+
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, [[maybe_unused]] const std::string& name, [[maybe_unused]] bool* restrict)
+			{
+				if (type != Game::ASSET_TYPE_SOUND)
+				{
+					return;
+				}
+
+				auto sound = asset.sound;
+
+				for (size_t i = 0; i < sound->count; i++)
+				{
+					auto thisSound = sound->head[i];
+
+					if (thisSound.soundFile->type == Game::SAT_LOADED)
+					{
+						if (thisSound.soundFile->u.loadSnd->sound.data == nullptr)
+						{
+							// ouch
+							// This should never happen and will cause a memory leak
+							// Let's change it to a streamed sound instead
+							thisSound.soundFile->type = Game::SAT_STREAMED;
+
+							auto virtualPath = std::filesystem::path(thisSound.soundFile->u.loadSnd->name);
+
+							thisSound.soundFile->u.streamSnd.filename.info.raw.name = Utils::Memory::DuplicateString(virtualPath.filename().string());
+
+							auto dir = virtualPath.remove_filename().string();
+							dir = dir.substr(0, dir.size() - 1); // remove /
+							thisSound.soundFile->u.streamSnd.filename.info.raw.dir = Utils::Memory::DuplicateString(dir);
+						}
 					}
 				}
 			});
@@ -1512,12 +1578,12 @@ namespace Components
 			{
 				if (params->size() < 2) return;
 
-				std::string path = Utils::String::VA("%s\\mods\\%s\\images", Dvar::Var("fs_basepath").get<const char*>(), params->get(1));
-				std::vector<std::string> images = FileSystem::GetSysFileList(path, "iwi", false);
+				auto path = std::format("{}\\mods\\{}\\images", Dvar::Var("fs_basepath").get<std::string>(), params->get(1));
+				auto images = FileSystem::GetSysFileList(path, "iwi", false);
 
-				for(auto i = images.begin(); i != images.end();)
+				for (auto i = images.begin(); i != images.end();)
 				{
-					*i = Utils::String::VA("images/%s", i->data());
+					*i = std::format("images/{}", *i);
 
 					if (FileSystem::File(*i).exists())
 					{
@@ -1540,7 +1606,7 @@ namespace Components
 
 	ZoneBuilder::~ZoneBuilder()
 	{
-		ZoneBuilder::Terminate = true;
+		ZoneBuilder::CommandThreadTerminate = true;
 		if (ZoneBuilder::CommandThread.joinable())
 		{
 			ZoneBuilder::CommandThread.join();

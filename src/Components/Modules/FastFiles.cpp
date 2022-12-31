@@ -235,10 +235,11 @@ namespace Components
 		const char* dir = Dvar::Var("fs_basepath").get<const char*>();
 
 		std::vector<std::string> paths;
-		std::string modDir = Dvar::Var("fs_game").get<std::string>();
+		auto modDir = Dvar::Var("fs_game").get<std::string>();
+
 		if ((file == "mod"s || file == "mod.ff"s) && !modDir.empty())
 		{
-			paths.push_back(Utils::String::VA("%s\\", modDir.data()));
+			paths.push_back(std::format("{}\\", modDir));
 		}
 
 		if (Utils::String::StartsWith(file, "mp_"))
@@ -256,17 +257,17 @@ namespace Components
 				Utils::String::Replace(zone, "_load", "");
 			}
 
-			if (Utils::IO::FileExists(Utils::String::VA("usermaps\\%s\\%s.ff", zone.data(), filename.data())))
+			if (Utils::IO::FileExists(std::format("usermaps\\{}\\{}.ff", zone, filename)))
 			{
-				return Utils::String::VA("usermaps\\%s\\", zone.data());
+				return Utils::String::Format("usermaps\\{}\\", zone);
 			}
 		}
 
 		Utils::Merge(&paths, FastFiles::ZonePaths);
 
-		for (auto &path : paths)
+		for (auto& path : paths)
 		{
-			std::string absoluteFile = Utils::String::VA("%s\\%s%s", dir, path.data(), file);
+			auto absoluteFile = std::format("{}\\{}{}", dir, path, file);
 
 			// No ".ff" appended, append it manually
 			if (!Utils::String::EndsWith(absoluteFile, ".ff"))
@@ -277,11 +278,11 @@ namespace Components
 			// Check if FastFile exists
 			if (Utils::IO::FileExists(absoluteFile))
 			{
-				return Utils::String::VA("%s", path.data());
+				return Utils::String::Format("{}", path);
 			}
 		}
 
-		return Utils::String::VA("zone\\%s\\", Game::Win_GetLanguage());
+		return Utils::String::Format("zone\\{}\\", Game::Win_GetLanguage());
 	}
 
 	void FastFiles::AddZonePath(const std::string& path)

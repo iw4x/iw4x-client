@@ -32,5 +32,6 @@
 	path = deps/GSL
 	url = https://github.com/microsoft/GSL.git
 [submodule "deps/nlohmannjson"]
-	path = deps/nlohmannjson
+	path = deps/json
 	url = https://github.com/nlohmann/json.git
+	branch = v3.11.2

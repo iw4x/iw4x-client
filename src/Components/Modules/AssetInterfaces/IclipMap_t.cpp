@@ -573,7 +573,7 @@ namespace Assets
 		Utils::String::Replace(name, "maps/mp/", "");
 		Utils::String::Replace(name, ".d3dbsp", "");
 
-		Components::FileSystem::File clipFile(Utils::String::VA("clipmap/%s.iw4xClipMap", name.data()));
+		Components::FileSystem::File clipFile(std::format("clipmap/{}.iw4xClipMap", name));
 		if (!clipFile.exists())
 		{
 			return;
@@ -882,7 +882,7 @@ namespace Assets
 		clipMap->smodelNodeCount = reader.read<unsigned short>();
 		clipMap->smodelNodes = reader.readArray<Game::SModelAabbNode>(clipMap->smodelNodeCount);
 
-		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, Utils::String::VA("maps/mp/%s.d3dbsp", name.data()), builder).mapEnts;
+		clipMap->mapEnts = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MAP_ENTS, std::format("maps/mp/{}.d3dbsp", name), builder).mapEnts;
 
 		// add triggers to mapEnts
 		if (version >= 2) {

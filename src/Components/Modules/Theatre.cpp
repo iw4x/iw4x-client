@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Theatre.hpp"
+#include "UIFeeder.hpp"
 
 namespace Components
 {
@@ -25,11 +27,11 @@ namespace Components
 	void Theatre::StoreBaseline(PBYTE snapshotMsg)
 	{
 		// Store offset and length
-		Theatre::BaselineSnapshotMsgLen = *reinterpret_cast<int*>(snapshotMsg + 20);
-		Theatre::BaselineSnapshotMsgOff = *reinterpret_cast<int*>(snapshotMsg + 28) - 7;
+		BaselineSnapshotMsgLen = *reinterpret_cast<int*>(snapshotMsg + 20);
+		BaselineSnapshotMsgOff = *reinterpret_cast<int*>(snapshotMsg + 28) - 7;
 
 		// Copy to our snapshot buffer
-		std::memcpy(Theatre::BaselineSnapshot, *reinterpret_cast<DWORD**>(snapshotMsg + 8), *reinterpret_cast<DWORD*>(snapshotMsg + 20));
+		std::memcpy(BaselineSnapshot, *reinterpret_cast<DWORD**>(snapshotMsg + 8), *reinterpret_cast<DWORD*>(snapshotMsg + 20));
 	}
 
 	__declspec(naked) void Theatre::BaselineStoreStub()
@@ -37,7 +39,7 @@ namespace Components
 		_asm
 		{
 			push edi
-			call Theatre::StoreBaseline
+			call StoreBaseline
 			pop edi
 
 			mov edx, 5ABEF5h
@@ -48,15 +50,15 @@ namespace Components
 	void Theatre::WriteBaseline()
 	{
 		static unsigned char bufData[131072];
-		static char cmpData[131072];
+		static unsigned char cmpData[131072];
 
 		Game::msg_t buf;
 
 		Game::MSG_Init(&buf, bufData, 131072);
-		Game::MSG_WriteData(&buf, &Theatre::BaselineSnapshot[Theatre::BaselineSnapshotMsgOff], Theatre::BaselineSnapshotMsgLen - Theatre::BaselineSnapshotMsgOff);
+		Game::MSG_WriteData(&buf, &BaselineSnapshot[BaselineSnapshotMsgOff], BaselineSnapshotMsgLen - BaselineSnapshotMsgOff);
 		Game::MSG_WriteByte(&buf, 6);
 
-		const auto compressedSize = Game::MSG_WriteBitsCompress(false, reinterpret_cast<char*>(buf.data), cmpData, buf.cursize);
+		const auto compressedSize = Game::MSG_WriteBitsCompress(false, buf.data, cmpData, buf.cursize);
 		const auto fileCompressedSize = compressedSize + 4;
 
 		int byte8 = 8;
@@ -86,7 +88,7 @@ namespace Components
 		__asm
 		{
 			pushad
-			call Theatre::WriteBaseline
+			call WriteBaseline
 			popad
 
 			// Restore overwritten operation
@@ -161,12 +163,12 @@ namespace Components
 	{
 		Game::Com_Printf(channel, message, file);
 
-		Theatre::CurrentInfo.name = file;
-		Theatre::CurrentInfo.mapname = (*Game::sv_mapname)->current.string;
-		Theatre::CurrentInfo.gametype = (*Game::sv_gametype)->current.string;
-		Theatre::CurrentInfo.author = Steam::SteamFriends()->GetPersonaName();
-		Theatre::CurrentInfo.length = Game::Sys_Milliseconds();
-		std::time(&Theatre::CurrentInfo.timeStamp);
+		CurrentInfo.name = file;
+		CurrentInfo.mapname = (*Game::sv_mapname)->current.string;
+		CurrentInfo.gametype = (*Game::sv_gametype)->current.string;
+		CurrentInfo.author = Steam::SteamFriends()->GetPersonaName();
+		CurrentInfo.length = Game::Sys_Milliseconds();
+		std::time(&CurrentInfo.timeStamp);
 	}
 
 	void Theatre::StopRecordStub(int channel, char* message)
@@ -174,59 +176,56 @@ namespace Components
 		Game::Com_Printf(channel, message);
 
 		// Store correct length
-		Theatre::CurrentInfo.length = Game::Sys_Milliseconds() - Theatre::CurrentInfo.length;
+		CurrentInfo.length = Game::Sys_Milliseconds() - CurrentInfo.length;
 
 		// Write metadata
-		FileSystem::FileWriter meta(Utils::String::VA("%s.json", Theatre::CurrentInfo.name.data()));
-		meta.write(nlohmann::json(Theatre::CurrentInfo.to_json()).dump());
+		FileSystem::FileWriter meta(std::format("{}.json", CurrentInfo.name));
+		meta.write(nlohmann::json(CurrentInfo.to_json()).dump());
 	}
 
 	void Theatre::LoadDemos([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		Theatre::CurrentSelection = 0;
-		Theatre::Demos.clear();
+		CurrentSelection = 0;
+		Demos.clear();
 
 		const auto demos = FileSystem::GetFileList("demos/", "dm_13");
 
 		for (auto demo : demos)
 		{
-			FileSystem::File meta(Utils::String::VA("demos/%s.json", demo.data()));
-
-			if (meta.exists())
+			if (FileSystem::File meta = std::format("demos/{}.json", demo))
 			{
 				nlohmann::json metaObject;
 				try
 				{
 					metaObject = nlohmann::json::parse(meta.getBuffer());
+
+					DemoInfo demoInfo;
+					demoInfo.name = demo.substr(0, demo.find_last_of("."));
+					demoInfo.author = metaObject["author"].get<std::string>();
+					demoInfo.gametype = metaObject["gametype"].get<std::string>();
+					demoInfo.mapname = metaObject["mapname"].get<std::string>();
+					demoInfo.length = metaObject["length"].get<int>();
+					auto timestamp = metaObject["timestamp"].get<std::string>();
+					demoInfo.timeStamp = std::strtoll(timestamp.data(), nullptr, 10);
+
+					Demos.push_back(demoInfo);
 				}
 				catch (const nlohmann::json::parse_error& ex)
 				{
 					Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
-					continue;
 				}
-
-				Theatre::DemoInfo demoInfo;
-				demoInfo.name = demo.substr(0, demo.find_last_of("."));
-				demoInfo.author = metaObject["author"].get<std::string>();
-				demoInfo.gametype = metaObject["gametype"].get<std::string>();
-				demoInfo.mapname = metaObject["mapname"].get<std::string>();
-				demoInfo.length = metaObject["length"].get<int>();
-				auto timestamp = metaObject["timestamp"].get<std::string>();
-				demoInfo.timeStamp = _atoi64(timestamp.data());
-
-				Theatre::Demos.push_back(demoInfo);
 			}
 		}
 
 		// Reverse, latest demo first!
-		std::ranges::reverse(Theatre::Demos);
+		std::ranges::reverse(Demos);
 	}
 
 	void Theatre::DeleteDemo([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		if (Theatre::CurrentSelection < Theatre::Demos.size())
+		if (CurrentSelection < Demos.size())
 		{
-			Theatre::DemoInfo demoInfo = Theatre::Demos[Theatre::CurrentSelection];
+			auto demoInfo = Demos.at(CurrentSelection);
 
 			Logger::Print("Deleting demo {}...\n", demoInfo.name);
 
@@ -242,31 +241,30 @@ namespace Components
 			Dvar::Var("ui_demo_date").set("");
 
 			// Reload demos
-			Theatre::LoadDemos(UIScript::Token(), info);
+			LoadDemos(UIScript::Token(), info);
 		}
 	}
 
 	void Theatre::PlayDemo([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		if (Theatre::CurrentSelection < Theatre::Demos.size())
+		if (CurrentSelection < Demos.size())
 		{
-			Command::Execute(Utils::String::VA("demo %s", Theatre::Demos[Theatre::CurrentSelection].name.data()), true);
+			Command::Execute(std::format("demo {}", Demos[CurrentSelection].name), true);
 			Command::Execute("demoback", false);
 		}
 	}
 
 	unsigned int Theatre::GetDemoCount()
 	{
-		return Theatre::Demos.size();
+		return Demos.size();
 	}
 
 	// Omit column here
 	const char* Theatre::GetDemoText(unsigned int item, int /*column*/)
 	{
-		if (item < Theatre::Demos.size())
+		if (item < Demos.size())
 		{
-			Theatre::DemoInfo info = Theatre::Demos[item];
-
+			auto info = Demos.at(item);
 			return Utils::String::VA("%s on %s", Game::UI_LocalizeGameType(info.gametype.data()), Game::UI_LocalizeMapName(info.mapname.data()));
 		}
 
@@ -275,13 +273,13 @@ namespace Components
 
 	void Theatre::SelectDemo(unsigned int index)
 	{
-		if (index < Theatre::Demos.size())
+		if (index < Demos.size())
 		{
-			Theatre::CurrentSelection = index;
-			Theatre::DemoInfo info = Theatre::Demos[index];
+			CurrentSelection = index;
+			auto info = Demos.at(index);
 
 			tm time;
-			char buffer[1000] = { 0 };
+			char buffer[1000] = {0};
 			localtime_s(&time, &info.timeStamp);
 			asctime_s(buffer, sizeof buffer, &time);
 
@@ -299,7 +297,7 @@ namespace Components
 		if (Dvar::Var("cl_autoRecord").get<bool>() && !*Game::demoPlaying)
 		{
 			std::vector<std::string> files;
-			std::vector<std::string> demos = FileSystem::GetFileList("demos/", "dm_13");
+			auto demos = FileSystem::GetFileList("demos/", "dm_13");
 
 			for (auto demo : demos)
 			{
@@ -309,16 +307,16 @@ namespace Components
 				}
 			}
 
-			int numDel = files.size() - Dvar::Var("cl_demosKeep").get<int>();
+			auto numDel = static_cast<int>(files.size()) - Dvar::Var("cl_demosKeep").get<int>();
 
-			for (int i = 0; i < numDel; ++i)
+			for (auto i = 0; i < numDel; ++i)
 			{
 				Logger::Print("Deleting old demo {}\n", files[i]);
-				FileSystem::_DeleteFile("demos", files[i].data());
-				FileSystem::_DeleteFile("demos", Utils::String::VA("%s.json", files[i].data()));
+				FileSystem::_DeleteFile("demos", files[i]);
+				FileSystem::_DeleteFile("demos", std::format("%s.json", files[i]));
 			}
 
-			Command::Execute(Utils::String::VA("record auto_%lld", time(nullptr)), true);
+			Command::Execute(Utils::String::VA("record auto_%lld", std::time(nullptr)), true);
 		}
 
 		return Utils::Hook::Call<DWORD()>(0x42BBB0)();
@@ -326,15 +324,8 @@ namespace Components
 
 	void Theatre::MapChangeStub()
 	{
-		Theatre::StopRecording();
+		StopRecording();
 		Utils::Hook::Call<void()>(0x464A60)();
-	}
-
-	// DANGEROUS, DON'T USE THIS ONE!
-	void Theatre::MapChangeSVStub(char* a1, char* a2)
-	{
-		Theatre::StopRecording();
-		Utils::Hook::Call<void(char*, char*)>(0x487C50)(a1, a2);
 	}
 
 	void Theatre::StopRecording()
@@ -350,30 +341,29 @@ namespace Components
 		Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games.");
 		Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord.");
 
-		Utils::Hook(0x5A8370, Theatre::GamestateWriteStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5A85D2, Theatre::RecordGamestateStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5ABE36, Theatre::BaselineStoreStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x5A8630, Theatre::BaselineToFileStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x4CB3EF, Theatre::UISetActiveMenuStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x50320E, Theatre::AdjustTimeDeltaStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5A8E03, Theatre::ServerTimedOutStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5A8370, GamestateWriteStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A85D2, RecordGamestateStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5ABE36, BaselineStoreStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5A8630, BaselineToFileStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x4CB3EF, UISetActiveMenuStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x50320E, AdjustTimeDeltaStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A8E03, ServerTimedOutStub, HOOK_JUMP).install()->quick();
 
 		// Hook commands to enforce metadata generation
-		Utils::Hook(0x5A82AE, Theatre::RecordStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5A8156, Theatre::StopRecordStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A82AE, RecordStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A8156, StopRecordStub, HOOK_CALL).install()->quick();
 
 		// Autorecording
-		Utils::Hook(0x5A1D6A, Theatre::InitCGameStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4A712A, Theatre::MapChangeStub, HOOK_CALL).install()->quick();
-		//Utils::Hook(0x5AA91C, Theatre::MapChangeSVStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A1D6A, InitCGameStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4A712A, MapChangeStub, HOOK_CALL).install()->quick();
 
 		// UIScripts
-		UIScript::Add("loadDemos", Theatre::LoadDemos);
-		UIScript::Add("launchDemo", Theatre::PlayDemo);
-		UIScript::Add("deleteDemo", Theatre::DeleteDemo);
+		UIScript::Add("loadDemos", LoadDemos);
+		UIScript::Add("launchDemo", PlayDemo);
+		UIScript::Add("deleteDemo", DeleteDemo);
 
 		// Feeder
-		UIFeeder::Add(10.0f, Theatre::GetDemoCount, Theatre::GetDemoText, Theatre::SelectDemo);
+		UIFeeder::Add(10.0f, GetDemoCount, GetDemoText, SelectDemo);
 
 		// set the configstrings stuff to load the default (empty) string table; this should allow demo recording on all gametypes/maps
 		if (!Dedicated::IsEnabled()) Utils::Hook::Set<const char*>(0x47440B, "mp/defaultStringTable.csv");
@@ -381,11 +371,5 @@ namespace Components
 		// Change font size
 		Utils::Hook::Set<BYTE>(0x5AC854, 2);
 		Utils::Hook::Set<BYTE>(0x5AC85A, 2);
-
-// 		Command::Add("democycle", [] (Command::Params params)
-// 		{
-// 			// Cmd_FollowCycle_f
-// 			Utils::Hook::Call<void(Game::gentity_t*, int)>(0x458ED0)(Game::g_entities, -1);
-// 		});
 	}
 }

@@ -25,7 +25,8 @@ namespace Utils
 
 	bool HasIntersection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
 
-	template <typename T> void RotLeft(T& object, size_t bits)
+	template <typename T>
+	void RotLeft(T& object, std::size_t bits)
 	{
 		bits %= sizeof(T) * 8;
 
@@ -38,29 +39,38 @@ namespace Utils
 		object |= T(negative) << ((sizeof(T) * 8 - 1 + bits) % (sizeof(T) * 8));
 	}
 
-	template <typename T> void RotRight(T& object, size_t bits)
+	template <typename T>
+	void RotRight(T& object, std::size_t bits)
 	{
 		bits %= (sizeof(T) * 8);
 		RotLeft<T>(object, ((sizeof(T) * 8) - bits));
 	}
 
-	template <typename T> void Merge(std::vector<T>* target, T* source, size_t length)
+	template <typename T>
+	void Merge(std::vector<T>* target, T* source, std::size_t length)
 	{
 		if (source)
 		{
-			for (size_t i = 0; i < length; ++i)
+			for (std::size_t i = 0; i < length; ++i)
 			{
 				target->push_back(source[i]);
 			}
 		}
 	}
 
-	template <typename T> void Merge(std::vector<T>* target, std::vector<T> source)
+	template <typename T>
+	void Merge(std::vector<T>* target, std::vector<T> source)
 	{
-		for (auto &entry : source)
+		for (auto& entry : source)
 		{
 			target->push_back(entry);
 		}
+	}
+
+	template <typename T>
+	bool Contains(const std::vector<T>* haystack, T needle)
+	{
+		return std::ranges::find(*haystack, needle) != haystack->end();
 	}
 
 	template <typename T> using Slot = std::function<T>;

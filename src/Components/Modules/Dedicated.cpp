@@ -1,4 +1,7 @@
 #include <STDInclude.hpp>
+#include "CardTitles.hpp"
+#include "ClanTags.hpp"
+#include "ServerCommands.hpp"
 
 namespace Components
 {
@@ -114,7 +117,7 @@ namespace Components
 			if (!partyEnable) // Time wrapping should not occur in party servers, but yeah...
 			{
 				if (mapname.empty()) mapname = "mp_rust";
-				Command::Execute(Utils::String::VA("map %s", mapname.data()), true);
+				Command::Execute(std::format("map {}", mapname), true);
 			}
 		}, Scheduler::Pipeline::SERVER);
 

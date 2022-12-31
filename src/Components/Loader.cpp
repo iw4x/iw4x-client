@@ -1,5 +1,55 @@
 #include <STDInclude.hpp>
 
+#include "Modules/Bans.hpp"
+#include "Modules/Bots.hpp"
+#include "Modules/Branding.hpp"
+#include "Modules/Bullet.hpp"
+#include "Modules/CardTitles.hpp"
+#include "Modules/Ceg.hpp"
+#include "Modules/Changelog.hpp"
+#include "Modules/Chat.hpp"
+#include "Modules/ClanTags.hpp"
+#include "Modules/ClientCommand.hpp"
+#include "Modules/ConnectProtocol.hpp"
+#include "Modules/Console.hpp"
+#include "Modules/D3D9Ex.hpp"
+#include "Modules/Debug.hpp"
+#include "Modules/Discovery.hpp"
+#include "Modules/Download.hpp"
+#include "Modules/Elevators.hpp"
+#include "Modules/Gamepad.hpp"
+#include "Modules/Lean.hpp"
+#include "Modules/MapDump.hpp"
+#include "Modules/MapRotation.hpp"
+#include "Modules/NetworkDebug.hpp"
+#include "Modules/News.hpp"
+#include "Modules/PlayerMovement.hpp"
+#include "Modules/PlayerName.hpp"
+#include "Modules/Playlist.hpp"
+#include "Modules/QuickPatch.hpp"
+#include "Modules/RawFiles.hpp"
+#include "Modules/RawMouse.hpp"
+#include "Modules/RCon.hpp"
+#include "Modules/Security.hpp"
+#include "Modules/ServerCommands.hpp"
+#include "Modules/ServerInfo.hpp"
+#include "Modules/ServerList.hpp"
+#include "Modules/Session.hpp"
+#include "Modules/SlowMotion.hpp"
+#include "Modules/SoundMutexFix.hpp"
+#include "Modules/StartupMessages.hpp"
+#include "Modules/Stats.hpp"
+#include "Modules/StringTable.hpp"
+#include "Modules/StructuredData.hpp"
+#include "Modules/Theatre.hpp"
+#include "Modules/Threading.hpp"
+#include "Modules/UIFeeder.hpp"
+#include "Modules/UserInfo.hpp"
+#include "Modules/VisionFile.hpp"
+#include "Modules/Voice.hpp"
+#include "Modules/Vote.hpp"
+#include "Modules/Weapon.hpp"
+
 namespace Components
 {
 	bool Loader::Pregame = true;
@@ -9,126 +59,127 @@ namespace Components
 
 	bool Loader::IsPregame()
 	{
-		return Loader::Pregame;
+		return Pregame;
 	}
 
 	bool Loader::IsPostgame()
 	{
-		return Loader::Postgame;
+		return Postgame;
 	}
 
 	bool Loader::IsUninitializing()
 	{
-		return Loader::Uninitializing;
+		return Uninitializing;
 	}
 
 	void Loader::Initialize()
 	{
-		Loader::Pregame = true;
-		Loader::Postgame = false;
-		Loader::Uninitializing = false;
+		Pregame = true;
+		Postgame = false;
+		Uninitializing = false;
 		Utils::Memory::GetAllocator()->clear();
 
-		Loader::Register(new Flags());
-		Loader::Register(new Singleton());
-		// Install our exception handler as early as posssible to get better debug dumps from startup crashes
-		Loader::Register(new Exception());
-		Loader::Register(new Auth());
-		Loader::Register(new Bans());
-		Loader::Register(new Bots());
-		Loader::Register(new Dvar());
-		Loader::Register(new Lean());
-		Loader::Register(new Maps());
-		Loader::Register(new News());
-		Loader::Register(new Node());
-		Loader::Register(new RCon());
-		Loader::Register(new Stats());
-		Loader::Register(new Menus());
-		Loader::Register(new Toast());
-		Loader::Register(new Party());
-		Loader::Register(new Zones());
-		Loader::Register(new D3D9Ex());
-		Loader::Register(new Logger());
-		Loader::Register(new Weapon());
-		Loader::Register(new Window());
-		Loader::Register(new Command());
-		Loader::Register(new Console());
-		Loader::Register(new Friends());
-		Loader::Register(new IPCPipe());
-		Loader::Register(new MapDump());
-		Loader::Register(new ModList());
-		Loader::Register(new Network());
-		Loader::Register(new Session());
-		Loader::Register(new Theatre());
-		Loader::Register(new ClanTags());
-		Loader::Register(new Download());
-		Loader::Register(new Playlist());
-		Loader::Register(new RawFiles());
-		Loader::Register(new Renderer());
-		Loader::Register(new UIFeeder());
-		Loader::Register(new UIScript());
-		Loader::Register(new Changelog());
-		Loader::Register(new Dedicated());
-		Loader::Register(new Discovery());
-		Loader::Register(new FastFiles());
-		Loader::Register(new Gametypes());
-		Loader::Register(new Materials());
-		Loader::Register(new Scheduler());
-		Loader::Register(new CardTitles());
-		Loader::Register(new FileSystem());
-		Loader::Register(new ModelSurfs());
-		Loader::Register(new PlayerName());
-		Loader::Register(new QuickPatch());
-		Loader::Register(new Security());
-		Loader::Register(new ServerInfo());
-		Loader::Register(new ServerList());
-		Loader::Register(new SlowMotion());
-		Loader::Register(new ArenaLength());
-		Loader::Register(new StringTable());
-		Loader::Register(new ZoneBuilder());
-		Loader::Register(new AssetHandler());
-		Loader::Register(new Localization());
-		Loader::Register(new ServerCommands());
-		Loader::Register(new StructuredData());
-		Loader::Register(new ConnectProtocol());
-		Loader::Register(new StartupMessages());
-		Loader::Register(new SoundMutexFix());
-		Loader::Register(new Gamepad());
-		Loader::Register(new Chat());
-		Loader::Register(new TextRenderer());
-		Loader::Register(new Movement());
-		Loader::Register(new Elevators());
-		Loader::Register(new ClientCommand());
-		Loader::Register(new VisionFile());
-		Loader::Register(new Branding());
-		Loader::Register(new Debug());
-		Loader::Register(new RawMouse());
-		Loader::Register(new Bullet());
-		Loader::Register(new MapRotation());
-		Loader::Register(new Ceg());
-		Loader::Register(new UserInfo());
-		Loader::Register(new Events());
-		Loader::Register(new Voice());
-		Loader::Register(new Vote());
+		Register(new Auth());
+		Register(new Command());
+		Register(new Dvar());
+		Register(new Exception()); // Install our exception handler as early as posssible to get better debug dumps from startup crashes
+		Register(new Flags());
+		Register(new Network());
+		Register(new Logger());
+		Register(new Singleton());
+		Register(new UIScript());
+		Register(new ZoneBuilder());
+		
+		Register(new ArenaLength());
+		Register(new AssetHandler());
+		Register(new Bans());
+		Register(new Bots());
+		Register(new Branding());
+		Register(new Bullet());
+		Register(new CardTitles());
+		Register(new Ceg());
+		Register(new Changelog());
+		Register(new Chat());
+		Register(new ClanTags());
+		Register(new ClientCommand());
+		Register(new ConnectProtocol());
+		Register(new Console());
+		Register(new D3D9Ex());
+		Register(new Debug());
+		Register(new Dedicated());
+		Register(new Discovery());
+		Register(new Download());
+		Register(new Elevators());
+		Register(new Events());
+		Register(new FastFiles());
+		Register(new FileSystem());
+		Register(new Friends());
+		Register(new Gamepad());
+		Register(new IPCPipe());
+		Register(new Lean());
+		Register(new Localization());
+		Register(new MapDump());
+		Register(new MapRotation());
+		Register(new Maps());
+		Register(new Materials());
+		Register(new Menus());
+		Register(new ModList());
+		Register(new ModelSurfs());
+		Register(new NetworkDebug());
+		Register(new News());
+		Register(new Node());
+		Register(new Party());
+		Register(new PlayerMovement());
+		Register(new PlayerName());
+		Register(new Playlist());
+		Register(new QuickPatch());
+		Register(new RawFiles());
+		Register(new RawMouse());
+		Register(new RCon());
+		Register(new Renderer());
+		Register(new Scheduler());
+		Register(new Security());
+		Register(new ServerCommands());
+		Register(new ServerInfo());
+		Register(new ServerList());
+		Register(new Session());
+		Register(new SlowMotion());
+		Register(new SoundMutexFix());
+		Register(new StartupMessages());
+		Register(new Stats());
+		Register(new StringTable());
+		Register(new StructuredData());
+		Register(new TextRenderer());
+		Register(new Theatre());
+		Register(new Threading());
+		Register(new Toast());
+		Register(new UIFeeder());
+		Register(new UserInfo());
+		Register(new VisionFile());
+		Register(new Voice());
+		Register(new Vote());
+		Register(new Weapon());
+		Register(new Window());
+		Register(new Zones());
 
-		Loader::Register(new GSC());
+		Register(new GSC());
 
-		Loader::Pregame = false;
+		Pregame = false;
 
 		// Make sure preDestroy is called when the game shuts down
-		Scheduler::OnGameShutdown(Loader::PreDestroy);
+		Scheduler::OnGameShutdown(PreDestroy);
 	}
 
 	void Loader::Uninitialize()
 	{
-		Loader::Uninitializing = true;
-		Loader::PreDestroyNoPostGame();
+		Uninitializing = true;
+		PreDestroyNoPostGame();
 
-		std::reverse(Loader::Components.begin(), Loader::Components.end());
-		for (auto component : Loader::Components)
+		std::reverse(Components.begin(), Components.end());
+		for (auto& component : Components)
 		{
 #ifdef DEBUG
-			if (!Loader::IsPerformingUnitTests())
+			if (!IsPerformingUnitTests())
 			{
 				Logger::Print("Unregister component: {}\n", component->getName());
 			}
@@ -136,21 +187,21 @@ namespace Components
 			delete component;
 		}
 
-		Loader::Components.clear();
+		Components.clear();
 		Utils::Memory::GetAllocator()->clear();
-		Loader::Uninitializing = false;
+		Uninitializing = false;
 	}
 
 	void Loader::PreDestroy()
 	{
-		if (!Loader::Postgame)
+		if (!Postgame)
 		{
-			Loader::Postgame = true;
+			Postgame = true;
 
-			auto components = Loader::Components;
+			auto components = Components;
 
 			std::reverse(components.begin(), components.end());
-			for (auto component : components)
+			for (auto& component : components)
 			{
 				component->preDestroy();
 			}
@@ -159,17 +210,17 @@ namespace Components
 
 	void Loader::PreDestroyNoPostGame()
 	{
-		if (!Loader::Postgame)
+		if (!Postgame)
 		{
-			auto components = Loader::Components;
+			auto components = Components;
 
 			std::reverse(components.begin(), components.end());
-			for (auto component : components)
+			for (auto& component : components)
 			{
 				component->preDestroy();
 			}
 
-			Loader::Postgame = true;
+			Postgame = true;
 		}
 	}
 
@@ -179,7 +230,7 @@ namespace Components
 
 		Logger::Print("Performing unit tests for components:\n");
 
-		for (const auto component : Loader::Components)
+		for (const auto& component : Components)
 		{
 #if defined(FORCE_UNIT_TESTS)
 			Logger::Debug("Testing '{}'...\n", component->getName());
@@ -208,12 +259,12 @@ namespace Components
 		if (component)
 		{
 #if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-			if (!Loader::IsPerformingUnitTests())
+			if (!IsPerformingUnitTests())
 			{
 				Logger::Print("Component registered: {}\n", component->getName());
 			}
 #endif
-			Loader::Components.push_back(component);
+			Components.push_back(component);
 		}
 	}
 }

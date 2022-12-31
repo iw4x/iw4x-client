@@ -29,6 +29,9 @@ namespace Game
 	typedef void(*SV_SetConfigstring_t)(int index, const char* string);
 	extern SV_SetConfigstring_t SV_SetConfigstring;
 
+	typedef unsigned int(*SV_GetConfigstringConst_t)(int index);
+	extern SV_GetConfigstringConst_t SV_GetConfigstringConst;
+
 	typedef void(*SV_DirectConnect_t)(netadr_t adr);
 	extern SV_DirectConnect_t SV_DirectConnect;
 
@@ -41,21 +44,28 @@ namespace Game
 	typedef void(*SV_DropClient_t)(client_t* drop, const char* reason, bool tellThem);
 	extern SV_DropClient_t SV_DropClient;
 
-	typedef client_t* (*SV_GetPlayerByName_t)();
+	typedef client_t*(*SV_GetPlayerByName_t)();
 	extern SV_GetPlayerByName_t SV_GetPlayerByName;
 
-	typedef client_t* (*SV_GetPlayerByNum_t)();
+	typedef client_t*(*SV_GetPlayerByNum_t)();
 	extern SV_GetPlayerByNum_t SV_GetPlayerByNum;
 
-	typedef client_t* (*SV_FindClientByAddress_t)(netadr_t from, int qport, int remoteClientIndex);
+	typedef client_t*(*SV_FindClientByAddress_t)(netadr_t from, int qport, int remoteClientIndex);
 	extern SV_FindClientByAddress_t SV_FindClientByAddress;
+
+	typedef void(*SV_WaitServer_t)();
+	extern SV_WaitServer_t SV_WaitServer;
 
 	constexpr auto MAX_STATPACKETS = 7;
 
 	extern int* svs_time;
+	extern int* sv_timeResidual;
 	extern int* sv_serverId_value;
 	extern int* svs_clientCount;
 	extern client_t* svs_clients;
+
+	extern unsigned short* sv_sconfigstrings;
+	extern unsigned short* sv_emptyConfigString;
 
 	extern volatile long* sv_thread_owns_game;
 

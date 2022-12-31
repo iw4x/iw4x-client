@@ -5,7 +5,7 @@ namespace Assets
 {
 	void Isnd_alias_list_t::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File aliasFile(Utils::String::VA("sounds/%s.json", name.data()));
+		Components::FileSystem::File aliasFile(std::format("sounds/{}.json", name));
 		if (!aliasFile.exists())
 		{
 			header->sound = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).sound;

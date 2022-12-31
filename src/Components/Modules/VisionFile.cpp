@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "VisionFile.hpp"
 
 namespace Components
 {

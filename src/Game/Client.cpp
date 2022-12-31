@@ -8,6 +8,10 @@ namespace Game
 	CL_DownloadsComplete_t CL_DownloadsComplete = CL_DownloadsComplete_t(0x42CE90);
 	CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical = CL_DrawStretchPicPhysical_t(0x4FC120);
 	CL_GetConfigString_t CL_GetConfigString = CL_GetConfigString_t(0x44ADB0);
+	CL_AddReliableCommand_t CL_AddReliableCommand = CL_AddReliableCommand_t(0x454F40);
+	CL_ParseGamestate_t CL_ParseGamestate = CL_ParseGamestate_t(0x5AC250);
+	CL_ParseSnapshot_t CL_ParseSnapshot = CL_ParseSnapshot_t(0x5ABD40);
+	CL_ParseServerMessage_t CL_ParseServerMessage = CL_ParseServerMessage_t(0x4A9E90);
 	CL_GetMaxRank_t CL_GetMaxRank = CL_GetMaxRank_t(0x44BA30);
 	CL_GetRankForXP_t CL_GetRankForXP = CL_GetRankForXP_t(0x4FF8A0);
 	CL_GetRankIcon_t CL_GetRankIcon = CL_GetRankIcon_t(0x4A7B30);
@@ -19,6 +23,9 @@ namespace Game
 	CL_GetLocalClientActiveCount_t CL_GetLocalClientActiveCount = CL_GetLocalClientActiveCount_t(0x5BAD90);
 	CL_ControllerIndexFromClientNum_t CL_ControllerIndexFromClientNum = CL_ControllerIndexFromClientNum_t(0x449E30);
 	CL_MouseEvent_t CL_MouseEvent = CL_MouseEvent_t(0x4D7C50);
+	CL_WriteDemoClientArchive_t CL_WriteDemoClientArchive = CL_WriteDemoClientArchive_t(0x5A8020);
+	CL_WriteDemoMessage_t CL_WriteDemoMessage = CL_WriteDemoMessage_t(0x4707C0);
+	CL_AddDebugStarWithText_t CL_AddDebugStarWithText = CL_AddDebugStarWithText_t(0x4D03C0);
 
 	float* cl_angles = reinterpret_cast<float*>(0xB2F8D0);
 
@@ -28,13 +35,15 @@ namespace Game
 
 	clientUIActive_t* clientUIActives = reinterpret_cast<clientUIActive_t*>(0xB2BB88);
 
+	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
+
 	voiceCommunication_t* cl_voiceCommunication = reinterpret_cast<voiceCommunication_t*>(0x1079DA0);
 
 	int CL_GetMaxXP()
 	{
 		StringTable* rankTable = DB_FindXAssetHeader(ASSET_TYPE_STRINGTABLE, "mp/rankTable.csv").stringTable;
 		const char* maxrank = StringTable_Lookup(rankTable, 0, "maxrank", 1);
-		return atoi(StringTable_Lookup(rankTable, 0, maxrank, 7));
+		return std::atoi(StringTable_Lookup(rankTable, 0, maxrank, 7));
 	}
 
 	clientConnection_t* CL_GetLocalClientConnection(const int localClientNum)
@@ -57,5 +66,25 @@ namespace Game
 		AssertIn(localClientNum, STATIC_MAX_LOCAL_CLIENTS);
 
 		return cl_voiceCommunication;
+	}
+
+	clientUIActive_t* CL_GetLocalClientUIGlobals(const int localClientNum)
+	{
+		AssertIn(localClientNum, MAX_LOCAL_CLIENTS);
+		return &clientUIActives[localClientNum];
+	}
+
+	clientActive_t* CL_GetLocalClientGlobals(const int localClientNum)
+	{
+		AssertIn(localClientNum, MAX_LOCAL_CLIENTS);
+		assert(clients[localClientNum].alwaysFalse == false);
+		return &clients[localClientNum];
+	}
+
+	void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer)
+	{
+		static const float MY_NULLTEXTCOLOR[] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+		CL_AddDebugStarWithText(point, color, MY_NULLTEXTCOLOR, nullptr, 1.0f, duration, fromServer);
 	}
 }

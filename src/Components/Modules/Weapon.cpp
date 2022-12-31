@@ -1,8 +1,12 @@
 #include <STDInclude.hpp>
+#include "Weapon.hpp"
+
 #include "GSC/Script.hpp"
 
 namespace Components
 {
+	const Game::dvar_t* Weapon::BGWeaponOffHandFix;
+
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
 		if (auto* rawWeaponFile = Game::BG_LoadWeaponCompleteDefInternal("mp", name))
@@ -481,7 +485,7 @@ namespace Components
 
 			// Game code
 			push 0x48BB2D
-			retn
+			ret
 
 		null:
 			push 0x48BB1F // Exit function
@@ -499,7 +503,7 @@ namespace Components
 			jz touched
 
 			push 0x56E82C
-			retn
+			ret
 
 		touched:
 			test dword ptr [edi + 0x2BC], PWF_DISABLE_WEAPON_PICKUP
@@ -515,7 +519,32 @@ namespace Components
 
 		continue_func:
 			push 0x56E84C
-			retn
+			ret
+		}
+	}
+
+	__declspec(naked) void Weapon::JavelinResetHook_Stub()
+	{
+		static DWORD PM_Weapon_OffHandEnd_t = 0x577A10;
+
+		__asm
+		{
+			call PM_Weapon_OffHandEnd_t
+
+			push eax
+			mov eax, BGWeaponOffHandFix
+			cmp byte ptr [eax + 0x10], 1
+			pop eax
+
+			jne safeReturn
+
+			mov dword ptr [esi + 0x34], 0 // playerState_s.grenadeTimeLeft
+
+		safeReturn:
+			pop edi
+			pop esi
+			pop ebx
+			ret
 		}
 	}
 
@@ -565,9 +594,14 @@ namespace Components
 		Utils::Hook(0x59E341, CG_UpdatePrimaryForAltModeWeapon_Stub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x48BB25, CG_SelectWeaponIndex_Stub, HOOK_JUMP).install()->quick();
 
-		AddScriptMethods();
-
 		AssertOffset(Game::playerState_s, Game::playerState_s::weapCommon.weapFlags, 0x2BC);
 		Utils::Hook(0x56E825, WeaponEntCanBeGrabbed_Stub, HOOK_JUMP).install()->quick();
+
+		// Javelin fix (PM_Weapon_OffHandEnd)
+		AssertOffset(Game::playerState_s, grenadeTimeLeft, 0x34);
+		BGWeaponOffHandFix = Game::Dvar_RegisterBool("bg_weaponOffHandFix", true, Game::DVAR_CODINFO, "Reset grenadeTimeLeft after using off hand weapon");
+		Utils::Hook(0x578F52, JavelinResetHook_Stub, HOOK_JUMP).install()->quick();
+
+		AddScriptMethods();
 	}
 }

@@ -12,12 +12,23 @@ namespace Game
 	G_PrintEntities_t G_PrintEntities = G_PrintEntities_t(0x4E6A50);
 	G_GetEntityTypeName_t G_GetEntityTypeName = G_GetEntityTypeName_t(0x4EB810);
 
+	G_LocalizedStringIndex_t G_LocalizedStringIndex = G_LocalizedStringIndex_t(0x4582F0);
+
+	G_DebugLineWithDuration_t G_DebugLineWithDuration = G_DebugLineWithDuration_t(0x4C3280);
+
 	gentity_t* g_entities = reinterpret_cast<gentity_t*>(0x18835D8);
+
+	const char* origErrorMsg = reinterpret_cast<const char*>(0x79B124);
 
 	XModel* G_GetModel(const int index)
 	{
 		assert(index > 0);
 		assert(index < MAX_MODELS);
 		return cached_models[index];
+	}
+
+	void G_DebugStar(const float* point, const float* color)
+	{
+		CL_AddDebugStar(point, color, 20, 1);
 	}
 }

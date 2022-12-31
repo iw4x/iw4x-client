@@ -12,17 +12,23 @@ namespace Game
 	SV_Cmd_ArgvBuffer_t SV_Cmd_ArgvBuffer = SV_Cmd_ArgvBuffer_t(0x40BB60);
 	SV_DirectConnect_t SV_DirectConnect = SV_DirectConnect_t(0x460480);
 	SV_SetConfigstring_t SV_SetConfigstring = SV_SetConfigstring_t(0x4982E0);
+	SV_GetConfigstringConst_t SV_GetConfigstringConst = SV_GetConfigstringConst_t(0x468500);
 	SV_Loaded_t SV_Loaded = SV_Loaded_t(0x4EE3E0);
 	SV_ClientThink_t SV_ClientThink = SV_ClientThink_t(0x44ADD0);
 	SV_DropClient_t SV_DropClient = SV_DropClient_t(0x4D1600);
 	SV_GetPlayerByName_t SV_GetPlayerByName = SV_GetPlayerByName_t(0x6242B0);
 	SV_GetPlayerByNum_t SV_GetPlayerByNum = SV_GetPlayerByNum_t(0x624390);
 	SV_FindClientByAddress_t SV_FindClientByAddress = SV_FindClientByAddress_t(0x44F450);
+	SV_WaitServer_t SV_WaitServer = SV_WaitServer_t(0x4256F0);
 
 	int* svs_time = reinterpret_cast<int*>(0x31D9384);
+	int* sv_timeResidual = reinterpret_cast<int*>(0x2089E14);
 	int* sv_serverId_value = reinterpret_cast<int*>(0x2089DC0);
 	int* svs_clientCount = reinterpret_cast<int*>(0x31D938C);
 	client_t* svs_clients = reinterpret_cast<client_t*>(0x31D9390);
+
+	unsigned short* sv_sconfigstrings = reinterpret_cast<unsigned short*>(0x208A632);
+	unsigned short* sv_emptyConfigString = reinterpret_cast<unsigned short*>(0x208A630);
 
 	volatile long* sv_thread_owns_game = reinterpret_cast<volatile long*>(0x2089DB8);
 

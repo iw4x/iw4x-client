@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "QuickPatch.hpp"
 
 namespace Components
 {
@@ -44,20 +45,6 @@ namespace Components
 				Command::Execute(Utils::String::VA("setPlayerData challengeState %s %d", challenge, maxState));
 				Command::Execute(Utils::String::VA("setPlayerData challengeProgress %s %d", challenge, maxProgress));
 			}
-		}
-	}
-
-	__declspec(naked) void QuickPatch::JavelinResetHook_Stub()
-	{
-		__asm
-		{
-			mov eax, 577A10h;
-			call eax;
-			pop edi;
-			mov dword ptr [esi+34h], 0;
-			pop esi;
-			pop ebx;
-			retn;
 		}
 	}
 
@@ -315,9 +302,6 @@ namespace Components
 		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeapon_Stub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMelee_Stub, HOOK_JUMP).install()->quick();
 
-		// Javelin fix
-		Utils::Hook(0x578F52, QuickPatch::JavelinResetHook_Stub, HOOK_JUMP).install()->quick();
-
 		// Add ultrawide support
 		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
@@ -331,9 +315,6 @@ namespace Components
 
 		// Fix crash as nullptr goes unchecked
 		Utils::Hook(0x437CAD, QuickPatch::SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
-
-		// Make VA thread safe
-		Utils::Hook(0x4785B0, Utils::String::VA, HOOK_JUMP).install()->quick();
 
 		// protocol version (workaround for hacks)
 		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
@@ -369,20 +350,6 @@ namespace Components
 
 		// fs_basegame
 		Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
-
-		// console title
-		if (ZoneBuilder::IsEnabled())
-		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): ZoneBuilder");
-		}
-		else if (Dedicated::IsEnabled())
-		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): Dedicated");
-		}
-		else
-		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): Console");
-		}
 
 		// window title
 		Utils::Hook::Set<const char*>(0x5076A0, "IW4x: Multiplayer");
@@ -610,7 +577,8 @@ namespace Components
 						formatString = "userraw/shader_bin/%.vs";
 					}
 
-					if (Utils::IO::FileExists(Utils::String::VA(formatString, name.data()))) return;
+					const auto path = std::format("{}{}", formatString, name);
+					if (Utils::IO::FileExists(path)) return;
 
 					Utils::Stream buffer(0x1000);
 					auto* dest = buffer.dest<Game::MaterialPixelShader>();
@@ -622,7 +590,7 @@ namespace Components
 						Utils::Stream::ClearPointer(&dest->prog.loadDef.program);
 					}
 
-					Utils::IO::WriteFile(Utils::String::VA(formatString, name.data()), buffer.toBuffer());
+					Utils::IO::WriteFile(path, buffer.toBuffer());
 				}
 
 				if (type == Game::ASSET_TYPE_TECHNIQUE_SET)

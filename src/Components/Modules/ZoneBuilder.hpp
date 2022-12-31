@@ -60,7 +60,7 @@ namespace Components
 			int findScriptString(const std::string& str);
 			void addRawAsset(Game::XAssetType type, void* ptr);
 
-			void mapScriptString(unsigned short* gameIndex);
+			void mapScriptString(unsigned short& gameIndex);
 
 			void renameAsset(Game::XAssetType type, const std::string& asset, const std::string& newName);
 			std::string getAssetName(Game::XAssetType type, const std::string& asset);
@@ -74,7 +74,7 @@ namespace Components
 			bool isPrimaryAsset() { return this->assetDepth <= 1; }
 
 		private:
-			void loadFastFiles();
+			void loadFastFiles() const;
 
 			bool loadAssets();
 			bool loadAssetByName(const std::string& type, std::string name, bool isSubAsset = true);
@@ -138,8 +138,9 @@ namespace Components
 		static void ReleaseTexture(Game::XAssetHeader header);
 
 		static std::string FindMaterialByTechnique(const std::string& name);
+		static void ReallocateLoadedSounds(void*& data, void* a2);
 
-		static int __stdcall EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
+		static BOOL APIENTRY EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
 		static void HandleError(Game::errorParm_t code, const char* fmt, ...);
 		static void SoftErrorAssetOverflow();
 
@@ -147,13 +148,16 @@ namespace Components
 		static void ResetThreadRole();
 
 		static bool IsThreadMainThreadHook();
+		static Game::Sys_File Sys_CreateFile_Stub(const char* dir, const char* filename);
 
 		static void Com_Quitf_t();
+
+		static void CommandThreadCallback();
 
 		static bool MainThreadInterrupted;
 		static DWORD InterruptingThreadId;
 
-		static volatile bool Terminate;
+		static volatile bool CommandThreadTerminate;
 		static std::thread CommandThread;
 	};
 }

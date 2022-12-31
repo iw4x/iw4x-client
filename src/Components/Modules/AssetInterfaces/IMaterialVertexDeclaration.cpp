@@ -1,14 +1,14 @@
 #include <STDInclude.hpp>
 #include "IMaterialVertexDeclaration.hpp"
 
-#define IW4X_TECHSET_VERSION "0"
+#define IW4X_TECHSET_VERSION 1
 
 namespace Assets
 {
 	void IMaterialVertexDeclaration::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		if (!header->data) this->loadNative(header, name, builder); // Check if there is a native one
 		if (!header->data) this->loadBinary(header, name, builder); // Check if we need to import a new one into the game
+		if (!header->data) this->loadNative(header, name, builder); // Check if there is a native one
 	}
 
 	void IMaterialVertexDeclaration::loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
@@ -18,7 +18,7 @@ namespace Assets
 
 	void IMaterialVertexDeclaration::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File declFile(Utils::String::VA("decl/%s.iw4xDECL", name.data()));
+		Components::FileSystem::File declFile(std::format("decl/{}.iw4xDECL", name));
 		if (!declFile.exists()) return;
 
 		Utils::Stream::Reader reader(builder->getAllocator(), declFile.getBuffer());
@@ -29,12 +29,11 @@ namespace Assets
 			Components::Logger::Error(Game::ERR_FATAL, "Reading vertex declaration '{}' failed, header is invalid!", name);
 		}
 
-		std::string version;
-		version.push_back(reader.read<char>());
+		auto version = reader.read<char>();
 		if (version != IW4X_TECHSET_VERSION)
 		{
-			Components::Logger::Error(Game::ERR_FATAL, "Reading vertex declaration '{}' failed, expected version is {}, but it was {}!",
-				name, IW4X_TECHSET_VERSION, version.data());
+			Components::Logger::Error(Game::ERR_FATAL, "Reading vertex declaration '{}' failed, expected version is {}, but it was {:d}!",
+				name, IW4X_TECHSET_VERSION, version);
 		}
 
 		Game::MaterialVertexDeclaration* asset = reader.readObject<Game::MaterialVertexDeclaration>();

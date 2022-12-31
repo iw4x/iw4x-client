@@ -13,6 +13,8 @@ namespace Components
 		Weapon();
 
 	private:
+		static const Game::dvar_t* BGWeaponOffHandFix;
+
 		static Game::WeaponCompleteDef* LoadWeaponCompleteDef(const char* name);
 		static void PatchLimit();
 		static void* LoadNoneWeaponHook();
@@ -28,6 +30,8 @@ namespace Components
 
 		static void CG_UpdatePrimaryForAltModeWeapon_Stub();
 		static void CG_SelectWeaponIndex_Stub();
+
+		static void JavelinResetHook_Stub();
 
 		static void WeaponEntCanBeGrabbed_Stub();
 		static void AddScriptMethods();

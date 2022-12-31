@@ -6,9 +6,9 @@ namespace Components
 
 	bool Flags::HasFlag(const std::string& flag)
 	{
-		Flags::ParseFlags();
+		ParseFlags();
 
-		for (const auto& entry : Flags::EnabledFlags)
+		for (const auto& entry : EnabledFlags)
 		{
 			if (Utils::String::ToLower(entry) == Utils::String::ToLower(flag))
 			{
@@ -40,7 +40,7 @@ namespace Components
 				if (wFlag[0] == L'-')
 				{
 					wFlag.erase(wFlag.begin());
-					Flags::EnabledFlags.emplace_back(Utils::String::Convert(wFlag));
+					EnabledFlags.emplace_back(Utils::String::Convert(wFlag));
 				}
 			}
 
@@ -48,9 +48,9 @@ namespace Components
 		}
 
 		// Workaround for wine
-		if (Utils::IsWineEnvironment() && Dedicated::IsEnabled() && !Flags::HasFlag("console") && !Flags::HasFlag("stdout"))
+		if (Utils::IsWineEnvironment() && Dedicated::IsEnabled() && !HasFlag("console") && !HasFlag("stdout"))
 		{
-			Flags::EnabledFlags.emplace_back("stdout");
+			EnabledFlags.emplace_back("stdout");
 		}
 	}
 }

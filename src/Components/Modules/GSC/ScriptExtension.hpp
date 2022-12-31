@@ -27,6 +27,5 @@ namespace Components
 		static void AddMethods();
 		static void AddEntityFields();
 		static void AddClientFields();
-		static void Scr_TableLookupIStringByRow();
 	};
 }

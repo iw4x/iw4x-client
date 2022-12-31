@@ -5,7 +5,7 @@
 
 namespace Utils::String
 {
-	const char *VA(const char *fmt, ...)
+	const char* VA(const char* fmt, ...)
 	{
 		static VAProvider<4, 100> globalProvider;
 		static thread_local VAProvider<8, 256> provider;
@@ -21,24 +21,26 @@ namespace Utils::String
 		return result;
 	}
 
-	std::string ToLower(std::string text)
+	std::string ToLower(const std::string& text)
 	{
-		std::transform(text.begin(), text.end(), text.begin(), [](const unsigned char input)
+		std::string result;
+		std::ranges::transform(text, std::back_inserter(result), [](const unsigned char input)
 		{
 			return static_cast<char>(std::tolower(input));
 		});
 
-		return text;
+		return result;
 	}
 
-	std::string ToUpper(std::string text)
+	std::string ToUpper(const std::string& text)
 	{
-		std::transform(text.begin(), text.end(), text.begin(), [](const unsigned char input)
+		std::string result;
+		std::ranges::transform(text, std::back_inserter(result), [](const unsigned char input)
 		{
 			return static_cast<char>(std::toupper(input));
 		});
 
-		return text;
+		return result;
 	}
 
 	bool Compare(const std::string& lhs, const std::string& rhs)
@@ -143,9 +145,9 @@ namespace Utils::String
 	}
 
 	// Trim from both ends
-	std::string& Trim(std::string& str)
+	void Trim(std::string& str)
 	{
-		return LTrim(RTrim(str));
+		LTrim(RTrim(str));
 	}
 
 	std::string Convert(const std::wstring& wstr)

@@ -1,8 +1,5 @@
 #pragma once
 
-// Version number
-#include "version.h"
-
 #ifndef RC_INVOKED
 
 #define VC_EXTRALEAN
@@ -19,7 +16,7 @@
 #include <ShlObj.h>
 #include <timeapi.h>
 #include <shellapi.h>
-#include <wininet.h>
+#include <WinInet.h>
 #include <d3d9.h>
 #include <AclAPI.h>
 #include <Psapi.h>
@@ -31,23 +28,25 @@
 #pragma warning(disable: 4244)
 #include <DbgHelp.h>
 
-#include <sstream>
-#include <fstream>
-#include <cctype>
-#include <regex>
-#include <thread>
-#include <future>
-#include <unordered_map>
-#include <queue>
 #include <algorithm>
-#include <limits>
+#include <cctype>
+#include <chrono>
 #include <cmath>
 #include <filesystem>
-#include <optional>
-#include <random>
-#include <chrono>
 #include <format>
+#include <fstream>
+#include <future>
+#include <limits>
+#include <optional>
+#include <queue>
+#include <random>
+#include <ranges>
+#include <regex>
 #include <source_location>
+#include <sstream>
+#include <thread>
+#include <type_traits>
+#include <unordered_map>
 
 #pragma warning(pop)
 
@@ -81,7 +80,6 @@
 
 #include <gsl/gsl>
 #include <tomcrypt.h>
-#include <udis86.h>
 #include <zlib.h>
 
 // Enable additional literals
@@ -174,6 +172,7 @@ using namespace std::literals;
 #endif
 
 #define BASEGAME "iw4x"
+#define BASEGAME_NAME "iw4mp_ceg.exe"
 #define CLIENT_CONFIG "iw4x_config.cfg"
 
 // Resource stuff

@@ -1,5 +1,9 @@
 #include <STDInclude.hpp>
+#include "ClientCommand.hpp"
+
 #include "GSC/Script.hpp"
+
+using namespace Utils::String;
 
 namespace Components
 {
@@ -12,14 +16,14 @@ namespace Components
 		if (!(*Game::g_cheats)->current.enabled)
 		{
 			Logger::Debug("Cheats are disabled!");
-			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"GAME_CHEATSNOTENABLED\"", 0x65));
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_CHEATSNOTENABLED\"", 0x65));
 			return false;
 		}
 
 		if (ent->health < 1)
 		{
 			Logger::Debug("Entity {} must be alive to use this command!", entNum);
-			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"GAME_MUSTBEALIVECOMMAND\"", 0x65));
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_MUSTBEALIVECOMMAND\"", 0x65));
 			return false;
 		}
 
@@ -37,9 +41,9 @@ namespace Components
 	{
 		const auto ent = &Game::g_entities[clientNum];
 
-		if (ent->client == nullptr)
+		if (!ent->client)
 		{
-			Logger::Debug("ClientCommand: client {} is not fully in game yet", clientNum);
+			Logger::Debug("ClientCommand: client {} is not fully connected", clientNum);
 			return;
 		}
 
@@ -67,8 +71,7 @@ namespace Components
 			const auto entNum = ent->s.number;
 			Logger::Debug("Noclip toggled for entity {}", entNum);
 
-			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
-				(ent->client->flags & Game::PLAYER_FLAG_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::PLAYER_FLAG_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
 		});
 
 		Add("ufo", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
@@ -81,8 +84,7 @@ namespace Components
 			const auto entNum = ent->s.number;
 			Logger::Debug("UFO toggled for entity {}", entNum);
 
-			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
-				(ent->client->flags & Game::PLAYER_FLAG_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::PLAYER_FLAG_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
 		});
 
 		Add("god", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
@@ -95,8 +97,7 @@ namespace Components
 			const auto entNum = ent->s.number;
 			Logger::Debug("God toggled for entity {}", entNum);
 
-			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
-				(ent->flags & Game::FL_GODMODE) ? "GAME_GODMODE_ON" : "GAME_GODMODE_OFF"));
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->flags & Game::FL_GODMODE) ? "GAME_GODMODE_ON" : "GAME_GODMODE_OFF"));
 		});
 
 		Add("demigod", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
@@ -109,8 +110,7 @@ namespace Components
 			const auto entNum = ent->s.number;
 			Logger::Debug("Demigod toggled for entity {}", entNum);
 
-			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
-				(ent->flags & Game::FL_DEMI_GODMODE) ? "GAME_DEMI_GODMODE_ON" : "GAME_DEMI_GODMODE_OFF"));
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->flags & Game::FL_DEMI_GODMODE) ? "GAME_DEMI_GODMODE_ON" : "GAME_DEMI_GODMODE_OFF"));
 		});
 
 		Add("notarget", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
@@ -123,13 +123,12 @@ namespace Components
 			const auto entNum = ent->s.number;
 			Logger::Debug("Notarget toggled for entity {}", entNum);
 
-			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"%s\"", 0x65,
-				(ent->flags & Game::FL_NOTARGET) ? "GAME_NOTARGETON" : "GAME_NOTARGETOFF"));
+			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->flags & Game::FL_NOTARGET) ? "GAME_NOTARGETON" : "GAME_NOTARGETOFF"));
 		});
 
 		Add("setviewpos", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			assert(ent != nullptr);
+			assert(ent);
 
 			if (!CheatsOk(ent))
 				return;
@@ -138,8 +137,7 @@ namespace Components
 
 			if (params->size() < 4 || params->size() > 6)
 			{
-				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE,
-					Utils::String::VA("%c \"GAME_USAGE\x15: setviewpos x y z [yaw] [pitch]\n\"", 0x65));
+				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: setviewpos x y z [yaw] [pitch]\n\"", 0x65));
 				return;
 			}
 
@@ -170,8 +168,7 @@ namespace Components
 
 			if (params->size() < 2)
 			{
-				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE,
-					Utils::String::VA("%c \"GAME_USAGE\x15: give <weapon name>\"", 0x65));
+				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: give <weapon name>\"", 0x65));
 				return;
 			}
 
@@ -245,19 +242,26 @@ namespace Components
 
 		Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			assert(ent->client != nullptr);
+			assert(ent->client);
 			assert(ent->client->sess.connected != Game::CON_DISCONNECTED);
 
 			if (ent->client->sess.sessionState != Game::SESS_STATE_PLAYING || !CheatsOk(ent))
 				return;
 
-			Scheduler::Once([ent]
-			{
-				ent->flags &= ~(Game::FL_GODMODE | Game::FL_DEMI_GODMODE);
-				ent->health = 0;
-				ent->client->ps.stats[0] = 0;
-				Game::player_die(ent, ent, ent, 100000, Game::MOD_SUICIDE, 0, nullptr, Game::HITLOC_NONE, 0);
-			}, Scheduler::Pipeline::SERVER);
+			auto** bgs = Game::Sys::GetTls<Game::bgs_t*>(Game::Sys::TLS_OFFSET::LEVEL_BGS);
+
+			assert(*bgs == nullptr);
+
+			*bgs = Game::level_bgs;
+
+			ent->flags &= ~(Game::FL_GODMODE | Game::FL_DEMI_GODMODE);
+			ent->health = 0;
+			ent->client->ps.stats[0] = 0;
+			Game::player_die(ent, ent, ent, 100000, Game::MOD_SUICIDE, 0, nullptr, Game::HITLOC_NONE, 0);
+
+			assert(*bgs == Game::level_bgs);
+
+			*bgs = nullptr;
 		});
 	}
 
@@ -299,7 +303,7 @@ namespace Components
 				duration = static_cast<int>(std::floorf(input * 1000.0f + 0.5f));
 			}
 
-			assert(ent->client != nullptr);
+			assert(ent->client);
 
 			constexpr auto visMode = Game::visionSetMode_t::VISIONSET_NORMAL;
 			const auto* name = params->get(1);
@@ -308,8 +312,7 @@ namespace Components
 			strncpy_s(ent->client->visionName[visMode],
 				sizeof(Game::gclient_t::visionName[0]) / sizeof(char), name, _TRUNCATE);
 
-			Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_RELIABLE,
-				Utils::String::VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
+			Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_RELIABLE, VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
 		});
 
 		Add("visionsetnight", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
@@ -327,7 +330,7 @@ namespace Components
 				duration = static_cast<int>(std::floorf(input * 1000.0f + 0.5f));
 			}
 
-			assert(ent->client != nullptr);
+			assert(ent->client);
 
 			constexpr auto visMode = Game::visionSetMode_t::VISIONSET_NIGHT;
 			const auto* name = params->get(1);
@@ -336,13 +339,12 @@ namespace Components
 			strncpy_s(ent->client->visionName[visMode],
 				sizeof(Game::gclient_t::visionName[0]) / sizeof(char), name, _TRUNCATE);
 
-			Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_RELIABLE,
-				Utils::String::VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
+			Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_RELIABLE, VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
 		});
 
 		Add("g_testCmd", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
-			assert(ent != nullptr);
+			assert(ent);
 
 			ent->client->ps.stunTime = 1000 + Game::level->time; // 1000 is the default test stun time
 			Logger::Debug("playerState_s.stunTime is {}", ent->client->ps.stunTime);
@@ -406,7 +408,7 @@ namespace Components
 
 		// See description of the format string in the function G_DumpEntityDebugInfoToCSV
 		// If empty it means the item does not exist in the current version of the game or it was not possible to reverse it
-		return Utils::String::VA("%i,%s,%.0f,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.0f %.0f %.0f,%.0f %.0f %.0f,%i\n",
+		return VA("%i,%s,%.0f,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.0f %.0f %.0f,%.0f %.0f %.0f,%i\n",
 			entNum, eventType, distance, classname, codeClassname, (model) ? model->name : "",
 			targetName, target, "", scriptLinkName, team, "",
 			point[0], point[1], point[2], angles[0], angles[1], angles[2], 0);
@@ -442,7 +444,7 @@ namespace Components
 	{
 		assert(filenameSuffix);
 
-		const auto* fileName = Utils::String::VA("%s%s%s%s", "EntInfo", (*filenameSuffix) ? "_" : "", filenameSuffix, ".csv");
+		const auto* fileName = VA("%s%s%s%s", "EntInfo", (*filenameSuffix) ? "_" : "", filenameSuffix, ".csv");
 		Logger::Print(Game::CON_CHANNEL_SERVER, "Opening file \"{}\" for writing.\n", fileName);
 
 		auto h = Game::FS_FOpenTextFileWrite(fileName);
@@ -464,9 +466,11 @@ namespace Components
 
 			const auto* line = EntInfoLine(i);
 			const auto lineLen = std::strlen(line);
+
 			assert(line);
 			assert(lineLen);
-			Game::FS_Write(line, lineLen, h);
+
+			Game::FS_Write(line, static_cast<int>(lineLen), h);
 		}
 
 		Game::FS_FCloseFile(h);

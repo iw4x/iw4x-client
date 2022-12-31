@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "UIFeeder.hpp"
 
 namespace Components
 {
@@ -60,7 +61,6 @@ namespace Components
 	{
 		auto fsGame = Dvar::Var("fs_game");
 		fsGame.set("");
-		fsGame.get<Game::dvar_t*>()->modified = true;
 
 		if (Dvar::Var("cl_modVidRestart").get<bool>())
 		{
@@ -75,8 +75,7 @@ namespace Components
 	void ModList::RunMod(const std::string& mod)
 	{
 		auto fsGame = Dvar::Var("fs_game");
-		fsGame.set(Utils::String::VA("mods/%s", mod.data()));
-		fsGame.get<Game::dvar_t*>()->modified = true;
+		fsGame.set(std::format("mods/{}", mod));
 
 		if (Dvar::Var("cl_modVidRestart").get<bool>())
 		{

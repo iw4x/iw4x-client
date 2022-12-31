@@ -1,4 +1,8 @@
 #include <STDInclude.hpp>
+#include "Changelog.hpp"
+#include "News.hpp"
+
+#include <version.hpp>
 
 #define NEWS_MOTD_DEFAULT "Welcome to IW4x Multiplayer!"
 
@@ -11,12 +15,12 @@ namespace Components
 	{
 		bool result = true;
 
-		if (News::Thread.joinable())
+		if (Thread.joinable())
 		{
 			Logger::Debug("Awaiting thread termination...");
-			News::Thread.join();
+			Thread.join();
 
-			if (!strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFAULT))
+			if (!std::strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFAULT))
 			{
 				Logger::Print("Failed to fetch motd!\n");
 				result = false;
@@ -41,20 +45,18 @@ namespace Components
 
 		Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_ARCHIVE, "");
 
-		Dvar::Register<int>("cl_updateoldversion", REVISION, REVISION, REVISION, Game::DVAR_INIT, "Current version number.");
-
 		UIScript::Add("checkFirstLaunch", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			if (Dvar::Var("g_firstLaunch").get<bool>())
 			{
 				Command::Execute("openmenu menu_first_launch", false);
-				//Dvar::Var("g_firstLaunch").set(false);
+				//Dvar::Var("g_firstLaunch").set(false); // The menus should set it
 			}
 		});
 
 		UIScript::Add("visitWebsite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			Utils::OpenUrl(Utils::Cache::GetStaticUrl(""));
+			Utils::OpenUrl(Utils::Cache::GetUrl(Utils::Cache::Urls[1], {}));
 		});
 
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
@@ -65,15 +67,15 @@ namespace Components
 
 		// hook for getting the news ticker string
 		Utils::Hook::Nop(0x6388BB, 2); // skip the "if (item->text[0] == '@')" localize check
-		Utils::Hook(0x6388C1, News::GetNewsText, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6388C1, GetNewsText, HOOK_CALL).install()->quick();
 
 		if (!Utils::IsWineEnvironment() && !Loader::IsPerformingUnitTests())
 		{
-			News::Terminate = false;
-			News::Thread = std::thread([]()
+			Terminate = false;
+			Thread = std::thread([]()
 			{
 				Changelog::LoadChangelog();
-				if (News::Terminate) return;
+				if (Terminate) return;
 
 				std::string data = Utils::Cache::GetFile("/iw4/motd.txt");
 				if (!data.empty())
@@ -81,12 +83,12 @@ namespace Components
 					Localization::Set("MPUI_MOTD_TEXT", data);
 				}
 
-				if (!Loader::IsPerformingUnitTests() && !News::Terminate)
+				if (!Loader::IsPerformingUnitTests() && !Terminate)
 				{
-					while (!News::Terminate)
+					while (!Terminate)
 					{
 						// Sleep for 3 minutes
-						for (int i = 0; i < 180 && !News::Terminate; ++i)
+						for (int i = 0; i < 180 && !Terminate; ++i)
 						{
 							std::this_thread::sleep_for(1s);
 						}
@@ -98,13 +100,11 @@ namespace Components
 
 	void News::preDestroy()
 	{
-		News::Terminate = true;
+		Terminate = true;
 
-		if (News::Thread.joinable())
+		if (Thread.joinable())
 		{
-			News::Thread.join();
+			Thread.join();
 		}
-
-		News::Thread = std::thread();
 	}
 }

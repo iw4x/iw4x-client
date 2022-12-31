@@ -6,13 +6,13 @@ namespace Utils
 	{
 		std::string entityString;
 
-		for (auto& entity : this->entities)
+		for (const auto& entity : this->entities)
 		{
 			entityString.append("{\n");
 
-			for (auto& property : entity)
+			for (const auto& property : entity)
 			{
-				entityString.push_back('"');
+				entityString.append("\"");
 				entityString.append(property.first);
 				entityString.append("\" \"");
 				entityString.append(property.second);
@@ -35,7 +35,9 @@ namespace Utils
 			{
 				const auto& model = itr->second;
 
-				if (!model.empty() && model[0] != '*' && model[0] != '?') // Skip brushmodels
+				if (!model.empty() && model[0] != '*' && model[0] != '?' &&  // Skip brushmodels
+					model != "com_plasticcase_green_big_us_dirt"s // Team zones
+				)
 				{
 					if (std::find(models.begin(), models.end(), model) == models.end())
 					{

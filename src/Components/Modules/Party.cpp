@@ -1,4 +1,11 @@
 #include <STDInclude.hpp>
+#include "Download.hpp"
+#include "Gamepad.hpp"
+#include "ServerList.hpp"
+#include "Stats.hpp"
+#include "Voice.hpp"
+
+#include <version.hpp>
 
 namespace Components
 {
@@ -75,7 +82,7 @@ namespace Components
 		return Party::Container.motd;
 	}
 
-	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int /*value*/, int /*min*/, int max, Game::DvarFlags flag, const char* description)
+	Game::dvar_t* Party::RegisterMinPlayers(const char* name, int /*value*/, int /*min*/, int max, unsigned __int16 flag, const char* description)
 	{
 		return Dvar::Register<int>(name, 1, 1, max, Game::DVAR_INIT | flag, description).get<Game::dvar_t*>();
 	}
@@ -313,13 +320,15 @@ namespace Components
 		// Basic info handler
 		Network::OnClientPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
-			int botCount = 0;
-			int clientCount = 0;
-			int maxclientCount = *Game::svs_clientCount;
+			auto botCount = 0;
+			auto clientCount = 0;
+			auto maxClientCount = *Game::svs_clientCount;
+			const auto securityLevel = Dvar::Var("sv_securityLevel").get<int>();
+			const auto* password = *Game::g_password ? (*Game::g_password)->current.string : "";
 
-			if (maxclientCount)
+			if (maxClientCount)
 			{
-				for (int i = 0; i < maxclientCount; ++i)
+				for (int i = 0; i < maxClientCount; ++i)
 				{
 					if (Game::svs_clients[i].header.state >= Game::CS_CONNECTED)
 					{
@@ -330,7 +339,7 @@ namespace Components
 			}
 			else
 			{
-				maxclientCount = Dvar::Var("party_maxplayers").get<int>();
+				maxClientCount = Dvar::Var("party_maxplayers").get<int>();
 				clientCount = Game::PartyHost_CountMembers(reinterpret_cast<Game::PartyData*>(0x1081C00));
 			}
 
@@ -341,16 +350,16 @@ namespace Components
 			info.set("gametype", (*Game::sv_gametype)->current.string);
 			info.set("fs_game", (*Game::fs_gameDirVar)->current.string);
 			info.set("xuid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().bits));
-			info.set("clients", Utils::String::VA("%i", clientCount));
-			info.set("bots", Utils::String::VA("%i", botCount));
-			info.set("sv_maxclients", Utils::String::VA("%i", maxclientCount));
-			info.set("protocol", Utils::String::VA("%i", PROTOCOL));
+			info.set("clients", std::to_string(clientCount));
+			info.set("bots", std::to_string(botCount));
+			info.set("sv_maxclients", std::to_string(maxClientCount));
+			info.set("protocol", std::to_string(PROTOCOL));
 			info.set("shortversion", SHORTVERSION);
-			info.set("checksum", Utils::String::VA("%d", Game::Sys_Milliseconds()));
-			info.set("mapname", Dvar::Var("mapname").get<const char*>());
-			info.set("isPrivate", (Dvar::Var("g_password").get<std::string>().size() ? "1" : "0"));
+			info.set("checksum", std::to_string(Game::Sys_Milliseconds()));
+			info.set("mapname", Dvar::Var("mapname").get<std::string>());
+			info.set("isPrivate", *password ? "1" : "0");
 			info.set("hc", (Dvar::Var("g_hardcore").get<bool>() ? "1" : "0"));
-			info.set("securityLevel", Utils::String::VA("%i", Dvar::Var("sv_securityLevel").get<int>()));
+			info.set("securityLevel", std::to_string(securityLevel));
 			info.set("sv_running", (Dedicated::IsRunning() ? "1" : "0"));
 			info.set("aimAssist", (Gamepad::sv_allowAimAssist.get<bool>() ? "1" : "0"));
 			info.set("voiceChat", (Voice::SV_VoiceEnabled() ? "1" : "0"));

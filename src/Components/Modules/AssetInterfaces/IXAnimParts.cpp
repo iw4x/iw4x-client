@@ -7,7 +7,7 @@ namespace Assets
 {
 	void IXAnimParts::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File animFile(Utils::String::VA("xanim/%s.iw4xAnim", name.data()));
+		Components::FileSystem::File animFile(std::format("xanim/{}.iw4xAnim", name));
 
 		if (animFile.exists())
 		{
@@ -39,7 +39,7 @@ namespace Assets
 					xanim->names = builder->getAllocator()->allocateArray<unsigned short>(xanim->boneCount[Game::PART_TYPE_ALL]);
 					for (int i = 0; i < xanim->boneCount[Game::PART_TYPE_ALL]; ++i)
 					{
-						xanim->names[i] = Game::SL_GetString(reader.readCString(), 0);
+						xanim->names[i] = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
 					}
 				}
 
@@ -49,7 +49,7 @@ namespace Assets
 
 					for (int i = 0; i < xanim->notifyCount; ++i)
 					{
-						xanim->notify[i].name = Game::SL_GetString(reader.readCString(), 0);
+						xanim->notify[i].name = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
 					}
 				}
 
@@ -264,7 +264,7 @@ namespace Assets
 
 			for (char i = 0; i < asset->boneCount[Game::PART_TYPE_ALL]; ++i)
 			{
-				builder->mapScriptString(&destTagnames[i]);
+				builder->mapScriptString(destTagnames[i]);
 			}
 
 			Utils::Stream::ClearPointer(&dest->names);
@@ -280,7 +280,7 @@ namespace Assets
 
 			for (char i = 0; i < asset->notifyCount; ++i)
 			{
-				builder->mapScriptString(&destNotetracks[i].name);
+				builder->mapScriptString(destNotetracks[i].name);
 			}
 
 			Utils::Stream::ClearPointer(&dest->notify);

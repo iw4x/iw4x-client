@@ -1456,7 +1456,7 @@ namespace Components
 		{
 			Game::MaterialShaderArgument* arg = &argument[i];
 
-			if (arg->type != D3DSHADER_PARAM_REGISTER_TYPE::D3DSPR_TEXTURE && arg->type != D3DSHADER_PARAM_REGISTER_TYPE::D3DSPR_ATTROUT)
+			if (arg->type != Game::MaterialShaderArgumentType::MTL_ARG_CODE_VERTEX_CONST && arg->type != Game::MaterialShaderArgumentType::MTL_ARG_CODE_PIXEL_CONST)
 			{
 				continue;
 			}
@@ -1730,7 +1730,7 @@ namespace Components
 				{
 					Game::GfxImageLoadDef* texture;
 					char mapType;
-					char semantic;
+					Game::TextureSemantic semantic;
 					char category;
 					char flags;
 					int cardMemory;
@@ -3515,7 +3515,7 @@ namespace Components
 			Logger::Print("decrypted {} images!\n", images.size());
 		});
 
-		Command::Add("decryptSounds", [](Command::Params*)
+		Command::Add("decryptSounds", []([[maybe_unused]] Command::Params* params)
 		{
 			auto sounds = FileSystem::GetSysFileList("iw4x/sound", "iwi");
 			Logger::Print("decrypting {} sounds...\n", sounds.size());
@@ -3523,19 +3523,19 @@ namespace Components
 			for (auto& sound : sounds)
 			{
 				char* buffer = nullptr;
-				auto fileLength = Game::FS_ReadFile(Utils::String::VA("sound/%s", sound.data()), &buffer);
+				auto len = Game::FS_ReadFile(Utils::String::Format("sound/{}", sound), &buffer);
 
-				if (fileLength && buffer)
+				if (len && buffer)
 				{
 					auto path = std::filesystem::path(sound.data());
 					std::filesystem::create_directories("raw/sound" / path.parent_path());
 
-					if (!std::filesystem::exists(Utils::String::VA("raw/sound/%s", sound.data())))
+					if (!std::filesystem::exists(std::format("raw/sound/{}", sound)))
 					{
-						const auto fp = fopen(Utils::String::VA("raw/sound/%s", sound.data()), "wb");
-						if (fp)
+						FILE* fp;
+						if (!fopen_s(&fp, Utils::String::Format("raw/sound/{}", sound), "wb") && fp)
 						{
-							fwrite(buffer, fileLength, 1, fp);
+							fwrite(buffer, len, 1, fp);
 							fclose(fp);
 						}
 					}

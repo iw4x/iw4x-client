@@ -2,7 +2,6 @@
 
 namespace Game
 {
-
 	typedef void(*Sys_Error_t)(const char* error, ...);
 	extern Sys_Error_t Sys_Error;
 
@@ -33,6 +32,9 @@ namespace Game
 	typedef int(*Sys_Milliseconds_t)();
 	extern Sys_Milliseconds_t Sys_Milliseconds;
 
+	typedef void(*Sys_Sleep_t)(int msec);
+	extern Sys_Sleep_t Sys_Sleep;
+
 	typedef void(*Sys_LockWrite_t)(FastCriticalSection* critSect);
 	extern Sys_LockWrite_t Sys_LockWrite;
 
@@ -60,12 +62,40 @@ namespace Game
 	typedef void(*Sys_SuspendOtherThreads_t)();
 	extern Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads;
 
+	typedef void(*Sys_SetValue_t)(int valueIndex, void* data);
+	extern Sys_SetValue_t Sys_SetValue;
+
+	typedef Sys_File(*Sys_CreateFile_t)(const char* dir, const char* filename);
+	extern Sys_CreateFile_t Sys_CreateFile;
+
 	extern char(*sys_exitCmdLine)[1024];
 
 	extern RTL_CRITICAL_SECTION* s_criticalSection;
 
 	extern void Sys_LockRead(FastCriticalSection* critSect);
 	extern void Sys_UnlockRead(FastCriticalSection* critSect);
+	extern void Sys_UnlockWrite(FastCriticalSection* critSect);
 
 	extern bool Sys_TryEnterCriticalSection(CriticalSection critSect);
+
+	class Sys
+	{
+	public:
+		enum class TLS_OFFSET : unsigned int
+		{
+			LEVEL_BGS = 0xC,
+			THREAD_VALUES = 0x14,
+			HUFFMAN_BLOC = 0x10,
+			DVAR_ALLOWED_MODIFIED_FLAGS = 0x1C,
+			DVAR_MODIFIED_FLAGS = 0x18,
+			ZIP_INFO = 0x20,
+		};
+
+		template <typename T>
+		static T* GetTls(TLS_OFFSET offset)
+		{
+			const auto* tls = reinterpret_cast<std::uintptr_t*>(__readfsdword(0x2C));
+			return reinterpret_cast<T*>(tls[*g_dwTlsIndex] + static_cast<std::underlying_type_t<TLS_OFFSET>>(offset));
+		}
+	};
 }

@@ -1,4 +1,7 @@
 #include <STDInclude.hpp>
+#include "ClanTags.hpp"
+#include "PlayerName.hpp"
+#include "ServerCommands.hpp"
 
 namespace Components
 {
@@ -28,15 +31,15 @@ namespace Components
 			list.append(std::format("\\{}\\{}", std::to_string(i), ClientState[i]));
 		}
 
-		const auto* command = Utils::String::VA("%c clanNames \"%s\"", 22, list.data());
-		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, command);
+		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} clanNames \"{}\"", 22, list));
 	}
 
 	void ClanTags::ParseClanTags(const char* infoString)
 	{
 		for (std::size_t i = 0; i < Game::MAX_CLIENTS; ++i)
 		{
-			const auto* clanTag = Game::Info_ValueForKey(infoString, std::to_string(i).data());
+			const auto index = std::to_string(i);
+			const auto* clanTag = Game::Info_ValueForKey(infoString, index.data());
 
 			if (clanTag[0] == '\0')
 			{
@@ -70,9 +73,7 @@ namespace Components
 
 	void ClanTags::CL_SanitizeClanName()
 	{
-		char saneNameBuf[5];
-		std::memset(saneNameBuf, 0, sizeof(saneNameBuf));
-
+		char saneNameBuf[5]{};
 		auto* saneName = saneNameBuf;
 		
 		assert(ClanName);

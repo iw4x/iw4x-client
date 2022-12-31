@@ -48,6 +48,9 @@ namespace Game
 	typedef void(*Dvar_SetBool_t)(const dvar_t* dvar, bool enabled);
 	extern Dvar_SetBool_t Dvar_SetBool;
 
+	typedef void(*Dvar_SetBoolByName_t)(const char* dvarName, bool value);
+	extern Dvar_SetBoolByName_t Dvar_SetBoolByName;
+
 	typedef void(*Dvar_SetFloat_t)(const dvar_t* dvar, float value);
 	extern Dvar_SetFloat_t Dvar_SetFloat;
 
@@ -101,12 +104,14 @@ namespace Game
 	extern const dvar_t** cl_showSend;
 	extern const dvar_t** cl_voice;
 	extern const dvar_t** cl_ingame;
+	extern const dvar_t** cl_shownet;
 
 	extern const dvar_t** g_cheats;
 	extern const dvar_t** g_deadChat;
 	extern const dvar_t** g_allowVote;
 	extern const dvar_t** g_oldVoting;
 	extern const dvar_t** g_gametype;
+	extern const dvar_t** g_password;
 
 	extern const dvar_t** version;
 
@@ -115,7 +120,9 @@ namespace Game
 	extern const dvar_t** ui_currentMap;
 	extern const dvar_t** ui_gametype;
 	extern const dvar_t** ui_mapname;
+	extern const dvar_t** ui_joinGametype;
 	extern const dvar_t** ui_netGameType;
+	extern const dvar_t** ui_netSource;
 
 	extern const dvar_t** loc_warnings;
 	extern const dvar_t** loc_warningsAsErrors;

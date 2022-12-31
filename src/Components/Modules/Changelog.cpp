@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Changelog.hpp"
+#include "UIFeeder.hpp"
 
 namespace Components
 {
@@ -7,44 +9,44 @@ namespace Components
 
 	void Changelog::LoadChangelog()
 	{
-		//if (!Changelog::Lines.empty())
-		//	return;
+		std::lock_guard _(Mutex);
+		Lines.clear();
 
-		std::lock_guard<std::mutex> _(Changelog::Mutex);
-		Changelog::Lines.clear();
-		std::string data = Utils::Cache::GetFile("/develop/CHANGELOG.md");
+		const auto data = Utils::Cache::GetFile("/develop/CHANGELOG.md");
 
 		if (data.empty())
 		{
-			data = "^1Unable to get changelog.";
+			Lines.emplace_back("^1Unable to get changelog.");
+			return;
 		}
 
-		Changelog::Lines = Utils::String::Split(data, '\n');
-
-		for (auto& line : Changelog::Lines)
+		auto buffer = Utils::String::Split(data, '\n');
+		for (auto& line : buffer)
 		{
 			Utils::String::Replace(line, "\r", "");
 		}
+
+		Lines = buffer;
 	}
 
 	unsigned int Changelog::GetChangelogCount()
 	{
-		return Changelog::Lines.size();
+		return Lines.size();
 	}
 
 	// Omit column here
-	const char* Changelog::GetChangelogText(unsigned int item, int /*column*/)
+	const char* Changelog::GetChangelogText(unsigned int item, [[maybe_unused]] int column)
 	{
-		std::lock_guard<std::mutex> _(Changelog::Mutex);
-		if (item < Changelog::Lines.size())
+		std::lock_guard _(Mutex);
+		if (item < Lines.size())
 		{
-			return Utils::String::VA("%s", Changelog::Lines[item].data());
+			return Utils::String::Format("{}", Lines[item]);
 		}
 
 		return "";
 	}
 
-	void Changelog::SelectChangelog(unsigned int /*index*/)
+	void Changelog::SelectChangelog([[maybe_unused]] unsigned int index)
 	{
 		// Don't do anything in here
 	}
@@ -54,6 +56,6 @@ namespace Components
 		if (Dedicated::IsEnabled()) return;
 
 		// Changelog
-		UIFeeder::Add(62.0f, Changelog::GetChangelogCount, Changelog::GetChangelogText, Changelog::SelectChangelog);
+		UIFeeder::Add(62.0f, GetChangelogCount, GetChangelogText, SelectChangelog);
 	}
 }

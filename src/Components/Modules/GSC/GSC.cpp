@@ -4,6 +4,7 @@
 #include "IO.hpp"
 #include "Script.hpp"
 #include "ScriptExtension.hpp"
+#include "ScriptPatches.hpp"
 #include "ScriptStorage.hpp"
 
 namespace Components
@@ -14,6 +15,7 @@ namespace Components
 		Loader::Register(new IO());
 		Loader::Register(new Script());
 		Loader::Register(new ScriptExtension());
+		Loader::Register(new ScriptPatches());
 		Loader::Register(new ScriptStorage());
 	}
 }

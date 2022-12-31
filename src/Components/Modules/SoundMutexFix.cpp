@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "SoundMutexFix.hpp"
 
 namespace Components
 {
@@ -26,7 +27,7 @@ namespace Components
 
 	void __stdcall SoundMutexFix::LockSoundMutex(int unk)
 	{
-		std::lock_guard lock(SoundMutexFix::SNDMutex);
+		std::lock_guard lock(SNDMutex);
 
 		DWORD funcPtr = *reinterpret_cast<DWORD*>(0x6D7554); // AIL_close_stream
 		Utils::Hook::Call<void __stdcall(int)>(funcPtr)(unk);
@@ -34,6 +35,6 @@ namespace Components
 
 	SoundMutexFix::SoundMutexFix()
 	{
-		Utils::Hook(0x689EFE, &SoundMutexFix::LockSoundMutex, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x689EFE, &LockSoundMutex, HOOK_JUMP).install()->quick();
 	}
 }

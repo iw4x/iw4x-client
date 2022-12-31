@@ -1,16 +1,20 @@
 #include <STDInclude.hpp>
+#include "Bots.hpp"
+
 #include "GSC/Script.hpp"
 
 namespace Components
 {
-	std::vector<std::string> Bots::BotNames;
+	std::vector<Bots::botData> Bots::BotNames;
+
+	Dvar::Var Bots::SVRandomBotNames;
 
 	struct BotMovementInfo
 	{
-		int buttons; // Actions
-		int8_t forward;
-		int8_t right;
-		uint16_t weapon;
+		std::int32_t buttons; // Actions
+		std::int8_t forward;
+		std::int8_t right;
+		std::uint16_t weapon;
 		bool active;
 	};
 
@@ -19,67 +23,94 @@ namespace Components
 	struct BotAction
 	{
 		std::string action;
-		int key;
+		std::int32_t key;
 	};
 
 	static const BotAction BotActions[] =
 	{
-		{ "gostand", Game::usercmdButtonBits::CMD_BUTTON_UP },
-		{ "gocrouch", Game::usercmdButtonBits::CMD_BUTTON_CROUCH },
-		{ "goprone", Game::usercmdButtonBits::CMD_BUTTON_PRONE },
-		{ "fire", Game::usercmdButtonBits::CMD_BUTTON_ATTACK },
-		{ "melee", Game::usercmdButtonBits::CMD_BUTTON_MELEE },
-		{ "frag", Game::usercmdButtonBits::CMD_BUTTON_FRAG },
-		{ "smoke",  Game::usercmdButtonBits::CMD_BUTTON_OFFHAND_SECONDARY },
-		{ "reload", Game::usercmdButtonBits::CMD_BUTTON_RELOAD },
-		{ "sprint", Game::usercmdButtonBits::CMD_BUTTON_SPRINT },
-		{ "leanleft", Game::usercmdButtonBits::CMD_BUTTON_LEAN_LEFT },
-		{ "leanright", Game::usercmdButtonBits::CMD_BUTTON_LEAN_RIGHT },
-		{ "ads", Game::usercmdButtonBits::CMD_BUTTON_ADS },
-		{ "holdbreath", Game::usercmdButtonBits::CMD_BUTTON_BREATH },
-		{ "usereload", Game::usercmdButtonBits::CMD_BUTTON_USE_RELOAD },
-		{ "activate", Game::usercmdButtonBits::CMD_BUTTON_ACTIVATE },
+		{ "gostand", Game::CMD_BUTTON_UP },
+		{ "gocrouch", Game::CMD_BUTTON_CROUCH },
+		{ "goprone", Game::CMD_BUTTON_PRONE },
+		{ "fire", Game::CMD_BUTTON_ATTACK },
+		{ "melee", Game::CMD_BUTTON_MELEE },
+		{ "frag", Game::CMD_BUTTON_FRAG },
+		{ "smoke",  Game::CMD_BUTTON_OFFHAND_SECONDARY },
+		{ "reload", Game::CMD_BUTTON_RELOAD },
+		{ "sprint", Game::CMD_BUTTON_SPRINT },
+		{ "leanleft", Game::CMD_BUTTON_LEAN_LEFT },
+		{ "leanright", Game::CMD_BUTTON_LEAN_RIGHT },
+		{ "ads", Game::CMD_BUTTON_ADS },
+		{ "holdbreath", Game::CMD_BUTTON_BREATH },
+		{ "usereload", Game::CMD_BUTTON_USE_RELOAD },
+		{ "activate", Game::CMD_BUTTON_ACTIVATE },
 	};
 
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
-		static size_t botId = 0;
+		static size_t botId = 0; // Loop over the BotNames vector
 		static bool loadedNames = false; // Load file only once
 		const char* botName;
+		const char* clanName;
 
-		if (Bots::BotNames.empty() && !loadedNames)
+		if (BotNames.empty() && !loadedNames)
 		{
 			FileSystem::File bots("bots.txt");
 			loadedNames = true;
 
 			if (bots.exists())
 			{
-				auto names = Utils::String::Split(bots.getBuffer(), '\n');
+				auto data = Utils::String::Split(bots.getBuffer(), '\n');
 
-				for (auto& name : names)
+				if (SVRandomBotNames.get<bool>())
 				{
-					Utils::String::Replace(name, "\r", "");
-					name = Utils::String::Trim(name);
+					std::random_device rd;
+					std::mt19937 gen(rd());
+					std::ranges::shuffle(data, gen);
+				}
 
-					if (!name.empty())
+				for (auto& entry : data)
+				{
+					// Take into account for CR line endings
+					Utils::String::Replace(entry, "\r", "");
+					// Remove whitespace
+					Utils::String::Trim(entry);
+
+					if (!entry.empty())
 					{
-						Bots::BotNames.push_back(name);
+						std::string clanAbbrev;
+
+						// Check if there is a clan tag
+						if (const auto pos = entry.find(','); pos != std::string::npos)
+						{
+							// Only start copying over from non-null characters (otherwise it can be "<=")
+							if ((pos + 1) < entry.size())
+							{
+								clanAbbrev = entry.substr(pos + 1);
+							}
+
+							entry = entry.substr(0, pos);
+						}
+
+						BotNames.emplace_back(std::make_pair(entry, clanAbbrev));
 					}
 				}
 			}
 		}
 
-		if (!Bots::BotNames.empty())
+		if (!BotNames.empty())
 		{
-			botId %= Bots::BotNames.size();
-			botName = Bots::BotNames[botId++].data();
+			botId %= BotNames.size();
+			const auto index = botId++;
+			botName = BotNames[index].first.data();
+			clanName = BotNames[index].second.data();
 		}
 		else
 		{
 			botName = Utils::String::VA("bot%d", ++botId);
+			clanName = "BOT";
 		}
 
-		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName, protocol, checksum, statVer, statStuff, port);
+		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName, clanName, protocol, checksum, statVer, statStuff, port);
 	}
 
 	void Bots::Spawn(unsigned int count)
@@ -96,13 +127,13 @@ namespace Components
 				{
 					Game::Scr_AddString("autoassign");
 					Game::Scr_AddString("team_marinesopfor");
-					Game::Scr_Notify(ent, Game::SL_GetString("menuresponse", 0), 2);
+					Game::Scr_Notify(ent, static_cast<std::uint16_t>(Game::SL_GetString("menuresponse", 0)), 2);
 
 					Scheduler::Once([ent]
 					{
 						Game::Scr_AddString(Utils::String::VA("class%u", Utils::Cryptography::Rand::GenerateInt() % 5u));
 						Game::Scr_AddString("changeclass");
-						Game::Scr_Notify(ent, Game::SL_GetString("menuresponse", 0), 2);
+						Game::Scr_Notify(ent, static_cast<std::uint16_t>(Game::SL_GetString("menuresponse", 0)), 2);
 					}, Scheduler::Pipeline::SERVER, 1s);
 
 				}, Scheduler::Pipeline::SERVER, 1s);
@@ -111,16 +142,21 @@ namespace Components
 		}
 	}
 
-	void Bots::GScr_isTestClient(Game::scr_entref_t entref)
+	void Bots::GScr_isTestClient(const Game::scr_entref_t entref)
 	{
-		const auto* ent = Game::GetPlayerEntity(entref);
+		const auto* ent = Game::GetEntity(entref);
+		if (!ent->client)
+		{
+			Game::Scr_Error("isTestClient: entity must be a player entity");
+			return;
+		}
+
 		Game::Scr_AddBool(Game::SV_IsTestClient(ent->s.number) != 0);
 	}
 
 	void Bots::AddMethods()
 	{
-		Script::AddMethod("IsBot", Bots::GScr_isTestClient); // Usage: self IsBot();
-		Script::AddMethod("IsTestClient", Bots::GScr_isTestClient); // Usage: self IsTestClient();
+		Script::AddMethMultiple(GScr_isTestClient, false, {"IsTestClient", "IsBot"}); // Usage: self IsTestClient();
 
 		Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
@@ -234,7 +270,8 @@ namespace Components
 			return;
 		}
 
-		Game::usercmd_s userCmd = {0};
+		Game::usercmd_s userCmd;
+		ZeroMemory(&userCmd, sizeof(Game::usercmd_s));
 
 		userCmd.serverTime = *Game::svs_time;
 
@@ -254,7 +291,7 @@ namespace Components
 			pushad
 
 			push edi
-			call Bots::BotAiAction
+			call BotAiAction
 			add esp, 4
 
 			popad
@@ -278,7 +315,7 @@ namespace Components
 
 			push [esp + 0x20 + 0x8]
 			push [esp + 0x20 + 0x8]
-			call Bots::G_SelectWeaponIndex
+			call G_SelectWeaponIndex
 			add esp, 0x8
 
 			popad
@@ -298,15 +335,17 @@ namespace Components
 		AssertOffset(Game::client_t, ping, 0x212C8);
 
 		// Replace connect string
-		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
+		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\clanAbbrev\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
 
 		// Intercept sprintf for the connect string
-		Utils::Hook(0x48ADAB, Bots::BuildConnectString, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48ADAB, BuildConnectString, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x627021, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
-		Utils::Hook(0x627241, Bots::SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627021, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627241, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x441B80, Bots::G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
+
+		SVRandomBotNames = Dvar::Register<bool>("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
 
 		// Reset BotMovementInfo.active when client is dropped
 		Events::OnClientDisconnect([](const int clientNum)
@@ -359,10 +398,10 @@ namespace Components
 			Toast::Show("cardicon_headshot", "^2Success", Utils::String::VA("Spawning %d %s...", count, (count == 1 ? "bot" : "bots")), 3000);
 			Logger::Debug("Spawning {} {}", count, (count == 1 ? "bot" : "bots"));
 
-			Bots::Spawn(count);
+			Spawn(count);
 		});
 
-		Bots::AddMethods();
+		AddMethods();
 
 		// In case a loaded mod didn't call "BotStop" before the VM shutdown
 		Events::OnVMShutdown([]

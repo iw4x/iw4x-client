@@ -18,22 +18,23 @@ namespace Assets
 			return;
 		}
 
-		const auto data = Utils::Compression::ZLib::Compress(rawFile.getBuffer());
-
 		asset->name = builder->getAllocator()->duplicateString(name);
+		asset->len = static_cast<int>(rawFile.getBuffer().size());
 
-		if (data.size() < rawFile.getBuffer().size())
+		const auto compressedData = Utils::Compression::ZLib::Compress(rawFile.getBuffer());
+		// Only save the compressed buffer if we gained space
+		if (compressedData.size() < rawFile.getBuffer().size())
 		{
-			asset->buffer = builder->getAllocator()->duplicateString(data);
-			asset->compressedLen = static_cast<int>(data.size());
+			asset->buffer = builder->getAllocator()->allocateArray<char>(compressedData.size());
+			std::memcpy(const_cast<char*>(asset->buffer), compressedData.data(), compressedData.size());
+			asset->compressedLen = static_cast<int>(compressedData.size());
 		}
 		else
 		{
-			asset->buffer = builder->getAllocator()->duplicateString(rawFile.getBuffer());
+			asset->buffer = builder->getAllocator()->allocateArray<char>(rawFile.getBuffer().size() + 1);
+			std::memcpy(const_cast<char*>(asset->buffer), rawFile.getBuffer().data(), rawFile.getBuffer().size());
 			asset->compressedLen = 0;
 		}
-
-		asset->len = static_cast<int>(rawFile.getBuffer().size());
 
 		header->rawfile = asset;
 	}

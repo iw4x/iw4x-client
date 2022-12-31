@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "ServerList.hpp"
+#include "Session.hpp"
 
 namespace Components
 {
@@ -48,20 +50,6 @@ namespace Components
 	{
 		// this->lastResponse.reset(); // This would invalidate the node, but maybe we don't want that?
 		this->lastRequest.reset();
-	}
-
-	void Node::LoadNodeRemotePreset()
-	{
-		std::string nodes = Utils::Cache::GetFile("/iw4/nodes.txt");
-		if (nodes.empty()) return;
-
-		auto nodeList = Utils::String::Split(nodes, '\n');
-		for (auto& node : nodeList)
-		{
-			Utils::String::Replace(node, "\r", "");
-			node = Utils::String::Trim(node);
-			Node::Add(node);
-		}
 	}
 
 	void Node::LoadNodePreset()
@@ -349,14 +337,6 @@ namespace Components
 		};
 
 		Scheduler::OnGameInitialized(loadNodes, Scheduler::Pipeline::MAIN);
-
-		Network::OnStart([]
-		{
-			std::thread([]
-			{
-				Node::LoadNodeRemotePreset();
-			}).detach();
-		});
 
 		Command::Add("listnodes", [](Command::Params*)
 		{

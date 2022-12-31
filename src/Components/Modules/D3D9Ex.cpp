@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "D3D9Ex.hpp"
 
 namespace Components
 {

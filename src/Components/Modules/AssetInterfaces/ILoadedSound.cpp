@@ -5,7 +5,7 @@ namespace Assets
 {
 	void ILoadedSound::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File soundFile(Utils::String::VA("loaded_sound/%s", name.data()));
+		Components::FileSystem::File soundFile(std::format("loaded_sound/{}", name));
 		if (!soundFile.exists())
 		{
 			header->loadSnd = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).loadSnd;
@@ -120,17 +120,8 @@ namespace Assets
 
 			if (asset->sound.data)
 			{
-				if (builder->hasPointer(asset->sound.data))
-				{
-					dest->sound.data = builder->getPointer(asset->sound.data);
-				}
-				else
-				{
-					builder->storePointer(asset->sound.data);
-
-					buffer->saveArray(asset->sound.data, asset->sound.info.data_len);
-					Utils::Stream::ClearPointer(&dest->sound.data);
-				}
+				buffer->saveArray(asset->sound.data, asset->sound.info.data_len);
+				Utils::Stream::ClearPointer(&dest->sound.data);
 			}
 
 			buffer->popBlock();

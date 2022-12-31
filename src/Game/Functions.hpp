@@ -15,6 +15,9 @@ namespace Game
 	typedef void(*Cbuf_InsertText_t)(int localClientNum, const char* text);
 	extern Cbuf_InsertText_t Cbuf_InsertText;
 
+	typedef void(*Cbuf_Execute_t)(int localClientNum, int controllerIndex);
+	extern Cbuf_Execute_t Cbuf_Execute;
+
 	typedef void(*CG_DrawDisconnect_t)(int localClientNum);
 	extern CG_DrawDisconnect_t CG_DrawDisconnect;
 
@@ -48,7 +51,7 @@ namespace Game
 	typedef void(*CG_SetupWeaponDef_t)(int localClientNum, unsigned int weapIndex);
 	extern CG_SetupWeaponDef_t CG_SetupWeaponDef;
 
-	typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_t* allocedCmd, bool isKey);
+	typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_t* allocedCmd, int isKey);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 
 	typedef void(*Cmd_AddServerCommand_t)(const char* name, void(*callback), cmd_function_t* data);
@@ -104,10 +107,10 @@ namespace Game
 	typedef void(*Key_RemoveCatcher_t)(int localClientNum, int andMask);
 	extern Key_RemoveCatcher_t Key_RemoveCatcher;
 
-	typedef bool(*Key_IsKeyCatcherActive_t)(int localClientNum, int catcher);
-	extern Key_IsKeyCatcherActive_t Key_IsKeyCatcherActive;
+	typedef bool(*Key_IsCatcherActive_t)(int localClientNum, int mask);
+	extern Key_IsCatcherActive_t Key_IsCatcherActive;
 
-	typedef void(*Key_SetBinding_t)(int localClientNum, int keyNum, const char* binding);
+	typedef void(*Key_SetBinding_t)(int localClientNum, int keynum, const char* binding);
 	extern Key_SetBinding_t Key_SetBinding;
 
 	typedef void(*LargeLocalInit_t)();
@@ -173,7 +176,7 @@ namespace Game
 	typedef int(*Menus_OpenByName_t)(UiContext* dc, const char* p);
 	extern Menus_OpenByName_t Menus_OpenByName;
 
-	typedef menuDef_t *(*Menus_FindByName_t)(UiContext* dc, const char* name);
+	typedef menuDef_t*(*Menus_FindByName_t)(UiContext* dc, const char* name);
 	extern Menus_FindByName_t Menus_FindByName;
 
 	typedef bool(*Menu_IsVisible_t)(UiContext* dc, menuDef_t* menu);
@@ -182,11 +185,14 @@ namespace Game
 	typedef bool(*Menus_MenuIsInStack_t)(UiContext* dc, menuDef_t* menu);
 	extern Menus_MenuIsInStack_t Menus_MenuIsInStack;
 
+	typedef void(*Menu_HandleKey_t)(UiContext* ctx, menuDef_t* menu, Game::keyNum_t key, int down);
+	extern Menu_HandleKey_t Menu_HandleKey;
+
 	typedef menuDef_t*(*Menu_GetFocused_t)(UiContext* ctx);
 	extern Menu_GetFocused_t Menu_GetFocused;
 
-	typedef void(*Menu_HandleKey_t)(UiContext* ctx, menuDef_t* menu, Game::keyNum_t key, int down);
-	extern Menu_HandleKey_t Menu_HandleKey;
+	typedef void(*Menu_Setup_t)(UiContext* dc);
+	extern Menu_Setup_t Menu_Setup;
 
 	typedef bool(*UI_KeyEvent_t)(int clientNum, int key, int down);
 	extern UI_KeyEvent_t UI_KeyEvent;
@@ -221,17 +227,11 @@ namespace Game
 	typedef __int64(*MSG_ReadInt64_t)(msg_t* msg);
 	extern MSG_ReadInt64_t MSG_ReadInt64;
 
-	typedef char* (*MSG_ReadString_t)(msg_t* msg);
+	typedef char*(*MSG_ReadString_t)(msg_t* msg, char* string, unsigned int maxChars);
 	extern MSG_ReadString_t MSG_ReadString;
 
-	typedef char* (*MSG_ReadStringLine_t)(msg_t *msg, char *string, unsigned int maxChars);
+	typedef char*(*MSG_ReadStringLine_t)(msg_t *msg, char *string, unsigned int maxChars);
 	extern MSG_ReadStringLine_t MSG_ReadStringLine;
-
-	typedef int(*MSG_ReadByte_t)(msg_t* msg);
-	extern MSG_ReadByte_t MSG_ReadByte;
-
-	typedef int(*MSG_ReadBitsCompress_t)(const char *from, char *to, int size);
-	extern MSG_ReadBitsCompress_t MSG_ReadBitsCompress;
 
 	typedef void(*MSG_WriteByte_t)(msg_t* msg, int c);
 	extern MSG_WriteByte_t MSG_WriteByte;
@@ -248,10 +248,19 @@ namespace Game
 	typedef void(*MSG_WriteString_t)(msg_t* msg, const char *str);
 	extern MSG_WriteString_t MSG_WriteString;
 
+	typedef void(*MSG_Discard_t)(msg_t* msg);
+	extern MSG_Discard_t MSG_Discard;
+
+	typedef int(*MSG_ReadByte_t)(msg_t* msg);
+	extern MSG_ReadByte_t MSG_ReadByte;
+
 	typedef bool(*MSG_ReadDeltaUsercmdKey_t)(msg_t* msg, int key, const usercmd_s* from, usercmd_s* to);
 	extern MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey;
 
-	typedef int(*MSG_WriteBitsCompress_t)(bool trainHuffman, const char *from, char *to, int size);
+	typedef int(*MSG_ReadBitsCompress_t)(const unsigned char* from, unsigned char* to, int size);
+	extern MSG_ReadBitsCompress_t MSG_ReadBitsCompress;
+
+	typedef int(*MSG_WriteBitsCompress_t)(bool trainHuffman, const unsigned char* from, unsigned char* to, int size);
 	extern MSG_WriteBitsCompress_t MSG_WriteBitsCompress;
 
 	typedef void(*NetadrToSockadr_t)(netadr_t *a, sockaddr *s);
@@ -368,14 +377,17 @@ namespace Game
 	typedef GfxWorld*(*R_SortWorldSurfaces_t)();
 	extern R_SortWorldSurfaces_t R_SortWorldSurfaces;
 
-	typedef script_t*(*Script_Alloc_t)(int length);
-	extern Script_Alloc_t Script_Alloc;
+	typedef void* (*GetMemory_t)(unsigned int size);
+	extern GetMemory_t GetMemory;
 
-	typedef void(*Script_SetupTokens_t)(script_t* script, void* tokens);
-	extern Script_SetupTokens_t Script_SetupTokens;
+	typedef void*(*GetClearedMemory_t)(unsigned int size);
+	extern GetClearedMemory_t GetClearedMemory;
 
-	typedef int(*Script_CleanString_t)(char* buffer);
-	extern Script_CleanString_t Script_CleanString;
+	typedef void(*PS_CreatePunctuationTable_t)(script_s* script, punctuation_s* punctuations);
+	extern PS_CreatePunctuationTable_t PS_CreatePunctuationTable;
+
+	typedef void(*free_expression_t)(Statement_s* statement);
+	extern free_expression_t free_expression;
 
 	typedef char*(*SE_Load_t)(const char* psFileName, bool forceEnglish);
 	extern SE_Load_t SE_Load;
@@ -388,18 +400,6 @@ namespace Game
 
 	typedef int(*SEH_GetCurrentLanguage_t)();
 	extern SEH_GetCurrentLanguage_t SEH_GetCurrentLanguage;
-
-	typedef const char*(*SL_ConvertToString_t)(scr_string_t stringValue);
-	extern SL_ConvertToString_t SL_ConvertToString;
-
-	typedef short(*SL_GetString_t)(const char *str, unsigned int user);
-	extern SL_GetString_t SL_GetString;
-
-	typedef void(*SL_AddRefToString_t)(unsigned int stringValue);
-	extern SL_AddRefToString_t SL_AddRefToString;
-
-	typedef void(*SL_RemoveRefToString_t)(unsigned int stringValue);
-	extern SL_RemoveRefToString_t SL_RemoveRefToString;
 
 	typedef void(*SND_Init_t)(int a1, int a2, int a3);
 	extern SND_Init_t SND_Init;
@@ -470,11 +470,14 @@ namespace Game
 	typedef void(*Vec3UnpackUnitVec_t)(PackedUnitVec, vec3_t*);
 	extern Vec3UnpackUnitVec_t Vec3UnpackUnitVec;
 	
-	typedef float(*vectoyaw_t)(vec2_t* vec);
-	extern vectoyaw_t vectoyaw;
+	typedef float(*vectoryaw_t)(vec2_t* vec);
+	extern vectoryaw_t vectoryaw;
 	
 	typedef float(*AngleNormalize360_t)(float val);
 	extern AngleNormalize360_t AngleNormalize360;
+
+	typedef void(*_VectorMA_t)(float* va, float scale, float* vb, float* vc);
+	extern _VectorMA_t _VectorMA;
 
 	typedef void(*unzClose_t)(void* handle);
 	extern unzClose_t unzClose;
@@ -509,6 +512,9 @@ namespace Game
 	typedef gentity_s*(*Weapon_RocketLauncher_Fire_t)(gentity_s* ent, unsigned int weaponIndex, float spread, weaponParms* wp, const float* gunVel, lockonFireParms* lockParms, bool magicBullet);
 	extern Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire;
 
+	typedef int(*Bullet_Fire_t)(gentity_s* attacker, float spread, weaponParms* wp, gentity_s* weaponEnt, PlayerHandIndex hand, int gameTime);
+	extern Bullet_Fire_t Bullet_Fire;
+
 	typedef void(*Jump_ClearState_t)(playerState_s* ps);
 	extern Jump_ClearState_t Jump_ClearState;
 
@@ -523,6 +529,9 @@ namespace Game
 
 	typedef void(*PM_UpdateLean_t)(playerState_s* ps, float msec, usercmd_s* cmd, void(*capsuleTrace)(trace_t*, const float*, const float*, const Bounds*, int, int));
 	extern PM_UpdateLean_t PM_UpdateLean;
+
+	typedef bool(*PM_IsSprinting_t)(const playerState_s* ps);
+	extern PM_IsSprinting_t PM_IsSprinting;
 
 	typedef void(*IN_RecenterMouse_t)();
 	extern IN_RecenterMouse_t IN_RecenterMouse;
@@ -563,6 +572,9 @@ namespace Game
 	typedef void*(*Z_VirtualAlloc_t)(int size);
 	extern Z_VirtualAlloc_t Z_VirtualAlloc;
 
+	typedef void*(*Z_Malloc_t)(int size);
+	extern Z_Malloc_t Z_Malloc;
+
 	typedef void(*I_strncpyz_t)(char* dest, const char* src, int destsize);
 	extern I_strncpyz_t I_strncpyz;
 
@@ -584,6 +596,12 @@ namespace Game
 	typedef int(*LargeLocalBeginRight_t)(int size);
 	extern LargeLocalBeginRight_t LargeLocalBeginRight;
 
+	typedef void(*LargeLocalReset_t)();
+	extern LargeLocalReset_t LargeLocalReset;
+
+	typedef void(*longjmp_internal_t)(jmp_buf env, int status);
+	extern longjmp_internal_t longjmp_internal;
+
 	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_CLIENTS = 18;
@@ -596,8 +614,7 @@ namespace Game
 
 	extern float* cgameFOVSensitivityScale;
 
-	extern source_t **sourceFiles;
-	extern keywordHash_t **menuParseKeywordHash;
+	extern source_t** sourceFiles;
 
 	extern UiContext* uiContext;
 
@@ -646,6 +663,7 @@ namespace Game
 	extern PhysPreset*** varPhysPresetPtr;
 	extern MaterialPass** varMaterialPass;
 	extern snd_alias_list_t*** varsnd_alias_list_name;
+	extern MaterialVertexShader** varMaterialVertexShader;
 
 	extern FxElemField* s_elemFields;
 
@@ -668,8 +686,6 @@ namespace Game
 	extern ScreenPlacement* scrPlaceFull;
 	extern ScreenPlacement* scrPlaceFullUnsafe;
 	extern ScreenPlacement* scrPlaceView;
-	
-	extern clientActive_t* clients;
 
 	extern cg_s* cgArray;
 	extern cgs_t* cgsArray;
@@ -708,9 +724,9 @@ namespace Game
 
 	extern Material** whiteMaterial;
 
-	extern unsigned long* _tls_index;
+	extern unsigned long* g_dwTlsIndex;
 
-	extern int* cls_uiStarted;
+	extern bgs_t* level_bgs;
 
 	constexpr std::size_t PLAYER_CARD_UI_STRING_COUNT = 18;
 	extern unsigned int* playerCardUIStringIndex;
@@ -730,12 +746,17 @@ namespace Game
 	extern int* ui_numArenas;
 	extern int* ui_arenaBufPos;
 
+	extern punctuation_s* default_punctuations;
+
+	extern bool* s_havePlaylists;
+
+	constexpr auto MAX_MSGLEN = 0x20000;
+
 	ScreenPlacement* ScrPlace_GetFullPlacement();
 	ScreenPlacement* ScrPlace_GetUnsafeFullPlacement();
 
 	void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize);
 
-	void Menu_FreeItemMemory(itemDef_s* item);
 	void Menu_SetNextCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	void Menu_SetPrevCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	const char* TableLookup(StringTable* stringtable, int row, int column);

@@ -1,4 +1,8 @@
 #include <STDInclude.hpp>
+#include "RawFiles.hpp"
+#include "StartupMessages.hpp"
+#include "Theatre.hpp"
+#include "UIFeeder.hpp"
 
 namespace Components
 {
@@ -29,8 +33,8 @@ namespace Components
 	{
 		if (this->isValid() && !this->searchPath.iwd)
 		{
-			std::string iwdName = Utils::String::VA("%s.iwd", this->mapname.data());
-			std::string path = Utils::String::VA("%s\\usermaps\\%s\\%s", Dvar::Var("fs_basepath").get<const char*>(), this->mapname.data(), iwdName.data());
+			auto iwdName = std::format("{}.iwd", this->mapname);
+			auto path = std::format("{}\\usermaps\\{}\\{}", Dvar::Var("fs_basepath").get<std::string>(), this->mapname, iwdName);
 
 			if (Utils::IO::FileExists(path))
 			{
@@ -146,10 +150,10 @@ namespace Components
 			team.allocFlags = zoneInfo->allocFlags;
 			team.freeFlags = zoneInfo->freeFlags;
 
-			team.name = allocator.duplicateString(Utils::String::VA("iw4x_team_%s", teams.first.data()));
+			team.name = allocator.duplicateString(std::format("iw4x_team_{}", teams.first));
 			data.push_back(team);
 
-			team.name = allocator.duplicateString(Utils::String::VA("iw4x_team_%s", teams.second.data()));
+			team.name = allocator.duplicateString(std::format("iw4x_team_{}", teams.second));
 			data.push_back(team);
 		}
 
@@ -166,7 +170,7 @@ namespace Components
 		}
 
 		// Load patch files
-		std::string patchZone = Utils::String::VA("patch_%s", zoneInfo->name);
+		auto patchZone = std::format("patch_{}", zoneInfo->name);
 		if (FastFiles::Exists(patchZone))
 		{
 			data.push_back({patchZone.data(), zoneInfo->allocFlags, zoneInfo->freeFlags});
@@ -301,7 +305,7 @@ namespace Components
 
 		Game::GfxWorld* world = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
 
-		if (FileSystem::File(Utils::String::VA("sun/%s.sun", Maps::CurrentMainZone.data())).exists())
+		if (FileSystem::File(std::format("sun/{}.sun", Maps::CurrentMainZone)))
 		{
 			Game::R_LoadSunThroughDvars(Maps::CurrentMainZone.data(), &world->sun);
 		}
@@ -404,13 +408,13 @@ namespace Components
 
 	unsigned int Maps::GetUsermapHash(const std::string& map)
 	{
-		if (Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", map.data())))
+		if (Utils::IO::DirectoryExists(std::format("usermaps/{}", map)))
 		{
 			std::string hash;
 
 			for (std::size_t i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
 			{
-				std::string filePath = Utils::String::VA("usermaps/%s/%s%s", map.data(), map.data(), Maps::UserMapFiles[i]);
+				auto filePath = std::format("usermaps/{}/{}{}", map, map, Maps::UserMapFiles[i]);
 				if (Utils::IO::FileExists(filePath))
 				{
 					hash.append(Utils::Cryptography::SHA256::Compute(Utils::IO::ReadFile(filePath)));
@@ -564,13 +568,13 @@ namespace Components
 	bool Maps::IsCustomMap()
 	{
 		Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
-		if(gameWorld) return gameWorld->checksum == 0xDEADBEEF;
+		if (gameWorld) return (gameWorld->checksum & 0xFFFF0000) == 0xC0D40000;
 		return false;
 	}
 
 	bool Maps::IsUserMap(const std::string& mapname)
 	{
-		return Utils::IO::DirectoryExists(Utils::String::VA("usermaps/%s", mapname.data())) && Utils::IO::FileExists(Utils::String::VA("usermaps/%s/%s.ff", mapname.data(), mapname.data()));
+		return Utils::IO::DirectoryExists(std::format("usermaps/{}", mapname)) && Utils::IO::FileExists(std::format("usermaps/{}/{}.ff", mapname, mapname));
 	}
 
 	Game::XAssetEntry* Maps::GetAssetEntryPool()
@@ -619,7 +623,7 @@ namespace Components
 
 		for (unsigned int i = 0; i < gameWorld->dpvs.smodelCount; ++i)
 		{
-			if (gameWorld->dpvs.smodelDrawInsts[i].model->name == model)
+			if (model == "all"s || gameWorld->dpvs.smodelDrawInsts[i].model->name == model)
 			{
 				gameWorld->dpvs.smodelVisData[0][i] = 0;
 				gameWorld->dpvs.smodelVisData[1][i] = 0;
@@ -637,86 +641,6 @@ namespace Components
 			popad
 
 			push 541E40h
-			retn
-		}
-	}
-
-	Game::dvar_t* Maps::GetDistortionDvar()
-	{
-		Game::dvar_t*& r_distortion = *reinterpret_cast<Game::dvar_t**>(0x69F0DCC);
-
-		if(Maps::IsCustomMap())
-		{
-			static Game::dvar_t noDistortion;
-			ZeroMemory(&noDistortion, sizeof noDistortion);
-			return &noDistortion;
-		}
-
-		return r_distortion;
-	}
-
-	__declspec(naked) void Maps::SetDistortionStub()
-	{
-		__asm
-		{
-			push eax
-			pushad
-			call Maps::GetDistortionDvar
-
-			mov [esp + 20h], eax
-			popad
-
-			pop eax
-			retn
-		}
-	}
-
-	Game::dvar_t* Maps::GetSpecularDvar()
-	{
-		Game::dvar_t*& r_specular = *reinterpret_cast<Game::dvar_t**>(0x69F0D94);
-		static Game::dvar_t* r_specularCustomMaps = Game::Dvar_RegisterBool("r_specularCustomMaps", false, Game::DVAR_ARCHIVE, "Allows shaders to use phong specular lighting on custom maps");
-
-		if (Maps::IsCustomMap())
-		{
-			if (!r_specularCustomMaps->current.enabled)
-			{
-				static Game::dvar_t noSpecular;
-				ZeroMemory(&noSpecular, sizeof noSpecular);
-				return &noSpecular;
-			}
-		}
-
-		return r_specular;
-	}
-
-	__declspec(naked) void Maps::SetSpecularStub1()
-	{
-		__asm
-		{
-			push eax
-			pushad
-			call Maps::GetSpecularDvar
-
-			mov [esp + 20h], eax
-			popad
-
-			pop eax
-			retn
-		}
-	}
-
-	__declspec(naked) void Maps::SetSpecularStub2()
-	{
-		__asm
-		{
-			push eax
-			pushad
-			call Maps::GetSpecularDvar
-
-			mov [esp + 20h], eax
-			popad
-
-			pop edx
 			retn
 		}
 	}
@@ -764,7 +688,7 @@ namespace Components
 			Maps::AddDlc({ 6, "Freighter", {"mp_cargoship_sh"} });
 			Maps::AddDlc({ 7, "Resurrection Pack", {"mp_shipment_long", "mp_rust_long", "mp_firingrange"} });
 			Maps::AddDlc({ 8, "Recycled Pack", {"mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"} });
-			Maps::AddDlc({ 9, "Classics Pack #3", {"mp_farm", "mp_backlot", "mp_pipeline", "mp_countdown", "mp_crash_snow", "mp_carentan"}});
+			Maps::AddDlc({ 9, "Classics Pack #3", {"mp_farm", "mp_backlot", "mp_pipeline", "mp_countdown", "mp_crash_snow", "mp_carentan", "mp_broadcast", "mp_showdown", "mp_convoy"} });
 
 			Maps::UpdateDlcStatus();
 
@@ -842,16 +766,6 @@ namespace Components
 		// Allow loading raw suns
 		Utils::Hook(0x51B46A, Maps::LoadRawSun, HOOK_CALL).install()->quick();
 
-		// Disable distortion on custom maps
-		//Utils::Hook(0x50AA47, Maps::SetDistortionStub, HOOK_CALL).install()->quick();
-
-		// Disable speculars on custom maps
-		Utils::Hook(0x525EA6, Maps::SetSpecularStub1, HOOK_CALL).install()->quick();
-		Utils::Hook(0x51FBC7, Maps::SetSpecularStub2, HOOK_CALL).install()->quick();
-		Utils::Hook(0x522A2E, Maps::SetSpecularStub2, HOOK_CALL).install()->quick();
-		Utils::Hook::Nop(0x51FBCC, 1);
-		Utils::Hook::Nop(0x522A33, 1);
-
 		// Intercept map loading for usermap initialization
 		Utils::Hook(0x6245E3, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x62493E, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
@@ -916,7 +830,7 @@ namespace Components
 			unsigned int i = 0;
 			for (auto& model : models)
 			{
-				Game::R_AddCmdDrawText(Utils::String::VA("%d %s", model.second, model.first.data()), 0x7FFFFFFF, font, 15.0f, (height * scale + 1) * (i++ + 1) + 15.0f, scale, scale, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
+				Game::R_AddCmdDrawText(Utils::String::VA("%d %s", model.second, model.first.data()), std::numeric_limits<int>::max(), font, 15.0f, (height * scale + 1) * (i++ + 1) + 15.0f, scale, scale, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
 			}
 		}, Scheduler::Pipeline::RENDERER);
 	}

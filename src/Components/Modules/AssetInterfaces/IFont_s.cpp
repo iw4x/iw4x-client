@@ -95,22 +95,22 @@ namespace Assets
 
 	void IFont_s::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File fontDefFile(Utils::String::VA("%s.json", name.data()));
-		Components::FileSystem::File fontFile(Utils::String::VA("%s.ttf", name.data()));
+		Components::FileSystem::File fontDefFile(std::format("{}.json", name));
+		Components::FileSystem::File fontFile(std::format("{}.ttf", name));
 
 		if (!fontDefFile.exists() || !fontFile.exists())
 		{
 			return;
 		}
 
-		nlohmann::json fontDef = nlohmann::json::parse(fontDefFile.getBuffer());
+		nlohmann::json fontDef;
 		try
 		{
 			fontDef = nlohmann::json::parse(fontDefFile.getBuffer());
 		}
 		catch (const nlohmann::json::parse_error& ex)
 		{
-			Components::Logger::Error(Game::ERR_FATAL, "Json Parse Error: {}. Font {} is invalid", ex.what(), name);
+			Components::Logger::Error(Game::ERR_FATAL, "Json Parse Error: {}. Font {} is invalid\n", ex.what(), name);
 			return;
 		}
 
@@ -254,7 +254,7 @@ namespace Assets
 			rgbaPixels[i + 3] = static_cast<char>(pixels[i / 4]);
 		}
 
-		Utils::IO::WriteFile(Utils::String::VA("userraw\\images\\%s.iwi", texName), outIwi);
+		Utils::IO::WriteFile(std::format("userraw\\images\\{}.iwi", texName), outIwi);
 	}
 
 	void IFont_s::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)

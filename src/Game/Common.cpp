@@ -23,12 +23,15 @@ namespace Game
 	Com_Quitf_t Com_Quit_f = Com_Quitf_t(0x4D4000);
 	Com_OpenLogFile_t Com_OpenLogFile = Com_OpenLogFile_t(0x60A8D0);
 	Com_UpdateSlowMotion_t Com_UpdateSlowMotion = Com_UpdateSlowMotion_t(0x60B2D0);
+	Com_Compress_t Com_Compress = Com_Compress_t(0x498220);
 
 	int* com_frameTime = reinterpret_cast<int*>(0x1AD8F3C);
 
 	int* com_fixedConsolePosition = reinterpret_cast<int*>(0x1AD8EC8);
 
 	int* com_errorPrintsCount = reinterpret_cast<int*>(0x1AD7910);
+
+	int* errorcode = reinterpret_cast<int*>(0x1AD7EB4);
 
 	char* Com_GetParseThreadInfo()
 	{

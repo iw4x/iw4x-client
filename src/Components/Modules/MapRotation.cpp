@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "MapRotation.hpp"
 
 namespace Components
 {
@@ -26,7 +27,7 @@ namespace Components
 		this->rotationEntries_.emplace_back(std::make_pair(key, value));
 	}
 
-	std::size_t MapRotation::RotationData::getEntriesSize() const
+	std::size_t MapRotation::RotationData::getEntriesSize() const noexcept
 	{
 		return this->rotationEntries_.size();
 	}
@@ -47,7 +48,7 @@ namespace Components
 			const auto& key = tokens[i];
 			const auto& value = tokens[i + 1];
 
-			if (key == "map" || key == "gametype")
+			if (key == "map"s || key == "gametype"s)
 			{
 				this->addEntry(key, value);
 			}
@@ -58,13 +59,17 @@ namespace Components
 		}
 	}
 
+	bool MapRotation::RotationData::empty() const noexcept
+	{
+		return this->rotationEntries_.empty();
+	}
+
 	bool MapRotation::RotationData::contains(const std::string& key, const std::string& value) const
 	{
-		return std::ranges::any_of(this->rotationEntries_,
-			[&](const auto& entry)
-			{
-				return entry.first == key && entry.second == value;
-			});
+		return std::ranges::any_of(this->rotationEntries_, [&](const auto& entry)
+		{
+			return entry.first == key && entry.second == value;
+		});
 	}
 
 	nlohmann::json MapRotation::RotationData::to_json() const
@@ -74,18 +79,18 @@ namespace Components
 
 		for (const auto& [key, val] : this->rotationEntries_)
 		{
-			if (key == "map")
+			if (key == "map"s)
 			{
 				mapVector.emplace_back(val);
 			}
-			else if (key == "gametype")
+			else if (key == "gametype"s)
 			{
 				gametypeVector.emplace_back(val);
 			}
 		}
 
 
-		nlohmann::json mapRotationJson = nlohmann::json
+		auto mapRotationJson = nlohmann::json
 		{
 			{"maps", mapVector},
 			{"gametypes", gametypeVector},
@@ -194,7 +199,7 @@ namespace Components
 	void MapRotation::ApplyGametype(const std::string& gametype)
 	{
 		assert(!gametype.empty());
-		Dvar::Var("g_gametype").set(gametype.data());
+		Dvar::Var("g_gametype").set(gametype);
 	}
 
 	void MapRotation::RestartCurrentMap()
@@ -204,7 +209,7 @@ namespace Components
 		if (svMapname.empty())
 		{
 			Logger::Print(Game::CON_CHANNEL_SERVER, "mapname dvar is empty! Defaulting to mp_afghan\n");
-			svMapname = "mp_afghan";
+			svMapname = "mp_afghan"s;
 		}
 
 		ApplyMap(svMapname);
@@ -212,7 +217,7 @@ namespace Components
 
 	void MapRotation::ApplyRotation(RotationData& rotation)
 	{
-		assert(rotation.getEntriesSize() != 0);
+		assert(!rotation.empty());
 
 		// Continue to apply gametype until a map is found
 		auto foundMap = false;
@@ -222,7 +227,7 @@ namespace Components
 		{
 			const auto& entry = rotation.getNextEntry();
 
-			if (entry.first == "map")
+			if (entry.first == "map"s)
 			{
 				Logger::Debug("Loading new map: '{}'", entry.second);
 				ApplyMap(entry.second);
@@ -230,7 +235,7 @@ namespace Components
 				// Map was found so we exit the loop
 				foundMap = true;
 			}
-			else if (entry.first == "gametype")
+			else if (entry.first == "gametype"s)
 			{
 				Logger::Debug("Applying new gametype: '{}'", entry.second);
 				ApplyGametype(entry.second);
@@ -260,7 +265,7 @@ namespace Components
 
 		Game::Dvar_SetString(*Game::sv_mapRotationCurrent, "");
 
-		if (rotationCurrent.getEntriesSize() == 0)
+		if (rotationCurrent.empty())
 		{
 			Logger::Print(Game::CON_CHANNEL_SERVER, "{} is empty or contains invalid data. Restarting map\n", (*Game::sv_mapRotationCurrent)->name);
 			RestartCurrentMap();
@@ -302,7 +307,7 @@ namespace Components
 		}
 
 		LoadMapRotation();
-		if (DedicatedRotation.getEntriesSize() == 0)
+		if (DedicatedRotation.empty())
 		{
 			Logger::Print(Game::CON_CHANNEL_SERVER, "{} is empty or contains invalid data. Restarting map\n", (*Game::sv_mapRotation)->name);
 			RestartCurrentMap();
@@ -339,7 +344,7 @@ namespace Components
 		}
 		catch (const std::exception& ex)
 		{
-			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}: parsing of 'normal' failed", ex.what());
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}: parsing of 'normal' failed\n", ex.what());
 			return false;
 		}
 

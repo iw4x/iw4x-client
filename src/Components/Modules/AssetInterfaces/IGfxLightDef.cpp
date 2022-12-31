@@ -7,7 +7,7 @@ namespace Assets
 {
 	void IGfxLightDef::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File mapFile(Utils::String::VA("lights/%s.iw4xLight", name.data()));
+		Components::FileSystem::File mapFile(std::format("lights/{}.iw4xLight", name));
 
 		if (mapFile.exists())
 		{

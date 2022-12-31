@@ -78,37 +78,37 @@ static_assert(sizeof(intptr_t) == 4 && sizeof(void*) == 4 && sizeof(size_t) == 4
 // ReSharper restore CppRedundantBooleanExpressionArgument
 
 #if !defined(_M_IX86)
-#error "Invalid processor achritecture!"
+#error "Invalid processor architecture!"
 #endif
 
 extern "C"
 {
-    // Disable telemetry data logging
+	// Disable telemetry data logging
 	void __cdecl __vcrt_initialize_telemetry_provider() {}
 	void __cdecl __telemetry_main_invoke_trigger() {}
 	void __cdecl __telemetry_main_return_trigger() {}
 	void __cdecl __vcrt_uninitialize_telemetry_provider() {}
 	
 	// Enable 'High Performance Graphics'
-    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 
 	// Tommath fixes
-	int s_read_arc4random(void*, size_t)
+	int s_read_arc4random(void*, std::size_t)
 	{
 		return -1;
 	}
 
-	int s_read_getrandom(void*, size_t)
+	int s_read_getrandom(void*, std::size_t)
 	{
 		return -1;
 	}
 
-	int s_read_urandom(void*, size_t)
+	int s_read_urandom(void*, std::size_t)
 	{
 		return -1;
 	}
 
-	int s_read_ltm_rng(void*, size_t)
+	int s_read_ltm_rng(void*, std::size_t)
 	{
 		return -1;
 	}
