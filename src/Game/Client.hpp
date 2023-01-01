@@ -83,10 +83,16 @@ namespace Game
 
 	extern voiceCommunication_t* cl_voiceCommunication;
 
+	extern cg_s* cgArray;
+	extern cgs_t* cgsArray;
+	extern centity_s* cg_entitiesArray;
+	extern dvar_t** cl_paused;
+
 	extern int CL_GetMaxXP();
 	extern clientConnection_t* CL_GetLocalClientConnection(int localClientNum);
 	extern connstate_t CL_GetLocalClientConnectionState(int localClientNum);
 	extern voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
 	extern clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
 	extern cg_s* CL_GetLocalClientGlobals(int localClientNum);
+	extern centity_s* CG_GetEntity(int localClientNum, int entityIndex);
 }

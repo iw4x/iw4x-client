@@ -43,6 +43,11 @@ namespace Components
 
 		static void OnMouseMove(int x, int y, int dx, int dy);
 
+		static void GPad_SetLowRumble(int gamePadIndex, double rumble);
+		static void GPad_SetHighRumble(int gamePadIndex, double rumble);
+		static void GPad_UpdateRumble(int gamePadIndex);
+		static void GPad_StopRumbles(int gamePadIndex);
+
 		static Dvar::Var sv_allowAimAssist;
 
 	private:

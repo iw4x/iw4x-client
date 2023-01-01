@@ -64,7 +64,7 @@ namespace Components
 		Loader::Register(new ClanTags());
 		Loader::Register(new Download());
 		Loader::Register(new Playlist());
-		Loader::Register(new RawFiles());
+		//Loader::Register(new RawFiles());
 		Loader::Register(new Renderer());
 		Loader::Register(new UIFeeder());
 		Loader::Register(new UIScript());
@@ -112,6 +112,7 @@ namespace Components
 		Loader::Register(new Events());
 		Loader::Register(new Voice());
 		Loader::Register(new Vote());
+		//Loader::Register(new Rumble());
 
 		Loader::Register(new GSC());
 

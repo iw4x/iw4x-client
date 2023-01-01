@@ -149,9 +149,9 @@ namespace Components
 		{"^\x01\x32\x32\x0D""dpad_ps3_left", Game::K_DPAD_LEFT},
 		{"^\x01\x32\x32\x0E""dpad_ps3_right", Game::K_DPAD_RIGHT},
 	};
-	Game::keyname_t Gamepad::combinedKeyNames[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedKeyNames)> + 1];
-	Game::keyname_t Gamepad::combinedLocalizedKeyNamesXenon[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNamesXenon)> + 1];
-	Game::keyname_t Gamepad::combinedLocalizedKeyNamesPs3[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNamesPs3)> + 1];
+	Game::keyname_t Gamepad::combinedKeyNames[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedKeyNames)> +1];
+	Game::keyname_t Gamepad::combinedLocalizedKeyNamesXenon[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNamesXenon)> +1];
+	Game::keyname_t Gamepad::combinedLocalizedKeyNamesPs3[Game::KEY_NAME_COUNT + std::extent_v<decltype(extendedLocalizedKeyNamesPs3)> +1];
 
 	Gamepad::ControllerMenuKeyMapping Gamepad::controllerMenuKeyMappings[]
 	{
@@ -170,7 +170,7 @@ namespace Components
 	};
 
 	Gamepad::GamePad Gamepad::gamePads[Game::MAX_GPAD_COUNT]{};
-	Gamepad::GamePadGlobals Gamepad::gamePadGlobals[Game::MAX_GPAD_COUNT]{{}};
+	Gamepad::GamePadGlobals Gamepad::gamePadGlobals[Game::MAX_GPAD_COUNT]{ {} };
 	int Gamepad::gamePadBindingsModifiedFlags = 0;
 
 	Dvar::Var Gamepad::gpad_enabled;
@@ -221,7 +221,7 @@ namespace Components
 
 	Gamepad::GamePadGlobals::GamePadGlobals()
 		: axes{},
-		  nextScrollTime(0)
+		nextScrollTime(0)
 	{
 		for (auto& virtualAxis : axes.virtualAxes)
 		{
@@ -241,12 +241,12 @@ namespace Components
 			mov dl, byte ptr[edi + 1Ah] // to_forwardMove
 			mov dh, byte ptr[edi + 1Bh] // to_rightMove
 
-			mov [esp + 30h], dx // to_buttons
+			mov[esp + 30h], dx // to_buttons
 
-			mov dl, byte ptr [ebp + 1Ah] // from_forwardMove
-			mov dh, byte ptr [ebp + 1Bh] // from_rightMove
+			mov dl, byte ptr[ebp + 1Ah] // from_forwardMove
+			mov dh, byte ptr[ebp + 1Bh] // from_rightMove
 
-			mov [esp + 2Ch], dx // from_buttons
+			mov[esp + 2Ch], dx // from_buttons
 
 			// return back
 			push 0x60E40E
@@ -410,7 +410,7 @@ namespace Components
 	}
 
 	const Game::AimScreenTarget* Gamepad::AimAssist_GetPrevOrBestTarget(const Game::AimAssistGlobals* aaGlob, const float range, const float regionWidth, const float regionHeight,
-																		const int prevTargetEnt)
+		const int prevTargetEnt)
 	{
 		const auto screenTarget = AimAssist_GetTargetFromEntity(aaGlob, prevTargetEnt);
 
@@ -476,10 +476,10 @@ namespace Components
 					- (aaGlob.ps.velocity[0] * aaGlob.viewAxis[2][0] + aaGlob.ps.velocity[1] * aaGlob.viewAxis[2][1] + aaGlob.ps.velocity[2] * aaGlob.viewAxis[2][2]))
 				/ arcLength * 180.0f * aim_lockon_pitch_strength.get<float>();
 
-			const auto yawTurnRate = 
+			const auto yawTurnRate =
 				(screenTarget->velocity[0] * aaGlob.viewAxis[1][0] + screenTarget->velocity[1] * aaGlob.viewAxis[1][1] + screenTarget->velocity[2] * aaGlob.viewAxis[1][2]
-				- (aaGlob.ps.velocity[0] * aaGlob.viewAxis[1][0] + aaGlob.ps.velocity[1] * aaGlob.viewAxis[1][1] + aaGlob.ps.velocity[2] * aaGlob.viewAxis[1][2]))
-			/ arcLength * 180.0f * aim_lockon_strength.get<float>();
+					- (aaGlob.ps.velocity[0] * aaGlob.viewAxis[1][0] + aaGlob.ps.velocity[1] * aaGlob.viewAxis[1][1] + aaGlob.ps.velocity[2] * aaGlob.viewAxis[1][2]))
+				/ arcLength * 180.0f * aim_lockon_strength.get<float>();
 
 			output->pitch -= pitchTurnRate * input->deltaTime;
 			output->yaw += yawTurnRate * input->deltaTime;
@@ -566,7 +566,7 @@ namespace Components
 
 		*pitchScale = 1.0f;
 		*yawScale = 1.0f;
-		
+
 		if (!AimAssist_IsSlowdownActive(&aaGlob.ps))
 			return;
 
@@ -774,15 +774,15 @@ namespace Components
 
 			call CG_HandleLocationSelectionInput
 
-			test al,al
+			test al, al
 			jz exit_handling
 
 			// Call our function, the args were already prepared earlier
 			call CG_HandleLocationSelectionInput_GamePad
 
-		exit_handling:
+			exit_handling :
 			add esp, 0x8
-			ret
+				ret
 		}
 	}
 
@@ -851,8 +851,8 @@ namespace Components
 		if (std::fabs(side) > 0.0f || std::fabs(forward) > 0.0f)
 		{
 			const auto length = std::fabs(side) <= std::fabs(forward)
-									? side / forward
-									: forward / side;
+				? side / forward
+				: forward / side;
 			moveScale = std::sqrt((length * length) + 1.0f) * moveScale;
 		}
 
@@ -863,7 +863,7 @@ namespace Components
 		cmd->forwardmove = ClampChar(cmd->forwardmove + forwardMove);
 
 		// Swap attack and throw buttons when using controller and akimbo to match "left trigger"="left weapon" and "right trigger"="right weapon"
-		if(gamePad.inUse && clientActive.snap.ps.weapCommon.lastWeaponHand == Game::WEAPON_HAND_LEFT)
+		if (gamePad.inUse && clientActive.snap.ps.weapCommon.lastWeaponHand == Game::WEAPON_HAND_LEFT)
 		{
 			auto oldButtons = cmd->buttons;
 			if (oldButtons & Game::CMD_BUTTON_ATTACK)
@@ -906,17 +906,17 @@ namespace Components
 		__asm
 		{
 			// Prepare args for our function call
-			push [esp+0x4] // frametime_base
+			push[esp + 0x4] // frametime_base
 			push ebx // cmd
 			push eax // localClientNum
 
-			push [esp+0x8] // restore frametime_base on the stack
+			push[esp + 0x8] // restore frametime_base on the stack
 			call CL_MouseMove
-			add esp,4
+			add esp, 4
 
 			// Call our function, the args were already prepared earlier
 			call CL_GamepadMove
-			add esp,0xC
+			add esp, 0xC
 
 			ret
 		}
@@ -943,7 +943,7 @@ namespace Components
 			push edi
 			call Gamepad_ShouldUse
 			add esp, 8h
-			mov [esp + 0x20], eax
+			mov[esp + 0x20], eax
 			popad
 			pop eax
 
@@ -955,9 +955,9 @@ namespace Components
 			push 0x5FE39B
 			ret
 
-		skipUse:
+			skipUse :
 			push 0x5FE3AF
-			ret
+				ret
 		}
 	}
 
@@ -1163,7 +1163,7 @@ namespace Components
 		}
 
 		const auto activeMenu = Game::UI_GetActiveMenu(gamePadIndex);
-		if(activeMenu == Game::UIMENU_SCOREBOARD)
+		if (activeMenu == Game::UIMENU_SCOREBOARD)
 		{
 			if (buttonEvent == Game::GPAD_BUTTON_PRESSED && Scoreboard_HandleInput(gamePadIndex, key))
 				return;
@@ -1227,7 +1227,7 @@ namespace Components
 
 	void Gamepad::GPad_ConvertStickToFloat(const short x, const short y, float& outX, float& outY)
 	{
-		if(x == 0 && y == 0)
+		if (x == 0 && y == 0)
 		{
 			outX = 0.0f;
 			outY = 0.0f;
@@ -1356,6 +1356,50 @@ namespace Components
 		return !down && lastDown;
 	}
 
+	void Gamepad::GPad_SetLowRumble(int gamePadIndex, double rumble)
+	{
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
+
+		auto& gamePad = gamePads[gamePadIndex];
+		gamePad.lowRumble = rumble;
+	}
+
+	void Gamepad::GPad_SetHighRumble(int gamePadIndex, double rumble)
+	{
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
+
+		auto& gamePad = gamePads[gamePadIndex];
+		gamePad.highRumble = rumble;
+	}
+
+	void Gamepad::GPad_UpdateRumble(int gamePadIndex)
+	{
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
+
+		constexpr bool dvar_rumble_enabled = true;
+
+		if (dvar_rumble_enabled)
+		{
+			auto gamepad = &gamePads[gamePadIndex];
+			gamepad->rumble.wRightMotorSpeed = gamepad->highRumble * 65535.0;
+			gamepad->rumble.wLeftMotorSpeed = gamepad->lowRumble * 65535.0;
+			XInputSetState(gamePadIndex, &gamepad->rumble);
+		}
+		else
+		{
+			GPad_StopRumbles(gamePadIndex);
+		}
+	}
+
+	void Gamepad::GPad_StopRumbles(int gamePadIndex)
+	{
+		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
+		auto gamepad = &gamePads[gamePadIndex];
+		gamepad->rumble.wLeftMotorSpeed = 0;
+		gamepad->rumble.wRightMotorSpeed = 0;
+		XInputSetState(gamePadIndex, &gamepad->rumble);
+	}
+
 	void Gamepad::GPad_UpdateSticksDown(const int gamePadIndex)
 	{
 		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
@@ -1414,9 +1458,9 @@ namespace Components
 			Logger::Debug("Left: X: {:f} Y: {:f}", lVec[0], lVec[1]);
 			Logger::Debug("Right: X: {:f} Y: {:f}", rVec[0], rVec[1]);
 			Logger::Debug("Down: {}:{} {}:{} {}:{} {}:{}", gamePad.stickDown[0][Game::GPAD_STICK_POS], gamePad.stickDown[0][Game::GPAD_STICK_NEG],
-						gamePad.stickDown[1][Game::GPAD_STICK_POS], gamePad.stickDown[1][Game::GPAD_STICK_NEG],
-						gamePad.stickDown[2][Game::GPAD_STICK_POS], gamePad.stickDown[2][Game::GPAD_STICK_NEG],
-						gamePad.stickDown[3][Game::GPAD_STICK_POS], gamePad.stickDown[3][Game::GPAD_STICK_NEG]);
+				gamePad.stickDown[1][Game::GPAD_STICK_POS], gamePad.stickDown[1][Game::GPAD_STICK_NEG],
+				gamePad.stickDown[2][Game::GPAD_STICK_POS], gamePad.stickDown[2][Game::GPAD_STICK_NEG],
+				gamePad.stickDown[3][Game::GPAD_STICK_POS], gamePad.stickDown[3][Game::GPAD_STICK_NEG]);
 		}
 	}
 
@@ -1604,9 +1648,9 @@ namespace Components
 			push 0x60B26E
 			retn
 
-		endMethod:
+			endMethod :
 			push 0x60B298
-			retn
+				retn
 		}
 	}
 
@@ -1718,7 +1762,7 @@ namespace Components
 
 	void Gamepad::Scores_Toggle_f(Command::Params*)
 	{
-		if(Game::cgArray[0].nextSnap)
+		if (Game::cgArray[0].nextSnap)
 		{
 			if (Game::UI_GetActiveMenu(0) != Game::UIMENU_SCOREBOARD)
 				Game::CG_ScoresDown_f();
@@ -1727,61 +1771,6 @@ namespace Components
 		}
 	}
 
-	int GetRumbleInfoIndexFromName(const char* rumbleName)
-	{
-
-		int i = 1;
-		int v7;
-		while (1)
-		{
-			const char* configString = Game::CL_GetConfigString(i + 1024);
-			auto rumbleName_ = rumbleName;
-
-			do
-			{
-				char currentCStringChar = *configString;
-				bool hasReachedEnd = currentCStringChar == 0;
-				v7 = currentCStringChar - *rumbleName_;
-				if (hasReachedEnd)
-					break;
-				++configString;
-				++rumbleName_;
-			} while (!v7);
-
-			if (!v7)
-				break;
-			if (++i >= 32)
-				return -1;
-		}
-		return i;
-	}
-
-	void PlayRumbleInternal(int localClientNum, const char* rumbleName, bool loop, Game::RumbleSourceType type, int entityNum, const float* pos, double scale, bool updateDuplicates)
-	{
-		assert(type != Game::RumbleSourceType::RUMBLESOURCE_INVALID);
-		assert(rumbleName);
-
-		int rumbleIndex = GetRumbleInfoIndexFromName(rumbleName);
-
-		if (rumbleIndex < 0)
-		{
-			Components::Logger::Error(Game::ERR_DROP, "Could not play rumble {} because it was not registered!", rumbleName);
-			return;
-		}
-
-
-	}
-
-	void CG_PlayRumbleOnClient(int localClientNum, const char* rumbleName)
-	{
-		auto clientGlob = Game::CL_GetLocalClientGlobals(localClientNum);
-
-		if (clientGlob->nextSnap)
-		{
-
-		}
-	}
-	
 
 	void Gamepad::InitDvars()
 	{
@@ -1794,10 +1783,10 @@ namespace Components
 		gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "", Game::DVAR_ARCHIVE, "Game pad button configuration");
 		gpad_menu_scroll_delay_first = Dvar::Register<int>("gpad_menu_scroll_delay_first", 420, 0, 1000, Game::DVAR_ARCHIVE, "Menu scroll key-repeat delay, for the first repeat, in milliseconds");
 		gpad_menu_scroll_delay_rest = Dvar::Register<int>("gpad_menu_scroll_delay_rest", 210, 0, 1000, Game::DVAR_ARCHIVE,
-														  "Menu scroll key-repeat delay, for repeats after the first, in milliseconds");
+			"Menu scroll key-repeat delay, for repeats after the first, in milliseconds");
 		gpad_rumble = Dvar::Register<bool>("gpad_rumble", true, Game::DVAR_ARCHIVE, "Enable game pad rumble");
 		gpad_stick_pressed_hysteresis = Dvar::Register<float>("gpad_stick_pressed_hysteresis", 0.1f, 0.0f, 1.0f, Game::DVAR_ARCHIVE,
-															  "Game pad stick pressed no-change-zone around gpad_stick_pressed to prevent bouncing");
+			"Game pad stick pressed no-change-zone around gpad_stick_pressed to prevent bouncing");
 		gpad_stick_pressed = Dvar::Register<float>("gpad_stick_pressed", 0.4f, 0.0, 1.0, Game::DVAR_ARCHIVE, "Game pad stick pressed threshhold");
 		gpad_stick_deadzone_max = Dvar::Register<float>("gpad_stick_deadzone_max", 0.01f, 0.0f, 1.0f, Game::DVAR_ARCHIVE, "Game pad maximum stick deadzone");
 		gpad_stick_deadzone_min = Dvar::Register<float>("gpad_stick_deadzone_min", 0.2f, 0.0f, 1.0f, Game::DVAR_ARCHIVE, "Game pad minimum stick deadzone");
@@ -1843,359 +1832,6 @@ namespace Components
 		InitDvars();
 	}
 
-
-	static Game::cspField_t rumbleFields[4] =
-	{
-		{"duration", 4, 7},
-		{"range", 8, 7},
-		{"fadeWithDistance", 0x14, 5},
-		{"broadcast", 0x18, 5}
-	};
-
-	void Rumble_Strcpy(char* member, char* keyValue)
-	{
-		int v2; // r11
-		char v3; // r10
-
-		v2 = member - keyValue;
-		do
-		{
-			v3 = *keyValue;
-			(keyValue++)[v2] = v3;
-		} while (v3);
-	}
-
-	bool ParseRumbleGraph(Game::RumbleGraph* graph, const char* buffer, const char* fileName)
-	{
-#define MAX_RUMBLE_GRAPH_KNOTS 16
-
-		float* v26; // r30
-		char* v27; // r3
-		double v28; // fp30
-		char* v29; // r3
-		double v30; // fp31
-
-		auto buffer_ = buffer;
-		assert(graph);
-		Game::Com_BeginParseSession(fileName);
-		auto knotCountStr = Game::Com_Parse(&buffer_);
-		auto parsedKnotCount = atoi(knotCountStr);
-		if (parsedKnotCount <= MAX_RUMBLE_GRAPH_KNOTS)
-		{
-			if (parsedKnotCount >= 0)
-			{
-				graph->knotCount = parsedKnotCount;
-
-				if (graph->knotCount)
-				{
-					v26 = reinterpret_cast<float*>(& graph->graphName[60]);
-
-					for (auto i = 0; i < graph->knotCount; i++)
-					{
-						v27 = Game::Com_Parse(&buffer_);
-						if (!*v27)
-							break;
-						if (*v27 == 125)
-							break;
-						v28 = atof(v27);
-						v29 = Game::Com_Parse(&buffer_);
-						if (!*v29 || *v29 == 125)
-							break;
-						v30 = atof(v29);
-						if (i >= MAX_RUMBLE_GRAPH_KNOTS)
-						{
-							Logger::Error(Game::ERR_DROP, "knotCountIndex doesn't index MAX_RUMBLE_GRAPH_KNOTS: {} not in [0, {}])", i, MAX_RUMBLE_GRAPH_KNOTS);
-						}
-
-						v26[1] = v28;
-						++i;
-						v26 += 2;
-						*v26 = v30;
-					};
-				}
-				Game::Com_EndParseSession();
-				return true;
-			}
-			else
-			{
-				Game::Com_EndParseSession();
-				Logger::Error(Game::ERR_DROP, "Negative graph nots on {}", fileName);
-				return false;
-			}
-		}
-		else
-		{
-			Game::Com_EndParseSession();
-			Logger::Error(Game::ERR_DROP, "Too many graph nots on {}", fileName);
-			return false;
-		}
-	}
-
-	void ReadRumbleGraph(Game::RumbleGraph* graph, const char* rumbleFileName)
-	{
-		assert(graph);
-		assert(rumbleFileName);
-
-		char buff[256]{};
-		std::string path = std::format("rumble/{}", rumbleFileName);
-
-		[[maybe_unused]] auto graphBefore = graph;
-
-		auto data = Game::Com_LoadInfoString(path.data(), "rumble graph file", "RUMBLEGRAPHFILE", buff);
-		//auto data = Utils::Hook::Call<char*(const char*, const char*, const char*, char*)>(0x463500)(path.data(), "rumble graph file", "RUMBLEGRAPHFILE", buff);
-
-		assert(graph == graphBefore);
-
-		graph->knotCount = 0;
-		if (!ParseRumbleGraph(graph, data, rumbleFileName))
-		{
-			Logger::Error(Game::ERR_DROP, "Error in parsing rumble file {}", rumbleFileName);
-		}
-
-		strncpy(graph->graphName, rumbleFileName, 64);
-	}
-
-	int LoadRumbleGraph(Game::RumbleGraph* rumbleGraphArray, Game::RumbleInfo* info, const char* highRumbleFileName, const char* lowRumbleFileName)
-	{
-		info->highRumbleGraph = 0;
-		auto highRumbleFileName_ = highRumbleFileName;
-		info->lowRumbleGraph = 0;
-		auto lowRumbleFileName_ = lowRumbleFileName;
-
-		auto i = 0;
-
-		for (i = 0; i < 64; ++i)
-		{
-			auto rumbleGraph = &rumbleGraphArray[i];
-			if (!rumbleGraph->knotCount)
-				break;
-			if (!strnicmp(rumbleGraph->graphName, highRumbleFileName, 0x7FFFFFFF)) // TODO change that
-				info->highRumbleGraph = rumbleGraph;
-			if (!strnicmp(rumbleGraph->graphName, lowRumbleFileName_, 0x7FFFFFFF))
-				info->lowRumbleGraph = rumbleGraph;
-		}
-		if (!info->highRumbleGraph || !info->lowRumbleGraph)
-		{
-			if (i == 64)
-				Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
-
-			auto rumbleGraph = &rumbleGraphArray[i];
-
-			while (i < 64)
-			{
-				if (i == 64)
-				{
-					Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
-				}
-				else if (!info->highRumbleGraph)
-				{
-					ReadRumbleGraph(rumbleGraph, highRumbleFileName);
-					info->highRumbleGraph = rumbleGraph;
-					i++;
-				}
-				else if (!info->lowRumbleGraph)
-				{
-					ReadRumbleGraph(rumbleGraph, lowRumbleFileName);
-					info->lowRumbleGraph = rumbleGraph;
-					i++;
-				}
-				else
-				{
-					break;
-				}
-			}
-
-			printf("");
-			//int v12;
-			//int v15;
-			//unsigned short* v16 = nullptr;
-			//if (!info->highRumbleGraph || !info->lowRumbleGraph)
-			//{
-			//	v15 = 0;
-			//	v16 = &rumbleGraphArray[1].knotCount;
-			//	do
-			//	{
-			//		*(&v12 + 1) = *(v16 - 118);
-			//		if (!*(v16 - 118))
-			//			break;
-			//		*(&v12 + 1) = *v16;
-			//		if (!*v16)
-			//		{
-			//			++v15;
-			//			break;
-			//		}
-			//		*(&v12 + 1) = v16[118];
-			//		if (!v16[118])
-			//		{
-			//			v15 += 2;
-			//			break;
-			//		}
-			//		*(&v12 + 1) = v16[236];
-			//		if (!v16[236])
-			//		{
-			//			v15 += 3;
-			//			break;
-			//		}
-			//		v15 += 4;
-			//		v16 += 472;
-			//	} while (v15 < 64);
-			//	if (v15 == 64)
-			//		Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
-			////	
-			//	auto v17 = &rumbleGraphArray[v15];
-			//	ReadRumbleGraph(v17, lowRumbleFileName);
-			//	info->lowRumbleGraph = v17;
-			//}
-		}
-
-		return 1;
-	}
-
-	int CG_LoadRumble(Game::RumbleGraph* rumbleGraphArray, Game::RumbleInfo* info, const char* rumbleName, int rumbleNameIndex)
-	{
-		assert(info);
-		assert(rumbleName);
-
-		///
-		if (rumbleName == "weap_m9_clipout_plr"s)
-		{
-			printf("");
-		}
-		///
-
-		std::string path = std::format("rumble/{}", rumbleName);
-		char buff[256]{}; //64
-		
-		[[maybe_unused]] auto infoPtr = info;
-		const char* str = Game::Com_LoadInfoString(path.data(), "rumble info file", "RUMBLE", buff); // Idk why but this destroys the stack
-		assert(infoPtr == info);
-
-		const std::string highRumbleFile = Game::Info_ValueForKey(str, "highRumbleFile");
-		const std::string lowRumbleFile = Game::Info_ValueForKey(str, "lowRumbleFile");
-
-		if (!Game::ParseConfigStringToStruct(info, rumbleFields, 4, str, 0, 0, Rumble_Strcpy))
-		{
-			return 0;
-		}
-
-		if (info->broadcast)
-		{
-			if (info->range == 0.0)
-			{
-				Components::Logger::Error(Game::ERR_DROP, "Rumble file {} cannot have broadcast because its range is zero\n", rumbleName);
-			}
-		}
-		if (!LoadRumbleGraph(rumbleGraphArray, info, highRumbleFile.data(), lowRumbleFile.data()))
-			return 0;
-
-		info->rumbleNameIndex = rumbleNameIndex;
-		info->duration = info->duration * 1000.0;
-	}
-
-	static Game::RumbleGlobals rumbleGlobArray[4]{}; // We're only gonna use #0 anyway cause only one client
-
-	void CG_RegisterRumbles(int localClientNum)
-	{
-		auto configStringBasePos = 1025;
-		auto myRumbleGlobal = &rumbleGlobArray[localClientNum];
-		auto maxRumbleGraphIndex = 31;
-		auto myRumbleInfo = &rumbleGlobArray[localClientNum].infos[1];
-		do
-		{
-			auto rumbleConf = Game:: CL_GetConfigString(configStringBasePos);
-			if (*rumbleConf)
-			{
-				CG_LoadRumble(myRumbleGlobal->graphs, myRumbleInfo, rumbleConf, configStringBasePos);
-			}
-
-			--maxRumbleGraphIndex;
-			++configStringBasePos;
-			++myRumbleInfo;
-		} while (maxRumbleGraphIndex);
-	}
-
-	void CG_RegisterGraphics_Hk(int localClientNum, int b)
-	{
-		// Call original function
-		Utils::Hook::Call<void(int, int)>(0x5895D0)(localClientNum, b);
-
-		CG_RegisterRumbles(localClientNum);
-
-		printf("");
-	}
-
-	void G_RumbleIndex(const char* name)
-	{
-		assert(name);
-
-		if (*name)
-		{
-			///
-			if (name == "weap_m9_clipout_plr"s)
-			{
-				printf("");
-			}
-			///
-			auto v2 = Game::SL_FindLowercaseString(name);
-			int i;
-
-			for (i = 1; i < 32; ++i)
-			{
-				auto v7 = Game::SV_GetConfigstringConst(i + 1024);
-				if (v7 == Game::scr_const->_)
-					break;
-				if (v7 == v2)
-					return;
-			}
-
-			Game::SV_SetConfigstring(i + 1024, name);
-		}
-	}
-
-	void RegisterWeaponRumbles(Game::WeaponDef* weapDef)
-	{
-		assert(weapDef);
-
-		auto fireRumble = weapDef->fireRumble;
-		if (fireRumble && *fireRumble)
-			G_RumbleIndex(fireRumble);
-
-		auto meleeImpactRumble = weapDef->meleeImpactRumble;
-		if (meleeImpactRumble && *meleeImpactRumble)
-			G_RumbleIndex(meleeImpactRumble);
-
-		auto turretBarrelSpinRumble = weapDef->turretBarrelSpinRumble;
-		if (turretBarrelSpinRumble && *turretBarrelSpinRumble)
-			G_RumbleIndex(turretBarrelSpinRumble);
-
-
-		 //Disabled for now cause it's weird
-		for (auto i = 0; i < 16; ++i)
-		{
-			//
-			weapDef->notetrackRumbleMapKeys[i] = 0;
-			//
-
-			if (!weapDef->notetrackRumbleMapKeys[i])
-				break;
-			auto noteTrackRumbleMap = weapDef->notetrackRumbleMapValues;
-			if (noteTrackRumbleMap[i])
-			{
-				auto str = Game::SL_ConvertToString(noteTrackRumbleMap[i]);
-				G_RumbleIndex(str);
-			}
-		}
-	}
-
-	Game::WeaponDef* BG_GetWeaponDef_Hk(unsigned int weapIndex)
-	{
-		auto weapDef = Game::BG_GetWeaponDef(weapIndex);
-
-		RegisterWeaponRumbles(weapDef);
-
-		return weapDef;
-	}
-
 	const char* Gamepad::GetGamePadCommand(const char* command)
 	{
 		if (strcmp(command, "+activate") == 0 || strcmp(command, "+reload") == 0)
@@ -2206,7 +1842,7 @@ namespace Components
 		return command;
 	}
 
-	int Gamepad::Key_GetCommandAssignmentInternal([[maybe_unused]] int localClientNum, const char* cmd, int (*keys)[2])
+	int Gamepad::Key_GetCommandAssignmentInternal([[maybe_unused]] int localClientNum, const char* cmd, int(*keys)[2])
 	{
 		auto keyCount = 0;
 
@@ -2256,9 +1892,9 @@ namespace Components
 		{
 			push eax
 			pushad
-			
-			push [esp + 0x20 + 0x4 + 0x8] // keyNums
-			push [esp + 0x20 + 0x4 + 0x8] // command
+
+			push[esp + 0x20 + 0x4 + 0x8] // keyNums
+			push[esp + 0x20 + 0x4 + 0x8] // command
 			push eax // localClientNum
 			call Key_GetCommandAssignmentInternal
 			add esp, 0xC
@@ -2273,7 +1909,7 @@ namespace Components
 
 	void Gamepad::Key_SetBinding_Hk(const int localClientNum, const int keyNum, const char* binding)
 	{
-		if(Key_IsValidGamePadChar(keyNum))
+		if (Key_IsValidGamePadChar(keyNum))
 			gpad_buttonConfig.set("custom");
 
 		Game::Key_SetBinding(localClientNum, keyNum, binding);
@@ -2318,7 +1954,7 @@ namespace Components
 
 	Game::keyname_t* Gamepad::GetLocalizedKeyNameMap()
 	{
-		if(gpad_style.get<bool>())
+		if (gpad_style.get<bool>())
 			return combinedLocalizedKeyNamesPs3;
 
 		return combinedLocalizedKeyNamesXenon;
@@ -2332,7 +1968,7 @@ namespace Components
 			pushad
 
 			call GetLocalizedKeyNameMap
-			mov [esp + 0x20], eax
+			mov[esp + 0x20], eax
 
 			popad
 			pop eax
@@ -2347,17 +1983,17 @@ namespace Components
 	{
 		memcpy(combinedKeyNames, Game::keyNames, sizeof(Game::keyname_t) * Game::KEY_NAME_COUNT);
 		memcpy(&combinedKeyNames[Game::KEY_NAME_COUNT], extendedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(extendedKeyNames)>);
-		combinedKeyNames[std::extent_v<decltype(combinedKeyNames)> - 1] = {nullptr, 0};
+		combinedKeyNames[std::extent_v<decltype(combinedKeyNames)> -1] = { nullptr, 0 };
 
 		memcpy(combinedLocalizedKeyNamesXenon, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
 		memcpy(&combinedLocalizedKeyNamesXenon[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNamesXenon,
-			   sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesXenon)>);
-		combinedLocalizedKeyNamesXenon[std::extent_v<decltype(combinedLocalizedKeyNamesXenon)> - 1] = {nullptr, 0};
+			sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesXenon)>);
+		combinedLocalizedKeyNamesXenon[std::extent_v<decltype(combinedLocalizedKeyNamesXenon)> -1] = { nullptr, 0 };
 
 		memcpy(combinedLocalizedKeyNamesPs3, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
 		memcpy(&combinedLocalizedKeyNamesPs3[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNamesPs3,
-			   sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesPs3)>);
-		combinedLocalizedKeyNamesPs3[std::extent_v<decltype(combinedLocalizedKeyNamesPs3)> - 1] = {nullptr, 0};
+			sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesPs3)>);
+		combinedLocalizedKeyNamesPs3[std::extent_v<decltype(combinedLocalizedKeyNamesPs3)> -1] = { nullptr, 0 };
 
 		Utils::Hook::Set<Game::keyname_t*>(0x4A780A, combinedKeyNames);
 		Utils::Hook::Set<Game::keyname_t*>(0x4A7810, combinedKeyNames);
@@ -2370,11 +2006,8 @@ namespace Components
 		if (ZoneBuilder::IsEnabled())
 			return;
 
-		Utils::Hook(0x43E1F8, BG_GetWeaponDef_Hk, HOOK_CALL).install()->quick();
-
 		// Initialize gamepad environment
 		Utils::Hook(0x4059FE, CG_RegisterDvars_Hk, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4E37D3, CG_RegisterGraphics_Hk, HOOK_CALL).install()->quick();
 
 		// package the forward and right move components in the move buttons
 		Utils::Hook(0x60E38D, MSG_WriteDeltaUsercmdKeyStub, HOOK_JUMP).install()->quick();

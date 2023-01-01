@@ -143,5 +143,6 @@ namespace Components
 #include "Modules/Events.hpp"
 #include "Modules/Voice.hpp"
 #include "Modules/Vote.hpp"
+#include "Modules/Rumble.hpp"
 
 #include "Modules/GSC/GSC.hpp"
