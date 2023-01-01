@@ -400,162 +400,136 @@ namespace Components
 		{
 			const Utils::InfoString info(data);
 
-			const auto _0 = gsl::finally([&]
-			{
-				ServerList::Insert(address, info);
-				Friends::UpdateServer(address, info.get("hostname"), info.get("mapname"));
-			});
-
 			// Handle connection
-			if (!Container.valid)
+			if (Party::Container.valid)
 			{
-				return;
-			}
-
-			if (Container.target == address)
-			{
-				return;
-			}
-
-			// Invalidate handler for future packets
-			Container.valid = false;
-			Container.info = info;
-
-			Container.matchType = atoi(info.get("matchtype").data());
-			const auto securityLevel = static_cast<uint32_t>(std::strtol(info.get("securityLevel").data(), nullptr, 10));
-			bool isUsermap = !info.get("usermaphash").empty();
-			const auto usermapHash = static_cast<uint32_t>(std::strtol(info.get("usermaphash").data(), nullptr, 10));
-
-			std::string mod = (*Game::fs_gameDirVar)->current.string;
-
-			// set fast server stuff here so its updated when we go to download stuff
-			if (info.get("wwwDownload") == "1"s)
-			{
-				Download::SV_wwwDownload.set(true);
-				Download::SV_wwwBaseUrl.set(info.get("wwwUrl"));
-			}
-			else
-			{
-				Download::SV_wwwDownload.set(false);
-				Download::SV_wwwBaseUrl.set("");
-			}
-
-			if (info.get("challenge") != Container.challenge)
-			{
-				ConnectError("Invalid join response: Challenge mismatch.");
-				return;
-			}
-
-			if (securityLevel > Auth::GetSecurityLevel())
-			{
-
-				Command::Execute("closemenu popup_reconnectingtoparty");
-				Auth::IncreaseSecurityLevel(securityLevel, "reconnect");
-				return;
-			}
-
-			if (!Container.matchType)
-			{
-				ConnectError("Server is not hosting a match.");
-				return;
-			}
-
-			if (Container.matchType > 2 || Container.matchType < 0)
-			{
-				ConnectError("Invalid join response: Unknown matchtype");
-				return;
-			}
-
-			if (Container.info.get("mapname").empty() || Container.info.get("gametype").empty())
-			{
-				ConnectError("Invalid map or gametype.");
-				return;
-			}
-
-			if (Container.info.get("isPrivate") == "1"s && !Dvar::Var("password").get<std::string>().empty())
-			{
-				ConnectError("A password is required to join this server! Set it at the bottom of the serverlist.");
-				return;
-			}
-
-			if (isUsermap && usermapHash != Maps::GetUsermapHash(info.get("mapname")))
-			{
-				Command::Execute("closemenu popup_reconnectingtoparty");
-				Download::InitiateMapDownload(info.get("mapname"), info.get("isPrivate") == "1"s);
-				return;
-			}
-
-			if (!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
-			{
-				Command::Execute("closemenu popup_reconnectingtoparty");
-				Download::InitiateClientDownload(info.get("fs_game"), info.get("isPrivate") == "1"s);
-				return;
-			}
-
-			if (*(*Game::fs_gameDirVar)->current.string && info.get("fs_game").empty())
-			{
-				Game::Dvar_SetString(*Game::fs_gameDirVar, "");
-
-				if (Dvar::Var("cl_modVidRestart").get<bool>())
+				if (Party::Container.target == address)
 				{
-					Command::Execute("vid_restart", false);
-				}
+					// Invalidate handler for future packets
+					Party::Container.valid = false;
+					Party::Container.info = info;
 
-				Command::Execute("reconnect", false);
-				return;
-			}
-			
-			if (!Maps::CheckMapInstalled(Container.info.get("mapname"), true))
-			{
-				return;
-			}
+					Party::Container.matchType = atoi(info.get("matchtype").data());
+					auto securityLevel = static_cast<std::uint32_t>(atoi(info.get("securityLevel").data()));
+					bool isUsermap = !info.get("usermaphash").empty();
+					auto usermapHash = static_cast<std::uint32_t>(atoi(info.get("usermaphash").data()));
 
-			Container.motd = info.get("sv_motd");
+					std::string mod = (*Game::fs_gameDirVar)->current.string;
 
-			if (Container.matchType == 1) // Party
-			{
-				// Send playlist request
-				Container.requestTime = Game::Sys_Milliseconds();
-				Container.awaitingPlaylist = true;
-				Network::SendCommand(Party::Container.target, "getplaylist", Dvar::Var("password").get<std::string>());
+					// set fast server stuff here so its updated when we go to download stuff
+					if (info.get("wwwDownload") == "1"s)
+					{
+						Download::SV_wwwDownload.set(true);
+						Download::SV_wwwBaseUrl.set(info.get("wwwUrl"));
+					}
+					else
+					{
+						Download::SV_wwwDownload.set(false);
+						Download::SV_wwwBaseUrl.set("");
+					}
 
-				// This is not a safe method
-				// TODO: Fix actual error!
-				if (Game::CL_IsCgameInitialized())
-				{
-					Command::Execute("disconnect", true);
-				}
-			}
-			else if (Container.matchType == 2) // Match
-			{
-				int clients;
-				int maxClients;
+					if (info.get("challenge") != Party::Container.challenge)
+					{
+						Party::ConnectError("Invalid join response: Challenge mismatch.");
+					}
+					else if (securityLevel > Auth::GetSecurityLevel())
+					{
+						Command::Execute("closemenu popup_reconnectingtoparty");
+						Auth::IncreaseSecurityLevel(securityLevel, "reconnect");
+					}
+					else if (!Party::Container.matchType)
+					{
+						Party::ConnectError("Server is not hosting a match.");
+					}
+					else if (Party::Container.matchType > 2 || Party::Container.matchType < 0)
+					{
+						Party::ConnectError("Invalid join response: Unknown matchtype");
+					}
+					else if (Party::Container.info.get("mapname").empty() || Party::Container.info.get("gametype").empty())
+					{
+						Party::ConnectError("Invalid map or gametype.");
+					}
+					else if (Party::Container.info.get("isPrivate") == "1"s && !Dvar::Var("password").get<std::string>().length())
+					{
+						Party::ConnectError("A password is required to join this server! Set it at the bottom of the serverlist.");
+					}
+					else if (isUsermap && usermapHash != Maps::GetUsermapHash(info.get("mapname")))
+					{
+						Command::Execute("closemenu popup_reconnectingtoparty");
+						Download::InitiateMapDownload(info.get("mapname"), info.get("isPrivate") == "1");
+					}
+					else if (!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
+					{
+						Command::Execute("closemenu popup_reconnectingtoparty");
+						Download::InitiateClientDownload(info.get("fs_game"), info.get("isPrivate") == "1"s);
+					}
+					else if (!Dvar::Var("fs_game").get<std::string>().empty() && info.get("fs_game").empty())
+					{
+						Game::Dvar_SetString(*Game::fs_gameDirVar, "");
 
-				try
-				{
-					clients = std::stoi(Container.info.get("clients"));
-					maxClients = std::stoi(Container.info.get("sv_maxclients"));
-				}
-				catch ([[maybe_unused]] const std::exception& ex)
-				{
-					ConnectError("Invalid info string");
-					return;
-				}
+						if (Dvar::Var("cl_modVidRestart").get<bool>())
+						{
+							Command::Execute("vid_restart", false);
+						}
 
-				if (clients >= maxClients)
-				{
-					ConnectError("@EXE_SERVERISFULL");
-				}
-				else
-				{
-					Dvar::Var("xblive_privateserver").set(true);
+						Command::Execute("reconnect", false);
+					}
+					else
+					{
+						if (!Maps::CheckMapInstalled(Party::Container.info.get("mapname"), true)) return;
 
-					Game::Menus_CloseAll(Game::uiContext);
+						Party::Container.motd = info.get("sv_motd");
 
-					Game::_XSESSION_INFO hostInfo;
-					Game::CL_ConnectFromParty(0, &hostInfo, *Container.target.get(), 0, 0, Container.info.get("mapname").data(), Container.info.get("gametype").data());
+						if (Party::Container.matchType == 1) // Party
+						{
+							// Send playlist request
+							Party::Container.requestTime = Game::Sys_Milliseconds();
+							Party::Container.awaitingPlaylist = true;
+							Network::SendCommand(Party::Container.target, "getplaylist", Dvar::Var("password").get<std::string>());
+
+							// This is not a safe method
+							// TODO: Fix actual error!
+							if (Game::CL_IsCgameInitialized())
+							{
+								Command::Execute("disconnect", true);
+							}
+						}
+						else if (Party::Container.matchType == 2) // Match
+						{
+							int clients;
+							int maxClients;
+
+							try
+							{
+								clients = std::stoi(Container.info.get("clients"));
+								maxClients = std::stoi(Container.info.get("sv_maxclients"));
+							}
+							catch ([[maybe_unused]] const std::exception& ex)
+							{
+								ConnectError("Invalid info string");
+								return;
+							}
+
+							if (clients >= maxClients)
+							{
+								Party::ConnectError("@EXE_SERVERISFULL");
+							}
+							else
+							{
+								Dvar::Var("xblive_privateserver").set(true);
+
+								Game::Menus_CloseAll(Game::uiContext);
+
+								Game::_XSESSION_INFO hostInfo;
+								Game::CL_ConnectFromParty(0, &hostInfo, *Party::Container.target.get(), 0, 0, Party::Container.info.get("mapname").data(), Party::Container.info.get("gametype").data());
+							}
+						}
+					}
 				}
 			}
+
+			ServerList::Insert(address, info);
+			Friends::UpdateServer(address, info.get("hostname"), info.get("mapname"));
 		});
 	}
 }

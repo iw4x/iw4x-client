@@ -335,7 +335,7 @@ namespace Components
 		Utils::Hook(Game::FS_FreeFile, FreeFile, HOOK_JUMP).install()->quick();
 
 		// Filesystem config checks
-		Utils::Hook(0x6098FD,  ExecIsFSStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6098FD, ExecIsFSStub, HOOK_CALL).install()->quick();
 
 		// Don't strip the folders from the config name (otherwise our ExecIsFSStub fails)
 		Utils::Hook::Nop(0x6098F2, 5);
