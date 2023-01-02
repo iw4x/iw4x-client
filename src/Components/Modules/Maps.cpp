@@ -198,7 +198,7 @@ namespace Components
 	void Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* restrict)
 	{
 		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end()
-			&& (FastFiles::Current() != "mp_shipment_long" || Maps::CurrentMainZone != "mp_shipment")) // Shipment is a special case
+			&& (FastFiles::Current() != "mp_shipment_long" || Maps::CurrentMainZone != "mp_shipmenta")) // Shipment is a special case
 		{
 			switch (type)
 			{
@@ -315,7 +315,7 @@ namespace Components
 		}
 
 		// Redirect shipment to shipment long
-		if (mapname == "mp_shipment"s)
+		if (mapname == "mp_shipmenta"s)
 		{
 			mapname = "mp_shipment_long";
 		}

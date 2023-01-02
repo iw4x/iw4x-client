@@ -286,8 +286,425 @@ namespace Components
 		return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
 	}
 
+	void test(Game::Bounds* bounds, Game::cbrush_t* brush, unsigned int brushSideIndex, Game::Poly* outWinding, int maxVerts, const float(*axialPlanes)[4])
+	{
+		auto v25 = 0;
+		Game::cbrushside_t* v10;
+		char v7, v8;
+		float* normal; // V3
+		
+		Game::cplane_s* partyCrasher;
+
+		int v6;
+
+		if (brushSideIndex >= 6)
+		{
+			v10 = brush->sides;
+			v7 = *((unsigned __int8*)&v10[brushSideIndex - 5] - 2);
+			v8 = *((unsigned __int8*)&v10[brushSideIndex - 5] - 1);
+			normal = v10[brushSideIndex - 6].plane->normal;
+		}
+		else
+		{
+			v6 = brushSideIndex & 1;
+			v7 = (unsigned __int8)brush->firstAdjacentSideOffsets[0][2 * v6 + v6 + (brushSideIndex >> 1)];
+			v8 = (unsigned __int8)brush->edgeCount[0][2 * v6 + v6 + (brushSideIndex >> 1)];
+			normal = (float*)&(*axialPlanes)[4 * brushSideIndex];
+		}
+		float v48 = *normal;
+		float v49 = normal[1];
+		float v50 = normal[2];
+		float v51 = normal[3];
+		if (v8 < 3 || v8 > maxVerts)
+		{
+			//outWinding->ptCount = 0;
+			printf("");
+		}
+		else
+		{
+			Game::cplane_s* cplane;
+			char* v11 = &brush->baseAdjacentSide[v7];
+			char v12 = (unsigned __int8)v11[v8 - 1];
+			char* v29 = v11;
+			if (v12 >= 6)
+				cplane = brush->sides[v12 - 6].plane;
+			else
+				cplane = (Game::cplane_s*)&(*axialPlanes)[4 * v12];
+			float v52 = cplane->normal[0];
+			float v53 = cplane->normal[1];
+			//a4->ptCount = 0;
+			int v28 = 0;
+			float v54 = cplane->normal[2];
+			float v55 = cplane->dist;
+			float v14 = v48;
+			do
+			{
+				char sideIndexMaybe = (unsigned __int8)v11[v28];
+				if (sideIndexMaybe >= 6)
+				{
+					if (brush->sides == nullptr)
+					{
+						printf("");
+					}
+
+					partyCrasher = brush->sides[sideIndexMaybe - 6].plane;
+				}
+				else
+				{
+					partyCrasher = (Game::cplane_s*)&(*axialPlanes)[4 * sideIndexMaybe];
+				}
+
+				//v17 = a4->ptCount;
+				//v56 = partyCrasher->normal[0];
+				//v57 = partyCrasher->normal[1];
+				//v58 = partyCrasher->normal[2];
+				//v59 = partyCrasher->dist;
+				//v18 = a4->pts[v17];
+				//v19 = v58;
+				//v20 = v57;
+				//v42 = v58 * v53 - v54 * v57;
+				//v44 = v57 * v50 - v58 * v49;
+				//v46 = v54 * v49 - v53 * v50;
+				//v30 = v42 * v14;
+				//v21 = v52;
+				//v34 = v52 * v44;
+				//v38 = v56 * v46;
+				//brushSidea = v34 + v30 + v38;
+				//v22 = brushSidea;
+				//brushSideb = fabs(brushSidea);
+				//if (brushSideb < 0.001)
+				//{
+				//	v23 = v56;
+				//}
+				//else
+				//{
+				//	brushSidec = 1.0 / v22;
+				//	v31 = v42 * v51;
+				//	v35 = v44 * v55;
+				//	v39 = v46 * v59;
+				//	*v18 = (v35 + v31 + v39) * brushSidec;
+				//	v23 = v56;
+				//	v32 = (v54 * v56 - v21 * v19) * v51;
+				//	v36 = (v19 * v14 - v56 * v50) * v55;
+				//	v40 = (v21 * v50 - v54 * v14) * v59;
+				//	v18[1] = (v36 + v32 + v40) * brushSidec;
+				//	v33 = (v21 * v20 - v56 * v53) * v51;
+				//	v37 = (v56 * v49 - v20 * v14) * v55;
+				//	v41 = (v53 * v14 - v21 * v49) * v59;
+				//	v18[2] = (v37 + v33 + v41) * brushSidec;
+				//	if (!v17 || (v24 = sub_4C1380(v18, v18 - 3) < 1.0, v11 = v29, v14 = v48, v19 = v58, v20 = v57, v23 = v56, !v24))
+				//		a4->ptCount = v17 + 1;
+				//}
+				//v52 = v23;
+				v25 = v28 + 1 < v8;
+				//v53 = v20;
+				++v28;
+				//v54 = v19;
+				//v55 = v59;
+			} while (v25);
+
+			printf("");
+		}
+
+		Utils::Hook::Call<void(Game::Bounds*, Game::cbrush_t*, unsigned int, Game::Poly*, int, const float(*)[4])>(0x46A150)(bounds, brush, brushSideIndex, outWinding, maxVerts, axialPlanes);
+
+		printf("");
+	}
+
+
+
+	int Material_CompareBySortKeyAndTechnique(Game::Material* ax1, Game::Material* material1, Game::Material* material2,
+		Game::MaterialTechnique** litTechniques, Game::MaterialTechnique** emissiveTechniques)
+	{
+		Game::Material* material1_; // ebx
+		Game::Material* material2_; // ebp
+		Game::Material* materialResult; // edi
+		int result; // eax
+		Game::MaterialTechniqueSet* mat1Techset; // eax
+		Game::MaterialTechniqueSet* mat1Remap; // ecx
+		Game::MaterialTechniqueSet* mat2Techset; // edx
+		Game::MaterialTechniqueSet* mat2Remap; // esi
+		Game::MaterialTechniqueSet* mat2Remap_; // eax
+		Game::MaterialTechniqueSet* mat1Remap_; // eax
+		Game::MaterialTechnique* mat1LitTechnique; // eax
+		unsigned int mat1GameFlags; // ebx
+		int mat1PrimaryLightGameFlag; // ebx
+		unsigned int mat2PrimaryLightGameFlag; // ebp
+		BOOL mat1HasLitTechnique; // edi
+		Game::MaterialTechnique* mat1EmissiveTechnique; // ecx
+		Game::MaterialTechnique* mat2EmissiveTechnique; // eax
+		BOOL mat1HasEmissiveTechnique; // ecx
+		BOOL mat2HasEmissiveTechnique; // eax
+		Game::MaterialTechniqueSet* outputTechniqueArray1; // [esp+10h] [ebp+4h]
+		Game::MaterialTechniqueSet* mat1Techset_; // [esp+14h] [ebp+8h]
+
+		material1_ = material1;
+		material2_ = material2;
+		materialResult = ax1;
+		result = (unsigned __int8)material1->info.sortKey - (unsigned __int8)material2->info.sortKey;
+		if (material1->info.sortKey == material2->info.sortKey)
+		{
+			mat1Techset = material1->techniqueSet;
+			mat1Remap = mat1Techset->remappedTechniqueSet;
+			mat1Techset_ = material1->techniqueSet;
+			if (mat1Remap)
+				mat1Techset = mat1Techset->remappedTechniqueSet;
+			mat2Techset = material2_->techniqueSet;
+			mat2Remap = mat2Techset->remappedTechniqueSet;
+			materialResult->info.name = (const char*)mat1Techset;
+			outputTechniqueArray1 = mat2Techset;
+			mat2Remap_ = mat2Remap;
+			if (!mat2Remap)
+				mat2Remap_ = mat2Techset;
+			//*(_DWORD*)&materialResult->gameFlags = mat2Remap_;
+			mat1Remap_ = mat1Remap;
+			if (!mat1Remap)
+				mat1Remap_ = mat1Techset_;
+			mat1LitTechnique = mat1Remap_->techniques[9];
+			*litTechniques = mat1LitTechnique;
+			if (mat2Remap)
+				mat2Techset = mat2Remap;
+			mat1GameFlags = (unsigned __int8)material1_->info.gameFlags;
+			litTechniques[1] = mat2Techset->techniques[9];
+			mat1PrimaryLightGameFlag = (mat1GameFlags >> 1) & 1;
+			mat2PrimaryLightGameFlag = ((unsigned int)(unsigned __int8)material2_->info.gameFlags >> 1) & 1;
+			mat1HasLitTechnique = mat1LitTechnique != 0;
+			if (!mat1Remap)
+				mat1Remap = mat1Techset_;
+			mat1EmissiveTechnique = mat1Remap->techniques[5];
+			*emissiveTechniques = mat1EmissiveTechnique;
+			if (!mat2Remap)
+				mat2Remap = outputTechniqueArray1;
+			mat2EmissiveTechnique = mat2Remap->techniques[5];
+			emissiveTechniques[1] = mat2EmissiveTechnique;
+			mat1HasEmissiveTechnique = mat1EmissiveTechnique != 0;
+			mat2HasEmissiveTechnique = mat2EmissiveTechnique != 0;
+			if (mat1HasLitTechnique)
+			{
+				result = mat2PrimaryLightGameFlag - mat1PrimaryLightGameFlag;
+				if (mat2PrimaryLightGameFlag != mat1PrimaryLightGameFlag)
+					return result;
+			}
+			else
+			{
+				result = mat2HasEmissiveTechnique - mat1HasEmissiveTechnique;
+				if (result)
+					return result;
+			}
+			result = 0;
+		}
+		return result;
+	}
+
+	bool __cdecl sub_5235B0(Game::Material* a1, Game::Material* a3)
+	{
+
+		if (a1 && a3) {
+			if (a1->info.sortKey == a3->info.sortKey) {
+				//OutputDebugStringA(std::format("{} ({}) vs {} ({}) \n", a1->info.name, (int)a1->info.sortKey, a3->info.name, (int)a3->info.sortKey).data());
+
+
+				//if (a1->info.name == "wc/ch_metal_rusty_02"s)
+				//{
+				//	if (a3->info.name == "mc/mtl_laptop_envu_screen"s)
+				//	{
+				//		printf("");
+				//		Utils::Memory::Allocator alloc;
+
+				//		Game::Material* discard = alloc.allocate<Game::Material>();
+
+				//		Game::MaterialTechnique* litSet[2];
+				//		Game::MaterialTechnique* emissiveSet[2];
+
+				//		auto out = Material_CompareBySortKeyAndTechnique(discard, a1, a3, litSet, emissiveSet);
+
+				//		printf("");
+				//	}
+				//}
+
+
+				auto techset1 = a1->techniqueSet;
+				while (techset1->remappedTechniqueSet && techset1 != techset1->remappedTechniqueSet)
+				{
+					techset1 = techset1->remappedTechniqueSet;
+				}
+
+				auto techset2 = a3->techniqueSet;
+				while (techset2->remappedTechniqueSet && techset2 != techset2->remappedTechniqueSet)
+				{
+					techset2 = techset2->remappedTechniqueSet;
+				}
+
+				//if (a1->info.sortKey >= 44 || a3->info.sortKey >= 44)
+				//{
+				//	return a1->info.sortKey < 44;
+				//}
+				//
+
+				if (
+					(techset1->techniques[Game::TECHNIQUE_EMISSIVE] == nullptr) != (techset2->techniques[Game::TECHNIQUE_EMISSIVE] == nullptr)
+					||
+					(techset1->techniques[Game::TECHNIQUE_LIT] == nullptr) != (techset2->techniques[Game::TECHNIQUE_LIT] == nullptr)
+					) {
+
+					//if (techset1->techniques[Game::TECHNIQUE_EMISSIVE] == nullptr) {
+					//	techset1->techniques[Game::TECHNIQUE_EMISSIVE] = techset1->techniques[Game::TECHNIQUE_LIT];
+					//}
+					//else if (techset2->techniques[Game::TECHNIQUE_EMISSIVE] == nullptr) {
+					//	techset2->techniques[Game::TECHNIQUE_EMISSIVE] = techset2->techniques[Game::TECHNIQUE_LIT];
+					//}
+
+					Utils::Memory::Allocator alloc;
+
+					Game::Material* discard = alloc.allocate<Game::Material>();
+
+					Game::MaterialTechnique* litSet[2];
+					Game::MaterialTechnique* emissiveSet[2];
+
+					Material_CompareBySortKeyAndTechnique(discard, a1, a3, litSet, emissiveSet);
+
+					if ((litSet[0] == nullptr) != (litSet[1] == nullptr)) {
+						MessageBox(NULL, std::format("{} ({}) vs {} ({}) \n", a1->info.name, (int)a1->info.sortKey, a3->info.name, (int)a3->info.sortKey).data(), "Sortkey conflict", MB_ICONERROR | MB_OK);
+						printf("");
+						return false;
+					}
+				}
+
+
+				//if (a3->techniqueSet->techniques[Game::TECHNIQUE_LIT] == nullptr) {
+				//	printf("");
+				//}
+
+				//if (a1->techniqueSet->techniques[Game::TECHNIQUE_EMISSIVE] == nullptr) {
+				//	printf("");
+				//}
+
+				//if (a1->techniqueSet->techniques[Game::TECHNIQUE_LIT] == nullptr) {
+				//	printf("");
+				//}
+			}
+		}
+
+		//	else {
+		//		printf("");
+		//	}
+
+		//	if ("mc/mtl_facade_building_03"s == a1->info.name) {
+		//		printf("");
+		//	}
+
+		//	
+		//}
+
+		//s1 = std::format("{} {}", a1->info.name, (int)a1->info.sortKey);
+		//s2 = std::format("{} {}", a3->info.name, (int)a3->info.sortKey);
+
+		//return a1->info.sortKey < a3->info.sortKey;
+
+
+		return Utils::Hook::Call<bool(Game::Material*, Game::Material*)>(0x5235B0)(a1, a3);
+	}
+
+	
+	void Com_Error_Interceptor()
+	{
+		printf("");
+	}
+
+	__declspec(naked) void Com_Error_Stub() 
+	{
+		
+		__asm
+		{
+			pushad
+			call	Com_Error_Interceptor
+			popad
+
+
+			// Original code
+			call    Game::Sys_IsMainThread
+			test	al,al
+
+			// Go back
+			push	0x4B22D7
+			retn
+		}
+	}
+
+	char Image_LoadToBuffer(Game::GfxImage* image, int(__cdecl* OpenFileRead)(DWORD, DWORD))
+	{
+		if (image->name == "ballsnake"s)
+		{
+			printf("");
+		}
+
+		auto result = Utils::Hook::Call<char(Game::GfxImage* image, int(__cdecl* OpenFileRead)(DWORD, DWORD))>(0x53ABF0)(image, OpenFileRead);
+
+		return result;
+	}
+
+	char IsIwImage(const char* filePath, char* buffer)
+	{
+		unsigned __int8 v2; // al
+		char result; // al
+
+		if (*buffer == 'I' && buffer[1] == 'W' && buffer[2] == 'i')
+		{
+			v2 = buffer[3];
+			if (v2 == 8 || v2 == 9 || v2 == 6)
+			{
+				result = 1;
+			}
+			else
+			{
+				printf("ERROR: image '%s' is version %i but should be version %i\n", filePath, v2, 8);
+				result = 0;
+			}
+		}
+		else
+		{
+			printf("ERROR: image '%s' is not an IW image\n", filePath);
+			result = 0;
+		}
+		return result;
+
+	}
+
+	const static auto addr = 0x53ACDD;
+	__declspec(naked) void IsIwImage_Stub()
+	{
+		__asm
+		{
+			//pushad
+			push	eax
+			push	ecx
+			call	IsIwImage
+			add		esp,8
+			//popad
+
+			test	al,al
+			jnz     goodImage
+			push	0x53ACC7
+			retn
+
+
+			goodImage:
+				push 0x53ACDD 
+				retn
+		}
+	}
+
 	QuickPatch::QuickPatch()
 	{
+		//Utils::Hook(0x53ACBE, IsIwImage_Stub, HOOK_JUMP).install()->quick();
+
+		//Utils::Hook(0x51F595, Image_LoadToBuffer, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x004B22D0, Com_Error_Stub, HOOK_JUMP).install()->quick();
+
+		Utils::Hook::Set(0x523893 + 1, &sub_5235B0);
+		//Utils::Hook(0x48BDA2, test, HOOK_CALL).install()->quick();
+
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
 

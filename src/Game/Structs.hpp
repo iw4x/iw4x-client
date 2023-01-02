@@ -8597,7 +8597,10 @@ namespace Game
 		cpose_t pose;
 		LerpEntityState prevState;
 		entityState_s nextState;
-		int flags;
+		char nextValid;
+		char bMuzzleFlash;
+		char bTrailMade;
+		char pad;
 		unsigned __int8 tracerDrawRateCounter;
 		unsigned __int8 weaponVisTestCounter;
 		int previousEventSequence;
@@ -8638,6 +8641,19 @@ namespace Game
 		CUBEMAPSHOT_COUNT = 0x7,
 	};
 
+	struct snapshot_s
+	{
+		playerState_s ps;
+		int snapFlags;
+		int ping;
+		int serverTime;
+		int numEntities;
+		int numClients;
+		entityState_s entities[768];
+		clientState_s clients[18];
+		int serverCommandSequence;
+	};
+
 	struct __declspec(align(8)) cg_s
 	{
 		playerState_s predictedPlayerState;
@@ -8654,8 +8670,8 @@ namespace Game
 		int latestSnapshotNum;
 		int latestSnapshotTime;
 		char pad0[16];
-		void* snap;
-		void* nextSnap;
+		snapshot_s* snap;
+		snapshot_s* nextSnap;
 		char _pad1[0x673DC];
 		int frametime;	// + 0x6A754
 		int time;
@@ -9151,6 +9167,7 @@ namespace Game
 		float fWaistPitch;
 		unsigned char handler;
 	};
+
 
 	static_assert(sizeof(pmove_s) == 296);
 
@@ -10454,7 +10471,7 @@ namespace Game
 		int startTime;
 		bool loop;
 		RumbleSourceType sourceType;
-		char scale;
+		unsigned char scale;
 		RumbleSource source;
 	};
 

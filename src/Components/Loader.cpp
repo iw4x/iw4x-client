@@ -112,7 +112,7 @@ namespace Components
 		Loader::Register(new Events());
 		Loader::Register(new Voice());
 		Loader::Register(new Vote());
-		//Loader::Register(new Rumble());
+		Loader::Register(new Rumble());
 
 		Loader::Register(new GSC());
 
