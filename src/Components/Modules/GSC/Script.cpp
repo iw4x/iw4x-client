@@ -630,7 +630,7 @@ namespace Components
 		{
 			const auto* ent = Scr_GetPlayerEntity(entref);
 
-			Game::Scr_AddBool((ent->client->flags & Game::PLAYER_FLAG_FROZEN) != 0);
+			Game::Scr_AddBool((ent->client->flags & Game::PF_FROZEN) != 0);
 		});
 	}
 

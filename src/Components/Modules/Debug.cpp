@@ -269,9 +269,9 @@ namespace Components
 
 	void Debug::Com_Bug_f(Command::Params* params)
 	{
-		char newFileName[0x105]{};
-		char to_ospath[MAX_PATH]{};
-		char from_ospath[MAX_PATH]{};
+		char newFileName[MAX_PATH]{};
+		char to_ospath[MAX_OSPATH]{};
+		char from_ospath[MAX_OSPATH]{};
 		const char* bug;
 
 		if (!*Game::logfile)

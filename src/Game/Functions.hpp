@@ -51,10 +51,10 @@ namespace Game
 	typedef void(*CG_SetupWeaponDef_t)(int localClientNum, unsigned int weapIndex);
 	extern CG_SetupWeaponDef_t CG_SetupWeaponDef;
 
-	typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_t* allocedCmd, int isKey);
+	typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_s* allocedCmd, int isKey);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 
-	typedef void(*Cmd_AddServerCommand_t)(const char* name, void(*callback), cmd_function_t* data);
+	typedef void(*Cmd_AddServerCommand_t)(const char* name, void(*callback), cmd_function_s* data);
 	extern Cmd_AddServerCommand_t Cmd_AddServerCommand;
 
 	typedef void(*Cmd_ExecuteSingleCommand_t)(int localClientNum, int controllerIndex, const char* cmd);
@@ -610,7 +610,7 @@ namespace Game
 	extern CmdArgs* cmd_args;
 	extern CmdArgs* sv_cmd_args;
 
-	extern cmd_function_t** cmd_functions;
+	extern cmd_function_s** cmd_functions;
 
 	extern float* cgameFOVSensitivityScale;
 

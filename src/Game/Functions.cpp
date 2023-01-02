@@ -267,7 +267,7 @@ namespace Game
 	CmdArgs* cmd_args = reinterpret_cast<CmdArgs*>(0x1AAC5D0);
 	CmdArgs* sv_cmd_args = reinterpret_cast<CmdArgs*>(0x1ACF8A0);
 
-	cmd_function_t** cmd_functions = reinterpret_cast<cmd_function_t**>(0x1AAC658);
+	cmd_function_s** cmd_functions = reinterpret_cast<cmd_function_s**>(0x1AAC658);
 
 	source_t** sourceFiles = reinterpret_cast<source_t**>(0x7C4A98);
 

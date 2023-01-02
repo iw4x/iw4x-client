@@ -130,7 +130,7 @@ namespace Components
 		}
 	}
 
-	Game::cmd_function_t* Command::Find(const std::string& command)
+	Game::cmd_function_s* Command::Find(const std::string& command)
 	{
 		auto* cmdFunction = *Game::cmd_functions;
 
@@ -147,9 +147,9 @@ namespace Components
 		return nullptr;
 	}
 
-	Game::cmd_function_t* Command::Allocate()
+	Game::cmd_function_s* Command::Allocate()
 	{
-		return Utils::Memory::GetAllocator()->allocate<Game::cmd_function_t>();
+		return Utils::Memory::GetAllocator()->allocate<Game::cmd_function_s>();
 	}
 
 	void Command::MainCallback()

@@ -4,6 +4,9 @@
 #define NUM_CUSTOM_CLASSES 15
 #define FX_ELEM_FIELD_COUNT 90
 
+#define MAX_QPATH 64
+#define MAX_OSPATH 256
+
 // This allows us to compile our structures in IDA, for easier reversing :3
 #ifndef __cplusplus
 #define IDA
@@ -614,7 +617,7 @@ namespace Game
 		CLASS_NUM_COUNT = 0x6,
 	};
 
-	typedef enum
+	enum hitLocation_t
 	{
 		HITLOC_NONE,
 		HITLOC_HELMET,
@@ -637,7 +640,7 @@ namespace Game
 		HITLOC_GUN,
 		HITLOC_SHIELD,
 		HITLOC_NUM
-	} hitLocation_t;
+	};
 
 	enum svscmd_type
 	{
@@ -664,7 +667,7 @@ namespace Game
 
 	static_assert(sizeof(CmdArgs) == 0x84);
 
-	typedef struct cmd_function_s
+	struct cmd_function_s
 	{
 		cmd_function_s* next;
 		const char* name;
@@ -672,7 +675,7 @@ namespace Game
 		const char* autoCompleteExt;
 		void(__cdecl* function)();
 		int flags;
-	} cmd_function_t;
+	};
 
 #pragma pack(push, 4)
 	struct kbutton_t
@@ -2096,7 +2099,7 @@ namespace Game
 		int extrapolatedSnapshot;
 		int newSnapshots;
 		int serverId;
-		char mapname[64];
+		char mapname[MAX_QPATH];
 		int parseEntitiesIndex;
 		int parseClientsIndex;
 		int mouseDx[2];
@@ -5810,9 +5813,9 @@ namespace Game
 
 	struct iwd_t
 	{
-		char iwdFilename[256];
-		char iwdBasename[256];
-		char iwdGamename[256];
+		char iwdFilename[MAX_OSPATH];
+		char iwdBasename[MAX_OSPATH];
+		char iwdGamename[MAX_OSPATH];
 		char* handle;
 		int checksum;
 		int pure_checksum;
@@ -5851,12 +5854,13 @@ namespace Game
 		char name[256];
 	};
 
-	typedef struct {
-		char		path[256];		// c:\quake3
-		char		gamedir[256];	// baseq3
-	} directory_t;
+	struct directory_t
+	{
+		char path[MAX_OSPATH];
+		char gamedir[MAX_OSPATH];
+	};
 
-	typedef struct searchpath_s
+	struct searchpath_s
 	{
 		searchpath_s* next;
 		iwd_t* iwd;
@@ -5865,7 +5869,7 @@ namespace Game
 		int ignore;
 		int ignorePureCheck;
 		int language;
-	} searchpath_t;
+	};
 
 	struct SafeArea
 	{
@@ -5891,9 +5895,35 @@ namespace Game
 
 	typedef char mapname_t[40];
 
+	struct TraceExtents
+	{
+		float midPoint[3];
+		float halfDelta[3];
+		float halfDeltaAbs[3];
+		float invDeltaAbs[3];
+		float start[3];
+		float end[3];
+	};
+
+	struct TraceCheckCount
+	{
+		int global;
+		int* partitions;
+	};
+
+	struct TraceThreadInfo
+	{
+		TraceCheckCount checkcount;
+	};
+
+	struct CM_WorldTraceCallbacks
+	{
+		bool(*isGlassSolid)(unsigned int);
+	};
+
 	struct traceWork_t
 	{
-		/*TraceExtents*/int extents;
+		TraceExtents extents;
 		float delta[3];
 		float deltaLen;
 		float deltaLenSq;
@@ -5908,8 +5938,8 @@ namespace Game
 		float offset[3];
 		float radiusOffset[3];
 		float boundingRadius;
-		/*TraceThreadInfo*/ int threadInfo;
-		/*CM_WorldTraceCallbacks*/ void* callbacks;
+		TraceThreadInfo threadInfo;
+		CM_WorldTraceCallbacks* callbacks;
 	};
 
 	struct gameState_t
@@ -6583,7 +6613,7 @@ namespace Game
 
 	struct FxEditorEffectDef
 	{
-		char name[64];
+		char name[MAX_QPATH];
 		int elemCount;
 		FxEditorElemDef elems[32];
 	};
@@ -6720,29 +6750,29 @@ namespace Game
 		DB_ZONE_DEV = 0x40
 	};
 
-	enum playerFlag
+	enum
 	{
-		PLAYER_FLAG_NOCLIP = 1 << 0,
-		PLAYER_FLAG_UFO = 1 << 1,
-		PLAYER_FLAG_FROZEN = 1 << 2,
+		PF_NOCLIP = 1 << 0,
+		PF_UFO = 1 << 1,
+		PF_FROZEN = 1 << 2,
 	};
 
-	typedef enum
+	enum sessionState_t
 	{
 		SESS_STATE_PLAYING = 0x0,
 		SESS_STATE_DEAD = 0x1,
 		SESS_STATE_SPECTATOR = 0x2,
 		SESS_STATE_INTERMISSION = 0x3
-	} sessionState_t;
+	};
 
-	typedef enum
+	enum clientConnected_t
 	{
 		CON_DISCONNECTED = 0x0,
 		CON_CONNECTING = 0x1,
 		CON_CONNECTED = 0x2
-	} clientConnected_t;
+	};
 
-	typedef enum
+	enum visionSetMode_t
 	{
 		VISIONSET_NORMAL,
 		VISIONSET_NIGHT,
@@ -6750,7 +6780,7 @@ namespace Game
 		VISIONSET_THERMAL,
 		VISIONSET_PAIN,
 		VISIONSETCOUNT
-	} visionSetMode_t;
+	};
 
 	enum hintType_t
 	{
@@ -6959,8 +6989,8 @@ namespace Game
 		const char* name;
 		int ofs;
 		fieldtype_t type;
-		void(__cdecl* setter)(gentity_s*, int);
-		void(__cdecl* getter)(gentity_s*, int);
+		void(*setter)(gentity_s*, int);
+		void(*getter)(gentity_s*, int);
 	};
 
 	struct client_fields_s
@@ -6968,12 +6998,12 @@ namespace Game
 		const char* name;
 		int ofs;
 		fieldtype_t type;
-		void(__cdecl* setter)(gclient_s*, const client_fields_s*);
-		void(__cdecl* getter)(gclient_s*, const client_fields_s*);
+		void(*setter)(gclient_s*, const client_fields_s*);
+		void(*getter)(gclient_s*, const client_fields_s*);
 	};
 
-	typedef void(__cdecl* ScriptCallbackEnt)(gentity_s*, int);
-	typedef void(__cdecl* ScriptCallbackClient)(gclient_s*, const client_fields_s*);
+	typedef void(*ScriptCallbackEnt)(gentity_s*, int);
+	typedef void(*ScriptCallbackClient)(gclient_s*, const client_fields_s*);
 
 	struct lockonFireParms
 	{
@@ -7098,7 +7128,7 @@ namespace Game
 		char serverCommands[128][1024];
 		bool isServerRestarting;
 		int lastClientArchiveIndex;
-		char demoName[64];
+		char demoName[MAX_QPATH];
 		int demorecording;
 		int demoplaying;
 		int isTimeDemo;
@@ -7177,56 +7207,56 @@ namespace Game
 
 	typedef struct script_s
 	{
-		char filename[64];				//file name of the script
-		char* buffer;					//buffer containing the script
-		char* script_p;					//current pointer in the script
-		char* end_p;					//pointer to the end of the script
-		char* lastscript_p;				//script pointer before reading token
-		char* whitespace_p;				//begin of the white space
-		char* endwhitespace_p;			//end of the white space
-		int length;						//length of the script in bytes
-		int line;						//current line in script
-		int lastline;					//line before reading token
-		int tokenavailable;				//set by UnreadLastToken
-		int flags;						//several script flags
-		punctuation_t* punctuations;	//the punctuations used in the script
+		char filename[64]; //file name of the script
+		char* buffer; //buffer containing the script
+		char* script_p; //current pointer in the script
+		char* end_p; //pointer to the end of the script
+		char* lastscript_p; //script pointer before reading token
+		char* whitespace_p; //begin of the white space
+		char* endwhitespace_p; //end of the white space
+		int length; //length of the script in bytes
+		int line; //current line in script
+		int lastline; //line before reading token
+		int tokenavailable; //set by UnreadLastToken
+		int flags; //several script flags
+		punctuation_t* punctuations; //the punctuations used in the script
 		punctuation_t** punctuationtable;
-		token_t token;					//available token
-		struct script_s* next;			//next script in a chain
+		token_t token; //available token
+		script_s* next; //next script in a chain
 	} script_t;
 
 	typedef struct define_s
 	{
-		char* name;							//define name
-		int flags;							//define flags
-		int builtin;						// > 0 if builtin define
-		int numparms;						//number of define parameters
-		token_t* parms;						//define parameters
-		token_t* tokens;					//macro tokens (possibly containing parm tokens)
-		struct define_s* next;				//next defined macro in a list
-		struct define_s* hashnext;			//next define in the hash chain
+		char* name; //define name
+		int flags; //define flags
+		int builtin; // > 0 if builtin define
+		int numparms; //number of define parameters
+		token_t* parms; //define parameters
+		token_t* tokens; //macro tokens (possibly containing parm tokens)
+		define_s* next; //next defined macro in a list
+		define_s* hashnext; //next define in the hash chain
 	} define_t;
 
 	typedef struct indent_s
 	{
-		int type;								//indent type
-		int skip;								//true if skipping current indent
-		script_t* script;						//script the indent was in
-		struct indent_s* next;					//next indent on the indent stack
+		int type; //indent type
+		int skip; //true if skipping current indent
+		script_t* script; //script the indent was in
+		indent_s* next; //next indent on the indent stack
 	} indent_t;
 
 	typedef struct source_s
 	{
-		char filename[64];					//file name of the script
-		char includepath[64];					//path to include files
-		punctuation_t* punctuations;			//punctuations to use
-		script_t* scriptstack;					//stack with scripts of the source
-		token_t* tokens;						//tokens to read first
-		define_t* defines;						//list with macro definitions
-		define_t** definehash;					//hash chain with defines
-		indent_t* indentstack;					//stack with indents
-		int skip;								// > 0 if skipping conditional code
-		token_t token;							//last read token
+		char filename[MAX_QPATH]; //file name of the script
+		char includepath[MAX_QPATH]; //path to include files
+		punctuation_t* punctuations; //punctuations to use
+		script_t* scriptstack; //stack with scripts of the source
+		token_t* tokens; //tokens to read first
+		define_t* defines; //list with macro definitions
+		define_t** definehash; //hash chain with defines
+		indent_t* indentstack; //stack with indents
+		int skip; // > 0 if skipping conditional code
+		token_t token; //last read token
 	} source_t;
 
 	typedef struct pc_token_s
@@ -8958,7 +8988,7 @@ namespace Game
 
 	struct animation_s
 	{
-		char name[64];
+		char name[MAX_QPATH];
 		int initialLerp;
 		float moveSpeed;
 		int duration;
@@ -10385,17 +10415,6 @@ namespace Game
 	{
 		char va_string[2][1024];
 		int index;
-	};
-
-	struct TraceCheckCount
-	{
-		int global;
-		int* partitions;
-	};
-
-	struct TraceThreadInfo
-	{
-		TraceCheckCount checkcount;
 	};
 
 	struct ProfileAtom

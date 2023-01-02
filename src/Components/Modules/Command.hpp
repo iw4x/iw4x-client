@@ -5,7 +5,7 @@ namespace Components
 	class Command : public Component
 	{
 	public:
-		static_assert(sizeof(Game::cmd_function_t) == 0x18);
+		static_assert(sizeof(Game::cmd_function_s) == 0x18);
 
 		class Params
 		{
@@ -49,7 +49,7 @@ namespace Components
 
 		Command() = default;
 
-		static Game::cmd_function_t* Allocate();
+		static Game::cmd_function_s* Allocate();
 
 		static void Add(const char* name, const std::function<void()>& callback);
 		static void Add(const char* name, const std::function<void(Command::Params*)>& callback);
@@ -57,7 +57,7 @@ namespace Components
 		static void AddSV(const char* name, const std::function<void(Command::Params*)>& callback);
 		static void Execute(std::string command, bool sync = true);
 
-		static Game::cmd_function_t* Find(const std::string& command);
+		static Game::cmd_function_s* Find(const std::string& command);
 
 	private:
 		static std::unordered_map<std::string, std::function<void(Command::Params*)>> FunctionMap;

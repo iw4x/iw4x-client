@@ -79,7 +79,7 @@ namespace Components
 			this->wasFreed = true;
 
 			// Unchain our searchpath
-			for (Game::searchpath_t** pathPtr = Game::fs_searchpaths; *pathPtr; pathPtr = &(*pathPtr)->next)
+			for (auto** pathPtr = Game::fs_searchpaths; *pathPtr; pathPtr = &(*pathPtr)->next)
 			{
 				if (*pathPtr == &this->searchPath)
 				{

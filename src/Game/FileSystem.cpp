@@ -29,7 +29,7 @@ namespace Game
 	FS_Delete_t FS_Delete = FS_Delete_t(0x48A5B0);
 	FS_BuildOSPath_t FS_BuildOSPath = FS_BuildOSPath_t(0x4702C0);
 
-	searchpath_t** fs_searchpaths = reinterpret_cast<searchpath_t**>(0x63D96E0);
+	searchpath_s** fs_searchpaths = reinterpret_cast<searchpath_s**>(0x63D96E0);
 
 	int FS_FOpenFileReadCurrentThread(const char* filename, int* file)
 	{

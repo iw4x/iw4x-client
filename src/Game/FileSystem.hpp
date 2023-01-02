@@ -80,7 +80,7 @@ namespace Game
 	typedef void(*FS_BuildOSPath_t)(const char* base, const char* game, const char* qpath, char* ospath);
 	extern FS_BuildOSPath_t FS_BuildOSPath;
 
-	extern searchpath_t** fs_searchpaths;
+	extern searchpath_s** fs_searchpaths;
 
 	extern int FS_FOpenFileReadCurrentThread(const char* filename, int* file);
 

@@ -43,7 +43,7 @@ namespace Components
 			bool wasFreed;
 			unsigned int hash;
 			std::string mapname;
-			Game::searchpath_t searchPath;
+			Game::searchpath_s searchPath;
 		};
 
 		Maps();
