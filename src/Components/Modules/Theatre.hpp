@@ -20,22 +20,15 @@ namespace Components
 			int length;
 			std::time_t timeStamp;
 
-			[[nodiscard]] nlohmann::json to_json() const
-			{
-				return nlohmann::json
-				{
-					{ "mapname", mapname },
-					{ "gametype", gametype },
-					{ "author", author },
-					{ "length", length },
-					{ "timestamp", Utils::String::VA("%lld", timeStamp) } // Ugly, but prevents information loss
-				};
-			}
+			[[nodiscard]] nlohmann::json to_json() const;
 		};
 
 		static DemoInfo CurrentInfo;
 		static unsigned int CurrentSelection;
 		static std::vector<DemoInfo> Demos;
+
+		static Dvar::Var CLAutoRecord;
+		static Dvar::Var CLDemosKeep;
 
 		static char BaselineSnapshot[131072];
 		static int BaselineSnapshotMsgLen;
@@ -60,8 +53,8 @@ namespace Components
 		static void ServerTimedOutStub();
 		static void UISetActiveMenuStub();
 
-		static uint32_t InitCGameStub();
-		static void MapChangeStub();
+		static int CL_FirstSnapshot_Stub();
+		static void SV_SpawnServer_Stub();
 
 		static void RecordStub(int channel, char* message, char* file);
 		static void StopRecordStub(int channel, char* message);

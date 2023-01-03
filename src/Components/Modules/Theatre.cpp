@@ -11,9 +11,24 @@ namespace Components
 	unsigned int Theatre::CurrentSelection;
 	std::vector<Theatre::DemoInfo> Theatre::Demos;
 
+	Dvar::Var Theatre::CLAutoRecord;
+	Dvar::Var Theatre::CLDemosKeep;
+
 	char Theatre::BaselineSnapshot[131072] = {0};
 	int Theatre::BaselineSnapshotMsgLen;
 	int Theatre::BaselineSnapshotMsgOff;
+
+	nlohmann::json Theatre::DemoInfo::to_json() const
+	{
+		return nlohmann::json
+		{
+			{ "mapname", mapname },
+			{ "gametype", gametype },
+			{ "author", author },
+			{ "length", length },
+			{ "timestamp", std::to_string(timeStamp) },
+		};
+	}
 
 	void Theatre::GamestateWriteStub(Game::msg_t* msg, char byte)
 	{
@@ -295,14 +310,14 @@ namespace Components
 		}
 	}
 
-	uint32_t Theatre::InitCGameStub()
+	int Theatre::CL_FirstSnapshot_Stub()
 	{
-		if (Dvar::Var("cl_autoRecord").get<bool>() && !*Game::demoPlaying)
+		if (CLAutoRecord.get<bool>() && !*Game::demoPlaying)
 		{
 			std::vector<std::string> files;
 			auto demos = FileSystem::GetFileList("demos/", "dm_13");
 
-			for (auto demo : demos)
+			for (auto& demo : demos)
 			{
 				if (Utils::String::StartsWith(demo, "auto_"))
 				{
@@ -310,7 +325,7 @@ namespace Components
 				}
 			}
 
-			auto numDel = static_cast<int>(files.size()) - Dvar::Var("cl_demosKeep").get<int>();
+			auto numDel = static_cast<int>(files.size()) - CLDemosKeep.get<int>();
 
 			for (auto i = 0; i < numDel; ++i)
 			{
@@ -322,13 +337,13 @@ namespace Components
 			Command::Execute(Utils::String::VA("record auto_%lld", std::time(nullptr)), true);
 		}
 
-		return Utils::Hook::Call<DWORD()>(0x42BBB0)();
+		return Utils::Hook::Call<int()>(0x42BBB0)(); // DB_GetLoadedFlags
 	}
 
-	void Theatre::MapChangeStub()
+	void Theatre::SV_SpawnServer_Stub()
 	{
 		StopRecording();
-		Utils::Hook::Call<void()>(0x464A60)();
+		Utils::Hook::Call<void()>(0x464A60)(); // Com_SyncThreads
 	}
 
 	void Theatre::StopRecording()
@@ -341,8 +356,8 @@ namespace Components
 
 	Theatre::Theatre()
 	{
-		Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games.");
-		Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord.");
+		CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games");
+		CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
 
 		Utils::Hook(0x5A8370, GamestateWriteStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A85D2, RecordGamestateStub, HOOK_CALL).install()->quick();
@@ -357,8 +372,8 @@ namespace Components
 		Utils::Hook(0x5A8156, StopRecordStub, HOOK_CALL).install()->quick();
 
 		// Autorecording
-		Utils::Hook(0x5A1D6A, InitCGameStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4A712A, MapChangeStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A1D6A, CL_FirstSnapshot_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4A712A, SV_SpawnServer_Stub, HOOK_CALL).install()->quick();
 
 		// UIScripts
 		UIScript::Add("loadDemos", LoadDemos);
@@ -372,7 +387,7 @@ namespace Components
 		if (!Dedicated::IsEnabled()) Utils::Hook::Set<const char*>(0x47440B, "mp/defaultStringTable.csv");
 
 		// Change font size
-		Utils::Hook::Set<BYTE>(0x5AC854, 2);
-		Utils::Hook::Set<BYTE>(0x5AC85A, 2);
+		Utils::Hook::Set<std::uint8_t>(0x5AC854, 2);
+		Utils::Hook::Set<std::uint8_t>(0x5AC85A, 2);
 	}
 }
