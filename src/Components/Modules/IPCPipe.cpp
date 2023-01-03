@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include <proto/ipc.pb.h>
 
 namespace Components
 {

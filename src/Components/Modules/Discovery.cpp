@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
 #include "Discovery.hpp"
 #include "ServerList.hpp"
 

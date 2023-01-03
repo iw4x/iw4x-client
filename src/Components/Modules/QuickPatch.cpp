@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include <Utils/Compression.hpp>
+
 #include "QuickPatch.hpp"
 
 namespace Components

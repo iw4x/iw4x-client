@@ -871,6 +871,9 @@ namespace Components
 		Utils::Hook(0x4F690C, Con_ToggleConsole, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4F65A5, Con_ToggleConsole, HOOK_JUMP).install()->quick();
 
+		// Allow the client console to always be opened (sv_allowClientConsole)
+		Utils::Hook::Nop(0x4F68EC, 2);
+
 		// Patch safearea for ingame-console
 		Utils::Hook(0x5A50EF, DrawSolidConsoleStub, HOOK_CALL).install()->quick();
 
@@ -944,7 +947,7 @@ namespace Components
 			if (type != FILE_TYPE_CHAR)
 			{
 				MessageBoxA(nullptr, "Console not supported, please use '-stdout' or '-console' flag!", "ERRROR", MB_ICONERROR);
-				TerminateProcess(GetCurrentProcess(), 1);
+				TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
 			}
 
 			Utils::Hook::Nop(0x60BB58, 11);

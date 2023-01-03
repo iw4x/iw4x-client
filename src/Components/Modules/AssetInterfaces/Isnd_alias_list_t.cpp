@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include "Isnd_alias_list_t.hpp"
 
+#include <Utils/Json.hpp>
+
 namespace Assets
 {
 	void Isnd_alias_list_t::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)

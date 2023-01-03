@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include "IGameWorldMp.hpp"
 
+#include <json.hpp>
+
 #define IW4X_GAMEWORLD_VERSION 1
 
 namespace Assets

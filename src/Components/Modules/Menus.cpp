@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Party.hpp"
 
 namespace Components
 {

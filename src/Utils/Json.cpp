@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include <bitset>
 
+#include "Json.hpp"
+
 namespace Utils::Json
 {
 	std::string TypeToString(const nlohmann::json::value_t type)
@@ -33,7 +35,7 @@ namespace Utils::Json
 		}
 	}
 
-	unsigned long ReadFlags(const std::string binaryFlags, size_t size)
+	unsigned long ReadFlags(const std::string binaryFlags, std::size_t size)
 	{
 		std::bitset<64>	input;
 		const auto binarySize = size * 8;
@@ -53,7 +55,7 @@ namespace Utils::Json
 				break;
 			}
 
-			bool isOne = bit == '1';
+			auto isOne = bit == '1';
 			input.set(i--, isOne);
 		}
 

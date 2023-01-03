@@ -20,7 +20,7 @@ namespace Components
 			int length;
 			std::time_t timeStamp;
 
-			nlohmann::json to_json() const
+			[[nodiscard]] nlohmann::json to_json() const
 			{
 				return nlohmann::json
 				{
@@ -28,7 +28,7 @@ namespace Components
 					{ "gametype", gametype },
 					{ "author", author },
 					{ "length", length },
-					{ "timestamp", Utils::String::VA("%lld", timeStamp) } //Ugly, but prevents information loss
+					{ "timestamp", Utils::String::VA("%lld", timeStamp) } // Ugly, but prevents information loss
 				};
 			}
 		};

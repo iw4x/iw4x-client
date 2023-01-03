@@ -1,4 +1,9 @@
 #include <STDInclude.hpp>
+#include <Utils/Compression.hpp>
+#include <Utils/InfoString.hpp>
+
+#include <proto/node.pb.h>
+
 #include "ServerList.hpp"
 #include "Session.hpp"
 

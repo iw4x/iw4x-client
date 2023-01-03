@@ -1,4 +1,8 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
+#include <proto/auth.pb.h>
+
 #include "Bans.hpp"
 
 namespace Components

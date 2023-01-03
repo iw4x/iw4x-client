@@ -26,7 +26,6 @@ namespace Main
 	void Uninitialize()
 	{
 		Components::Loader::Uninitialize();
-		google::protobuf::ShutdownProtobufLibrary();
 	}
 
 	__declspec(naked) void EntryPoint()

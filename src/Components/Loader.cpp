@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
 
 #include "Modules/Bans.hpp"
 #include "Modules/Bots.hpp"
@@ -17,12 +18,14 @@
 #include "Modules/Discovery.hpp"
 #include "Modules/Download.hpp"
 #include "Modules/Elevators.hpp"
+#include "Modules/FastFiles.hpp"
 #include "Modules/Gamepad.hpp"
 #include "Modules/Lean.hpp"
 #include "Modules/MapDump.hpp"
 #include "Modules/MapRotation.hpp"
 #include "Modules/NetworkDebug.hpp"
 #include "Modules/News.hpp"
+#include "Modules/Party.hpp"
 #include "Modules/PlayerMovement.hpp"
 #include "Modules/PlayerName.hpp"
 #include "Modules/Playlist.hpp"

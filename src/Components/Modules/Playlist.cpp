@@ -1,4 +1,9 @@
 #include <STDInclude.hpp>
+#include <Utils/Compression.hpp>
+
+#include <proto/party.pb.h>
+
+#include "Party.hpp"
 #include "Playlist.hpp"
 
 namespace Components

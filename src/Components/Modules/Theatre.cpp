@@ -1,4 +1,7 @@
 #include <STDInclude.hpp>
+
+#include <json.hpp>
+
 #include "Theatre.hpp"
 #include "UIFeeder.hpp"
 

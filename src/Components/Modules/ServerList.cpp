@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
 #include "Discovery.hpp"
+#include "Party.hpp"
 #include "ServerList.hpp"
 #include "UIFeeder.hpp"
 

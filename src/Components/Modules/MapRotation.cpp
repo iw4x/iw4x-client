@@ -72,33 +72,6 @@ namespace Components
 		});
 	}
 
-	nlohmann::json MapRotation::RotationData::to_json() const
-	{
-		std::vector<std::string> mapVector;
-		std::vector<std::string> gametypeVector;
-
-		for (const auto& [key, val] : this->rotationEntries_)
-		{
-			if (key == "map"s)
-			{
-				mapVector.emplace_back(val);
-			}
-			else if (key == "gametype"s)
-			{
-				gametypeVector.emplace_back(val);
-			}
-		}
-
-
-		auto mapRotationJson = nlohmann::json
-		{
-			{"maps", mapVector},
-			{"gametypes", gametypeVector},
-		};
-
-		return mapRotationJson;
-	}
-
 	void MapRotation::LoadRotation(const std::string& data)
 	{
 		static auto loaded = false;

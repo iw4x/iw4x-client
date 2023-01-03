@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include "Bans.hpp"
 
+#include <json.hpp>
+
 namespace Components
 {
 	// Have only one instance of IW4x read/write the file

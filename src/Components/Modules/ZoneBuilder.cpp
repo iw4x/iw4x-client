@@ -1,5 +1,10 @@
 #include <STDInclude.hpp>
+#include <Utils/Compression.hpp>
+
 #include "Console.hpp"
+#include "FastFiles.hpp"
+
+#include <json.hpp>
 
 #include <version.hpp>
 

@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
+#include <proto/rcon.pb.h>
+
 #include "RCon.hpp"
+#include "Party.hpp"
 
 namespace Components
 {

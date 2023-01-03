@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include "IMaterial.hpp"
 
+#include <Utils/Json.hpp>
+
 #define IW4X_MAT_BIN_VERSION "1"
 #define IW4X_MAT_JSON_VERSION 1
 

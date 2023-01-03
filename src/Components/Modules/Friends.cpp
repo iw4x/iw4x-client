@@ -1,4 +1,11 @@
 #include <STDInclude.hpp>
+
+#pragma warning(push)
+#pragma warning(disable: 4100)
+#include <proto/friends.pb.h>
+#pragma warning(pop)
+
+#include "Party.hpp"
 #include "UIFeeder.hpp"
 
 namespace Components

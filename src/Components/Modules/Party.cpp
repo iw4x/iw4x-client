@@ -1,6 +1,9 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
 #include "Download.hpp"
 #include "Gamepad.hpp"
+#include "Party.hpp"
 #include "ServerList.hpp"
 #include "Stats.hpp"
 #include "Voice.hpp"
@@ -9,8 +12,25 @@
 
 namespace Components
 {
-	Party::JoinContainer Party::Container;
-	std::map<uint64_t, Network::Address> Party::LobbyMap;
+	class JoinContainer
+	{
+	public:
+		Network::Address target;
+		std::string challenge;
+		std::string motd;
+		DWORD joinTime;
+		bool valid;
+		int matchType;
+
+		Utils::InfoString info;
+
+		// Party-specific stuff
+		DWORD requestTime;
+		bool awaitingPlaylist;
+	};
+
+	static JoinContainer Container;
+	std::map<std::uint64_t, Network::Address> Party::LobbyMap;
 
 	Dvar::Var Party::PartyEnable;
 
@@ -401,15 +421,15 @@ namespace Components
 			const Utils::InfoString info(data);
 
 			// Handle connection
-			if (Party::Container.valid)
+			if (Container.valid)
 			{
-				if (Party::Container.target == address)
+				if (Container.target == address)
 				{
 					// Invalidate handler for future packets
-					Party::Container.valid = false;
-					Party::Container.info = info;
+					Container.valid = false;
+					Container.info = info;
 
-					Party::Container.matchType = atoi(info.get("matchtype").data());
+					Container.matchType = atoi(info.get("matchtype").data());
 					auto securityLevel = static_cast<std::uint32_t>(atoi(info.get("securityLevel").data()));
 					bool isUsermap = !info.get("usermaphash").empty();
 					auto usermapHash = static_cast<std::uint32_t>(atoi(info.get("usermaphash").data()));
@@ -428,30 +448,30 @@ namespace Components
 						Download::SV_wwwBaseUrl.set("");
 					}
 
-					if (info.get("challenge") != Party::Container.challenge)
+					if (info.get("challenge") != Container.challenge)
 					{
-						Party::ConnectError("Invalid join response: Challenge mismatch.");
+						ConnectError("Invalid join response: Challenge mismatch.");
 					}
 					else if (securityLevel > Auth::GetSecurityLevel())
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
 						Auth::IncreaseSecurityLevel(securityLevel, "reconnect");
 					}
-					else if (!Party::Container.matchType)
+					else if (!Container.matchType)
 					{
-						Party::ConnectError("Server is not hosting a match.");
+						ConnectError("Server is not hosting a match.");
 					}
-					else if (Party::Container.matchType > 2 || Party::Container.matchType < 0)
+					else if (Container.matchType > 2 || Container.matchType < 0)
 					{
-						Party::ConnectError("Invalid join response: Unknown matchtype");
+						ConnectError("Invalid join response: Unknown matchtype");
 					}
-					else if (Party::Container.info.get("mapname").empty() || Party::Container.info.get("gametype").empty())
+					else if (Container.info.get("mapname").empty() || Container.info.get("gametype").empty())
 					{
-						Party::ConnectError("Invalid map or gametype.");
+						ConnectError("Invalid map or gametype.");
 					}
-					else if (Party::Container.info.get("isPrivate") == "1"s && !Dvar::Var("password").get<std::string>().length())
+					else if (Container.info.get("isPrivate") == "1"s && !Dvar::Var("password").get<std::string>().length())
 					{
-						Party::ConnectError("A password is required to join this server! Set it at the bottom of the serverlist.");
+						ConnectError("A password is required to join this server! Set it at the bottom of the serverlist.");
 					}
 					else if (isUsermap && usermapHash != Maps::GetUsermapHash(info.get("mapname")))
 					{
@@ -476,16 +496,16 @@ namespace Components
 					}
 					else
 					{
-						if (!Maps::CheckMapInstalled(Party::Container.info.get("mapname"), true)) return;
+						if (!Maps::CheckMapInstalled(Container.info.get("mapname"), true)) return;
 
-						Party::Container.motd = info.get("sv_motd");
+						Container.motd = info.get("sv_motd");
 
-						if (Party::Container.matchType == 1) // Party
+						if (Container.matchType == 1) // Party
 						{
 							// Send playlist request
-							Party::Container.requestTime = Game::Sys_Milliseconds();
-							Party::Container.awaitingPlaylist = true;
-							Network::SendCommand(Party::Container.target, "getplaylist", Dvar::Var("password").get<std::string>());
+							Container.requestTime = Game::Sys_Milliseconds();
+							Container.awaitingPlaylist = true;
+							Network::SendCommand(Container.target, "getplaylist", Dvar::Var("password").get<std::string>());
 
 							// This is not a safe method
 							// TODO: Fix actual error!
@@ -494,7 +514,7 @@ namespace Components
 								Command::Execute("disconnect", true);
 							}
 						}
-						else if (Party::Container.matchType == 2) // Match
+						else if (Container.matchType == 2) // Match
 						{
 							int clients;
 							int maxClients;
@@ -521,7 +541,7 @@ namespace Components
 								Game::Menus_CloseAll(Game::uiContext);
 
 								Game::_XSESSION_INFO hostInfo;
-								Game::CL_ConnectFromParty(0, &hostInfo, *Party::Container.target.get(), 0, 0, Party::Container.info.get("mapname").data(), Party::Container.info.get("gametype").data());
+								Game::CL_ConnectFromParty(0, &hostInfo, *Container.target.get(), 0, 0, Container.info.get("mapname").data(), Container.info.get("gametype").data());
 							}
 						}
 					}

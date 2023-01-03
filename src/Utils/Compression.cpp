@@ -1,4 +1,7 @@
 #include <STDInclude.hpp>
+#include <zlib.h>
+
+#include "Compression.hpp"
 
 namespace Utils::Compression
 {

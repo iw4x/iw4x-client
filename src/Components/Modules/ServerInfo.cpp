@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
 #include "Gamepad.hpp"
+#include "Party.hpp"
 #include "ServerInfo.hpp"
 #include "ServerList.hpp"
 #include "UIFeeder.hpp"

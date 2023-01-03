@@ -1,5 +1,9 @@
 #include <STDInclude.hpp>
 
+#include <zlib.h>
+
+#include "FastFiles.hpp"
+
 namespace Components
 {
 	FastFiles::Key FastFiles::CurrentKey;
@@ -390,7 +394,7 @@ namespace Components
 		return Utils::Hook::Call<int(unsigned char*, int, unsigned char*)>(0x5BA240)(buffer, length, ivValue);
 	}
 
-	int FastFiles::InflateInitDecrypt(z_streamp strm, const char *version, int stream_size)
+	static int InflateInitDecrypt(z_streamp strm, const char *version, int stream_size)
 	{
 		if (Zones::Version() >= 319)
 		{
@@ -398,7 +402,6 @@ namespace Components
 		}
 
 		return Utils::Hook::Call<int(z_streamp, const char*, int)>(0x4D8090)(strm, version, stream_size);
-		//return inflateInit_(strm, version, stream_size);
 	}
 
 	void FastFiles::AuthLoadInflateDecryptBaseFunc(unsigned char* buffer)
@@ -547,7 +550,7 @@ namespace Components
 		Utils::Hook(0x4D02F0, FastFiles::AuthLoadInitCrypto, HOOK_CALL).install()->quick();
 
 		// Initial stage decryption
-		Utils::Hook(0x4D0306, FastFiles::InflateInitDecrypt, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4D0306, InflateInitDecrypt, HOOK_CALL).install()->quick();
 
 		// Hash bit decryption
 		Utils::Hook(0x5B9958, FastFiles::AuthLoadInflateCompare, HOOK_CALL).install()->quick();

@@ -1,5 +1,9 @@
 ﻿#include <STDInclude.hpp>
 
+#include <zlib.h>
+
+#include "FastFiles.hpp"
+
 #pragma optimize( "", off )
 namespace Components
 {

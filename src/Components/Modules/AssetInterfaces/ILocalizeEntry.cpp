@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include "ILocalizeEntry.hpp"
 
+#include <json.hpp>
+
 namespace Assets
 {
 	void ILocalizeEntry::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)

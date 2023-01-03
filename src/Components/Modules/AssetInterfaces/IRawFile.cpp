@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include "IRawFile.hpp"
 
+#include <Utils/Compression.hpp>
+
 namespace Assets
 {
 	void IRawFile::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)

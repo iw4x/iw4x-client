@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
 #include "Download.hpp"
+#include "Party.hpp"
 #include "ServerInfo.hpp"
 
 #include <mongoose.h>
