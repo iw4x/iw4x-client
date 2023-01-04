@@ -56,6 +56,8 @@ namespace Components
 		static int CL_FirstSnapshot_Stub();
 		static void SV_SpawnServer_Stub();
 
+		static void CL_WriteDemoClientArchive_Hk(void(*write)(const void* buffer, int len, int localClientNum), const Game::playerState_s* ps, const float* viewangles, const float* selectedLocation, float selectedLocationAngle, int localClientNum, int index);
+
 		static void RecordStub(int channel, char* message, char* file);
 		static void StopRecordStub(int channel, char* message);
 	};

@@ -1968,7 +1968,6 @@ namespace Game
 		CMD_BUTTON_THROW = 1 << 19,
 	};
 
-#pragma pack(push, 4)
 	struct usercmd_s
 	{
 		int serverTime;
@@ -1985,7 +1984,8 @@ namespace Game
 		char selectedLocAngle;
 		char remoteControlAngles[2];
 	};
-#pragma pack(pop)
+
+	static_assert(sizeof(usercmd_s) == 0x28);
 
 	enum trType_t
 	{
@@ -8654,7 +8654,20 @@ namespace Game
 		CUBEMAPSHOT_COUNT = 0x7,
 	};
 
-	struct __declspec(align(8)) cg_s
+	struct snapshot_s
+	{
+		playerState_s ps;
+		int snapFlags;
+		int ping;
+		int serverTime;
+		int numEntities;
+		int numClients;
+		entityState_s entities[768];
+		clientState_s clients[18];
+		int serverCommandSequence;
+	};
+
+	struct cg_s
 	{
 		playerState_s predictedPlayerState;
 		centity_s predictedPlayerEntity;
@@ -8670,9 +8683,10 @@ namespace Game
 		int latestSnapshotNum;
 		int latestSnapshotTime;
 		char pad0[16];
-		void* snap;
-		void* nextSnap;
-		char _pad1[0x673DC];
+		snapshot_s* snap;
+		snapshot_s* nextSnap;
+		snapshot_s activeSnapshots[2];
+		float frameInterpolation;
 		int frametime;	// + 0x6A754
 		int time;
 		int oldTime;
@@ -8689,6 +8703,8 @@ namespace Game
 	};
 
 	static_assert(sizeof(cg_s) == 0xFD540);
+	static_assert(offsetof(cg_s, frametime) == 0x6A754);
+	static_assert(offsetof(cg_s, selectedLocation) == 0x73DE0);
 
 	static constexpr auto MAX_GPAD_COUNT = 1;
 

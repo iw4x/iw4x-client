@@ -177,6 +177,28 @@ namespace Components
 		}
 	}
 
+	void Theatre::CL_WriteDemoClientArchive_Hk(void(*write)(const void* buffer, int len, int localClientNum), const Game::playerState_s* ps, const float* viewangles, [[maybe_unused]] const float* selectedLocation, [[maybe_unused]] const float selectedLocationAngle, int localClientNum, int index)
+	{
+		assert(write);
+		assert(ps);
+
+		const unsigned char msgType = 1;
+		(write)(&msgType, sizeof(unsigned char), localClientNum);
+
+		(write)(&index, sizeof(int), localClientNum);
+
+		(write)(ps->origin, sizeof(float[3]), localClientNum);
+		(write)(ps->velocity, sizeof(float[3]), localClientNum);
+		(write)(&ps->movementDir, sizeof(int), localClientNum);
+		(write)(&ps->bobCycle, sizeof(int), localClientNum);
+		(write)(ps, sizeof(Game::playerState_s*), localClientNum);
+		(write)(viewangles, sizeof(float[3]), localClientNum);
+
+		// Disable locationSelectionInfo
+		const auto locationSelectionInfo = 0;
+		(write)(&locationSelectionInfo, sizeof(int), localClientNum);
+	}
+
 	void Theatre::RecordStub(int channel, char* message, char* file)
 	{
 		Game::Com_Printf(channel, message, file);
@@ -366,6 +388,9 @@ namespace Components
 		Utils::Hook(0x4CB3EF, UISetActiveMenuStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x50320E, AdjustTimeDeltaStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A8E03, ServerTimedOutStub, HOOK_JUMP).install()->quick();
+
+		// Fix issue with locationSelectionInfo by disabling it
+		Utils::Hook(0x5AC20F, CL_WriteDemoClientArchive_Hk, HOOK_CALL).install()->quick();
 
 		// Hook commands to enforce metadata generation
 		Utils::Hook(0x5A82AE, RecordStub, HOOK_CALL).install()->quick();
