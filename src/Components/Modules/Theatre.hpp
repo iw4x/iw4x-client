@@ -56,6 +56,7 @@ namespace Components
 		static int CL_FirstSnapshot_Stub();
 		static void SV_SpawnServer_Stub();
 
+		static void CG_CompassDrawPlayerMapLocationSelector_Stub(int localClientNum, Game::CompassType compassType, const Game::rectDef_s* parentRect, const Game::rectDef_s* rect, Game::Material* material, float* color);
 		static void CL_WriteDemoClientArchive_Hk(void(*write)(const void* buffer, int len, int localClientNum), const Game::playerState_s* ps, const float* viewangles, const float* selectedLocation, float selectedLocationAngle, int localClientNum, int index);
 
 		static void RecordStub(int channel, char* message, char* file);

@@ -7107,6 +7107,12 @@ namespace Game
 
 	static_assert(sizeof(client_t) == 0xA6790);
 
+	enum CompassType
+	{
+		COMPASS_TYPE_PARTIAL = 0x0,
+		COMPASS_TYPE_FULL = 0x1,
+	};
+
 	struct clientConnection_t
 	{
 		int qport;

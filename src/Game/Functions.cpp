@@ -290,11 +290,6 @@ namespace Game
 	int* numIP = reinterpret_cast<int*>(0x64A1E68);
 	netIP_t* localIP = reinterpret_cast<netIP_t*>(0x64A1E28);
 
-	int* demoFile = reinterpret_cast<int*>(0xA5EA1C);
-	int* demoPlaying = reinterpret_cast<int*>(0xA5EA0C);
-	int* demoRecording = reinterpret_cast<int*>(0xA5EA08);
-	int* serverMessageSequence = reinterpret_cast<int*>(0xA3E9B4);
-
 	netadr_t* connectedHost = reinterpret_cast<netadr_t*>(0xA1E888);
 
 	SOCKET* ip_socket = reinterpret_cast<SOCKET*>(0x64A3008);

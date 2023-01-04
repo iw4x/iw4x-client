@@ -633,11 +633,6 @@ namespace Game
 	extern int* numIP;
 	extern netIP_t* localIP;
 
-	extern int* demoFile;
-	extern int* demoPlaying;
-	extern int* demoRecording;
-	extern int* serverMessageSequence;
-
 	extern netadr_t* connectedHost;
 	extern SOCKET* ip_socket;
 

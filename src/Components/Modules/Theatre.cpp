@@ -38,8 +38,8 @@ namespace Components
 
 	void Theatre::RecordGamestateStub()
 	{
-		const auto sequence = (*Game::serverMessageSequence - 1);
-		Game::FS_WriteToDemo(&sequence, 4, *Game::demoFile);
+		const auto sequence = (Game::clientConnections->serverMessageSequence - 1);
+		Game::FS_WriteToDemo(&sequence, 4, Game::clientConnections->demofile);
 	}
 
 	void Theatre::StoreBaseline(PBYTE snapshotMsg)
@@ -72,7 +72,7 @@ namespace Components
 
 		Game::msg_t buf;
 
-		Game::MSG_Init(&buf, bufData, 131072);
+		Game::MSG_Init(&buf, bufData, sizeof(bufData));
 		Game::MSG_WriteData(&buf, &BaselineSnapshot[BaselineSnapshotMsgOff], BaselineSnapshotMsgLen - BaselineSnapshotMsgOff);
 		Game::MSG_WriteByte(&buf, 6);
 
@@ -80,12 +80,12 @@ namespace Components
 		const auto fileCompressedSize = compressedSize + 4;
 
 		int byte8 = 8;
-		char byte0 = 0;
+		unsigned char byte0 = 0;
 
-		Game::FS_WriteToDemo(&byte0, 1, *Game::demoFile);
-		Game::FS_WriteToDemo(Game::serverMessageSequence, 4, *Game::demoFile);
-		Game::FS_WriteToDemo(&fileCompressedSize, 4, *Game::demoFile);
-		Game::FS_WriteToDemo(&byte8, 4, *Game::demoFile);
+		Game::FS_WriteToDemo(&byte0, sizeof(unsigned char), Game::clientConnections->demofile);
+		Game::FS_WriteToDemo(&Game::clientConnections->serverMessageSequence, sizeof(int), Game::clientConnections->demofile);
+		Game::FS_WriteToDemo(&fileCompressedSize, sizeof(int), Game::clientConnections->demofile);
+		Game::FS_WriteToDemo(&byte8, sizeof(int), Game::clientConnections->demofile);
 
 		for (auto i = 0; i < compressedSize; i += 1024)
 		{
@@ -97,7 +97,7 @@ namespace Components
 				break;
 			}
 
-			Game::FS_WriteToDemo(&cmpData[i], size, *Game::demoFile);
+			Game::FS_WriteToDemo(&cmpData[i], size, Game::clientConnections->demofile);
 		}
 	}
 
@@ -123,7 +123,7 @@ namespace Components
 	{
 		__asm
 		{
-			mov eax, Game::demoPlaying
+			mov eax, 0xA5EA0C  // clientConnections.demoplaying
 			mov eax, [eax]
 			test al, al
 			jz continue
@@ -141,7 +141,7 @@ namespace Components
 	{
 		__asm
 		{
-			mov eax, Game::demoPlaying
+			mov eax, 0xA5EA0C  // clientConnections.demoplaying
 			mov eax, [eax]
 			test al, al
 			jz continue
@@ -160,7 +160,7 @@ namespace Components
 	{
 		__asm
 		{
-			mov eax, Game::demoPlaying
+			mov eax, 0xA5EA0C // clientConnections.demoplaying
 			mov eax, [eax]
 			test al, al
 			jz continue
@@ -174,6 +174,14 @@ namespace Components
 			push ecx
 			push 4CB3F6h
 			retn
+		}
+	}
+
+	void Theatre::CG_CompassDrawPlayerMapLocationSelector_Stub(const int localClientNum, Game::CompassType compassType, const Game::rectDef_s* parentRect, const Game::rectDef_s* rect, Game::Material* material, float* color)
+	{
+		if (!Game::clientConnections->demoplaying)
+		{
+			Utils::Hook::Call<void(int, Game::CompassType, const Game::rectDef_s*, const Game::rectDef_s*, Game::Material*, float*)>(0x45BD60)(localClientNum, compassType, parentRect, rect, material, color);
 		}
 	}
 
@@ -334,7 +342,7 @@ namespace Components
 
 	int Theatre::CL_FirstSnapshot_Stub()
 	{
-		if (CLAutoRecord.get<bool>() && !*Game::demoPlaying)
+		if (CLAutoRecord.get<bool>() && !Game::clientConnections->demoplaying)
 		{
 			std::vector<std::string> files;
 			auto demos = FileSystem::GetFileList("demos/", "dm_13");
@@ -370,7 +378,7 @@ namespace Components
 
 	void Theatre::StopRecording()
 	{
-		if (*Game::demoRecording)
+		if (Game::clientConnections->demorecording)
 		{
 			Command::Execute("stoprecord", true);
 		}
@@ -378,6 +386,11 @@ namespace Components
 
 	Theatre::Theatre()
 	{
+		AssertOffset(Game::clientConnection_t, demorecording, 0x40190);
+		AssertOffset(Game::clientConnection_t, demoplaying, 0x40194);
+		AssertOffset(Game::clientConnection_t, demofile, 0x401A4);
+		AssertOffset(Game::clientConnection_t, serverMessageSequence, 0x2013C);
+
 		CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games");
 		CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
 
@@ -391,6 +404,7 @@ namespace Components
 
 		// Fix issue with locationSelectionInfo by disabling it
 		Utils::Hook(0x5AC20F, CL_WriteDemoClientArchive_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4964A6, CG_CompassDrawPlayerMapLocationSelector_Stub, HOOK_CALL).install()->quick();
 
 		// Hook commands to enforce metadata generation
 		Utils::Hook(0x5A82AE, RecordStub, HOOK_CALL).install()->quick();
