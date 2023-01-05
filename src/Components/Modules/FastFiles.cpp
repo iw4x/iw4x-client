@@ -236,14 +236,14 @@ namespace Components
 
 	const char* FastFiles::GetZoneLocation(const char* file)
 	{
-		const char* dir = Dvar::Var("fs_basepath").get<const char*>();
+		const auto* dir = (*Game::fs_basepath)->current.string;
 
 		std::vector<std::string> paths;
-		auto modDir = Dvar::Var("fs_game").get<std::string>();
+		const std::string fsGame = (*Game::fs_gameDirVar)->current.string;
 
-		if ((file == "mod"s || file == "mod.ff"s) && !modDir.empty())
+		if ((file == "mod"s || file == "mod.ff"s) && !fsGame.empty())
 		{
-			paths.push_back(std::format("{}\\", modDir));
+			paths.push_back(std::format("{}\\", fsGame));
 		}
 
 		if (Utils::String::StartsWith(file, "mp_"))

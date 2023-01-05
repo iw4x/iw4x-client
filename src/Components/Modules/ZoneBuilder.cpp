@@ -1217,7 +1217,7 @@ namespace Components
 
 			Command::Add("buildall", []([[maybe_unused]] Command::Params* params)
 			{
-				auto path = std::format("{}\\zone_source", Dvar::Var("fs_basepath").get<std::string>());
+				auto path = std::format("{}\\zone_source", (*Game::fs_basepath)->current.string);
 				auto zoneSources = FileSystem::GetSysFileList(path, "csv", false);
 
 				for (auto source : zoneSources)
@@ -1583,7 +1583,7 @@ namespace Components
 			{
 				if (params->size() < 2) return;
 
-				auto path = std::format("{}\\mods\\{}\\images", Dvar::Var("fs_basepath").get<std::string>(), params->get(1));
+				auto path = std::format("{}\\mods\\{}\\images", (*Game::fs_basepath)->current.string, params->get(1));
 				auto images = FileSystem::GetSysFileList(path, "iwi", false);
 
 				for (auto i = images.begin(); i != images.end();)
