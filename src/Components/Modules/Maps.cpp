@@ -37,7 +37,7 @@ namespace Components
 		if (this->isValid() && !this->searchPath.iwd)
 		{
 			auto iwdName = std::format("{}.iwd", this->mapname);
-			auto path = std::format("{}\\usermaps\\{}\\{}", Dvar::Var("fs_basepath").get<std::string>(), this->mapname, iwdName);
+			auto path = std::format("{}\\usermaps\\{}\\{}", (*Game::fs_basepath)->current.string, this->mapname, iwdName);
 
 			if (Utils::IO::FileExists(path))
 			{

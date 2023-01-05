@@ -40,7 +40,10 @@ namespace Game
 
 	const dvar_t** dvar_cheats = reinterpret_cast<const dvar_t**>(0x63F3348);
 
+	const dvar_t** fs_cdpath = reinterpret_cast<const dvar_t**>(0x63D0BB0);
+	const dvar_t** fs_basepath = reinterpret_cast<const dvar_t**>(0x63D0CD4);
 	const dvar_t** fs_gameDirVar = reinterpret_cast<const dvar_t**>(0x63D0CC0);
+	const dvar_t** fs_homepath = reinterpret_cast<const dvar_t**>(0x63D4FD8);
 
 	const dvar_t** sv_hostname = reinterpret_cast<const dvar_t**>(0x2098D98);
 	const dvar_t** sv_gametype = reinterpret_cast<const dvar_t**>(0x2098DD4);

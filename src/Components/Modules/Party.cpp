@@ -483,7 +483,7 @@ namespace Components
 						Command::Execute("closemenu popup_reconnectingtoparty");
 						Download::InitiateClientDownload(info.get("fs_game"), info.get("isPrivate") == "1"s);
 					}
-					else if (!Dvar::Var("fs_game").get<std::string>().empty() && info.get("fs_game").empty())
+					else if ((*Game::fs_gameDirVar)->current.string[0] != '\0' && info.get("fs_game").empty())
 					{
 						Game::Dvar_SetString(*Game::fs_gameDirVar, "");
 

@@ -43,7 +43,7 @@ namespace Components
 
 	void ModList::UIScript_LoadMods([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		auto folder = Dvar::Var("fs_basepath").get<std::string>() + "\\mods";
+		auto folder = (*Game::fs_basepath)->current.string + "\\mods"s;
 		Logger::Debug("Searching for mods in {}...", folder);
 		ModList::Mods = FileSystem::GetSysFileList(folder, "", true);
 		Logger::Debug("Found {} mods!", ModList::Mods.size());

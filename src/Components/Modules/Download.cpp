@@ -465,7 +465,7 @@ namespace Components
 
 			std::vector<nlohmann::json> fileList;
 
-			const auto path = Dvar::Var("fs_basepath").get<std::string>() / fs_gameDirVar;
+			const auto path = (*Game::fs_basepath)->current.string / fs_gameDirVar;
 			auto list = FileSystem::GetSysFileList(path.generic_string(), "iwd", false);
 			list.emplace_back("mod.ff");
 
@@ -514,7 +514,7 @@ namespace Components
 
 			mapNamePre = mapName;
 
-			const std::filesystem::path basePath(Dvar::Var("fs_basepath").get<std::string>());
+			const std::filesystem::path basePath = (*Game::fs_basepath)->current.string;
 			const auto path = basePath / "usermaps" / mapName;
 
 			for (std::size_t i = 0; i < ARRAYSIZE(Maps::UserMapFiles); ++i)
@@ -586,9 +586,8 @@ namespace Components
 		}
 
 		std::string file;
-		const auto fsGame = Dvar::Var("fs_game").get<std::string>();
-		const auto path = Dvar::Var("fs_basepath").get<std::string>() + "\\" + (isMap ? "" : fsGame + "\\") + url;
-
+		const std::string fsGame = (*Game::fs_gameDirVar)->current.string;
+		const auto path = std::format("{}\\{}{}", (*Game::fs_basepath)->current.string, isMap ? ""s : (fsGame + "\\"s), url);
 		if ((!isMap && fsGame.empty()) || !Utils::IO::ReadFile(path, &file))
 		{
 			mg_http_reply(c, 404, "Content-Type: text/html\r\n", "404 - Not Found %s", path.data());

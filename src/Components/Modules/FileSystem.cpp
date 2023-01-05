@@ -205,7 +205,7 @@ namespace Components
 	bool FileSystem::_DeleteFile(const std::string& folder, const std::string& file)
 	{
 		char path[MAX_PATH]{};
-		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").get<const char*>(), reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
+		Game::FS_BuildPathToFile((*Game::fs_basepath)->current.string, reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
 		return Game::FS_Remove(path);
 	}
 
@@ -242,9 +242,9 @@ namespace Components
 
 	void FileSystem::RegisterFolder(const char* folder)
 	{
-		const auto fs_cdpath = Dvar::Var("fs_cdpath").get<std::string>();
-		const auto fs_basepath = Dvar::Var("fs_basepath").get<std::string>();
-		const auto fs_homepath = Dvar::Var("fs_homepath").get<std::string>();
+		const std::string fs_cdpath = (*Game::fs_cdpath)->current.string;
+		const std::string fs_basepath = (*Game::fs_basepath)->current.string;
+		const std::string fs_homepath = (*Game::fs_homepath)->current.string;
 
 		if (!fs_cdpath.empty())   Game::FS_AddLocalizedGameDirectory(fs_cdpath.data(),   folder);
 		if (!fs_basepath.empty()) Game::FS_AddLocalizedGameDirectory(fs_basepath.data(), folder);

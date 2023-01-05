@@ -90,7 +90,10 @@ namespace Game
 
 	extern const dvar_t** dvar_cheats;
 
+	extern const dvar_t** fs_cdpath;
+	extern const dvar_t** fs_basepath;
 	extern const dvar_t** fs_gameDirVar;
+	extern const dvar_t** fs_homepath;
 
 	extern const dvar_t** sv_hostname;
 	extern const dvar_t** sv_gametype;
