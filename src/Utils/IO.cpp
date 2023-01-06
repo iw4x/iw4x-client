@@ -97,13 +97,23 @@ namespace Utils::IO
 		return std::filesystem::is_empty(directory);
 	}
 
-	std::vector<std::string> ListFiles(const std::filesystem::path& directory)
+	std::vector<std::string> ListFiles(const std::filesystem::path& directory, const bool recursive)
 	{
 		std::vector<std::string> files;
 
-		for (auto& file : std::filesystem::directory_iterator(directory))
+		if (recursive)
 		{
-			files.push_back(file.path().generic_string());
+			for (auto& file : std::filesystem::recursive_directory_iterator(directory))
+			{
+				files.push_back(file.path().generic_string());
+			}
+		}
+		else
+		{
+			for (auto& file : std::filesystem::directory_iterator(directory))
+			{
+				files.push_back(file.path().generic_string());
+			}
 		}
 
 		return files;

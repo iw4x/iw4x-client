@@ -455,35 +455,40 @@ namespace Components
 	static std::string ListHandler()
 	{
 		static nlohmann::json jsonList;
-		static auto handled = false;
+		static std::filesystem::path fsGamePre;
 
-		const std::filesystem::path fs_gameDirVar((*Game::fs_gameDirVar)->current.string);
+		const std::filesystem::path fsGame = (*Game::fs_gameDirVar)->current.string;
 
-		if (!fs_gameDirVar.empty() && !handled)
+		if (!fsGame.empty() && (fsGamePre != fsGame))
 		{
-			handled = true;
+			fsGamePre = fsGame;
 
 			std::vector<nlohmann::json> fileList;
 
-			const auto path = (*Game::fs_basepath)->current.string / fs_gameDirVar;
-			auto list = FileSystem::GetSysFileList(path.generic_string(), "iwd", false);
+			const auto path = (*Game::fs_basepath)->current.string / fsGame;
+			auto list = Utils::IO::ListFiles(path, false);
 			list.emplace_back("mod.ff");
 
 			for (const auto& file : list)
 			{
 				auto filename = path / file;
-				if (file.find("_svr_") != std::string::npos)
+				if (filename.extension() != ".iwd"s) // We don't want to serve other files
 				{
 					continue;
 				}
 
-				std::unordered_map<std::string, nlohmann::json> jsonFileList;
+				if (file.find("_svr_") != std::string::npos) // Files that are 'server only' are skipped
+				{
+					continue;
+				}
+
 				auto fileBuffer = Utils::IO::ReadFile(filename.generic_string());
 				if (fileBuffer.empty())
 				{
 					continue;
 				}
 
+				std::unordered_map<std::string, nlohmann::json> jsonFileList;
 				jsonFileList["name"] = file;
 				jsonFileList["size"] = fileBuffer.size();
 				jsonFileList["hash"] = Utils::Cryptography::SHA256::Compute(fileBuffer, true);

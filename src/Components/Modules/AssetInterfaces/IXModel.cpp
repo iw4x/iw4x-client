@@ -77,7 +77,7 @@ namespace Assets
 	{
 		Components::FileSystem::File modelFile(std::format("xmodel/{}.iw4xModel", name));
 
-		if (!builder->isPrimaryAsset() && (!Components::ZoneBuilder::PreferDiskAssetsDvar.get<bool>() || !modelFile.exists()))
+		if (!builder->isPrimaryAsset() && (!Components::ZoneBuilder::ZBPreferDiskAssets.get<bool>() || !modelFile.exists()))
 		{
 			header->model = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).model;
 			if (header->model) return;

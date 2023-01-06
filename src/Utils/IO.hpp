@@ -11,5 +11,5 @@ namespace Utils::IO
 	bool CreateDir(const std::string& dir);
 	bool DirectoryExists(const std::filesystem::path& file);
 	bool DirectoryIsEmpty(const std::filesystem::path& file);
-	std::vector<std::string> ListFiles(const std::filesystem::path& directory);
+	std::vector<std::string> ListFiles(const std::filesystem::path& directory, bool recursive = false);
 }

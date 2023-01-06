@@ -21,7 +21,7 @@ namespace Components
 	volatile bool ZoneBuilder::CommandThreadTerminate = false;
 	std::thread ZoneBuilder::CommandThread;
 
-	Dvar::Var ZoneBuilder::PreferDiskAssetsDvar;
+	Dvar::Var ZoneBuilder::ZBPreferDiskAssets;
 
 	ZoneBuilder::Zone::Zone(const std::string& name) : indexStart(0), externalSize(0),
 		// Reserve 100MB by default.
@@ -1101,18 +1101,6 @@ namespace Components
 			Utils::Hook::Set<int*>(0x5BC759, g_copyInfo_new);
 			Utils::Hook::Set<int>(0x5BB9AD, newLimit); // limit check
 
-			// this one lets us keep loading zones and it will ignore assets when the pool is filled
-			/*
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, const std::string&, bool* restrict)
-			{
-				//if (*static_cast<int*>(Game::DB_XAssetPool[type].data) == 0)
-				if (Game::g_poolSize[type] == 0)
-				{
-					*restrict = true;
-				}
-			});
-			*/
-
 			// hunk size (was 300 MiB)
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
@@ -1289,7 +1277,8 @@ namespace Components
 
 				std::string csvStr;
 
-				auto fileList = Utils::IO::ListFiles(Utils::String::VA("zone/%s", Game::Win_GetLanguage()));
+				const auto dir = std::format("zone/{}", Game::Win_GetLanguage());
+				auto fileList = Utils::IO::ListFiles(dir, false);
 				for (auto zone : fileList)
 				{
 					Utils::String::Replace(zone, Utils::String::VA("zone/%s/", Game::Win_GetLanguage()), "");
@@ -1325,7 +1314,7 @@ namespace Components
 
 					while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms); // wait till its fully loaded
 
-					if (curTechsets_list.size() == 0)
+					if (curTechsets_list.empty())
 					{
 						Logger::Print("Skipping empty zone {}\n", zone);
 						// unload zone
@@ -1352,7 +1341,7 @@ namespace Components
 					}
 
 					// save csv
-					Utils::IO::WriteFile("zone_source/techsets/" + zone + "_techsets.csv", csvStr.data());
+					Utils::IO::WriteFile("zone_source/techsets/" + zone + "_techsets.csv", csvStr);
 
 					// build the techset zone
 					std::string zoneName = "techsets/" + zone + "_techsets";
@@ -1382,7 +1371,7 @@ namespace Components
 				Utils::Hook::Set<const char*>(0x649E740, "techsets");
 
 				// load generated techset fastfiles
-				auto list = Utils::IO::ListFiles("zone/techsets");
+				auto list = Utils::IO::ListFiles("zone/techsets", false);
 				int i = 0;
 				int subCount = 0;
 				for (auto it : list)
@@ -1427,7 +1416,7 @@ namespace Components
 						std::string tempZoneFile = Utils::String::VA("zone_source/techsets/techsets%d.csv", subCount);
 						std::string tempZone = Utils::String::VA("techsets/techsets%d", subCount);
 
-						Utils::IO::WriteFile(tempZoneFile, csvStr.data());
+						Utils::IO::WriteFile(tempZoneFile, csvStr);
 
 						Logger::Print("Building zone '{}'...\n", tempZone);
 						Zone(tempZone).build();
@@ -1472,7 +1461,7 @@ namespace Components
 					std::string tempZoneFile = Utils::String::VA("zone_source/techsets/techsets%d.csv", subCount);
 					std::string tempZone = Utils::String::VA("techsets/techsets%d", subCount);
 
-					Utils::IO::WriteFile(tempZoneFile, csvStr.data());
+					Utils::IO::WriteFile(tempZoneFile, csvStr);
 
 					Logger::Print("Building zone '{}'...\n", tempZone);
 					Zone(tempZone).build();
@@ -1511,7 +1500,7 @@ namespace Components
 				csvStr.clear();
 				for (auto tech : curTechsets_list)
 				{
-					std::string mat = ZoneBuilder::FindMaterialByTechnique(tech);
+					auto mat = ZoneBuilder::FindMaterialByTechnique(tech);
 					if (mat.length() == 0)
 					{
 						csvStr.append("techset," + tech + "\n");
@@ -1522,7 +1511,7 @@ namespace Components
 					}
 				}
 
-				Utils::IO::WriteFile("zone_source/techsets/techsets.csv", csvStr.data());
+				Utils::IO::WriteFile("zone_source/techsets/techsets.csv", csvStr);
 
 				// set language back
 				Utils::Hook::Set<const char*>(0x649E740, language);
@@ -1605,7 +1594,7 @@ namespace Components
 			});
 
 			// True by default, but can be put to zero for backward compatibility if needed
-			ZoneBuilder::PreferDiskAssetsDvar = Dvar::Register<bool>("zb_prefer_disk_assets", true, Game::DVAR_NONE, "Should zonebuilder prefer in-memory assets (requirements) or disk assets, when both are present?");
+			ZoneBuilder::ZBPreferDiskAssets = Dvar::Register<bool>("zb_prefer_disk_assets", true, Game::DVAR_NONE, "Should ZoneBuilder prefer in-memory assets (requirements) or disk assets, when both are present");
 		}
 	}
 

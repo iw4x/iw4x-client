@@ -543,17 +543,22 @@ namespace Components
 			}
 
 			std::vector<std::string> fastFiles;
-
-			if (param->get(1) == "all"s)
+			if (std::strcmp(param->get(1), "all") == 0)
 			{
-				for (const auto& f : Utils::IO::ListFiles("zone/english"))
+				for (const auto& f : Utils::IO::ListFiles("zone/english", false))
+				{
 					fastFiles.emplace_back(f.substr(7, f.length() - 10));
+				}
 
-				for (const auto& f : Utils::IO::ListFiles("zone/dlc"))
+				for (const auto& f : Utils::IO::ListFiles("zone/dlc", false))
+				{
 					fastFiles.emplace_back(f.substr(3, f.length() - 6));
+				}
 
-				for (const auto& f : Utils::IO::ListFiles("zone/patch"))
+				for (const auto& f : Utils::IO::ListFiles("zone/patch", false))
+				{
 					fastFiles.emplace_back(f.substr(5, f.length() - 8));
+				}
 			}
 			else
 			{
@@ -599,7 +604,7 @@ namespace Components
 				{
 					Utils::IO::CreateDir("userraw/techsets");
 					Utils::Stream buffer(0x1000);
-					Game::MaterialTechniqueSet* dest = buffer.dest<Game::MaterialTechniqueSet>();
+					auto* dest = buffer.dest<Game::MaterialTechniqueSet>();
 					buffer.save(asset.techniqueSet);
 
 					if (asset.techniqueSet->name)

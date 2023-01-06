@@ -131,7 +131,7 @@ namespace Components
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
 
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
-		static Dvar::Var PreferDiskAssetsDvar;
+		static Dvar::Var ZBPreferDiskAssets;
 
 	private:
 		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
