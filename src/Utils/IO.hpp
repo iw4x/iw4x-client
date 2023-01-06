@@ -9,7 +9,7 @@ namespace Utils::IO
 	bool RemoveFile(const std::string& file);
 	std::size_t FileSize(const std::string& file);
 	bool CreateDir(const std::string& dir);
-	bool DirectoryExists(const std::filesystem::path& file);
-	bool DirectoryIsEmpty(const std::filesystem::path& file);
+	bool DirectoryExists(const std::filesystem::path& directory);
+	bool DirectoryIsEmpty(const std::filesystem::path& directory);
 	std::vector<std::string> ListFiles(const std::filesystem::path& directory, bool recursive = false);
 }

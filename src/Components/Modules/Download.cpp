@@ -466,16 +466,12 @@ namespace Components
 			std::vector<nlohmann::json> fileList;
 
 			const auto path = (*Game::fs_basepath)->current.string / fsGame;
-			auto list = Utils::IO::ListFiles(path, false);
+			auto list = FileSystem::GetSysFileList(path.generic_string(), "iwd", false);
 			list.emplace_back("mod.ff");
 
 			for (const auto& file : list)
 			{
 				auto filename = path / file;
-				if (filename.extension() != ".iwd"s) // We don't want to serve other files
-				{
-					continue;
-				}
 
 				if (file.find("_svr_") != std::string::npos) // Files that are 'server only' are skipped
 				{
