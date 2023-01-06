@@ -82,14 +82,16 @@ namespace Components
 		Uninitializing = false;
 		Utils::Memory::GetAllocator()->clear();
 
+		// High priority
+		Register(new Singleton());
+
 		Register(new Auth());
 		Register(new Command());
 		Register(new Dvar());
-		Register(new Exception()); // Install our exception handler as early as posssible to get better debug dumps from startup crashes
-		Register(new Flags());
+		Register(new Exception()); // Install our exception handler as early as possible to get better debug dumps from startup crashes
+		Register(new IPCPipe());
 		Register(new Network());
 		Register(new Logger());
-		Register(new Singleton());
 		Register(new UIScript());
 		Register(new ZoneBuilder());
 		
@@ -118,7 +120,6 @@ namespace Components
 		Register(new FileSystem());
 		Register(new Friends());
 		Register(new Gamepad());
-		Register(new IPCPipe());
 		Register(new Lean());
 		Register(new Localization());
 		Register(new MapDump());
