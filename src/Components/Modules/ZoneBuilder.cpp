@@ -1594,7 +1594,7 @@ namespace Components
 			});
 
 			// True by default, but can be put to zero for backward compatibility if needed
-			ZoneBuilder::ZBPreferDiskAssets = Dvar::Register<bool>("zb_prefer_disk_assets", true, Game::DVAR_NONE, "Should ZoneBuilder prefer in-memory assets (requirements) or disk assets, when both are present");
+			ZoneBuilder::ZBPreferDiskAssets = Dvar::Register<bool>("zb_prefer_disk_assets", true, Game::DVAR_NONE, "Should ZoneBuilder prefer in-memory assets (requirements) or disk assets when both are present?");
 		}
 	}
 
