@@ -327,6 +327,7 @@ namespace Components
 			Scheduler::Once([]
 			{
 				Game::Dvar_SetString(*Game::fs_gameDirVar, mod.data());
+				const_cast<Game::dvar_t*>((*Game::fs_gameDirVar))->modified = true;
 
 				mod.clear();
 
