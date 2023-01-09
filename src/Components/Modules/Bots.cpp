@@ -3,6 +3,10 @@
 
 #include "GSC/Script.hpp"
 
+// From Quake-III
+#define	ANGLE2SHORT(x) ((int)((x) * (USHRT_MAX + 1) / 360.0f) & USHRT_MAX)
+#define	SHORT2ANGLE(x) ((x)* (360.0f / (USHRT_MAX + 1)))
+
 namespace Components
 {
 	std::vector<Bots::botData> Bots::BotNames;
@@ -279,6 +283,10 @@ namespace Components
 		userCmd.forwardmove = g_botai[entnum].forward;
 		userCmd.rightmove = g_botai[entnum].right;
 		userCmd.weapon = g_botai[entnum].weapon;
+
+		userCmd.angles[0] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[0] - cl->gentity->client->ps.delta_angles[0]));
+		userCmd.angles[1] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[1] - cl->gentity->client->ps.delta_angles[1]));
+		userCmd.angles[2] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[2] - cl->gentity->client->ps.delta_angles[2]));
 
 		Game::SV_ClientThink(cl, &userCmd);
 	}

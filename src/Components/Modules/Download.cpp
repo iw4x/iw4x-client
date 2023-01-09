@@ -604,44 +604,7 @@ namespace Components
 		}
 	}
 
-	static void HTMLHandler(mg_connection* c, mg_http_message* hm)
-	{
-		auto url = "html" + std::string(hm->uri.ptr, hm->uri.len);
-		FileSystem::File file;
-
-		if (url.ends_with("/"))
-		{
-			url.append("index.html");
-			file = FileSystem::File(url);
-		}
-		else
-		{
-			file = FileSystem::File(url);
-			if (!file.exists())
-			{
-				url.append("/index.html");
-				file = FileSystem::File(url);
-			}
-		}
-
-		const auto mimeType = Utils::GetMimeType(url);
-
-		if (file.exists())
-		{
-			mg_printf(c, "%s", "HTTP/1.1 200 OK\r\n");
-			mg_printf(c, "Content-Type: %s\r\n", mimeType.data());
-			mg_printf(c, "Content-Length: %d\r\n", static_cast<int>(file.getBuffer().size()));
-			mg_printf(c, "%s", "Connection: close\r\n");
-			mg_printf(c, "%s", "\r\n");
-			mg_send(c, file.getBuffer().data(), file.getBuffer().size());
-		}
-		else
-		{
-			mg_http_reply(c, 404, "Content-Type: text/html\r\n", "404 - Not Found");
-		}
-	}
-
-	static void EventHandler(mg_connection* c, int ev, void* ev_data, [[maybe_unused]] void* fn_data)
+	static void EventHandler(mg_connection* c, const int ev, void* ev_data, [[maybe_unused]] void* fn_data)
 	{
 		if (ev != MG_EV_HTTP_MSG)
 		{
@@ -649,7 +612,7 @@ namespace Components
 		}
 
 		auto* hm = static_cast<mg_http_message*>(ev_data);
-		std::string url(hm->uri.ptr, hm->uri.len);
+		const std::string url(hm->uri.ptr, hm->uri.len);
 
 		if (url.starts_with("/info"))
 		{
@@ -672,8 +635,12 @@ namespace Components
 		}
 		else
 		{
-			HTMLHandler(c, hm);
+			mg_http_serve_opts opts = { .root_dir = "iw4x/html" }; // Serve local dir
+			mg_http_serve_dir(c, hm, &opts);
 		}
+
+		c->is_resp = FALSE; // This is important, the lack of this line of code will make the server die (in-game)
+		c->is_draining = TRUE;
 	}
 
 #pragma endregion
@@ -694,6 +661,7 @@ namespace Components
 				if (!nc)
 				{
 					Logger::PrintError(Game::CON_CHANNEL_ERROR, "Failed to bind TCP socket, mod download won't work!\n");
+					Terminate = true;
 				}
 			});
 
@@ -705,7 +673,7 @@ namespace Components
 
 				while (!Terminate)
 				{
-					mg_mgr_poll(&Mgr, 100);
+					mg_mgr_poll(&Mgr, 1000);
 				}
 			});
 		}
