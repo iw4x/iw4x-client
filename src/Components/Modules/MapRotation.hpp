@@ -12,9 +12,9 @@ namespace Components
 		bool unitTest() override;
 
 	private:
-		struct ParseRotationError : public std::exception
+		struct MapRotationParseError : public std::exception
 		{
-			const char* what() const noexcept override { return "Parse Rotation Error"; }
+			[[nodiscard]] const char* what() const noexcept override { return "Map Rotation Parse Error"; }
 		};
 
 		class RotationData
