@@ -214,6 +214,12 @@ namespace Components
 
 			++i;
 		}
+
+		if (i == rotation.getEntriesSize())
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Map rotation does not contain any map. Restarting\n");
+			RestartCurrentMap();
+		}
 	}
 
 	void MapRotation::ApplyMapRotationCurrent(const std::string& data)

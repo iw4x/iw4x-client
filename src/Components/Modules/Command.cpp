@@ -24,12 +24,12 @@ namespace Components
 		assert(Game::cmd_args->nesting < Game::CMD_MAX_NESTING);
 	}
 
-	int Command::ClientParams::size() const
+	int Command::ClientParams::size() const noexcept
 	{
 		return Game::cmd_args->argc[this->nesting_];
 	}
 
-	const char* Command::ClientParams::get(const int index) const
+	const char* Command::ClientParams::get(const int index) const noexcept
 	{
 		if (index >= this->size())
 		{
@@ -45,12 +45,12 @@ namespace Components
 		assert(Game::sv_cmd_args->nesting < Game::CMD_MAX_NESTING);
 	}
 
-	int Command::ServerParams::size() const
+	int Command::ServerParams::size() const noexcept
 	{
 		return Game::sv_cmd_args->argc[this->nesting_];
 	}
 
-	const char* Command::ServerParams::get(const int index) const
+	const char* Command::ServerParams::get(const int index) const noexcept
 	{
 		if (index >= this->size())
 		{
@@ -62,31 +62,31 @@ namespace Components
 
 	void Command::Add(const char* name, const std::function<void()>& callback)
 	{
-		Add(name, [callback]([[maybe_unused]] const Command::Params* params)
+		Add(name, [callback]([[maybe_unused]] const Params* params)
 		{
 			callback();
 		});
 	}
 
-	void Command::Add(const char* name, const std::function<void(Command::Params*)>& callback)
+	void Command::Add(const char* name, const std::function<void(Params*)>& callback)
 	{
 		const auto command = Utils::String::ToLower(name);
 
-		if (!Command::FunctionMap.contains(command))
+		if (!FunctionMap.contains(command))
 		{
-			Command::AddRaw(name, Command::MainCallback);
+			AddRaw(name, MainCallback);
 		}
 
-		Command::FunctionMap.insert_or_assign(command, std::move(callback));
+		FunctionMap.insert_or_assign(command, callback);
 	}
 
-	void Command::AddSV(const char* name, const std::function<void(Command::Params*)>& callback)
+	void Command::AddSV(const char* name, const std::function<void(Params*)>& callback)
 	{
 		if (Loader::IsPregame())
 		{
 			MessageBoxA(nullptr, "Registering server commands in pregame state is illegal!", nullptr, MB_ICONERROR);
 
-#ifdef DEBUG
+#ifdef _DEBUG
 			__debugbreak();
 #endif
 
@@ -95,9 +95,9 @@ namespace Components
 
 		const auto command = Utils::String::ToLower(name);
 
-		if (!Command::FunctionMapSV.contains(command))
+		if (!FunctionMapSV.contains(command))
 		{
-			Command::AddRawSV(name, Command::MainCallbackSV);
+			AddRawSV(name, MainCallbackSV);
 		}
 
 		FunctionMapSV.insert_or_assign(command, callback);
@@ -105,15 +105,15 @@ namespace Components
 
 	void Command::AddRaw(const char* name, void(*callback)(), bool key)
 	{
-		Game::Cmd_AddCommand(name, callback, Command::Allocate(), key);
+		Game::Cmd_AddCommand(name, callback, Allocate(), key);
 	}
 
 	void Command::AddRawSV(const char* name, void(*callback)())
 	{
-		Game::Cmd_AddServerCommand(name, callback, Command::Allocate());
+		Game::Cmd_AddServerCommand(name, callback, Allocate());
 
 		// If the main command is registered as Cbuf_AddServerText, the command will be redirected to the SV handler
-		Command::AddRaw(name, Game::Cbuf_AddServerText_f, false);
+		AddRaw(name, Game::Cbuf_AddServerText_f, false);
 	}
 
 	void Command::Execute(std::string command, bool sync)
