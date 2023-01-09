@@ -54,7 +54,7 @@ namespace Components
 			}
 			else
 			{
-				throw ParseRotationError();
+				throw MapRotationParseError();
 			}
 		}
 	}
@@ -148,7 +148,7 @@ namespace Components
 
 		if (Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>())
 		{
-			Logger::Print(Game::CON_CHANNEL_SERVER, "Not performing map rotation as we are hosting a party!\n");
+			Logger::Warning(Game::CON_CHANNEL_SERVER, "Not performing map rotation as we are hosting a party!\n");
 			return false;
 		}
 
@@ -172,7 +172,7 @@ namespace Components
 	void MapRotation::ApplyGametype(const std::string& gametype)
 	{
 		assert(!gametype.empty());
-		Dvar::Var("g_gametype").set(gametype);
+		Game::Dvar_SetStringByName("g_gametype", gametype.data());
 	}
 
 	void MapRotation::RestartCurrentMap()
@@ -193,24 +193,22 @@ namespace Components
 		assert(!rotation.empty());
 
 		// Continue to apply gametype until a map is found
-		auto foundMap = false;
-
 		std::size_t i = 0;
-		while (!foundMap && i < rotation.getEntriesSize())
+		while (i < rotation.getEntriesSize())
 		{
 			const auto& entry = rotation.getNextEntry();
-
 			if (entry.first == "map"s)
 			{
-				Logger::Debug("Loading new map: '{}'", entry.second);
+				Logger::Print("Loading new map: '{}'", entry.second);
 				ApplyMap(entry.second);
 
 				// Map was found so we exit the loop
-				foundMap = true;
+				break;
 			}
-			else if (entry.first == "gametype"s)
+
+			if (entry.first == "gametype"s)
 			{
-				Logger::Debug("Applying new gametype: '{}'", entry.second);
+				Logger::Print("Applying new gametype: '{}'", entry.second);
 				ApplyGametype(entry.second);
 			}
 
