@@ -291,7 +291,6 @@ namespace Components
 		Game::SV_ClientThink(cl, &userCmd);
 	}
 
-	constexpr auto SV_BotUserMove = 0x626E50;
 	__declspec(naked) void Bots::SV_BotUserMove_Hk()
 	{
 		__asm
