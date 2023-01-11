@@ -36,6 +36,10 @@ namespace Components
 		// Removed on IW5 MP (unprotected) but present on IW5 SP (protected) - CEG uninitialization / Steam Shutdown
 		Utils::Hook::Set<std::uint8_t>(0x4F6370, 0xC3);
 
+		// Remove 'Steam Start' checking for DRM IPC
+		Utils::Hook::Nop(0x451145, 5);
+		Utils::Hook::Set<BYTE>(0x45114C, 0xEB);
+
 		// Disable some checks on certain game events
 		Utils::Hook::Nop(0x43EC96, 9);
 		Utils::Hook::Nop(0x4675C6, 9);

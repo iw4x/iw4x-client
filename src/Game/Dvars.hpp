@@ -54,6 +54,9 @@ namespace Game
 	typedef void(*Dvar_SetFloat_t)(const dvar_t* dvar, float value);
 	extern Dvar_SetFloat_t Dvar_SetFloat;
 
+	typedef void(*Dvar_SetFloatByName_t)(const char* dvarName, float value);
+	extern Dvar_SetFloatByName_t Dvar_SetFloatByName;
+
 	typedef void(*Dvar_SetInt_t)(const dvar_t* dvar, int integer);
 	extern Dvar_SetInt_t Dvar_SetInt;
 

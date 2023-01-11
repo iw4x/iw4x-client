@@ -29,6 +29,7 @@ namespace Game
 	Dvar_SetBool_t Dvar_SetBool = Dvar_SetBool_t(0x4A9510);
 	Dvar_SetBoolByName_t Dvar_SetBoolByName = Dvar_SetBoolByName_t(0x45C4D0);
 	Dvar_SetFloat_t Dvar_SetFloat = Dvar_SetFloat_t(0x40BB20);
+	Dvar_SetFloatByName_t Dvar_SetFloatByName = Dvar_SetFloatByName_t(0x466320);
 	Dvar_SetInt_t Dvar_SetInt = Dvar_SetInt_t(0x421DA0);
 
 	const dvar_t** com_developer = reinterpret_cast<const dvar_t**>(0x1AD78E8);

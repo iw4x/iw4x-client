@@ -5,6 +5,8 @@
 
 namespace Components
 {
+	Dvar::Var QuickPatch::UIMousePitch;
+
 	Dvar::Var QuickPatch::r_customAspectRatio;
 
 	void QuickPatch::UnlockStats()
@@ -248,7 +250,7 @@ namespace Components
 		using namespace Game;
 
 		static const char* msg = "SND_GetAliasOffset: Could not find sound alias '%s'";
-		static const DWORD func = 0x4B22D0; // Com_Error
+		using namespace Game;
 
 		__asm
 		{
@@ -270,7 +272,7 @@ namespace Components
 			push [esi] // alias->aliasName
 			push msg
 			push ERR_DROP
-			call func // Going to longjmp back to safety
+			call Com_Error // Going to longjmp back to safety
 			add esp, 0xC
 
 			xor eax, eax
@@ -318,30 +320,8 @@ namespace Components
 		// Fix crash as nullptr goes unchecked
 		Utils::Hook(0x437CAD, QuickPatch::SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
 
-		// protocol version (workaround for hacks)
-		Utils::Hook::Set<int>(0x4FB501, PROTOCOL);
-
-		// protocol command
-		Utils::Hook::Set<int>(0x4D36A9, PROTOCOL);
-		Utils::Hook::Set<int>(0x4D36AE, PROTOCOL);
-		Utils::Hook::Set<int>(0x4D36B3, PROTOCOL);
-
-		// internal version is 99, most servers should accept it
-		Utils::Hook::Set<int>(0x463C61, 208);
-
 		// remove system pre-init stuff (improper quit, disk full)
 		Utils::Hook::Set<BYTE>(0x411350, 0xC3);
-
-		// remove STEAMSTART checking for DRM IPC
-		Utils::Hook::Nop(0x451145, 5);
-		Utils::Hook::Set<BYTE>(0x45114C, 0xEB);
-
-		// LSP disabled
-		Utils::Hook::Set<BYTE>(0x435950, 0xC3); // LSP HELLO
-		Utils::Hook::Set<BYTE>(0x49C220, 0xC3); // We wanted to send a logging packet, but we haven't connected to LSP!
-		Utils::Hook::Set<BYTE>(0x4BD900, 0xC3); // main LSP response func
-		Utils::Hook::Set<BYTE>(0x682170, 0xC3); // Telling LSP that we're playing a private match
-		Utils::Hook::Nop(0x4FD448, 5); // Don't create lsp_socket
 
 		// Don't delete config files if corrupted
 		Utils::Hook::Set<BYTE>(0x47DCB3, 0xEB);
@@ -519,16 +499,16 @@ namespace Components
 		}, Scheduler::Pipeline::RENDERER);
 
 		// Fix mouse pitch adjustments
-		Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_ARCHIVE, "");
+		UIMousePitch = Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_ARCHIVE, "");
 		UIScript::Add("updateui_mousePitch", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			if (Dvar::Var("ui_mousePitch").get<bool>())
+			if (UIMousePitch.get<bool>())
 			{
-				Dvar::Var("m_pitch").set(-0.022f);
+				Game::Dvar_SetFloatByName("m_pitch", -0.022f);
 			}
 			else
 			{
-				Dvar::Var("m_pitch").set(0.022f);
+				Game::Dvar_SetFloatByName("m_pitch", 0.022f);
 			}
 		});
 
