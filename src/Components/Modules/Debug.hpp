@@ -28,8 +28,6 @@ namespace Components
 		static constexpr auto MY_X = -25.0f;
 		static constexpr auto MY_Y = 20.0f;
 
-		static const float ColorWhite[];
-
 		static std::string BuildPMFlagsString(const Game::playerState_s* ps);
 		static std::string BuildPOFlagsString(const Game::playerState_s* ps);
 		static std::string BuildPLFlagsString(const Game::playerState_s* ps);

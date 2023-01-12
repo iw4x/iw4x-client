@@ -56,18 +56,25 @@ namespace Components
 			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You are muted\"", 0x65));
 		}
 
+		if (sv_disableChat.get<bool>())
+		{
+			SendChat = false;
+			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
+		}
+
+		// Message might be empty after processing the '/'
+		if (text[msgIndex] == '\0')
+		{
+			SendChat = false;
+			return text;
+		}
+
 		for (const auto& callback : SayCallbacks)
 		{
 			if (!ChatCallback(player, callback.getPos(), (text + msgIndex), mode))
 			{
 				SendChat = false;
 			}
-		}
-
-		if (sv_disableChat.get<bool>())
-		{
-			SendChat = false;
-			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
 		}
 
 		TextRenderer::StripMaterialTextIcons(text, text, std::strlen(text) + 1);
