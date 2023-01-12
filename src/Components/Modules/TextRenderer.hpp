@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	enum TextColor
+	enum TextColor : int
 	{
 		TEXT_COLOR_BLACK = 0,
 		TEXT_COLOR_RED = 1,

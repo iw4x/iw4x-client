@@ -119,6 +119,9 @@ namespace Game
 	extern const dvar_t** g_gametype;
 	extern const dvar_t** g_password;
 
+	extern const dvar_t** cg_chatHeight;
+	extern const dvar_t** cg_chatTime;
+
 	extern const dvar_t** version;
 
 	extern const dvar_t** viewposNow;

@@ -13,10 +13,6 @@ namespace Components
 		static Dvar::Var sv_disableChat;
 		static Dvar::Var sv_sayName;
 
-		// Game dvars
-		static Game::dvar_t** cg_chatHeight;
-		static Game::dvar_t** cg_chatTime;
-
 		static bool SendChat;
 
 		using muteList = std::unordered_set<std::uint64_t>;

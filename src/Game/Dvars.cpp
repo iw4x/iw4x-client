@@ -67,6 +67,9 @@ namespace Game
 	const dvar_t** g_gametype = reinterpret_cast<const dvar_t**>(0x1A45DC8);
 	const dvar_t** g_password = reinterpret_cast<const dvar_t**>(0x18835C0);
 
+	const dvar_t** cg_chatHeight = reinterpret_cast<const dvar_t**>(0x7ED398);
+	const dvar_t** cg_chatTime = reinterpret_cast<const dvar_t**>(0x9F5DE8);
+
 	const dvar_t** version = reinterpret_cast<const dvar_t**>(0x1AD7930);
 
 	const dvar_t** viewposNow = reinterpret_cast<const dvar_t**>(0x9FD30C);

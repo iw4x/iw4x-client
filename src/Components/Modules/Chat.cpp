@@ -11,9 +11,6 @@ namespace Components
 	Dvar::Var Chat::sv_disableChat;
 	Dvar::Var Chat::sv_sayName;
 
-	Game::dvar_t** Chat::cg_chatHeight = reinterpret_cast<Game::dvar_t**>(0x7ED398);
-	Game::dvar_t** Chat::cg_chatTime = reinterpret_cast<Game::dvar_t**>(0x9F5DE8);
-
 	bool Chat::SendChat;
 
 	Utils::Concurrency::Container<Chat::muteList> Chat::MutedList;
@@ -167,9 +164,9 @@ namespace Components
 		// Text can only be 150 characters maximum. This is bigger than the teamChatMsgs buffers with 160 characters
 		// Therefore it is not needed to check for buffer lengths
 
-		const auto chatHeight = (*cg_chatHeight)->current.integer;
+		const auto chatHeight = (*Game::cg_chatHeight)->current.integer;
 		const auto chatWidth = static_cast<float>(cg_chatWidth.get<int>());
-		const auto chatTime = (*cg_chatTime)->current.integer;
+		const auto chatTime = (*Game::cg_chatTime)->current.integer;
 		if (chatHeight <= 0 || static_cast<unsigned>(chatHeight) > std::extent_v<decltype(Game::cgs_t::teamChatMsgs)> || chatWidth <= 0 || chatTime <= 0)
 		{
 			Game::cgsArray[0].teamLastChatPos = 0;
@@ -179,7 +176,7 @@ namespace Components
 
 		TextRenderer::FontIconInfo fontIconInfo{};
 		auto len = 0.0f;
-		auto lastColor = static_cast<int>(TEXT_COLOR_DEFAULT);
+		auto lastColor = static_cast<std::underlying_type_t<TextColor>>(TextColor::TEXT_COLOR_DEFAULT);
 		char* lastSpace = nullptr;
 		char* lastFontIcon = nullptr;
 		char* p = Game::cgsArray[0].teamChatMsgs[Game::cgsArray[0].teamChatPos % chatHeight];
