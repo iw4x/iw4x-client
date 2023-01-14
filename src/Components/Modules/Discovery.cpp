@@ -30,6 +30,8 @@ namespace Components
 		IsTerminating = false;
 		Thread = std::thread([]
 		{
+			Com_InitThreadData();
+
 			while (!IsTerminating)
 			{
 				if (IsPerforming)
@@ -49,7 +51,7 @@ namespace Components
 					IsPerforming = false;
 				}
 
-				std::this_thread::sleep_for(50ms);
+				Game::Sys_Sleep(50);
 			}
 		});
 
