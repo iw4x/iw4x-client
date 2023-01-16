@@ -7,8 +7,8 @@ namespace Components
 
 	int Elevators::PM_CorrectAllSolid(Game::pmove_s* pm, Game::pml_t* pml, Game::trace_t* trace)
 	{
-		assert(pm != nullptr);
-		assert(pm->ps != nullptr);
+		assert(pm);
+		assert(pm->ps);
 
 		Game::vec3_t point;
 		auto* ps = pm->ps;

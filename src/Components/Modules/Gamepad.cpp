@@ -1993,7 +1993,9 @@ namespace Components
 		Command::Add("togglescores", Scores_Toggle_f);
 
 		if (Dedicated::IsEnabled())
+		{
 			return;
+		}
 
 		// Gamepad on frame hook
 		Utils::Hook(0x475E9E, IN_Frame_Hk, HOOK_CALL).install()->quick();

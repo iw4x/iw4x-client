@@ -422,7 +422,7 @@ namespace Components
 		// Feeder
 		UIFeeder::Add(10.0f, GetDemoCount, GetDemoText, SelectDemo);
 
-		// set the configstrings stuff to load the default (empty) string table; this should allow demo recording on all gametypes/maps
+		// Set the configstrings stuff to load the default (empty) string table; this should allow demo recording on all gametypes/maps
 		if (!Dedicated::IsEnabled()) Utils::Hook::Set<const char*>(0x47440B, "mp/defaultStringTable.csv");
 
 		// Change font size

@@ -403,7 +403,7 @@ namespace Components
 		if (!developer_)
 		{
 			assert(Scr_IsInOpcodeMemory(codePos));
-			if (!Game::scrVmPub->terminal_error)
+			if (!(*Game::com_developer)->current.enabled)
 			{
 				return;
 			}
@@ -845,10 +845,10 @@ namespace Components
 		return filePosId;
 	}
 
-	void ScriptError::Scr_Settings_Hk(int developer, int developer_script, int abort_on_error)
+	void ScriptError::Scr_Settings_Hk([[maybe_unused]] int developer, int developer_script, int abort_on_error)
 	{
 		assert(!abort_on_error || developer);
-		developer_ = developer != 0;
+		developer_ = (*Game::com_developer)->current.enabled;
 		Game::scrVarPub->developer_script = developer_script != 0;
 		Game::scrVmPub->abort_on_error = abort_on_error != 0;
 	}

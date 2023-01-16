@@ -18,7 +18,7 @@ namespace Components
 		if (*Game::s_havePlaylists) return;
 
 		// Don't load playlists when dedi and no party
-		if (Dedicated::IsEnabled() && !Dvar::Var("party_enable").get<bool>())
+		if (Dedicated::IsEnabled() && !Party::IsEnabled())
 		{
 			*Game::s_havePlaylists = true;
 			Dvar::Var("xblive_privateserver").set(true);

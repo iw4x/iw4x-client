@@ -429,7 +429,7 @@ namespace Components
 		// vid_restart when ingame
 		Utils::Hook::Nop(0x4CA1FA, 6);
 
-		// Filter log (initially com_logFilter, but I don't see why that dvar is needed)
+		// Filter log (initially com_logFilter, but I don't see why that dvar print is needed)
 		// Seems like it's needed for B3, so there is a separate handling for dedicated servers in Dedicated.cpp
 		if (!Dedicated::IsEnabled())
 		{
