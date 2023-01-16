@@ -10,6 +10,7 @@
 #include "Script.hpp"
 #include "Server.hpp"
 #include "System.hpp"
+#include "Zone.hpp"
 
 namespace Game
 {

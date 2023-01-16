@@ -6,10 +6,6 @@ namespace Components
 	std::vector<Script::ScriptFunction> Script::CustomScrFunctions;
 	std::vector<Script::ScriptMethod> Script::CustomScrMethods;
 
-	std::string Script::ScriptName;
-	std::vector<std::string> Script::ScriptNameStack;
-	unsigned short Script::FunctionName;
-	std::unordered_map<int, std::string> Script::ScriptBaseProgramNum;
 	int Script::LastFrameTime = -1;
 
 	std::unordered_map<const char*, const char*> Script::ReplacedFunctions;
@@ -17,191 +13,6 @@ namespace Components
 
 	std::unordered_map<std::string, int> Script::ScriptMainHandles;
 	std::unordered_map<std::string, int> Script::ScriptInitHandles;
-
-	void Script::FunctionError()
-	{
-		const auto* funcName = Game::SL_ConvertToString(FunctionName);
-
-		Game::Scr_ShutdownAllocNode();
-
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Error: unknown function {} in {}\n", funcName, ScriptName);
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n");
-
-		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\nunknown function {}\n{}\n\n", funcName, ScriptName);
-	}
-
-	__declspec(naked) void Script::StoreFunctionNameStub()
-	{
-		__asm
-		{
-			mov eax, [esp - 8h]
-			mov FunctionName, ax
-
-			sub esp, 0Ch
-			push 0
-			push edi
-
-			mov eax, 612DB6h
-			jmp eax
-		}
-	}
-
-	void Script::RuntimeError(const char* codePos, unsigned int index, const char* msg, const char* dialogMessage)
-	{
-		// Allow error messages to be printed if developer mode is on
-		// Should check scrVarPub.developer but it's absent
-		// in this version of the game so let's check the dvar
-		if (!Game::scrVmPub->terminal_error && !(*Game::com_developer)->current.integer)
-			return;
-
-		// If were are developing let's call RuntimeErrorInternal
-		// scrVmPub.debugCode seems to be always false
-		if (Game::scrVmPub->debugCode || Game::scrVarPub->developer_script)
-		{
-			Game::RuntimeErrorInternal(Game::CON_CHANNEL_PARSERSCRIPT, codePos, index, msg);
-		}
-		else
-		{
-			Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "{}\n", msg);
-		}
-
-		// Let's not throw error unless we have to
-		if (Game::scrVmPub->terminal_error)
-		{
-			if (dialogMessage == nullptr)
-				dialogMessage = "";
-
-			Logger::Error(Game::ERR_SCRIPT_DROP, "\x15script runtime error\n(see console for details)\n{}\n{}", msg, dialogMessage);
-		}
-	}
-
-	void Script::StoreScriptName(const char* name)
-	{
-		ScriptNameStack.push_back(ScriptName);
-		ScriptName = name;
-
-		if (!Utils::String::EndsWith(ScriptName, ".gsc"))
-		{
-			ScriptName.append(".gsc");
-		}
-	}
-
-	__declspec(naked) void Script::StoreScriptNameStub()
-	{
-		__asm
-		{
-			pushad
-
-			lea ecx, [esp + 30h]
-			push ecx
-
-			call StoreScriptName
-			add esp, 4h
-
-			popad
-
-			push ebp
-			mov ebp, ds:1CDEAA8h
-
-			push 427DC3h
-			retn
-		}
-	}
-
-	void Script::RestoreScriptName()
-	{
-		ScriptName = ScriptNameStack.back();
-		ScriptNameStack.pop_back();
-	}
-
-	__declspec(naked) void Script::RestoreScriptNameStub()
-	{
-		__asm
-		{
-			pushad
-			call RestoreScriptName
-			popad
-
-			mov ds:1CDEAA8h, ebp
-
-			push 427E77h
-			retn
-		}
-	}
-
-	void Script::PrintSourcePos(const char* filename, unsigned int offset)
-	{
-		FileSystem::File script(filename);
-
-		if (script.exists())
-		{
-			std::string buffer = script.getBuffer();
-			Utils::String::Replace(buffer, "\t", " ");
-
-			auto line = 1, lineOffset = 0, inlineOffset = 0;
-
-			for (size_t i = 0; i < buffer.size(); ++i)
-			{
-				// Terminate line
-				if (i == offset)
-				{
-					while (buffer[i] != '\r' && buffer[i] != '\n' && buffer[i] != '\0')
-					{
-						++i;
-					}
-
-					buffer[i] = '\0';
-					break;
-				}
-
-				if (buffer[i] == '\n')
-				{
-					++line;
-					lineOffset = static_cast<int>(i); // Includes the line break!
-					inlineOffset = 0;
-				}
-				else
-				{
-					++inlineOffset;
-				}
-			}
-
-			Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "in file {}, line {}:", filename, line);
-			Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "{}\n", buffer.substr(lineOffset));
-
-			for (auto i = 0; i < (inlineOffset - 1); ++i)
-			{
-				Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, " ");
-			}
-
-			Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "*\n");
-		}
-		else
-		{
-			Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "in file {}, offset {}\n", filename, offset);
-		}
-	}
-
-	void Script::CompileError(unsigned int offset, const char* message, ...)
-	{
-		char msgbuf[1024] = {0};
-		va_list va;
-		va_start(va, message);
-		_vsnprintf_s(msgbuf, _TRUNCATE, message, va);
-		va_end(va);
-
-		Game::Scr_ShutdownAllocNode();
-
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Error: {} ", msgbuf);
-		PrintSourcePos(ScriptName.data(), offset);
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n\n");
-
-		Logger::Error(Game::ERR_SCRIPT_DROP, "script compile error\n{}\n{}\n(see console for actual details)\n", msgbuf, ScriptName);
-	}
 
 	void Script::Scr_LoadGameType_Stub()
 	{
@@ -374,77 +185,6 @@ namespace Components
 
 		// If no method was found let's call game's function
 		return Utils::Hook::Call<Game::BuiltinMethod(const char**, int*)>(0x5FA360)(pName, type); // Player_GetMethod
-	}
-
-	void Script::StoreScriptBaseProgramNum()
-	{
-		ScriptBaseProgramNum.insert_or_assign(Utils::Hook::Get<int>(0x1CFEEF8), ScriptName);
-	}
-
-	void Script::Scr_PrintPrevCodePos(int scriptPos)
-	{
-		auto bestCodePos = -1, nextCodePos = -1, offset = -1;
-		std::string file;
-
-		for (const auto& [key, value] : ScriptBaseProgramNum)
-		{
-			const auto codePos = key;
-
-			if (codePos > scriptPos)
-			{
-				if (nextCodePos == -1 || codePos < nextCodePos)
-					nextCodePos = codePos;
-
-				continue;
-			}
-
-			if (codePos < bestCodePos)
-				continue;
-
-			bestCodePos = codePos;
-
-			file = value;
-			offset = scriptPos - bestCodePos;
-		}
-
-		if (bestCodePos == -1)
-			return;
-
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "\n@ {} ({} - {})\n", scriptPos, bestCodePos, nextCodePos);
-		Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "in {} ({} through the source)\n\n", file, ((offset * 100.0f) / (nextCodePos - bestCodePos)));
-	}
-
-	__declspec(naked) void Script::Scr_PrintPrevCodePosStub()
-	{
-		__asm
-		{
-			push esi
-			call Scr_PrintPrevCodePos
-			add esp, 4h
-
-			pop esi
-			retn
-		}
-	}
-
-	__declspec(naked) void Script::StoreScriptBaseProgramNumStub()
-	{
-		__asm
-		{
-			// execute our hook
-			pushad
-			call StoreScriptBaseProgramNum
-			popad
-
-			// execute overwritten code caused by the jump hook
-			sub eax, ds:201A460h // gScrVarPub_programBuffer
-			add esp, 0Ch
-			mov ds:1CFEEF8h, eax // gScrCompilePub_programLen
-
-			// jump back to the original code
-			push 426C3Bh
-			retn
-		}
 	}
 
 	unsigned int Script::SetExpFogStub()
@@ -636,22 +376,9 @@ namespace Components
 
 	Script::Script()
 	{
-		Utils::Hook(0x612DB0, StoreFunctionNameStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x427E71, RestoreScriptNameStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x427DBC, StoreScriptNameStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x426C2D, StoreScriptBaseProgramNumStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x42281B, Scr_PrintPrevCodePosStub, HOOK_JUMP).install()->quick();
-
-		Utils::Hook(0x61E3AD, RuntimeError, HOOK_CALL).install()->quick();
-		Utils::Hook(0x621976, RuntimeError, HOOK_CALL).install()->quick();
-		Utils::Hook(0x62246E, RuntimeError, HOOK_CALL).install()->quick();
 		// Skip check in GScr_CheckAllowedToSetPersistentData to prevent log spam in RuntimeError.
 		// On IW5 the function is entirely nullsubbed
 		Utils::Hook::Set<std::uint8_t>(0x5F8DBF, 0xEB);
-
-		Utils::Hook(0x612E8D, FunctionError, HOOK_CALL).install()->quick();
-		Utils::Hook(0x612EA2, FunctionError, HOOK_CALL).install()->quick();
-		Utils::Hook(0x434260, CompileError, HOOK_JUMP).install()->quick();
 
 		Utils::Hook(0x48EFFE, Scr_LoadGameType_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x48F008, Scr_StartupGameType_Stub, HOOK_CALL).install()->quick();

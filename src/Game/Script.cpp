@@ -6,6 +6,12 @@ namespace Game
 	RemoveRefToObject_t RemoveRefToObject = RemoveRefToObject_t(0x437190);
 	AllocObject_t AllocObject = AllocObject_t(0x434320);
 	AddRefToValue_t AddRefToValue = AddRefToValue_t(0x482740);
+	FindVariable_t FindVariable = FindVariable_t(0x4AB650);
+	GetVariable_t GetVariable = GetVariable_t(0x419970);
+	RemoveVariable_t RemoveVariable = RemoveVariable_t(0x480B40);
+	FindObject_t FindObject = FindObject_t(0x4CF2F0);
+	GetObject_t GetObject = GetObject_t(0x48B9D0);
+	GetNewVariable_t GetNewVariable = GetNewVariable_t(0x4CC520);
 	AllocThread_t AllocThread = AllocThread_t(0x4F78C0);
 
 	VM_Execute_0_t VM_Execute_0 = VM_Execute_0_t(0x6222A0);
@@ -16,7 +22,9 @@ namespace Game
 	Scr_StartupGameType_t Scr_StartupGameType = Scr_StartupGameType_t(0x438720);
 
 	Scr_LoadScript_t Scr_LoadScript = Scr_LoadScript_t(0x45D940);
+	Scr_ReadFile_FastFile_t Scr_ReadFile_FastFile = Scr_ReadFile_FastFile_t(0x61AAB0);
 	Scr_GetFunctionHandle_t Scr_GetFunctionHandle = Scr_GetFunctionHandle_t(0x4234F0);
+	Scr_CreateCanonicalFilename_t Scr_CreateCanonicalFilename = Scr_CreateCanonicalFilename_t(0x4A0220);
 
 	Scr_GetString_t Scr_GetString = Scr_GetString_t(0x425900);
 	Scr_GetConstString_t Scr_GetConstString = Scr_GetConstString_t(0x494830);
@@ -75,10 +83,18 @@ namespace Game
 	SL_AddRefToString_t SL_AddRefToString = SL_AddRefToString_t(0x4D9B00);
 	SL_RemoveRefToString_t SL_RemoveRefToString = SL_RemoveRefToString_t(0x47CD70);
 
+	ScriptParse_t ScriptParse = ScriptParse_t(0x48A4F0);
+	ScriptCompile_t ScriptCompile = ScriptCompile_t(0x426B80);
+
 	scr_const_t* scr_const = reinterpret_cast<scr_const_t*>(0x1AA2E00);
 
 	scrVmPub_t* scrVmPub = reinterpret_cast<scrVmPub_t*>(0x2040CF0);
 	scrVarPub_t* scrVarPub = reinterpret_cast<scrVarPub_t*>(0x201A408);
+	scrCompilePub_t* scrCompilePub = reinterpret_cast<scrCompilePub_t*>(0x1CDEEC0);
+	scrAnimPub_t* scrAnimPub = reinterpret_cast<scrAnimPub_t*>(0x1CDEAA0);
+
+	char* g_EndPos = reinterpret_cast<char*>(0x2045498);
+	bool* g_loadedImpureScript = reinterpret_cast<bool*>(0x1DC2208);
 
 	game_hudelem_s* g_hudelems = reinterpret_cast<game_hudelem_s*>(0x18565A8);
 

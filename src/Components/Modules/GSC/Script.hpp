@@ -57,10 +57,6 @@ namespace Components
 		static std::vector<ScriptFunction> CustomScrFunctions;
 		static std::vector<ScriptMethod> CustomScrMethods;
 
-		static std::string ScriptName;
-		static std::vector<std::string> ScriptNameStack;
-		static unsigned short FunctionName;
-		static std::unordered_map<int, std::string> ScriptBaseProgramNum;
 		static int LastFrameTime;
 
 		static std::unordered_map<std::string, int> ScriptMainHandles;
@@ -69,30 +65,12 @@ namespace Components
 		static std::unordered_map<const char*, const char*> ReplacedFunctions;
 		static const char* ReplacedPos;
 
-		static void CompileError(unsigned int offset, const char* message, ...);
-		static void PrintSourcePos(const char* filename, unsigned int offset);
-
-		static void FunctionError();
-		static void StoreFunctionNameStub();
-		static void RuntimeError(const char* codePos, unsigned int index, const char* msg, const char* dialogMessage);
-
-		static void StoreScriptName(const char* name);
-		static void StoreScriptNameStub();
-
-		static void RestoreScriptName();
-		static void RestoreScriptNameStub();
-
 		static void Scr_LoadGameType_Stub();
 		static void Scr_StartupGameType_Stub();
 		static void GScr_LoadGameTypeScript_Stub();
 
 		static Game::BuiltinFunction BuiltIn_GetFunctionStub(const char** pName, int* type);
 		static Game::BuiltinMethod BuiltIn_GetMethodStub(const char** pName, int* type);
-
-		static void StoreScriptBaseProgramNumStub();
-		static void StoreScriptBaseProgramNum();
-		static void Scr_PrintPrevCodePosStub();
-		static void Scr_PrintPrevCodePos(int);
 
 		static unsigned int SetExpFogStub();
 

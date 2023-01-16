@@ -5949,6 +5949,38 @@ namespace Game
 		int dataCount;
 	};
 
+	struct PrecacheEntry
+	{
+		unsigned __int16 filename;
+		bool include;
+		unsigned int sourcePos;
+	};
+
+	struct XAnimParent
+	{
+		unsigned short flags;
+		unsigned short children;
+	};
+
+	struct XAnimEntry
+	{
+		unsigned short numAnims;
+		unsigned short parent;
+		union
+		{
+			XAnimParts* parts;
+			XAnimParent animParent;
+		} ___u2;
+	};
+
+	struct XAnim_s
+	{
+		unsigned int size;
+		const char* debugName;
+		const char** debugAnimNames;
+		XAnimEntry entries[1];
+	};
+
 	struct HunkUser
 	{
 		HunkUser* current;
@@ -6101,6 +6133,154 @@ namespace Game
 	};
 
 	static_assert(sizeof(scrVarPub_t) == 0x24060);
+
+	struct scrCompilePub_t
+	{
+		int value_count;
+		int far_function_count;
+		unsigned int loadedscripts;
+		unsigned int scriptsPos;
+		unsigned int scriptsCount;
+		unsigned int scriptsDefine;
+		unsigned int builtinFunc;
+		unsigned int builtinMeth;
+		unsigned __int16 canonicalStrings[65536];
+		const char* in_ptr;
+		bool in_ptr_valid;
+		const char* parseBuf;
+		bool script_loading;
+		bool allowedBreakpoint;
+		int developer_statement;
+		char* opcodePos;
+		unsigned int programLen;
+		int func_table_size;
+		int func_table[1024];
+	};
+
+	enum
+	{
+		SOURCE_TYPE_BREAKPOINT = 0x1,
+		SOURCE_TYPE_CALL = 0x2,
+		SOURCE_TYPE_CALL_POINTER = 0x4,
+		SOURCE_TYPE_THREAD_START = 0x8,
+		SOURCE_TYPE_BUILTIN_CALL = 0x10,
+		SOURCE_TYPE_NOTIFY = 0x20,
+		SOURCE_TYPE_GETFUNCTION = 0x40,
+		SOURCE_TYPE_WAIT = 0x80,
+	};
+
+	struct OpcodeLookup
+	{
+		const char* codePos;
+		unsigned int sourcePosIndex;
+		unsigned __int16 sourcePosCount;
+		int profileTime;
+		int profileBuiltInTime;
+		int profileUsage;
+	};
+
+	static_assert(sizeof(OpcodeLookup) == 24);
+
+	struct SourceLookup
+	{
+		unsigned int sourcePos;
+		int type;
+	};
+
+	struct SaveSourceBufferInfo
+	{
+		char* buf;
+		char* sourceBuf;
+		int len;
+	};
+
+	struct scrParserGlob_t
+	{
+		OpcodeLookup* opcodeLookup;
+		unsigned int opcodeLookupMaxSize;
+		unsigned int opcodeLookupLen;
+		SourceLookup* sourcePosLookup;
+		unsigned int sourcePosLookupMaxSize;
+		unsigned int sourcePosLookupLen;
+		unsigned int sourceBufferLookupMaxSize;
+		const char* currentCodePos;
+		unsigned int currentSourcePosCount;
+		SaveSourceBufferInfo* saveSourceBufferLookup;
+		unsigned int saveSourceBufferLookupLen;
+		int delayedSourceIndex;
+		int threadStartSourceIndex;
+	};
+
+	struct SourceBufferInfo
+	{
+		const char* codePos;
+		char* buf;
+		const char* sourceBuf;
+		int len;
+		int sortedIndex;
+		bool archive;
+		int time;
+		int avgTime;
+		int maxTime;
+		float totalTime;
+		float totalBuiltIn;
+	};
+
+	struct scrParserPub_t
+	{
+		SourceBufferInfo* sourceBufferLookup;
+		unsigned int sourceBufferLookupLen;
+		const char* scriptfilename;
+		const char* sourceBuf;
+	};
+
+	struct scr_animtree_t
+	{
+		XAnim_s* anims;
+	};
+
+	struct scrAnimPub_t
+	{
+		unsigned int animtrees;
+		unsigned int animtree_node;
+		unsigned int animTreeNames;
+		scr_animtree_t xanim_lookup[2][128];
+		unsigned int xanim_num[2];
+		unsigned int animTreeIndex;
+		bool animtree_loading;
+	};
+
+	struct scr_localVar_t
+	{
+		unsigned int name;
+		unsigned int sourcePos;
+	};
+
+	struct scr_block_t
+	{
+		int abortLevel;
+		int localVarsCreateCount;
+		int localVarsPublicCount;
+		int localVarsCount;
+		char localVarsInitBits[8];
+		scr_localVar_t localVars[64];
+	};
+
+	union sval_u
+	{
+		int type;
+		unsigned int stringValue;
+		unsigned int idValue;
+		float floatValue;
+		int intValue;
+		sval_u* node;
+		unsigned int sourcePosValue;
+		const char* codePosValue;
+		const char* debugString;
+		scr_block_t* block;
+	};
+
+	static_assert(sizeof(sval_u) == 0x4);
 
 	struct scr_const_t
 	{
@@ -8452,33 +8632,7 @@ namespace Game
 		float scale;
 	};
 
-	struct XAnimParent
-	{
-		unsigned short flags;
-		unsigned short children;
-	};
-
-	struct XAnimEntry
-	{
-		unsigned short numAnims;
-		unsigned short parent;
-
-		union
-		{
-			XAnimParts* parts;
-			XAnimParent animParent;
-		};
-	};
-
-	struct XAnim_s
-	{
-		unsigned int size;
-		const char* debugName;
-		const char** debugAnimNames;
-		XAnimEntry entries[1];
-	};
-
-	struct __declspec(align(4)) XAnimTree_s
+	struct XAnimTree_s
 	{
 		XAnim_s* anims;
 		int info_usage;

@@ -95,6 +95,10 @@ using namespace std::literals;
 	#undef min
 #endif
 
+#ifdef GetObject
+	#undef GetObject
+#endif
+
 #define AssertSize(x, size) \
 	static_assert(sizeof(x) == (size), \
 		"Structure has an invalid size. " #x " must be " #size " bytes")

@@ -247,9 +247,6 @@ namespace Game
 	Vec2Normalize_t Vec2Normalize = Vec2Normalize_t(0x416F70);
 	Vec2NormalizeFast_t Vec2NormalizeFast = Vec2NormalizeFast_t(0x5FC830);
 
-	Z_VirtualAlloc_t Z_VirtualAlloc = Z_VirtualAlloc_t(0x4CFBA0);
-	Z_Malloc_t Z_Malloc = Z_Malloc_t(0x4F3680);
-
 	I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
 	I_CleanStr_t I_CleanStr = I_CleanStr_t(0x4AD470);
 

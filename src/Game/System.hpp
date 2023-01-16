@@ -68,6 +68,9 @@ namespace Game
 	typedef Sys_File(*Sys_CreateFile_t)(const char* dir, const char* filename);
 	extern Sys_CreateFile_t Sys_CreateFile;
 
+	typedef void(*Sys_OutOfMemErrorInternal_t)(const char* filename, int line);
+	extern Sys_OutOfMemErrorInternal_t Sys_OutOfMemErrorInternal;
+
 	extern char(*sys_exitCmdLine)[1024];
 
 	extern RTL_CRITICAL_SECTION* s_criticalSection;
@@ -99,3 +102,5 @@ namespace Game
 		}
 	};
 }
+
+#define Sys_OutOfMemError() Game::Sys_OutOfMemErrorInternal(__FILE__, __LINE__);
