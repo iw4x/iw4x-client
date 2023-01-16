@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include "ScriptError.hpp"
 
+#define SCRIPT_ERROR_PATCH
+
 using namespace Utils::String;
 
 namespace Components
@@ -899,7 +901,7 @@ namespace Components
 
 	ScriptError::ScriptError()
 	{
-#ifdef _DEBUG
+#ifdef SCRIPT_ERROR_PATCH
 		std::vector<std::pair<std::size_t, void*>> patches;
 		const auto p = [&patches](const std::size_t a, void* b)
 		{
