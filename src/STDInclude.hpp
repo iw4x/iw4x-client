@@ -81,9 +81,6 @@
 #pragma warning(disable: 6387)
 #pragma warning(disable: 26812)
 
-#include <gsl/gsl>
-#include <tomcrypt.h>
-
 // Enable additional literals
 using namespace std::literals;
 
@@ -110,6 +107,9 @@ using namespace std::literals;
 #define AssertIn(x, y) assert(static_cast<unsigned int>(x) < static_cast<unsigned int>(y))
 
 #define AssertUnreachable assert(0 && "unreachable")
+
+#include <gsl/gsl>
+#include <tomcrypt.h>
 
 #pragma warning(pop)
 
