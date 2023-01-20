@@ -654,29 +654,32 @@ namespace Components
 
 		if (Dedicated::IsEnabled())
 		{
-			mg_mgr_init(&Mgr);
-
-			Network::OnStart([]
+			if (!Flags::HasFlag("disable-mongoose"))
 			{
-				const auto* nc = mg_http_listen(&Mgr, Utils::String::VA(":%hu", Network::GetPort()), &EventHandler, &Mgr);
-				if (!nc)
-				{
-					Logger::PrintError(Game::CON_CHANNEL_ERROR, "Failed to bind TCP socket, mod download won't work!\n");
-					Terminate = true;
-				}
-			});
+				mg_mgr_init(&Mgr);
 
-			ServerRunning = true;
-			Terminate = false;
-			ServerThread = Utils::Thread::CreateNamedThread("Mongoose", []
-			{
-				Com_InitThreadData();
-
-				while (!Terminate)
+				Network::OnStart([]
 				{
-					mg_mgr_poll(&Mgr, 1000);
-				}
-			});
+					const auto* nc = mg_http_listen(&Mgr, Utils::String::VA(":%hu", Network::GetPort()), &EventHandler, &Mgr);
+					if (!nc)
+					{
+						Logger::PrintError(Game::CON_CHANNEL_ERROR, "Failed to bind TCP socket, mod download won't work!\n");
+						Terminate = true;
+					}
+				});
+
+				ServerRunning = true;
+				Terminate = false;
+				ServerThread = Utils::Thread::CreateNamedThread("Mongoose", []
+				{
+					Com_InitThreadData();
+
+					while (!Terminate)
+					{
+						mg_mgr_poll(&Mgr, 1000);
+					}
+				});
+			}
 		}
 		else
 		{
