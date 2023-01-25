@@ -254,7 +254,6 @@ namespace Components
 			}
 
 			const auto num = std::atoi(input);
-
 			if (num < 0 || num >= *Game::svs_clientCount)
 			{
 				Logger::Print("Bad client slot: {}\n", num);
@@ -268,8 +267,13 @@ namespace Components
 				return;
 			}
 
+			if (cl->bIsTestClient)
+			{
+				return;
+			}
+
 			const std::string reason = params->size() < 3 ? "EXE_ERR_BANNED_PERM" : params->join(2);
-			Bans::BanClient(&Game::svs_clients[num], reason);
+			BanClient(&Game::svs_clients[num], reason);
 		});
 
 		Command::Add("unbanClient", [](Command::Params* params)

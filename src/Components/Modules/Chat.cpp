@@ -316,7 +316,7 @@ namespace Components
 			}
 
 			const auto* client = Game::SV_GetPlayerByNum();
-			if (client != nullptr)
+			if (client && !client->bIsTestClient)
 			{
 				Voice::SV_MuteClient(client - Game::svs_clients);
 				MuteClient(client);
@@ -339,8 +339,12 @@ namespace Components
 			}
 
 			const auto* client = Game::SV_GetPlayerByNum();
+			if (client->bIsTestClient)
+			{
+				return;
+			}
 
-			if (client != nullptr)
+			if (client)
 			{
 				UnmuteClient(client);
 				Voice::SV_UnmuteClient(client - Game::svs_clients);

@@ -160,6 +160,7 @@ namespace Components
 			// 15 or more custom classes
 			Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
 
+#ifdef _DEBUG
 			// Reset empty names
 			Command::Add("checkClasses", [](Command::Params*)
 			{
@@ -170,7 +171,7 @@ namespace Components
 					if (!*className) strcpy_s(className, 24, Game::SEH_StringEd_GetString(Utils::String::VA("CLASS_SLOT%i", i + 1)));
 				}
 			});
-
+#endif
 			return;
 		}
 
