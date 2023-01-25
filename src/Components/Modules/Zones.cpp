@@ -1979,11 +1979,6 @@ namespace Components
 			//material->drawSurf[9] = material359.drawSurf[1];
 			//material->drawSurf[10] = material359.drawSurf[2];
 			//material->drawSurf[11] = material359.drawSurf[3];
-
-			if (material359.sGameFlags & 0x100)
-			{
-				//OutputDebugStringA("");
-			}
 		}
 
 		return result;

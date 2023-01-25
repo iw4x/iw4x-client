@@ -16,7 +16,9 @@ namespace Steam
 
 	int RemoteStorage::FileRead(const char *pchFile, void *pvData, int cubDataToRead)
 	{
+#ifdef _DEBUG
 		OutputDebugStringA(pchFile);
+#endif
 		return 0;
 	}
 

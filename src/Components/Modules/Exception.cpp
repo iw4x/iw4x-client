@@ -134,7 +134,9 @@ namespace Components
 		if (!MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, static_cast<MINIDUMP_TYPE>(MiniDumpType), &ex, nullptr, nullptr))
 		{
 			MessageBoxA(nullptr, Utils::String::Format("There was an error creating the minidump ({})! Hit OK to close the program.", Utils::GetLastWindowsError()), "ERROR", MB_OK | MB_ICONERROR);
+#ifdef _DEBUG
 			OutputDebugStringA("Failed to create new minidump!");
+#endif
 			Utils::OutputDebugLastError();
 			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
 		}
