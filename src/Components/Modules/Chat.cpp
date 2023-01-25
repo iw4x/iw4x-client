@@ -5,6 +5,8 @@
 
 #include "GSC/Script.hpp"
 
+#include <json.hpp>
+
 namespace Components
 {
 	Dvar::Var Chat::cg_chatWidth;
@@ -14,9 +16,18 @@ namespace Components
 	bool Chat::SendChat;
 
 	Utils::Concurrency::Container<Chat::muteList> Chat::MutedList;
+	const char* Chat::MutedListFile = "userraw/muted-users.json";
 
 	bool Chat::CanAddCallback = true;
 	std::vector<Scripting::Function> Chat::SayCallbacks;
+
+	// Have only one instance of IW4x read/write the file
+	std::unique_lock<Utils::NamedMutex> Chat::Lock()
+	{
+		static Utils::NamedMutex mutex{"iw4x-mute-list-lock"};
+		std::unique_lock lock{mutex};
+		return lock;
+	}
 
 	const char* Chat::EvaluateSay(char* text, Game::gentity_t* player, int mode)
 	{
@@ -236,7 +247,9 @@ namespace Components
 
 		Game::cgsArray[0].teamChatPos++;
 		if (Game::cgsArray[0].teamChatPos - Game::cgsArray[0].teamLastChatPos > chatHeight)
+		{
 			Game::cgsArray[0].teamLastChatPos = Game::cgsArray[0].teamChatPos + 1 - chatHeight;
+		}
 	}
 
 	__declspec(naked) void Chat::CG_AddToTeamChat_Stub()
@@ -259,7 +272,20 @@ namespace Components
 		const auto clientNum = ent - Game::g_entities;
 		const auto xuid = Game::svs_clients[clientNum].steamID;
 
-		const auto result = MutedList.access<bool>([&](muteList& clients)
+		const auto result = MutedList.access<bool>([&](const muteList& clients)
+		{
+			return clients.contains(xuid);
+		});
+
+		return result;
+	}
+
+	bool Chat::IsMuted(const Game::client_t* cl)
+	{
+		const auto clientNum = cl - Game::svs_clients;
+		const auto xuid = Game::svs_clients[clientNum].steamID;
+
+		const auto result = MutedList.access<bool>([&](const muteList& clients)
 		{
 			return clients.contains(xuid);
 		});
@@ -273,6 +299,7 @@ namespace Components
 		MutedList.access([&](muteList& clients)
 		{
 			clients.insert(xuid);
+			SaveMutedList(clients);
 		});
 
 		Logger::Print("{} was muted\n", client->name);
@@ -295,6 +322,67 @@ namespace Components
 				clients.clear();
 			else
 				clients.erase(id);
+
+			SaveMutedList(clients);
+		});
+	}
+
+	void Chat::SaveMutedList(const muteList& list)
+	{
+		const auto _ = Lock();
+
+		const nlohmann::json mutedUsers = nlohmann::json
+		{
+			{ "SteamID", list },
+		};
+
+		Utils::IO::WriteFile(MutedListFile, mutedUsers.dump());
+	}
+
+	void Chat::LoadMutedList()
+	{
+		const auto _ = Lock();
+
+		const auto mutedUsers = Utils::IO::ReadFile(MutedListFile);
+		if (mutedUsers.empty())
+		{
+			Logger::Debug("muted-users.json does not exist");
+			return;
+		}
+
+		nlohmann::json mutedUsersData;
+		try
+		{
+			mutedUsersData = nlohmann::json::parse(mutedUsers);
+		}
+		catch (const std::exception& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+			return;
+		}
+
+		if (!mutedUsersData.contains("SteamID"))
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "muted-users.json contains invalid data\n");
+			return;
+		}
+
+		const auto& list = mutedUsersData["SteamID"];
+		if (!list.is_array())
+		{
+			return;
+		}
+
+		MutedList.access([&](muteList& clients)
+		{
+			const nlohmann::json::array_t arr = list;
+			for (auto& entry : arr)
+			{
+				if (entry.is_number_unsigned())
+				{
+					clients.insert(entry.get<std::uint64_t>());
+				}
+			}
 		});
 	}
 
@@ -521,6 +609,8 @@ namespace Components
 		cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
 		sv_disableChat = Dvar::Register<bool>("sv_disableChat", false, Game::DVAR_NONE, "Disable chat messages from clients");
 		Events::OnSVInit(AddChatCommands);
+
+		LoadMutedList();
 
 		// Intercept chat sending
 		Utils::Hook(0x4D000B, PreSayStub, HOOK_CALL).install()->quick();

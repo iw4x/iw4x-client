@@ -3,6 +3,7 @@
 namespace Components
 {
 	Utils::Signal<Events::ClientCallback> Events::ClientDisconnectSignal;
+	Utils::Signal<Events::ClientConnectCallback> Events::ClientConnectSignal;
 	Utils::Signal<Events::Callback> Events::SteamDisconnectSignal;
 	Utils::Signal<Events::Callback> Events::ShutdownSystemSignal;
 	Utils::Signal<Events::Callback> Events::ClientInitSignal;
@@ -11,6 +12,11 @@ namespace Components
 	void Events::OnClientDisconnect(const Utils::Slot<ClientCallback>& callback)
 	{
 		ClientDisconnectSignal.connect(callback);
+	}
+
+	void Events::OnClientConnect(const Utils::Slot<ClientConnectCallback>& callback)
+	{
+		ClientConnectSignal.connect(callback);
 	}
 
 	void Events::OnSteamDisconnect(const Utils::Slot<Callback>& callback)
@@ -42,6 +48,13 @@ namespace Components
 		ClientDisconnectSignal(clientNum);
 
 		Utils::Hook::Call<void(int)>(0x4AA430)(clientNum); // ClientDisconnect
+	}
+
+	void Events::SV_UserinfoChanged_Hk(Game::client_t* cl)
+	{
+		ClientConnectSignal(cl);
+
+		Utils::Hook::Call<void(Game::client_t*)>(0x401950)(cl); // SV_UserinfoChanged
 	}
 
 	void Events::SteamDisconnect_Hk()
@@ -77,6 +90,8 @@ namespace Components
 	Events::Events()
 	{
 		Utils::Hook(0x625235, ClientDisconnect_Hk, HOOK_CALL).install()->quick(); // SV_FreeClient
+
+		Utils::Hook(0x4612BD, SV_UserinfoChanged_Hk, HOOK_CALL).install()->quick(); // SV_DirectConnect
 
 		Utils::Hook(0x403582, SteamDisconnect_Hk, HOOK_CALL).install()->quick(); // CL_Disconnect
 

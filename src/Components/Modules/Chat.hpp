@@ -8,6 +8,9 @@ namespace Components
 	public:
 		Chat();
 
+		static bool IsMuted(const Game::gentity_s* ent);
+		static bool IsMuted(const Game::client_t* cl);
+
 	private:
 		static Dvar::Var cg_chatWidth;
 		static Dvar::Var sv_disableChat;
@@ -17,9 +20,12 @@ namespace Components
 
 		using muteList = std::unordered_set<std::uint64_t>;
 		static Utils::Concurrency::Container<muteList> MutedList;
+		static const char* MutedListFile;
 
 		static bool CanAddCallback; // ClientCommand & GSC thread are the same
 		static std::vector<Scripting::Function> SayCallbacks;
+
+		static std::unique_lock<Utils::NamedMutex> Lock();
 
 		static const char* EvaluateSay(char* text, Game::gentity_t* player, int mode);
 
@@ -30,10 +36,12 @@ namespace Components
 		static void CG_AddToTeamChat(const char* text);
 		static void CG_AddToTeamChat_Stub();
 
-		static bool IsMuted(const Game::gentity_s* ent);
 		static void MuteClient(const Game::client_t* client);
 		static void UnmuteClient(const Game::client_t* client);
 		static void UnmuteInternal(std::uint64_t id, bool everyone = false);
+		static void SaveMutedList(const muteList& list);
+		static void LoadMutedList();
+
 		static void AddChatCommands();
 
 		static int GetCallbackReturn();

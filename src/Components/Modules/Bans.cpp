@@ -5,6 +5,8 @@
 
 namespace Components
 {
+	const char* Bans::BanListFile = "userraw/bans.json";
+
 	// Have only one instance of IW4x read/write the file
 	std::unique_lock<Utils::NamedMutex> Bans::Lock()
 	{
@@ -89,7 +91,7 @@ namespace Components
 
 	void Bans::SaveBans(const BanList* list)
 	{
-		assert(list != nullptr);
+		assert(list);
 
 		const auto _ = Lock();
 
@@ -107,7 +109,8 @@ namespace Components
 				ipEntry.bytes[0] & 0xFF,
 				ipEntry.bytes[1] & 0xFF,
 				ipEntry.bytes[2] & 0xFF,
-				ipEntry.bytes[3] & 0xFF));
+				ipEntry.bytes[3] & 0xFF)
+			);
 		}
 
 		const nlohmann::json bans = nlohmann::json
@@ -116,18 +119,17 @@ namespace Components
 			{ "id", idVector },
 		};
 
-		FileSystem::FileWriter ("bans.json").write(bans.dump());
+		Utils::IO::WriteFile(BanListFile, bans.dump());
 	}
 
 	void Bans::LoadBans(BanList* list)
 	{
-		assert(list != nullptr);
+		assert(list);
 
 		const auto _ = Lock();
 
-		FileSystem::File bans("bans.json");
-
-		if (!bans.exists())
+		const auto bans = Utils::IO::ReadFile(BanListFile);
+		if (bans.empty())
 		{
 			Logger::Debug("bans.json does not exist");
 			return;
@@ -136,11 +138,17 @@ namespace Components
 		nlohmann::json banData;
 		try
 		{
-			banData = nlohmann::json::parse(bans.getBuffer());
+			banData = nlohmann::json::parse(bans);
 		}
-		catch (const nlohmann::json::parse_error& ex)
+		catch (const std::exception& ex)
 		{
 			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+			return;
+		}
+
+		if (!banData.contains("id") || !banData.contains("ip"))
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "bans.json contains invalid data\n");
 			return;
 		}
 
