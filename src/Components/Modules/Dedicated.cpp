@@ -3,6 +3,7 @@
 
 #include "CardTitles.hpp"
 #include "ClanTags.hpp"
+#include "Party.hpp"
 #include "ServerCommands.hpp"
 
 namespace Components
@@ -114,10 +115,9 @@ namespace Components
 	{
 		Scheduler::Once([]
 		{
-			const auto partyEnable = Dvar::Var("party_enable").get<bool>();
 			std::string mapname = (*Game::sv_mapname)->current.string;
 
-			if (!partyEnable) // Time wrapping should not occur in party servers, but yeah...
+			if (!Party::IsEnabled()) // Time wrapping should not occur in party servers, but yeah...
 			{
 				if (mapname.empty()) mapname = "mp_rust";
 				Command::Execute(std::format("map {}", mapname), true);
@@ -216,10 +216,10 @@ namespace Components
 
 			if (!ZoneBuilder::IsEnabled())
 			{
-				Scheduler::Once([]
+				Events::OnDvarInit([]
 				{
 					SVMOTD = Dvar::Register<const char*>("sv_motd", "", Game::DVAR_NONE, "A custom message of the day for servers");
-				}, Scheduler::Pipeline::MAIN);
+				});
 
 				// Post initialization point
 				Utils::Hook(0x60BFBF, PostInitializationStub, HOOK_JUMP).install()->quick();

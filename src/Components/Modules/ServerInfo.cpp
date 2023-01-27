@@ -161,7 +161,7 @@ namespace Components
 		// Ensure mapname is set
 		if (info.get("mapname").empty())
 		{
-			info.set("mapname", Dvar::Var("ui_mapname").get<const char*>());
+			info.set("mapname", (*Game::ui_mapname)->current.string);
 		}
 
 		// Set matchtype

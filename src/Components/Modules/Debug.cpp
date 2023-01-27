@@ -342,10 +342,8 @@ namespace Components
 			nullptr,
 		};
 
-		DebugOverlay = Game::Dvar_RegisterEnum("debugOverlay", debugOverlayNames_0, 0,
-			Game::DVAR_NONE, "Toggles the display of various debug info.");
-		BugName = Game::Dvar_RegisterString("bug_name", "bug0",
-			Game::DVAR_CHEAT | Game::DVAR_CODINFO, "Name appended to the copied console log");
+		DebugOverlay = Game::Dvar_RegisterEnum("debugOverlay", debugOverlayNames_0, 0, Game::DVAR_NONE, "Toggles the display of various debug info.");
+		BugName = Game::Dvar_RegisterString("bug_name", "bug0", Game::DVAR_NONE, "Name appended to the copied console log");
 	}
 
 	const Game::dvar_t* Debug::Dvar_Register_PlayerDebugHealth(const char* name, bool value, [[maybe_unused]] std::uint16_t flags, const char* description)
@@ -356,7 +354,7 @@ namespace Components
 
 	Debug::Debug()
 	{
-		Scheduler::Once(CL_InitDebugDvars, Scheduler::Pipeline::MAIN);
+		Events::OnDvarInit(CL_InitDebugDvars);
 
 		// Hook end of CG_DrawDebugOverlays (This is to ensure some checks are done before our hook is executed).
 		Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();

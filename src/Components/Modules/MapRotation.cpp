@@ -5,6 +5,7 @@ namespace Components
 {
 	Dvar::Var MapRotation::SVRandomMapRotation;
 	Dvar::Var MapRotation::SVDontRotate;
+	Dvar::Var MapRotation::SVNextMap;
 
 	MapRotation::RotationData MapRotation::DedicatedRotation;
 
@@ -263,19 +264,23 @@ namespace Components
 		const auto& entry = rotation.peekNextEntry();
 		if (entry.first == "map"s)
 		{
-			Game::Dvar_SetString(*Game::nextmap, entry.second.data());
+			SVNextMap.set(entry.second);
+		}
+		else
+		{
+			ClearNextMap();
 		}
 	}
 
 	void MapRotation::SetNextMap(const char* value)
 	{
 		assert(value);
-		Game::Dvar_SetString(*Game::nextmap, value);
+		SVNextMap.set(value);
 	}
 
 	void MapRotation::ClearNextMap()
 	{
-		Game::Dvar_SetString(*Game::nextmap, "");
+		SVNextMap.set("");
 	}
 
 	void MapRotation::RandomizeMapRotation()
@@ -325,15 +330,19 @@ namespace Components
 		SetNextMap(DedicatedRotation);
 	}
 
+	void MapRotation::RegisterMapRotationDvars()
+	{
+		SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false, Game::DVAR_ARCHIVE, "Randomize map rotation when true");
+		SVDontRotate = Dvar::Register<bool>("sv_dontRotate", false, Game::DVAR_NONE, "Do not perform map rotation");
+		SVNextMap = Dvar::Register<const char*>("sv_nextMap", "", Game::DVAR_SERVERINFO, "");
+	}
+
 	MapRotation::MapRotation()
 	{
 		AddMapRotationCommands();
 		Utils::Hook::Set<void(*)()>(0x4152E8, SV_MapRotate_f);
 
-		SVRandomMapRotation = Dvar::Register<bool>("sv_randomMapRotation", false,
-			Game::DVAR_ARCHIVE, "Randomize map rotation when true");
-		SVDontRotate = Dvar::Register<bool>("sv_dontRotate", false,
-			Game::DVAR_NONE, "Do not perform map rotation");
+		Events::OnDvarInit(RegisterMapRotationDvars);
 	}
 
 	bool MapRotation::unitTest()

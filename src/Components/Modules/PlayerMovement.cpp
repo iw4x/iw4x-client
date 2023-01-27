@@ -265,7 +265,7 @@ namespace Components
 		AssertOffset(Game::playerState_s, eFlags, 0xB0);
 		AssertOffset(Game::playerState_s, pm_flags, 0xC);
 
-		Scheduler::Once([]
+		Events::OnDvarInit([]
 		{
 			static const char* bg_bouncesValues[] =
 			{
@@ -275,9 +275,8 @@ namespace Components
 				nullptr
 			};
 
-			BGBounces = Game::Dvar_RegisterEnum("bg_bounces",
-				bg_bouncesValues, DISABLED, Game::DVAR_CODINFO, "Bounce glitch settings");
-		}, Scheduler::Pipeline::MAIN);
+			BGBounces = Game::Dvar_RegisterEnum("bg_bounces", bg_bouncesValues, DISABLED, Game::DVAR_CODINFO, "Bounce glitch settings");
+		});
 
 		// Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used.
 		Utils::Hook(0x448990, Dvar_RegisterSpectateSpeedScale, HOOK_CALL).install()->quick();

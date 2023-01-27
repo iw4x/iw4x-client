@@ -8,7 +8,7 @@ namespace Components
 		: dvar_(Game::Dvar_FindVar(dvarName.data()))
 	{
 		// If the dvar can't be found it will be registered as an empty string dvar
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
 		{
 			this->dvar_ = const_cast<Game::dvar_t*>(Game::Dvar_SetFromStringByNameFromSource(dvarName.data(), "", Game::DVAR_SOURCE_INTERNAL));
 		}
@@ -21,13 +21,17 @@ namespace Components
 
 	template <> const char* Dvar::Var::get()
 	{
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
+		{
 			return "";
+		}
 
 		if (this->dvar_->type == Game::DVAR_TYPE_STRING || this->dvar_->type == Game::DVAR_TYPE_ENUM)
 		{
-			if (this->dvar_->current.string != nullptr)
+			if (this->dvar_->current.string)
+			{
 				return this->dvar_->current.string;
+			}
 		}
 
 		return "";
@@ -35,8 +39,10 @@ namespace Components
 
 	template <> int Dvar::Var::get()
 	{
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
+		{
 			return 0;
+		}
 
 		if (this->dvar_->type == Game::DVAR_TYPE_INT || this->dvar_->type == Game::DVAR_TYPE_ENUM)
 		{
@@ -48,8 +54,10 @@ namespace Components
 
 	template <> unsigned int Dvar::Var::get()
 	{
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
+		{
 			return 0;
+		}
 
 		if (this->dvar_->type == Game::DVAR_TYPE_INT)
 		{
@@ -61,8 +69,10 @@ namespace Components
 
 	template <> float Dvar::Var::get()
 	{
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
+		{
 			return 0.f;
+		}
 
 		if (this->dvar_->type == Game::DVAR_TYPE_FLOAT)
 		{
@@ -72,26 +82,12 @@ namespace Components
 		return 0.f;
 	}
 
-	template <> float* Dvar::Var::get()
-	{
-		static Game::vec4_t vector{0.f, 0.f, 0.f, 0.f};
-
-		if (this->dvar_ == nullptr)
-			return vector;
-
-		if (this->dvar_->type == Game::DVAR_TYPE_FLOAT_2 || this->dvar_->type == Game::DVAR_TYPE_FLOAT_3 ||
-			this->dvar_->type == Game::DVAR_TYPE_FLOAT_4)
-		{
-			return this->dvar_->current.vector;
-		}
-
-		return vector;
-	}
-
 	template <> bool Dvar::Var::get()
 	{
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
+		{
 			return false;
+		}
 
 		if (this->dvar_->type == Game::DVAR_TYPE_BOOL)
 		{
@@ -108,7 +104,9 @@ namespace Components
 
 	void Dvar::Var::set(const char* string)
 	{
+		assert(string);
 		assert(this->dvar_->type == Game::DVAR_TYPE_STRING);
+
 		if (this->dvar_)
 		{
 			Game::Dvar_SetString(this->dvar_, string);
@@ -299,7 +297,7 @@ namespace Components
 	{
 		// Save the dvar original value if it has the archive flag
 		const auto* dvar = Game::Dvar_FindVar(dvarName);
-		if (dvar != nullptr && dvar->flags & Game::DVAR_ARCHIVE)
+		if (dvar && dvar->flags & Game::DVAR_ARCHIVE)
 		{
 			if (!AreArchiveDvarsUnprotected())
 			{
@@ -310,7 +308,7 @@ namespace Components
 			Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Server is overriding saved dvar '{}'\n", dvarName);
 		}
 
-		if (dvar != nullptr && std::strcmp(dvar->name, "com_errorResolveCommand") == 0)
+		if (dvar && std::strcmp(dvar->name, "com_errorResolveCommand") == 0)
 		{
 			Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Not allowing server to set '{}'\n", dvar->name);
 			return;

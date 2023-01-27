@@ -197,10 +197,10 @@ namespace Components
 
 	CardTitles::CardTitles()
 	{
-		Scheduler::Once([]
+		Events::OnDvarInit([]
 		{
 			CustomTitle = Dvar::Register<const char*>("customTitle", "", Game::DVAR_USERINFO | Game::DVAR_ARCHIVE, "Custom card title");
-		}, Scheduler::Pipeline::MAIN);
+		});
 
 		std::memset(&CustomTitles, 0, sizeof(char[Game::MAX_CLIENTS][18]));
 

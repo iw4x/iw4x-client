@@ -834,7 +834,7 @@ namespace Components
 		FavouriteList.clear();
 		VisibleList.clear();
 
-		Scheduler::Once([]
+		Events::OnDvarInit([]
 		{
 			UIServerSelected = Dvar::Register<bool>("ui_serverSelected", false,
 				Game::DVAR_NONE, "Whether a server has been selected in the serverlist");
@@ -845,7 +845,7 @@ namespace Components
 				1, 10, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server queries per frame");
 			NETServerFrames = Dvar::Register<int>("net_serverFrames", 30,
 				1, 60, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server query frames per second");
-		}, Scheduler::Pipeline::MAIN);
+		});
 
 		// Fix ui_netsource dvar
 		Utils::Hook::Nop(0x4CDEEC, 5); // Don't reset the netsource when gametypes aren't loaded

@@ -161,11 +161,11 @@ namespace Components
 
 		RconContainer.timestamp = 0;
 
-		Scheduler::Once([]
+		Events::OnDvarInit([]
 		{
 			RconPassword =  Dvar::Register<const char*>("rcon_password", "", Game::DVAR_NONE, "The password for rcon");
 			RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::DVAR_NONE, "Print remote commands in the output log");
-		}, Scheduler::Pipeline::MAIN);
+		});
 
 		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{

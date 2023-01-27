@@ -372,7 +372,7 @@ namespace Components
 			Scheduler::Once([]
 			{
 				framePushed = false;
-				Dvar::Var("ui_dl_progress").set(Utils::String::VA("(%d/%d) %d%%", dlIndex, dlSize, dlProgress));
+				Dvar::Var("ui_dl_progress").set(std::format("({}/{}) {}%%", dlIndex, dlSize, dlProgress));
 			}, Scheduler::Pipeline::CLIENT);
 		}
 
@@ -683,12 +683,12 @@ namespace Components
 		}
 		else
 		{
-			Scheduler::Once([]
+			Events::OnDvarInit([]
 			{
 				Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::DVAR_NONE, "");
 				Dvar::Register<const char*>("ui_dl_progress", "", Game::DVAR_NONE, "");
 				Dvar::Register<const char*>("ui_dl_transRate", "", Game::DVAR_NONE, "");
-			}, Scheduler::Pipeline::MAIN);
+			});
 
 			UIScript::Add("mod_download_cancel", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 			{
@@ -696,11 +696,11 @@ namespace Components
 			});
 		}
 
-		Scheduler::Once([]
+		Events::OnDvarInit([]
 		{
 			SV_wwwDownload = Dvar::Register<bool>("sv_wwwDownload", false, Game::DVAR_NONE, "Set to true to enable downloading maps/mods from an external server.");
 			SV_wwwBaseUrl = Dvar::Register<const char*>("sv_wwwBaseUrl", "", Game::DVAR_NONE, "Set to the base url for the external map download.");
-		}, Scheduler::Pipeline::MAIN);
+		});
 	}
 
 	Download::~Download()

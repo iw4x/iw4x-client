@@ -8,6 +8,7 @@ namespace Components
 	Utils::Signal<Events::Callback> Events::ShutdownSystemSignal;
 	Utils::Signal<Events::Callback> Events::ClientInitSignal;
 	Utils::Signal<Events::Callback> Events::ServerInitSignal;
+	Utils::Signal<Events::Callback> Events::DvarInitSignal;
 
 	void Events::OnClientDisconnect(const Utils::Slot<ClientCallback>& callback)
 	{
@@ -37,6 +38,11 @@ namespace Components
 	void Events::OnSVInit(const Utils::Slot<Callback>& callback)
 	{
 		ServerInitSignal.connect(callback);
+	}
+
+	void Events::OnDvarInit(const Utils::Slot<Callback>& callback)
+	{
+		DvarInitSignal.connect(callback);
 	}
 
 	/*
@@ -87,6 +93,14 @@ namespace Components
 		Utils::Hook::Call<void()>(0x474320)(); // SV_InitGameMode
 	}
 
+	void Events::Com_InitDvars_Hk()
+	{
+		DvarInitSignal();
+		DvarInitSignal.clear();
+
+		Utils::Hook::Call<void()>(0x60AD10)(); // Com_InitDvars
+	}
+
 	Events::Events()
 	{
 		Utils::Hook(0x625235, ClientDisconnect_Hk, HOOK_CALL).install()->quick(); // SV_FreeClient
@@ -99,6 +113,8 @@ namespace Components
 		Utils::Hook(0x4D06BA, Scr_ShutdownSystem_Hk, HOOK_CALL).install()->quick(); // G_ShutdownGame
 
 		Utils::Hook(0x60BE5B, CL_InitOnceForAllClients_HK, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
+
+		Utils::Hook(0x60BB3A, Com_InitDvars_Hk, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
 		Utils::Hook(0x4D3665, SV_Init_Hk, HOOK_CALL).install()->quick(); // SV_Init
 	}

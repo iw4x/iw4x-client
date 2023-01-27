@@ -48,6 +48,7 @@ namespace Components
 		// Rotation Dvars
 		static Dvar::Var SVRandomMapRotation;
 		static Dvar::Var SVDontRotate;
+		static Dvar::Var SVNextMap;
 
 		// Holds the parsed data from sv_mapRotation
 		static RotationData DedicatedRotation;
@@ -57,6 +58,7 @@ namespace Components
 
 		// Use these commands before SV_MapRotate_f is called
 		static void AddMapRotationCommands();
+		static void RegisterMapRotationDvars();
 
 		static bool ShouldRotate();
 		static void ApplyMap(const std::string& map);

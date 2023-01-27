@@ -12,5 +12,9 @@ namespace Components
 	private:
 		static int TotalMessages;
 		static std::list<std::string> MessageList;
+
+		static Dvar::Var UIStartupMessage;
+		static Dvar::Var UIStartupMessageTitle;
+		static Dvar::Var UIStartupNextButtonText;
 	};
 }
