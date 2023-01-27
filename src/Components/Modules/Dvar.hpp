@@ -40,7 +40,8 @@ namespace Components
 	private:
 		static Var Name;
 
-		static Game::dvar_t* Dvar_RegisterName(const char* name, const char* defaultVal, std::uint16_t flags, const char* description);
+		static const Game::dvar_t* Dvar_RegisterName(const char* dvarName, const char* value, std::uint16_t flags, const char* description);
+		static const Game::dvar_t* Dvar_RegisterSVNetworkFps(const char* dvarName, int value, int min, int max, std::uint16_t flags, const char* description);
 
 		static void SetFromStringByNameExternal(const char* dvarName, const char* string);
 		static void SetFromStringByNameSafeExternal(const char* dvarName, const char* string);

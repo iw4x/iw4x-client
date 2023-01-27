@@ -144,11 +144,6 @@ namespace Components
 		Network::SendCommand(master, "heartbeat", "IW4");
 	}
 
-	Game::dvar_t* Dedicated::Dvar_RegisterSVNetworkFps(const char* dvarName, int, int min, int, int, const char* description)
-	{
-		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::DVAR_NONE, description);
-	}
-
 	Dedicated::Dedicated()
 	{
 		COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
@@ -199,9 +194,6 @@ namespace Components
 
 			// isHost script call return 0
 			Utils::Hook::Set<DWORD>(0x5DEC04, 0);
-
-			// Manually register sv_network_fps
-			Utils::Hook(0x4D3C7B, Dvar_RegisterSVNetworkFps, HOOK_CALL).install()->quick();
 
 			// r_loadForRenderer default to 0
 			Utils::Hook::Set<BYTE>(0x519DDF, 0);

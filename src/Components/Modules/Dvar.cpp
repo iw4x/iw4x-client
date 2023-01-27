@@ -203,7 +203,7 @@ namespace Components
 		return Game::Dvar_RegisterFloat(dvarName, value, min, max, flag, description);
 	}
 
-	Game::dvar_t* Dvar::Dvar_RegisterName(const char* name, const char* /*default*/, std::uint16_t flags, const char* description)
+	const Game::dvar_t* Dvar::Dvar_RegisterName(const char* dvarName, const char* /*value*/, std::uint16_t flags, const char* description)
 	{
 		// Name watcher
 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
@@ -237,14 +237,19 @@ namespace Components
 		{
 			const char* steamName = Steam::Proxy::SteamFriends->GetPersonaName();
 
-			if (steamName && *steamName != '\0')
+			if (steamName && *steamName)
 			{
 				username = steamName;
 			}
 		}
 
-		Name = Register<const char*>(name, username.data(), flags | Game::DVAR_ARCHIVE, description);
+		Name = Register<const char*>(dvarName, username.data(), flags | Game::DVAR_ARCHIVE, description);
 		return Name.get<Game::dvar_t*>();
+	}
+
+	const Game::dvar_t* Dvar::Dvar_RegisterSVNetworkFps(const char* dvarName, int /*value*/, int min, int /*max*/, std::uint16_t /*flags*/, const char* description)
+	{
+		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::DVAR_NONE, description);
 	}
 
 	void Dvar::SetFromStringByNameSafeExternal(const char* dvarName, const char* string)
@@ -408,6 +413,9 @@ namespace Components
 
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar_RegisterName, HOOK_CALL).install()->quick();
+
+		// Hook dvar 'sv_network_fps' registration
+		Utils::Hook(0x4D3C7B, Dvar_RegisterSVNetworkFps, HOOK_CALL).install()->quick();
 
 		// un-cheat safeArea_* and add archive flags
 		Utils::Hook::Xor<std::uint32_t>(0x42E3F5, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_horizontal
