@@ -39,6 +39,11 @@ namespace Components
 		return this->rotationEntries_.at(index);
 	}
 
+	MapRotation::RotationData::rotationEntry& MapRotation::RotationData::peekNextEntry()
+	{
+		return this->rotationEntries_.at(this->index_);
+	}
+
 	void MapRotation::RotationData::parse(const std::string& data)
 	{
 		const auto tokens = Utils::String::Split(data, ' ');
@@ -74,16 +79,6 @@ namespace Components
 
 	void MapRotation::LoadRotation(const std::string& data)
 	{
-		static auto loaded = false;
-
-		if (loaded)
-		{
-			// Load the rotation once
-			return;
-		}
-
-		loaded = true;
-
 		try
 		{
 			DedicatedRotation.parse(data);
@@ -98,6 +93,15 @@ namespace Components
 
 	void MapRotation::LoadMapRotation()
 	{
+		static auto loaded = false;
+		if (loaded)
+		{
+			// Load the rotation once
+			return;
+		}
+
+		loaded = true;
+
 		const std::string mapRotation = (*Game::sv_mapRotation)->current.string;
 		// People may have sv_mapRotation empty because they only use 'addMap' or 'addGametype'
 		if (!mapRotation.empty())
@@ -252,6 +256,28 @@ namespace Components
 		ApplyRotation(rotationCurrent);
 	}
 
+	void MapRotation::SetNextMap(RotationData& rotation)
+	{
+		assert(!rotation.empty());
+
+		const auto& entry = rotation.peekNextEntry();
+		if (entry.first == "map"s)
+		{
+			Game::Dvar_SetString(*Game::nextmap, entry.second.data());
+		}
+	}
+
+	void MapRotation::SetNextMap(const char* value)
+	{
+		assert(value);
+		Game::Dvar_SetString(*Game::nextmap, value);
+	}
+
+	void MapRotation::ClearNextMap()
+	{
+		Game::Dvar_SetString(*Game::nextmap, "");
+	}
+
 	void MapRotation::RandomizeMapRotation()
 	{
 		if (SVRandomMapRotation.get<bool>())
@@ -280,6 +306,7 @@ namespace Components
 		{
 			Logger::Debug("Applying {}", (*Game::sv_mapRotationCurrent)->name);
 			ApplyMapRotationCurrent(mapRotationCurrent);
+			ClearNextMap();
 			return;
 		}
 
@@ -288,12 +315,14 @@ namespace Components
 		{
 			Logger::Print(Game::CON_CHANNEL_SERVER, "{} is empty or contains invalid data. Restarting map\n", (*Game::sv_mapRotation)->name);
 			RestartCurrentMap();
+			SetNextMap("map_restart");
 			return;
 		}
 
 		RandomizeMapRotation();
 
 		ApplyRotation(DedicatedRotation);
+		SetNextMap(DedicatedRotation);
 	}
 
 	MapRotation::MapRotation()

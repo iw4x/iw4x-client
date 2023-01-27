@@ -32,6 +32,7 @@ namespace Components
 
 			[[nodiscard]] std::size_t getEntriesSize() const noexcept;
 			rotationEntry& getNextEntry();
+			rotationEntry& peekNextEntry();
 
 			void parse(const std::string& data);
 
@@ -63,6 +64,11 @@ namespace Components
 		static void RestartCurrentMap();
 		static void ApplyRotation(RotationData& rotation);
 		static void ApplyMapRotationCurrent(const std::string& data);
+
+		// Utils functions
+		static void SetNextMap(RotationData& rotation); // Only call this after ApplyRotation
+		static void SetNextMap(const char* value);
+		static void ClearNextMap();
 		static void RandomizeMapRotation();
 
 		static void SV_MapRotate_f();

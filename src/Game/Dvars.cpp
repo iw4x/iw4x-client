@@ -55,6 +55,8 @@ namespace Game
 	const dvar_t** sv_cheats = reinterpret_cast<const dvar_t**>(0x2098DE0);
 	const dvar_t** sv_voiceQuality = reinterpret_cast<const dvar_t**>(0x2098DB0);
 
+	const dvar_t** nextmap = reinterpret_cast<const dvar_t**>(0x1AD7924);
+
 	const dvar_t** cl_showSend = reinterpret_cast<const dvar_t**>(0xA1E870);
 	const dvar_t** cl_voice = reinterpret_cast<const dvar_t**>(0xB2BB44);
 	const dvar_t** cl_ingame = reinterpret_cast<const dvar_t**>(0xB2BB80);
