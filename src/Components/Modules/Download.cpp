@@ -372,7 +372,7 @@ namespace Components
 			Scheduler::Once([]
 			{
 				framePushed = false;
-				Dvar::Var("ui_dl_progress").set(std::format("({}/{}) {}%%", dlIndex, dlSize, dlProgress));
+				Dvar::Var("ui_dl_progress").set(std::format("({}/{}) {}%", dlIndex, dlSize, dlProgress));
 			}, Scheduler::Pipeline::CLIENT);
 		}
 
