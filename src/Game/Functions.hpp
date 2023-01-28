@@ -320,6 +320,9 @@ namespace Game
 	typedef char*(*Scr_AddSourceBuffer_t)(const char* filename, const char* extFilename, const char* codePos, bool archive);
 	extern Scr_AddSourceBuffer_t Scr_AddSourceBuffer;
 
+	typedef void(*PC_FreeDefine_t)(define_s* define);
+	extern PC_FreeDefine_t PC_FreeDefine;
+
 	typedef int(*PC_ReadToken_t)(source_t*, token_t*);
 	extern PC_ReadToken_t PC_ReadToken;
 
@@ -736,6 +739,7 @@ namespace Game
 	extern int* ui_arenaBufPos;
 
 	extern punctuation_s* default_punctuations;
+	extern int* numtokens;
 
 	extern bool* s_havePlaylists;
 

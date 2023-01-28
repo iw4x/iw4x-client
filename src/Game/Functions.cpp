@@ -130,6 +130,7 @@ namespace Game
 
 	Scr_AddSourceBuffer_t Scr_AddSourceBuffer = Scr_AddSourceBuffer_t(0x61ABC0);
 
+	PC_FreeDefine_t PC_FreeDefine = PC_FreeDefine_t(0x4E0D60);
 	PC_ReadToken_t PC_ReadToken = PC_ReadToken_t(0x4ACCD0);
 	PC_ReadTokenHandle_t PC_ReadTokenHandle = PC_ReadTokenHandle_t(0x4D2060);
 	PC_SourceError_t PC_SourceError = PC_SourceError_t(0x467A00);
@@ -392,6 +393,7 @@ namespace Game
 	int* ui_arenaBufPos = reinterpret_cast<int*>(0x62D278C);
 
 	punctuation_s* default_punctuations = reinterpret_cast<punctuation_s*>(0x797F80);
+	int* numtokens = reinterpret_cast<int*>(0x7C4BA0);
 
 	bool* s_havePlaylists = reinterpret_cast<bool*>(0x1AD3680);
 

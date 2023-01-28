@@ -1,6 +1,9 @@
 #include <STDInclude.hpp>
 #include "Party.hpp"
 
+#define MAX_SOURCEFILES	64
+#define DEFINEHASHSIZE 1024
+
 namespace Components
 {
 	std::vector<std::string> Menus::CustomMenus;
@@ -35,15 +38,21 @@ namespace Components
 	int Menus::ReserveSourceHandle()
 	{
 		// Check if a free slot is available
-		int i = 1;
-		for (; i < MAX_SOURCEFILES; ++i)
+		auto i = 1;
+		while (i < MAX_SOURCEFILES)
 		{
 			if (!Game::sourceFiles[i])
+			{
 				break;
+			}
+
+			++i;
 		}
 
 		if (i >= MAX_SOURCEFILES)
+		{
 			return 0;
+		}
 
 		// Reserve it, if yes
 		Game::sourceFiles[i] = reinterpret_cast<Game::source_t*>(1);
@@ -81,37 +90,28 @@ namespace Components
 
 	int Menus::LoadMenuSource(const std::string& name, const std::string& buffer)
 	{
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
 		const auto handle = ReserveSourceHandle();
 		if (!IsValidSourceHandle(handle)) return 0; // No free source slot!
 
 		auto* script = LoadMenuScript(name, buffer);
-
 		if (!script)
 		{
 			Game::sourceFiles[handle] = nullptr; // Free reserved slot
 			return 0;
 		}
 
-		auto* source = allocator->allocate<Game::source_t>();
-		if (!source)
-		{
-			Game::FreeMemory(script);
-			return 0;
-		}
-
+		auto* source = static_cast<Game::source_s*>(Game::GetMemory(sizeof(Game::source_s)));
 		std::memset(source, 0, sizeof(Game::source_s));
 
 		script->next = nullptr;
 
-		strncpy_s(source->filename, "string", _TRUNCATE);
+		strncpy_s(source->filename, name.data(), _TRUNCATE);
 		source->scriptstack = script;
 		source->tokens = nullptr;
 		source->defines = nullptr;
 		source->indentstack = nullptr;
 		source->skip = 0;
-		source->definehash = static_cast<Game::define_s**>(Game::GetClearedMemory(1024 * sizeof(Game::define_s*)));
+		source->definehash = static_cast<Game::define_s**>(Game::GetClearedMemory(DEFINEHASHSIZE * sizeof(Game::define_s*)));
 
 		Game::sourceFiles[handle] = source;
 
@@ -434,7 +434,7 @@ namespace Components
 		}
 
 		newList->name = allocator->duplicateString(menuList->name);
-		newList->menuCount = size;
+		newList->menuCount = static_cast<int>(size);
 
 		// Copy new menus
 		for (unsigned int i = 0; i < menus.size(); ++i)
@@ -448,45 +448,61 @@ namespace Components
 		return newList;
 	}
 
+	void Menus::FreeScript(Game::script_s* script)
+	{
+		if (script->punctuationtable)
+		{
+			Game::FreeMemory(script->punctuationtable);
+		}
+
+		Game::FreeMemory(script);
+	}
+
 	void Menus::FreeMenuSource(int handle)
 	{
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
 		if (!IsValidSourceHandle(handle)) return;
 
-		Game::source_t* source = Game::sourceFiles[handle];
+		auto* source = Game::sourceFiles[handle];
 
 		while (source->scriptstack)
 		{
-			Game::script_t* script = source->scriptstack;
+			auto* script = source->scriptstack;
 			source->scriptstack = source->scriptstack->next;
-			Game::FreeMemory(script);
+			FreeScript(script);
 		}
 
 		while (source->tokens)
 		{
-			Game::token_t* token = source->tokens;
+			auto* token = source->tokens;
 			source->tokens = source->tokens->next;
+
 			Game::FreeMemory(token);
+			--*Game::numtokens;
 		}
 
-		while (source->defines)
+		for (auto i = 0; i < DEFINEHASHSIZE; ++i)
 		{
-			Game::define_t* define = source->defines;
-			source->defines = source->defines->next;
-			Game::FreeMemory(define);
+			while (source->definehash[i])
+			{
+				auto* define = source->definehash[i];
+				source->definehash[i] = source->definehash[i]->hashnext;
+				Game::PC_FreeDefine(define);
+			}
 		}
 
 		while (source->indentstack)
 		{
-			Game::indent_t* indent = source->indentstack;
+			auto* indent = source->indentstack;
 			source->indentstack = source->indentstack->next;
-			allocator->free(indent);
+			Game::FreeMemory(indent);
 		}
 
-		if (source->definehash) allocator->free(source->definehash);
+		if (source->definehash)
+		{
+			Game::FreeMemory(source->definehash);
+		}
 
-		allocator->free(source);
+		Game::FreeMemory(source);
 
 		Game::sourceFiles[handle] = nullptr;
 	}
