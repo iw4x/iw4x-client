@@ -5,8 +5,6 @@ namespace Game
 	Z_VirtualAlloc_t Z_VirtualAlloc = Z_VirtualAlloc_t(0x4CFBA0);
 	Z_Malloc_t Z_Malloc = Z_Malloc_t(0x4F3680);
 
-	Hunk_UserCreate_t Hunk_UserCreate = Hunk_UserCreate_t(0x430E90);
-	Hunk_UserDestroy_t Hunk_UserDestroy = Hunk_UserDestroy_t(0x435910);
 	Hunk_AllocateTempMemoryHigh_t Hunk_AllocateTempMemoryHigh = Hunk_AllocateTempMemoryHigh_t(0x475B30);
 	Hunk_UserAlloc_t Hunk_UserAlloc = Hunk_UserAlloc_t(0x45D1C0);
 
@@ -16,7 +14,7 @@ namespace Game
 	{
 		assert((size >= 0));
 
-		return VirtualAlloc(ptr, size, (size > 0x20000 ? 0 : MEM_TOP_DOWN) | MEM_COMMIT, PAGE_READWRITE) != nullptr;
+		return VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE) != nullptr;
 	}
 
 	void Z_VirtualDecommitInternal(void* ptr, int size)
@@ -55,7 +53,7 @@ namespace Game
 	{
 		assert((size >= 0));
 
-		void* buf = VirtualAlloc(nullptr, size, (size > 0x20000 ? 0 : MEM_TOP_DOWN) | MEM_RESERVE, PAGE_READWRITE);
+		void* buf = VirtualAlloc(nullptr, size, MEM_RESERVE, PAGE_READWRITE);
 		assert(buf);
 		return buf;
 	}

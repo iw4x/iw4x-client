@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Game/Engine/Hunk.hpp"
+
 #include "ScriptError.hpp"
 
 #define SCRIPT_ERROR_PATCH
@@ -11,8 +13,6 @@ namespace Components
 
 	Game::scrParserGlob_t ScriptError::scrParserGlob;
 	Game::scrParserPub_t ScriptError::scrParserPub;
-
-	Game::HunkUser* ScriptError::g_debugUser;
 
 	int ScriptError::Scr_IsInOpcodeMemory(const char* pos)
 	{
@@ -569,7 +569,7 @@ namespace Components
 		{
 			for (unsigned int i = 0; i < scrParserPub.sourceBufferLookupLen; ++i)
 			{
-				Hunk_FreeDebugMem(scrParserPub.sourceBufferLookup[i].buf);
+				Game::Engine::Hunk_FreeDebugMem(scrParserPub.sourceBufferLookup[i].buf);
 			}
 
 			Z_VirtualFree(scrParserPub.sourceBufferLookup);
@@ -582,11 +582,11 @@ namespace Components
 			{
 				if (scrParserGlob.saveSourceBufferLookup[i].sourceBuf)
 				{
-					Hunk_FreeDebugMem(scrParserGlob.saveSourceBufferLookup[i].buf);
+					Game::Engine::Hunk_FreeDebugMem(scrParserGlob.saveSourceBufferLookup[i].buf);
 				}
 			}
 
-			Hunk_FreeDebugMem(scrParserGlob.saveSourceBufferLookup);
+			Game::Engine::Hunk_FreeDebugMem(scrParserGlob.saveSourceBufferLookup);
 			scrParserGlob.saveSourceBufferLookup = nullptr;
 		}
 	}
@@ -645,7 +645,7 @@ namespace Components
 
 		auto strLen = std::strlen(extFilename) + 1;
 		auto newLen = strLen + len + 2;
-		auto* buf = static_cast<char*>(Hunk_AllocDebugMem(static_cast<int>(newLen))); // Scr_AddSourceBufferInternal
+		auto* buf = static_cast<char*>(Game::Engine::Hunk_AllocDebugMem(static_cast<int>(newLen))); // Scr_AddSourceBufferInternal
 
 		strcpy(buf, extFilename);
 		auto* sourceBuf2 = sourceBuf ? buf + strLen : nullptr;
@@ -858,7 +858,7 @@ namespace Components
 		Utils::Hook::Call<void()>(0x4D9620)();
 
 		Scr_InitOpcodeLookup();
-		Hunk_InitDebugMemory();
+		Game::Engine::Hunk_InitDebugMemory();
 	}
 
 	void ScriptError::SL_ShutdownSystem_Stub(unsigned int user)
@@ -866,37 +866,7 @@ namespace Components
 		Utils::Hook::Call<void(unsigned int)>(0x4F46D0)(user);
 
 		Scr_ShutdownOpcodeLookup();
-		Hunk_ShutdownDebugMemory();
-	}
-
-	void ScriptError::Hunk_InitDebugMemory()
-	{
-		assert(Game::Sys_IsMainThread());
-		assert(!g_debugUser);
-		g_debugUser = Game::Hunk_UserCreate(0x1000000, "Hunk_InitDebugMemory", false, 0);
-	}
-
-	void ScriptError::Hunk_ShutdownDebugMemory()
-	{
-		assert(Game::Sys_IsMainThread());
-		assert(g_debugUser);
-		Game::Hunk_UserDestroy(g_debugUser);
-		g_debugUser = nullptr;
-	}
-
-	void* ScriptError::Hunk_AllocDebugMem(int size)
-	{
-		assert(Game::Sys_IsMainThread());
-		assert(g_debugUser);
-		return Game::Hunk_UserAlloc(g_debugUser, size, 4);
-	}
-
-	void ScriptError::Hunk_FreeDebugMem([[maybe_unused]] void* ptr)
-	{
-		assert(Game::Sys_IsMainThread());
-		assert(g_debugUser);
-
-		// Let's hope it gets cleared by Hunk_ShutdownDebugMemory
+		Game::Engine::Hunk_ShutdownDebugMemory();
 	}
 
 	ScriptError::ScriptError()

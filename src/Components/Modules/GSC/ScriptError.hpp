@@ -19,8 +19,6 @@ namespace Components
 		static Game::scrParserGlob_t scrParserGlob;
 		static Game::scrParserPub_t scrParserPub;
 
-		static Game::HunkUser* g_debugUser;
-
 		static void AddOpcodePos(unsigned int sourcePos, int type);
 		static void RemoveOpcodePos();
 		static void AddThreadStartOpcodePos(unsigned int sourcePos);
@@ -58,10 +56,5 @@ namespace Components
 
 		static void MT_Reset_Stub();
 		static void SL_ShutdownSystem_Stub(unsigned int user);
-
-		static void Hunk_InitDebugMemory();
-		static void Hunk_ShutdownDebugMemory();
-		static void* Hunk_AllocDebugMem(int size);
-		static void Hunk_FreeDebugMem(void* ptr);
 	};
 }
