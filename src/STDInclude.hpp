@@ -130,7 +130,6 @@ using namespace std::literals;
 #include "Utils/Thread.hpp"
 #include "Utils/Time.hpp"
 #include "Utils/Utils.hpp"
-#include "Utils/WebIO.hpp"
 
 #include "Steam/Steam.hpp" // Some definitions are used in functions and structs
 

@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 #include <Utils/InfoString.hpp>
+#include <Utils/WebIO.hpp>
 
 #include "Download.hpp"
 #include "Party.hpp"

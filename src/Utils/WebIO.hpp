@@ -16,7 +16,7 @@ namespace Utils
 	class WebIO
 	{
 	public:
-		typedef std::map<std::string, std::string> Params;
+		using params = std::map<std::string, std::string>;
 
 		WebIO();
 		WebIO(const std::string& useragent);
@@ -30,15 +30,15 @@ namespace Utils
 		std::string postFile(const std::string& url, const std::string& data, const std::string& fieldName, const std::string& fileName);
 		std::string postFile(const std::string& data, std::string fieldName, std::string fileName);
 
-		std::string post(const std::string& url, Params params, bool* success = nullptr);
+		std::string post(const std::string& url, const params& params, bool* success = nullptr);
 		std::string post(const std::string& url, const std::string& body, bool* success = nullptr);
-		std::string post(Params params, bool* success = nullptr);
+		std::string post(const params& params, bool* success = nullptr);
 		std::string post(const std::string& body, bool* success = nullptr);
 
 		std::string get(const std::string& url, bool* success = nullptr);
 		std::string get(bool* success = nullptr);
 
-		WebIO* setTimeout(DWORD mseconds);
+		WebIO* setTimeout(DWORD msec);
 
 		// FTP
 		bool connect();
@@ -46,27 +46,26 @@ namespace Utils
 
 		bool setDirectory(const std::string&directory);
 		bool setRelativeDirectory(std::string directory);
-		bool getDirectory(std::string &directory);
-		bool createDirectory(const std::string& directory);
+		bool getDirectory(std::string* directory) const;
+		bool createDirectory(const std::string& directory) const;
 		bool deleteDirectory(const std::string& directory);
-		bool renameDirectory(const std::string& directory, const std::string& newDir);
+		bool renameDirectory(const std::string& directory, const std::string& newDir) const;
 
 		bool listDirectories(const std::string& directory, std::vector<std::string>& list);
 		bool listFiles(const std::string& directory, std::vector<std::string>& list);
 
-		bool deleteFile(const std::string& file);
-		bool renameFile(const std::string& file, const std::string& newFile);
-		bool uploadFile(const std::string& file, const std::string& localfile);
-		bool downloadFile(const std::string& file, const std::string& localfile);
+		bool deleteFile(const std::string& file) const;
+		bool renameFile(const std::string& file, const std::string& newFile) const;
+		bool downloadFile(const std::string& file, const std::string& localFile) const;
+		bool uploadFile(const std::string& file, const std::string& localFile) const;
 
 		bool uploadFileData(const std::string& file,const std::string& data);
 		bool downloadFileData(const std::string& file, std::string& data);
 
 		void setProgressCallback(const Slot<void(std::size_t, std::size_t)>& callback);
-		void cancelDownload() { this->cancel = true; }
+		void cancelDownload();
 
 	private:
-
 		enum Command
 		{
 			COMMAND_POST,
@@ -82,27 +81,27 @@ namespace Utils
 			std::string raw;
 		};
 
-		bool cancel;
+		bool cancel_;
 
-		bool isFTP;
-		std::string username;
-		std::string password;
+		bool isFTP_;
+		std::string username_;
+		std::string password_;
 
-		WebURL url;
+		WebURL url_;
 
-		HINTERNET hSession;
-		HINTERNET hConnect;
-		HINTERNET hFile;
+		HINTERNET hSession_;
+		HINTERNET hConnect_;
+		HINTERNET hFile_;
 
-		DWORD timeout;
+		DWORD timeout_;
 
 		Slot<void(size_t, size_t)> progressCallback;
 
-		static std::string buildPostBody(Params params);
+		static std::string buildPostBody(const params& params);
 
-		bool isSecuredConnection() const;
+		[[nodiscard]] bool isSecuredConnection() const;
 
-		std::string execute(const char* command, const std::string& body, Params headers = {}, bool* success = nullptr);
+		std::string execute(const char* command, const std::string& body, const params& headers, bool* success = nullptr);
 
 		bool listElements(const std::string& directory, std::vector<std::string>& list, bool files);
 
@@ -112,6 +111,6 @@ namespace Utils
 		bool openConnection();
 		void closeConnection();
 
-		static void formatPath(std::string& path, bool win); /* if (win == true):  / -> \\ */
+		static void FormatPath(std::string& path, bool win); /* if (win == true):  / -> \\ */
 	};
 }
