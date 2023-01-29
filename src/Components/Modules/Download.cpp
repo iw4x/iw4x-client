@@ -15,6 +15,10 @@ namespace Components
 	Dvar::Var Download::SV_wwwDownload;
 	Dvar::Var Download::SV_wwwBaseUrl;
 
+	Dvar::Var Download::UIDlTimeLeft;
+	Dvar::Var Download::UIDlProgress;
+	Dvar::Var Download::UIDlTransRate;
+
 	Download::ClientDownload Download::CLDownload;
 
 	std::thread Download::ServerThread;
@@ -34,9 +38,9 @@ namespace Components
 
 		Scheduler::Once([]
 		{
-			Dvar::Var("ui_dl_timeLeft").set(Utils::String::FormatTimeSpan(0));
-			Dvar::Var("ui_dl_progress").set("(0/0) %");
-			Dvar::Var("ui_dl_transRate").set("0.0 MB/s");
+			UIDlTimeLeft.set(Utils::String::FormatTimeSpan(0));
+			UIDlProgress.set("(0/0) %");
+			UIDlTransRate.set("0.0 MB/s");
 		}, Scheduler::Pipeline::MAIN);
 
 		Command::Execute("openmenu mod_download_popmenu", false);
@@ -373,8 +377,8 @@ namespace Components
 			Scheduler::Once([]
 			{
 				framePushed = false;
-				Dvar::Var("ui_dl_progress").set(std::format("({}/{}) {}%", dlIndex, dlSize, dlProgress));
-			}, Scheduler::Pipeline::CLIENT);
+				UIDlProgress.set(std::format("({}/{}) {}%", dlIndex, dlSize, dlProgress));
+			}, Scheduler::Pipeline::MAIN);
 		}
 
 		auto delta = Game::Sys_Milliseconds() - fDownload->download->lastTimeStamp;
@@ -402,8 +406,8 @@ namespace Components
 
 				Scheduler::Once([]
 				{
-					Dvar::Var("ui_dl_timeLeft").set(Utils::String::FormatTimeSpan(dlTimeLeft));
-					Dvar::Var("ui_dl_transRate").set(Utils::String::FormatBandwidth(dlTsBytes, dlDelta));
+					UIDlTimeLeft.set(Utils::String::FormatTimeSpan(dlTimeLeft));
+					UIDlTransRate.set(Utils::String::FormatBandwidth(dlTsBytes, dlDelta));
 				}, Scheduler::Pipeline::MAIN);
 			}
 
@@ -686,9 +690,9 @@ namespace Components
 		{
 			Events::OnDvarInit([]
 			{
-				Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::DVAR_NONE, "");
-				Dvar::Register<const char*>("ui_dl_progress", "", Game::DVAR_NONE, "");
-				Dvar::Register<const char*>("ui_dl_transRate", "", Game::DVAR_NONE, "");
+				UIDlTimeLeft = Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::DVAR_NONE, "");
+				UIDlProgress = Dvar::Register<const char*>("ui_dl_progress", "", Game::DVAR_NONE, "");
+				UIDlTransRate = Dvar::Register<const char*>("ui_dl_transRate", "", Game::DVAR_NONE, "");
 			});
 
 			UIScript::Add("mod_download_cancel", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)

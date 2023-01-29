@@ -3,6 +3,8 @@
 
 namespace Components
 {
+	Dvar::Var D3D9Ex::RUseD3D9Ex;
+
 #pragma region D3D9Device
 
 	HRESULT D3D9Ex::D3D9Device::QueryInterface(REFIID riid, void** ppvObj)
@@ -630,7 +632,7 @@ namespace Components
 
 #pragma region D3D9
 
-	HRESULT __stdcall D3D9Ex::D3D9::QueryInterface(REFIID riid, void** ppvObj)
+	HRESULT WINAPI D3D9Ex::D3D9::QueryInterface(REFIID riid, void** ppvObj)
 	{
 		*ppvObj = nullptr;
 
@@ -644,84 +646,84 @@ namespace Components
 		return hRes;
 	}
 
-	ULONG __stdcall D3D9Ex::D3D9::AddRef()
+	ULONG WINAPI D3D9Ex::D3D9::AddRef()
 	{
 		return m_pIDirect3D9->AddRef();
 	}
 
-	ULONG __stdcall D3D9Ex::D3D9::Release()
+	ULONG WINAPI D3D9Ex::D3D9::Release()
 	{
 		ULONG count = m_pIDirect3D9->Release();
 		if (!count) delete this;
 		return count;
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::RegisterSoftwareDevice(void* pInitializeFunction)
+	HRESULT WINAPI D3D9Ex::D3D9::RegisterSoftwareDevice(void* pInitializeFunction)
 	{
 		return m_pIDirect3D9->RegisterSoftwareDevice(pInitializeFunction);
 	}
 
-	UINT __stdcall D3D9Ex::D3D9::GetAdapterCount()
+	UINT WINAPI D3D9Ex::D3D9::GetAdapterCount()
 	{
 		return m_pIDirect3D9->GetAdapterCount();
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::GetAdapterIdentifier(UINT Adapter, DWORD Flags, D3DADAPTER_IDENTIFIER9* pIdentifier)
+	HRESULT WINAPI D3D9Ex::D3D9::GetAdapterIdentifier(UINT Adapter, DWORD Flags, D3DADAPTER_IDENTIFIER9* pIdentifier)
 	{
 		return m_pIDirect3D9->GetAdapterIdentifier(Adapter, Flags, pIdentifier);
 	}
 
-	UINT __stdcall D3D9Ex::D3D9::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
+	UINT WINAPI D3D9Ex::D3D9::GetAdapterModeCount(UINT Adapter, D3DFORMAT Format)
 	{
 		return m_pIDirect3D9->GetAdapterModeCount(Adapter, Format);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode, D3DDISPLAYMODE* pMode)
+	HRESULT WINAPI D3D9Ex::D3D9::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UINT Mode, D3DDISPLAYMODE* pMode)
 	{
 		return m_pIDirect3D9->EnumAdapterModes(Adapter, Format, Mode, pMode);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode)
+	HRESULT WINAPI D3D9Ex::D3D9::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode)
 	{
 		return m_pIDirect3D9->GetAdapterDisplayMode(Adapter, pMode);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CheckDeviceType(UINT iAdapter, D3DDEVTYPE DevType, D3DFORMAT DisplayFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
+	HRESULT WINAPI D3D9Ex::D3D9::CheckDeviceType(UINT iAdapter, D3DDEVTYPE DevType, D3DFORMAT DisplayFormat, D3DFORMAT BackBufferFormat, BOOL bWindowed)
 	{
 		return m_pIDirect3D9->CheckDeviceType(iAdapter, DevType, DisplayFormat, BackBufferFormat, bWindowed);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
+	HRESULT WINAPI D3D9Ex::D3D9::CheckDeviceFormat(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, DWORD Usage, D3DRESOURCETYPE RType, D3DFORMAT CheckFormat)
 	{
 		return m_pIDirect3D9->CheckDeviceFormat(Adapter, DeviceType, AdapterFormat, Usage, RType, CheckFormat);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType, DWORD* pQualityLevels)
+	HRESULT WINAPI D3D9Ex::D3D9::CheckDeviceMultiSampleType(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SurfaceFormat, BOOL Windowed, D3DMULTISAMPLE_TYPE MultiSampleType, DWORD* pQualityLevels)
 	{
 		return m_pIDirect3D9->CheckDeviceMultiSampleType(Adapter, DeviceType, SurfaceFormat, Windowed, MultiSampleType, pQualityLevels);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
+	HRESULT WINAPI D3D9Ex::D3D9::CheckDepthStencilMatch(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT AdapterFormat, D3DFORMAT RenderTargetFormat, D3DFORMAT DepthStencilFormat)
 	{
 		return m_pIDirect3D9->CheckDepthStencilMatch(Adapter, DeviceType, AdapterFormat, RenderTargetFormat, DepthStencilFormat);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
+	HRESULT WINAPI D3D9Ex::D3D9::CheckDeviceFormatConversion(UINT Adapter, D3DDEVTYPE DeviceType, D3DFORMAT SourceFormat, D3DFORMAT TargetFormat)
 	{
 		return m_pIDirect3D9->CheckDeviceFormatConversion(Adapter, DeviceType, SourceFormat, TargetFormat);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps)
+	HRESULT WINAPI D3D9Ex::D3D9::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D3DCAPS9* pCaps)
 	{
 		return m_pIDirect3D9->GetDeviceCaps(Adapter, DeviceType, pCaps);
 	}
 
-	HMONITOR __stdcall D3D9Ex::D3D9::GetAdapterMonitor(UINT Adapter)
+	HMONITOR WINAPI D3D9Ex::D3D9::GetAdapterMonitor(UINT Adapter)
 	{
 		return m_pIDirect3D9->GetAdapterMonitor(Adapter);
 	}
 
-	HRESULT __stdcall D3D9Ex::D3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface)
+	HRESULT WINAPI D3D9Ex::D3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface)
 	{
 		HRESULT hres = m_pIDirect3D9->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface);
 		*ppReturnedDeviceInterface = new D3D9Ex::D3D9Device(*ppReturnedDeviceInterface);
@@ -730,28 +732,26 @@ namespace Components
 
 #pragma endregion
 
-	IDirect3D9* __stdcall D3D9Ex::Direct3DCreate9Stub(UINT sdk)
+	IDirect3D9* CALLBACK D3D9Ex::Direct3DCreate9Stub(UINT sdk)
 	{
-		if (Dvar::Var("r_useD3D9Ex").get<bool>())
+		if (RUseD3D9Ex.get<bool>())
 		{
 			IDirect3D9Ex* test = nullptr;
 			if (FAILED(Direct3DCreate9Ex(sdk, &test))) return nullptr;
 
-			return (new D3D9Ex::D3D9(test));
+			return (new D3D9(test));
 		}
-		else
-		{
-			return Direct3DCreate9(sdk);
-		}
+
+		return Direct3DCreate9(sdk);
 	}
 
 	D3D9Ex::D3D9Ex()
 	{
 		if (Dedicated::IsEnabled()) return;
 
-		Dvar::Register<bool>("r_useD3D9Ex", false, Game::DVAR_ARCHIVE, "Use extended d3d9 interface!");
+		RUseD3D9Ex = Dvar::Register<bool>("r_useD3D9Ex", false, Game::DVAR_ARCHIVE, "Use extended d3d9 interface!");
 
 		// Hook Interface creation
-		Utils::Hook::Set(0x6D74D0, D3D9Ex::Direct3DCreate9Stub);
+		Utils::Hook::Set(0x6D74D0, Direct3DCreate9Stub);
 	}
 }

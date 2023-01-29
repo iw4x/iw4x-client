@@ -16,6 +16,10 @@ namespace Components
 		static Dvar::Var SV_wwwDownload;
 		static Dvar::Var SV_wwwBaseUrl;
 
+		static Dvar::Var UIDlTimeLeft;
+		static Dvar::Var UIDlProgress;
+		static Dvar::Var UIDlTransRate;
+
 	private:
 		class ClientDownload
 		{
