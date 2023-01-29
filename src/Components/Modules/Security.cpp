@@ -148,5 +148,15 @@ namespace Components
 
 		// Fix packets causing buffer overflow
 		Utils::Hook(0x6267E3, NET_DeferPacketToClientStub, HOOK_CALL).install()->quick();
+
+		// Prevent curl 7_19_4 from running
+		// Call to DL_Init from Live_Init
+		Utils::Hook::Nop(0x420937, 5);
+		// Call to DL_CheckOngoingDownloads from Live_Frame
+		Utils::Hook::Nop(0x40F8DB, 5);
+		// Call to LiveStorage_FetchPlaylists from Live_Frame
+		Utils::Hook::Nop(0x40F88C, 5);
+		// Call to LiveStorage_FetchPlaylists from Live_Init
+		Utils::Hook::Nop(0x420B54, 5);
 	}
 }
