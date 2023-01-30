@@ -87,6 +87,7 @@ namespace Game
 	extern const dvar_t** com_developer;
 	extern const dvar_t** com_developer_script;
 	extern const dvar_t** com_timescale;
+	extern const dvar_t** com_maxFrameTime;
 	extern const dvar_t** com_sv_running;
 
 	extern const dvar_t** dev_timescale;

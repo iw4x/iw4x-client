@@ -38,7 +38,7 @@ namespace Components
 		static void Handle(const std::string& packet, const Network::NetworkCallback& callback);
 
 	private:
-		static bool Terminate;
+		static volatile bool Terminate;
 		static std::thread Thread;
 		static std::recursive_mutex Mutex;
 		static std::unordered_map<Network::Address, Frame> Sessions;

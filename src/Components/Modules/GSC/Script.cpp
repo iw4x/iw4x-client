@@ -6,8 +6,6 @@ namespace Components
 	std::vector<Script::ScriptFunction> Script::CustomScrFunctions;
 	std::vector<Script::ScriptMethod> Script::CustomScrMethods;
 
-	int Script::LastFrameTime = -1;
-
 	std::unordered_map<const char*, const char*> Script::ReplacedFunctions;
 	const char* Script::ReplacedPos = nullptr;
 
@@ -392,26 +390,6 @@ namespace Components
 
 		Utils::Hook(0x61E92E, VMExecuteInternalStub, HOOK_JUMP).install()->quick();
 		Utils::Hook::Nop(0x61E933, 1);
-
-		Scheduler::Loop([]
-		{
-			if (!Game::SV_Loaded())
-				return;
-
-			const auto nowMs = Game::Sys_Milliseconds();
-
-			if (LastFrameTime != -1)
-			{
-				const auto timeTaken = (nowMs - LastFrameTime) * static_cast<int>((*Game::com_timescale)->current.value);
-
-				if (timeTaken >= 500)
-				{
-					Logger::Print(Game::CON_CHANNEL_PARSERSCRIPT, "Hitch warning: {} msec frame time\n", timeTaken);
-				}
-			}
-
-			LastFrameTime = nowMs;
-		}, Scheduler::Pipeline::SERVER);
 
 #ifdef _DEBUG 
 		AddFunction("DebugBox", []

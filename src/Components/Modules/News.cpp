@@ -27,7 +27,7 @@ namespace Components
 			}
 			else
 			{
-				Logger::Debug("Successfully fetched motd");
+				Logger::Print("Successfully fetched motd");
 			}
 		}
 
@@ -77,7 +77,7 @@ namespace Components
 				Changelog::LoadChangelog();
 				if (Terminate) return;
 
-				std::string data = Utils::Cache::GetFile("/iw4/motd.txt");
+				const auto data = Utils::Cache::GetFile("/iw4/motd.txt");
 				if (!data.empty())
 				{
 					Localization::Set("MPUI_MOTD_TEXT", data);
@@ -90,7 +90,7 @@ namespace Components
 						// Sleep for 3 minutes
 						for (int i = 0; i < 180 && !Terminate; ++i)
 						{
-							std::this_thread::sleep_for(1s);
+							Game::Sys_Sleep(1);
 						}
 					}
 				}

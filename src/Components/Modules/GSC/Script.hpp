@@ -57,8 +57,6 @@ namespace Components
 		static std::vector<ScriptFunction> CustomScrFunctions;
 		static std::vector<ScriptMethod> CustomScrMethods;
 
-		static int LastFrameTime;
-
 		static std::unordered_map<std::string, int> ScriptMainHandles;
 		static std::unordered_map<std::string, int> ScriptInitHandles;
 

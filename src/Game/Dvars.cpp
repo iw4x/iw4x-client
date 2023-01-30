@@ -35,6 +35,7 @@ namespace Game
 	const dvar_t** com_developer = reinterpret_cast<const dvar_t**>(0x1AD78E8);
 	const dvar_t** com_developer_script = reinterpret_cast<const dvar_t**>(0x1AD8F10);
 	const dvar_t** com_timescale = reinterpret_cast<const dvar_t**>(0x1AD7920);
+	const dvar_t** com_maxFrameTime = reinterpret_cast<const dvar_t**>(0x1AD78F4);
 	const dvar_t** com_sv_running = reinterpret_cast<const dvar_t**>(0x1AD7934);
 
 	const dvar_t** dev_timescale = reinterpret_cast<const dvar_t**>(0x1AD8F20);

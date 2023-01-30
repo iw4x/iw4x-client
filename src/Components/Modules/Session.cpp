@@ -5,7 +5,7 @@
 
 namespace Components
 {
-	bool Session::Terminate;
+	volatile bool Session::Terminate;
 	std::thread Session::Thread;
 
 	std::recursive_mutex Session::Mutex;
@@ -144,11 +144,13 @@ namespace Components
 			Session::Terminate = false;
 			Session::Thread = std::thread([]()
 			{
+				Com_InitThreadData();
+
 				while (!Session::Terminate)
 				{
 					Session::RunFrame();
 					Session::HandleSignatures();
-					std::this_thread::sleep_for(20ms);
+					Game::Sys_Sleep(20);
 				}
 			});
 		}

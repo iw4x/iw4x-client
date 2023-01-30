@@ -89,6 +89,36 @@ namespace Components
 		}
 	}
 
+	void Dedicated::Com_ClampMsec(const int msec)
+	{
+		if (msec > 500 && msec < 500000)
+		{
+			Game::Com_PrintWarning(Game::CON_CHANNEL_SYSTEM, "Hitch warning: %i msec frame time\n", msec);
+		}
+	}
+
+	__declspec(naked) void Dedicated::Com_ClampMsec_Stub()
+	{
+		using namespace Game;
+
+		__asm
+		{
+			pushad
+
+			push ecx
+			call Com_ClampMsec
+			add esp, 0x4
+
+			popad
+
+			// Game's code
+			mov edx, dword ptr com_sv_running
+
+			push 0x47DDB8
+			ret
+		}
+	}
+
 	void Dedicated::TransmitGuids()
 	{
 		std::string list = Utils::String::VA("%c", 20);
@@ -223,6 +253,9 @@ namespace Components
 
 				// Post initialization point
 				Utils::Hook(0x60BFBF, PostInitializationStub, HOOK_JUMP).install()->quick();
+
+				Utils::Hook(0x47DDB2, Com_ClampMsec_Stub, HOOK_JUMP).install()->quick(); // Com_Frame_Try_Block_Function
+				Utils::Hook::Nop(0x47DDB2 + 5, 1);
 
 				// Transmit custom data
 				Scheduler::Loop([]
