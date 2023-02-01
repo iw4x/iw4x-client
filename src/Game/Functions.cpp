@@ -130,11 +130,6 @@ namespace Game
 
 	Scr_AddSourceBuffer_t Scr_AddSourceBuffer = Scr_AddSourceBuffer_t(0x61ABC0);
 
-	PC_FreeDefine_t PC_FreeDefine = PC_FreeDefine_t(0x4E0D60);
-	PC_ReadToken_t PC_ReadToken = PC_ReadToken_t(0x4ACCD0);
-	PC_ReadTokenHandle_t PC_ReadTokenHandle = PC_ReadTokenHandle_t(0x4D2060);
-	PC_SourceError_t PC_SourceError = PC_SourceError_t(0x467A00);
-
 	Party_GetMaxPlayers_t Party_GetMaxPlayers = Party_GetMaxPlayers_t(0x4F5D60);
 	PartyHost_CountMembers_t PartyHost_CountMembers = PartyHost_CountMembers_t(0x497330);
 	PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = PartyHost_GetMemberAddressBySlot_t(0x44E100);
@@ -267,7 +262,7 @@ namespace Game
 
 	cmd_function_s** cmd_functions = reinterpret_cast<cmd_function_s**>(0x1AAC658);
 
-	source_t** sourceFiles = reinterpret_cast<source_t**>(0x7C4A98);
+	source_s** sourceFiles = reinterpret_cast<source_s**>(0x7C4A98);
 
 	float* cgameFOVSensitivityScale = reinterpret_cast<float*>(0xB2F884);
 

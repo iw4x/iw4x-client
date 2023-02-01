@@ -264,9 +264,9 @@ namespace Assets
 		AssertSize(Game::Font_s, 24);
 		AssertSize(Game::Glyph, 24);
 
-		Utils::Stream* buffer = builder->getBuffer();
-		Game::Font_s* asset = header.font;
-		Game::Font_s* dest = buffer->dest<Game::Font_s>();
+		auto* buffer = builder->getBuffer();
+		auto* asset = header.font;
+		auto* dest = buffer->dest<Game::Font_s>();
 
 		buffer->save(asset);
 

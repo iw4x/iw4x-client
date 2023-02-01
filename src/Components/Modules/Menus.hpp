@@ -31,7 +31,7 @@ namespace Components
 
 		static void SafeMergeMenus(std::vector<std::pair<bool, Game::menuDef_t*>>* menus, std::vector<std::pair<bool, Game::menuDef_t*>> newMenus);
 
-		static Game::script_t* LoadMenuScript(const std::string& name, const std::string& buffer);
+		static Game::script_s* LoadMenuScript(const std::string& name, const std::string& buffer);
 		static int LoadMenuSource(const std::string& name, const std::string& buffer);
 
 		static int ReserveSourceHandle();

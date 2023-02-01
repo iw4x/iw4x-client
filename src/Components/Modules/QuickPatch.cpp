@@ -669,7 +669,7 @@ namespace Components
 			}
 		});
 
-#ifdef DEBUG
+#ifdef DEBUG_MAT_LOG
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& /*name*/, bool* /*restrict*/)
 		{
 			if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD)

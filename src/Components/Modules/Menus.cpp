@@ -55,14 +55,14 @@ namespace Components
 		}
 
 		// Reserve it, if yes
-		Game::sourceFiles[i] = reinterpret_cast<Game::source_t*>(1);
+		Game::sourceFiles[i] = reinterpret_cast<Game::source_s*>(1);
 
 		return i;
 	}
 
-	Game::script_t* Menus::LoadMenuScript(const std::string& name, const std::string& buffer)
+	Game::script_s* Menus::LoadMenuScript(const std::string& name, const std::string& buffer)
 	{
-		auto* script = static_cast<Game::script_t*>(Game::GetClearedMemory(sizeof(Game::script_t) + 1 + buffer.length()));
+		auto* script = static_cast<Game::script_s*>(Game::GetClearedMemory(sizeof(Game::script_s) + 1 + buffer.length()));
 		if (!script) return nullptr;
 
 		strcpy_s(script->filename, sizeof(script->filename), name.data());
@@ -136,7 +136,7 @@ namespace Components
 			return nullptr;
 		}
 
-		Game::pc_token_t token;
+		Game::pc_token_s token;
 		if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] != '{')
 		{
 			allocator->free(menu->items);
@@ -195,8 +195,8 @@ namespace Components
 
 		if (!menuFile.exists()) return nullptr;
 
-		Game::pc_token_t token;
-		int handle = LoadMenuSource(menu, menuFile.getBuffer());
+		Game::pc_token_s token;
+		const auto handle = LoadMenuSource(menu, menuFile.getBuffer());
 
 		if (IsValidSourceHandle(handle))
 		{
@@ -259,7 +259,7 @@ namespace Components
 
 		if (menuFile.exists())
 		{
-			Game::pc_token_t token;
+			Game::pc_token_s token;
 			const auto handle = LoadMenuSource(menu, menuFile.getBuffer());
 
 			if (IsValidSourceHandle(handle))
@@ -744,11 +744,11 @@ namespace Components
 		{
 			if (menu->window.name == "connect"s) // Check if we're supposed to draw the loadscreen
 			{
-				Game::menuDef_t* originalConnect = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, "connect").menu;
+				const auto* originalConnect = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, "connect").menu;
 
 				if (originalConnect == menu) // Check if we draw the original loadscreen
 				{
-					if (MenuList.find("connect") != Menus::MenuList.end()) // Check if we have a custom loadscreen, to prevent drawing the original one on top
+					if (MenuList.contains("connect")) // Check if we have a custom load screen, to prevent drawing the original one on top
 					{
 						return false;
 					}
@@ -801,8 +801,8 @@ namespace Components
 		if (Dedicated::IsEnabled()) return;
 
 		// Intercept asset finding
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, MenuFindHook);
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENULIST, MenuListFindHook);
+		AssetHandler::OnFind(Game::ASSET_TYPE_MENU, MenuFindHook);
+		AssetHandler::OnFind(Game::ASSET_TYPE_MENULIST, MenuListFindHook);
 
 		// Don't open connect menu
 		// Utils::Hook::Nop(0x428E48, 5);

@@ -53,6 +53,8 @@
 #include "Modules/Vote.hpp"
 #include "Modules/Weapon.hpp"
 
+#include "Modules/BotLib/lPrecomp.hpp"
+
 namespace Components
 {
 	bool Loader::Pregame = true;
@@ -167,6 +169,8 @@ namespace Components
 		Register(new Zones());
 
 		Register(new GSC());
+
+		Register(new lPrecomp());
 
 		Pregame = false;
 

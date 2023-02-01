@@ -7,6 +7,7 @@
 #include "FileSystem.hpp"
 #include "Functions.hpp"
 #include "Dvars.hpp"
+#include "PreProcessor.hpp"
 #include "Script.hpp"
 #include "Server.hpp"
 #include "System.hpp"
