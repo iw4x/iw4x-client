@@ -334,11 +334,12 @@ namespace Components
 	void Gamepad::GPad_RefreshAll()
 	{
 		auto currentGamePadNum = 0;
-
 		for (auto currentPort = 0; currentPort < XUSER_MAX_COUNT && currentGamePadNum < Game::MAX_GPAD_COUNT; currentPort++)
 		{
 			if (GPad_Check(currentGamePadNum, currentPort))
-				currentGamePadNum++;
+			{
+				++currentGamePadNum;
+			}
 		}
 	}
 
@@ -347,34 +348,45 @@ namespace Components
 		const auto err = target - current;
 		float step;
 		if (err <= 0.0f)
+		{
 			step = -rate * deltaTime;
+		}
 		else
+		{
 			step = rate * deltaTime;
+		}
 
 		if (std::fabs(err) <= 0.001f)
+		{
 			return target;
+		}
 
 		if (std::fabs(step) <= std::fabs(err))
+		{
 			return current + step;
+		}
 
 		return target;
 	}
 
 	bool Gamepad::AimAssist_DoBoundsIntersectCenterBox(const float* clipMins, const float* clipMaxs, const float clipHalfWidth, const float clipHalfHeight)
 	{
-		return clipHalfWidth >= clipMins[0] && clipMaxs[0] >= -clipHalfWidth
-			&& clipHalfHeight >= clipMins[1] && clipMaxs[1] >= -clipHalfHeight;
+		return clipHalfWidth >= clipMins[0] && clipMaxs[0] >= -clipHalfWidth && clipHalfHeight >= clipMins[1] && clipMaxs[1] >= -clipHalfHeight;
 	}
 
 	bool Gamepad::AimAssist_IsPlayerUsingOffhand(Game::AimAssistPlayerState* ps)
 	{
 		// Check offhand flag
 		if ((ps->weapFlags & Game::PWF_USING_OFFHAND) == 0)
+		{
 			return false;
+		}
 
 		// If offhand weapon has no id we are not using one
 		if (!ps->weapIndex)
+		{
 			return false;
+		}
 
 		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(ps->weapIndex));
 
@@ -399,13 +411,17 @@ namespace Components
 	const Game::AimScreenTarget* Gamepad::AimAssist_GetTargetFromEntity(const Game::AimAssistGlobals* aaGlob, const int entIndex)
 	{
 		if (entIndex == Game::AIM_TARGET_INVALID)
+		{
 			return nullptr;
+		}
 
 		for (auto targetIndex = 0; targetIndex < aaGlob->screenTargetCount; targetIndex++)
 		{
 			const auto* currentTarget = &aaGlob->screenTargets[targetIndex];
 			if (currentTarget->entIndex == entIndex)
+			{
 				return currentTarget;
+			}
 		}
 
 		return nullptr;
@@ -417,7 +433,9 @@ namespace Components
 		const auto screenTarget = AimAssist_GetTargetFromEntity(aaGlob, prevTargetEnt);
 
 		if (screenTarget && (range * range) > screenTarget->distSqr && AimAssist_DoBoundsIntersectCenterBox(screenTarget->clipMins, screenTarget->clipMaxs, regionWidth, regionHeight))
+		{
 			return screenTarget;
+		}
 
 		return AimAssist_GetBestTarget(aaGlob, range, regionWidth, regionHeight);
 	}
@@ -426,16 +444,21 @@ namespace Components
 	{
 		AssertIn(localClientNum, Game::MAX_GPAD_COUNT);
 
-		auto& aaGlob = Game::aaGlobArray[localClientNum];
-
 		if (!aim_lockon_enabled.get<bool>() || !gpad_lockon_enabled.get<bool>())
+		{
 			return false;
+		}
 
+		auto& aaGlob = Game::aaGlobArray[localClientNum];
 		if (AimAssist_IsPlayerUsingOffhand(&aaGlob.ps))
+		{
 			return false;
+		}
 
 		if (aaGlob.autoAimActive || aaGlob.autoMeleeState == Game::AIM_MELEE_STATE_UPDATING)
+		{
 			return false;
+		}
 
 		return true;
 	}
@@ -452,18 +475,26 @@ namespace Components
 		aaGlob.lockOnTargetEnt = Game::AIM_TARGET_INVALID;
 
 		if (!AimAssist_IsLockonActive(input->localClientNum))
+		{
 			return;
+		}
 
 		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(aaGlob.ps.weapIndex));
 		if (weaponDef->requireLockonToFire)
+		{
 			return;
+		}
 
 		const auto deflection = aim_lockon_deflection.get<float>();
 		if (deflection > std::fabs(input->pitchAxis) && deflection > std::fabs(input->yawAxis) && deflection > std::fabs(input->rightAxis))
+		{
 			return;
+		}
 
 		if (!aaGlob.ps.weapIndex)
+		{
 			return;
+		}
 
 		const auto aimAssistRange = AimAssist_Lerp(weaponDef->aimAssistRange, weaponDef->aimAssistRangeAds, aaGlob.adsLerp) * aim_aimAssistRangeScale.get<float>();
 		const auto screenTarget = AimAssist_GetPrevOrBestTarget(&aaGlob, aimAssistRange, aaGlob.tweakables.lockOnRegionWidth, aaGlob.tweakables.lockOnRegionHeight, prevTargetEnt);
@@ -524,35 +555,53 @@ namespace Components
 			const auto absYawAxis = std::fabs(*yawAxis);
 
 			if (absPitchAxis <= absYawAxis)
+			{
 				*pitchAxis = (1.0f - (absYawAxis - absPitchAxis)) * *pitchAxis;
+			}
 			else
+			{
 				*yawAxis = (1.0f - (absPitchAxis - absYawAxis)) * *yawAxis;
+			}
 		}
 	}
 
 	bool Gamepad::AimAssist_IsSlowdownActive(const Game::AimAssistPlayerState* ps)
 	{
 		if (!aim_slowdown_enabled.get<bool>() || !gpad_slowdown_enabled.get<bool>())
+		{
 			return false;
+		}
 
 		if (!ps->weapIndex)
+		{
 			return false;
+		}
 
 		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(ps->weapIndex));
 		if (weaponDef->requireLockonToFire)
+		{
 			return false;
+		}
 
 		if (ps->linkFlags & Game::PLF_WEAPONVIEW_ONLY)
+		{
 			return false;
+		}
 
 		if (ps->weaponState >= Game::WEAPON_STUNNED_START && ps->weaponState <= Game::WEAPON_STUNNED_END)
+		{
 			return false;
+		}
 
 		if (ps->eFlags & (Game::EF_VEHICLE_ACTIVE | Game::EF_TURRET_ACTIVE_DUCK | Game::EF_TURRET_ACTIVE_PRONE))
+		{
 			return false;
+		}
 
 		if (!ps->hasAmmo)
+		{
 			return false;
+		}
 
 		return true;
 	}
@@ -570,7 +619,9 @@ namespace Components
 		*yawScale = 1.0f;
 		
 		if (!AimAssist_IsSlowdownActive(&aaGlob.ps))
+		{
 			return;
+		}
 
 		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(aaGlob.ps.weapIndex));
 		const auto aimAssistRange = AimAssist_Lerp(weaponDef->aimAssistRange, weaponDef->aimAssistRangeAds, aaGlob.adsLerp) * aim_aimAssistRangeScale.get<float>();
@@ -583,7 +634,9 @@ namespace Components
 		}
 
 		if (AimAssist_IsPlayerUsingOffhand(&aaGlob.ps))
+		{
 			*pitchScale = 1.0f;
+		}
 	}
 
 	float Gamepad::AimAssist_Lerp(const float from, const float to, const float fraction)
@@ -798,11 +851,12 @@ namespace Components
 		assert(virtualAxis > Game::GPAD_VIRTAXIS_NONE && virtualAxis < Game::GPAD_VIRTAXIS_COUNT);
 
 		const auto& gamePadGlobal = gamePadGlobals[localClientNum];
-
 		const auto& [physicalAxis, mapType] = gamePadGlobal.axes.virtualAxes[virtualAxis];
 
 		if (physicalAxis <= Game::GPAD_PHYSAXIS_NONE || physicalAxis >= Game::GPAD_PHYSAXIS_COUNT)
+		{
 			return 0.0f;
+		}
 
 		auto axisDeflection = gamePadGlobal.axes.axesValues[physicalAxis];
 
@@ -812,9 +866,13 @@ namespace Components
 
 			float otherAxisDeflection;
 			if (otherAxisSameStick <= Game::GPAD_PHYSAXIS_NONE || otherAxisSameStick >= Game::GPAD_PHYSAXIS_COUNT)
+			{
 				otherAxisDeflection = 0.0f;
+			}
 			else
+			{
 				otherAxisDeflection = gamePadGlobal.axes.axesValues[otherAxisSameStick];
+			}
 
 			axisDeflection = std::sqrt(axisDeflection * axisDeflection + otherAxisDeflection * otherAxisDeflection) * axisDeflection;
 		}
@@ -866,14 +924,22 @@ namespace Components
 		{
 			auto oldButtons = cmd->buttons;
 			if (oldButtons & Game::CMD_BUTTON_ATTACK)
+			{
 				cmd->buttons |= Game::CMD_BUTTON_THROW;
+			}
 			else
+			{
 				cmd->buttons &= ~Game::CMD_BUTTON_THROW;
+			}
 
 			if (oldButtons & Game::CMD_BUTTON_THROW)
+			{
 				cmd->buttons |= Game::CMD_BUTTON_ATTACK;
+			}
 			else
+			{
 				cmd->buttons &= ~Game::CMD_BUTTON_ATTACK;
+			}
 		}
 
 		// Check for frozen controls. Flag name should start with PMF_
@@ -983,7 +1049,9 @@ namespace Components
 		auto& gamePadGlobal = gamePadGlobals[localClientNum];
 
 		if (!down)
+		{
 			return;
+		}
 
 		const auto scrollDelayFirst = gpad_menu_scroll_delay_first.get<int>();
 		for (const auto scrollButton : menuScrollButtonList)
@@ -1077,7 +1145,7 @@ namespace Components
 
 		auto& keyState = Game::playerKeys[localClientNum];
 
-		if (keyState.keys[key].binding && strcmp(keyState.keys[key].binding, "togglescores") == 0)
+		if (keyState.keys[key].binding && std::strcmp(keyState.keys[key].binding, "togglescores") == 0)
 		{
 			Game::Cbuf_AddText(localClientNum, "togglescores\n");
 			return true;
@@ -1145,13 +1213,17 @@ namespace Components
 		if (pressedOrUpdated)
 		{
 			if (++keyState.keys[key].repeats == 1)
+			{
 				keyState.anyKeyDown++;
+			}
 		}
 		else if (buttonEvent == Game::GPAD_BUTTON_RELEASED && keyState.keys[key].repeats > 0)
 		{
 			keyState.keys[key].repeats = 0;
 			if (--keyState.anyKeyDown < 0)
+			{
 				keyState.anyKeyDown = 0;
+			}
 		}
 
 		if (pressedOrUpdated && CL_CheckForIgnoreDueToRepeat(localClientNum, key, keyState.keys[key].repeats, time))
@@ -1171,10 +1243,12 @@ namespace Components
 		}
 
 		const auto activeMenu = Game::UI_GetActiveMenu(localClientNum);
-		if(activeMenu == Game::UIMENU_SCOREBOARD)
+		if (activeMenu == Game::UIMENU_SCOREBOARD)
 		{
 			if (buttonEvent == Game::GPAD_BUTTON_PRESSED && Scoreboard_HandleInput(localClientNum, key))
+			{
 				return;
+			}
 		}
 
 		keyState.locSelInputState = Game::LOC_SEL_INPUT_NONE;
@@ -1227,7 +1301,9 @@ namespace Components
 		gpad_in_use.setRaw(true);
 
 		if (Game::Key_IsCatcherActive(localClientNum, Game::KEYCATCH_UI))
+		{
 			CL_GamepadResetMenuScrollTime(localClientNum, key, buttonEvent == Game::GPAD_BUTTON_PRESSED, time);
+		}
 
 
 		CL_GamepadButtonEvent(localClientNum, key, buttonEvent, time);
@@ -1235,7 +1311,7 @@ namespace Components
 
 	void Gamepad::GPad_ConvertStickToFloat(const short x, const short y, float& outX, float& outY)
 	{
-		if(x == 0 && y == 0)
+		if (x == 0 && y == 0)
 		{
 			outX = 0.0f;
 			outY = 0.0f;
@@ -1252,12 +1328,18 @@ namespace Components
 		if (gpad_stick_deadzone_min.get<float>() <= len)
 		{
 			if (1.0f - gpad_stick_deadzone_max.get<float>() >= len)
+			{
 				len = (len - gpad_stick_deadzone_min.get<float>()) / (1.0f - deadZoneTotal);
+			}
 			else
+			{
 				len = 1.0f;
+			}
 		}
 		else
+		{
 			len = 0.0f;
+		}
 
 		outX = stickVec[0] * len;
 		outY = stickVec[1] * len;
@@ -1269,7 +1351,6 @@ namespace Components
 		assert(stick & Game::GPAD_STICK_MASK);
 
 		auto& gamePad = gamePads[localClientNum];
-
 		return gamePad.sticks[stick];
 	}
 
@@ -1368,20 +1449,23 @@ namespace Components
 	{
 		AssertIn(localClientNum, Game::MAX_GPAD_COUNT);
 
-		auto& gamePad = gamePads[localClientNum];
-
 		for (auto stickIndex = 0u; stickIndex < std::extent_v<decltype(GamePad::sticks)>; stickIndex++)
 		{
 			for (auto dir = 0; dir < Game::GPAD_STICK_DIR_COUNT; dir++)
 			{
+				auto& gamePad = gamePads[localClientNum];
 				gamePad.stickDownLast[stickIndex][dir] = gamePad.stickDown[stickIndex][dir];
 
 				auto threshold = gpad_stick_pressed.get<float>();
 
 				if (gamePad.stickDownLast[stickIndex][dir])
+				{
 					threshold -= gpad_stick_pressed_hysteresis.get<float>();
+				}
 				else
+				{
 					threshold += gpad_stick_pressed_hysteresis.get<float>();
+				}
 
 				if (dir == Game::GPAD_STICK_POS)
 				{
@@ -1439,10 +1523,15 @@ namespace Components
 
 		const auto leftDeflect = gpad_button_lstick_deflect_max.get<float>();
 		if (std::fabs(gamePad.sticks[0]) > leftDeflect || std::fabs(gamePad.sticks[1]) > leftDeflect)
+		{
 			gamePad.digitals &= ~static_cast<short>(XINPUT_GAMEPAD_LEFT_THUMB);
+		}
+
 		const auto rightDeflect = gpad_button_rstick_deflect_max.get<float>();
 		if (std::fabs(gamePad.sticks[2]) > leftDeflect || std::fabs(gamePad.sticks[3]) > rightDeflect)
+		{
 			gamePad.digitals &= ~static_cast<short>(XINPUT_GAMEPAD_RIGHT_THUMB);
+		}
 
 		if (gpad_debug.get<bool>())
 		{
@@ -1461,13 +1550,16 @@ namespace Components
 		gamePad.lastAnalogs[0] = gamePad.analogs[0];
 		gamePad.analogs[0] = static_cast<float>(state.bLeftTrigger) / static_cast<float>(std::numeric_limits<unsigned char>::max());
 		if (gamePad.analogs[0] < buttonDeadZone)
+		{
 			gamePad.analogs[0] = 0.0f;
-
+		}
 
 		gamePad.lastAnalogs[1] = gamePad.analogs[1];
 		gamePad.analogs[1] = static_cast<float>(state.bRightTrigger) / static_cast<float>(std::numeric_limits<unsigned char>::max());
 		if (gamePad.analogs[1] < buttonDeadZone)
+		{
 			gamePad.analogs[1] = 0.0f;
+		}
 
 		if (gpad_debug.get<bool>())
 		{
@@ -1489,7 +1581,9 @@ namespace Components
 
 			XINPUT_STATE inputState;
 			if (XInputGetState(gamePad.portIndex, &inputState) != ERROR_SUCCESS)
+			{
 				continue;
+			}
 
 			GPad_UpdateSticks(localClientNum, inputState.Gamepad);
 			GPad_UpdateDigitals(localClientNum, inputState.Gamepad);
@@ -1798,10 +1892,15 @@ namespace Components
 
 	const char* Gamepad::GetGamePadCommand(const char* command)
 	{
-		if (strcmp(command, "+activate") == 0 || strcmp(command, "+reload") == 0)
+		if (std::strcmp(command, "+activate") == 0 || std::strcmp(command, "+reload") == 0)
+		{
 			return "+usereload";
-		if (strcmp(command, "+melee_breath") == 0)
+		}
+
+		if (std::strcmp(command, "+melee_breath") == 0)
+		{
 			return "+holdbreath";
+		}
 
 		return command;
 	}
@@ -1819,14 +1918,18 @@ namespace Components
 			for (auto keyNum = 0; keyNum < Game::K_LAST_KEY; keyNum++)
 			{
 				if (!Key_IsValidGamePadChar(keyNum))
+				{
 					continue;
+				}
 
 				if (Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, gamePadCmd) == 0)
 				{
 					(*keys)[keyCount++] = keyNum;
 
 					if (keyCount >= 2)
+					{
 						return keyCount;
+					}
 				}
 			}
 		}
@@ -1835,14 +1938,18 @@ namespace Components
 			for (auto keyNum = 0; keyNum < Game::K_LAST_KEY; keyNum++)
 			{
 				if (Key_IsValidGamePadChar(keyNum))
+				{
 					continue;
+				}
 
 				if (Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, cmd) == 0)
 				{
 					(*keys)[keyCount++] = keyNum;
 
 					if (keyCount >= 2)
+					{
 						return keyCount;
+					}
 				}
 			}
 		}
@@ -1873,8 +1980,10 @@ namespace Components
 
 	void Gamepad::Key_SetBinding_Hk(const int localClientNum, const int keyNum, const char* binding)
 	{
-		if(Key_IsValidGamePadChar(keyNum))
+		if (Key_IsValidGamePadChar(keyNum))
+		{
 			gpad_buttonConfig.set("custom");
+		}
 
 		Game::Key_SetBinding(localClientNum, keyNum, binding);
 	}
@@ -1918,8 +2027,10 @@ namespace Components
 
 	Game::keyname_t* Gamepad::GetLocalizedKeyNameMap()
 	{
-		if(gpad_style.get<bool>())
+		if (gpad_style.get<bool>())
+		{
 			return combinedLocalizedKeyNamesPs3;
+		}
 
 		return combinedLocalizedKeyNamesXenon;
 	}
@@ -1945,18 +2056,18 @@ namespace Components
 
 	void Gamepad::CreateKeyNameMap()
 	{
-		memcpy(combinedKeyNames, Game::keyNames, sizeof(Game::keyname_t) * Game::KEY_NAME_COUNT);
-		memcpy(&combinedKeyNames[Game::KEY_NAME_COUNT], extendedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(extendedKeyNames)>);
+		std::memcpy(combinedKeyNames, Game::keyNames, sizeof(Game::keyname_t) * Game::KEY_NAME_COUNT);
+		std::memcpy(&combinedKeyNames[Game::KEY_NAME_COUNT], extendedKeyNames, sizeof(Game::keyname_t) * std::extent_v<decltype(extendedKeyNames)>);
 		combinedKeyNames[std::extent_v<decltype(combinedKeyNames)> - 1] = {nullptr, 0};
 
-		memcpy(combinedLocalizedKeyNamesXenon, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
-		memcpy(&combinedLocalizedKeyNamesXenon[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNamesXenon,
-			   sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesXenon)>);
+		std::memcpy(combinedLocalizedKeyNamesXenon, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
+		std::memcpy(&combinedLocalizedKeyNamesXenon[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNamesXenon, sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesXenon)>);
+
 		combinedLocalizedKeyNamesXenon[std::extent_v<decltype(combinedLocalizedKeyNamesXenon)> - 1] = {nullptr, 0};
 
-		memcpy(combinedLocalizedKeyNamesPs3, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
-		memcpy(&combinedLocalizedKeyNamesPs3[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNamesPs3,
-			   sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesPs3)>);
+		std::memcpy(combinedLocalizedKeyNamesPs3, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
+		std::memcpy(&combinedLocalizedKeyNamesPs3[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNamesPs3, sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesPs3)>);
+
 		combinedLocalizedKeyNamesPs3[std::extent_v<decltype(combinedLocalizedKeyNamesPs3)> - 1] = {nullptr, 0};
 
 		Utils::Hook::Set<Game::keyname_t*>(0x4A780A, combinedKeyNames);
@@ -1999,7 +2110,7 @@ namespace Components
 		Command::Add("bindgpbuttonsconfigs", Bind_GP_ButtonsConfigs_f);
 		Command::Add("togglescores", Scores_Toggle_f);
 
-		if (Dedicated::IsEnabled())
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			return;
 		}
