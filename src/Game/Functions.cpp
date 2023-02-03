@@ -124,6 +124,7 @@ namespace Game
 	Live_GetPrestige_t Live_GetPrestige = Live_GetPrestige_t(0x430F90);
 	Live_GetXp_t Live_GetXp = Live_GetXp_t(0x404C60);
 	Live_GetLocalClientName_t Live_GetLocalClientName = Live_GetLocalClientName_t(0x441FC0);
+	Live_IsSystemUiActive_t Live_IsSystemUiActive = Live_IsSystemUiActive_t(0x4F5CB0);
 
 	LiveStorage_GetStat_t LiveStorage_GetStat = LiveStorage_GetStat_t(0x471F60);
 	LiveStorage_SetStat_t LiveStorage_SetStat = LiveStorage_SetStat_t(0x4CC5D0);

@@ -311,6 +311,9 @@ namespace Game
 	typedef const char*(*Live_GetLocalClientName_t)(int controllerIndex);
 	extern Live_GetLocalClientName_t Live_GetLocalClientName;
 
+	typedef bool(*Live_IsSystemUiActive_t)();
+	extern Live_IsSystemUiActive_t Live_IsSystemUiActive;
+
 	typedef int(*LiveStorage_GetStat_t)(int controllerIndex, int index);
 	extern LiveStorage_GetStat_t LiveStorage_GetStat;
 

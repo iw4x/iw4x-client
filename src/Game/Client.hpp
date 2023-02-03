@@ -74,6 +74,9 @@ namespace Game
 	typedef void(*CL_AddDebugStarWithText_t)(const float* point, const float* starColor, const float* textColor, const char* string, float fontsize, int duration, int fromServer);
 	extern CL_AddDebugStarWithText_t CL_AddDebugStarWithText;
 
+	typedef void(*Key_ClearStates_t)(int localClientNum);
+	extern Key_ClearStates_t Key_ClearStates;
+
 	extern float* cl_angles;
 
 	extern clientConnection_t* clientConnections;
@@ -86,12 +89,16 @@ namespace Game
 
 	extern voiceCommunication_t* cl_voiceCommunication;
 
-	extern int CL_GetMaxXP();
-	extern clientConnection_t* CL_GetLocalClientConnection(int localClientNum);
-	extern connstate_t CL_GetLocalClientConnectionState(int localClientNum);
-	extern voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
-	extern clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
-	extern clientActive_t* CL_GetLocalClientGlobals(int localClientNum);
+	extern [[nodiscard]] int CL_GetMaxXP();
+	extern [[nodiscard]] clientConnection_t* CL_GetLocalClientConnection(int localClientNum);
+	extern [[nodiscard]] connstate_t CL_GetLocalClientConnectionState(int localClientNum);
+	extern [[nodiscard]] voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
+	extern [[nodiscard]] clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
+	extern [[nodiscard]] clientActive_t* CL_GetLocalClientGlobals(int localClientNum);
 
 	extern void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer);
+
+	extern void CL_MouseMove(int localClientNum, Game::usercmd_s* cmd, float frametime_base);
+
+	extern void AdjustViewanglesForKeyboard(int localClientNum);
 }
