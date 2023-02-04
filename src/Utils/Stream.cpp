@@ -16,14 +16,14 @@ namespace Utils
 
 	const char* Stream::Reader::readCString()
 	{
-		return this->allocator->duplicateString(this->readString());
+		return this->allocator_->duplicateString(this->readString());
 	}
 
 	char Stream::Reader::readByte()
 	{
-		if ((this->position + 1) <= this->buffer.size())
+		if ((this->position_ + 1) <= this->buffer_.size())
 		{
-			return this->buffer[this->position++];
+			return this->buffer_[this->position_++];
 		}
 
 		throw std::runtime_error("Reading past the buffer");
@@ -31,45 +31,45 @@ namespace Utils
 
 	void* Stream::Reader::read(size_t size, std::size_t count)
 	{
-		size_t bytes = size * count;
+		auto bytes = size * count;
 
-		if ((this->position + bytes) <= this->buffer.size())
+		if ((this->position_ + bytes) <= this->buffer_.size())
 		{
-			void* _buffer = this->allocator->allocate(bytes);
+			auto* buffer = this->allocator_->allocate(bytes);
 
-			std::memcpy(_buffer, this->buffer.data() + this->position, bytes);
-			this->position += bytes;
+			std::memcpy(buffer, this->buffer_.data() + this->position_, bytes);
+			this->position_ += bytes;
 
-			return _buffer;
+			return buffer;
 		}
 
 		throw std::runtime_error("Reading past the buffer");
 	}
 
-	bool Stream::Reader::end()
+	bool Stream::Reader::end() const
 	{
-		return (this->buffer.size() == this->position);
+		return (this->buffer_.size() == this->position_);
 	}
 
-	void Stream::Reader::seek(unsigned int _position)
+	void Stream::Reader::seek(unsigned int position)
 	{
-		if (this->buffer.size() >= _position)
+		if (this->buffer_.size() >= position)
 		{
-			this->position = _position;
+			this->position_ = position;
 		}
 	}
 
-	void Stream::Reader::seekRelative(unsigned int _position)
+	void Stream::Reader::seekRelative(unsigned int position)
 	{
-		return this->seek(_position + this->position);
+		return this->seek(position + this->position_);
 	}
 
 	void* Stream::Reader::readPointer()
 	{
-		void* pointer = this->read<void*>();
+		auto* pointer = this->read<void*>();
 		if (!this->hasPointer(pointer))
 		{
-			this->pointerMap[pointer] = nullptr;
+			this->pointerMap_[pointer] = nullptr;
 		}
 		return pointer;
 	}
@@ -78,18 +78,18 @@ namespace Utils
 	{
 		if (this->hasPointer(oldPointer))
 		{
-			this->pointerMap[oldPointer] = newPointer;
+			this->pointerMap_[oldPointer] = newPointer;
 		}
 	}
 
-	bool Stream::Reader::hasPointer(void* pointer)
+	bool Stream::Reader::hasPointer(void* pointer) const
 	{
-		return this->pointerMap.find(pointer) != this->pointerMap.end();
+		return this->pointerMap_.contains(pointer);
 	}
 
 	Stream::Stream() : ptrAssertion(false), criticalSectionState(0)
 	{
-		memset(this->blockSize, 0, sizeof(this->blockSize));
+		std::memset(this->blockSize, 0, sizeof(this->blockSize));
 
 #ifdef WRITE_LOGS
 		this->structLevel = 0;
@@ -99,12 +99,12 @@ namespace Utils
 
 	Stream::Stream(size_t size) : Stream()
 	{
-		this->buffer.reserve(size);
+		this->buffer_.reserve(size);
 	}
 
 	Stream::~Stream()
 	{
-		this->buffer.clear();
+		this->buffer_.clear();
 
 		if (this->criticalSectionState != 0)
 		{
@@ -114,12 +114,12 @@ namespace Utils
 
 	std::size_t Stream::length() const
 	{
-		return this->buffer.length();
+		return this->buffer_.length();
 	}
 
 	std::size_t Stream::capacity() const
 	{
-		return this->buffer.capacity();
+		return this->buffer_.capacity();
 	}
 
 	void Stream::assertPointer(const void* pointer, std::size_t length)
@@ -159,7 +159,7 @@ namespace Utils
 			return this->at();
 		}
 
-		auto data = this->data();
+		auto* data = this->data();
 
 		if (this->isCriticalSection() && this->length() + (size * count) > this->capacity())
 		{
@@ -167,7 +167,7 @@ namespace Utils
 			__debugbreak();
 		}
 
-		this->buffer.append(static_cast<const char*>(_str), size * count);
+		this->buffer_.append(static_cast<const char*>(_str), size * count);
 
 		if (this->data() != data && this->isCriticalSection())
 		{
@@ -319,7 +319,7 @@ namespace Utils
 
 	char* Stream::data()
 	{
-		return const_cast<char*>(this->buffer.data());
+		return const_cast<char*>(this->buffer_.data());
 	}
 
 	unsigned int Stream::getBlockSize(Game::XFILE_BLOCK_TYPES stream)

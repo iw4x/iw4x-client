@@ -28,7 +28,7 @@ namespace Components
 		static void PostVidRestart();
 		static void PostVidRestartStub();
 
-		static void R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state);
+		static void R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state, int samplerCode);
 		static void StoreGfxBufContextPtrStub1();
 		static void StoreGfxBufContextPtrStub2();
 
@@ -38,6 +38,7 @@ namespace Components
 		static void DebugDrawSceneModelCollisions();
 		static void DebugDrawModelBoundingBoxes();
 		static void DebugDrawModelNames();
+		static void DebugDrawRunners();
 		static void DebugDrawAABBTrees();
 		static void ForceTechnique();
 
@@ -50,6 +51,7 @@ namespace Components
 		static Utils::Signal<BackendCallback> SingleBackendFrameSignal;
 
 		static Dvar::Var r_drawTriggers;
+		static Dvar::Var r_drawRunners;
 		static Dvar::Var r_drawSceneModelCollisions;
 		static Dvar::Var r_drawModelBoundingBoxes;
 		static Dvar::Var r_drawModelNames;

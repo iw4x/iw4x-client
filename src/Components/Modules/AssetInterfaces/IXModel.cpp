@@ -1,7 +1,7 @@
 #include <STDInclude.hpp>
 #include "IXModel.hpp"
 
-#define IW4X_MODEL_VERSION 8
+#define IW4X_MODEL_VERSION 9
 
 namespace Assets
 {
@@ -250,34 +250,32 @@ namespace Assets
 
 						if (geom->brushWrapper)
 						{
-							Game::BrushWrapper* brush = reader.readObject<Game::BrushWrapper>();
+							Game::BrushWrapper* brush = reader.readArrayOnce<Game::BrushWrapper>();
 							geom->brushWrapper = brush;
 							{
 								if (brush->brush.sides)
 								{
-									brush->brush.sides = reader.readArray<Game::cbrushside_t>(brush->brush.numsides);
+									brush->brush.sides = reader.readArrayOnce<Game::cbrushside_t>(brush->brush.numsides);
 									for (unsigned short j = 0; j < brush->brush.numsides; ++j)
 									{
 										Game::cbrushside_t* side = &brush->brush.sides[j];
 
-										// TODO: Add pointer support
 										if (side->plane)
 										{
-											side->plane = reader.readObject<Game::cplane_s>();
+											side->plane = reader.readArrayOnce<Game::cplane_s>();
 										}
 									}
 								}
 
 								if (brush->brush.baseAdjacentSide)
 								{
-									brush->brush.baseAdjacentSide = reader.readArray<char>(brush->totalEdgeCount);
+									brush->brush.baseAdjacentSide = reader.readArrayOnce<unsigned char>(brush->totalEdgeCount);
 								}
 							}
 
-							// TODO: Add pointer support
 							if (brush->planes)
 							{
-								brush->planes = reader.readArray<Game::cplane_s>(brush->brush.numsides);
+								brush->planes = reader.readArrayOnce<Game::cplane_s>(brush->brush.numsides);
 							}
 						}
 					}

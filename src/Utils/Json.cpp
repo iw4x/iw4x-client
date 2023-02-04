@@ -62,4 +62,12 @@ namespace Utils::Json
 		return input.to_ulong();
 	}
 
+	Game::Bounds ReadBounds(const nlohmann::json_abi_v3_11_2::json value)
+	{
+		Game::Bounds bounds{};
+		Utils::Json::CopyArray(bounds.midPoint, value["midPoint"]);
+		Utils::Json::CopyArray(bounds.halfSize, value["halfSize"]);
+
+		return bounds;
+	}
 }

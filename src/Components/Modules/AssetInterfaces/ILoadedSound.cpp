@@ -12,7 +12,7 @@ namespace Assets
 			return;
 		}
 
-		Game::LoadedSound* sound = builder->getAllocator()->allocate<Game::LoadedSound>();
+		auto* sound = builder->getAllocator()->allocate<Game::LoadedSound>();
 		if (!sound)
 		{
 			Components::Logger::Print("Error allocating memory for sound structure!\n");
@@ -27,16 +27,16 @@ namespace Assets
 
 		Utils::Stream::Reader reader(builder->getAllocator(), soundFile.getBuffer());
 
-		unsigned int chunkIDBuffer = reader.read<unsigned int>();
+		auto chunkIDBuffer = reader.read<unsigned int>();
 		if (chunkIDBuffer != 0x46464952) // RIFF
 		{
 			Components::Logger::Error(Game::ERR_FATAL, "Reading sound '{}' failed, header is invalid!", name);
 			return;
 		}
 
-		unsigned int chunkSize = reader.read<unsigned int>();
+		auto chunkSize = reader.read<unsigned int>();
 
-		unsigned int format = reader.read<unsigned int>();
+		auto format = reader.read<unsigned int>();
 		if (format != 0x45564157) // WAVE
 		{
 			Components::Logger::Error(Game::ERR_FATAL, "Reading sound '{}' failed, header is invalid!", name);
@@ -62,7 +62,10 @@ namespace Assets
 
 					sound->sound.info.channels = reader.read<short>();
 					sound->sound.info.rate = reader.read<int>();
-					sound->sound.info.samples = reader.read<int>();
+
+					// We read samples later, this is byte rate we don't need it
+					reader.read<int>();
+
 					sound->sound.info.block_size = reader.read<short>();
 					sound->sound.info.bits = reader.read<short>();
 
@@ -76,6 +79,7 @@ namespace Assets
 
 			case 0x61746164: // data
 				sound->sound.info.data_len = chunkSize;
+				sound->sound.info.samples = chunkSize / (sound->sound.info.bits / 8);
 				sound->sound.data = reader.readArray<char>(chunkSize);
 				break;
 
@@ -102,9 +106,9 @@ namespace Assets
 	{
 		AssertSize(Game::LoadedSound, 44);
 
-		Utils::Stream* buffer = builder->getBuffer();
-		Game::LoadedSound* asset = header.loadSnd;
-		Game::LoadedSound* dest = buffer->dest<Game::LoadedSound>();
+		auto* buffer = builder->getBuffer();
+		auto* asset = header.loadSnd;
+		auto* dest = buffer->dest<Game::LoadedSound>();
 		buffer->save(asset);
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);

@@ -153,7 +153,7 @@ namespace Assets
 							{
 								nlohmann::json::array_t jsonPiecesIndices = jsonGlassName["piecesIndices"];
 								glassData->glassNames[i].pieceCount = static_cast<unsigned short>(jsonPiecesIndices.size());
-
+								glassData->glassNames[i].pieceIndices = builder->getAllocator()->allocateArray<unsigned short>(glassData->glassNames[i].pieceCount);
 								for (size_t j = 0; j < glassData->glassNames[i].pieceCount; j++)
 								{
 									glassData->glassNames[i].pieceIndices[j] = jsonPiecesIndices[j].get<unsigned short>();
@@ -162,9 +162,9 @@ namespace Assets
 						}
 					}
 
-					if (gameWorldJson["glassPieces"].is_array())
+					if (jsonGlassData["glassPieces"].is_array())
 					{
-						nlohmann::json::array_t glassPieces = gameWorldJson["glassPieces"];
+						nlohmann::json::array_t glassPieces = jsonGlassData["glassPieces"];
 						glassData->pieceCount = glassPieces.size();
 						glassData->glassPieces = builder->getAllocator()->allocateArray<Game::G_GlassPiece>(glassData->pieceCount);
 

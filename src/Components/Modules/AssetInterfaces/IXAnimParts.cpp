@@ -1,7 +1,7 @@
 #include <STDInclude.hpp>
 #include "IXAnimParts.hpp"
 
-#define IW4X_ANIM_VERSION 1
+#define IW4X_ANIM_VERSION 2
 
 namespace Assets
 {
@@ -9,100 +9,148 @@ namespace Assets
 	{
 		Components::FileSystem::File animFile(std::format("xanim/{}.iw4xAnim", name));
 
-		if (animFile.exists())
+		if (!animFile.exists())
 		{
-			Utils::Stream::Reader reader(builder->getAllocator(), animFile.getBuffer());
+			return;
+		}
 
-			__int64 magic = reader.read<__int64>();
-			if (std::memcmp(&magic, "IW4xAnim", 8))
+		Utils::Stream::Reader reader(builder->getAllocator(), animFile.getBuffer());
+
+		auto magic = reader.read<std::int64_t>();
+		if (std::memcmp(&magic, "IW4xAnim", 8) != 0)
+		{
+			Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, header is invalid!", name);
+		}
+
+		int version = reader.read<int>();
+		if (version > IW4X_ANIM_VERSION)
+		{
+			Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, expected version is {}, but it was {}!", name, IW4X_ANIM_VERSION, version);
+		}
+
+		auto* xanim = reader.readArray<Game::XAnimParts>();
+		if (!xanim)
+		{
+			return;
+		}
+
+		if (xanim->name)
+		{
+			xanim->name = reader.readCString();
+		}
+
+		if (xanim->names)
+		{
+			xanim->names = builder->getAllocator()->allocateArray<unsigned short>(xanim->boneCount[Game::PART_TYPE_ALL]);
+			for (int i = 0; i < xanim->boneCount[Game::PART_TYPE_ALL]; ++i)
 			{
-				Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, header is invalid!", name);
+				xanim->names[i] = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
 			}
+		}
 
-			int version = reader.read<int>();
-			if (version != IW4X_ANIM_VERSION)
+		if (xanim->notify)
+		{
+			xanim->notify = reader.readArray<Game::XAnimNotifyInfo>(xanim->notifyCount);
+
+			for (int i = 0; i < xanim->notifyCount; ++i)
 			{
-				Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, expected version is {}, but it was {}!", name, IW4X_ANIM_VERSION, version);
+				xanim->notify[i].name = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
 			}
+		}
 
-			Game::XAnimParts* xanim = reader.readArray<Game::XAnimParts>();
+		if (xanim->dataByte)
+		{
+			xanim->dataByte = reader.readArray<char>(xanim->dataByteCount);
+		}
 
-			if (xanim)
+		if (xanim->dataShort)
+		{
+			xanim->dataShort = reader.readArray<short>(xanim->dataShortCount);
+		}
+
+		if (xanim->dataInt)
+		{
+			xanim->dataInt = reader.readArray<int>(xanim->dataIntCount);
+		}
+
+		if (xanim->randomDataByte)
+		{
+			xanim->randomDataByte = reader.readArray<char>(xanim->randomDataByteCount);
+		}
+
+		if (xanim->randomDataShort)
+		{
+			xanim->randomDataShort = reader.readArray<short>(xanim->randomDataShortCount);
+		}
+
+		if (xanim->randomDataInt)
+		{
+			xanim->randomDataInt = reader.readArray<int>(xanim->randomDataIntCount);
+		}
+
+		if (xanim->indices.data)
+		{
+			if (xanim->numframes < 256)
 			{
-				if (xanim->name)
-				{
-					xanim->name = reader.readCString();
-				}
+				xanim->indices._1 = reader.readArray<char>(xanim->indexCount);
+			}
+			else
+			{
+				xanim->indices._2 = reader.readArray<unsigned short>(xanim->indexCount);
+			}
+		}
 
-				if (xanim->names)
+		if (version > 1)
+		{
+			if (xanim->deltaPart)
+			{
+				xanim->deltaPart = reader.readObject<Game::XAnimDeltaPart>();
+				auto delta = xanim->deltaPart;
+				if (delta->trans)
 				{
-					xanim->names = builder->getAllocator()->allocateArray<unsigned short>(xanim->boneCount[Game::PART_TYPE_ALL]);
-					for (int i = 0; i < xanim->boneCount[Game::PART_TYPE_ALL]; ++i)
+					delta->trans = reader.readObject<Game::XAnimPartTrans>();
+					if (delta->trans->size)
 					{
-						xanim->names[i] = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
-					}
-				}
+						delta->trans->u.frames = reader.read<Game::XAnimPartTransFrames>();
 
-				if (xanim->notify)
-				{
-					xanim->notify = reader.readArray<Game::XAnimNotifyInfo>(xanim->notifyCount);
+						if (xanim->numframes > 0xFF)
+						{
+							auto indices2 = reader.readArray<unsigned short>(delta->trans->size + 1);
+							std::memcpy(delta->trans->u.frames.indices._2, indices2, sizeof(short) * (delta->trans->size + 1));
+						}
+						else
+						{
+							auto indices1 = reader.readArray<char>(delta->trans->size + 1);
+							std::memcpy(delta->trans->u.frames.indices._1, indices1, delta->trans->size + 1);
+						}
 
-					for (int i = 0; i < xanim->notifyCount; ++i)
-					{
-						xanim->notify[i].name = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
-					}
-				}
-
-				if (xanim->dataByte)
-				{
-					xanim->dataByte = reader.readArray<char>(xanim->dataByteCount);
-				}
-
-				if (xanim->dataShort)
-				{
-					xanim->dataShort = reader.readArray<short>(xanim->dataShortCount);
-				}
-
-				if (xanim->dataInt)
-				{
-					xanim->dataInt = reader.readArray<int>(xanim->dataIntCount);
-				}
-
-				if (xanim->randomDataByte)
-				{
-					xanim->randomDataByte = reader.readArray<char>(xanim->randomDataByteCount);
-				}
-
-				if (xanim->randomDataShort)
-				{
-					xanim->randomDataShort = reader.readArray<short>(xanim->randomDataShortCount);
-				}
-
-				if (xanim->randomDataInt)
-				{
-					xanim->randomDataInt = reader.readArray<int>(xanim->randomDataIntCount);
-				}
-
-				if (xanim->indices.data)
-				{
-					if (xanim->numframes < 256)
-					{
-						xanim->indices._1 = reader.readArray<char>(xanim->indexCount);
+						if (delta->trans->u.frames.frames._1)
+						{
+							if (delta->trans->smallTrans)
+							{
+								delta->trans->u.frames.frames._1 = reinterpret_cast<char(*)[3]>(3, (delta->trans->size + 1));
+							}
+							else
+							{
+								delta->trans->u.frames.frames._2 = reinterpret_cast<unsigned short(*)[3]>(6, (delta->trans->size + 1));
+							}
+						}
 					}
 					else
 					{
-						xanim->indices._2 = reader.readArray<unsigned short>(xanim->indexCount);
+						auto frames = reader.readObject<Game::vec3_t>();
+						std::memcpy(delta->trans->u.frame0, frames, sizeof(Game::vec3_t));
 					}
 				}
-
-				if (!reader.end())
-				{
-					Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, remaining raw data found!", name);
-				}
-
-				header->parts = xanim;
 			}
 		}
+
+		if (!reader.end())
+		{
+			Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, remaining raw data found!", name);
+		}
+
+		header->parts = xanim;
 	}
 
 	void IXAnimParts::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
