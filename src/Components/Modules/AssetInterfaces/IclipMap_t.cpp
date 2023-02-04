@@ -2180,7 +2180,9 @@ namespace Assets
 		// Write to disk
 		constexpr auto* prefix = "maps/mp/";
 		constexpr auto* suffix = ".d3dbsp";
-		Utils::IO::WriteFile(std::format("raw/clipmap/{}{}{}.iw4x.json", prefix, header.clipMap->name, suffix), output.dump(4));
 
+		std::string basename(header.clipMap->name);
+		basename = basename.substr(std::strlen(prefix), basename.size() - std::strlen(suffix) - std::strlen(prefix));
+		Utils::IO::WriteFile(std::format("raw/clipmap/{}.iw4x.json", basename), output.dump(4));
 	}
 }
