@@ -11,8 +11,6 @@ namespace Assets
 	{
 		if (!header->data) this->loadFromDisk(header, name, builder); // Check if we need to import a new one into the game
 		if (!header->data) this->loadNative(header, name, builder); // Check if there is a native one
-
-		assert(header->data);
 	}
 
 	void IMaterialTechniqueSet::loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
@@ -30,7 +28,6 @@ namespace Assets
 			*tech = nullptr;
 
 			Components::Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Missing technique '{}'\n", name);
-			AssertUnreachable;
 			return;
 		}
 

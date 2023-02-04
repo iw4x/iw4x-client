@@ -882,8 +882,8 @@ namespace Game
 	{
 		float normal[3];
 		float dist;
-		unsigned char type;
-		unsigned char pad[3];
+		char type;
+		char pad[3];
 	};
 
 	struct cbrushside_t
@@ -896,13 +896,13 @@ namespace Game
 
 	struct cbrush_t
 	{
-		unsigned short numsides;
-		unsigned short glassPieceIndex;
+		unsigned __int16 numsides;
+		unsigned __int16 glassPieceIndex;
 		cbrushside_t* sides;
-		unsigned char* baseAdjacentSide;
-		unsigned short axialMaterialNum[2][3];
-		unsigned char firstAdjacentSideOffsets[2][3];
-		unsigned char edgeCount[2][3];
+		char* baseAdjacentSide;
+		__int16 axialMaterialNum[2][3];
+		char firstAdjacentSideOffsets[2][3];
+		char edgeCount[2][3];
 	};
 
 	struct BrushWrapper
@@ -2497,194 +2497,17 @@ namespace Game
 		SAT_COUNT = 0x4,
 	};
 
-	struct snd_volume_info_t
-	{
-		float volume;
-		float goalvolume;
-		float goalrate;
-	};
-
-	struct snd_channelvolgroup
-	{
-		snd_volume_info_t channelvol[64];
-		bool active;
-	};
-
-	struct snd_background_info_t
-	{
-		float goalvolume;
-		float goalrate;
-	};
-
-	struct snd_enveffect
-	{
-		int roomtype;
-		float drylevel;
-		float drygoal;
-		float dryrate;
-		float wetlevel;
-		float wetgoal;
-		float wetrate;
-		bool active;
-	};
-
-	struct orientation_t
-	{
-		float origin[3];
-		float axis[3][3];
-	};
-
-	struct snd_listener
-	{
-		orientation_t orient;
-		float velocity;
-		int clientNum;
-		bool active;
-	};
-
-	struct snd_amplifier
-	{
-		snd_listener* listener;
-		int minRadius;
-		int maxRadius;
-		float falloffExp;
-		float minVol;
-		float maxVol;
-	};
-
-	struct snd_entchannel_info_t
-	{
-		char name[64];
-		int priority;
-		bool is3d;
-		bool isRestricted;
-		bool isPausable;
-		int maxVoices;
-		int voiceCount;
-	};
-
-	struct snd_entchan_overrides_t
-	{
-		unsigned int isPausable[2];
-		float timescaleLerp[64];
-	};
-
-	enum SndFileLoadingState
-	{
-		SFLS_UNLOADED = 0x0,
-		SFLS_LOADING = 0x1,
-		SFLS_LOADED = 0x2,
-	};
-
-	struct SndFileSpecificChannelInfo
-	{
-		SndFileLoadingState loadingState;
-		int srcChannelCount;
-		int baserate;
-	};
-
-	union SndEntHandle
-	{
-		struct
-		{
-			unsigned int entIndex;
-		} field;
-		int handle;
-	};
-
-	enum SndLengthId
-	{
-		SndLengthNotify_Subtitle = 0x0,
-		SndLengthNotify_EntityCustom = 0x1,
-		SndLengthNotifyCount = 0x2,
-	};
-
-	struct sndLengthNotifyInfo
-	{
-		SndLengthId id[4];
-		void* data[4];
-		int count;
-	};
-
-	enum snd_alias_system_t
-	{
-		SASYS_UI = 0x0,
-		SASYS_CGAME = 0x1,
-		SASYS_GAME = 0x2,
-		SASYS_COUNT = 0x3,
-	};
-
-	struct snd_channel_info_t
-	{
-		SndFileSpecificChannelInfo soundFileInfo;
-		SndEntHandle sndEnt;
-		int entchannel;
-		int startDelay;
-		int looptime;
-		int totalMsec;
-		int playbackId;
-		sndLengthNotifyInfo lengthNotifyInfo;
-		float basevolume;
-		float pitch;
-		struct snd_alias_t* alias0;
-		struct snd_alias_t* alias1;
-		int saveIndex0;
-		int saveIndex1;
-		float lerp;
-		float org[3];
-		float offset[3];
-		bool paused;
-		bool master;
-		float timescaleLerp;
-		snd_alias_system_t system;
-	};
-
-	struct snd_local_t
-	{
-		bool Initialized2d;
-		bool Initialized3d;
-		bool paused;
-		int playbackIdCounter;
-		unsigned int playback_rate;
-		int playback_channels;
-		float timescale;
-		int pausetime;
-		int cpu;
-		struct
-		{
-			char buffer[16384];
-			volatile int size;
-			bool compress;
-		} restore;
-		float volume;
-		snd_volume_info_t mastervol;
-		snd_channelvolgroup channelVolGroups[4];
-		snd_channelvolgroup* channelvol;
-		snd_background_info_t background[4];
-		int ambient_track;
-		float slaveLerp;
-		float masterPercentage;
-		snd_enveffect envEffects[5];
-		snd_enveffect* effect;
-		snd_listener listeners[2];
-		int time;
-		int looptime;
-		snd_amplifier amplifier;
-		snd_entchannel_info_t entchaninfo[64];
-		snd_entchan_overrides_t entchanOverrides;
-		int entchannel_count;
-		snd_channel_info_t chaninfo[52];
-		int max_2D_channels;
-		int max_3D_channels;
-		int max_stream_channels;
-	};
-
-
 	struct SoundFile
 	{
 		char type;
 		char exists;
 		SoundFileRef u;
+	};
+
+	union $C8D87EB0090687D323381DFB7A82089C
+	{
+		float slavePercentage;
+		float masterPercentage;
 	};
 
 	struct SndCurve
@@ -2714,26 +2537,6 @@ namespace Game
 		MSSChannelMap channelMaps[2][2];
 	};
 
-	union SoundAliasFlags
-	{
-#pragma warning(push)
-#pragma warning(disable: 4201)
-		struct
-		{
-			unsigned int looping : 1;		// & 1	/ 0x1			/ 0000 0000 0000 0001
-			unsigned int isMaster : 1;		// & 2	/ 0x2			/ 0000 0000 0000 0010
-			unsigned int isSlave : 1;		// & 4	/ 0x4			/ 0000 0000 0000 0100
-			unsigned int fullDryLevel : 1;	//	& 8	/ 0x8			/ 0000 0000 0000 1000
-			unsigned int noWetLevel : 1;	// & 16	/ 0x10			/ 0000 0000 0001 0000
-			unsigned int unknown : 1;		// & 32	/ 0x20			/ 0000 0000 0010 0000
-			unsigned int unk_is3D : 1;		// & 64	/ 0x40			/ 0000 0000 0100 0000		// CONFIRMED IW4 IW5
-			unsigned int type : 2;			// & 384	/ 0x180		/ 0000 0001 1000 0000		// CONFIRMED IW4 IW5
-			unsigned int channel : 6;		// & 32256	/ 0x7E00	/ 0111 1110 0000 0000		// CONFIRMED IW4 IW5
-		};
-#pragma warning(pop)
-		unsigned int intValue;
-	};
-
 	const struct snd_alias_t
 	{
 		const char* aliasName;
@@ -2750,12 +2553,8 @@ namespace Game
 		float distMin;
 		float distMax;
 		float velocityMin;
-		SoundAliasFlags flags;
-		union
-		{
-			float slavePercentage;
-			float masterPercentage;
-		} ___u15;
+		int flags;
+		$C8D87EB0090687D323381DFB7A82089C ___u15;
 		float probability;
 		float lfePercentage;
 		float centerPercentage;
@@ -2838,7 +2637,7 @@ namespace Game
 
 	struct cLeafBrushNode_s
 	{
-		unsigned char axis;
+		char axis;
 		__int16 leafBrushCount;
 		int contents;
 		cLeafBrushNodeData_t data;
@@ -2855,9 +2654,9 @@ namespace Game
 
 	struct CollisionPartition
 	{
-		unsigned char triCount;
-		unsigned char borderCount;
-		unsigned char firstVertSegment;
+		char triCount;
+		char borderCount;
+		char firstVertSegment;
 		int firstTri;
 		CollisionBorder* borders;
 	};
@@ -3194,7 +2993,7 @@ namespace Game
 	{
 		const char* name;
 		int isInUse;
-		unsigned int planeCount;
+		int planeCount;
 		cplane_s* planes;
 		unsigned int numStaticModels;
 		cStaticModel_s* staticModelList;
@@ -3203,7 +3002,7 @@ namespace Game
 		unsigned int numBrushSides;
 		cbrushside_t* brushsides;
 		unsigned int numBrushEdges;
-		unsigned char* brushEdges;
+		char* brushEdges;
 		unsigned int numNodes;
 		cNode_t* nodes;
 		unsigned int numLeafs;
@@ -3215,15 +3014,15 @@ namespace Game
 		unsigned int numLeafSurfaces;
 		unsigned int* leafsurfaces;
 		unsigned int vertCount;
-		vec3_t* verts;
-		unsigned int triCount;
+		float(*verts)[3];
+		int triCount;
 		unsigned __int16* triIndices;
-		unsigned char* triEdgeIsWalkable;
-		unsigned int borderCount;
+		char* triEdgeIsWalkable;
+		int borderCount;
 		CollisionBorder* borders;
 		int partitionCount;
 		CollisionPartition* partitions;
-		unsigned int aabbTreeCount;
+		int aabbTreeCount;
 		CollisionAabbTree* aabbTrees;
 		unsigned int numSubModels;
 		cmodel_t* cmodels;
@@ -3595,9 +3394,9 @@ namespace Game
 		float texCoordOrigin[2];
 		unsigned int supportMask;
 		float areaX2;
-		unsigned char defIndex;
-		unsigned char vertCount;
-		unsigned char fanDataCount;
+		char defIndex;
+		char vertCount;
+		char fanDataCount;
 		char pad[1];
 	};
 
@@ -8855,12 +8654,6 @@ namespace Game
 		unsigned __int16 children;
 	};
 
-	struct ClientEntSound
-	{
-		float origin[3];
-		snd_alias_list_t* aliasList;
-	};
-
 	struct FxEffect
 	{
 		const FxEffectDef* def;
@@ -10877,124 +10670,6 @@ namespace Game
 	struct Sys_File
 	{
 		HANDLE handle;
-	};
-
-	struct FxCamera
-	{
-		float origin[3];
-		volatile int isValid;
-		float frustum[6][4];
-		float axis[3][3];
-		unsigned int frustumPlaneCount;
-		float viewOffset[3];
-		bool thermal;
-		unsigned int pad[2];
-	};
-
-	struct r_double_index_t
-	{
-		unsigned __int16 value[2];
-	};
-
-	struct FxSpriteInfo
-	{
-		r_double_index_t* indices;
-		unsigned int indexCount;
-		Material* material;
-		const char* name;
-	};
-
-	struct FxVisBlocker
-	{
-		float origin[3];
-		unsigned __int16 radius;
-		unsigned __int16 visibility;
-	};
-
-	struct FxVisState
-	{
-		FxVisBlocker blocker[256];
-		volatile int blockerCount;
-		unsigned int pad[3];
-	};
-
-	struct FxElem
-	{
-		char defIndex;
-		char sequence;
-		char atRestFraction;
-		char emitResidual;
-		unsigned __int16 nextElemHandleInEffect;
-		unsigned __int16 prevElemHandleInEffect;
-		int msecBegin;
-		float baseVel[3];
-		union
-		{
-			int physObjId;
-			float origin[3];
-		} ___u8;
-		union
-		{
-			unsigned __int16 lightingHandle;
-			unsigned __int16 sparkCloudHandle;
-			unsigned __int16 sparkFountainHandle;
-		} u;
-	};
-
-	struct FxSystem
-	{
-		FxCamera camera;
-		FxCamera cameraPrev;
-		FxSpriteInfo sprite;
-		FxEffect* effects;
-		FxElem *elems;
-		void* trails;
-		void* trailElems;
-		void* bolts;
-		void* sparkClouds;
-		void* sparkFountains;
-		void* sparkFountainClusters;
-		unsigned __int16* deferredElems;
-		volatile int firstFreeElem;
-		volatile int firstFreeTrailElem;
-		volatile int firstFreeTrail;
-		volatile int firstFreeBolt;
-		volatile int firstFreeSparkCloud;
-		volatile int firstFreeSparkFountain;
-		volatile int firstFreeSparkFountainCluster;
-		volatile int deferredElemCount;
-		volatile int activeElemCount;
-		volatile int activeTrailElemCount;
-		volatile int activeTrailCount;
-		volatile int activeBoltCount;
-		volatile int activeSparkCloudCount;
-		volatile int activeSparkFountainCount;
-		volatile int activeSparkFountainClusterCount;
-		volatile int gfxCloudCount;
-		FxVisState* visState;
-		FxVisState* visStateBufferRead;
-		FxVisState* visStateBufferWrite;
-		volatile int firstActiveEffect;
-		volatile int firstNewEffect;
-		volatile int firstFreeEffect;
-		unsigned __int16 allEffectHandles[1024];
-		volatile int activeSpotLightEffectCount;
-		volatile int activeSpotLightElemCount;
-		unsigned __int16 activeSpotLightEffectHandle;
-		unsigned __int16 activeSpotLightElemHandle;
-		__int16 activeSpotLightBoltDobj;
-		volatile int iteratorCount;
-		int msecNow;
-		volatile int msecDraw;
-		int frameCount;
-		bool isInitialized;
-		bool needsGarbageCollection;
-		bool isArchiving;
-		char localClientNum;
-		unsigned int restartList[32];
-		FxEffect** restartEffectsList;
-		unsigned int restartCount;
-		unsigned int pad1[14];
 	};
 
 #pragma endregion

@@ -3,6 +3,27 @@
 
 #define IW4X_GFXMAP_VERSION 1
 
+//	The xmodel vehicle_small_hatch_green_destructible_mp causes EXTREME lag
+//	when placed in the world, for reasons unknown.
+//
+//	Something happens with the SModelSurfIterator which makes it load garbage
+//	as an XSurface in the middle of otherwise valid surfaces. This bug is very
+//	easy to reproduce with an empty map and just this car in the middle
+//
+//	As of know we do not know why the iterator corruption occurs or what causes
+//	it. It doesn't seem linked to the SModel, nor to the materials or techsets,
+//	nor to the sortkeys, nor to the tilemode, boneinfo, and so on. So for now
+//	and to make it work for majority of users, we just swap the car. (no, using
+//	the identical car from iw4's favela_escape doesn't work either!)
+//
+//	Two other models have this problem: ch_apartment_9story_noentry_02 and 
+//	ch_apartment_5story_noentry_01
+//	But these exist in mp_vacant in slightly different versions, and can be
+//	swapped safely by deleting the two .iw4XModel files and requiring mp_vacant
+//	or a minimal zone containing just these two models.
+//
+#define SWAP_GREEN_VEHICLE_XMODEL 1
+
 namespace Assets
 {
 	void IGfxWorld::loadGfxWorldDpvsStatic(Game::GfxWorld* world, Game::GfxWorldDpvsStatic* asset, Components::ZoneBuilder::Zone* builder, Utils::Stream::Reader* reader)
@@ -23,12 +44,11 @@ namespace Assets
 
 			for (unsigned int i = 0; i < world->surfaceCount; ++i)
 			{
-				auto* surface = &asset->surfaces[i];
+				Game::GfxSurface* surface = &asset->surfaces[i];
+
 				if (surface->material)
 				{
-					auto materialName = reader->readString();
-					world->dpvs.surfaces[i].material = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_MATERIAL, materialName, builder).material;
-					assert(world->dpvs.surfaces[i].material);
+					world->dpvs.surfaces[i].material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader->readString().data(), builder).material;
 				}
 			}
 		}
@@ -49,19 +69,8 @@ namespace Assets
 				if (model->model)
 				{
 					auto name = reader->readString();
-					while (name.ends_with("."))
-					{
-						// Happens with some flowers in mp_paris
-						// I'm not confident this will work on every map
-						// But regardless Game FS does not support having a file terminated with "."
-						// Probably an artist made a typo in MW3...
-						// Example: "foliage_gardenflowers_red_bright..iw4xModel"
-						name = name.substr(0, name.size() - 1);
-					}
-
-					assert(!name.empty());
 					
-					model->model = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_XMODEL, name, builder).model;
+					model->model = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, name.data(), builder).model;
 
 					assert(model->model);
 				}
@@ -77,7 +86,7 @@ namespace Assets
 
 			for (unsigned int i = 0; i < asset->reflectionProbeCount; ++i)
 			{
-				asset->reflectionProbes[i] = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_IMAGE, reader->readString(), builder).image;
+				asset->reflectionProbes[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
 			}
 		}
 
@@ -92,27 +101,28 @@ namespace Assets
 
 			for (int i = 0; i < asset->lightmapCount; ++i)
 			{
-				auto* lightmapArray = &asset->lightmaps[i];
+				Game::GfxLightmapArray* lightmapArray = &asset->lightmaps[i];
+
 				if (lightmapArray->primary)
 				{
-					lightmapArray->primary = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_IMAGE, reader->readString(), builder).image;
+					lightmapArray->primary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
 				}
 
 				if (lightmapArray->secondary)
 				{
-					lightmapArray->secondary = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_IMAGE, reader->readString(), builder).image;
+					lightmapArray->secondary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
 				}
 			}
 		}
 
 		if (asset->lightmapOverridePrimary)
 		{
-			asset->lightmapOverridePrimary = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_IMAGE, reader->readString(), builder).image;
+			asset->lightmapOverridePrimary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
 		}
 
 		if (asset->lightmapOverrideSecondary)
 		{
-			asset->lightmapOverrideSecondary = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_IMAGE, reader->readString(), builder).image;
+			asset->lightmapOverrideSecondary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
 		}
 
 		// saveGfxWorldVertexData
@@ -146,305 +156,295 @@ namespace Assets
 
 		Components::FileSystem::File mapFile(std::format("gfxworld/{}.iw4xGfxWorld", name));
 
-		if (!mapFile.exists())
+		if (mapFile.exists())
 		{
-			return;
-		}
+			Utils::Stream::Reader reader(builder->getAllocator(), mapFile.getBuffer());
 
-		Utils::Stream::Reader reader(builder->getAllocator(), mapFile.getBuffer());
-
-		auto magic = reader.read<std::int64_t>();
-		if (std::memcmp(&magic, "IW4xGfxW", 8) != 0)
-		{
-			Components::Logger::Error(Game::ERR_FATAL, "Reading gfxworld '{}' failed, header is invalid!", name);
-		}
-
-		int version = reader.read<int>();
-		if (version != IW4X_GFXMAP_VERSION)
-		{
-			Components::Logger::Error(Game::ERR_FATAL, "Reading gfxworld '{}' failed, expected version is {}, but it was {}!", name, IW4X_GFXMAP_VERSION, version);
-		}
-
-		auto* asset = reader.readObject<Game::GfxWorld>();
-		header->gfxWorld = asset;
-
-		if (asset->name)
-		{
-			asset->name = reader.readCString();
-		}
-
-		if (asset->baseName)
-		{
-			asset->baseName = reader.readCString();
-		}
-
-		if (asset->skies)
-		{
-			asset->skies = reader.readArray<Game::GfxSky>(asset->skyCount);
-
-			for (int i = 0; i < asset->skyCount; ++i)
+			__int64 magic = reader.read<__int64>();
+			if (std::memcmp(&magic, "IW4xGfxW", 8))
 			{
-				auto* sky = &asset->skies[i];
-
-				if (sky->skyStartSurfs)
-				{
-					sky->skyStartSurfs = reader.readArray<int>(sky->skySurfCount);
-				}
-
-				if (sky->skyImage)
-				{
-					sky->skyImage = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_IMAGE, reader.readString(), builder).image;
-				}
+				Components::Logger::Error(Game::ERR_FATAL, "Reading gfxworld '{}' failed, header is invalid!", name);
 			}
-		}
 
-		// GfxWorldDpvsPlanes
-		{
-			if (asset->dpvsPlanes.planes)
+			int version = reader.read<int>();
+			if (version != IW4X_GFXMAP_VERSION)
 			{
-				asset->dpvsPlanes.planes = reader.readArray<Game::cplane_s>(asset->planeCount);
+				Components::Logger::Error(Game::ERR_FATAL, "Reading gfxworld '{}' failed, expected version is {}, but it was {}!", name, IW4X_GFXMAP_VERSION, version);
+			}
 
-				auto clip = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_CLIPMAP_MP, asset->name, builder).clipMap;
-				if (clip)
+			Game::GfxWorld* asset = reader.readObject<Game::GfxWorld>();
+			header->gfxWorld = asset;
+
+			if (asset->name)
+			{
+				asset->name = reader.readCString();
+			}
+
+			if (asset->baseName)
+			{
+				asset->baseName = reader.readCString();
+			}
+
+			if (asset->skies)
+			{
+				asset->skies = reader.readArray<Game::GfxSky>(asset->skyCount);
+
+				for (int i = 0; i < asset->skyCount; ++i)
 				{
-					assert(clip->planeCount == static_cast<unsigned int>(asset->planeCount));
-					for (size_t i = 0; i < clip->planeCount; i++)
+					Game::GfxSky* sky = &asset->skies[i];
+
+					if (sky->skyStartSurfs)
 					{
-							assert(!std::memcmp(&clip->planes[i], &asset->dpvsPlanes.planes[i], sizeof Game::cplane_s));
+						sky->skyStartSurfs = reader.readArray<int>(sky->skySurfCount);
 					}
 
-					asset->dpvsPlanes.planes = clip->planes;
-				}
-				else
-				{
-						Components::Logger::Error(Game::ERR_FATAL, "GfxWorld dpvs planes not mapped. This shouldn't happen. Make sure to load the ClipMap first!\n");
-				}
-			}
-
-			if (asset->dpvsPlanes.nodes)
-			{
-				asset->dpvsPlanes.nodes = reader.readArray<unsigned short>(asset->nodeCount);
-			}
-		}
-
-		auto cellCount = asset->dpvsPlanes.cellCount;
-
-		if (asset->aabbTreeCounts)
-		{
-			asset->aabbTreeCounts = reader.readArray<Game::GfxCellTreeCount>(cellCount);
-		}
-
-		if (asset->aabbTrees)
-		{
-			asset->aabbTrees = reader.readArray<Game::GfxCellTree>(cellCount);
-
-			for (auto i = 0; i < cellCount; ++i)
-			{
-				auto* cellTree = &asset->aabbTrees[i];
-
-				if (cellTree->aabbTree)
-				{
-					cellTree->aabbTree = reader.readArray<Game::GfxAabbTree>(asset->aabbTreeCounts[i].aabbTreeCount);
-
-					for (int j = 0; j < asset->aabbTreeCounts[i].aabbTreeCount; ++j)
+					if (sky->skyImage)
 					{
-						auto* aabbTree = &cellTree->aabbTree[j];
+						sky->skyImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
+					}
+				}
+			}
 
-						if (aabbTree->smodelIndexes)
+			// GfxWorldDpvsPlanes
+			{
+				if (asset->dpvsPlanes.planes)
+				{
+					void* oldPtr = asset->dpvsPlanes.planes;
+					asset->dpvsPlanes.planes = reader.readArray<Game::cplane_s>(asset->planeCount);
+
+					if (builder->getAllocator()->isPointerMapped(oldPtr))
+					{
+						asset->dpvsPlanes.planes = builder->getAllocator()->getPointer<Game::cplane_s>(oldPtr);
+					}
+					else
+					{
+						builder->getAllocator()->mapPointer(oldPtr, asset->dpvsPlanes.planes);
+						Components::Logger::Print("GfxWorld dpvs planes not mapped. This shouldn't happen. Make sure to load the ClipMap first!\n");
+					}
+				}
+
+				if (asset->dpvsPlanes.nodes)
+				{
+					asset->dpvsPlanes.nodes = reader.readArray<unsigned short>(asset->nodeCount);
+				}
+			}
+
+
+			int cellCount = asset->dpvsPlanes.cellCount;
+
+			if (asset->aabbTreeCounts)
+			{
+				asset->aabbTreeCounts = reader.readArray<Game::GfxCellTreeCount>(cellCount);
+			}
+
+			if (asset->aabbTrees)
+			{
+				asset->aabbTrees = reader.readArray<Game::GfxCellTree>(cellCount);
+
+				for (int i = 0; i < cellCount; ++i)
+				{
+					Game::GfxCellTree* cellTree = &asset->aabbTrees[i];
+
+					if (cellTree->aabbTree)
+					{
+						cellTree->aabbTree = reader.readArray<Game::GfxAabbTree>(asset->aabbTreeCounts[i].aabbTreeCount);
+
+						for (int j = 0; j < asset->aabbTreeCounts[i].aabbTreeCount; ++j)
 						{
-							auto* oldPointer = aabbTree->smodelIndexes;
-							if (builder->getAllocator()->isPointerMapped(oldPointer))
-							{
-								// We still have to read it
-								reader.readArray<unsigned short>(aabbTree->smodelIndexCount);
+							Game::GfxAabbTree* aabbTree = &cellTree->aabbTree[j];
 
-								aabbTree->smodelIndexes = builder->getAllocator()->getPointer<unsigned short>(oldPointer);
-							}
-							else
+							if (aabbTree->smodelIndexes)
 							{
-								aabbTree->smodelIndexes = reader.readArray<unsigned short>(aabbTree->smodelIndexCount);
-
-								for (unsigned short k = 0; k < aabbTree->smodelIndexCount; ++k)
+								unsigned short* oldPointer = aabbTree->smodelIndexes;
+								if(builder->getAllocator()->isPointerMapped(oldPointer))
 								{
-									builder->getAllocator()->mapPointer(&oldPointer[k], &aabbTree->smodelIndexes[k]);
+									// We still have to read it
+									reader.readArray<unsigned short>(aabbTree->smodelIndexCount);
+
+									aabbTree->smodelIndexes = builder->getAllocator()->getPointer<unsigned short>(oldPointer);
+								}
+								else
+								{
+									aabbTree->smodelIndexes = reader.readArray<unsigned short>(aabbTree->smodelIndexCount);
+
+									for (unsigned short k = 0; k < aabbTree->smodelIndexCount; ++k)
+									{
+										builder->getAllocator()->mapPointer(&oldPointer[k], &aabbTree->smodelIndexes[k]);
+									}
 								}
 							}
 						}
 					}
 				}
 			}
-		}
 
-		if (asset->cells)
-		{
-			asset->cells = reader.readArray<Game::GfxCell>(cellCount);
-
-			for (auto i = 0; i < cellCount; ++i)
+			if (asset->cells)
 			{
-				auto* cell = &asset->cells[i];
+				asset->cells = reader.readArray<Game::GfxCell>(cellCount);
 
-				if (cell->portals)
+				for (int i = 0; i < cellCount; ++i)
 				{
-					cell->portals = reader.readArray<Game::GfxPortal>(cell->portalCount);
+					Game::GfxCell* cell = &asset->cells[i];
 
-					for (auto j = 0; j < cell->portalCount; ++j)
+					if (cell->portals)
 					{
-						auto* portal = &cell->portals[j];
-						if (portal->vertices)
+						cell->portals = reader.readArray<Game::GfxPortal>(cell->portalCount);
+
+						for (int j = 0; j < cell->portalCount; ++j)
 						{
-							portal->vertices = reader.readArray<Game::vec3_t>(portal->vertexCount);
+							Game::GfxPortal* portal = &cell->portals[j];
+
+							if (portal->vertices)
+							{
+								portal->vertices = reader.readArray<Game::vec3_t>(portal->vertexCount);
+							}
 						}
 					}
-				}
 
-				if (cell->reflectionProbes)
-				{
-					cell->reflectionProbes = reader.readArray<char>(cell->reflectionProbeCount);
-				}
-			}
-		}
-
-		this->loadGfxWorldDraw(&asset->draw, builder, &reader);
-
-		// GfxLightGrid
-		{
-			if (asset->lightGrid.rowDataStart)
-			{
-				asset->lightGrid.rowDataStart = reader.readArray<unsigned short>((asset->lightGrid.maxs[asset->lightGrid.rowAxis] - asset->lightGrid.mins[asset->lightGrid.rowAxis]) + 1);
-			}
-
-			if (asset->lightGrid.rawRowData)
-			{
-				asset->lightGrid.rawRowData = reader.readArray<char>(asset->lightGrid.rawRowDataSize);
-			}
-
-			if (asset->lightGrid.entries)
-			{
-				asset->lightGrid.entries = reader.readArray<Game::GfxLightGridEntry>(asset->lightGrid.entryCount);
-			}
-
-			if (asset->lightGrid.colors)
-			{
-				asset->lightGrid.colors = reader.readArray<Game::GfxLightGridColors>(asset->lightGrid.colorCount);
-			}
-		}
-
-		if (asset->models)
-		{
-			asset->models = reader.readArray<Game::GfxBrushModel>(asset->modelCount);
-		}
-
-		if (asset->materialMemory)
-		{
-			asset->materialMemory = reader.readArray<Game::MaterialMemory>(asset->materialMemoryCount);
-
-			for (auto i = 0; i < asset->materialMemoryCount; ++i)
-			{
-				auto* materialMemory = &asset->materialMemory[i];
-				if (materialMemory->material)
-				{
-					auto materialName = reader.readString();
-					materialMemory->material = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_MATERIAL, materialName, builder).material;
-					assert(materialMemory->material);
-				}
-			}
-		}
-
-		if (asset->sun.spriteMaterial)
-		{
-			auto materialName = reader.readString();
-			asset->sun.spriteMaterial = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_MATERIAL, materialName, builder).material;
-			assert(asset->sun.spriteMaterial);
-		}
-
-		if (asset->sun.flareMaterial)
-		{
-			auto materialName = reader.readString();
-			asset->sun.flareMaterial = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_MATERIAL, materialName, builder).material;
-			assert(asset->sun.flareMaterial);
-		}
-
-		if (asset->outdoorImage)
-		{
-			auto materialName = reader.readString();
-			asset->outdoorImage = Components::AssetHandler::FindAssetForZone(Game::ASSET_TYPE_IMAGE, materialName, builder).image;
-			assert(asset->outdoorImage);
-		}
-
-		if (asset->primaryLightCount > 0)
-		{
-			Utils::Stream::ClearPointer(&asset->primaryLightEntityShadowVis);
-		}
-
-		if (asset->dpvsDyn.dynEntClientCount[0] > 0)
-		{
-			Utils::Stream::ClearPointer(&asset->sceneDynModel);
-			Utils::Stream::ClearPointer(&asset->primaryLightDynEntShadowVis[0]);
-			Utils::Stream::ClearPointer(&asset->nonSunPrimaryLightForModelDynEnt);
-		}
-
-		if (asset->dpvsDyn.dynEntClientCount[1] > 0)
-		{
-			Utils::Stream::ClearPointer(&asset->sceneDynBrush);
-			Utils::Stream::ClearPointer(&asset->primaryLightDynEntShadowVis[1]);
-		}
-
-		if (asset->shadowGeom)
-		{
-			asset->shadowGeom = reader.readArray<Game::GfxShadowGeometry>(asset->primaryLightCount);
-
-			for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
-			{
-				auto* shadowGeometry = &asset->shadowGeom[i];
-
-				if (shadowGeometry->sortedSurfIndex)
-				{
-					shadowGeometry->sortedSurfIndex = reader.readArray<unsigned short>(shadowGeometry->surfaceCount);
-				}
-
-				if (shadowGeometry->smodelIndex)
-				{
-					shadowGeometry->smodelIndex = reader.readArray<unsigned short>(shadowGeometry->smodelCount);
-				}
-			}
-		}
-
-		if (asset->lightRegion)
-		{
-			asset->lightRegion = reader.readArray<Game::GfxLightRegion>(asset->primaryLightCount);
-
-			for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
-			{
-				auto* lightRegion = &asset->lightRegion[i];
-
-				if (lightRegion->hulls)
-				{
-					lightRegion->hulls = reader.readArray<Game::GfxLightRegionHull>(lightRegion->hullCount);
-
-					for (unsigned int j = 0; j < lightRegion->hullCount; ++j)
+					if (cell->reflectionProbes)
 					{
-						auto* lightRegionHull = &lightRegion->hulls[j];
-						if (lightRegionHull->axis)
+						cell->reflectionProbes = reader.readArray<char>(cell->reflectionProbeCount);
+					}
+				}
+			}
+
+			this->loadGfxWorldDraw(&asset->draw, builder, &reader);
+
+			// GfxLightGrid
+			{
+				if (asset->lightGrid.rowDataStart)
+				{
+					asset->lightGrid.rowDataStart = reader.readArray<unsigned short>((asset->lightGrid.maxs[asset->lightGrid.rowAxis] - asset->lightGrid.mins[asset->lightGrid.rowAxis]) + 1);
+				}
+
+				if (asset->lightGrid.rawRowData)
+				{
+					asset->lightGrid.rawRowData = reader.readArray<char>(asset->lightGrid.rawRowDataSize);
+				}
+
+				if (asset->lightGrid.entries)
+				{
+					asset->lightGrid.entries = reader.readArray<Game::GfxLightGridEntry>(asset->lightGrid.entryCount);
+				}
+
+				if (asset->lightGrid.colors)
+				{
+					asset->lightGrid.colors = reader.readArray<Game::GfxLightGridColors>(asset->lightGrid.colorCount);
+				}
+			}
+
+			if (asset->models)
+			{
+				asset->models = reader.readArray<Game::GfxBrushModel>(asset->modelCount);
+			}
+
+			if (asset->materialMemory)
+			{
+				asset->materialMemory = reader.readArray<Game::MaterialMemory>(asset->materialMemoryCount);
+
+				for (int i = 0; i < asset->materialMemoryCount; ++i)
+				{
+					Game::MaterialMemory* materialMemory = &asset->materialMemory[i];
+
+					if (materialMemory->material)
+					{
+						materialMemory->material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString().data(), builder).material;
+					}
+				}
+			}
+
+			if (asset->sun.spriteMaterial)
+			{
+				asset->sun.spriteMaterial = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString().data(), builder).material;
+			}
+
+			if (asset->sun.flareMaterial)
+			{
+				asset->sun.flareMaterial = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString().data(), builder).material;
+			}
+
+			if (asset->outdoorImage)
+			{
+				asset->outdoorImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
+			}
+
+			if (asset->primaryLightCount > 0)
+			{
+				Utils::Stream::ClearPointer(&asset->primaryLightEntityShadowVis);
+			}
+
+			if (asset->dpvsDyn.dynEntClientCount[0] > 0)
+			{
+				Utils::Stream::ClearPointer(&asset->sceneDynModel);
+				Utils::Stream::ClearPointer(&asset->primaryLightDynEntShadowVis[0]);
+				Utils::Stream::ClearPointer(&asset->nonSunPrimaryLightForModelDynEnt);
+			}
+
+			if (asset->dpvsDyn.dynEntClientCount[1] > 0)
+			{
+				Utils::Stream::ClearPointer(&asset->sceneDynBrush);
+				Utils::Stream::ClearPointer(&asset->primaryLightDynEntShadowVis[1]);
+			}
+
+			if (asset->shadowGeom)
+			{
+				asset->shadowGeom = reader.readArray<Game::GfxShadowGeometry>(asset->primaryLightCount);
+
+				for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
+				{
+					Game::GfxShadowGeometry* shadowGeometry = &asset->shadowGeom[i];
+
+					if (shadowGeometry->sortedSurfIndex)
+					{
+						shadowGeometry->sortedSurfIndex = reader.readArray<unsigned short>(shadowGeometry->surfaceCount);
+					}
+
+					if (shadowGeometry->smodelIndex)
+					{
+						shadowGeometry->smodelIndex = reader.readArray<unsigned short>(shadowGeometry->smodelCount);
+					}
+				}
+			}
+
+			if (asset->lightRegion)
+			{
+				asset->lightRegion = reader.readArray<Game::GfxLightRegion>(asset->primaryLightCount);
+
+				for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
+				{
+					Game::GfxLightRegion* lightRegion = &asset->lightRegion[i];
+
+					if (lightRegion->hulls)
+					{
+						lightRegion->hulls = reader.readArray<Game::GfxLightRegionHull>(lightRegion->hullCount);
+
+						for (unsigned int j = 0; j < lightRegion->hullCount; ++j)
 						{
-							lightRegionHull->axis = reader.readArray<Game::GfxLightRegionAxis>(lightRegionHull->axisCount);
+							Game::GfxLightRegionHull* lightRegionHull = &lightRegion->hulls[j];
+
+							if (lightRegionHull->axis)
+							{
+								lightRegionHull->axis = reader.readArray<Game::GfxLightRegionAxis>(lightRegionHull->axisCount);
+							}
 						}
 					}
 				}
 			}
-		}
 
-		this->loadGfxWorldDpvsStatic(asset, &asset->dpvs, builder, &reader);
+			this->loadGfxWorldDpvsStatic(asset, &asset->dpvs, builder, &reader);
 
-		// Obsolete, IW3 has no support for that
-		if (asset->heroOnlyLights)
-		{
-			asset->heroOnlyLights = reader.readArray<Game::GfxHeroOnlyLight>(asset->heroOnlyLightCount);
+			// Obsolete, IW3 has no support for that
+			if (asset->heroOnlyLights)
+			{
+				asset->heroOnlyLights = reader.readArray<Game::GfxHeroOnlyLight>(asset->heroOnlyLightCount);
+			}
 		}
 	}
 
 	void IGfxWorld::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
-		auto* asset = header.gfxWorld;
+		Game::GfxWorld* asset = header.gfxWorld;
+
 		if (asset->draw.reflectionProbes)
 		{
 			for (unsigned int i = 0; i < asset->draw.reflectionProbeCount; ++i)
@@ -455,7 +455,7 @@ namespace Assets
 
 		if (asset->draw.lightmaps)
 		{
-			for (auto i = 0; i < asset->draw.lightmapCount; ++i)
+			for (int i = 0; i < asset->draw.lightmapCount; ++i)
 			{
 				if (asset->draw.lightmaps[i].primary)
 				{
@@ -599,7 +599,7 @@ namespace Assets
 		{
 			buffer->align(Utils::Stream::ALIGN_4);
 
-			auto** imageDest = buffer->dest<Game::GfxImage*>();
+			Game::GfxImage** imageDest = buffer->dest<Game::GfxImage*>();
 			buffer->saveArray(asset->reflectionProbes, asset->reflectionProbeCount);
 
 			for (unsigned int i = 0; i < asset->reflectionProbeCount; ++i)
@@ -648,13 +648,13 @@ namespace Assets
 
 			buffer->align(Utils::Stream::ALIGN_4);
 
-			auto* lightmapArrayDestTable = buffer->dest<Game::GfxLightmapArray>();
+			Game::GfxLightmapArray* lightmapArrayDestTable = buffer->dest<Game::GfxLightmapArray>();
 			buffer->saveArray(asset->lightmaps, asset->lightmapCount);
 
 			for (int i = 0; i < asset->lightmapCount; ++i)
 			{
-				auto* lightmapArrayDest = &lightmapArrayDestTable[i];
-				auto* lightmapArray = &asset->lightmaps[i];
+				Game::GfxLightmapArray* lightmapArrayDest = &lightmapArrayDestTable[i];
+				Game::GfxLightmapArray* lightmapArray = &asset->lightmaps[i];
 
 				if (lightmapArray->primary)
 				{
@@ -854,13 +854,13 @@ namespace Assets
 			SaveLogEnter("GfxSurface");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			auto* destSurfaceTable = buffer->dest<Game::GfxSurface>();
+			Game::GfxSurface* destSurfaceTable = buffer->dest<Game::GfxSurface>();
 			buffer->saveArray(asset->surfaces, world->surfaceCount);
 
 			for (unsigned int i = 0; i < world->surfaceCount; ++i)
 			{
-				auto* surface = &asset->surfaces[i];
-				auto* destSurface = &destSurfaceTable[i];
+				Game::GfxSurface* surface = &asset->surfaces[i];
+				Game::GfxSurface* destSurface = &destSurfaceTable[i];
 
 				if (surface->material)
 				{
@@ -890,13 +890,13 @@ namespace Assets
 			SaveLogEnter("GfxStaticModelDrawInst");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			auto* destModelTable = buffer->dest<Game::GfxStaticModelDrawInst>();
+			Game::GfxStaticModelDrawInst* destModelTable = buffer->dest<Game::GfxStaticModelDrawInst>();
 			buffer->saveArray(asset->smodelDrawInsts, asset->smodelCount);
 
 			for (unsigned int i = 0; i < asset->smodelCount; ++i)
 			{
-				auto* model = &asset->smodelDrawInsts[i];
-				auto* destModel = &destModelTable[i];
+				Game::GfxStaticModelDrawInst* model = &asset->smodelDrawInsts[i];
+				Game::GfxStaticModelDrawInst* destModel = &destModelTable[i];
 
 				if (model->model)
 				{
@@ -986,8 +986,8 @@ namespace Assets
 		Utils::Stream* buffer = builder->getBuffer();
 		SaveLogEnter("GfxWorld");
 
-		auto* asset = header.gfxWorld;
-		auto* dest = buffer->dest<Game::GfxWorld>();
+		Game::GfxWorld* asset = header.gfxWorld;
+		Game::GfxWorld* dest = buffer->dest<Game::GfxWorld>();
 		buffer->save(asset);
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
@@ -1012,13 +1012,13 @@ namespace Assets
 			SaveLogEnter("GfxSky");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			auto* destSkyTable = buffer->dest<Game::GfxSky>();
+			Game::GfxSky* destSkyTable = buffer->dest<Game::GfxSky>();
 			buffer->saveArray(asset->skies, asset->skyCount);
 
 			for (int i = 0; i < asset->skyCount; ++i)
 			{
-				auto* destSky = &destSkyTable[i];
-				auto* sky = &asset->skies[i];
+				Game::GfxSky* destSky = &destSkyTable[i];
+				Game::GfxSky* sky = &asset->skies[i];
 
 				if (sky->skyStartSurfs)
 				{
@@ -1059,13 +1059,13 @@ namespace Assets
 			SaveLogEnter("GfxCellTree");
 
 			buffer->align(Utils::Stream::ALIGN_128);
-			auto* destCellTreeTable = buffer->dest<Game::GfxCellTree>();
+			Game::GfxCellTree* destCellTreeTable = buffer->dest<Game::GfxCellTree>();
 			buffer->saveArray(asset->aabbTrees, cellCount);
 
 			for (int i = 0; i < cellCount; ++i)
 			{
-				auto* destCellTree = &destCellTreeTable[i];
-				auto* cellTree = &asset->aabbTrees[i];
+				Game::GfxCellTree* destCellTree = &destCellTreeTable[i];
+				Game::GfxCellTree* cellTree = &asset->aabbTrees[i];
 
 				if (cellTree->aabbTree)
 				{
@@ -1073,7 +1073,7 @@ namespace Assets
 					SaveLogEnter("GfxAabbTree");
 
 					buffer->align(Utils::Stream::ALIGN_4);
-					auto* destAabbTreeTable = buffer->dest<Game::GfxAabbTree>();
+					Game::GfxAabbTree* destAabbTreeTable = buffer->dest<Game::GfxAabbTree>();
 					buffer->saveArray(cellTree->aabbTree, asset->aabbTreeCounts[i].aabbTreeCount);
 
 					// ok this one is based on some assumptions because the actual count is this
@@ -1083,8 +1083,8 @@ namespace Assets
 
 					for (int j = 0; j < asset->aabbTreeCounts[i].aabbTreeCount; ++j)
 					{
-						auto* destAabbTree = &destAabbTreeTable[j];
-						auto* aabbTree = &cellTree->aabbTree[j];
+						Game::GfxAabbTree* destAabbTree = &destAabbTreeTable[j];
+						Game::GfxAabbTree* aabbTree = &cellTree->aabbTree[j];
 
 						if (aabbTree->smodelIndexes)
 						{
@@ -1122,13 +1122,13 @@ namespace Assets
 			SaveLogEnter("GfxCell");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			auto* destCellTable = buffer->dest<Game::GfxCell>();
+			Game::GfxCell* destCellTable = buffer->dest<Game::GfxCell>();
 			buffer->saveArray(asset->cells, cellCount);
 
 			for (int i = 0; i < cellCount; ++i)
 			{
-				auto* destCell = &destCellTable[i];
-				auto* cell = &asset->cells[i];
+				Game::GfxCell* destCell = &destCellTable[i];
+				Game::GfxCell* cell = &asset->cells[i];
 
 				if (cell->portals)
 				{
@@ -1136,13 +1136,13 @@ namespace Assets
 					SaveLogEnter("GfxPortal");
 
 					buffer->align(Utils::Stream::ALIGN_4);
-					auto* destPortalTable = buffer->dest<Game::GfxPortal>();
+					Game::GfxPortal* destPortalTable = buffer->dest<Game::GfxPortal>();
 					buffer->saveArray(cell->portals, cell->portalCount);
 
 					for (int j = 0; j < cell->portalCount; ++j)
 					{
-						auto* destPortal = &destPortalTable[j];
-						auto* portal = &cell->portals[j];
+						Game::GfxPortal* destPortal = &destPortalTable[j];
+						Game::GfxPortal* portal = &cell->portals[j];
 
 						if (portal->vertices)
 						{
@@ -1189,13 +1189,13 @@ namespace Assets
 			SaveLogEnter("MaterialMemory");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			auto* destMaterialMemoryTable = buffer->dest<Game::MaterialMemory>();
+			Game::MaterialMemory* destMaterialMemoryTable = buffer->dest<Game::MaterialMemory>();
 			buffer->saveArray(asset->materialMemory, asset->materialMemoryCount);
 
 			for (int i = 0; i < asset->materialMemoryCount; ++i)
 			{
-				auto* destMaterialMemory = &destMaterialMemoryTable[i];
-				auto* materialMemory = &asset->materialMemory[i];
+				Game::MaterialMemory* destMaterialMemory = &destMaterialMemoryTable[i];
+				Game::MaterialMemory* materialMemory = &asset->materialMemory[i];
 
 				if (materialMemory->material)
 				{
@@ -1284,13 +1284,13 @@ namespace Assets
 			SaveLogEnter("GfxShadowGeometry");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			auto* destShadowGeometryTable = buffer->dest<Game::GfxShadowGeometry>();
+			Game::GfxShadowGeometry* destShadowGeometryTable = buffer->dest<Game::GfxShadowGeometry>();
 			buffer->saveArray(asset->shadowGeom, asset->primaryLightCount);
 
 			for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
 			{
-				auto* destShadowGeometry = &destShadowGeometryTable[i];
-				auto* shadowGeometry = &asset->shadowGeom[i];
+				Game::GfxShadowGeometry* destShadowGeometry = &destShadowGeometryTable[i];
+				Game::GfxShadowGeometry* shadowGeometry = &asset->shadowGeom[i];
 
 				if (shadowGeometry->sortedSurfIndex)
 				{
@@ -1317,13 +1317,13 @@ namespace Assets
 			SaveLogEnter("GfxLightRegion");
 
 			buffer->align(Utils::Stream::ALIGN_4);
-			auto* destLightRegionTable = buffer->dest<Game::GfxLightRegion>();
+			Game::GfxLightRegion* destLightRegionTable = buffer->dest<Game::GfxLightRegion>();
 			buffer->saveArray(asset->lightRegion, asset->primaryLightCount);
 
 			for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
 			{
-				auto* destLightRegion = &destLightRegionTable[i];
-				auto* lightRegion = &asset->lightRegion[i];
+				Game::GfxLightRegion* destLightRegion = &destLightRegionTable[i];
+				Game::GfxLightRegion* lightRegion = &asset->lightRegion[i];
 
 				if (lightRegion->hulls)
 				{
@@ -1331,13 +1331,13 @@ namespace Assets
 					SaveLogEnter("GfxLightRegionHull");
 
 					buffer->align(Utils::Stream::ALIGN_4);
-					auto* destLightRegionHullTable = buffer->dest<Game::GfxLightRegionHull>();
+					Game::GfxLightRegionHull* destLightRegionHullTable = buffer->dest<Game::GfxLightRegionHull>();
 					buffer->saveArray(lightRegion->hulls, lightRegion->hullCount);
 
 					for (unsigned int j = 0; j < lightRegion->hullCount; ++j)
 					{
-						auto* destLightRegionHull = &destLightRegionHullTable[j];
-						auto* lightRegionHull = &lightRegion->hulls[j];
+						Game::GfxLightRegionHull* destLightRegionHull = &destLightRegionHullTable[j];
+						Game::GfxLightRegionHull* lightRegionHull = &lightRegion->hulls[j];
 
 						if (lightRegionHull->axis)
 						{
@@ -1373,6 +1373,7 @@ namespace Assets
 			Utils::Stream::ClearPointer(&dest->heroOnlyLights);
 		}
 
+		//buffer->setPointerAssertion(false);
 		buffer->popBlock();
 		SaveLogExit();
 	}

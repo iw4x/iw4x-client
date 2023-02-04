@@ -12,13 +12,13 @@ namespace Assets
 		void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
 
 	private:
-		static void markFxElemVisuals(Game::FxElemVisuals* visuals, char elemType, Components::ZoneBuilder::Zone* builder);
-		static void saveFxElemVisuals(Game::FxElemVisuals* visuals, Game::FxElemVisuals* destVisuals, char elemType, Components::ZoneBuilder::Zone* builder);
+		void markFxElemVisuals(Game::FxElemVisuals* visuals, char elemType, Components::ZoneBuilder::Zone* builder);
+		void saveFxElemVisuals(Game::FxElemVisuals* visuals, Game::FxElemVisuals* destVisuals, char elemType, Components::ZoneBuilder::Zone* builder);
 
-		static void loadEfx(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
+		void loadEfx(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
 		void loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
 		void loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
 
-		static void loadFxElemVisuals(Game::FxElemVisuals* visuals, char elemType, Components::ZoneBuilder::Zone* builder, Utils::Stream::Reader* reader);
+		void loadFxElemVisuals(Game::FxElemVisuals* visuals, char elemType, Components::ZoneBuilder::Zone* builder, Utils::Stream::Reader* reader);
 	};
 }

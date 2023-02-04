@@ -40,8 +40,6 @@ namespace Assets
 		if (!header->data) this->loadJson(header, name, builder);   // Check if we want to load a material from disk
 		if (!header->data) this->loadBinary(header, name, builder); // Check if we want to load a material from disk (binary format)
 		if (!header->data) this->loadNative(header, name, builder); // Check if there is a native one
-
-		assert(header->data);
 	}
 
 
@@ -208,17 +206,12 @@ namespace Assets
 						textureDef->u.image = nullptr;
 						if (textureJson["image"].is_string())
 						{
-							textureDef->u.image = Components::AssetHandler::FindAssetForZone(
-								Game::ASSET_TYPE_IMAGE,
+							textureDef->u.image = Components::AssetHandler::FindAssetForZone
+							(
+								Game::XAssetType::ASSET_TYPE_IMAGE,
 								textureJson["image"].get<std::string>(),
 								builder
 							).image;
-
-							assert(textureDef->u.image);
-						}
-						else
-						{
-							AssertUnreachable;
 						}
 					}
 				}

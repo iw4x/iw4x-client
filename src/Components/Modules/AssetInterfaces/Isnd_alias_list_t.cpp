@@ -222,10 +222,7 @@ namespace Assets
 			{
 
 				alias->soundFile->exists = true;
-
-				// These must be THE SAME POINTER !!
-				// Wanna know why ? Check out 0x685646
-				alias->aliasName = aliasList->aliasName;
+				alias->aliasName = builder->getAllocator()->duplicateString(aliasName.get<std::string>());
 
 				if (subtitle.is_string())
 				{
@@ -247,7 +244,7 @@ namespace Assets
 				alias->pitchMax = pitchMax.get<float>();
 				alias->distMin = distMin.get<float>();
 				alias->distMax = distMax.get<float>();
-				alias->flags.intValue = flags.get<int>();
+				alias->flags = flags.get<int>();
 				alias->___u15.slavePercentage = slavePercentage.get<float>();
 				alias->probability = probability.get<float>();
 				alias->lfePercentage = lfePercentage.get<float>();
@@ -311,9 +308,6 @@ namespace Assets
 					}
 
 					auto curve = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, fallOffCurve, builder).sndCurve;
-					
-					assert(curve);
-
 					alias->volumeFalloffCurve = curve;
 				}
 
@@ -326,10 +320,11 @@ namespace Assets
 				{
 					alias->soundFile->type = Game::SAT_STREAMED;
 
-					auto streamedFile = soundFile.get<std::string>();
-					std::string directory;
-					auto split = streamedFile.find_last_of('/');
-					if (split != std::string::npos)
+					std::string streamedFile = soundFile.get<std::string>();
+					std::string directory = ""s;
+					int split = streamedFile.find_last_of('/');
+
+					if (split >= 0)
 					{
 						directory = streamedFile.substr(0, split);
 						streamedFile = streamedFile.substr(split+1);
@@ -384,127 +379,6 @@ namespace Assets
 		}
 	}
 
-	void Isnd_alias_list_t::dump(Game::XAssetHeader header)
-	{
-		nlohmann::json output;
-		Utils::Memory::Allocator strDuplicator;
-		auto ents = header.sound;
-
-		auto head = nlohmann::json::array_t();
-
-		for (size_t i = 0; i < ents->count; i++)
-		{
-			Game::snd_alias_t alias = ents->head[i];
-
-			auto channelMaps = nlohmann::json::array_t();
-
-			for (size_t j = 0; j < 2; j++)
-			{
-				for (size_t k = 0; k < 2; k++)
-				{
-					auto iw3ChannelMap = alias.speakerMap->channelMaps[j][k];
-					auto speakers = nlohmann::json::array_t();
-
-					for (size_t speakerIndex = 0; speakerIndex < iw3ChannelMap.speakerCount; speakerIndex++)
-					{
-						auto iw4Speaker = iw3ChannelMap.speakers[speakerIndex];
-
-						nlohmann::json::object_t speaker;
-						speaker.emplace("levels0", iw4Speaker.numLevels > 0 ? iw4Speaker.levels[0] : 0);
-						speaker.emplace("levels1", iw4Speaker.numLevels > 1 ? iw4Speaker.levels[1] : 0);
-						speaker.emplace("numLevels", iw4Speaker.numLevels);
-						speaker.emplace("speaker", iw4Speaker.speaker);
-						speakers.emplace_back(speaker);
-					}
-
-					auto channelMap = nlohmann::json::object_t();
-					channelMap.emplace("entryCount", iw3ChannelMap.speakerCount);
-					channelMap.emplace("speakers", speakers);
-					channelMaps.emplace_back(channelMap);
-				}
-			}
-
-			auto speakerMap = nlohmann::json::object_t();
-			speakerMap.emplace("channelMaps", channelMaps);
-			speakerMap.emplace("isDefault", alias.speakerMap->isDefault);
-			speakerMap.emplace("name", (alias.speakerMap->name));
-
-			std::string soundFile;
-			if (alias.soundFile)
-			{
-				switch (alias.soundFile->type)
-				{
-					// LOADED
-				case Game::snd_alias_type_t::SAT_LOADED:
-					// Save the LoadedSound subasset
-					soundFile = alias.soundFile->u.loadSnd->name;
-					break;
-
-					// STREAMED
-				case Game::snd_alias_type_t::SAT_STREAMED:
-				{
-					soundFile = alias.soundFile->u.streamSnd.filename.info.raw.name;
-
-					if (alias.soundFile->u.streamSnd.filename.info.raw.dir)
-					{
-						soundFile = Utils::String::VA("%s/%s", alias.soundFile->u.streamSnd.filename.info.raw.dir, soundFile.c_str());
-					}
-					
-					break;
-				}
-
-				// I DON'T KNOW :(
-				default:
-					Components::Logger::Print("Error dumping sound alias %s: unknown format %d\n", alias.aliasName, alias.soundFile->type);
-					return;
-				}
-			}
-			else
-			{
-				Components::Logger::Print("Error dumping sound alias %s: NULL soundfile!\n", alias.aliasName);
-				return;
-			}
-
-			auto iw4Flags = alias.flags.intValue;
-
-			auto json_alias = nlohmann::json::object_t();
-			json_alias.emplace("aliasName", (alias.aliasName));
-			json_alias.emplace("centerPercentage", alias.centerPercentage);
-			json_alias.emplace("chainAliasName", (alias.chainAliasName == nullptr ? nlohmann::json() : alias.chainAliasName));
-			json_alias.emplace("distMax", alias.distMax);
-			json_alias.emplace("distMin", alias.distMin);
-			json_alias.emplace("envelopMax", alias.envelopMax);
-			json_alias.emplace("envelopMin", alias.envelopMin);
-			json_alias.emplace("envelopPercentage", alias.envelopPercentage);
-			json_alias.emplace("flags", iw4Flags);
-			json_alias.emplace("lfePercentage", alias.lfePercentage);
-			json_alias.emplace("mixerGroup", nlohmann::json());
-			json_alias.emplace("pitchMax", alias.pitchMax);
-			json_alias.emplace("pitchMin", alias.pitchMin);
-			json_alias.emplace("probability", alias.probability);
-			json_alias.emplace("secondaryAliasName", (alias.secondaryAliasName == nullptr ? nlohmann::json() : alias.secondaryAliasName));
-			json_alias.emplace("sequence", alias.sequence);
-			json_alias.emplace("slavePercentage", alias.___u15.slavePercentage);
-			json_alias.emplace("speakerMap", speakerMap);
-			json_alias.emplace("soundFile", (strDuplicator.duplicateString(soundFile)));
-			json_alias.emplace("startDelay", alias.startDelay);
-			json_alias.emplace("subtitle", (alias.subtitle == nullptr ? nlohmann::json() : alias.subtitle));
-			json_alias.emplace("type", alias.soundFile->type);
-			json_alias.emplace("volMax", alias.volMax);
-			json_alias.emplace("volMin", alias.volMin);
-			json_alias.emplace("volumeFalloffCurve", (alias.volumeFalloffCurve->filename));
-
-			head.emplace_back(json_alias);
-		}
-
-		output.emplace("aliasName", (ents->aliasName));
-		output.emplace("count", ents->count);
-		output.emplace("head", head);
-
-		const auto dump = output.dump(4);
-		Utils::IO::WriteFile(std::format("raw/sounds/{}.json", ents->aliasName), dump);
-	}
-
 	void Isnd_alias_list_t::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::snd_alias_list_t, 12);
@@ -518,16 +392,8 @@ namespace Assets
 
 		if (asset->aliasName)
 		{
-			if (builder->hasPointer(asset->aliasName))
-			{
-				dest->aliasName = builder->getPointer(asset->aliasName);
-			}
-			else
-			{
-				builder->storePointer(asset->aliasName);
-				buffer->saveString(asset->aliasName);
-				Utils::Stream::ClearPointer(&dest->aliasName);
-			}
+			buffer->saveString(builder->getAssetName(this->getType(), asset->aliasName));
+			Utils::Stream::ClearPointer(&dest->aliasName);
 		}
 
 		if (asset->head)
@@ -553,16 +419,8 @@ namespace Assets
 
 					if (alias->aliasName)
 					{
-						if (builder->hasPointer(alias->aliasName))
-						{
-							destAlias->aliasName = builder->getPointer(alias->aliasName);
-						}
-						else
-						{
-							builder->storePointer(alias->aliasName);
-							buffer->saveString(alias->aliasName);
-							Utils::Stream::ClearPointer(&destAlias->aliasName);
-						}
+						buffer->saveString(alias->aliasName);
+						Utils::Stream::ClearPointer(&destAlias->aliasName);
 					}
 
 					if (alias->subtitle)
@@ -609,7 +467,7 @@ namespace Assets
 							{
 								if (alias->soundFile->type == Game::snd_alias_type_t::SAT_LOADED)
 								{
-									destSoundFile->u.loadSnd = builder->saveSubAsset(Game::ASSET_TYPE_LOADED_SOUND, alias->soundFile->u.loadSnd).loadSnd;
+									destSoundFile->u.loadSnd = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, alias->soundFile->u.loadSnd).loadSnd;
 								}
 								else
 								{
@@ -636,7 +494,7 @@ namespace Assets
 
 					if (alias->volumeFalloffCurve)
 					{
-						destAlias->volumeFalloffCurve = builder->saveSubAsset(Game::ASSET_TYPE_SOUND_CURVE, alias->volumeFalloffCurve).sndCurve;
+						destAlias->volumeFalloffCurve = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, alias->volumeFalloffCurve).sndCurve;
 					}
 
 					if (alias->speakerMap)

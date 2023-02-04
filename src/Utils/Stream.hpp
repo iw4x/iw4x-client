@@ -21,13 +21,13 @@ namespace Utils
 		int criticalSectionState;
 		unsigned int blockSize[Game::MAX_XFILE_COUNT];
 		std::vector<Game::XFILE_BLOCK_TYPES> streamStack;
-		std::string buffer_;
+		std::string buffer;
 
 	public:
 		class Reader
 		{
 		public:
-			Reader(Memory::Allocator* allocator, std::string& buffer) : position_(0), buffer_(std::move(buffer)), allocator_(allocator) {}
+			Reader(Memory::Allocator* _allocator, const std::string& _buffer) : position(0), buffer(_buffer), allocator(_allocator) {}
 
 			std::string readString();
 			const char* readCString();
@@ -53,18 +53,18 @@ namespace Utils
 					auto ptr = read<int>();
 					auto* voidPtr = reinterpret_cast<void*>(ptr);
 
-					if (this->allocator_->isPointerMapped(voidPtr))
+					if (allocator->isPointerMapped(voidPtr))
 					{
-						return this->allocator_->getPointer<T>(voidPtr);
+						return allocator->getPointer<T>(voidPtr);
 					}
 
 					throw std::runtime_error("Bad data: missing ptr");
 				}
 				case FOLLOWING:
 				{
-					auto filePosition = this->position_;
+					auto filePosition = position;
 					auto data = readArray<T>(count);
-					this->allocator_->mapPointer(reinterpret_cast<void*>(filePosition), data);
+					allocator->mapPointer(reinterpret_cast<void*>(filePosition), data);
 					return data;
 				}
 				default:
@@ -89,19 +89,19 @@ namespace Utils
 				return obj;
 			}
 
-			bool end() const;
+			bool end();
 			void seek(unsigned int position);
 			void seekRelative(unsigned int position);
 
 			void* readPointer();
 			void mapPointer(void* oldPointer, void* newPointer);
-			bool hasPointer(void* pointer) const;
+			bool hasPointer(void* pointer);
 
 		private:
-			unsigned int position_;
-			std::string buffer_;
-			std::map<void*, void*> pointerMap_;
-			Memory::Allocator* allocator_;
+			unsigned int position;
+			std::string buffer;
+			std::map<void*, void*> pointerMap;
+			Memory::Allocator* allocator;
 		};
 
 		enum Alignment
@@ -123,54 +123,16 @@ namespace Utils
 		Stream(size_t size);
 		~Stream();
 
-		std::unordered_map<void*, size_t> dataPointers;
-
 		[[nodiscard]] std::size_t length() const;
 		[[nodiscard]] std::size_t capacity() const;
 
-		char* save(const void * str, std::size_t size, std::size_t count = 1);
-		char* save(Game::XFILE_BLOCK_TYPES stream, const void * str, std::size_t size, std::size_t count);
+		char* save(const void * _str, std::size_t size, std::size_t count = 1);
+		char* save(Game::XFILE_BLOCK_TYPES stream, const void * _str, std::size_t size, std::size_t count);
 		char* save(Game::XFILE_BLOCK_TYPES stream, int value, std::size_t count);
 
 		template <typename T> char* save(T* object)
 		{
 			return saveArray<T>(object, 1);
-		}
-
-		template <typename T> char* saveObject(T value)
-		{
-			return saveArray(&value, 1);
-		}
-
-		template <typename T> void saveArrayIfNotExisting(T* data, size_t count)
-		{
-#define POINTER 255
-#define FOLLOWING 254
-
-			if (const auto itr = dataPointers.find(data); itr != dataPointers.end())
-			{
-				saveByte(POINTER);
-				saveObject(itr->second);
-			}
-			else
-			{
-				saveByte(FOLLOWING);
-				dataPointers.insert_or_assign(reinterpret_cast<void*>(data), length());
-				saveArray(data, count);
-			}
-		}
-
-
-		char* save(int value, size_t count = 1)
-		{
-			auto ret = this->length();
-
-			for (size_t i = 0; i < count; ++i)
-			{
-				this->save(&value, 4, 1);
-			}
-
-			return this->data() + ret;
 		}
 
 		template <typename T> char* saveArray(T* array, std::size_t count)
