@@ -94,7 +94,7 @@ namespace Assets
 			return;
 		}
 
-		sound->name = builder->getAllocator()->duplicateString(name.data());
+		sound->name = builder->getAllocator()->duplicateString(name);
 		header->loadSnd = sound;
 	}
 

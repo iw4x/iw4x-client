@@ -48,7 +48,7 @@ namespace Assets
 
 				if (surface->material)
 				{
-					world->dpvs.surfaces[i].material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader->readString().data(), builder).material;
+					world->dpvs.surfaces[i].material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader->readString(), builder).material;
 				}
 			}
 		}
@@ -70,7 +70,7 @@ namespace Assets
 				{
 					auto name = reader->readString();
 					
-					model->model = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, name.data(), builder).model;
+					model->model = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, name, builder).model;
 
 					assert(model->model);
 				}
@@ -86,7 +86,7 @@ namespace Assets
 
 			for (unsigned int i = 0; i < asset->reflectionProbeCount; ++i)
 			{
-				asset->reflectionProbes[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+				asset->reflectionProbes[i] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString(), builder).image;
 			}
 		}
 
@@ -105,24 +105,24 @@ namespace Assets
 
 				if (lightmapArray->primary)
 				{
-					lightmapArray->primary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+					lightmapArray->primary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString(), builder).image;
 				}
 
 				if (lightmapArray->secondary)
 				{
-					lightmapArray->secondary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+					lightmapArray->secondary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString(), builder).image;
 				}
 			}
 		}
 
 		if (asset->lightmapOverridePrimary)
 		{
-			asset->lightmapOverridePrimary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+			asset->lightmapOverridePrimary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString(), builder).image;
 		}
 
 		if (asset->lightmapOverrideSecondary)
 		{
-			asset->lightmapOverrideSecondary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString().data(), builder).image;
+			asset->lightmapOverrideSecondary = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader->readString(), builder).image;
 		}
 
 		// saveGfxWorldVertexData
@@ -200,7 +200,7 @@ namespace Assets
 
 					if (sky->skyImage)
 					{
-						sky->skyImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
+						sky->skyImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString(), builder).image;
 					}
 				}
 			}
@@ -348,24 +348,24 @@ namespace Assets
 
 					if (materialMemory->material)
 					{
-						materialMemory->material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString().data(), builder).material;
+						materialMemory->material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString(), builder).material;
 					}
 				}
 			}
 
 			if (asset->sun.spriteMaterial)
 			{
-				asset->sun.spriteMaterial = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString().data(), builder).material;
+				asset->sun.spriteMaterial = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString(), builder).material;
 			}
 
 			if (asset->sun.flareMaterial)
 			{
-				asset->sun.flareMaterial = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString().data(), builder).material;
+				asset->sun.flareMaterial = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader.readString(), builder).material;
 			}
 
 			if (asset->outdoorImage)
 			{
-				asset->outdoorImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
+				asset->outdoorImage = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString(), builder).image;
 			}
 
 			if (asset->primaryLightCount > 0)

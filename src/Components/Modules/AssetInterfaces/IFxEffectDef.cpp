@@ -21,7 +21,7 @@ namespace Assets
 		{
 			if (visuals->model)
 			{
-				visuals->model = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, reader->readString().data(), builder).model;
+				visuals->model = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, reader->readString(), builder).model;
 			}
 
 			break;
@@ -44,7 +44,7 @@ namespace Assets
 		{
 			if (visuals->effectDef.handle)
 			{
-				visuals->effectDef.handle = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, reader->readString().data(), builder).fx;
+				visuals->effectDef.handle = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, reader->readString(), builder).fx;
 			}
 
 			break;
@@ -54,7 +54,7 @@ namespace Assets
 		{
 			if (visuals->material)
 			{
-				visuals->material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader->readString().data(), builder).material;
+				visuals->material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader->readString(), builder).material;
 			}
 
 			break;
@@ -120,12 +120,12 @@ namespace Assets
 								{
 									if (elemDef->visuals.markArray[j].materials[0])
 									{
-										elemDef->visuals.markArray[j].materials[0] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, buffer.readString().data(), builder).material;
+										elemDef->visuals.markArray[j].materials[0] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, buffer.readString(), builder).material;
 									}
 
 									if (elemDef->visuals.markArray[j].materials[1])
 									{
-										elemDef->visuals.markArray[j].materials[1] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, buffer.readString().data(), builder).material;
+										elemDef->visuals.markArray[j].materials[1] = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, buffer.readString(), builder).material;
 									}
 								}
 							}
@@ -150,17 +150,17 @@ namespace Assets
 
 					if (elemDef->effectOnImpact.handle)
 					{
-						elemDef->effectOnImpact.handle = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, buffer.readString().data(), builder).fx;
+						elemDef->effectOnImpact.handle = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, buffer.readString(), builder).fx;
 					}
 
 					if (elemDef->effectOnDeath.handle)
 					{
-						elemDef->effectOnDeath.handle = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, buffer.readString().data(), builder).fx;
+						elemDef->effectOnDeath.handle = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, buffer.readString(), builder).fx;
 					}
 
 					if (elemDef->effectEmitted.handle)
 					{
-						elemDef->effectEmitted.handle = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, buffer.readString().data(), builder).fx;
+						elemDef->effectEmitted.handle = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, buffer.readString(), builder).fx;
 					}
 
 					// Save_FxElemExtendedDefPtr
