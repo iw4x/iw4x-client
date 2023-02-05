@@ -36,7 +36,7 @@ namespace Assets
 
 			if (asset->attenuation.image)
 			{
-				asset->attenuation.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
+				asset->attenuation.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString(), builder).image;
 			}
 		}
 	}

@@ -67,7 +67,7 @@ namespace Assets
 		}
 		else if (name[0] != '*')
 		{
-			char nameBuffer[MAX_PATH] = { 0 };
+			char nameBuffer[MAX_PATH]{};
 			Components::Materials::FormatImagePath(nameBuffer, sizeof(nameBuffer), 0, 0, name.data());
 			Components::FileSystem::File iwi(nameBuffer);
 

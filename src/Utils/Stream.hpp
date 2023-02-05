@@ -21,13 +21,13 @@ namespace Utils
 		int criticalSectionState;
 		unsigned int blockSize[Game::MAX_XFILE_COUNT];
 		std::vector<Game::XFILE_BLOCK_TYPES> streamStack;
-		std::string buffer;
+		std::string buffer_;
 
 	public:
 		class Reader
 		{
 		public:
-			Reader(Memory::Allocator* _allocator, const std::string& _buffer) : position(0), buffer(_buffer), allocator(_allocator) {}
+			Reader(Memory::Allocator* allocator, std::string buffer) : position_(0), buffer_(std::move(buffer)), allocator_(allocator) {}
 
 			std::string readString();
 			const char* readCString();
@@ -53,18 +53,18 @@ namespace Utils
 					auto ptr = read<int>();
 					auto* voidPtr = reinterpret_cast<void*>(ptr);
 
-					if (allocator->isPointerMapped(voidPtr))
+					if (allocator_->isPointerMapped(voidPtr))
 					{
-						return allocator->getPointer<T>(voidPtr);
+						return allocator_->getPointer<T>(voidPtr);
 					}
 
 					throw std::runtime_error("Bad data: missing ptr");
 				}
 				case FOLLOWING:
 				{
-					auto filePosition = position;
+					auto filePosition = position_;
 					auto data = readArray<T>(count);
-					allocator->mapPointer(reinterpret_cast<void*>(filePosition), data);
+					allocator_->mapPointer(reinterpret_cast<void*>(filePosition), data);
 					return data;
 				}
 				default:
@@ -89,19 +89,19 @@ namespace Utils
 				return obj;
 			}
 
-			bool end();
+			bool end() const;
 			void seek(unsigned int position);
 			void seekRelative(unsigned int position);
 
 			void* readPointer();
 			void mapPointer(void* oldPointer, void* newPointer);
-			bool hasPointer(void* pointer);
+			bool hasPointer(void* pointer) const;
 
 		private:
-			unsigned int position;
-			std::string buffer;
-			std::map<void*, void*> pointerMap;
-			Memory::Allocator* allocator;
+			unsigned int position_;
+			std::string buffer_;
+			std::map<void*, void*> pointerMap_;
+			Memory::Allocator* allocator_;
 		};
 
 		enum Alignment

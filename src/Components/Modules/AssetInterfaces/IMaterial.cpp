@@ -140,7 +140,7 @@ namespace Assets
 							{
 								auto imageName = waterJson["image"].get<std::string>();
 
-								water->image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, imageName.data(), builder).image;
+								water->image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, imageName, builder).image;
 							}
 
 							water->amplitude = waterJson["amplitude"].get<float>();
@@ -426,7 +426,7 @@ namespace Assets
 		Game::MaterialTechniqueSet* techset;
 
 		// Pass 1: Identical techset (1:1)
-		techset = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techsetName.data(), builder).techniqueSet;
+		techset = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techsetName, builder).techniqueSet;
 		if (techset != nullptr)
 		{
 			return techset;
@@ -485,7 +485,7 @@ namespace Assets
 		{
 			std::string techsetName = reader.readString();
 			if (!techsetName.empty() && techsetName.front() == ',') techsetName.erase(techsetName.begin());
-			asset->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techsetName.data(), builder).techniqueSet;
+			asset->techniqueSet = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techsetName, builder).techniqueSet;
 
 			if (!asset->techniqueSet)
 			{
@@ -499,7 +499,7 @@ namespace Assets
 
 				for (int i = 0; i < ARRAYSIZE(techsetSuffix); ++i)
 				{
-					Game::MaterialTechniqueSet* techsetPtr = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, (techsetName + techsetSuffix[i] + suffix).data(), builder).techniqueSet;
+					Game::MaterialTechniqueSet* techsetPtr = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, (techsetName + techsetSuffix[i] + suffix), builder).techniqueSet;
 
 					if (techsetPtr)
 					{
@@ -550,13 +550,13 @@ namespace Assets
 
 						if (water->image)
 						{
-							water->image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
+							water->image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString(), builder).image;
 						}
 					}
 				}
 				else if (textureDef->u.image)
 				{
-					textureDef->u.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString().data(), builder).image;
+					textureDef->u.image = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_IMAGE, reader.readString(), builder).image;
 				}
 			}
 		}
