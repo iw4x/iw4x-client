@@ -3032,12 +3032,13 @@ namespace Components
 	{
 		__asm
 		{
-			sub esp, 0x33C;
+			sub esp, 0x33C
 			
-			push 0x643276;
-			retn;
+			push 0x643276
+			ret
 		}
 	}
+
 	int Zones::FS_FOpenFileReadForThreadHook(const char* file, int* filePointer, int thread)
 	{
 		const auto retval = FS_FOpenFileReadForThreadOriginal(file, filePointer, thread);
@@ -3051,11 +3052,11 @@ namespace Components
 			// check if file should be skipped
 			auto skipFile = false;
 
-			if (strlen(file) > 5 && ((strncmp(&file[strlen(file) - 4], ".iwi", 4) != 0)))
+			if (std::strlen(file) > 5 && ((std::strncmp(&file[strlen(file) - 4], ".iwi", 4) != 0)))
 			{
 				skipFile = true;
 			}
-			else if (readSize >= 3 && (!memcmp(&fileBuffer[0], "IWi", 3)))
+			else if (readSize >= 3 && (std::memcmp(&fileBuffer[0], "IWi", 3) == 0))
 			{
 				skipFile = true;
 			}
@@ -3086,8 +3087,8 @@ namespace Components
 		
 				// attempt to decrypt the IWI
 				symmetric_CTR ctr_state;
-				memset(&ctr_state, 0, sizeof(symmetric_CTR));
-				
+				ZeroMemory(&ctr_state, sizeof(symmetric_CTR));
+
 				// decryption keys
 				std::uint8_t aesKey[24] = { 0x15, 0x9a, 0x03, 0x25, 0xe0, 0x75, 0x2e, 0x80, 0xc6, 0xc0, 0x94, 0x2a, 0x50, 0x5c, 0x1c, 0x68, 0x8c, 0x17, 0xef, 0x53, 0x99, 0xf8, 0x68, 0x3c };
 				std::uint32_t aesIV[4] = { 0x1010101, 0x1010101, 0x1010101, 0x1010101 };
@@ -3096,9 +3097,9 @@ namespace Components
 				auto nonce = HashCRC32StringInt(strippedFileName, strippedFileName.size());
 				
 				std::uint8_t iv[16];
-				memset(iv, 0, sizeof iv);
-				memcpy(iv, &nonce, 4);
-				memcpy(iv + 4, &unpackedSize, 4);
+				std::memset(iv, 0, sizeof iv);
+				std::memcpy(iv, &nonce, 4);
+				std::memcpy(iv + 4, &unpackedSize, 4);
 				
 				ctr_start(aes, reinterpret_cast<unsigned char*>(&aesIV[0]), &aesKey[0], sizeof aesKey, 0, CTR_COUNTER_BIG_ENDIAN, &ctr_state);
 
@@ -3109,8 +3110,8 @@ namespace Components
 					auto left = (packedSize - readDataSize);
 					auto blockSize = (left > 0x8000) ? 0x8000 : left;
 
-					memcpy(iv + 8, &readDataSize, 4);
-					memcpy(iv + 12, &blockSize, 4);
+					std::memcpy(iv + 8, &readDataSize, 4);
+					std::memcpy(iv + 12, &blockSize, 4);
 
 					ctr_setiv(iv, sizeof iv, &ctr_state);
 					ctr_decrypt(reinterpret_cast<uint8_t*>(&encryptedData[readDataSize]), reinterpret_cast<uint8_t*>(&decryptedData[readDataSize]), blockSize, &ctr_state);
@@ -3134,7 +3135,7 @@ namespace Components
 					// insert file data
 					if (result == Z_OK)
 					{
-						std::lock_guard<std::mutex> $(fileDataMutex);
+						std::lock_guard _(fileDataMutex);
 						fileDataMap[*filePointer] = data;
 						return unpackedSize;
 					}
@@ -3152,50 +3153,51 @@ namespace Components
 	{
 		__asm
 		{
-			push ecx;
-			mov eax, [esp + 0x10];
+			push ecx
+			mov eax, [esp + 0x10]
 
-			push 0x4A04C5;
-			retn;
+			push 0x4A04C5
+			ret
 		}
 	}
+
 	int Zones::FS_ReadHook(void* buffer, size_t size, int filePointer)
 	{
-		std::lock_guard<std::mutex> $(fileDataMutex);
-		
-		auto itr = fileDataMap.find(filePointer);
-		if (itr != fileDataMap.end())
+		std::lock_guard _(fileDataMutex);
+
+		if (auto itr = fileDataMap.find(filePointer); itr != fileDataMap.end())
 		{
 			if (!itr->second.fileContents.empty())
 			{
 				const auto readSize = std::min(size, itr->second.fileContents.size() - itr->second.readPos);
-				memcpy(buffer, &itr->second.fileContents[itr->second.readPos], readSize);
+				std::memcpy(buffer, &itr->second.fileContents[itr->second.readPos], readSize);
 				itr->second.readPos += readSize;
-				return readSize;
+				return static_cast<int>(readSize);
 			}
 		}
 
 		return FS_ReadOriginal(buffer, size, filePointer);
 	}
+
 	__declspec(naked) void Zones::FS_FCloseFileOriginal(int)
 	{
 		__asm
 		{
-			mov eax, [esp + 4];
-			push esi;
+			mov eax, [esp + 4]
+			push esi
 
-			push 0x462005;
-			retn;
+			push 0x462005
+			ret
 		}
 	}
+
 	void Zones::FS_FCloseFileHook(int filePointer)
 	{
-		std::lock_guard<std::mutex> $(fileDataMutex);
+		std::lock_guard _(fileDataMutex);
 		
 		FS_FCloseFileOriginal(filePointer);
-		
-		const auto itr = fileDataMap.find(filePointer);
-		if (itr != fileDataMap.end())
+
+		if (const auto itr = fileDataMap.find(filePointer); itr != fileDataMap.end())
 		{
 			fileDataMap.erase(itr);
 		}
@@ -3204,19 +3206,18 @@ namespace Components
 	{
 		__asm
 		{
-			push esi;
-			mov esi, [esp + 8];
+			push esi
+			mov esi, [esp + 8]
 
-			push 0x4A63D5;
-			retn;
+			push 0x4A63D5
+			ret
 		}
 	}
 	std::uint32_t Zones::FS_SeekHook(int fileHandle, int seekPosition, int seekOrigin)
 	{
-		std::lock_guard<std::mutex> $(fileDataMutex);
+		std::lock_guard _(fileDataMutex);
 
-		const auto itr = fileDataMap.find(fileHandle);
-		if (itr != fileDataMap.end())
+		if (const auto itr = fileDataMap.find(fileHandle); itr != fileDataMap.end())
 		{
 			if (seekOrigin == Game::FS_SEEK_SET)
 			{
@@ -3233,10 +3234,8 @@ namespace Components
 
 			return itr->second.readPos;
 		}
-		else
-		{
-			return FS_SeekOriginal(fileHandle, seekPosition, seekOrigin);
-		}
+
+		return FS_SeekOriginal(fileHandle, seekPosition, seekOrigin);
 	}
 
 	__declspec(naked) void Zones::LoadMapTriggersModelPointer()

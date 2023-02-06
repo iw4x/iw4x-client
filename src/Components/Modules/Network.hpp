@@ -37,10 +37,10 @@ namespace Components
 			[[nodiscard]] const char* getCString() const;
 			[[nodiscard]] std::string getString() const;
 
-			[[nodiscard]] bool isLocal();
-			[[nodiscard]] bool isSelf();
-			[[nodiscard]] bool isValid() const;
-			[[nodiscard]] bool isLoopback() const;
+			[[nodiscard]] bool isLocal() const noexcept;
+			[[nodiscard]] bool isSelf()  const noexcept;
+			[[nodiscard]] bool isValid() const noexcept;
+			[[nodiscard]] bool isLoopback() const noexcept;
 
 		private:
 			Game::netadr_t address;
@@ -52,7 +52,7 @@ namespace Components
 
 		Network();
 
-		static unsigned short GetPort();
+		static std::uint16_t GetPort();
 
 		static void OnStart(const Utils::Slot<CallbackRaw>& callback);
 		
