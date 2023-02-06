@@ -221,7 +221,7 @@ namespace Components
 			}
 		}
 
-		assert(0 && "unreachable");
+		AssertUnreachable;
 		return nullptr;
 	}
 

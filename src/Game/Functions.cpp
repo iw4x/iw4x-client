@@ -256,6 +256,8 @@ namespace Game
 	LargeLocalBeginRight_t LargeLocalBeginRight = LargeLocalBeginRight_t(0x644140);
 	LargeLocalReset_t LargeLocalReset = LargeLocalReset_t(0x430630);
 
+	StructuredDataDef_GetAsset_t StructuredDataDef_GetAsset = StructuredDataDef_GetAsset_t(0x4D5C50);
+
 	longjmp_internal_t longjmp_internal = longjmp_internal_t(0x6B8898);
 
 	CmdArgs* cmd_args = reinterpret_cast<CmdArgs*>(0x1AAC5D0);

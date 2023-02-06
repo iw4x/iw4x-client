@@ -587,6 +587,9 @@ namespace Game
 	typedef void(*LargeLocalReset_t)();
 	extern LargeLocalReset_t LargeLocalReset;
 
+	typedef StructuredDataDef*(*StructuredDataDef_GetAsset_t)(const char* filename, unsigned int maxSize);
+	extern StructuredDataDef_GetAsset_t StructuredDataDef_GetAsset;
+
 	typedef void(*longjmp_internal_t)(jmp_buf env, int status);
 	extern longjmp_internal_t longjmp_internal;
 

@@ -49,6 +49,7 @@ namespace Game
 	Scr_Notify_t Scr_Notify = Scr_Notify_t(0x4A4750);
 	Scr_NotifyLevel_t Scr_NotifyLevel = Scr_NotifyLevel_t(0x4D9C30);
 
+	Scr_ErrorInternal_t Scr_ErrorInternal = Scr_ErrorInternal_t(0x61DB10);
 	Scr_Error_t Scr_Error = Scr_Error_t(0x61E8B0);
 	Scr_ObjectError_t Scr_ObjectError = Scr_ObjectError_t(0x42EF40);
 	Scr_ParamError_t Scr_ParamError = Scr_ParamError_t(0x4FBC70);

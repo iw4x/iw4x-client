@@ -143,6 +143,9 @@ namespace Game
 	typedef int(*Scr_GetPointerType_t)(unsigned int index);
 	extern Scr_GetPointerType_t Scr_GetPointerType;
 
+	typedef void(*Scr_ErrorInternal_t)();
+	extern Scr_ErrorInternal_t Scr_ErrorInternal;
+
 	typedef void(*Scr_Error_t)(const char* error);
 	extern Scr_Error_t Scr_Error;
 
