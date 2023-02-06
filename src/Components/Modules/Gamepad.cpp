@@ -2079,7 +2079,9 @@ namespace Components
 	Gamepad::Gamepad()
 	{
 		if (ZoneBuilder::IsEnabled())
+		{
 			return;
+		}
 
 		// Initialize gamepad environment
 		Utils::Hook(0x4059FE, CG_RegisterDvars_Hk, HOOK_CALL).install()->quick();
@@ -2110,7 +2112,7 @@ namespace Components
 		Command::Add("bindgpbuttonsconfigs", Bind_GP_ButtonsConfigs_f);
 		Command::Add("togglescores", Scores_Toggle_f);
 
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
+		if (Dedicated::IsEnabled())
 		{
 			return;
 		}
