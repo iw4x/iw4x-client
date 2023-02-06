@@ -90,6 +90,9 @@ namespace Game
 	const dvar_t** party_minplayers = reinterpret_cast<const dvar_t**>(0x1081BFC);
 	const dvar_t** party_maxplayers = reinterpret_cast<const dvar_t**>(0x1080998);
 
+	const dvar_t** ip = reinterpret_cast<const dvar_t**>(0x64A1DF8);
+	const dvar_t** port = reinterpret_cast<const dvar_t**>(0x64A3004);
+
 	__declspec(naked) void Dvar_SetVariant(dvar_t*, DvarValue, DvarSetSource)
 	{
 		static DWORD Dvar_SetVariant_t = 0x647400;

@@ -166,7 +166,7 @@ namespace Components
 
 	bool Party::IsInUserMapLobby()
 	{
-		return (IsInLobby() && Maps::IsUserMap(Dvar::Var("ui_mapname").get<const char*>()));
+		return (IsInLobby() && Maps::IsUserMap((*Game::ui_mapname)->current.string));
 	}
 
 	bool Party::IsEnabled()

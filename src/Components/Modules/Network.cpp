@@ -91,7 +91,7 @@ namespace Components
 		return {this->getCString()};
 	}
 
-	bool Network::Address::isLocal()
+	bool Network::Address::isLocal() const noexcept
 	{
 		// According to: https://en.wikipedia.org/wiki/Private_network
 
@@ -112,7 +112,7 @@ namespace Components
 		return false;
 	}
 
-	bool Network::Address::isSelf()
+	bool Network::Address::isSelf() const noexcept
 	{
 		if (Game::NET_IsLocalAddress(this->address)) return true; // Loopback
 		if (this->getPort() != GetPort()) return false; // Port not equal
@@ -128,7 +128,7 @@ namespace Components
 		return false;
 	}
 
-	bool Network::Address::isLoopback() const
+	bool Network::Address::isLoopback() const noexcept
 	{
 		if (this->getIP().full == 0x100007f) // 127.0.0.1
 		{
@@ -138,7 +138,7 @@ namespace Components
 		return Game::NET_IsLocalAddress(this->address);
 	}
 
-	bool Network::Address::isValid() const
+	bool Network::Address::isValid() const noexcept
 	{
 		return (this->getType() != Game::NA_BAD && this->getType() >= Game::NA_BOT && this->getType() <= Game::NA_IP);
 	}
@@ -225,9 +225,11 @@ namespace Components
 		StartupSignal.clear();
 	}
 
-	unsigned short Network::GetPort()
+	std::uint16_t Network::GetPort()
 	{
-		return static_cast<unsigned short>(Dvar::Var(0x64A3004).get<unsigned int>());
+		assert((*Game::port));
+		assert((*Game::port)->current.unsignedInt <= std::numeric_limits<std::uint16_t>::max());
+		return static_cast<std::uint16_t>((*Game::port)->current.unsignedInt);
 	}
 
 	__declspec(naked) void Network::NetworkStartStub()
