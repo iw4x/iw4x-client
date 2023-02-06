@@ -46,12 +46,12 @@ namespace Utils::IO
 			if (!stream.is_open()) return false;
 
 			stream.seekg(0, std::ios::end);
-			std::streamsize size = stream.tellg();
+			const std::streamsize size = stream.tellg();
 			stream.seekg(0, std::ios::beg);
 
 			if (size > -1)
 			{
-				data->resize(static_cast<uint32_t>(size));
+				data->resize(static_cast<std::string::size_type>(size));
 				stream.read(data->data(), size);
 				stream.close();
 				return true;

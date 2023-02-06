@@ -723,7 +723,7 @@ namespace Components
 				RefreshContainer.awatingList = false;
 
 				Logger::Print("We haven't received a response from the master within {} seconds!\n", (Game::Sys_Milliseconds() - RefreshContainer.awaitTime) / 1000);
-				Toast::Show("cardicon_headshot", "^3Warning", "Failed to reach master server. Using node system instead.", 5000);
+				Toast::Show("net_disconnect", "^2Notice", "Master server could not be reached. Switching to decentralized network", 3000);
 
 				UseMasterServer = false;
 				Node::Synchronize();
