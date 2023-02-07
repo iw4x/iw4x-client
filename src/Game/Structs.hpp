@@ -10852,6 +10852,130 @@ namespace Game
 		HANDLE handle;
 	};
 
+	struct FxCamera
+	{
+		float origin[3];
+		volatile int isValid;
+		float frustum[6][4];
+		float axis[3][3];
+		unsigned int frustumPlaneCount;
+		float viewOffset[3];
+		bool thermal;
+		unsigned int pad[2];
+	};
+
+	struct r_double_index_t
+	{
+		unsigned __int16 value[2];
+	};
+
+	struct FxSpriteInfo
+	{
+		r_double_index_t* indices;
+		unsigned int indexCount;
+		Material* material;
+		const char* name;
+	};
+
+	struct FxVisBlocker
+	{
+		float origin[3];
+		unsigned __int16 radius;
+		unsigned __int16 visibility;
+	};
+
+	struct FxVisState
+	{
+		FxVisBlocker blocker[256];
+		volatile int blockerCount;
+		unsigned int pad[3];
+	};
+
+	struct FxElem
+	{
+		char defIndex;
+		char sequence;
+		char atRestFraction;
+		char emitResidual;
+		unsigned __int16 nextElemHandleInEffect;
+		unsigned __int16 prevElemHandleInEffect;
+		int msecBegin;
+		float baseVel[3];
+		union
+		{
+			int physObjId;
+			float origin[3];
+		} ___u8;
+		union
+		{
+			unsigned __int16 lightingHandle;
+			unsigned __int16 sparkCloudHandle;
+			unsigned __int16 sparkFountainHandle;
+		} u;
+	};
+
+	struct FxSystem
+	{
+		FxCamera camera;
+		FxCamera cameraPrev;
+		FxSpriteInfo sprite;
+		FxEffect* effects;
+		FxElem* elems;
+		void* trails;
+		void* trailElems;
+		void* bolts;
+		void* sparkClouds;
+		void* sparkFountains;
+		void* sparkFountainClusters;
+		unsigned __int16* deferredElems;
+		volatile int firstFreeElem;
+		volatile int firstFreeTrailElem;
+		volatile int firstFreeTrail;
+		volatile int firstFreeBolt;
+		volatile int firstFreeSparkCloud;
+		volatile int firstFreeSparkFountain;
+		volatile int firstFreeSparkFountainCluster;
+		volatile int deferredElemCount;
+		volatile int activeElemCount;
+		volatile int activeTrailElemCount;
+		volatile int activeTrailCount;
+		volatile int activeBoltCount;
+		volatile int activeSparkCloudCount;
+		volatile int activeSparkFountainCount;
+		volatile int activeSparkFountainClusterCount;
+		volatile int gfxCloudCount;
+		FxVisState* visState;
+		FxVisState* visStateBufferRead;
+		FxVisState* visStateBufferWrite;
+		volatile int firstActiveEffect;
+		volatile int firstNewEffect;
+		volatile int firstFreeEffect;
+		unsigned __int16 allEffectHandles[1024];
+		volatile int activeSpotLightEffectCount;
+		volatile int activeSpotLightElemCount;
+		unsigned __int16 activeSpotLightEffectHandle;
+		unsigned __int16 activeSpotLightElemHandle;
+		__int16 activeSpotLightBoltDobj;
+		volatile int iteratorCount;
+		int msecNow;
+		volatile int msecDraw;
+		int frameCount;
+		bool isInitialized;
+		bool needsGarbageCollection;
+		bool isArchiving;
+		char localClientNum;
+		unsigned int restartList[32];
+		FxEffect** restartEffectsList;
+		unsigned int restartCount;
+		unsigned int pad1[14];
+	};
+
+	struct ClientEntSound
+	{
+		float origin[3];
+		snd_alias_list_t* aliasList;
+	};
+
 #pragma endregion
 
 #ifndef IDA
