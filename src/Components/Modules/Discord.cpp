@@ -114,7 +114,7 @@ namespace Components
 
 	void Discord::preDestroy()
 	{
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled() || !Initialized_)
+		if (!Initialized_)
 		{
 			return;
 		}
