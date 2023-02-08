@@ -43,8 +43,6 @@ namespace Game
 
 	Svcmd_EntityList_f_t Svcmd_EntityList_f = Svcmd_EntityList_f_t(0x4B6A70);
 
-	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = GScr_LoadGameTypeScript_t(0x4ED9A0);
-
 	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x53ABF0);
 	Image_Release_t Image_Release = Image_Release_t(0x51F010);
 
@@ -168,10 +166,6 @@ namespace Game
 
 	Steam_JoinLobby_t Steam_JoinLobby = Steam_JoinLobby_t(0x49CF70);
 
-	StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
-	StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow = StringTable_GetColumnValueForRow_t(0x4F2C80);
-	StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x475EB0);
-
 	TeleportPlayer_t TeleportPlayer = TeleportPlayer_t(0x496850);
 
 	UI_AddMenuList_t UI_AddMenuList = UI_AddMenuList_t(0x4533C0);
@@ -191,6 +185,7 @@ namespace Game
 	UI_SafeTranslateString_t UI_SafeTranslateString = UI_SafeTranslateString_t(0x4F1700);
 	UI_ReplaceConversions_t UI_ReplaceConversions = UI_ReplaceConversions_t(0x4E9740);
 	UI_ParseInfos_t UI_ParseInfos = UI_ParseInfos_t(0x4027A0);
+	UI_GetMapDisplayName_t UI_GetMapDisplayName = UI_GetMapDisplayName_t(0x420700);
 
 	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
 
@@ -257,6 +252,12 @@ namespace Game
 	LargeLocalReset_t LargeLocalReset = LargeLocalReset_t(0x430630);
 
 	StructuredDataDef_GetAsset_t StructuredDataDef_GetAsset = StructuredDataDef_GetAsset_t(0x4D5C50);
+
+	StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
+	StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x475EB0);
+	StringTable_GetAsset_FastFile_t StringTable_GetAsset_FastFile = StringTable_GetAsset_FastFile_t(0x41A0B0);
+	StringTable_LookupRowNumForValue_t StringTable_LookupRowNumForValue = StringTable_LookupRowNumForValue_t(0x4AC180);
+	StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow = StringTable_GetColumnValueForRow_t(0x4F2C80);
 
 	longjmp_internal_t longjmp_internal = longjmp_internal_t(0x6B8898);
 

@@ -15,6 +15,7 @@
 #include "Modules/Console.hpp"
 #include "Modules/D3D9Ex.hpp"
 #include "Modules/Debug.hpp"
+#include "Modules/Discord.hpp"
 #include "Modules/Discovery.hpp"
 #include "Modules/Download.hpp"
 #include "Modules/Elevators.hpp"
@@ -114,6 +115,7 @@ namespace Components
 		Register(new D3D9Ex());
 		Register(new Debug());
 		Register(new Dedicated());
+		Register(new Discord());
 		Register(new Discovery());
 		Register(new Download());
 		Register(new Elevators());

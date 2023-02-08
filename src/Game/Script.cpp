@@ -69,6 +69,8 @@ namespace Game
 
 	Scr_FreeHudElemConstStrings_t Scr_FreeHudElemConstStrings = Scr_FreeHudElemConstStrings_t(0x5E1120);
 
+	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = GScr_LoadGameTypeScript_t(0x4ED9A0);
+
 	GetEntity_t GetEntity = GetEntity_t(0x4BC270);
 	GetPlayerEntity_t GetPlayerEntity = GetPlayerEntity_t(0x49C4A0);
 

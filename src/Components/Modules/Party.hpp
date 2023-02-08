@@ -24,6 +24,8 @@ namespace Components
 		static bool IsEnabled();
 
 		static std::string GetMotd();
+		static std::string GetHostName();
+		static int GetMaxClients();
 
 	private:
 		static std::map<std::uint64_t, Network::Address> LobbyMap;

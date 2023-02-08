@@ -176,6 +176,9 @@ namespace Game
 	typedef void(*Scr_FreeHudElemConstStrings_t)(game_hudelem_s* hud);
 	extern Scr_FreeHudElemConstStrings_t Scr_FreeHudElemConstStrings;
 
+	typedef void(*GScr_LoadGameTypeScript_t)();
+	extern GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript;
+
 	typedef gentity_s*(*GetPlayerEntity_t)(scr_entref_t entref);
 	extern GetPlayerEntity_t GetPlayerEntity;
 

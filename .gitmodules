@@ -35,3 +35,9 @@
 	path = deps/json
 	url = https://github.com/nlohmann/json.git
 	branch = v3.11.2
+[submodule "deps/discord-rpc"]
+	path = deps/discord-rpc
+	url = https://github.com/discord/discord-rpc.git
+[submodule "deps/rapidjson"]
+	path = deps/rapidjson
+	url = https://github.com/Tencent/rapidjson.git

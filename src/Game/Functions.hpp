@@ -84,9 +84,6 @@ namespace Game
 	typedef void(*Svcmd_EntityList_f_t)();
 	extern Svcmd_EntityList_f_t Svcmd_EntityList_f;
 
-	typedef void(*GScr_LoadGameTypeScript_t)();
-	extern GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript;
-
 	typedef int(*Reader_t)(char const*, int *);
 
 	typedef bool(*Image_LoadFromFileWithReader_t)(GfxImage* image, Reader_t reader);
@@ -205,6 +202,9 @@ namespace Game
 
 	typedef int(*UI_ParseInfos_t)(const char* buf, int max, char** infos);
 	extern UI_ParseInfos_t UI_ParseInfos;
+
+	typedef const char*(*UI_GetMapDisplayName_t)(const char* pszMap);
+	extern UI_GetMapDisplayName_t UI_GetMapDisplayName;
 	
 	typedef void(*MSG_Init_t)(msg_t* buf, unsigned char* data, int length);
 	extern MSG_Init_t MSG_Init;
@@ -407,15 +407,6 @@ namespace Game
 	typedef void(*Steam_JoinLobby_t)(SteamID, char);
 	extern Steam_JoinLobby_t Steam_JoinLobby;
 
-	typedef const char*(*StringTable_Lookup_t)(const StringTable *table, const int comparisonColumn, const char *value, const int valueColumn);
-	extern StringTable_Lookup_t StringTable_Lookup;
-
-	typedef const char* (*StringTable_GetColumnValueForRow_t)(const StringTable* table, int, int column);
-	extern StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow;
-
-	typedef int(*StringTable_HashString_t)(const char* string);
-	extern StringTable_HashString_t StringTable_HashString;
-
 	typedef void(*TeleportPlayer_t)(gentity_t* entity, float* pos, float* orientation);
 	extern TeleportPlayer_t TeleportPlayer;
 
@@ -589,6 +580,21 @@ namespace Game
 
 	typedef StructuredDataDef*(*StructuredDataDef_GetAsset_t)(const char* filename, unsigned int maxSize);
 	extern StructuredDataDef_GetAsset_t StructuredDataDef_GetAsset;
+
+	typedef void(*StringTable_GetAsset_FastFile_t)(const char* filename, const StringTable** tablePtr);
+	extern StringTable_GetAsset_FastFile_t StringTable_GetAsset_FastFile;
+
+	typedef const char*(*StringTable_Lookup_t)(const StringTable* table, const int comparisonColumn, const char* value, const int valueColumn);
+	extern StringTable_Lookup_t StringTable_Lookup;
+
+	typedef int(*StringTable_HashString_t)(const char* string);
+	extern StringTable_HashString_t StringTable_HashString;
+
+	typedef int(*StringTable_LookupRowNumForValue_t)(const StringTable* table, int comparisonColumn, const char* value);
+	extern StringTable_LookupRowNumForValue_t StringTable_LookupRowNumForValue;
+
+	typedef const char*(*StringTable_GetColumnValueForRow_t)(const StringTable*, int row, int column);
+	extern StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow;
 
 	typedef void(*longjmp_internal_t)(jmp_buf env, int status);
 	extern longjmp_internal_t longjmp_internal;
