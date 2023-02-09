@@ -65,7 +65,7 @@ namespace Components
 		{
 			const auto* value = Game::StringTable_GetColumnValueForRow(table, row, 1);
 			const auto* localize = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_LOCALIZE_ENTRY, value).localize;
-			DiscordPresence.details = Utils::String::Format("{} on {}", localize->value, map);
+			DiscordPresence.details = Utils::String::Format("{} on {}", localize ? localize->value : "Team Deathmatch", map);
 		}
 		else
 		{
@@ -91,7 +91,7 @@ namespace Components
 
 		DiscordPresence.partyId = Utils::String::VA("%zu", hashFn(address) ^ GetDiscordNonce());
 		DiscordPresence.joinSecret = address.getCString();
-		DiscordPresence.partySize = Game::cgArray[0].snap->numClients;
+		DiscordPresence.partySize = Game::cgArray[0].snap ? Game::cgArray[0].snap->numClients : 1;
 		DiscordPresence.partyMax = Party::GetMaxClients();
 
 		if (!DiscordPresence.startTimestamp)
