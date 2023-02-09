@@ -76,6 +76,7 @@ namespace Components
 		if (std::strcmp(hostName, "localhost") == 0)
 		{
 			DiscordPresence.state = "Private Match";
+			DiscordPresence.partyPrivacy = DISCORD_PARTY_PRIVATE;
 		}
 		else
 		{
@@ -84,6 +85,7 @@ namespace Components
 			TextRenderer::StripAllTextIcons(hostNameBuffer, hostNameBuffer, sizeof(hostNameBuffer));
 
 			DiscordPresence.state = hostNameBuffer;
+			DiscordPresence.partyPrivacy = DISCORD_PARTY_PUBLIC;
 		}
 
 		std::hash<Network::Address> hashFn;
