@@ -14,13 +14,13 @@ namespace Components
 			auto* text = Game::Scr_GetString(1);
 			auto* mode = Game::Scr_GetString(2);
 
-			if (path == nullptr)
+			if (!path)
 			{
 				Game::Scr_ParamError(0, "^1FileWrite: filepath is not defined!\n");
 				return;
 			}
 
-			if (text == nullptr || mode == nullptr)
+			if (!text || !mode)
 			{
 				Game::Scr_Error("^1FileWrite: Illegal parameters!\n");
 				return;
@@ -57,7 +57,7 @@ namespace Components
 		{
 			const auto* path = Game::Scr_GetString(0);
 
-			if (path == nullptr)
+			if (!path)
 			{
 				Game::Scr_ParamError(0, "^1FileRead: filepath is not defined!\n");
 				return;
@@ -74,20 +74,23 @@ namespace Components
 
 			const auto* scriptData = Utils::String::VA("%s/%s", "scriptdata", path);
 
-			if (!FileSystem::FileReader(scriptData).exists())
+			const auto file = FileSystem::FileReader(scriptData);
+			if (!file.exists())
 			{
 				Logger::PrintError(Game::CON_CHANNEL_ERROR, "FileRead: file '{}' not found!\n", scriptData);
 				return;
 			}
 
-			Game::Scr_AddString(FileSystem::FileReader(scriptData).getBuffer().data());
+			auto buffer = file.getBuffer();
+			buffer = buffer.substr(0, 1024 - 1); // 1024 is the max string size for the SL system
+			Game::Scr_AddString(buffer.data());
 		});
 
 		Script::AddFunction("FileExists", [] // gsc: FileExists(<filepath>)
 		{
 			const auto* path = Game::Scr_GetString(0);
 
-			if (path == nullptr)
+			if (!path)
 			{
 				Game::Scr_ParamError(0, "^1FileExists: filepath is not defined!\n");
 				return;
@@ -103,7 +106,6 @@ namespace Components
 			}
 
 			const auto* scriptData = Utils::String::VA("%s/%s", "scriptdata", path);
-
 			Game::Scr_AddBool(FileSystem::FileReader(scriptData).exists());
 		});
 
@@ -111,7 +113,7 @@ namespace Components
 		{
 			const auto* path = Game::Scr_GetString(0);
 
-			if (path == nullptr)
+			if (!path)
 			{
 				Game::Scr_ParamError(0, "^1FileRemove: filepath is not defined!\n");
 				return;
