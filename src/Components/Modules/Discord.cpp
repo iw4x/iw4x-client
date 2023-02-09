@@ -32,6 +32,12 @@ namespace Components
 		Game::Cbuf_AddText(0, Utils::String::VA("connect %s\n", joinSecret));
 	}
 
+	static void JoinRequest(const DiscordUser* request)
+	{
+		Logger::Debug("Discord: Join request from {} ({})\n", request->username, request->userId);
+		Discord_Respond(request->userId, DISCORD_REPLY_IGNORE);
+	}
+
 	static void Errored(const int errorCode, const char* message)
 	{
 		Logger::Print(Game::CON_CHANNEL_ERROR, "Discord: Error (%i): %s\n", errorCode, message);
@@ -120,7 +126,7 @@ namespace Components
 		handlers.disconnected = Errored;
 		handlers.joinGame = JoinGame;
 		handlers.spectateGame = nullptr;
-		handlers.joinRequest = nullptr;
+		handlers.joinRequest = JoinRequest;
 
 		Discord_Initialize("1072930169385394288", &handlers, 1, nullptr);
 
