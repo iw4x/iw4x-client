@@ -10,6 +10,12 @@ namespace Components
 
 	bool Discord::Initialized_;
 
+	static unsigned int GetDiscordNonce()
+	{
+		static auto nonce = Utils::Cryptography::Rand::GenerateInt();
+		return nonce;
+	}
+
 	static void Ready([[maybe_unused]] const DiscordUser* request)
 	{
 		ZeroMemory(&DiscordPresence, sizeof(DiscordPresence));
@@ -19,6 +25,11 @@ namespace Components
 		Logger::Print("Discord: Ready\n");
 
 		Discord_UpdatePresence(&DiscordPresence);
+	}
+
+	static void JoinGame(const char* joinSecret)
+	{
+		Game::Cbuf_AddText(0, Utils::String::VA("connect %s\n", joinSecret));
 	}
 
 	static void Errored(const int errorCode, const char* message)
@@ -75,7 +86,12 @@ namespace Components
 			DiscordPresence.state = hostNameBuffer;
 		}
 
-		DiscordPresence.partySize = 0;
+		std::hash<Network::Address> hashFn;
+		const auto address = Party::Target();
+
+		DiscordPresence.partyId = Utils::String::VA("%zu", hashFn(address) ^ GetDiscordNonce());
+		DiscordPresence.joinSecret = address.getCString();
+		DiscordPresence.partySize = Game::cgArray[0].snap->numClients;
 		DiscordPresence.partyMax = Party::GetMaxClients();
 
 		if (!DiscordPresence.startTimestamp)
@@ -100,7 +116,7 @@ namespace Components
 		handlers.ready = Ready;
 		handlers.errored = Errored;
 		handlers.disconnected = Errored;
-		handlers.joinGame = nullptr;
+		handlers.joinGame = JoinGame;
 		handlers.spectateGame = nullptr;
 		handlers.joinRequest = nullptr;
 
