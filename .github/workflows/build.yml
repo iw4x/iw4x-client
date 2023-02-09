@@ -24,7 +24,7 @@ jobs:
           - Release
     steps:          
       - name: Check out files
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.3.0
         with:
           submodules: true
           fetch-depth: 0
@@ -32,7 +32,7 @@ jobs:
           lfs: false
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1.3
+        uses: microsoft/setup-msbuild@v1.3.1
 
       - name: Generate project files
         run: tools/premake5 vs2022
@@ -44,7 +44,7 @@ jobs:
         run: msbuild /m /v:minimal /p:Configuration=${{matrix.configuration}} /p:Platform=Win32 build/iw4x.sln
 
       - name: Upload ${{matrix.configuration}} binaries
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: ${{matrix.configuration}} binaries
           path: |
@@ -66,13 +66,13 @@ jobs:
         run: echo "XLABS_MASTER_PATH=${{ secrets.XLABS_MASTER_SSH_PATH_DEV }}" >> $GITHUB_ENV
 
       - name: Download Release binaries
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v3.0.2
         with:
           name: Release binaries
 
       # Set up committer info and GPG key
       - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
+        uses: shimataro/ssh-key-action@v2.5.0
         with:
           key: ${{ secrets.XLABS_MASTER_SSH_PRIVATE_KEY }}
           known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
