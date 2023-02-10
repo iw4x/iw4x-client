@@ -38,9 +38,11 @@ namespace Components
 
 		static Dvar::Var RconPassword;
 		static Dvar::Var RconLogRequests;
+		static Dvar::Var RconTimeout;
 
 		static void AddCommands();
 
+		static bool IsRateLimitCheckDisabled();
 		static bool RateLimitCheck(const Network::Address& address, int time);
 		static void RateLimitCleanup(int time);
 	};

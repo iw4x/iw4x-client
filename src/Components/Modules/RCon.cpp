@@ -15,6 +15,7 @@ namespace Components
 
 	Dvar::Var RCon::RconPassword;
 	Dvar::Var RCon::RconLogRequests;
+	Dvar::Var RCon::RconTimeout;
 
 	void RCon::AddCommands()
 	{
@@ -77,6 +78,16 @@ namespace Components
 		});
 	}
 
+	bool RCon::IsRateLimitCheckDisabled()
+	{
+		static std::optional<bool> flag;
+		if (!flag.has_value())
+		{
+			flag.emplace(Flags::HasFlag("disable-rate-limit-check"));
+		}
+		return flag.value();
+	}
+
 	bool RCon::RateLimitCheck(const Network::Address& address, const int time)
 	{
 		const auto ip = address.getIP();
@@ -88,8 +99,7 @@ namespace Components
 
 		const auto lastTime = RateLimit[ip.full];
 
-		// Only one request every 500ms
-		if (lastTime && (time - lastTime) < 500)
+		if (lastTime && (time - lastTime) < RconTimeout.get<int>())
 		{
 			return false; // Flooding
 		}
@@ -103,7 +113,7 @@ namespace Components
 		for (auto i = RateLimit.begin(); i != RateLimit.end();)
 		{
 			// No longer at risk of flooding, remove
-			if ((time - i->second) > 500)
+			if ((time - i->second) > RconTimeout.get<int>())
 			{
 				i = RateLimit.erase(i);
 			}
@@ -164,13 +174,14 @@ namespace Components
 		Events::OnDvarInit([]
 		{
 			RconPassword =  Dvar::Register<const char*>("rcon_password", "", Game::DVAR_NONE, "The password for rcon");
-			RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::DVAR_NONE, "Print remote commands in the output log");
+			RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::DVAR_NONE, "Print remote commands in log");
+			RconTimeout = Dvar::Register<int>("rcon_timeout", 500, 500, 10000, Game::DVAR_NONE, "");
 		});
 
 		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			const auto time = Game::Sys_Milliseconds();
-			if (!RateLimitCheck(address, time))
+			if (!IsRateLimitCheckDisabled() && !RateLimitCheck(address, time))
 			{
 				return;
 			}
