@@ -175,7 +175,7 @@ namespace Components
 		{
 			RconPassword =  Dvar::Register<const char*>("rcon_password", "", Game::DVAR_NONE, "The password for rcon");
 			RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::DVAR_NONE, "Print remote commands in log");
-			RconTimeout = Dvar::Register<int>("rcon_timeout", 500, 500, 10000, Game::DVAR_NONE, "");
+			RconTimeout = Dvar::Register<int>("rcon_timeout", 500, 100, 10000, Game::DVAR_NONE, "");
 		});
 
 		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
