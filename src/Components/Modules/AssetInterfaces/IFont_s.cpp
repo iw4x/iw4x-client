@@ -4,8 +4,6 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.hpp>
 
-#include <json.hpp>
-
 namespace Assets
 {
 	namespace

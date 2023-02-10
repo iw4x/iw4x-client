@@ -1,8 +1,6 @@
 #include <STDInclude.hpp>
 #include "Bans.hpp"
 
-#include <json.hpp>
-
 namespace Components
 {
 	const char* Bans::BanListFile = "userraw/bans.json";

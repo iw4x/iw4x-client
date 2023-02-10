@@ -1,8 +1,6 @@
 #include <STDInclude.hpp>
 #include "StructuredData.hpp"
 
-#include <json.hpp>
-
 namespace Components
 {
 	Utils::Memory::Allocator StructuredData::MemAllocator;

@@ -5,8 +5,6 @@
 
 #include "GSC/Script.hpp"
 
-#include <json.hpp>
-
 namespace Components
 {
 	Dvar::Var Chat::cg_chatWidth;

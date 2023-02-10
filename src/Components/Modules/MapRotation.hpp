@@ -9,6 +9,8 @@ namespace Components
 
 		static bool Contains(const std::string& key, const std::string& value);
 
+		static nlohmann::json to_json();
+
 		bool unitTest() override;
 
 	private:
@@ -38,6 +40,8 @@ namespace Components
 
 			[[nodiscard]] bool empty() const noexcept;
 			[[nodiscard]] bool contains(const std::string& key, const std::string& value) const;
+
+			[[nodiscard]] nlohmann::json to_json() const;
 
 		private:
 			std::vector<rotationEntry> rotationEntries_;
