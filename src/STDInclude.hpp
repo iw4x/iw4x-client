@@ -109,6 +109,7 @@ using namespace std::literals;
 #define AssertUnreachable assert(0 && "unreachable")
 
 #include <gsl/gsl>
+#include <json.hpp>
 #include <tomcrypt.h>
 
 #pragma warning(pop)

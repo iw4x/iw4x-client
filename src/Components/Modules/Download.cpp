@@ -3,6 +3,7 @@
 #include <Utils/WebIO.hpp>
 
 #include "Download.hpp"
+#include "MapRotation.hpp"
 #include "Party.hpp"
 #include "ServerInfo.hpp"
 
@@ -348,10 +349,6 @@ namespace Components
 		}
 	}
 
-#pragma endregion
-
-#pragma region Server
-	
 	void Download::DownloadProgress(FileDownload* fDownload, std::size_t bytes)
 	{
 		fDownload->receivedBytes += bytes;
@@ -415,6 +412,10 @@ namespace Components
 		}
 	}
 
+#pragma endregion
+
+#pragma region Server
+
 	static std::string InfoHandler()
 	{
 		const auto status = ServerInfo::GetInfo();
@@ -423,6 +424,7 @@ namespace Components
 		std::unordered_map<std::string, nlohmann::json> info;
 		info["status"] = status.to_json();
 		info["host"] = host.to_json();
+		info["map_rotation"] = MapRotation::to_json();
 
 		std::vector<nlohmann::json> players;
 
