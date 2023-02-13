@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
 #include "Bots.hpp"
+#include "ServerList.hpp"
 
 #include "GSC/Script.hpp"
 
@@ -11,7 +14,7 @@ namespace Components
 {
 	std::vector<Bots::botData> Bots::BotNames;
 
-	Dvar::Var Bots::SVRandomBotNames;
+	Dvar::Var Bots::SVClanName;
 
 	struct BotMovementInfo
 	{
@@ -49,72 +52,112 @@ namespace Components
 		{ "activate", Game::CMD_BUTTON_ACTIVATE },
 	};
 
+	void Bots::RandomizeBotNames()
+	{
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::ranges::shuffle(BotNames, gen);
+	}
+
+	void Bots::UpdateBotNames()
+	{
+		const auto masterPort = (*Game::com_masterPort)->current.integer;
+		const auto* masterServerName = (*Game::com_masterServerName)->current.string;
+
+		Game::netadr_t master;
+		if (ServerList::GetMasterServer(masterServerName, masterPort, master))
+		{
+			Logger::Print("Getting bots...\n");
+			Network::Send(master, "getbots");
+		}
+	}
+
+	void Bots::LoadBotNames()
+	{
+		FileSystem::File bots("bots.txt");
+
+		if (!bots.exists())
+		{
+			return;
+		}
+
+		auto data = Utils::String::Split(bots.getBuffer(), '\n');
+
+		auto i = 0;
+		for (auto& entry : data)
+		{
+			if (i >= 18)
+			{
+				// Only parse 18 names from the file
+				break;
+			}
+
+			// Take into account for CR line endings
+			Utils::String::Replace(entry, "\r", "");
+			// Remove whitespace
+			Utils::String::Trim(entry);
+
+			if (entry.empty())
+			{
+				continue;
+			}
+
+			std::string clanAbbrev;
+
+			// Check if there is a clan tag
+			if (const auto pos = entry.find(','); pos != std::string::npos)
+			{
+				// Only start copying over from non-null characters (otherwise it can be "<=")
+				if ((pos + 1) < entry.size())
+				{
+					clanAbbrev = entry.substr(pos + 1);
+				}
+
+				entry = entry.substr(0, pos);
+			}
+
+			BotNames.emplace_back(std::make_pair(entry, clanAbbrev));
+			++i;
+		}
+
+		if (i)
+		{
+			RandomizeBotNames();
+		}
+	}
+
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
 		static size_t botId = 0; // Loop over the BotNames vector
 		static bool loadedNames = false; // Load file only once
-		const char* botName;
-		const char* clanName;
+		std::string botName;
+		std::string clanName;
 
-		if (BotNames.empty() && !loadedNames)
+		if (!loadedNames)
 		{
-			FileSystem::File bots("bots.txt");
 			loadedNames = true;
-
-			if (bots.exists())
-			{
-				auto data = Utils::String::Split(bots.getBuffer(), '\n');
-
-				if (SVRandomBotNames.get<bool>())
-				{
-					std::random_device rd;
-					std::mt19937 gen(rd());
-					std::ranges::shuffle(data, gen);
-				}
-
-				for (auto& entry : data)
-				{
-					// Take into account for CR line endings
-					Utils::String::Replace(entry, "\r", "");
-					// Remove whitespace
-					Utils::String::Trim(entry);
-
-					if (!entry.empty())
-					{
-						std::string clanAbbrev;
-
-						// Check if there is a clan tag
-						if (const auto pos = entry.find(','); pos != std::string::npos)
-						{
-							// Only start copying over from non-null characters (otherwise it can be "<=")
-							if ((pos + 1) < entry.size())
-							{
-								clanAbbrev = entry.substr(pos + 1);
-							}
-
-							entry = entry.substr(0, pos);
-						}
-
-						BotNames.emplace_back(std::make_pair(entry, clanAbbrev));
-					}
-				}
-			}
+			LoadBotNames();
 		}
 
 		if (!BotNames.empty())
 		{
 			botId %= BotNames.size();
 			const auto index = botId++;
-			botName = BotNames[index].first.data();
-			clanName = BotNames[index].second.data();
+			botName = BotNames[index].first;
+			clanName = BotNames[index].second;
 		}
 		else
 		{
-			botName = Utils::String::VA("bot%d", ++botId);
-			clanName = "BOT";
+			botName = std::format("bot{}", ++botId);
+			clanName = "BOT"s;
 		}
 
-		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName, clanName, protocol, checksum, statVer, statStuff, port);
+		if (const auto svClanName = SVClanName.get<std::string>(); !svClanName.empty())
+		{
+			clanName = svClanName;
+		}
+
+		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName.data(), clanName.data(), protocol, checksum, statVer, statStuff, port);
 	}
 
 	void Bots::Spawn(unsigned int count)
@@ -352,7 +395,30 @@ namespace Components
 
 		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
 
-		SVRandomBotNames = Dvar::Register<bool>("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
+		Events::OnDvarInit([]
+		{
+			SVClanName = Dvar::Register<const char*>("sv_clanName", "", Game::DVAR_NONE, "The clan name for test clients");
+		});
+
+		Scheduler::OnGameInitialized(UpdateBotNames, Scheduler::Pipeline::MAIN);
+
+		Network::OnClientPacket("getbotsResponse", [](const Network::Address& address, const std::string& data)
+		{
+			const auto masterPort = (*Game::com_masterPort)->current.integer;
+			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
+
+			Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
+			if (master == address)
+			{
+				auto botNames = Utils::String::Split(data, '\n');
+				for (const auto& entry : botNames)
+				{
+					BotNames.emplace_back(std::make_pair(entry, "BOT"));
+				}
+
+				RandomizeBotNames();
+			}
+		});
 
 		// Reset BotMovementInfo.active when client is dropped
 		Events::OnClientDisconnect([](const int clientNum)

@@ -272,7 +272,7 @@ namespace Game
 	typedef bool(*NET_CompareAdr_t)(netadr_t a, netadr_t b);
 	extern NET_CompareAdr_t NET_CompareAdr;
 
-	typedef void(*NET_DeferPacketToClient_t)(netadr_t *, msg_t *);
+	typedef void(*NET_DeferPacketToClient_t)(netadr_t*, msg_t*);
 	extern NET_DeferPacketToClient_t NET_DeferPacketToClient;
 
 	typedef const char* (*NET_ErrorString_t)();
@@ -284,19 +284,19 @@ namespace Game
 	typedef bool(*NET_IsLocalAddress_t)(netadr_t adr);
 	extern NET_IsLocalAddress_t NET_IsLocalAddress;
 
-	typedef int(*NET_StringToAdr_t)(const char *s, netadr_t *a);
+	typedef int(*NET_StringToAdr_t)(const char* s, netadr_t* a);
 	extern NET_StringToAdr_t NET_StringToAdr;
 
-	typedef void(*NET_OutOfBandPrint_t)(netsrc_t sock, netadr_t adr, const char *data);
+	typedef void(*NET_OutOfBandPrint_t)(netsrc_t sock, netadr_t adr, const char* data);
 	extern NET_OutOfBandPrint_t NET_OutOfBandPrint;
 
-	typedef void(*NET_OutOfBandData_t)(netsrc_t sock, netadr_t adr, const char *format, int len);
+	typedef void(*NET_OutOfBandData_t)(netsrc_t sock, netadr_t adr, const char* format, int len);
 	extern NET_OutOfBandData_t NET_OutOfBandData;
 
 	typedef int(*NET_OutOfBandVoiceData_t)(netsrc_t sock, netadr_t adr, unsigned char* format, int len, bool voiceData);
 	extern NET_OutOfBandVoiceData_t NET_OutOfBandVoiceData;
 
-	typedef void(*Live_MPAcceptInvite_t)(_XSESSION_INFO *hostInfo, const int controllerIndex, bool fromGameInvite);
+	typedef void(*Live_MPAcceptInvite_t)(_XSESSION_INFO *hostInfo, int controllerIndex, bool fromGameInvite);
 	extern Live_MPAcceptInvite_t Live_MPAcceptInvite;
 
 	typedef int(*Live_GetMapIndex_t)(const char* mapname);

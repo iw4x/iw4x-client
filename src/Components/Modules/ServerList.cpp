@@ -299,8 +299,8 @@ namespace Components
 		}
 		else if (IsOnlineList())
 		{
-			const auto masterPort = Dvar::Var("masterPort").get<int>();
-			const auto masterServerName = Dvar::Var("masterServerName").get<const char*>();
+			const auto masterPort = (*Game::com_masterPort)->current.integer;
+			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
 
 			// Check if our dvars can properly convert to a address
 			Game::netadr_t masterServerAddr;

@@ -37,6 +37,8 @@ namespace Game
 	const dvar_t** com_timescale = reinterpret_cast<const dvar_t**>(0x1AD7920);
 	const dvar_t** com_maxFrameTime = reinterpret_cast<const dvar_t**>(0x1AD78F4);
 	const dvar_t** com_sv_running = reinterpret_cast<const dvar_t**>(0x1AD7934);
+	const dvar_t** com_masterServerName = reinterpret_cast<const dvar_t**>(0x1AD8F48);
+	const dvar_t** com_masterPort = reinterpret_cast<const dvar_t**>(0x1AD8F30);
 
 	const dvar_t** dev_timescale = reinterpret_cast<const dvar_t**>(0x1AD8F20);
 
