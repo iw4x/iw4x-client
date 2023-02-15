@@ -18,32 +18,7 @@ namespace Assets
 
 	void IMaterialVertexDeclaration::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File declFile(std::format("decl/{}.iw4xDECL", name));
-		if (!declFile.exists()) return;
-
-		Utils::Stream::Reader reader(builder->getAllocator(), declFile.getBuffer());
-
-		char* magic = reader.readArray<char>(8);
-		if (std::memcmp(magic, "IW4xDECL", 8))
-		{
-			Components::Logger::Error(Game::ERR_FATAL, "Reading vertex declaration '{}' failed, header is invalid!", name);
-		}
-
-		auto version = reader.read<char>();
-		if (version != IW4X_TECHSET_VERSION)
-		{
-			Components::Logger::Error(Game::ERR_FATAL, "Reading vertex declaration '{}' failed, expected version is {}, but it was {:d}!",
-				name, IW4X_TECHSET_VERSION, version);
-		}
-
-		Game::MaterialVertexDeclaration* asset = reader.readObject<Game::MaterialVertexDeclaration>();
-
-		if (asset->name)
-		{
-			asset->name = reader.readCString();
-		}
-
-		header->vertexDecl = asset;
+		header->vertexDecl = builder->getIW4OfApi()->read<Game::MaterialVertexDeclaration>(Game::XAssetType::ASSET_TYPE_VERTEXDECL, name);
 	}
 
 	void IMaterialVertexDeclaration::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)

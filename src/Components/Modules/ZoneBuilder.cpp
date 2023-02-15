@@ -19,8 +19,6 @@ namespace Components
 	volatile bool ZoneBuilder::CommandThreadTerminate = false;
 	std::thread ZoneBuilder::CommandThread;
 
-	Dvar::Var ZoneBuilder::ZBPreferDiskAssets;
-
 	ZoneBuilder::Zone::Zone(const std::string& name) : indexStart(0), externalSize(0),
 		// Reserve 100MB by default.
 		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
@@ -28,8 +26,12 @@ namespace Components
 		// Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
 		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
 		buffer(0xC800000),
-		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{nullptr}, assetDepth(0)
+		zoneName(name),
+		dataMap("zone_source/" + name + ".csv"),
+		branding{nullptr},
+		assetDepth(0)
 	{
+		this->initializeIW4OfApi();
 	}
 
 	ZoneBuilder::Zone::~Zone()
@@ -96,6 +98,11 @@ namespace Components
 	Utils::Memory::Allocator* ZoneBuilder::Zone::getAllocator()
 	{
 		return &this->memAllocator;
+	}
+
+	iw4of::api* ZoneBuilder::Zone::getIW4OfApi()
+	{
+		return &iw4ofApi;
 	}
 
 	void ZoneBuilder::Zone::Zone::build()
@@ -748,6 +755,49 @@ namespace Components
 		}
 
 		return header;
+	}
+
+	void ZoneBuilder::Zone::initializeIW4OfApi()
+	{
+		iw4of::params_t params;
+
+		params.find_other_asset = [this](int type, const std::string& name) -> void*
+		{
+			return AssetHandler::FindAssetForZone(static_cast<Game::XAssetType>(type), name, this).data;
+		};
+
+		params.fs_read_file = [](const std::string& filename) -> std::string
+		{
+			auto file = FileSystem::File(filename);
+			if (file.exists())
+			{
+				return file.getBuffer();
+			}
+
+			return {};
+		};
+
+		params.store_in_string_table = [](const std::string& text) -> unsigned int
+		{
+			return Game::SL_GetString(text.data(), 0);
+		};
+
+		params.print = [](iw4of::params_t::print_type t, const std::string& message) -> void
+		{
+			switch (t)
+			{
+			case iw4of::params_t::P_ERR:
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}", message);
+				break;
+			case iw4of::params_t::P_WARN:
+				Logger::Print("{}", message);
+				break;
+			}
+		};
+
+		params.work_directory = (*Game::fs_basepath)->current.string;
+
+		this->iw4ofApi = iw4of::api{ params };
 	}
 
 	int ZoneBuilder::StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image)
@@ -1590,9 +1640,6 @@ namespace Components
 				Logger::Print("{}\n", nlohmann::json(images).dump());
 				Logger::Print("------------------- END IWI DUMP -------------------\n");
 			});
-
-			// True by default, but can be put to zero for backward compatibility if needed
-			ZoneBuilder::ZBPreferDiskAssets = Dvar::Register<bool>("zb_prefer_disk_assets", true, Game::DVAR_NONE, "Should ZoneBuilder prefer in-memory assets (requirements) or disk assets when both are present?");
 		}
 	}
 

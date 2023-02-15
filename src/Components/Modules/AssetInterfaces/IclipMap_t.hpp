@@ -10,6 +10,7 @@ namespace Assets
 		void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
+		static void dump(Game::XAssetHeader /*header*/);
 
 	private:
 		class SModelQuadtree

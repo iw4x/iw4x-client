@@ -7,9 +7,9 @@ namespace Assets
 	{
 		AssertSize(Game::SndCurve, 136);
 
-		Utils::Stream* buffer = builder->getBuffer();
-		Game::SndCurve* asset = header.sndCurve;
-		Game::SndCurve* dest = buffer->dest<Game::SndCurve>();
+		auto* buffer = builder->getBuffer();
+		auto* asset = header.sndCurve;
+		auto* dest = buffer->dest<Game::SndCurve>();
 		buffer->save(asset);
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
@@ -21,5 +21,10 @@ namespace Assets
 		}
 
 		buffer->popBlock();
+	}
+
+	void ISndCurve::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+	{
+		header->sndCurve = builder->getIW4OfApi()->read<Game::SndCurve>(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, name);
 	}
 }

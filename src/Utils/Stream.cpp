@@ -31,12 +31,11 @@ namespace Utils
 
 	void* Stream::Reader::read(size_t size, std::size_t count)
 	{
-		size_t bytes = size * count;
+		auto bytes = size * count;
 
 		if ((this->position_ + bytes) <= this->buffer_.size())
 		{
-			void* buffer = this->allocator_->allocate(bytes);
-
+			auto* buffer = this->allocator_->allocate(bytes);
 			std::memcpy(buffer, this->buffer_.data() + this->position_, bytes);
 			this->position_ += bytes;
 
@@ -84,7 +83,7 @@ namespace Utils
 
 	bool Stream::Reader::hasPointer(void* pointer) const
 	{
-		return this->pointerMap_.find(pointer) != this->pointerMap_.end();
+		return this->pointerMap_.contains(pointer);
 	}
 
 	Stream::Stream() : ptrAssertion(false), criticalSectionState(0)
@@ -159,7 +158,7 @@ namespace Utils
 			return this->at();
 		}
 
-		auto data = this->data();
+		auto* data = this->data();
 
 		if (this->isCriticalSection() && this->length() + (size * count) > this->capacity())
 		{

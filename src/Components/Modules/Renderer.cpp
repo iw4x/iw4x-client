@@ -159,10 +159,11 @@ namespace Components
 
 			// show error
 			pushad
+			push eax
 			push ebx
 			push edx
 			call R_TextureFromCodeError
-			add esp, 8
+			add esp, 0xC
 			popad
 
 			// go back

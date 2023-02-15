@@ -7,38 +7,7 @@ namespace Assets
 {
 	void IRawFile::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File rawFile(name);
-
-		if (!rawFile.exists())
-		{
-			return;
-		}
-
-		auto* asset = builder->getAllocator()->allocate<Game::RawFile>();
-		if (!asset)
-		{
-			return;
-		}
-
-		asset->name = builder->getAllocator()->duplicateString(name);
-		asset->len = static_cast<int>(rawFile.getBuffer().size());
-
-		const auto compressedData = Utils::Compression::ZLib::Compress(rawFile.getBuffer());
-		// Only save the compressed buffer if we gained space
-		if (compressedData.size() < rawFile.getBuffer().size())
-		{
-			asset->buffer = builder->getAllocator()->allocateArray<char>(compressedData.size());
-			std::memcpy(const_cast<char*>(asset->buffer), compressedData.data(), compressedData.size());
-			asset->compressedLen = static_cast<int>(compressedData.size());
-		}
-		else
-		{
-			asset->buffer = builder->getAllocator()->allocateArray<char>(rawFile.getBuffer().size() + 1);
-			std::memcpy(const_cast<char*>(asset->buffer), rawFile.getBuffer().data(), rawFile.getBuffer().size());
-			asset->compressedLen = 0;
-		}
-
-		header->rawfile = asset;
+		header->rawfile = builder->getIW4OfApi()->read<Game::RawFile>(Game::XAssetType::ASSET_TYPE_RAWFILE, name);
 	}
 
 	void IRawFile::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)

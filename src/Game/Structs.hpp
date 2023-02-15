@@ -882,8 +882,8 @@ namespace Game
 	{
 		float normal[3];
 		float dist;
-		char type;
-		char pad[3];
+		unsigned char type;
+		unsigned char pad[3];
 	};
 
 	struct cbrushside_t
@@ -896,13 +896,13 @@ namespace Game
 
 	struct cbrush_t
 	{
-		unsigned __int16 numsides;
-		unsigned __int16 glassPieceIndex;
+		unsigned short numsides;
+		unsigned short glassPieceIndex;
 		cbrushside_t* sides;
-		char* baseAdjacentSide;
-		__int16 axialMaterialNum[2][3];
-		char firstAdjacentSideOffsets[2][3];
-		char edgeCount[2][3];
+		unsigned char* baseAdjacentSide;
+		unsigned short axialMaterialNum[2][3];
+		unsigned char firstAdjacentSideOffsets[2][3];
+		unsigned char edgeCount[2][3];
 	};
 
 	struct BrushWrapper
@@ -2614,6 +2614,13 @@ namespace Game
 		SASYS_COUNT = 0x3,
 	};
 
+	struct SoundFile
+	{
+		char type;
+		char exists;
+		SoundFileRef u;
+	};
+
 	struct MSSSpeakerLevels
 	{
 		int speaker;
@@ -2634,11 +2641,24 @@ namespace Game
 		MSSChannelMap channelMaps[2][2];
 	};
 
-	struct SoundFile
+	union SoundAliasFlags
 	{
-		char type;
-		char exists;
-		SoundFileRef u;
+#pragma warning(push)
+#pragma warning(disable: 4201)
+		struct
+		{
+			unsigned int looping : 1;		// & 1	/ 0x1			/ 0000 0000 0000 0001
+			unsigned int isMaster : 1;		// & 2	/ 0x2			/ 0000 0000 0000 0010
+			unsigned int isSlave : 1;		// & 4	/ 0x4			/ 0000 0000 0000 0100
+			unsigned int fullDryLevel : 1;	//	& 8	/ 0x8			/ 0000 0000 0000 1000
+			unsigned int noWetLevel : 1;	// & 16	/ 0x10			/ 0000 0000 0001 0000
+			unsigned int unknown : 1;		// & 32	/ 0x20			/ 0000 0000 0010 0000
+			unsigned int unk_is3D : 1;		// & 64	/ 0x40			/ 0000 0000 0100 0000		// CONFIRMED IW4 IW5
+			unsigned int type : 2;			// & 384	/ 0x180		/ 0000 0001 1000 0000		// CONFIRMED IW4 IW5
+			unsigned int channel : 6;		// & 32256	/ 0x7E00	/ 0111 1110 0000 0000		// CONFIRMED IW4 IW5
+		};
+#pragma warning(pop)
+		unsigned int intValue;
 	};
 
 	struct SndCurve
@@ -2664,7 +2684,7 @@ namespace Game
 		float distMin;
 		float distMax;
 		float velocityMin;
-		int flags;
+		SoundAliasFlags flags;
 		union
 		{
 			float slavePercentage;
@@ -2817,7 +2837,7 @@ namespace Game
 
 	struct cLeafBrushNode_s
 	{
-		char axis;
+		unsigned char axis;
 		__int16 leafBrushCount;
 		int contents;
 		cLeafBrushNodeData_t data;
@@ -2834,9 +2854,9 @@ namespace Game
 
 	struct CollisionPartition
 	{
-		char triCount;
-		char borderCount;
-		char firstVertSegment;
+		unsigned char triCount;
+		unsigned char borderCount;
+		unsigned char firstVertSegment;
 		int firstTri;
 		CollisionBorder* borders;
 	};
@@ -3173,7 +3193,7 @@ namespace Game
 	{
 		const char* name;
 		int isInUse;
-		int planeCount;
+		unsigned int planeCount;
 		cplane_s* planes;
 		unsigned int numStaticModels;
 		cStaticModel_s* staticModelList;
@@ -3182,7 +3202,7 @@ namespace Game
 		unsigned int numBrushSides;
 		cbrushside_t* brushsides;
 		unsigned int numBrushEdges;
-		char* brushEdges;
+		unsigned char* brushEdges;
 		unsigned int numNodes;
 		cNode_t* nodes;
 		unsigned int numLeafs;
@@ -3194,15 +3214,15 @@ namespace Game
 		unsigned int numLeafSurfaces;
 		unsigned int* leafsurfaces;
 		unsigned int vertCount;
-		float(*verts)[3];
-		int triCount;
+		vec3_t* verts;
+		unsigned int triCount;
 		unsigned __int16* triIndices;
-		char* triEdgeIsWalkable;
-		int borderCount;
+		unsigned char* triEdgeIsWalkable;
+		unsigned int borderCount;
 		CollisionBorder* borders;
 		int partitionCount;
 		CollisionPartition* partitions;
-		int aabbTreeCount;
+		unsigned int aabbTreeCount;
 		CollisionAabbTree* aabbTrees;
 		unsigned int numSubModels;
 		cmodel_t* cmodels;
@@ -3574,9 +3594,9 @@ namespace Game
 		float texCoordOrigin[2];
 		unsigned int supportMask;
 		float areaX2;
-		char defIndex;
-		char vertCount;
-		char fanDataCount;
+		unsigned char defIndex;
+		unsigned char vertCount;
+		unsigned char fanDataCount;
 		char pad[1];
 	};
 

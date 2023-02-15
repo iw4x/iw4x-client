@@ -1,5 +1,7 @@
 #pragma once
 
+#include <api.hpp>
+
 #define XFILE_MAGIC_UNSIGNED 0x3030317566665749
 #define XFILE_VERSION 276
 
@@ -38,6 +40,7 @@ namespace Components
 
 			Utils::Stream* getBuffer();
 			Utils::Memory::Allocator* getAllocator();
+			iw4of::api* getIW4OfApi();
 
 			bool hasPointer(const void* pointer);
 			void storePointer(const void* pointer);
@@ -87,11 +90,14 @@ namespace Components
 
 			void addBranding();
 
+			void initializeIW4OfApi();
+
 			uint32_t safeGetPointer(const void* pointer);
 
 			int indexStart;
 			unsigned int externalSize;
 			Utils::Stream buffer;
+			iw4of::api iw4ofApi;
 
 			std::string zoneName;
 			Utils::CSV dataMap;
@@ -131,7 +137,6 @@ namespace Components
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
 
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
-		static Dvar::Var ZBPreferDiskAssets;
 
 	private:
 		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
