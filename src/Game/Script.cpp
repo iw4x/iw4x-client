@@ -4,6 +4,7 @@ namespace Game
 {
 	AddRefToObject_t AddRefToObject = AddRefToObject_t(0x61C360);
 	RemoveRefToObject_t RemoveRefToObject = RemoveRefToObject_t(0x437190);
+	RemoveRefToValue_t RemoveRefToValue = RemoveRefToValue_t(0x48E170);
 	AllocObject_t AllocObject = AllocObject_t(0x434320);
 	AddRefToValue_t AddRefToValue = AddRefToValue_t(0x482740);
 	FindVariable_t FindVariable = FindVariable_t(0x4AB650);

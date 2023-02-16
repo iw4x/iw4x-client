@@ -8,6 +8,9 @@ namespace Game
 	typedef void(*RemoveRefToObject_t)(unsigned int id);
 	extern RemoveRefToObject_t RemoveRefToObject;
 
+	typedef void(*RemoveRefToValue_t)(int type, VariableUnion u);
+	extern RemoveRefToValue_t RemoveRefToValue;
+
 	typedef unsigned int(*AllocObject_t)();
 	extern AllocObject_t AllocObject;
 

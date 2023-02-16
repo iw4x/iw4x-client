@@ -560,23 +560,27 @@ namespace Components
 
 	int Chat::ChatCallback(Game::gentity_s* self, const char* codePos, const char* message, int mode)
 	{
-		const auto entityId = Game::Scr_GetEntityId(self - Game::g_entities, 0);
+		constexpr auto paramcount = 2;
 
 		Scripting::StackIsolation _;
 		Game::Scr_AddInt(mode);
 		Game::Scr_AddString(message);
 
-		Game::VariableValue value;
-		value.type = Game::VAR_OBJECT;
-		value.u.uintValue = entityId;
+		const auto objId = Game::Scr_GetEntityId(self - Game::g_entities, 0);
+		Game::AddRefToObject(objId);
+		const auto id = Game::VM_Execute_0(Game::AllocThread(objId), codePos, paramcount);
 
-		Game::AddRefToValue(value.type, value.u);
-		const auto localId = Game::AllocThread(entityId);
+		const auto result = GetCallbackReturn();
 
-		const auto result = Game::VM_Execute_0(localId, codePos, 2);
-		Game::RemoveRefToObject(result);
+		Game::RemoveRefToValue(Game::scrVmPub->top->type, Game::scrVmPub->top->u);
 
-		return GetCallbackReturn();
+		Game::scrVmPub->top->type = Game::VAR_UNDEFINED;
+		--Game::scrVmPub->top;
+		--Game::scrVmPub->inparamcount;
+
+		Game::Scr_FreeThread(static_cast<std::uint16_t>(id));
+
+		return result;
 	}
 
 	void Chat::AddScriptFunctions()
