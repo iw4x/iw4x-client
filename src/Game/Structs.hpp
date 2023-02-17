@@ -7801,6 +7801,13 @@ namespace Game
 		R_RENDERTARGET_NONE = 0xD,
 	};
 
+	struct GfxDrawPrimArgs
+	{
+		int vertexCount;
+		int triCount;
+		int baseIndex;
+	};
+
 	struct GfxCmdBufState
 	{
 		char refSamplerState[16];

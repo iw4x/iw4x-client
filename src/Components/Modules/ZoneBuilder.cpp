@@ -29,9 +29,9 @@ namespace Components
 		zoneName(name),
 		dataMap("zone_source/" + name + ".csv"),
 		branding{nullptr},
-		assetDepth(0)
+		assetDepth(0),
+		iw4ofApi(getIW4OfApiParams())
 	{
-		this->initializeIW4OfApi();
 	}
 
 	ZoneBuilder::Zone::~Zone()
@@ -535,18 +535,21 @@ namespace Components
 	// Add branding asset
 	void ZoneBuilder::Zone::addBranding()
 	{
-		constexpr auto* data = "Built using the IW4x Zone:B:uilder Version 4";
-		auto dataLen = std::strlen(data); // + 1 is added by the save code
+		static std::string zoneBranding;
 
-		this->branding = {this->zoneName.data(), 0, static_cast<int>(dataLen), data};
+		const auto now = std::chrono::system_clock::now();
+		zoneBranding = std::format("Built using the IW4x ZoneBuilder! {:%d-%m-%Y %H:%M:%OS}", now);
+		auto brandingLen = zoneBranding.size(); // + 1 is added by the save code
 
-		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
+		this->branding = {this->zoneName.data(), 0, static_cast<int>(brandingLen), zoneBranding.data()};
+
+		if (this->findAsset(Game::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
 		{
 			Logger::Error(Game::ERR_FATAL, "Unable to add branding. Asset '{}' already exists!", this->branding.name);
 		}
 
 		Game::XAssetHeader header = { &this->branding };
-		Game::XAsset brandingAsset = { Game::XAssetType::ASSET_TYPE_RAWFILE, header };
+		Game::XAsset brandingAsset = { Game::ASSET_TYPE_RAWFILE, header };
 		this->loadedAssets.push_back(brandingAsset);
 	}
 
@@ -757,7 +760,7 @@ namespace Components
 		return header;
 	}
 
-	void ZoneBuilder::Zone::initializeIW4OfApi()
+	iw4of::params_t ZoneBuilder::Zone::getIW4OfApiParams()
 	{
 		iw4of::params_t params;
 
@@ -787,7 +790,7 @@ namespace Components
 			switch (t)
 			{
 			case iw4of::params_t::P_ERR:
-				Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}", message);
+				Logger::Error(Game::ERR_FATAL, "{}", message);
 				break;
 			case iw4of::params_t::P_WARN:
 				Logger::Print("{}", message);
@@ -795,9 +798,16 @@ namespace Components
 			}
 		};
 
-		params.work_directory = (*Game::fs_basepath)->current.string;
+		if (*Game::fs_basepath && *Game::fs_gameDirVar)
+		{
+			params.work_directory = std::format("{}/{}", (*Game::fs_basepath)->current.string, (*Game::fs_gameDirVar)->current.string);
+		}
+		else
+		{
+			Logger::Error(Game::ERR_FATAL, "Missing FS Game directory or basepath directory!");
+		}
 
-		this->iw4ofApi = iw4of::api{ params };
+		return params;
 	}
 
 	int ZoneBuilder::StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image)

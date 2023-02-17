@@ -90,7 +90,7 @@ namespace Components
 
 			void addBranding();
 
-			void initializeIW4OfApi();
+			iw4of::params_t getIW4OfApiParams();
 
 			uint32_t safeGetPointer(const void* pointer);
 

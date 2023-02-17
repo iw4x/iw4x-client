@@ -572,7 +572,7 @@ namespace Assets
 			}
 		}
 
-		builder->loadAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset);
+		builder->loadAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, asset->mapEnts);
 	}
 
 	void IclipMap_t::load(Game::XAssetHeader* header, const std::string& _name, Components::ZoneBuilder::Zone* builder)
