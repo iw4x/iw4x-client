@@ -25,27 +25,25 @@ namespace Assets
 		header->techniqueSet = builder->getIW4OfApi()->read<Game::MaterialTechniqueSet>(Game::ASSET_TYPE_TECHNIQUE_SET, name);
 
 		auto ptr = header->techniqueSet;
-		if (!ptr)
+		if (ptr)
 		{
-			return;
-		}
-
-		while (ptr->remappedTechniqueSet && ptr->remappedTechniqueSet != ptr)
-		{
-			ptr = ptr->remappedTechniqueSet;
-			builder->loadAsset(Game::ASSET_TYPE_TECHNIQUE_SET, ptr, false);
-
-			for (size_t i = 0; i < Game::TECHNIQUE_COUNT; i++)
+			while (ptr->remappedTechniqueSet && ptr->remappedTechniqueSet != ptr)
 			{
-				const auto technique = ptr->techniques[i];
-				if (technique)
+				ptr = ptr->remappedTechniqueSet;
+				builder->loadAsset(Game::ASSET_TYPE_TECHNIQUE_SET, ptr, false);
+
+				for (size_t i = 0; i < Game::TECHNIQUE_COUNT; i++)
 				{
-					for (size_t j = 0; j < technique->passCount; j++)
+					const auto technique = ptr->techniques[i];
+					if (technique)
 					{
-						const auto pass = &technique->passArray[j];
-						builder->loadAsset(Game::ASSET_TYPE_VERTEXDECL, pass->vertexDecl, true);
-						builder->loadAsset(Game::ASSET_TYPE_PIXELSHADER, pass->pixelShader, true);
-						builder->loadAsset(Game::ASSET_TYPE_VERTEXSHADER, pass->vertexShader, true);
+						for (size_t j = 0; j < technique->passCount; j++)
+						{
+							const auto pass = &technique->passArray[j];
+							builder->loadAsset(Game::ASSET_TYPE_VERTEXDECL, pass->vertexDecl, true);
+							builder->loadAsset(Game::ASSET_TYPE_PIXELSHADER, pass->pixelShader, true);
+							builder->loadAsset(Game::ASSET_TYPE_VERTEXSHADER, pass->vertexShader, true);
+						}
 					}
 				}
 			}
