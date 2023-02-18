@@ -800,7 +800,7 @@ namespace Components
 			}, Scheduler::Pipeline::CLIENT, 10s);
 		});
 
-		if(Dedicated::IsEnabled())
+		if (Dedicated::IsEnabled())
 		{
 			Utils::Hook(0x4A7251, Maps::LoadNewMapCommand, HOOK_CALL).install()->quick();
 		}
