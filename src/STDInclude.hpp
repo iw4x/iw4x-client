@@ -16,16 +16,13 @@
 #include <ShlObj.h>
 #include <timeapi.h>
 #include <shellapi.h>
-#include <WinInet.h>
+#include <wininet.h>
 #include <d3d9.h>
 #include <AclAPI.h>
 #include <Psapi.h>
 #include <TlHelp32.h>
 #include <Shlwapi.h>
 
-#pragma warning(push)
-#pragma warning(disable: 4091)
-#pragma warning(disable: 4244)
 #include <DbgHelp.h>
 
 #include <algorithm>
@@ -51,8 +48,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#pragma warning(pop)
-
 #include <d3dx9tex.h>
 #pragma comment(lib, "D3dx9.lib")
 
@@ -64,21 +59,7 @@
 
 // Ignore the warnings
 #pragma warning(push)
-#pragma warning(disable: 4005)
-#pragma warning(disable: 4091)
 #pragma warning(disable: 4100)
-#pragma warning(disable: 4244)
-#pragma warning(disable: 4389)
-#pragma warning(disable: 4702)
-#pragma warning(disable: 4800)
-#pragma warning(disable: 5054)
-#pragma warning(disable: 6001)
-#pragma warning(disable: 6011)
-#pragma warning(disable: 6031)
-#pragma warning(disable: 6255)
-#pragma warning(disable: 6258)
-#pragma warning(disable: 6386)
-#pragma warning(disable: 6387)
 #pragma warning(disable: 26812)
 
 // Enable additional literals
