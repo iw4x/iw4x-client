@@ -3,7 +3,7 @@ discordrpc = {
 }
 
 function discordrpc.import()
-	links { "discord-rpc" }
+	links "discord-rpc"
 	discordrpc.includes()
 end
 
