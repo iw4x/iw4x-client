@@ -6482,6 +6482,14 @@ namespace Game
 
 	static_assert(sizeof(sval_u) == 0x4);
 
+	struct stype_t
+	{
+		sval_u val;
+		unsigned int pos;
+	};
+
+	static_assert(sizeof(stype_t) == 0x8);
+
 	struct scr_const_t
 	{
 		scr_string_t _;
