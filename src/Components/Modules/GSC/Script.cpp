@@ -55,10 +55,14 @@ namespace Components
 			const auto* scriptFile = files[i];
 			Logger::Print("Loading script {}...\n", scriptFile);
 
-			sprintf_s(path, "%s/%s", "scripts", scriptFile);
+			const auto len = sprintf_s(path, "%s/%s", "scripts", scriptFile);
+			if (len == -1)
+			{
+				continue;
+			}
 
 			// Scr_LoadScriptInternal will add the '.gsc' suffix so we remove it
-			path[std::strlen(path) - 4] = '\0';
+			path[len - 4] = '\0';
 
 			if (!Game::Scr_LoadScript(path))
 			{
