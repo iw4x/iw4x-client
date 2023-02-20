@@ -221,8 +221,8 @@ namespace Components
 		// causes 'does current Steam lobby match' calls in Steam_JoinLobby to be ignored
 		Utils::Hook::Set<BYTE>(0x49D007, 0xEB);
 
-		// functions checking party heartbeat timeouts, cause random issues
-		Utils::Hook::Nop(0x4E532D, 5);
+		// function checking party heartbeat timeouts, cause random issues
+		Utils::Hook::Nop(0x4E532D, 5); // PartyHost_TimeoutMembers
 
 		// Steam_JoinLobby call causes migration
 		Utils::Hook::Nop(0x5AF851, 5);
