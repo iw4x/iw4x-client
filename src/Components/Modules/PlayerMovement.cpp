@@ -278,7 +278,7 @@ namespace Components
 			BGBounces = Game::Dvar_RegisterEnum("bg_bounces", bg_bouncesValues, DISABLED, Game::DVAR_CODINFO, "Bounce glitch settings");
 		});
 
-		// Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used.
+		// Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used
 		Utils::Hook(0x448990, Dvar_RegisterSpectateSpeedScale, HOOK_CALL).install()->quick();
 
 		// PM_CmdScaleForStance
@@ -298,7 +298,7 @@ namespace Components
 		// Rocket jump
 		Utils::Hook(0x4A4F9B, Weapon_RocketLauncher_Fire_Hk, HOOK_CALL).install()->quick(); //  FireWeapon        
 
-		// Hook StuckInClient & CM_TransformedCapsuleTrace 
+		// Hook StuckInClient & CM_TransformedCapsuleTrace
 		// so we can prevent intersecting players from being pushed away from each other
 		Utils::Hook(0x5D8153, StuckInClient_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45A5BF, CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // SV_ClipMoveToEntity
