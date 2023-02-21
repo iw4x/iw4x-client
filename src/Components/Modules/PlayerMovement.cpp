@@ -105,27 +105,40 @@ namespace Components
 		__asm
 		{
 			// Check the value of BGBounces
-			push ecx
 			push eax
 
 			mov eax, BGBounces
-			mov ecx, dword ptr [eax + 0x10]
-			test ecx, ecx
+			mov eax, dword ptr [eax + 0x10]
+			test eax, eax
 
 			pop eax
-			pop ecx
 
 			// Do not bounce if BGBounces is 0
 			jle noBounce
 
+			push eax
+
+			mov eax, BGBouncesAllAngles
+			mov eax, dword ptr [eax + 0x10]
+			test eax, eax
+
+			pop eax
+
+			// Do not apply all angles patch if BGBouncesAllAngles is 0
+			jle regularBounce
+
+			push 0x4B1B7D
+			ret
+
 			// Bounce
+		regularBounce:
 			push 0x4B1B34
 			ret
 
 		noBounce:
 			// Original game code
 			cmp dword ptr [esp + 0x24], 0
-			push 0x4B1B48
+			push 0x4B1B32
 			ret
 		}
 	}
