@@ -307,7 +307,7 @@ namespace Components
 			if (!GetMasterServer(masterServerName, masterPort, masterServerAddr))
 			{
 				Logger::Print("Could not resolve address for {}:{}", masterServerName, masterPort);
-				Toast::Show("cardicon_headshot", "^1Error", Utils::String::VA("Could not resolve address for %s:%i", masterServerName, masterPort), 5000);
+				Toast::Show("cardicon_headshot", "^1Error", std::format("Could not resolve address for {}:{}", masterServerName, masterPort), 5000);
 				UseMasterServer = false;
 				return;
 			}
@@ -318,10 +318,10 @@ namespace Components
 
 			RefreshContainer.awatingList = true;
 			RefreshContainer.awaitTime = Game::Sys_Milliseconds();
-			RefreshContainer.host = Network::Address(Utils::String::VA("%s:%u", masterServerName, masterPort));
+			RefreshContainer.host = Network::Address(std::format("{}:{}", masterServerName, masterPort));
 
 			Logger::Print("Sending serverlist request to master\n");
-			Network::SendCommand(RefreshContainer.host, "getservers", Utils::String::VA("IW4 %i full empty", PROTOCOL));
+			Network::SendCommand(RefreshContainer.host, "getservers", std::format("IW4 {} full empty", PROTOCOL));
 		}
 		else if (IsFavouriteList())
 		{
@@ -860,9 +860,9 @@ namespace Components
 
 			std::lock_guard _(RefreshContainer.mutex);
 
-			int offset = 0;
-			auto count = RefreshContainer.servers.size();
-			MasterEntry* entry = nullptr;
+			auto offset = 0;
+			const auto count = RefreshContainer.servers.size();
+			MasterEntry* entry;
 
 			// Find first entry
 			do

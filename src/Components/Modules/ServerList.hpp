@@ -85,13 +85,13 @@ namespace Components
 				uint16_t port;
 			};
 
-			bool IsEndToken() const
+			[[nodiscard]] bool IsEndToken() const noexcept
 			{
 				// End of transmission or file token
 				return (token[0] == 'E' && token[1] == 'O' && (token[2] == 'T' || token[2] == 'F'));
 			}
 
-			bool HasSeparator() const
+			[[nodiscard]] bool HasSeparator() const noexcept
 			{
 				return (token[6] == '\\');
 			}
