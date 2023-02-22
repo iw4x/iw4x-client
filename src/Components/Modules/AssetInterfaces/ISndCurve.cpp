@@ -26,5 +26,10 @@ namespace Assets
 	void ISndCurve::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		header->sndCurve = builder->getIW4OfApi()->read<Game::SndCurve>(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, name);
+
+		if (!header->sndCurve)
+		{
+			header->sndCurve = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, name.data()).sndCurve;
+		}
 	}
 }

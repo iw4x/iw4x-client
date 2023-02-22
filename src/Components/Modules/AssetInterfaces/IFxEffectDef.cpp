@@ -8,6 +8,8 @@ namespace Assets
 		if (!header->data)                                   this->loadEfx(header, name, builder);    // Check if we have an editor fx
 		if (!header->data)                                   this->loadFromIW4OF(header, name, builder); // Check if we need to import a new one into the game
 		if (!header->data /*&& !builder->isPrimaryAsset()*/) this->loadNative(header, name, builder); // Check if there is a native one
+
+		assert(header->data);
 	}
 
 	void IFxEffectDef::loadFxElemVisuals(Game::FxElemVisuals* visuals, char elemType, Components::ZoneBuilder::Zone* builder, Utils::Stream::Reader* reader)

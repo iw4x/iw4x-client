@@ -761,7 +761,9 @@ namespace Components
 
 	iw4of::params_t ZoneBuilder::Zone::getIW4OfApiParams()
 	{
-		iw4of::params_t params;
+		iw4of::params_t params{};
+
+		params.write_only_once = true;
 
 		params.find_other_asset = [this](int type, const std::string& name) -> void*
 		{
