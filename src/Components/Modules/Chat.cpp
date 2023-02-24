@@ -4,6 +4,7 @@
 #include "Voice.hpp"
 
 #include "GSC/Script.hpp"
+#include "GSC/ScriptExtension.hpp"
 
 namespace Components
 {
@@ -599,7 +600,7 @@ namespace Components
 				return;
 			}
 
-			const auto* func = Script::GetCodePosForParam(0);
+			const auto* func = ScriptExtension::GetCodePosForParam(0);
 			SayCallbacks.emplace_back(func);
 		});
 	}

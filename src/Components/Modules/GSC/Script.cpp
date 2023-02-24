@@ -6,9 +6,6 @@ namespace Components
 	std::vector<Script::ScriptFunction> Script::CustomScrFunctions;
 	std::vector<Script::ScriptMethod> Script::CustomScrMethods;
 
-	std::unordered_map<const char*, const char*> Script::ReplacedFunctions;
-	const char* Script::ReplacedPos = nullptr;
-
 	std::unordered_map<std::string, int> Script::ScriptMainHandles;
 	std::unordered_map<std::string, int> Script::ScriptInitHandles;
 
@@ -204,94 +201,6 @@ namespace Components
 		return Game::Scr_GetNumParam();
 	}
 
-	const char* Script::GetCodePosForParam(int index)
-	{
-		if (static_cast<unsigned int>(index) >= Game::scrVmPub->outparamcount)
-		{
-			Game::Scr_ParamError(static_cast<unsigned int>(index), "^1GetCodePosForParam: Index is out of range!\n");
-			return "";
-		}
-
-		const auto* value = &Game::scrVmPub->top[-index];
-
-		if (value->type != Game::VAR_FUNCTION)
-		{
-			Game::Scr_ParamError(static_cast<unsigned int>(index), "^1GetCodePosForParam: Expects a function as parameter!\n");
-			return "";
-		}
-
-		return value->u.codePosValue;
-	}
-
-	void Script::GetReplacedPos(const char* pos)
-	{
-		if (ReplacedFunctions.contains(pos))
-		{
-			ReplacedPos = ReplacedFunctions[pos];
-		}
-	}
-
-	void Script::SetReplacedPos(const char* what, const char* with)
-	{
-		if (what[0] == '\0' || with[0] == '\0')
-		{
-			Logger::Warning(Game::CON_CHANNEL_SCRIPT, "Invalid parameters passed to ReplacedFunctions\n");
-			return;
-		}
-
-		if (ReplacedFunctions.contains(what))
-		{
-			Logger::Warning(Game::CON_CHANNEL_SCRIPT, "ReplacedFunctions already contains codePosValue for a function\n");
-		}
-
-		ReplacedFunctions[what] = with;
-	}
-
-	__declspec(naked) void Script::VMExecuteInternalStub()
-	{
-		__asm
-		{
-			pushad
-
-			push edx
-			call GetReplacedPos
-
-			pop edx
-			popad
-
-			cmp ReplacedPos, 0
-			jne SetPos
-
-			movzx eax, byte ptr [edx]
-			inc edx
-
-		Loc1:
-			cmp eax, 0x8B
-
-			push ecx
-
-			mov ecx, 0x2045094
-			mov [ecx], eax
-
-			mov ecx, 0x2040CD4
-			mov [ecx], edx
-
-			pop ecx
-
-			push 0x61E944
-			retn
-
-		SetPos:
-			mov edx, ReplacedPos
-			mov ReplacedPos, 0
-
-			movzx eax, byte ptr [edx]
-			inc edx
-
-			jmp Loc1
-		}
-	}
-
 	Game::client_t* Script::GetClient(const Game::gentity_t* ent)
 	{
 		assert(ent);
@@ -311,71 +220,6 @@ namespace Components
 		return &Game::svs_clients[ent->s.number];
 	}
 
-	void Script::AddFunctions()
-	{
-		AddFunction("ReplaceFunc", [] // gsc: ReplaceFunc(<function>, <function>)
-		{
-			if (Game::Scr_GetNumParam() != 2)
-			{
-				Game::Scr_Error("^1ReplaceFunc: Needs two parameters!\n");
-				return;
-			}
-
-			const auto what = GetCodePosForParam(0);
-			const auto with = GetCodePosForParam(1);
-
-			SetReplacedPos(what, with);
-		});
-
-		// System time
-		AddFunction("GetSystemMilliseconds", [] // gsc: GetSystemMilliseconds()
-		{
-			SYSTEMTIME time;
-			GetSystemTime(&time);
-
-			Game::Scr_AddInt(time.wMilliseconds);
-		});
-
-		// Executes command to the console
-		AddFunction("Exec", [] // gsc: Exec(<string>)
-		{
-			const auto str = Game::Scr_GetString(0);
-
-			if (str == nullptr)
-			{
-				Game::Scr_ParamError(0, "^1Exec: Illegal parameter!\n");
-				return;
-			}
-
-			Command::Execute(str, false);
-		});
-
-		// Allow printing to the console even when developer is 0
-		AddFunction("PrintConsole", [] // gsc: PrintConsole(<string>)
-		{
-			for (std::size_t i = 0; i < Game::Scr_GetNumParam(); ++i)
-			{
-				const auto* str = Game::Scr_GetString(i);
-
-				if (str == nullptr)
-				{
-					Game::Scr_ParamError(i, "^1PrintConsole: Illegal parameter!\n");
-					return;
-				}
-
-				Logger::Print(Game::level->scriptPrintChannel, "{}", str);
-			}
-		});
-
-		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
-		AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
-		{
-			const auto* ent = Scr_GetPlayerEntity(entref);
-
-			Game::Scr_AddBool((ent->client->flags & Game::PF_FROZEN) != 0);
-		});
-	}
-
 	Script::Script()
 	{
 		// Skip check in GScr_CheckAllowedToSetPersistentData to prevent log spam in RuntimeError.
@@ -391,29 +235,5 @@ namespace Components
 		Utils::Hook(0x4EC8DD, BuiltIn_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
 
 		Utils::Hook(0x5F41A3, SetExpFogStub, HOOK_CALL).install()->quick();
-
-		Utils::Hook(0x61E92E, VMExecuteInternalStub, HOOK_JUMP).install()->quick();
-		Utils::Hook::Nop(0x61E933, 1);
-
-#ifdef _DEBUG 
-		AddFunction("DebugBox", []
-		{
-			const auto* message = Game::Scr_GetString(0);
-
-			if (message == nullptr)
-			{
-				Game::Scr_Error("^1DebugBox: Illegal parameter!\n");
-			}
-
-			MessageBoxA(nullptr, message, "DEBUG", MB_OK);
-		}, true);
-#endif
-
-		AddFunctions();
-
-		Events::OnVMShutdown([]
-		{
-			ReplacedFunctions.clear();
-		});
 	}
 }

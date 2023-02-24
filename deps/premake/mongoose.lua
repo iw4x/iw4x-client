@@ -3,13 +3,15 @@ mongoose = {
 }
 
 function mongoose.import()
-	links {"mongoose"}
+	links "mongoose"
 
 	mongoose.includes()
 end
 
 function mongoose.includes()
-	includedirs {mongoose.source}
+	includedirs {
+		mongoose.source,
+	}
 end
 
 function mongoose.project()

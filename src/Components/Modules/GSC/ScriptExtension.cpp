@@ -7,6 +7,9 @@ namespace Components
 	std::unordered_map<std::uint16_t, Game::ent_field_t> ScriptExtension::CustomEntityFields;
 	std::unordered_map<std::uint16_t, Game::client_fields_s> ScriptExtension::CustomClientFields;
 
+	std::unordered_map<const char*, const char*> ScriptExtension::ReplacedFunctions;
+	const char* ScriptExtension::ReplacedPos = nullptr;
+
 	void ScriptExtension::AddEntityField(const char* name, Game::fieldtype_t type,
 		const Game::ScriptCallbackEnt& setter, const Game::ScriptCallbackEnt& getter)
 	{
@@ -104,6 +107,94 @@ namespace Components
 
 		// No custom generic field was found, let the game handle it
 		Game::Scr_GetEntityField(entnum, offset);
+	}
+
+	const char* ScriptExtension::GetCodePosForParam(int index)
+	{
+		if (static_cast<unsigned int>(index) >= Game::scrVmPub->outparamcount)
+		{
+			Game::Scr_ParamError(static_cast<unsigned int>(index), "^1GetCodePosForParam: Index is out of range!\n");
+			return "";
+		}
+
+		const auto* value = &Game::scrVmPub->top[-index];
+
+		if (value->type != Game::VAR_FUNCTION)
+		{
+			Game::Scr_ParamError(static_cast<unsigned int>(index), "^1GetCodePosForParam: Expects a function as parameter!\n");
+			return "";
+		}
+
+		return value->u.codePosValue;
+	}
+
+	void ScriptExtension::GetReplacedPos(const char* pos)
+	{
+		if (ReplacedFunctions.contains(pos))
+		{
+			ReplacedPos = ReplacedFunctions[pos];
+		}
+	}
+
+	void ScriptExtension::SetReplacedPos(const char* what, const char* with)
+	{
+		if (!*what || !*with)
+		{
+			Logger::Warning(Game::CON_CHANNEL_SCRIPT, "Invalid parameters passed to ReplacedFunctions\n");
+			return;
+		}
+
+		if (ReplacedFunctions.contains(what))
+		{
+			Logger::Warning(Game::CON_CHANNEL_SCRIPT, "ReplacedFunctions already contains codePosValue for a function\n");
+		}
+
+		ReplacedFunctions[what] = with;
+	}
+
+	__declspec(naked) void ScriptExtension::VMExecuteInternalStub()
+	{
+		__asm
+		{
+			pushad
+
+			push edx
+			call GetReplacedPos
+
+			pop edx
+			popad
+
+			cmp ReplacedPos, 0
+			jne SetPos
+
+			movzx eax, byte ptr [edx]
+			inc edx
+
+		Loc1:
+			cmp eax, 0x8B
+
+			push ecx
+
+			mov ecx, 0x2045094
+			mov [ecx], eax
+
+			mov ecx, 0x2040CD4
+			mov [ecx], edx
+
+			pop ecx
+
+			push 0x61E944
+			ret
+
+		SetPos:
+			mov edx, ReplacedPos
+			mov ReplacedPos, 0
+
+			movzx eax, byte ptr [edx]
+			inc edx
+
+			jmp Loc1
+		}
 	}
 
 	void ScriptExtension::AddFunctions()
@@ -234,6 +325,57 @@ namespace Components
 
 			Game::Scr_AddInt(result);
 		});
+
+		Script::AddFunction("ReplaceFunc", [] // gsc: ReplaceFunc(<function>, <function>)
+		{
+			if (Game::Scr_GetNumParam() != 2)
+			{
+				Game::Scr_Error("^1ReplaceFunc: Needs two parameters!\n");
+				return;
+			}
+
+			const auto what = GetCodePosForParam(0);
+			const auto with = GetCodePosForParam(1);
+
+			SetReplacedPos(what, with);
+		});
+
+
+		Script::AddFunction("GetSystemMilliseconds", [] // gsc: GetSystemMilliseconds()
+		{
+			SYSTEMTIME time;
+			GetSystemTime(&time);
+
+			Game::Scr_AddInt(time.wMilliseconds);
+		});
+
+		Script::AddFunction("Exec", [] // gsc: Exec(<string>)
+		{
+			const auto* str = Game::Scr_GetString(0);
+			if (!str)
+			{
+				Game::Scr_ParamError(0, "^1Exec: Illegal parameter!\n");
+				return;
+			}
+
+			Command::Execute(str, false);
+		});
+
+		// Allow printing to the console even when developer is 0
+		Script::AddFunction("PrintConsole", [] // gsc: PrintConsole(<string>)
+		{
+			for (std::size_t i = 0; i < Game::Scr_GetNumParam(); ++i)
+			{
+				const auto* str = Game::Scr_GetString(i);
+				if (!str)
+				{
+					Game::Scr_ParamError(i, "^1PrintConsole: Illegal parameter!\n");
+					return;
+				}
+
+				Logger::Print(Game::level->scriptPrintChannel, "{}", str);
+			}
+		});		
 	}
 
 	void ScriptExtension::AddMethods()
@@ -270,6 +412,13 @@ namespace Components
 			auto* client = Script::GetClient(ent);
 
 			client->ping = ping;
+		});
+
+		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
+		Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
+		{
+			const auto* ent = Script::Scr_GetPlayerEntity(entref);
+			Game::Scr_AddBool((ent->client->flags & Game::PF_FROZEN) != 0);
 		});
 	}
 
@@ -311,5 +460,13 @@ namespace Components
 		Utils::Hook(0x41BED2, Scr_SetObjectFieldStub, HOOK_CALL).install()->quick(); // SetEntityFieldValue
 		Utils::Hook(0x5FBF01, Scr_SetClientFieldStub, HOOK_CALL).install()->quick(); // Scr_SetObjectField
 		Utils::Hook(0x4FF413, Scr_GetEntityFieldStub, HOOK_CALL).install()->quick(); // Scr_GetObjectField
+
+		Utils::Hook(0x61E92E, VMExecuteInternalStub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x61E933, 1);
+
+		Events::OnVMShutdown([]
+		{
+			ReplacedFunctions.clear();
+		});
 	}
 }
