@@ -675,7 +675,7 @@ namespace Components
 				const auto c = *source;
 				++source;
 				*dest = c;
-				dest++;
+				++dest;
 			}
 		}
 
@@ -724,7 +724,7 @@ namespace Components
 
 		auto* sourceBuf = static_cast<char*>(Game::Hunk_AllocateTempMemoryHigh(len + 1));
 		Game::FS_Read(sourceBuf, len, f);
-		sourceBuf[len] = 0;
+		sourceBuf[len] = '\0';
 
 		Game::FS_FCloseFile(f);
 		Scr_AddSourceBufferInternal(extFilename, codePos, sourceBuf, len, true, archive);
