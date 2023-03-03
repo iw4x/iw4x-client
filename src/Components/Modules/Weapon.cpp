@@ -548,6 +548,35 @@ namespace Components
 		}
 	}
 
+	void Weapon::PlayerCmd_initialWeaponRaise(Game::scr_entref_t entref)
+	{
+		auto* ent = Script::Scr_GetPlayerEntity(entref);
+		const auto* weapon = Game::Scr_GetString(0);
+		const auto index = Game::G_GetWeaponIndexForName(weapon);
+
+		auto* ps = &ent->client->ps;
+		if (!Game::BG_IsWeaponValid(ps, index))
+		{
+			return;
+		}
+
+		assert(ps);
+
+		if (!index)
+		{
+			return;
+		}
+
+		auto* equippedWeapon = Game::BG_GetEquippedWeaponState(ps, index);
+		if (!equippedWeapon)
+		{
+			return;
+		}
+
+		equippedWeapon->usedBefore = false;
+		Game::Player_SwitchToWeapon(ent);
+	}
+
 	void Weapon::AddScriptMethods()
 	{
 		Script::AddMethod("DisableWeaponPickup", [](Game::scr_entref_t entref)
@@ -563,6 +592,8 @@ namespace Components
 
 			ent->client->ps.weapCommon.weapFlags &= ~Game::PWF_DISABLE_WEAPON_PICKUP;
 		});
+
+		Script::AddMethod("InitialWeaponRaise", PlayerCmd_initialWeaponRaise);
 	}
 
 	Weapon::Weapon()

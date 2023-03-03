@@ -213,13 +213,6 @@ namespace Game
 	Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire = Weapon_RocketLauncher_Fire_t(0x424680);
 	Bullet_Fire_t Bullet_Fire = Bullet_Fire_t(0x4402C0);
 
-	Jump_ClearState_t Jump_ClearState = Jump_ClearState_t(0x04B3890);
-	PM_playerTrace_t PM_playerTrace = PM_playerTrace_t(0x458980);
-	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
-	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
-	PM_UpdateLean_t PM_UpdateLean = PM_UpdateLean_t(0x43DED0);
-	PM_IsSprinting_t PM_IsSprinting = PM_IsSprinting_t(0x4B3830);
-
 	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
 
 	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);
@@ -784,7 +777,6 @@ namespace Game
 		I_strncpyz_s(dest, destsize, src, destsize);
 	}
 
-#pragma optimize("", off)
 	__declspec(naked) float UI_GetScoreboardLeft(void* /*a1*/)
 	{
 		__asm
@@ -1196,5 +1188,16 @@ namespace Game
 		return answer;
 	}
 
-#pragma optimize("", on)
+	void Player_SwitchToWeapon(gentity_s* player)
+	{
+		static DWORD Player_SwitchToWeapon_t = 0x5D97B0;
+
+		__asm
+		{
+			pushad
+			mov ebx, player
+			call Player_SwitchToWeapon_t
+			popad
+		}
+	}
 }

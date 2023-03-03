@@ -19,7 +19,7 @@ namespace Components
 		// Probably a macro 'originally' but this is fine
 		static Game::gentity_s* Scr_GetPlayerEntity(Game::scr_entref_t entref)
 		{
-			if (entref.classnum != 0)
+			if (entref.classnum)
 			{
 				Game::Scr_ObjectError("not an entity");
 				return nullptr;
