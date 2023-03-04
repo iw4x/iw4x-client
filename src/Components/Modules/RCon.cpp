@@ -202,7 +202,7 @@ namespace Components
 		{
 			std::hash<Network::Address> hashFn;
 			const auto hash = hashFn(address);
-			if (!RconAddresses.empty() && std::ranges::find(RconAddresses, hash) != RconAddresses.end())
+			if (!RconAddresses.empty() && std::ranges::find(RconAddresses, hash) == RconAddresses.end())
 			{
 				return;
 			}
