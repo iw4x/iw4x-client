@@ -146,7 +146,7 @@ namespace Components
 
 	RCon::RCon()
 	{
-		AddCommands();
+		Events::OnSVInit(AddCommands);
 
 		if (!Dedicated::IsEnabled())
 		{

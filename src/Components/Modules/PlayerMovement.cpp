@@ -115,8 +115,23 @@ namespace Components
 
 			// Do not bounce if BGBounces is 0
 			jle noBounce
+
+			push eax
+
+			mov eax, BGBouncesAllAngles
+			mov eax, dword ptr [eax + 0x10]
+			cmp eax, 2
+
+			pop eax
+
+			// Do not apply all angles patch if BGBouncesAllAngles is not set to "all surfaces"
+			jne regularBounce
+
+			push 0x4B1B7D
+			ret
 		
 			// Bounce
+		regularBounce:
 			push 0x4B1B34
 			ret
 
@@ -131,10 +146,12 @@ namespace Components
 	// Double bounces
 	void PlayerMovement::Jump_ClearState_Hk(Game::playerState_s* ps)
 	{
-		if (BGBounces->current.integer != DOUBLE)
+		if (BGBounces->current.integer == DOUBLE)
 		{
-			Game::Jump_ClearState(ps);
+			return;
 		}
+
+		Game::Jump_ClearState(ps);
 	}
 
 	__declspec(naked) void PlayerMovement::PM_ProjectVelocityStub()
@@ -143,18 +160,20 @@ namespace Components
 		{
 			push eax
 			mov eax, BGBouncesAllAngles
-			cmp byte ptr [eax + 0x10], 1
+			mov eax, dword ptr [eax + 0x10]
+			test eax, eax
 			pop eax
 
-			je bounce
+			je noBounce
 
+			// Force the bounce
+			push 0x417B6F
+			ret
+
+		noBounce:
 			fstp ST(0)
 			pop esi
 			add esp, 0x10
-			ret
-
-		bounce:
-			push 0x417B6F
 			ret
 		}
 	}
@@ -238,9 +257,6 @@ namespace Components
 			3.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
 			"The speed at which noclip camera moves");
 
-		BGBouncesAllAngles = Game::Dvar_RegisterBool("bg_bouncesAllAngles",
-			false, Game::DVAR_CODINFO, "Force bounce from all angles");
-
 		BGRocketJump = Dvar::Register<bool>("bg_rocketJump",
 			false, Game::DVAR_CODINFO, "Enable CoD4 rocket jumps");
 
@@ -270,10 +286,19 @@ namespace Components
 				"disabled",
 				"enabled",
 				"double",
-				nullptr
+				nullptr,
+			};
+
+			static const char* bg_bouncesAllAnglesValues[] =
+			{
+				"disabled",
+				"simple",
+				"all surfaces",
+				nullptr,
 			};
 
 			BGBounces = Game::Dvar_RegisterEnum("bg_bounces", bg_bouncesValues, DISABLED, Game::DVAR_CODINFO, "Bounce glitch settings");
+			BGBouncesAllAngles = Game::Dvar_RegisterEnum("bg_bouncesAllAngles", bg_bouncesAllAnglesValues, DISABLED, Game::DVAR_CODINFO, "Force bounce from all angles");
 		});
 
 		// Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used

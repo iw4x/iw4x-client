@@ -8,7 +8,7 @@ namespace Components
 		PlayerMovement();
 
 	private:
-		enum BouncesSettings { DISABLED, ENABLED, DOUBLE };
+		enum BouncesSettings : int { DISABLED, ENABLED, DOUBLE };
 
 		static constexpr auto SURF_LADDER = 0x8;
 
