@@ -557,6 +557,7 @@ namespace Components
 		auto* ps = &ent->client->ps;
 		if (!Game::BG_IsWeaponValid(ps, index))
 		{
+			Game::Scr_Error(Utils::String::VA("invalid InitialWeaponRaise: %s", weapon));
 			return;
 		}
 

@@ -31,6 +31,8 @@ namespace Components
 
 		static std::unordered_map<std::uint32_t, int> RateLimit;
 
+		static std::vector<std::size_t> RconAddresses;
+
 		static Container RconContainer;
 		static Utils::Cryptography::ECC::Key RconKey;
 

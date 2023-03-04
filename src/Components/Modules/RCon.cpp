@@ -8,6 +8,8 @@ namespace Components
 {
 	std::unordered_map<std::uint32_t, int> RCon::RateLimit;
 
+	std::vector<std::size_t> RCon::RconAddresses;
+
 	RCon::Container RCon::RconContainer;
 	Utils::Cryptography::ECC::Key RCon::RconKey;
 
@@ -74,6 +76,24 @@ namespace Components
 			if (target.isValid())
 			{
 				Network::SendCommand(target, "rconRequest");
+			}
+		});
+
+		Command::AddSV("RconWhitelistAdd", [](Command::Params* params)
+		{
+			if (params->size() < 2)
+			{
+				Logger::Print("Usage: %s <ip-address>\n", params->get(0));
+				return;
+			}
+
+			Network::Address address(params->get(1));
+			std::hash<Network::Address> hashFn;
+			const auto hash = hashFn(address);
+
+			if (address.isValid() && std::ranges::find(RconAddresses, hash) == RconAddresses.end())
+			{
+				RconAddresses.push_back(hash);
 			}
 		});
 	}
@@ -180,6 +200,13 @@ namespace Components
 
 		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
+			std::hash<Network::Address> hashFn;
+			const auto hash = hashFn(address);
+			if (!RconAddresses.empty() && std::ranges::find(RconAddresses, hash) != RconAddresses.end())
+			{
+				return;
+			}
+
 			const auto time = Game::Sys_Milliseconds();
 			if (!IsRateLimitCheckDisabled() && !RateLimitCheck(address, time))
 			{

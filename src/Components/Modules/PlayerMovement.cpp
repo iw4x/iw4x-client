@@ -115,23 +115,8 @@ namespace Components
 
 			// Do not bounce if BGBounces is 0
 			jle noBounce
-
-			push eax
-
-			mov eax, BGBouncesAllAngles
-			mov eax, dword ptr [eax + 0x10]
-			test eax, eax
-
-			pop eax
-
-			// Do not apply all angles patch if BGBouncesAllAngles is 0
-			jle regularBounce
-
-			push 0x4B1B7D
-			ret
-
+		
 			// Bounce
-		regularBounce:
 			push 0x4B1B34
 			ret
 
