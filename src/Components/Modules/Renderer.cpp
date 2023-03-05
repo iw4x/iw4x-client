@@ -570,7 +570,7 @@ namespace Components
 			}
 		}, Scheduler::Pipeline::RENDERER);
 
-#if _DEBUG
+#ifdef _DEBUG
 		// Disable ATI Radeon 4000 optimization that crashes Pixwin
 		Utils::Hook::Set(0x5066F8, D3DFMT_UNKNOWN);
 #endif
