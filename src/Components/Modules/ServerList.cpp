@@ -821,8 +821,10 @@ namespace Components
 	bool ServerList::IsServerListOpen()
 	{
 		auto* menu = Game::Menus_FindByName(Game::uiContext, "pc_join_unranked");
-		if (!menu) 
+		if (!menu)
+		{
 			return false;
+		}
 
 		return Game::Menu_IsVisible(Game::uiContext, menu);
 	}

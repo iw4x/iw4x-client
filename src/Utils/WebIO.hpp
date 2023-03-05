@@ -65,6 +65,8 @@ namespace Utils
 		void setProgressCallback(const Slot<void(std::size_t, std::size_t)>& callback);
 		void cancelDownload();
 
+		static std::string GetCacheBuster();
+
 	private:
 		enum Command
 		{

@@ -12,7 +12,7 @@ namespace Components::GSC
 			const auto scriptValue = Game::Scr_GetConstString(0);
 			const auto* string = Game::SL_ConvertToString(scriptValue);
 
-			char out[1024] = {0}; // 1024 is the max for a string in this SL system
+			char out[1024]{}; // 1024 is the max for a string in this SL system
 			bool changed = false;
 
 			size_t i = 0;

@@ -349,10 +349,18 @@ namespace Components
 			{
 				for (int i = 0; i < maxClientCount; ++i)
 				{
-					if (Game::svs_clients[i].header.state >= Game::CS_CONNECTED)
+					if (Game::svs_clients[i].header.state < Game::CS_ACTIVE) continue;
+					if (!Game::svs_clients[i].gentity || !Game::svs_clients[i].gentity->client) continue;
+
+					const auto* client = Game::svs_clients[i].gentity->client;
+					const auto team = client->sess.cs.team;
+					if (Game::svs_clients[i].bIsTestClient || team == Game::TEAM_SPECTATOR)
 					{
-						if (Game::svs_clients[i].bIsTestClient) ++botCount;
-						else ++clientCount;
+						++botCount;
+					}
+					else
+					{
+						++clientCount;
 					}
 				}
 			}
@@ -543,7 +551,7 @@ namespace Components
 
 							if (clients >= maxClients)
 							{
-								Party::ConnectError("@EXE_SERVERISFULL");
+								ConnectError("@EXE_SERVERISFULL");
 							}
 							else
 							{

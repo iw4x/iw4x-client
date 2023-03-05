@@ -223,7 +223,7 @@ namespace Components
 			DownloadProgress(&fDownload, bytes - fDownload.receivedBytes);
 		});
 
-		bool result = false;
+		auto result = false;
 		fDownload.buffer = webIO.get(url, &result);
 		if (!result) fDownload.buffer.clear();
 

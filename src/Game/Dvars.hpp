@@ -126,6 +126,8 @@ namespace Game
 
 	extern const dvar_t** cg_chatHeight;
 	extern const dvar_t** cg_chatTime;
+	extern const dvar_t** cg_scoreboardHeight;
+	extern const dvar_t** cg_scoreboardWidth;
 
 	extern const dvar_t** version;
 

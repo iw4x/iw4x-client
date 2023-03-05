@@ -14,28 +14,25 @@ namespace Components
 {
 	ServerInfo::Container ServerInfo::PlayerContainer;
 
-	Game::dvar_t** ServerInfo::CGScoreboardHeight;
-	Game::dvar_t** ServerInfo::CGScoreboardWidth;
-
 	unsigned int ServerInfo::GetPlayerCount()
 	{
-		return ServerInfo::PlayerContainer.playerList.size();
+		return PlayerContainer.playerList.size();
 	}
 
 	const char* ServerInfo::GetPlayerText(unsigned int index, int column)
 	{
-		if (index < ServerInfo::PlayerContainer.playerList.size())
+		if (index < PlayerContainer.playerList.size())
 		{
 			switch (column)
 			{
 			case 0:
 				return Utils::String::VA("%d", index);
 			case 1:
-				return ServerInfo::PlayerContainer.playerList[index].name.data();
+				return PlayerContainer.playerList[index].name.data();
 			case 2:
-				return Utils::String::VA("%d", ServerInfo::PlayerContainer.playerList[index].score);
+				return Utils::String::VA("%d", PlayerContainer.playerList[index].score);
 			case 3:
-				return Utils::String::VA("%d", ServerInfo::PlayerContainer.playerList[index].ping);
+				return Utils::String::VA("%d", PlayerContainer.playerList[index].ping);
 			default:
 				break;
 			}
@@ -46,13 +43,13 @@ namespace Components
 
 	void ServerInfo::SelectPlayer(unsigned int index)
 	{
-		ServerInfo::PlayerContainer.currentPlayer = index;
+		PlayerContainer.currentPlayer = index;
 	}
 
 	void ServerInfo::ServerStatus([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		ServerInfo::PlayerContainer.currentPlayer = 0;
-		ServerInfo::PlayerContainer.playerList.clear();
+		PlayerContainer.currentPlayer = 0;
+		PlayerContainer.playerList.clear();
 
 		auto* serverInfo = ServerList::GetCurrentServer();
 
@@ -78,8 +75,8 @@ namespace Components
 				Dvar::Var("uiSi_ModName").set(serverInfo->mod.data() + 5);
 			}
 
-			ServerInfo::PlayerContainer.target = serverInfo->addr;
-			Network::SendCommand(ServerInfo::PlayerContainer.target, "getstatus");
+			PlayerContainer.target = serverInfo->addr;
+			Network::SendCommand(PlayerContainer.target, "getstatus");
 		}
 	}
 
@@ -90,22 +87,24 @@ namespace Components
 
 		auto addressText = Network::Address(*Game::connectedHost).getString();
 
-		if (addressText == "0.0.0.0:0" || addressText == "loopback")
-			addressText = "Listen Server";
+		if (addressText == "0.0.0.0:0"s || addressText == "loopback"s)
+		{
+			addressText = "Listen Server"s;
+		}
 
 		// Get x positions
-		auto y = (480.0f - (*ServerInfo::CGScoreboardHeight)->current.value) * 0.5f;
-		y += (*ServerInfo::CGScoreboardHeight)->current.value + 6.0f;
+		auto y = (480.0f - (*Game::cg_scoreboardHeight)->current.value) * 0.5f;
+		y += (*Game::cg_scoreboardHeight)->current.value + 6.0f;
 
-		const auto x = 320.0f - (*ServerInfo::CGScoreboardWidth)->current.value * 0.5f;
-		const auto x2 = 320.0f + (*ServerInfo::CGScoreboardWidth)->current.value * 0.5f;
+		const auto x = 320.0f - (*Game::cg_scoreboardWidth)->current.value * 0.5f;
+		const auto x2 = 320.0f + (*Game::cg_scoreboardWidth)->current.value * 0.5f;
 
 		// Draw only when stream friendly ui is not enabled
 		if (!Friends::UIStreamFriendly.get<bool>())
 		{
 			constexpr auto fontSize = 0.35f;
-			Game::UI_DrawText(cxt, reinterpret_cast<const char*>(0x7ED3F8), 0x7FFFFFFF, font, x, y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
-			Game::UI_DrawText(cxt, addressText.data(), 0x7FFFFFFF, font, x2 - Game::UI_TextWidth(addressText.data(), 0, font, fontSize), y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
+			Game::UI_DrawText(cxt, reinterpret_cast<const char*>(0x7ED3F8), std::numeric_limits<int>::max(), font, x, y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
+			Game::UI_DrawText(cxt, addressText.data(), std::numeric_limits<int>::max(), font, x2 - Game::UI_TextWidth(addressText.data(), 0, font, fontSize), y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
 		}
 	}
 
@@ -115,7 +114,7 @@ namespace Components
 		{
 			pushad
 			push eax
-			call ServerInfo::DrawScoreboardInfo
+			call DrawScoreboardInfo
 			pop eax
 			popad
 
@@ -187,28 +186,25 @@ namespace Components
 
 	ServerInfo::ServerInfo()
 	{
-		ServerInfo::PlayerContainer.currentPlayer = 0;
-
-		ServerInfo::CGScoreboardHeight = reinterpret_cast<Game::dvar_t**>(0x9FD070);
-		ServerInfo::CGScoreboardWidth = reinterpret_cast<Game::dvar_t**>(0x9FD0AC);
+		PlayerContainer.currentPlayer = 0;
 
 		// Draw IP and hostname on the scoreboard
-		Utils::Hook(0x4FC6EA, ServerInfo::DrawScoreboardStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4FC6EA, DrawScoreboardStub, HOOK_CALL).install()->quick();
 
 		// Ignore native getStatus implementation
 		Utils::Hook::Nop(0x62654E, 6);
 
 		// Add uiscript
-		UIScript::Add("ServerStatus", ServerInfo::ServerStatus);
+		UIScript::Add("ServerStatus", ServerStatus);
 
 		// Add uifeeder
-		UIFeeder::Add(13.0f, ServerInfo::GetPlayerCount, ServerInfo::GetPlayerText, ServerInfo::SelectPlayer);
+		UIFeeder::Add(13.0f, GetPlayerCount, GetPlayerText, SelectPlayer);
 
 		Network::OnClientPacket("getStatus", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			std::string playerList;
 
-			Utils::InfoString info = ServerInfo::GetInfo();
+			Utils::InfoString info = GetInfo();
 			info.set("challenge", Utils::ParseChallenge(data));
 
 			for (std::size_t i = 0; i < Game::MAX_CLIENTS; ++i)
@@ -219,7 +215,15 @@ namespace Components
 
 				if (Dedicated::IsRunning())
 				{
-					if (Game::svs_clients[i].header.state < Game::CS_CONNECTED) continue;
+					if (Game::svs_clients[i].header.state < Game::CS_ACTIVE) continue;
+					if (!Game::svs_clients[i].gentity || !Game::svs_clients[i].gentity->client) continue;
+
+					const auto* client = Game::svs_clients[i].gentity->client;
+					const auto team = client->sess.cs.team;
+					if (team == Game::TEAM_SPECTATOR)
+					{
+						continue;
+					}
 
 					score = Game::SV_GameClientNum_Score(static_cast<int>(i));
 					ping = Game::svs_clients[i].ping;
@@ -242,12 +246,12 @@ namespace Components
 
 		Network::OnClientPacket("statusResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
-			if (ServerInfo::PlayerContainer.target != address)
+			if (PlayerContainer.target != address)
 			{
 				return;
 			}
 
-			const Utils::InfoString info(data.substr(0, data.find_first_of("\n")));
+			const Utils::InfoString info(data.substr(0, data.find_first_of('\n')));
 
 			Dvar::Var("uiSi_ServerName").set(info.get("sv_hostname"));
 			Dvar::Var("uiSi_MaxClients").set(info.get("sv_maxclients"));
@@ -281,7 +285,7 @@ namespace Components
 
 			if (Utils::String::StartsWith(info.get("fs_game"), "mods/"))
 			{
-				auto mod = info.get("fs_game");
+				const auto mod = info.get("fs_game");
 				Dvar::Var("uiSi_ModName").set(mod.substr(5));
 			}
 
@@ -291,23 +295,23 @@ namespace Components
 
 			for (std::size_t i = 1; i < lines.size(); ++i)
 			{
-				ServerInfo::Container::Player player;
+				Container::Player player;
 
 				std::string currentData = lines[i];
 
 				if (currentData.size() < 3) continue;
 
 				// Insert score
-				player.score = atoi(currentData.substr(0, currentData.find_first_of(" ")).data());
+				player.score = atoi(currentData.substr(0, currentData.find_first_of(' ')).data());
 
 				// Remove score
-				currentData = currentData.substr(currentData.find_first_of(" ") + 1);
+				currentData = currentData.substr(currentData.find_first_of(' ') + 1);
 
 				// Insert ping
-				player.ping = atoi(currentData.substr(0, currentData.find_first_of(" ")).data());
+				player.ping = atoi(currentData.substr(0, currentData.find_first_of(' ')).data());
 
 				// Remove ping
-				currentData = currentData.substr(currentData.find_first_of(" ") + 1);
+				currentData = currentData.substr(currentData.find_first_of(' ') + 1);
 
 				if (currentData[0] == '\"')
 				{
@@ -321,13 +325,13 @@ namespace Components
 
 				player.name = currentData;
 
-				ServerInfo::PlayerContainer.playerList.push_back(player);
+				PlayerContainer.playerList.push_back(player);
 			}
 		});
 	}
 
 	ServerInfo::~ServerInfo()
 	{
-		ServerInfo::PlayerContainer.playerList.clear();
+		PlayerContainer.playerList.clear();
 	}
 }

@@ -411,6 +411,13 @@ namespace Utils
 		}
 	}
 
+	std::string WebIO::GetCacheBuster()
+	{
+		return "?" + std::to_string(
+			std::chrono::duration_cast<std::chrono::nanoseconds>(
+				std::chrono::system_clock::now().time_since_epoch()).count());
+	}
+
 	bool WebIO::createDirectory(const std::string& directory) const
 	{
 		return (FtpCreateDirectoryA(this->hConnect_, directory.data()) == TRUE);

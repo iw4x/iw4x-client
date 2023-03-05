@@ -179,7 +179,7 @@ namespace Components
 				return;
 			}
 
-			const auto index = std::atoi(params->get(1));
+			const auto index = std::strtol(params->get(1), nullptr, 0);
 			const auto stat = Game::LiveStorage_GetStat(0, index);
 			Logger::Print(Game::CON_CHANNEL_SYSTEM, "Stat {}: {}\n", index, stat);
 		});
