@@ -41,6 +41,7 @@ namespace Components
 		static void DebugDrawRunners();
 		static void DebugDrawAABBTrees();
 		static void ForceTechnique();
+		static void ListSamplers();
 
 		static int FixSunShadowPartitionSize(Game::GfxCamera* camera, Game::GfxSunShadowMapMetrics* mapMetrics, Game::GfxSunShadow* sunShadow, Game::GfxSunShadowClip* clip, float* partitionFraction);
 
@@ -58,5 +59,6 @@ namespace Components
 		static Dvar::Var r_drawAABBTrees;
 		static Dvar::Var r_playerDrawDebugDistance;
 		static Dvar::Var r_forceTechnique;
+		static Dvar::Var r_listSamplers;
 	};
 }

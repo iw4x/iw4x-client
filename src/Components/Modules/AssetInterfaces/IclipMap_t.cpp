@@ -168,6 +168,11 @@ namespace Assets
 						Utils::Stream::ClearPointer(&nodes[i].plane);
 					}
 				}
+				else
+				{
+					AssertUnreachable;
+					Components::Logger::Error(Game::ERR_FATAL, "node {} of clipmap {} has no plane!", i, asset->name);
+				}
 			}
 
 			Utils::Stream::ClearPointer(&dest->nodes);
@@ -217,9 +222,6 @@ namespace Assets
 				{
 					if (node[i].data.leaf.brushes)
 					{
-						assert(node[i].data.leaf.brushes >= asset->leafbrushes);
-						assert(node[i].data.leaf.brushes < asset->leafbrushes + sizeof(unsigned short) * asset->numLeafBrushes);
-
 						if (builder->hasPointer(node[i].data.leaf.brushes))
 						{
 							node[i].data.leaf.brushes = builder->getPointer(node[i].data.leaf.brushes);

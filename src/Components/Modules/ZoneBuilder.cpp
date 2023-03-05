@@ -372,7 +372,6 @@ namespace Components
 					Logger::Error(Game::ERR_FATAL, "Missing required asset '{}' ({}). Export failed!", name, Game::DB_GetXAssetTypeName(type));
 				}
 
-				Logger::Debug("Saving require ({}): {}", Game::DB_GetXAssetTypeName(type), Game::DB_GetXAssetNameHandlers[type](&header));
 
 				// we alias the next 4 (aligned) bytes of the stream b/c DB_InsertPointer gives us a nice pointer to use as the alias
 				// otherwise it would be a fuckfest trying to figure out where the alias is in the stream
@@ -508,7 +507,6 @@ namespace Components
 			this->buffer.pushBlock(Game::XFILE_BLOCK_TEMP);
 			this->buffer.align(Utils::Stream::ALIGN_4);
 
-			Logger::Debug("Saving ({}): {}", Game::DB_GetXAssetTypeName(asset.type), Game::DB_GetXAssetNameHandlers[asset.type](&asset.header));
 
 			this->store(asset.header);
 			AssetHandler::ZoneSave(asset, this);
