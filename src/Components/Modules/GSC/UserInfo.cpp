@@ -1,11 +1,10 @@
 #include <STDInclude.hpp>
 #include <Utils/InfoString.hpp>
 
+#include "Script.hpp"
 #include "UserInfo.hpp"
 
-#include "GSC/Script.hpp"
-
-namespace Components
+namespace Components::GSC
 {
 	std::unordered_map<int, UserInfo::userInfoMap> UserInfo::UserInfoOverrides;
 

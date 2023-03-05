@@ -4,7 +4,7 @@
 
 #define INT64_OPERATION(expr) [](const std::int64_t a, [[maybe_unused]] const std::int64_t b) { return expr; }
 
-namespace Components
+namespace Components::GSC
 {
 	std::unordered_map<std::string, Int64::int64_OP> Int64::Operations =
 	{

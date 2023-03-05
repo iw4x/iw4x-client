@@ -363,7 +363,7 @@ namespace Components
 
 	void ClientCommand::AddScriptFunctions()
 	{
-		Script::AddFunction("DropAllBots", [] // gsc: DropAllBots();
+		GSC::Script::AddFunction("DropAllBots", [] // gsc: DropAllBots();
 		{
 			Game::SV_DropAllBots();
 		});

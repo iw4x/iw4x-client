@@ -48,7 +48,6 @@
 #include "Modules/Theatre.hpp"
 #include "Modules/Threading.hpp"
 #include "Modules/UIFeeder.hpp"
-#include "Modules/UserInfo.hpp"
 #include "Modules/VisionFile.hpp"
 #include "Modules/Voice.hpp"
 #include "Modules/Vote.hpp"
@@ -162,7 +161,6 @@ namespace Components
 		Register(new Threading());
 		Register(new Toast());
 		Register(new UIFeeder());
-		Register(new UserInfo());
 		Register(new VisionFile());
 		Register(new Voice());
 		Register(new Vote());
@@ -170,9 +168,9 @@ namespace Components
 		Register(new Window());
 		Register(new Zones());
 
-		Register(new GSC());
+		Register(new GSC::GSC());
 
-		Register(new lPrecomp());
+		Register(new BotLib::lPrecomp());
 
 		Pregame = false;
 

@@ -7,8 +7,10 @@
 #include "ScriptExtension.hpp"
 #include "ScriptPatches.hpp"
 #include "ScriptStorage.hpp"
+#include "String.hpp"
+#include "UserInfo.hpp"
 
-namespace Components
+namespace Components::GSC
 {
 	GSC::GSC()
 	{
@@ -19,5 +21,7 @@ namespace Components
 		Loader::Register(new ScriptExtension());
 		Loader::Register(new ScriptPatches());
 		Loader::Register(new ScriptStorage());
+		Loader::Register(new String());
+		Loader::Register(new UserInfo());
 	}
 }

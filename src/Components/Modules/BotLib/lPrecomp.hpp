@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Components
+namespace Components::BotLib
 {
 	class lPrecomp : public Component
 	{

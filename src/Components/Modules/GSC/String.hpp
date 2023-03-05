@@ -2,14 +2,12 @@
 
 namespace Components::GSC
 {
-	class IO : public Component
+	class String : public Component
 	{
 	public:
-		IO();
+		String();
 
 	private:
-		static const char* QueryStrings[];
-
 		static void AddScriptFunctions();
 	};
 }

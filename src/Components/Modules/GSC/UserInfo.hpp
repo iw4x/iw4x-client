@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Components
+namespace Components::GSC
 {
 	class UserInfo : public Component
 	{

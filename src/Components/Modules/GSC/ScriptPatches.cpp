@@ -4,7 +4,7 @@
 
 using namespace Utils::String;
 
-namespace Components
+namespace Components::GSC
 {
 	constexpr auto offset = 511;
 

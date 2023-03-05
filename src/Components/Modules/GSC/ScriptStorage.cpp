@@ -3,7 +3,7 @@
 #include "ScriptStorage.hpp"
 #include "Script.hpp"
 
-namespace Components
+namespace Components::GSC
 {
 	std::unordered_map<std::string, std::string> ScriptStorage::Data;
 

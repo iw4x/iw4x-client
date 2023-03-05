@@ -330,7 +330,7 @@ namespace Components
 		Utils::Hook(0x573F39, PM_PlayerTraceStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x573E93, PM_PlayerTraceStub, HOOK_CALL).install()->quick();
 
-		Script::AddMethod("IsSprinting", GScr_IsSprinting);
+		GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
 
 		RegisterMovementDvars();
 	}

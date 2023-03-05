@@ -5,10 +5,10 @@
 
 #define SCRIPT_ERROR_PATCH
 
-using namespace Utils::String;
-
-namespace Components
+namespace Components::GSC
 {
+	using namespace Utils::String;
+
 	int ScriptError::developer_;
 
 	Game::scrParserGlob_t ScriptError::scrParserGlob;

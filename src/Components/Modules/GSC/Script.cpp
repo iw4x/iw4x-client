@@ -1,7 +1,7 @@
 #include <STDInclude.hpp>
 #include "Script.hpp"
 
-namespace Components
+namespace Components::GSC
 {
 	std::vector<Script::ScriptFunction> Script::CustomScrFunctions;
 	std::vector<Script::ScriptMethod> Script::CustomScrMethods;

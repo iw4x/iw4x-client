@@ -203,9 +203,9 @@ namespace Components
 
 	void Bots::AddMethods()
 	{
-		Script::AddMethMultiple(GScr_isTestClient, false, {"IsTestClient", "IsBot"}); // Usage: self IsTestClient();
+		GSC::Script::AddMethMultiple(GScr_isTestClient, false, {"IsTestClient", "IsBot"}); // Usage: self IsTestClient();
 
-		Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
+		GSC::Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
@@ -220,7 +220,7 @@ namespace Components
 			g_botai[entref.entnum].active = true;
 		});
 
-		Script::AddMethod("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
+		GSC::Script::AddMethod("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
@@ -243,7 +243,7 @@ namespace Components
 			g_botai[entref.entnum].active = true;
 		});
 
-		Script::AddMethod("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
+		GSC::Script::AddMethod("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
@@ -284,7 +284,7 @@ namespace Components
 			Game::Scr_ParamError(0, "^1BotAction: Unknown action.\n");
 		});
 
-		Script::AddMethod("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
+		GSC::Script::AddMethod("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 

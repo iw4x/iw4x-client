@@ -1,7 +1,7 @@
 #include <STDInclude.hpp>
 #include "lPrecomp.hpp"
 
-namespace Components
+namespace Components::BotLib
 {
 	// Two new directives! Refer to (https://en.cppreference.com/w/cpp/preprocessor/conditional)
 	Game::directive_s lPrecomp::directives[] =

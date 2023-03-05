@@ -79,7 +79,7 @@ namespace Components
 
 	void Stats::AddScriptFunctions()
 	{
-		Script::AddMethod("GetStat", [](const Game::scr_entref_t entref)
+		GSC::Script::AddMethod("GetStat", [](const Game::scr_entref_t entref)
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto index = Game::Scr_GetInt(0);
@@ -97,7 +97,7 @@ namespace Components
 			Game::Scr_AddInt(Game::SV_GetClientStat(ent->s.number, index));
 		});
 
-		Script::AddMethod("SetStat", [](const Game::scr_entref_t entref)
+		GSC::Script::AddMethod("SetStat", [](const Game::scr_entref_t entref)
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 

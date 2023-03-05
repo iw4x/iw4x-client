@@ -2,7 +2,7 @@
 #include "IO.hpp"
 #include "Script.hpp"
 
-namespace Components
+namespace Components::GSC
 {
 	const char* IO::QueryStrings[] = { R"(..)", R"(../)", R"(..\)" };
 

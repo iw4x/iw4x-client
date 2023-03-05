@@ -586,7 +586,7 @@ namespace Components
 
 	void Chat::AddScriptFunctions()
 	{
-		Script::AddFunction("OnPlayerSay", [] // gsc: OnPlayerSay(<function>)
+		GSC::Script::AddFunction("OnPlayerSay", [] // gsc: OnPlayerSay(<function>)
 		{
 			if (Game::Scr_GetNumParam() != 1)
 			{
@@ -600,7 +600,7 @@ namespace Components
 				return;
 			}
 
-			const auto* func = ScriptExtension::GetCodePosForParam(0);
+			const auto* func = GSC::ScriptExtension::GetCodePosForParam(0);
 			SayCallbacks.emplace_back(func);
 		});
 	}

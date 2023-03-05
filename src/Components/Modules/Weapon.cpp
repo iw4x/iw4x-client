@@ -550,7 +550,7 @@ namespace Components
 
 	void Weapon::PlayerCmd_initialWeaponRaise(Game::scr_entref_t entref)
 	{
-		auto* ent = Script::Scr_GetPlayerEntity(entref);
+		auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 		const auto* weapon = Game::Scr_GetString(0);
 		const auto index = Game::G_GetWeaponIndexForName(weapon);
 
@@ -580,21 +580,21 @@ namespace Components
 
 	void Weapon::AddScriptMethods()
 	{
-		Script::AddMethod("DisableWeaponPickup", [](Game::scr_entref_t entref)
+		GSC::Script::AddMethod("DisableWeaponPickup", [](Game::scr_entref_t entref)
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
 			ent->client->ps.weapCommon.weapFlags |= Game::PWF_DISABLE_WEAPON_PICKUP;
 		});
 
-		Script::AddMethod("EnableWeaponPickup", [](Game::scr_entref_t entref)
+		GSC::Script::AddMethod("EnableWeaponPickup", [](Game::scr_entref_t entref)
 		{
 			const auto* ent = Game::GetPlayerEntity(entref);
 
 			ent->client->ps.weapCommon.weapFlags &= ~Game::PWF_DISABLE_WEAPON_PICKUP;
 		});
 
-		Script::AddMethod("InitialWeaponRaise", PlayerCmd_initialWeaponRaise);
+		GSC::Script::AddMethod("InitialWeaponRaise", PlayerCmd_initialWeaponRaise);
 	}
 
 	Weapon::Weapon()

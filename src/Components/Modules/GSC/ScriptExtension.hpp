@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Components
+namespace Components::GSC
 {
 	class ScriptExtension : public Component
 	{
