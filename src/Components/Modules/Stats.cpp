@@ -104,7 +104,7 @@ namespace Components
 			const auto iNumParms = Game::Scr_GetNumParam();
 			if (iNumParms != 2)
 			{
-				Game::Scr_Error(Utils::String::VA("GetStat: takes 2 arguments, got %u.\n", iNumParms));
+				Game::Scr_Error(Utils::String::VA("GetStat: takes 2 arguments, got %u.", iNumParms));
 			}
 
 			const auto index = Game::Scr_GetInt(0);

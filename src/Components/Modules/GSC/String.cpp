@@ -51,6 +51,25 @@ namespace Components::GSC
 			}
 		});
 
+		Script::AddFunction("GetChar", []
+		{
+			const auto* str = Game::Scr_GetString(0);
+			const auto index = Game::Scr_GetInt(1);
+
+			if (!str)
+			{
+				Game::Scr_Error("^1GetChar: Illegal parameter!");
+				return;
+			}
+			
+			if (static_cast<std::size_t>(index) >= std::strlen(str))
+			{
+				Game::Scr_Error("GetChar: char index is out of bounds");
+			}
+
+			Game::Scr_AddInt(str[index]);
+		});
+
 		// Func present on IW5
 		Script::AddFunction("StrICmp", [] // gsc: StrICmp(<string>, <string>)
 		{
@@ -70,7 +89,7 @@ namespace Components::GSC
 
 			if (!str || !suffix)
 			{
-				Game::Scr_Error("^1IsEndStr: Illegal parameters!\n");
+				Game::Scr_Error("^1IsEndStr: Illegal parameters!");
 				return;
 			}
 

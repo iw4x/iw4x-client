@@ -38,10 +38,6 @@ function protobuf.project()
 		}
 		
 		rules {"ProtobufCompiler"}
-		
-		defines {"_SCL_SECURE_NO_WARNINGS"}
-		
-		linkoptions {"-IGNORE:4221"}
 
 		warnings "Off"
 		kind "StaticLib"

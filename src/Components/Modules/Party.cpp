@@ -340,7 +340,7 @@ namespace Components
 		Network::OnClientPacket("getInfo", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
 			auto botCount = 0;
-			auto clientCount = 0;
+			auto effectiveClientCount = 0;
 			auto maxClientCount = *Game::svs_clientCount;
 			const auto securityLevel = Dvar::Var("sv_securityLevel").get<int>();
 			const auto* password = *Game::g_password ? (*Game::g_password)->current.string : "";
@@ -360,14 +360,14 @@ namespace Components
 					}
 					else
 					{
-						++clientCount;
+						++effectiveClientCount;
 					}
 				}
 			}
 			else
 			{
 				maxClientCount = *Game::party_maxplayers ? (*Game::party_maxplayers)->current.integer : 18;
-				clientCount = Game::PartyHost_CountMembers(Game::g_lobbyData);
+				effectiveClientCount = Game::PartyHost_CountMembers(Game::g_lobbyData);
 			}
 
 			Utils::InfoString info;
@@ -377,7 +377,7 @@ namespace Components
 			info.set("gametype", (*Game::sv_gametype)->current.string);
 			info.set("fs_game", (*Game::fs_gameDirVar)->current.string);
 			info.set("xuid", Utils::String::VA("%llX", Steam::SteamUser()->GetSteamID().bits));
-			info.set("clients", std::to_string(clientCount));
+			info.set("clients", std::to_string(effectiveClientCount));
 			info.set("bots", std::to_string(botCount));
 			info.set("sv_maxclients", std::to_string(maxClientCount));
 			info.set("protocol", std::to_string(PROTOCOL));

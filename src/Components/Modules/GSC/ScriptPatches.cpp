@@ -24,7 +24,7 @@ namespace Components::GSC
 	{
 		if (Game::Scr_GetNumParam() < 3)
 		{
-			Game::Scr_Error("USAGE: tableLookupIStringByRow( filename, rowNum, returnValueColumnNum )\n");
+			Game::Scr_Error("USAGE: tableLookupIStringByRow( filename, rowNum, returnValueColumnNum )");
 			return;
 		}
 
@@ -36,7 +36,7 @@ namespace Components::GSC
 
 		if (table == nullptr)
 		{
-			Game::Scr_ParamError(0, Utils::String::VA("%s does not exist\n", fileName));
+			Game::Scr_ParamError(0, Utils::String::VA("%s does not exist", fileName));
 			return;
 		}
 

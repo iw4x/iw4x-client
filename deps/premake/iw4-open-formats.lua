@@ -17,7 +17,6 @@ end
 function iw4_open_formats.project()
 	project "iw4-open-formats"
 		language "C++"
-		cppdialect "C++latest"
 	
 		iw4_open_formats.includes()
 

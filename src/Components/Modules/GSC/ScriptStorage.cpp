@@ -16,7 +16,7 @@ namespace Components::GSC
 
 			if (key == nullptr || value == nullptr)
 			{
-				Game::Scr_Error("^1StorageSet: Illegal parameters!\n");
+				Game::Scr_Error("^1StorageSet: Illegal parameters!");
 				return;
 			}
 
@@ -29,13 +29,13 @@ namespace Components::GSC
 
 			if (key == nullptr)
 			{
-				Game::Scr_ParamError(0, "^1StorageRemove: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "^1StorageRemove: Illegal parameter!");
 				return;
 			}
 
 			if (!Data.contains(key))
 			{
-				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key));
+				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!", key));
 				return;
 			}
 
@@ -48,13 +48,13 @@ namespace Components::GSC
 
 			if (key == nullptr)
 			{
-				Game::Scr_ParamError(0, "^1StorageGet: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "^1StorageGet: Illegal parameter!");
 				return;
 			}
 
 			if (!Data.contains(key))
 			{
-				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key));
+				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!", key));
 			}
 
 			const auto& data = Data.at(key);
@@ -67,7 +67,7 @@ namespace Components::GSC
 
 			if (key == nullptr)
 			{
-				Game::Scr_ParamError(0, "^1StorageHas: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "^1StorageHas: Illegal parameter!");
 				return;
 			}
 
@@ -78,7 +78,7 @@ namespace Components::GSC
 		{
 			if (Data.empty())
 			{
-				Game::Scr_Error("^1StorageDump: ScriptStorage is empty!\n");
+				Game::Scr_Error("^1StorageDump: ScriptStorage is empty!");
 				return;
 			}
 

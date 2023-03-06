@@ -16,13 +16,13 @@ namespace Components::GSC
 
 			if (!path)
 			{
-				Game::Scr_ParamError(0, "^1FileWrite: filepath is not defined!\n");
+				Game::Scr_ParamError(0, "^1FileWrite: filepath is not defined!");
 				return;
 			}
 
 			if (!text || !mode)
 			{
-				Game::Scr_Error("^1FileWrite: Illegal parameters!\n");
+				Game::Scr_Error("^1FileWrite: Illegal parameters!");
 				return;
 			}
 
@@ -59,7 +59,7 @@ namespace Components::GSC
 
 			if (!path)
 			{
-				Game::Scr_ParamError(0, "^1FileRead: filepath is not defined!\n");
+				Game::Scr_ParamError(0, "^1FileRead: filepath is not defined!");
 				return;
 			}
 
@@ -92,7 +92,7 @@ namespace Components::GSC
 
 			if (!path)
 			{
-				Game::Scr_ParamError(0, "^1FileExists: filepath is not defined!\n");
+				Game::Scr_ParamError(0, "^1FileExists: filepath is not defined!");
 				return;
 			}
 
@@ -115,7 +115,7 @@ namespace Components::GSC
 
 			if (!path)
 			{
-				Game::Scr_ParamError(0, "^1FileRemove: filepath is not defined!\n");
+				Game::Scr_ParamError(0, "^1FileRemove: filepath is not defined!");
 				return;
 			}
 

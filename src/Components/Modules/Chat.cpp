@@ -590,7 +590,7 @@ namespace Components
 		{
 			if (Game::Scr_GetNumParam() != 1)
 			{
-				Game::Scr_Error("^1OnPlayerSay: Needs one function pointer!\n");
+				Game::Scr_Error("^1OnPlayerSay: Needs one function pointer!");
 				return;
 			}
 

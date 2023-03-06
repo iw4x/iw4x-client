@@ -211,7 +211,7 @@ namespace Components
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
-				Game::Scr_Error("^1BotStop: Can only call on a bot!\n");
+				Game::Scr_Error("^1BotStop: Can only call on a bot!");
 				return;
 			}
 
@@ -226,7 +226,7 @@ namespace Components
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
-				Game::Scr_Error("^1BotWeapon: Can only call on a bot!\n");
+				Game::Scr_Error("^1BotWeapon: Can only call on a bot!");
 				return;
 			}
 
@@ -249,7 +249,7 @@ namespace Components
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
-				Game::Scr_Error("^1BotAction: Can only call on a bot!\n");
+				Game::Scr_Error("^1BotAction: Can only call on a bot!");
 				return;
 			}
 
@@ -257,13 +257,13 @@ namespace Components
 
 			if (action == nullptr)
 			{
-				Game::Scr_ParamError(0, "^1BotAction: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "^1BotAction: Illegal parameter!");
 				return;
 			}
 
 			if (action[0] != '+' && action[0] != '-')
 			{
-				Game::Scr_ParamError(0, "^1BotAction: Sign for action must be '+' or '-'.\n");
+				Game::Scr_ParamError(0, "^1BotAction: Sign for action must be '+' or '-'");
 				return;
 			}
 
@@ -281,7 +281,7 @@ namespace Components
 				return;
 			}
 
-			Game::Scr_ParamError(0, "^1BotAction: Unknown action.\n");
+			Game::Scr_ParamError(0, "^1BotAction: Unknown action");
 		});
 
 		GSC::Script::AddMethod("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
@@ -290,7 +290,7 @@ namespace Components
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
-				Game::Scr_Error("^1BotMovement: Can only call on a bot!\n");
+				Game::Scr_Error("^1BotMovement: Can only call on a bot!");
 				return;
 			}
 

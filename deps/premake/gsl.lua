@@ -8,7 +8,7 @@ end
 
 function gsl.includes()
 	includedirs {
-		path.join(gsl.source, "include")
+		path.join(gsl.source, "include"),
 	}
 end
 
