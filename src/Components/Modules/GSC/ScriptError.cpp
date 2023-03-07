@@ -873,6 +873,8 @@ namespace Components::GSC
 	{
 #ifdef SCRIPT_ERROR_PATCH
 		std::vector<std::pair<std::size_t, void*>> patches;
+		patches.resize(200);
+
 		const auto p = [&patches](const std::size_t a, void* b)
 		{
 			patches.emplace_back(a, b);

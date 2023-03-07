@@ -105,10 +105,12 @@ namespace Components
 		{
 			return false;
 		}
+
 		if (ent1->client->sess.cs.team)
 		{
 			return ent1->client->sess.cs.team == ent2->client->sess.cs.team;
 		}
+
 		return false;
 	}
 
