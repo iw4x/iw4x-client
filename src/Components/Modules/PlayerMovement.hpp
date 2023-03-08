@@ -23,6 +23,8 @@ namespace Components
 		static const Game::dvar_t* PlayerSpectateSpeedScale;
 		static const Game::dvar_t* BGBounces;
 		static const Game::dvar_t* BGBouncesAllAngles;
+		static const Game::dvar_t* BGBunnyHopSlowdown;
+		static const Game::dvar_t* BGBunnyHopAuto;
 		static const Game::dvar_t* PlayerDuckedSpeedScale;
 		static const Game::dvar_t* PlayerProneSpeedScale;
 		
@@ -44,6 +46,9 @@ namespace Components
 		// Player collison
 		static int StuckInClient_Hk(Game::gentity_s* self);
 		static void CM_TransformedCapsuleTrace_Hk(Game::trace_t* results, const float* start, const float* end, const Game::Bounds* bounds, const Game::Bounds* capsule, int contents, const float* origin, const float* angles);
+
+		static void PM_CrashLand_Stub(const float* v, float scale, const float* result);
+		static void Jump_Check_Stub();
 
 		static void GScr_IsSprinting(Game::scr_entref_t entref);
 
