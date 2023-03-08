@@ -15,7 +15,7 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::PlayerSpectateSpeedScale;
 	const Game::dvar_t* PlayerMovement::BGBounces;
 	const Game::dvar_t* PlayerMovement::BGBouncesAllAngles;
-	const Game::dvar_t* PlayerMovement::BGBunnyHopSlowdown;
+	const Game::dvar_t* PlayerMovement::BGDisableLandingSlowdown;
 	const Game::dvar_t* PlayerMovement::BGBunnyHopAuto;
 	const Game::dvar_t* PlayerMovement::PlayerDuckedSpeedScale;
 	const Game::dvar_t* PlayerMovement::PlayerProneSpeedScale;
@@ -221,7 +221,7 @@ namespace Components
 
 	void PlayerMovement::PM_CrashLand_Stub(const float* v, float scale, const float* result)
 	{
-		if (!BGBunnyHopSlowdown->current.enabled)
+		if (!BGDisableLandingSlowdown->current.enabled)
 		{
 			Utils::Hook::Call<void(const float*, float, const float*)>(0x4C12B0)(v, scale, result);
 		}
@@ -291,7 +291,7 @@ namespace Components
 			3.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
 			"The speed at which noclip camera moves");
 
-		BGBunnyHopSlowdown = Game::Dvar_RegisterBool("bg_bunnyHopSlowdown",
+		BGDisableLandingSlowdown = Game::Dvar_RegisterBool("bg_disableLandingSlowdown",
 			false, Game::DVAR_CODINFO, "Toggle landing slowdown");
 
 		BGBunnyHopAuto = Game::Dvar_RegisterBool("bg_bunnyHopAuto",

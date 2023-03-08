@@ -23,7 +23,7 @@ namespace Components
 		static const Game::dvar_t* PlayerSpectateSpeedScale;
 		static const Game::dvar_t* BGBounces;
 		static const Game::dvar_t* BGBouncesAllAngles;
-		static const Game::dvar_t* BGBunnyHopSlowdown;
+		static const Game::dvar_t* BGDisableLandingSlowdown;
 		static const Game::dvar_t* BGBunnyHopAuto;
 		static const Game::dvar_t* PlayerDuckedSpeedScale;
 		static const Game::dvar_t* PlayerProneSpeedScale;
