@@ -56,7 +56,7 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 
 #ifndef DEBUG_BINARY_CHECK
 		const auto* binary = reinterpret_cast<const char*>(0x6F9358);
-		if (binary == nullptr || std::memcmp(binary, BASEGAME_NAME, 14) != 0)
+		if (!binary || std::memcmp(binary, BASEGAME_NAME, 14) != 0)
 #endif
 		{
 			MessageBoxA(nullptr, 

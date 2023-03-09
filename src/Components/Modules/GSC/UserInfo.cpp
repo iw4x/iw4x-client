@@ -52,7 +52,7 @@ namespace Components::GSC
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* name = Game::Scr_GetString(0);
 
-			if (name == nullptr)
+			if (!name)
 			{
 				Game::Scr_ParamError(0, "^1SetName: Illegal parameter!");
 				return;
@@ -77,7 +77,7 @@ namespace Components::GSC
 			const auto* ent = Game::GetPlayerEntity(entref);
 			const auto* clanName = Game::Scr_GetString(0);
 
-			if (clanName == nullptr)
+			if (!clanName)
 			{
 				Game::Scr_ParamError(0, "^1SetClanTag: Illegal parameter!");
 				return;

@@ -14,7 +14,7 @@ namespace Components::GSC
 			const auto* key = Game::Scr_GetString(0);
 			const auto* value = Game::Scr_GetString(1);
 
-			if (key == nullptr || value == nullptr)
+			if (!key || !value)
 			{
 				Game::Scr_Error("^1StorageSet: Illegal parameters!");
 				return;
@@ -27,7 +27,7 @@ namespace Components::GSC
 		{
 			const auto* key = Game::Scr_GetString(0);
 
-			if (key == nullptr)
+			if (!key)
 			{
 				Game::Scr_ParamError(0, "^1StorageRemove: Illegal parameter!");
 				return;
@@ -46,7 +46,7 @@ namespace Components::GSC
 		{
 			const auto* key = Game::Scr_GetString(0);
 
-			if (key == nullptr)
+			if (!key)
 			{
 				Game::Scr_ParamError(0, "^1StorageGet: Illegal parameter!");
 				return;
@@ -65,7 +65,7 @@ namespace Components::GSC
 		{
 			const auto* key = Game::Scr_GetString(0);
 
-			if (key == nullptr)
+			if (!key)
 			{
 				Game::Scr_ParamError(0, "^1StorageHas: Illegal parameter!");
 				return;

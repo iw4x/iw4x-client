@@ -18,12 +18,14 @@ namespace Utils
 
 		std::string Rand::GenerateChallenge()
 		{
-			std::string challenge;
-			challenge.append(String::VA("%X", GenerateInt()));
-			challenge.append(String::VA("%X", ~timeGetTime() ^ GenerateInt()));
-			challenge.append(String::VA("%X", GenerateInt()));
+			char buffer[512]{};
+			int buffer_pos = 0;
 
-			return challenge;
+			buffer_pos += sprintf_s(&buffer[buffer_pos], sizeof(buffer) - buffer_pos, "%X", GenerateInt());
+			buffer_pos += sprintf_s(&buffer[buffer_pos], sizeof(buffer) - buffer_pos, "%X", ~timeGetTime() ^ GenerateInt());
+			buffer_pos += sprintf_s(&buffer[buffer_pos], sizeof(buffer) - buffer_pos, "%X", GenerateInt());
+
+			return std::string(buffer, static_cast<std::size_t>(buffer_pos));
 		}
 
 		std::uint32_t Rand::GenerateInt()

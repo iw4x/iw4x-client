@@ -205,7 +205,7 @@ namespace Components::GSC
 	{
 		assert(ent);
 
-		if (ent->client == nullptr)
+		if (!ent->client)
 		{
 			Game::Scr_ObjectError(Utils::String::VA("Entity %i is not a player", ent->s.number));
 			return nullptr;

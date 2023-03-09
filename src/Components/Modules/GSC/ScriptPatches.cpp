@@ -34,7 +34,7 @@ namespace Components::GSC
 
 		const auto* table = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_STRINGTABLE, fileName).stringTable;
 
-		if (table == nullptr)
+		if (!table)
 		{
 			Game::Scr_ParamError(0, Utils::String::VA("%s does not exist", fileName));
 			return;

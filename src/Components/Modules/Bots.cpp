@@ -167,8 +167,10 @@ namespace Components
 			Scheduler::Once([]
 			{
 				auto* ent = Game::SV_AddTestClient();
-				if (ent == nullptr)
+				if (!ent)
+				{
 					return;
+				}
 
 				Scheduler::Once([ent]
 				{
@@ -232,7 +234,7 @@ namespace Components
 
 			const auto* weapon = Game::Scr_GetString(0);
 
-			if (weapon == nullptr || weapon[0] == '\0')
+			if (!weapon || !*weapon)
 			{
 				g_botai[entref.entnum].weapon = 1;
 				return;
@@ -255,7 +257,7 @@ namespace Components
 
 			const auto* action = Game::Scr_GetString(0);
 
-			if (action == nullptr)
+			if (!action)
 			{
 				Game::Scr_ParamError(0, "^1BotAction: Illegal parameter!");
 				return;
@@ -305,8 +307,10 @@ namespace Components
 
 	void Bots::BotAiAction(Game::client_t* cl)
 	{
-		if (cl->gentity == nullptr)
+		if (!cl->gentity)
+		{
 			return;
+		}
 
 		const auto entnum = cl->gentity->s.number;
 

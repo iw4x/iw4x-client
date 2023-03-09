@@ -55,7 +55,7 @@ namespace Components
 			}
 
 			const auto* dvar = Game::Dvar_FindVar(name);
-			if (dvar == nullptr)
+			if (!dvar)
 			{
 				// If it's not a dvar let it continue
 				Game::CL_SelectStringTableEntryInDvar_f();

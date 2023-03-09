@@ -28,7 +28,7 @@ namespace Components::GSC
 			assert(entref.entnum < Game::MAX_GENTITIES);
 
 			auto* ent = &Game::g_entities[entref.entnum];
-			if (ent->client == nullptr)
+			if (!ent->client)
 			{
 				Game::Scr_ObjectError(Utils::String::VA("entity %i is not a player", entref.entnum));
 				return nullptr;
