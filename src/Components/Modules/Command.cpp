@@ -174,6 +174,41 @@ namespace Components
 		}
 	}
 
+	bool Command::IsSendingNotifiesDisabled()
+	{
+		static std::optional<bool> flag;
+
+		if (!flag.has_value())
+		{
+			flag.emplace(Flags::HasFlag("disable-notifies"));
+		}
+
+		return flag.value();
+	}
+
+	const std::vector<std::string>& Command::GetExceptions()
+	{
+		static const auto exceptions = []() -> std::vector<std::string>
+		{
+			std::vector<std::string> values =
+			{
+				"cmd",
+				"exec",
+				"map",
+			};
+
+			if (IsSendingNotifiesDisabled())
+			{
+				values.emplace_back("vstr");
+				values.emplace_back("wait");
+			}
+
+			return values;
+		}();
+
+		return exceptions;
+	}
+
 	bool Command::CL_ShouldSendNotify_Hk(const char* cmd)
 	{
 		if (!cmd)
@@ -181,18 +216,10 @@ namespace Components
 			return false;
 		}
 
-		static std::array exceptions =
-		{
-			"cmd",
-			"exec",
-			"map",
-			"vstr",
-			"wait",
-		};
-
+		const auto& exceptions = GetExceptions();
 		for (const auto& entry : exceptions)
 		{
-			if (!_stricmp(cmd, entry))
+			if (!_stricmp(cmd, entry.data()))
 			{
 				return false;
 			}
