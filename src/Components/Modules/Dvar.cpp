@@ -298,8 +298,25 @@ namespace Components
 		return flag.value();
 	}
 
+	bool Dvar::IsSettingArchiveDvarsDisabled()
+	{
+		static std::optional<bool> flag;
+
+		if (!flag.has_value())
+		{
+			flag.emplace(Flags::HasFlag("protect-dvars"));
+		}
+
+		return flag.value();
+	}
+
 	void Dvar::DvarSetFromStringByName_Stub(const char* dvarName, const char* value)
 	{
+		if (IsSettingArchiveDvarsDisabled())
+		{
+			return;
+		}
+
 		// Save the dvar original value if it has the archive flag
 		const auto* dvar = Game::Dvar_FindVar(dvarName);
 		if (dvar && dvar->flags & Game::DVAR_ARCHIVE)

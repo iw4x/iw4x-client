@@ -10,6 +10,8 @@
 
 #include <version.hpp>
 
+#define CL_MOD_LOADING
+
 namespace Components
 {
 	class JoinContainer
@@ -448,13 +450,13 @@ namespace Components
 					Container.valid = false;
 					Container.info = info;
 
-					Container.matchType = atoi(info.get("matchtype").data());
-					auto securityLevel = static_cast<std::uint32_t>(atoi(info.get("securityLevel").data()));
+					Container.matchType = std::strtol(info.get("matchtype").data(), nullptr, 10);
+					auto securityLevel = std::strtoul(info.get("securityLevel").data(), nullptr, 10);
 					bool isUsermap = !info.get("usermaphash").empty();
-					auto usermapHash = static_cast<std::uint32_t>(atoi(info.get("usermaphash").data()));
-
+					auto usermapHash = std::strtoul(info.get("usermaphash").data(), nullptr, 10);
+#ifdef CL_MOD_LOADING
 					std::string mod = (*Game::fs_gameDirVar)->current.string;
-
+#endif
 					// set fast server stuff here so its updated when we go to download stuff
 					if (info.get("wwwDownload") == "1"s)
 					{
@@ -497,6 +499,7 @@ namespace Components
 						Command::Execute("closemenu popup_reconnectingtoparty");
 						Download::InitiateMapDownload(info.get("mapname"), info.get("isPrivate") == "1");
 					}
+#ifdef CL_MOD_LOADING
 					else if (!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
@@ -513,6 +516,7 @@ namespace Components
 
 						Command::Execute("reconnect", false);
 					}
+#endif
 					else
 					{
 						if (!Maps::CheckMapInstalled(Container.info.get("mapname"), true)) return;

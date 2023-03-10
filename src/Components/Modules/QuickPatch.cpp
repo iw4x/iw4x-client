@@ -281,6 +281,27 @@ namespace Components
 		}
 	}
 
+	bool QuickPatch::CL_ShouldSendNotify_Hk(const char* cmd)
+	{
+		if (!cmd)
+		{
+			return false;
+		}
+
+		static std::vector<std::string> exceptions =
+		{
+			"vstr",
+			"wait",
+		};
+
+		if (std::ranges::find(exceptions, cmd) != exceptions.end())
+		{
+			return false;
+		}
+
+		return Utils::Hook::Call<bool(const char*)>(0x47A640)(cmd);
+	}
+
 	Game::dvar_t* QuickPatch::Dvar_RegisterConMinicon(const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
 	{
 #ifdef _DEBUG
@@ -346,6 +367,9 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x475F9E, BASEGAME "/images/splash.bmp");
 
 		Utils::Hook::Set<const char*>(0x4876C6, "Successfully read stats data\n");
+
+		// Protect players from invasive servers
+		Utils::Hook(0x434BD4, CL_ShouldSendNotify_Hk, HOOK_CALL).install()->quick();  // CL_CheckNotify
 
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
@@ -597,18 +621,18 @@ namespace Components
 
 					for (int i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
 					{
-						Game::MaterialTechnique* technique = asset.techniqueSet->techniques[i];
+						auto* technique = asset.techniqueSet->techniques[i];
 
 						if (technique)
 						{
 							// Size-check is obsolete, as the structure is dynamic
 							buffer.align(Utils::Stream::ALIGN_4);
 
-							Game::MaterialTechnique* destTechnique = buffer.dest<Game::MaterialTechnique>();
+							auto* destTechnique = buffer.dest<Game::MaterialTechnique>();
 							buffer.save(technique, 8);
 
 							// Save_MaterialPassArray
-							Game::MaterialPass* destPasses = buffer.dest<Game::MaterialPass>();
+							auto* destPasses = buffer.dest<Game::MaterialPass>();
 							buffer.saveArray(technique->passArray, technique->passCount);
 
 							for (std::uint16_t j = 0; j < technique->passCount; ++j)
