@@ -271,7 +271,7 @@ namespace Components
 
 		for (const auto& entry : exceptions)
 		{
-			if (Utils::String::Compare(dvarName, entry))
+			if (!_stricmp(dvarName, entry))
 			{
 				Game::Dvar_SetFromStringByNameFromSource(dvarName, string, Game::DVAR_SOURCE_INTERNAL);
 				return;

@@ -34,8 +34,6 @@ namespace Components
 
 		static void SND_GetAliasOffset_Stub();
 
-		static bool CL_ShouldSendNotify_Hk(const char* cmd);
-
 		static Game::dvar_t* Dvar_RegisterConMinicon(const char* dvarName, bool value, unsigned __int16 flags, const char* description);
 	};
 }

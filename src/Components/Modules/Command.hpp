@@ -52,7 +52,7 @@ namespace Components
 			int nesting_;
 		};
 
-		Command() = default;
+		Command();
 
 		static Game::cmd_function_s* Allocate();
 
@@ -72,5 +72,7 @@ namespace Components
 
 		static void MainCallback();
 		static void MainCallbackSV();
+
+		static bool CL_ShouldSendNotify_Hk(const char* cmd);
 	};
 }

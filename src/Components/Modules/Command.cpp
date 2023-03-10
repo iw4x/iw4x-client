@@ -173,4 +173,37 @@ namespace Components
 			itr->second(&params);
 		}
 	}
+
+	bool Command::CL_ShouldSendNotify_Hk(const char* cmd)
+	{
+		if (!cmd)
+		{
+			return false;
+		}
+
+		static std::array exceptions =
+		{
+			"cmd",
+			"exec",
+			"map",
+			"vstr",
+			"wait",
+		};
+
+		for (const auto& entry : exceptions)
+		{
+			if (!_stricmp(cmd, entry))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	Command::Command()
+	{
+		// Protect players from invasive servers
+		Utils::Hook(0x434BD4, CL_ShouldSendNotify_Hk, HOOK_CALL).install()->quick();  // CL_CheckNotify
+	}
 }
