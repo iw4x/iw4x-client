@@ -15,27 +15,8 @@ namespace Components::GSC
 		static void AddMethMultiple(Game::BuiltinMethod func, bool type, scriptNames);
 
 		static Game::client_t* GetClient(const Game::gentity_t* gentity);
-
 		// Probably a macro 'originally' but this is fine
-		static Game::gentity_s* Scr_GetPlayerEntity(Game::scr_entref_t entref)
-		{
-			if (entref.classnum)
-			{
-				Game::Scr_ObjectError("not an entity");
-				return nullptr;
-			}
-
-			assert(entref.entnum < Game::MAX_GENTITIES);
-
-			auto* ent = &Game::g_entities[entref.entnum];
-			if (!ent->client)
-			{
-				Game::Scr_ObjectError(Utils::String::VA("entity %i is not a player", entref.entnum));
-				return nullptr;
-			}
-
-			return ent;
-		}
+		static Game::gentity_s* Scr_GetPlayerEntity(Game::scr_entref_t entref);
 
 	private:
 		struct ScriptFunction

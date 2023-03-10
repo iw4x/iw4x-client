@@ -582,14 +582,14 @@ namespace Components
 	{
 		GSC::Script::AddMethod("DisableWeaponPickup", [](Game::scr_entref_t entref)
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			ent->client->ps.weapCommon.weapFlags |= Game::PWF_DISABLE_WEAPON_PICKUP;
 		});
 
 		GSC::Script::AddMethod("EnableWeaponPickup", [](Game::scr_entref_t entref)
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			ent->client->ps.weapCommon.weapFlags &= ~Game::PWF_DISABLE_WEAPON_PICKUP;
 		});

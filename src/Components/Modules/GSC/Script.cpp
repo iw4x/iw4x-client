@@ -220,6 +220,26 @@ namespace Components::GSC
 		return &Game::svs_clients[ent->s.number];
 	}
 
+	Game::gentity_s* Script::Scr_GetPlayerEntity(Game::scr_entref_t entref)
+	{
+		if (entref.classnum)
+		{
+			Game::Scr_ObjectError("not an entity");
+			return nullptr;
+		}
+
+		assert(entref.entnum < Game::MAX_GENTITIES);
+
+		auto* ent = &Game::g_entities[entref.entnum];
+		if (!ent->client)
+		{
+			Game::Scr_ObjectError(Utils::String::VA("entity %i is not a player", entref.entnum));
+			return nullptr;
+		}
+
+		return ent;
+	}
+
 	Script::Script()
 	{
 		// Skip check in GScr_CheckAllowedToSetPersistentData to prevent log spam in RuntimeError.

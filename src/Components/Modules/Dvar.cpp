@@ -314,6 +314,7 @@ namespace Components
 	{
 		if (IsSettingArchiveDvarsDisabled())
 		{
+			Logger::Debug("Not allowing server to set '{}'", dvarName);
 			return;
 		}
 

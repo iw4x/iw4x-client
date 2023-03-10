@@ -276,7 +276,7 @@ namespace Components::GSC
 		// ScriptExtension methods
 		Script::AddMethod("GetIp", [](const Game::scr_entref_t entref) // gsc: self GetIp()
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = Script::Scr_GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);
 
 			std::string ip = Game::NET_AdrToString(client->header.netchan.remoteAddress);
@@ -300,7 +300,7 @@ namespace Components::GSC
 
 		Script::AddMethod("GetPing", [](const Game::scr_entref_t entref) // gsc: self GetPing()
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = Script::Scr_GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);
 
 			Game::Scr_AddInt(client->ping);
@@ -312,7 +312,7 @@ namespace Components::GSC
 
 			ping = std::clamp(ping, 0, 999);
 
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = Script::Scr_GetPlayerEntity(entref);
 			auto* client = Script::GetClient(ent);
 
 			client->ping = ping;

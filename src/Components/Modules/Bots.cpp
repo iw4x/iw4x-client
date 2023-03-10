@@ -209,7 +209,7 @@ namespace Components
 
 		GSC::Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
@@ -224,7 +224,7 @@ namespace Components
 
 		GSC::Script::AddMethod("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
@@ -247,7 +247,7 @@ namespace Components
 
 		GSC::Script::AddMethod("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
@@ -288,7 +288,7 @@ namespace Components
 
 		GSC::Script::AddMethod("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
