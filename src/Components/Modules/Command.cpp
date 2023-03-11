@@ -85,11 +85,9 @@ namespace Components
 		if (Loader::IsPregame())
 		{
 			MessageBoxA(nullptr, "Registering server commands in pregame state is illegal!", nullptr, MB_ICONERROR);
-
 #ifdef _DEBUG
 			__debugbreak();
 #endif
-
 			return;
 		}
 
@@ -120,6 +118,8 @@ namespace Components
 	{
 		command.append("\n"); // Make sure it's terminated
 
+		assert(command.size() < Game::MAX_CMD_LINE);
+
 		if (sync)
 		{
 			Game::Cmd_ExecuteSingleCommand(0, 0, command.data());
@@ -134,9 +134,9 @@ namespace Components
 	{
 		auto* cmdFunction = *Game::cmd_functions;
 
-		while (cmdFunction != nullptr)
+		while (cmdFunction)
 		{
-			if (cmdFunction->name != nullptr && cmdFunction->name == command)
+			if (cmdFunction->name && Utils::String::Compare(cmdFunction->name, command))
 			{
 				return cmdFunction;
 			}
@@ -174,18 +174,6 @@ namespace Components
 		}
 	}
 
-	bool Command::IsSendingNotifiesDisabled()
-	{
-		static std::optional<bool> flag;
-
-		if (!flag.has_value())
-		{
-			flag.emplace(Flags::HasFlag("disable-notifies"));
-		}
-
-		return flag.value();
-	}
-
 	const std::vector<std::string>& Command::GetExceptions()
 	{
 		static const auto exceptions = []() -> std::vector<std::string>
@@ -197,7 +185,7 @@ namespace Components
 				"map",
 			};
 
-			if (IsSendingNotifiesDisabled())
+			if (Flags::HasFlag("disable-notifies"))
 			{
 				values.emplace_back("vstr");
 				values.emplace_back("wait");
@@ -219,7 +207,7 @@ namespace Components
 		const auto& exceptions = GetExceptions();
 		for (const auto& entry : exceptions)
 		{
-			if (!_stricmp(cmd, entry.data()))
+			if (Utils::String::Compare(cmd, entry))
 			{
 				return false;
 			}

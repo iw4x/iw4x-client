@@ -257,7 +257,7 @@ namespace Components
 
 	void Dvar::SetFromStringByNameSafeExternal(const char* dvarName, const char* string)
 	{
-		static std::array<const char*, 8> exceptions =
+		static std::array exceptions =
 		{
 			"ui_showEndOfGame",
 			"systemlink",

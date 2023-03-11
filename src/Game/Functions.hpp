@@ -585,6 +585,8 @@ namespace Game
 	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
 	constexpr std::size_t MAX_CLIENTS = 18;
 
+	constexpr auto MAX_CMD_BUFFER = 0x10000;
+	constexpr auto MAX_CMD_LINE = 0x1000;
 	constexpr auto CMD_MAX_NESTING = 8;
 	extern CmdArgs* cmd_args;
 	extern CmdArgs* sv_cmd_args;

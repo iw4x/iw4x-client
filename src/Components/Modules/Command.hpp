@@ -73,7 +73,6 @@ namespace Components
 		static void MainCallback();
 		static void MainCallbackSV();
 
-		static bool IsSendingNotifiesDisabled();
 		static const std::vector<std::string>& GetExceptions();
 		static bool CL_ShouldSendNotify_Hk(const char* cmd);
 	};
