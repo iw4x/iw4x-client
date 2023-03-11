@@ -40,7 +40,7 @@ namespace Components
 
 	static void Errored(const int errorCode, const char* message)
 	{
-		Logger::Print(Game::CON_CHANNEL_ERROR, "Discord: Error (%i): %s\n", errorCode, message);
+		Logger::Print(Game::CON_CHANNEL_ERROR, "Discord: Error ({}): {}\n", errorCode, message);
 	}
 
 	void Discord::UpdateDiscord()
