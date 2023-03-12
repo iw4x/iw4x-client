@@ -439,13 +439,19 @@ namespace Components
 
 		Command::Add("spawnBot", [](Command::Params* params)
 		{
-			auto count = 1u;
+			if (!Dedicated::IsRunning())
+			{
+				Logger::Print("Server is not running.\n");
+				return;
+			}
+
+			std::size_t count = 1;
 
 			if (params->size() > 1)
 			{
 				if (params->get(1) == "all"s)
 				{
-					count = *Game::svs_clientCount;
+					count = Game::MAX_CLIENTS;
 				}
 				else
 				{
@@ -462,18 +468,9 @@ namespace Components
 				}
 			}
 
-			count = std::min(static_cast<unsigned int>(*Game::svs_clientCount), count);
+			count = std::min(Game::MAX_CLIENTS, count);
 
-			// Check if ingame and host
-			if (!Game::SV_Loaded())
-			{
-				Toast::Show("cardicon_headshot", "^1Error", "You need to be host to spawn bots!", 3000);
-				Logger::Print("You need to be host to spawn bots!\n");
-				return;
-			}
-
-			Toast::Show("cardicon_headshot", "^2Success", Utils::String::VA("Spawning %d %s...", count, (count == 1 ? "bot" : "bots")), 3000);
-			Logger::Debug("Spawning {} {}", count, (count == 1 ? "bot" : "bots"));
+			Logger::Print("Spawning {} {}", count, (count == 1 ? "bot" : "bots"));
 
 			Spawn(count);
 		});
