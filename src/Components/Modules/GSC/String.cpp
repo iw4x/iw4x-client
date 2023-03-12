@@ -58,7 +58,7 @@ namespace Components::GSC
 
 			if (!str)
 			{
-				Game::Scr_Error("^1GetChar: Illegal parameter!");
+				Game::Scr_Error("GetChar: Illegal parameter!");
 				return;
 			}
 			
@@ -89,7 +89,7 @@ namespace Components::GSC
 
 			if (!str || !suffix)
 			{
-				Game::Scr_Error("^1IsEndStr: Illegal parameters!");
+				Game::Scr_Error("IsEndStr: Illegal parameters!");
 				return;
 			}
 

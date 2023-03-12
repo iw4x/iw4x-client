@@ -54,7 +54,7 @@ namespace Components::GSC
 
 			if (!name)
 			{
-				Game::Scr_ParamError(0, "^1SetName: Illegal parameter!");
+				Game::Scr_ParamError(0, "SetName: Illegal parameter!");
 				return;
 			}
 
@@ -79,7 +79,7 @@ namespace Components::GSC
 
 			if (!clanName)
 			{
-				Game::Scr_ParamError(0, "^1SetClanTag: Illegal parameter!");
+				Game::Scr_ParamError(0, "SetClanTag: Illegal parameter!");
 				return;
 			}
 

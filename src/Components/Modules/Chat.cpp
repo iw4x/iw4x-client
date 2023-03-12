@@ -590,13 +590,13 @@ namespace Components
 		{
 			if (Game::Scr_GetNumParam() != 1)
 			{
-				Game::Scr_Error("^1OnPlayerSay: Needs one function pointer!");
+				Game::Scr_Error("OnPlayerSay: Needs one function pointer!");
 				return;
 			}
 
 			if (!CanAddCallback)
 			{
-				Game::Scr_Error("^1OnPlayerSay: Cannot add a callback in this context");
+				Game::Scr_Error("OnPlayerSay: Cannot add a callback in this context");
 				return;
 			}
 
