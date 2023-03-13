@@ -105,15 +105,7 @@ namespace Components::GSC
 
 		AddScriptMethods();
 
-		Events::OnVMShutdown([]
-		{
-			ClearAllOverrides();
-		});
-
-		Events::OnClientDisconnect([](const int clientNum)
-		{
-			// Clear the overrides for UserInfo
-			ClearClientOverrides(clientNum);
-		});
+		Events::OnVMShutdown(ClearAllOverrides);
+		Events::OnClientDisconnect(ClearClientOverrides);
 	}
 }
