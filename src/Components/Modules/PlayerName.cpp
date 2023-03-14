@@ -6,11 +6,11 @@ namespace Components
 {
 	Dvar::Var PlayerName::sv_allowColoredNames;
 
-	void PlayerName::UserInfoCopy(char* buffer, const char* name, const size_t size)
+	void PlayerName::UserInfoCopy(char* buffer, const char* name, const int size)
 	{
 		if (!sv_allowColoredNames.get<bool>())
 		{
-			char nameBuffer[64] = {0};
+			char nameBuffer[64]{};
 			TextRenderer::StripColors(name, nameBuffer, sizeof(nameBuffer));
 			TextRenderer::StripAllTextIcons(nameBuffer, buffer, size);
 		}
@@ -32,17 +32,18 @@ namespace Components
 	{
 		__asm
 		{
-			mov eax, [esp + 4h] // length
+			pushad
 
-			push eax
-
+			push [esp + 0x20 + 0x4] // length
 			push ecx // name
 			push edx // buffer
 
 			call UserInfoCopy
+			add esp, 0xC
 
-			add esp, 0Ch
-			retn
+			popad
+
+			ret
 		}
 	}
 
@@ -58,7 +59,7 @@ namespace Components
 
 	char* PlayerName::CleanStrStub(char* string)
 	{
-		TextRenderer::StripColors(string, string, strlen(string) + 1);
+		TextRenderer::StripColors(string, string, std::strlen(string) + 1);
 		return string;
 	}
 
@@ -69,9 +70,16 @@ namespace Components
 		auto i = 0;
 		while (i < size - 1 && dest[i] != '\0')
 		{
-			if (dest[i] > 125 || dest[i] < 32 || dest[i] == '%')
+			// Check for various illegal characters
+
+			if (dest[i] == '%')
 			{
-				return false; // Illegal string
+				return false;
+			}
+
+			if (std::iscntrl(static_cast<unsigned char>(dest[i])))
+			{
+				return false;
 			}
 
 			++i;
@@ -82,6 +90,8 @@ namespace Components
 
 	__declspec(naked) void PlayerName::SV_UserinfoChangedStub()
 	{
+		using namespace Game;
+
 		__asm
 		{
 			call CopyClientNameCheck
@@ -94,8 +104,7 @@ namespace Components
 			push 1 // tellThem
 			push INVALID_NAME_MSG // reason
 			push edi // drop
-			mov eax, 0x4D1600 // SV_DropClient
-			call eax
+			call SV_DropClient
 			add esp, 0xC
 
 			popad
@@ -114,7 +123,8 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
 
 		// Allow colored names ingame. Hook placed in ClientUserinfoChanged
-		Utils::Hook(0x5D8B40, ClientCleanName, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x445301, ClientCleanName, HOOK_CALL).install()->quick();
+		Utils::Hook(0x44533A, ClientCleanName, HOOK_CALL).install()->quick();
 
 		// Though, don't apply that to overhead names.
 		Utils::Hook(0x581932, GetClientName, HOOK_CALL).install()->quick();

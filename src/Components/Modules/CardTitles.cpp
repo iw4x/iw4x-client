@@ -16,7 +16,7 @@ namespace Components
 	{
 		auto result = lookupResult;
 
-		const auto* username = Dvar::Var("name").get<const char*>();
+		const auto* username = Dvar::Name.get<const char*>();
 		if (std::strcmp(data->name, username) == 0)
 		{
 			result += 0xFE000000;
@@ -170,7 +170,7 @@ namespace Components
 				playerTitle[0] = '\0';
 			}
 
-			list.append(std::format("\\{}\\{}", std::to_string(i), playerTitle));
+			list.append(std::format("\\{}\\{}", i, playerTitle));
 		}
 
 		const auto* command = Utils::String::Format("{:c} customTitles \"{}\"", 21, list);
