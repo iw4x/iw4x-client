@@ -62,6 +62,7 @@ namespace Components
 
 		// Address "race" condition where commands received from RCon can be null
 		Utils::Hook(0x6094DA, I_stricmp_Stub, HOOK_CALL).install()->quick(); // Cmd_ExecuteServerString
+		Utils::Hook(0x6095D7, I_stricmp_Stub, HOOK_CALL).install()->quick(); // Cmd_ExecuteSingleCommand
 
 		// Backport updates from IW5
 		Utils::Hook::Set<const char*>(0x45D112, "CL_PacketEvent - ignoring illegible message\n");
