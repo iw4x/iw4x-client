@@ -15,7 +15,7 @@ namespace Components::GSC
 			char out[1024]{}; // 1024 is the max for a string in this SL system
 			bool changed = false;
 
-			size_t i = 0;
+			std::size_t i = 0;
 			while (i < sizeof(out))
 			{
 				const auto value = *string;
@@ -23,10 +23,14 @@ namespace Components::GSC
 				out[i] = result;
 
 				if (value != result)
+				{
 					changed = true;
+				}
 
 				if (result == '\0') // Finished converting string
+				{
 					break;
+				}
 
 				++string;
 				++i;
@@ -73,12 +77,10 @@ namespace Components::GSC
 		// Func present on IW5
 		Script::AddFunction("StrICmp", [] // gsc: StrICmp(<string>, <string>)
 		{
-			const auto value1 = Game::Scr_GetConstString(0);
-			const auto value2 = Game::Scr_GetConstString(1);
+			const auto* string1 = Game::SL_ConvertToString(Game::Scr_GetConstString(0));
+			const auto* string2 = Game::SL_ConvertToString(Game::Scr_GetConstString(1));
 
-			const auto result = _stricmp(Game::SL_ConvertToString(value1), Game::SL_ConvertToString(value2));
-
-			Game::Scr_AddInt(result);
+			Game::Scr_AddInt(_stricmp(string1, string2));
 		});
 
 		// Func present on IW5
@@ -93,7 +95,16 @@ namespace Components::GSC
 				return;
 			}
 
-			Game::Scr_AddBool(Utils::String::EndsWith(str, suffix));
+			const auto str_len = std::strlen(str);
+			const auto suffix_len = std::strlen(suffix);
+
+			if (suffix_len > str_len)
+			{
+				Game::Scr_AddBool(0);
+				return;
+			}
+
+			Game::Scr_AddBool(std::memcmp(str + str_len - suffix_len, suffix, suffix_len) == 0);
 		});
 
 		// Func present on IW5
