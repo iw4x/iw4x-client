@@ -49,7 +49,7 @@ namespace Components
 		static void SetFromStringByNameSafeExternal(const char* dvarName, const char* string);
 
 		static bool AreArchiveDvarsUnprotected();
-		static bool IsSettingArchiveDvarsDisabled();
+		static bool IsSettingDvarsDisabled();
 		static void DvarSetFromStringByName_Stub(const char* dvarName, const char* value);
 
 		static void OnRegisterVariant(Game::dvar_t* dvar);

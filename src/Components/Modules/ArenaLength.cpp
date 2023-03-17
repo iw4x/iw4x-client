@@ -60,7 +60,7 @@ namespace Components
 
 	ArenaLength::ArenaLength()
 	{
-		// Reallocate  ui_arenaInfos
+		// Reallocate ui_arenaInfos
 		Utils::Hook::Set<char**>(0x4A95F0 + 3, ArenaLength::NewArenaInfos);
 		Utils::Hook::Set<char**>(0x4A9620 + 3, ArenaLength::NewArenaInfos);
 		Utils::Hook::Set<char**>(0x4A9653 + 3, ArenaLength::NewArenaInfos);

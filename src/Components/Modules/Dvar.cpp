@@ -298,7 +298,7 @@ namespace Components
 		return flag.value();
 	}
 
-	bool Dvar::IsSettingArchiveDvarsDisabled()
+	bool Dvar::IsSettingDvarsDisabled()
 	{
 		static std::optional<bool> flag;
 
@@ -312,7 +312,7 @@ namespace Components
 
 	void Dvar::DvarSetFromStringByName_Stub(const char* dvarName, const char* value)
 	{
-		if (IsSettingArchiveDvarsDisabled())
+		if (IsSettingDvarsDisabled())
 		{
 			Logger::Debug("Not allowing server to set '{}'", dvarName);
 			return;
