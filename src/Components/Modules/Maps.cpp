@@ -603,7 +603,7 @@ namespace Components
 	void Maps::ScanCustomMaps()
 	{
 		FoundCustomMaps.clear();
-		Logger::Print("Scanning custom maps...\n");
+		Logger::Print("Looking for custom maps...\n");
 
 		std::filesystem::path basePath = (*Game::fs_basepath)->current.string;
 		basePath /= "usermaps";
