@@ -619,8 +619,8 @@ namespace Components
 		{
 			if (entry.is_directory())
 			{
-				auto zoneName = entry.path().filename().string();
-				auto mapPath = std::format("{}\\{}.ff", entry.path().string(), zoneName);
+				const auto zoneName = entry.path().filename().string();
+				const auto mapPath = std::format("{}\\{}.ff", entry.path().string(), zoneName);
 				if (Utils::IO::FileExists(mapPath))
 				{
 					FoundCustomMaps.push_back(zoneName);
