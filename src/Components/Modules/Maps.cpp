@@ -605,9 +605,15 @@ namespace Components
 		FoundCustomMaps.clear();
 		Logger::Print("Scanning custom maps...\n");
 
-		auto basePath = std::format("{}\\usermaps", (*Game::fs_basepath)->current.string);
+		std::filesystem::path basePath = (*Game::fs_basepath)->current.string;
+		basePath /= "usermaps";
 
-		auto entries = Utils::IO::ListFiles(basePath);
+		if (!std::filesystem::exists(basePath))
+		{
+			return;
+		}
+
+		const auto entries = Utils::IO::ListFiles(basePath);
 
 		for (const auto& entry : entries)
 		{
