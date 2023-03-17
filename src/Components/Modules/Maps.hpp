@@ -63,6 +63,12 @@ namespace Components
 		static bool IsCustomMap();
 		static bool IsUserMap(const std::string& mapname);
 
+		static void ScanCustomMaps();
+		static std::string GetArenaPath(const std::string& mapName);
+		static const std::vector<std::string>& GetCustomMaps();
+
+		static std::unordered_map<std::string, std::string> ParseCustomMapArena(const std::string& singleMapArena);
+
 	private:
 		class DLC
 		{
@@ -85,6 +91,7 @@ namespace Components
 
 		static std::vector<std::pair<std::string, std::string>> DependencyList;
 		static std::vector<std::string> CurrentDependencies;
+		static std::vector<std::string> FoundCustomMaps;
 
 		static Dvar::Var RListSModels;
 

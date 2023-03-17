@@ -40,6 +40,8 @@ namespace Components
 
 		static char LastByteRead;
 
+		static Dvar::Var g_loadingInitialZones;
+
 		static Key CurrentKey;
 		static std::vector<std::string> ZonePaths;
 		static const char* GetZoneLocation(const char* file);

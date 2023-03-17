@@ -2,7 +2,10 @@
 
 namespace Components
 {
-	Game::newMapArena_t ArenaLength::NewArenas[128];
+	constexpr auto NEW_ARENA_COUNT = 128;
+
+	Game::newMapArena_t ArenaLength::NewArenas[NEW_ARENA_COUNT];
+	char* ArenaLength::NewArenaInfos[NEW_ARENA_COUNT];
 
 	__declspec(naked) void ArenaLength::ArenaMapOffsetHook1()
 	{
@@ -57,16 +60,28 @@ namespace Components
 
 	ArenaLength::ArenaLength()
 	{
-		// Reallocate array
-		Utils::Hook::Set<Game::newMapArena_t*>(0x417807, &ArenaLength::NewArenas[0]);
-		Utils::Hook::Set<Game::newMapArena_t*>(0x420717, &ArenaLength::NewArenas[0]);
-		Utils::Hook::Set<Game::newMapArena_t*>(0x49BD22, &ArenaLength::NewArenas[0]);
-		Utils::Hook::Set<Game::newMapArena_t*>(0x4A9649, &ArenaLength::NewArenas[0]);
-		Utils::Hook::Set<Game::newMapArena_t*>(0x4A97C2, &ArenaLength::NewArenas[0]);
-		Utils::Hook::Set<Game::newMapArena_t*>(0x4D077E, &ArenaLength::NewArenas[0]);
-		Utils::Hook::Set<Game::newMapArena_t*>(0x630B00, &ArenaLength::NewArenas[0]);
-		Utils::Hook::Set<Game::newMapArena_t*>(0x630B2E, &ArenaLength::NewArenas[0]);
-		Utils::Hook::Set<Game::newMapArena_t*>(0x632782, &ArenaLength::NewArenas[0]);
+		// Reallocate  ui_arenaInfos
+		Utils::Hook::Set<char**>(0x4A95F0 + 3, ArenaLength::NewArenaInfos);
+		Utils::Hook::Set<char**>(0x4A9620 + 3, ArenaLength::NewArenaInfos);
+		Utils::Hook::Set<char**>(0x4A9653 + 3, ArenaLength::NewArenaInfos);
+		Utils::Hook::Set<char**>(0x4A9684 + 3, ArenaLength::NewArenaInfos);
+		Utils::Hook::Set<char**>(0x4A96B7 + 3, ArenaLength::NewArenaInfos);
+		Utils::Hook::Set<char**>(0x4A97B3 + 3, ArenaLength::NewArenaInfos);
+		Utils::Hook::Set<char**>(0x630A9A + 3, ArenaLength::NewArenaInfos);
+
+		// Increase size - patch max arena count
+		Utils::Hook::Set<unsigned int>(0x630AA2 + 1, NEW_ARENA_COUNT);
+
+		// Reallocate sharedUiInfo.mapList
+		Utils::Hook::Set<Game::newMapArena_t*>(0x417807, ArenaLength::NewArenas);
+		Utils::Hook::Set<Game::newMapArena_t*>(0x420717, ArenaLength::NewArenas);
+		Utils::Hook::Set<Game::newMapArena_t*>(0x49BD22, ArenaLength::NewArenas);
+		Utils::Hook::Set<Game::newMapArena_t*>(0x4A9649, ArenaLength::NewArenas);
+		Utils::Hook::Set<Game::newMapArena_t*>(0x4A97C2, ArenaLength::NewArenas);
+		Utils::Hook::Set<Game::newMapArena_t*>(0x4D077E, ArenaLength::NewArenas);
+		Utils::Hook::Set<Game::newMapArena_t*>(0x630B00, ArenaLength::NewArenas);
+		Utils::Hook::Set<Game::newMapArena_t*>(0x630B2E, ArenaLength::NewArenas);
+		Utils::Hook::Set<Game::newMapArena_t*>(0x632782, ArenaLength::NewArenas);
 
 		Utils::Hook::Set<char*>(0x4A967A, ArenaLength::NewArenas[0].description);
 		Utils::Hook::Set<char*>(0x4A96AD, ArenaLength::NewArenas[0].mapimage);
@@ -109,12 +124,7 @@ namespace Components
 		Utils::Hook(0x632799, ArenaLength::ArenaMapOffsetHook3, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x4064B2, ArenaLength::ArenaMapOffsetHook4, HOOK_JUMP).install()->quick();
 
-		Utils::Hook::Set<BYTE>(0x4A95F8, 32);
-
+		Utils::Hook::Set<BYTE>(0x4A95F8, sizeof(Game::newMapArena_t::mapName));
 		Utils::Hook::Set<int>(0x42F22B, offsetof(Game::newMapArena_t, mapName) - offsetof(Game::newMapArena_t, other));
-
-		// patch max arena count
-		constexpr auto arenaCount = sizeof(ArenaLength::NewArenas) / sizeof(Game::newMapArena_t);
-		Utils::Hook::Set<std::uint32_t>(0x630AA3, arenaCount);
 	}
 }

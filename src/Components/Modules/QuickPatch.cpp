@@ -527,18 +527,21 @@ namespace Components
 			std::vector<std::string> fastFiles;
 			if (std::strcmp(param->get(1), "all") == 0)
 			{
-				for (const auto& f : Utils::IO::ListFiles("zone/english", false))
+				for (const auto& entry : Utils::IO::ListFiles("zone/english", false))
 				{
+					const auto& f = entry.path().string();
 					fastFiles.emplace_back(f.substr(7, f.length() - 10));
 				}
 
-				for (const auto& f : Utils::IO::ListFiles("zone/dlc", false))
+				for (const auto& entry : Utils::IO::ListFiles("zone/dlc", false))
 				{
+					const auto& f = entry.path().string();
 					fastFiles.emplace_back(f.substr(3, f.length() - 6));
 				}
 
-				for (const auto& f : Utils::IO::ListFiles("zone/patch", false))
+				for (const auto& entry : Utils::IO::ListFiles("zone/patch", false))
 				{
+					const auto& f = entry.path().string();
 					fastFiles.emplace_back(f.substr(5, f.length() - 8));
 				}
 			}

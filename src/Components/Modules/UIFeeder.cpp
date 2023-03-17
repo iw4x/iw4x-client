@@ -129,7 +129,7 @@ namespace Components
 			fld ds:739FD0h
 
 			mov eax, 41A0D7h
-			jmp eax;
+			jmp eax
 		}
 	}
 
@@ -279,74 +279,81 @@ namespace Components
 
 	unsigned int UIFeeder::GetMapCount()
 	{
-		Game::UI_UpdateArenas();
-		Game::UI_SortArenas();
-		return *Game::arenaCount;
+		return Maps::GetCustomMaps().size();
 	}
 
 	const char* UIFeeder::GetMapText(unsigned int index, int /*column*/)
 	{
-		Game::UI_UpdateArenas();
-		Game::UI_SortArenas();
-
-		if (index < static_cast<unsigned int>(*Game::arenaCount))
+		const auto& maps = Maps::GetCustomMaps();
+		if (index < maps.size())
 		{
-			return Game::SEH_StringEd_GetString(ArenaLength::NewArenas[reinterpret_cast<int*>(0x633E934)[index]].uiName);
+			return maps.at(index).data();
 		}
+
+#ifdef DEBUG
+		if (IsDebuggerPresent())
+		{
+			__debugbreak();
+		}
+#endif
 
 		return "";
 	}
 
 	void UIFeeder::SelectMap(unsigned int index)
 	{
-		Game::UI_UpdateArenas();
-		Game::UI_SortArenas();
+		const auto& maps = Maps::GetCustomMaps();
 
-		if (index < static_cast<unsigned int>(*Game::arenaCount))
+		if (index < maps.size())
 		{
-			index = reinterpret_cast<int*>(0x633E934)[index];
-			const char* map_name = ArenaLength::NewArenas[index].mapName;
-			const char* long_name = ArenaLength::NewArenas[index].uiName;
-			const char* description = ArenaLength::NewArenas[index].description;
+			std::string mapName = maps[index];
 
-			UIMapName.set(map_name);
-			UIMapLong.set(Game::SEH_StringEd_GetString(long_name));
-			UIMapDesc.set(Game::SEH_StringEd_GetString(description));
+			std::string longName = mapName;
+			std::string description = "(Missing arena file!)";
+
+			const auto& arenaPath = Maps::GetArenaPath(mapName);
+
+			if (Utils::IO::FileExists(arenaPath))
+			{
+				const auto& arena = Maps::ParseCustomMapArena(Utils::IO::ReadFile(arenaPath));
+
+				if (arena.contains("longname"))
+				{
+					longName = arena.at("longname");
+				}
+
+				if (arena.contains("map"))
+				{
+					mapName = arena.at("map");
+				}
+
+				if (arena.contains("description"))
+				{
+					description = arena.at("description");
+				}
+			}
+
+			UIMapName.set(Localization::Get(mapName.data()));
+			UIMapLong.set(Localization::Get(longName.data()));
+			UIMapDesc.set(Localization::Get(description.data()));
 		}
 	}
 
 	void UIFeeder::ApplyMap([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		const auto mapname = Dvar::Var("ui_map_name").get<std::string>();
+		const auto* mapname = Dvar::Var("ui_map_name").get<const char*>();
 
-		Dvar::Var("ui_mapname").set(mapname);
-		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname.data()); // Party_SetDisplayMapName
+		if (*mapname)
+		{
+			Game::Dvar_SetString(*Game::ui_mapname, mapname);
+			Utils::Hook::Call<void(const char*)>(0x503B50)(mapname); // Party_SetDisplayMapName
+		}
 	}
 
 	void UIFeeder::ApplyInitialMap([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		const auto* mapname = (*Game::ui_mapname)->current.string;
-
-		Game::UI_UpdateArenas();
-		Game::UI_SortArenas();
-
-		for (unsigned int i = 0; i < static_cast<unsigned int>(*Game::arenaCount); ++i)
-		{
-			if (!std::strcmp(ArenaLength::NewArenas[i].mapName, mapname))
-			{
-				for (unsigned int j = 0; j < static_cast<unsigned int>(*Game::arenaCount); ++j)
-				{
-					if (reinterpret_cast<unsigned int*>(0x633E934)[j] == i)
-					{
-						SelectMap(j);
-						Select(60.0f, j);
-						break;
-					}
-				}
-
-				break;
-			}
-		}
+		Maps::ScanCustomMaps();
+		Select(60.0f, 0); // Will select nothing if there's no map
 	}
 
 	int UIFeeder::CheckSelection(int feeder)
@@ -387,8 +394,8 @@ namespace Components
 
 		Events::OnDvarInit([]
 		{
-			UIMapLong = Dvar::Register<const char*>("ui_map_long", "Afghan", Game::DVAR_NONE, "");
-			UIMapName = Dvar::Register<const char*>("ui_map_name", "mp_afghan", Game::DVAR_NONE, "");
+			UIMapLong = Dvar::Register<const char*>("ui_map_long", "", Game::DVAR_NONE, "");
+			UIMapName = Dvar::Register<const char*>("ui_map_name", "", Game::DVAR_NONE, "");
 			UIMapDesc = Dvar::Register<const char*>("ui_map_desc", "", Game::DVAR_NONE, "");
 		});
 

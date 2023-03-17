@@ -47,7 +47,7 @@ namespace Components
 
 	Game::XAssetType currentAssetType = Game::XAssetType::ASSET_TYPE_INVALID;
 	Game::XAssetType previousAssetType = Game::XAssetType::ASSET_TYPE_INVALID;
-	
+
 	bool Zones::LoadFxEffectDef(bool atStreamStart, char* buffer, int size)
 	{
 		int count = 0;
@@ -124,7 +124,7 @@ namespace Components
 		}
 
 		bool result = Game::Load_Stream(atStreamStart, xmodel, size);
-		
+
 		if (Zones::Version() >= VERSION_ALPHA2)
 		{
 			Game::XModel model[2]; // Allocate 2 models, as we exceed the buffer
@@ -325,7 +325,7 @@ namespace Components
 		{
 			auto stringCount = (Zones::Version() >= 460) ? 62 : 52;
 			auto arraySize = stringCount * 4;
-			
+
 			// 236
 			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 124);
 			Game::Load_XStringArray(false, stringCount);
@@ -360,31 +360,31 @@ namespace Components
 		{
 			for (int i = 0; i < 16; i++)
 			{
-				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 1028 + (i * 4));
+				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 1028 + (i * 4));
 				Game::Load_FxEffectDefHandle(false);
 			}
 
 			for (int i = 0; i < 16; i++)
 			{
-				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 1124 + (i * 4));
+				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 1124 + (i * 4));
 				Game::Load_FxEffectDefHandle(false);
 			}
 
 			for (int i = 0; i < 16; i++)
 			{
-				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 1188 + (i * 4));
+				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 1188 + (i * 4));
 				Game::Load_FxEffectDefHandle(false);
 			}
 
 			for (int i = 0; i < 16; i++)
 			{
-				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 1316 + (i * 4));
+				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 1316 + (i * 4));
 				Game::Load_FxEffectDefHandle(false);
 			}
 
 			for (int i = 0; i < 5; i++)
 			{
-				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 1444 + (i * 4));
+				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 1444 + (i * 4));
 				Game::Load_FxEffectDefHandle(false);
 			}
 		}
@@ -421,7 +421,7 @@ namespace Components
 		{
 			auto offset = (Zones::Version() >= 460) ? 1476 : 916;
 			auto count = (Zones::Version() >= 461) ? 58 : (Zones::Version() >= 460) ? 57 : 52;
-			
+
 			// 53 soundalias name references; up to and including 1124
 			for (int i = 0; i < count; ++i, offset += 4)
 			{
@@ -457,7 +457,7 @@ namespace Components
 				if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1708) == -1)
 				{
 					*reinterpret_cast<void**>(varWeaponCompleteDef + 1708) = Game::DB_AllocStreamPos(3);
-					*Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t * **>(varWeaponCompleteDef + 1708);
+					*Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t***>(varWeaponCompleteDef + 1708);
 
 					Game::Load_snd_alias_list_nameArray(true, 31);
 				}
@@ -472,7 +472,7 @@ namespace Components
 				if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1712) == -1)
 				{
 					*reinterpret_cast<void**>(varWeaponCompleteDef + 1712) = Game::DB_AllocStreamPos(3);
-					*Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t * **>(varWeaponCompleteDef + 1712);
+					*Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t***>(varWeaponCompleteDef + 1712);
 
 					Game::Load_snd_alias_list_nameArray(true, 31);
 				}
@@ -552,7 +552,7 @@ namespace Components
 			// 1192
 			for (int offset = 1716; offset <= 1728; offset += 4)
 			{
-				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + offset);
+				*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + offset);
 				Game::Load_FxEffectDefHandle(false);
 			}
 		}
@@ -581,7 +581,7 @@ namespace Components
 			static int matOffsets1[] = { 1732, 1736, 1952, 1956, 1960, 1964, 1968, 1972, 1980, 1988, 2000, 2004, 2008, 2012 };
 			for (int i = 0; i < ARRAYSIZE(matOffsets1); ++i)
 			{
-				*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + matOffsets1[i]);
+				*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + matOffsets1[i]);
 				Game::Load_MaterialHandle(false);
 			}
 		}
@@ -643,7 +643,7 @@ namespace Components
 		{
 			for (int offset = 2332; offset <= 2344; offset += 4)
 			{
-				*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + offset);
+				*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + offset);
 				Game::Load_MaterialHandle(false);
 			}
 		}
@@ -666,10 +666,10 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			*Game::varPhysCollmapPtr = reinterpret_cast<Game::PhysCollmap * *>(varWeaponCompleteDef + 2544);
+			*Game::varPhysCollmapPtr = reinterpret_cast<Game::PhysCollmap**>(varWeaponCompleteDef + 2544);
 			Game::Load_PhysCollmapPtr(false);
 
-			*Game::varPhysPresetPtr = reinterpret_cast<Game::PhysPreset * *>(varWeaponCompleteDef + 2548);
+			*Game::varPhysPresetPtr = reinterpret_cast<Game::PhysPreset**>(varWeaponCompleteDef + 2548);
 			Game::Load_PhysPresetPtr(false);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -688,7 +688,7 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			*Game::varXModelPtr = reinterpret_cast<Game::XModel * *>(varWeaponCompleteDef + 2656);
+			*Game::varXModelPtr = reinterpret_cast<Game::XModel**>(varWeaponCompleteDef + 2656);
 			Game::Load_XModelPtr(false);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -704,10 +704,10 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 2664);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2664);
 			Game::Load_FxEffectDefHandle(false);
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 2668);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2668);
 			Game::Load_FxEffectDefHandle(false);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -729,10 +729,10 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 2672);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 2672);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 2676);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 2676);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -754,13 +754,13 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 2952);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2952);
 			Game::Load_FxEffectDefHandle(false);
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 2956);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2956);
 			Game::Load_FxEffectDefHandle(false);
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 2984);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2984);
 			Game::Load_FxEffectDefHandle(false);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -788,24 +788,24 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 2988);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 2988);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 2992);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2992);
 			Game::Load_FxEffectDefHandle(false);
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 2996);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2996);
 			Game::Load_FxEffectDefHandle(false);
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 3000);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 3000);
 			Game::Load_FxEffectDefHandle(false);
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 3004);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 3004);
 			Game::Load_FxEffectDefHandle(false);
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 3008);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 3008);
 			Game::Load_FxEffectDefHandle(false);
-			
+
 			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3196);
 			Game::Load_XString(false);
 		}
@@ -953,37 +953,37 @@ namespace Components
 
 		if (Zones::Version() >= 460)
 		{
-			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef * *>(varWeaponCompleteDef + 3492 + offsetShift);
+			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef**>(varWeaponCompleteDef + 3492 + offsetShift);
 			Game::Load_TracerDefPtr(false);
 
-			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef * *>(varWeaponCompleteDef + 3496 + offsetShift);
+			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef**>(varWeaponCompleteDef + 3496 + offsetShift);
 			Game::Load_TracerDefPtr(false);
 
-			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef * *>(varWeaponCompleteDef + 3500 + offsetShift);
+			*Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef**>(varWeaponCompleteDef + 3500 + offsetShift);
 			Game::Load_TracerDefPtr(false);
-			
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3528 + offsetShift);
+
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 3528 + offsetShift);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name); // 2848
 
-			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef * *>(varWeaponCompleteDef + 3532 + offsetShift);
+			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 3532 + offsetShift);
 			Game::Load_FxEffectDefHandle(false);
 
 			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3536 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3552 + offsetShift);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 3552 + offsetShift);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3556 + offsetShift);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 3556 + offsetShift);
 			Game::Load_snd_alias_list_nameArray(false, 4);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3572 + offsetShift);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 3572 + offsetShift);
 			Game::Load_snd_alias_list_nameArray(false, 4);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3588 + offsetShift);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 3588 + offsetShift);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 
-			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + 3592 + offsetShift);
+			*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 3592 + offsetShift);
 			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -1049,7 +1049,7 @@ namespace Components
 		{
 			for (int i = 0, offset = 3660 + offsetShift; i < 6; ++i, offset += 4)
 			{
-				*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t * *>(varWeaponCompleteDef + offset);
+				*Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + offset);
 				Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
 			}
 		}
@@ -1091,16 +1091,16 @@ namespace Components
 			*Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3732 + offsetShift);
 			Game::Load_XString(false);
 
-			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3740 + offsetShift);
+			*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + 3740 + offsetShift);
 			Game::Load_MaterialHandle(false);
 
-			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3744 + offsetShift);
+			*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + 3744 + offsetShift);
 			Game::Load_MaterialHandle(false);
 
-			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3748 + offsetShift);
+			*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + 3748 + offsetShift);
 			Game::Load_MaterialHandle(false);
 
-			*Game::varMaterialHandle = reinterpret_cast<Game::Material * *>(varWeaponCompleteDef + 3752 + offsetShift);
+			*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + 3752 + offsetShift);
 			Game::Load_MaterialHandle(false);
 		}
 		else if (Zones::ZoneVersion >= 359)
@@ -1441,11 +1441,11 @@ namespace Components
 			Game::Load_XString(false);
 
 			*reinterpret_cast<void**>(varWeaponAttach + 8) = Game::DB_AllocStreamPos(3);
-			Zones::LoadWeaponAttachStuff(*reinterpret_cast<DWORD * *>(varWeaponAttach + 8), *reinterpret_cast<int*>(varWeaponAttach + 4));
+			Zones::LoadWeaponAttachStuff(*reinterpret_cast<DWORD**>(varWeaponAttach + 8), *reinterpret_cast<int*>(varWeaponAttach + 4));
 
 			Game::DB_PopStreamPos();
 		}
-		
+
 	}
 
 	bool Zones::LoadMaterialShaderArgumentArray(bool atStreamStart, Game::MaterialShaderArgument* argument, int size)
@@ -1455,7 +1455,7 @@ namespace Components
 
 		Game::MaterialPass* curPass = *Game::varMaterialPass;
 		int count = curPass->perPrimArgCount + curPass->perObjArgCount + curPass->stableArgCount;
-		
+
 		for (int i = 0; i < count && (Zones::ZoneVersion >= VERSION_ALPHA2); ++i)
 		{
 			Game::MaterialShaderArgument* arg = &argument[i];
@@ -1544,13 +1544,13 @@ namespace Components
 					}
 					else if (Zones::Version() == 461)
 					{
-						static std::unordered_map<std::uint16_t, std::uint16_t> mapped_constants = 
+						static std::unordered_map<std::uint16_t, std::uint16_t> mapped_constants =
 						{
 							// mp_raid
 							{ 33, 31 },
 							{ 34, 32 },
 							{ 36, 34 },
-							{ 39, 37 },	
+							{ 39, 37 },
 							{ 40, 38 },
 							{ 42, 40 },
 							{ 43, 41 },
@@ -1582,7 +1582,7 @@ namespace Components
 
 							// dont know if this applies to 460 too, but I dont have 460 files to test
 							if (!strncmp(techsetName, "wc_unlit_add", 12) ||
-								!strncmp(techsetName, "wc_unlit_multiply", 17) )
+								!strncmp(techsetName, "wc_unlit_multiply", 17))
 							{
 								// fixes glass and water
 								arg->u.codeConst.index = 116;
@@ -1653,10 +1653,10 @@ namespace Components
 						{
 							if (arg->u.codeConst.index == 257)
 							{
-								if (FastFiles::Current() != "mp_conflict" && FastFiles::Current() != "mp_derail_sh" && FastFiles::Current() != "mp_overwatch_sh" && 
+								if (FastFiles::Current() != "mp_conflict" && FastFiles::Current() != "mp_derail_sh" && FastFiles::Current() != "mp_overwatch_sh" &&
 									FastFiles::Current() != "mp_con_spring" && FastFiles::Current() != "mp_resistance_sh" && FastFiles::Current() != "mp_lookout_sh")
 								{
-									const auto varMaterialTechniqueSet = *reinterpret_cast<Game::MaterialTechniqueSet * *>(0x112AE8C);
+									const auto varMaterialTechniqueSet = *reinterpret_cast<Game::MaterialTechniqueSet**>(0x112AE8C);
 									if (varMaterialTechniqueSet->name && !strncmp(varMaterialTechniqueSet->name, "mc_", 3))
 									{
 										// fixes trees
@@ -1789,25 +1789,26 @@ namespace Components
 		return result;
 	}
 
-	void Zones::FixImageCategory(Game::GfxImage* image) {
+	void Zones::FixImageCategory(Game::GfxImage* image)
+	{
 		// CODO makes use of additional enumerator values (9, 10, 11) that don't exist in IW4
 		// We have to translate them. 9 is for Reflection probes,  11 is for Compass,  10 is for Lightmap
 		switch (image->category)
 		{
-			case 9:
-				image->category = Game::ImageCategory::IMG_CATEGORY_AUTO_GENERATED;
-				break;
-			case 10:
-				image->category = Game::ImageCategory::IMG_CATEGORY_LIGHTMAP;
-				break;
-			case 11:
-				image->category = Game::ImageCategory::IMG_CATEGORY_LOAD_FROM_FILE;
-				break;
+		case 9:
+			image->category = Game::ImageCategory::IMG_CATEGORY_AUTO_GENERATED;
+			break;
+		case 10:
+			image->category = Game::ImageCategory::IMG_CATEGORY_LIGHTMAP;
+			break;
+		case 11:
+			image->category = Game::ImageCategory::IMG_CATEGORY_LOAD_FROM_FILE;
+			break;
 		}
 
 
-		if (image->category > 7 || image->category < 0) {
-
+		if (image->category > 7 || image->category < 0)
+		{
 #ifdef DEBUG
 			if (IsDebuggerPresent()) __debugbreak();
 #endif
@@ -1837,15 +1838,15 @@ namespace Components
 				if (Zones::Version() >= 423)
 				{
 					// don't read assets that are unused by codol, for some retarded reason their header is written in the FF anyway
-					if (*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_CLIPMAP_SP || 
-						*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP || 
+					if (*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_CLIPMAP_SP ||
+						*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP ||
 						*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP)
 					{
 						*reinterpret_cast<int*>(buffer + (i * 8)) = Game::XAssetType::ASSET_TYPE_UI_MAP;
 						*reinterpret_cast<int**>(buffer + (i * 8) + 4) = nullptr;
 					}
 				}
-				
+
 				AssetHandler::Relocate(buffer + (i * 16), buffer + (i * 8) + 0, 4);
 				AssetHandler::Relocate(buffer + (i * 16) + 8, buffer + (i * 8) + 4, 4);
 			}
@@ -1860,7 +1861,7 @@ namespace Components
 		if (Zones::ZoneVersion >= 359) size += 4;
 		// 446 amd above adds an additional technique
 		if (Zones::ZoneVersion >= 446) size += 4;
-		
+
 		bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
 		if (Zones::ZoneVersion >= 359)
@@ -1888,8 +1889,8 @@ namespace Components
 
 		if (Zones::Version() >= 446)
 		{
-			auto lastTechnique = **reinterpret_cast<Game::MaterialTechnique * **>(0x112AEDC);
-			auto varMaterialTechniqueSet = **reinterpret_cast<Game::MaterialTechniqueSet * **>(0x112B070);
+			auto lastTechnique = **reinterpret_cast<Game::MaterialTechnique***>(0x112AEDC);
+			auto varMaterialTechniqueSet = **reinterpret_cast<Game::MaterialTechniqueSet***>(0x112B070);
 
 			// patch last technique to match iw4
 			varMaterialTechniqueSet->techniques[47] = lastTechnique;
@@ -1920,7 +1921,7 @@ namespace Components
 			std::memmove(buffer + 0x50, codol_material + 0x58, 0x10);
 
 			std::memset(buffer + 0x48 + 5, 0, 3);
-			
+
 			// relocate pointers
 			AssetHandler::Relocate(buffer + 10, buffer, 4);
 			AssetHandler::Relocate(buffer + 0x1B, buffer + 4, 4);
@@ -1933,12 +1934,12 @@ namespace Components
 			reinterpret_cast<Game::Material*>(buffer)->stateBitsEntry[47] = codol_material[0x50];
 		}
 		else if (Zones::ZoneVersion >= 359)
-		{			
+		{
 			struct material339_s
 			{
 				char drawSurfBegin[8]; // 4
 				//int surfaceTypeBits;
-				const char *name;
+				const char* name;
 				char drawSurf[6];
 
 				union
@@ -1987,7 +1988,7 @@ namespace Components
 	int gfxLightMapExtraCount = 0;
 	int* gfxLightMapExtraPtr1 = nullptr;
 	int* gfxLightMapExtraPtr2 = nullptr;
-	
+
 	bool Zones::LoadGfxWorld(bool atStreamStart, char* buffer, int size)
 	{
 		gfxLightMapExtraPtr1 = nullptr;
@@ -1996,7 +1997,7 @@ namespace Components
 		if (Zones::Version() >= 460) size += 984;
 		else if (Zones::Version() >= 423) size += 980;
 		else if (Zones::Version() >= 359) size += 968;
-		
+
 		bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
 		// fix 4 byte difference in FF ver 460+ this turns 460+ into 423
@@ -2005,7 +2006,7 @@ namespace Components
 			std::memmove(buffer + 0x34, buffer + 0x38, size - 0x38);
 			AssetHandler::Relocate(buffer + 0x38, buffer + 0x34, size - 0x38);
 		}
-		
+
 		// fix 12 byte difference in FF ver 423+, this turns 423+ into 359
 		if (Zones::Version() >= 423)
 		{
@@ -2018,7 +2019,7 @@ namespace Components
 			std::memmove(buffer + 0x50 + 0x10, buffer + 0x50 + 0x1C, size - 0x6C);
 			AssetHandler::Relocate(buffer + 0x50 + 0x1C, buffer + 0x50 + 0x10, size - 0x6C);
 		}
-				
+
 		if (Zones::Version() >= 359)
 		{
 			int sunDiff = 8;	// Stuff that is part of the sunflare we would overwrite
@@ -2123,7 +2124,7 @@ namespace Components
 		{
 			return 19;
 		}
-		
+
 		if (Zones::Version() >= VERSION_ALPHA2)
 		{
 			return 16;
@@ -2257,7 +2258,7 @@ namespace Components
 			retn
 		}
 	}
-	
+
 	__declspec(naked) void Zones::GetCurrentAssetTypeStub()
 	{
 		__asm pushad;
@@ -2269,7 +2270,7 @@ namespace Components
 			// get asset type
 			mov eax, ds:0x112aa54
 			mov eax, [eax];
-			
+
 			// log asset type
 			// mov previousAssetType, currentAssetType;
 			mov currentAssetType, eax;
@@ -2294,10 +2295,10 @@ namespace Components
 		if (Zones::Version() >= 446)
 		{
 			for (auto i = 0; i < count; i++)
-			{	
+			{
 				std::memcpy(buffer + (48 * i) + 0, buffer + (64 * i) + 0, 24);
 				std::memcpy(buffer + (48 * i) + 24, buffer + (64 * i) + 32, 24);
-				
+
 				AssetHandler::Relocate(buffer + (64 * i) + 0, buffer + (48 * i) + 0, 24);
 				AssetHandler::Relocate(buffer + (64 * i) + 32, buffer + (48 * i) + 24, 24);
 			}
@@ -2308,14 +2309,14 @@ namespace Components
 
 	int currentGfxSurfaceIndex = 0;
 	std::vector<std::pair<int, int*>> gfxSurfaceExtraData;
-	
+
 	int Zones::LoadGfxXSurfaceArray(bool atStreamStart, char* buffer, int size)
 	{
 		currentGfxSurfaceIndex = 0;
 		gfxSurfaceExtraData.clear();
 
 		int count = 0;
-		
+
 		if (Zones::Version() >= 423)
 		{
 			size /= 40;
@@ -2369,7 +2370,7 @@ namespace Components
 	int Zones::LoadGfxReflectionProbes(bool atStreamStart, char* buffer, int size)
 	{
 		int count = 0;
-		
+
 		if (Zones::Version() >= 446)
 		{
 			size /= 12;
@@ -2385,7 +2386,7 @@ namespace Components
 			{
 				auto garbage = *reinterpret_cast<char**>(buffer + (20 * i) + 12);
 				auto garbage_count = *reinterpret_cast<int*>(buffer + (20 * i) + 16);
-				
+
 				if (garbage != nullptr)
 				{
 					garbage = Game::DB_AllocStreamPos(3);
@@ -2435,7 +2436,7 @@ namespace Components
 	__declspec(naked) void Zones::LoadXModelColSurfPtr()
 	{
 		static auto DB_ConvertOffsetToPointer_Address = 0x4A82B0;
-		
+
 		__asm
 		{
 			cmp dword ptr[eax], 0;
@@ -2535,7 +2536,7 @@ namespace Components
 
 	static Game::MapEnts codolMapEnts;
 	static Game::MapEnts* codolMapEntsPtr;
-	
+
 	int Zones::LoadMapEnts(bool atStreamStart, Game::MapEnts* buffer, int size)
 	{
 		if (Zones::Version() >= 446)
@@ -2556,16 +2557,16 @@ namespace Components
 
 		return Game::Load_Stream(atStreamStart, buffer, size);
 	}
-	
+
 	ClipInfo* varClipInfoPtr;
 	void Zones::Load_ClipInfo(bool atStreamStart)
 	{
 		AssertSize(ClipInfo, 64);
 		AssertSize(Game::cplane_s, 20);
 		AssertSize(Game::Bounds, 24);
-		
+
 		Game::Load_Stream(atStreamStart, varClipInfoPtr, sizeof ClipInfo);
-		
+
 		if (varClipInfoPtr->cPlanes)
 		{
 			if (varClipInfoPtr->cPlanes == reinterpret_cast<Game::cplane_s*>(0xFFFFFFFF))
@@ -2623,7 +2624,7 @@ namespace Components
 		if (varClipInfoPtr->cLeafBrushNodes)
 		{
 			if (varClipInfoPtr->cLeafBrushNodes == reinterpret_cast<Game::cLeafBrushNode_s*>(0xFFFFFFFF))
-			{			
+			{
 				varClipInfoPtr->cLeafBrushNodes = reinterpret_cast<Game::cLeafBrushNode_s*>(Game::DB_AllocStreamPos(3));
 				*reinterpret_cast<Game::cLeafBrushNode_s**>(0x112B130) = varClipInfoPtr->cLeafBrushNodes;
 				Utils::Hook::Call<void(bool, int)>(0x4C29D0)(true, varClipInfoPtr->numCLeafBrushNodes);
@@ -2692,13 +2693,13 @@ namespace Components
 			}
 		}
 	}
-	
+
 	int Zones::LoadClipMap(bool atStreamStart)
 	{
 		if (Zones::Version() >= 446)
-		{			
+		{
 			AssertOffset(codolClipMap_t, pInfo, 72);
-			
+
 			AssertSize(Game::cStaticModel_s, 76);
 			AssertOffset(codolClipMap_t, numStaticModels, 76);
 			AssertOffset(codolClipMap_t, staticModelList, 80);
@@ -2707,7 +2708,7 @@ namespace Components
 			Game::Load_Stream(atStreamStart, varClipMap, 256);
 
 			Game::DB_PushStreamPos(3);
-			
+
 			*Game::varXString = &varClipMap->name;
 			Game::Load_XString(false);
 
@@ -2715,12 +2716,12 @@ namespace Components
 			Load_ClipInfo(false);
 
 			Game::DB_PushStreamPos(0);
-			
+
 			varClipInfoPtr = varClipMap->pInfo;
 			ClipInfo** assetPointer = nullptr;
 			if (varClipMap->pInfo)
 			{
-				if (varClipMap->pInfo == reinterpret_cast<ClipInfo*>(0xFFFFFFFF) || 
+				if (varClipMap->pInfo == reinterpret_cast<ClipInfo*>(0xFFFFFFFF) ||
 					varClipMap->pInfo == reinterpret_cast<ClipInfo*>(0xFFFFFFFE))
 				{
 					const auto needsToAllocPointer = varClipMap->pInfo == reinterpret_cast<ClipInfo*>(0xFFFFFFFE);
@@ -2842,7 +2843,7 @@ namespace Components
 							}
 						}
 					}
-					
+
 					Game::DB_PopStreamPos();
 				}
 
@@ -2887,7 +2888,7 @@ namespace Components
 
 			AssertOffset(codolClipMap_t, dynEntCount[0], 196);
 			AssertOffset(codolClipMap_t, dynEntCount[1], 198);
-			
+
 			// dynamic entity shit
 			for (int i = 0; i < 2; i++)
 			{
@@ -2900,7 +2901,7 @@ namespace Components
 			}
 
 			Game::DB_PushStreamPos(2);
-			
+
 			for (int i = 0; i < 2; i++)
 			{
 				if (varClipMap->dynEntPoseList[i])
@@ -2927,7 +2928,7 @@ namespace Components
 			}
 
 			Game::DB_PopStreamPos();
-			
+
 			Game::DB_PopStreamPos();
 
 			auto codolMap = new codolClipMap_t;
@@ -2935,7 +2936,7 @@ namespace Components
 
 			auto cancerMap = reinterpret_cast<codolClipMap_t*>(varClipMap);
 			auto iw4Map = reinterpret_cast<Game::clipMap_t*>(varClipMap);
-			
+
 			memcpy(&iw4Map->planeCount, &codolMap->info.numCPlanes, 8);
 			memcpy(&iw4Map->numStaticModels, &codolMap->numStaticModels, 8);
 			memcpy(&iw4Map->numMaterials, &codolMap->info.numMaterials, 24);
@@ -2954,9 +2955,9 @@ namespace Components
 			AssetHandler::Relocate(&cancerMap->numVerts, &iw4Map->vertCount, 52);
 			AssetHandler::Relocate(&cancerMap->info.numBrushes, &iw4Map->numBrushes, 16);
 			AssetHandler::Relocate(&cancerMap->smodelNodeCount, &iw4Map->smodelNodeCount, 48);
-			
+
 			delete codolMap;
-			
+
 			return 1;
 		}
 		else
@@ -3027,13 +3028,13 @@ namespace Components
 
 	std::unordered_map<int, Zones::FileData> Zones::fileDataMap;
 	std::mutex Zones::fileDataMutex;
-	
+
 	__declspec(naked) int Zones::FS_FOpenFileReadForThreadOriginal(const char*, int*, int)
 	{
 		__asm
 		{
 			sub esp, 0x33C
-			
+
 			push 0x643276
 			ret
 		}
@@ -3060,7 +3061,7 @@ namespace Components
 			{
 				skipFile = true;
 			}
-			
+
 			// if the header seems encrypted...
 			if (fileBuffer.size() > 4 && readSize == retval && !skipFile)
 			{
@@ -3084,7 +3085,7 @@ namespace Components
 				register_cipher(&aes_desc);
 
 				auto aes = find_cipher("aes");
-		
+
 				// attempt to decrypt the IWI
 				symmetric_CTR ctr_state;
 				ZeroMemory(&ctr_state, sizeof(symmetric_CTR));
@@ -3095,12 +3096,12 @@ namespace Components
 
 				auto strippedFileName = std::filesystem::path(file).filename().string();
 				auto nonce = HashCRC32StringInt(strippedFileName, strippedFileName.size());
-				
+
 				std::uint8_t iv[16];
 				std::memset(iv, 0, sizeof iv);
 				std::memcpy(iv, &nonce, 4);
 				std::memcpy(iv + 4, &unpackedSize, 4);
-				
+
 				ctr_start(aes, reinterpret_cast<unsigned char*>(&aesIV[0]), &aesKey[0], sizeof aesKey, 0, CTR_COUNTER_BIG_ENDIAN, &ctr_state);
 
 				// decrypt image
@@ -3118,7 +3119,7 @@ namespace Components
 
 					readDataSize += blockSize;
 				}
-				
+
 				ctr_done(&ctr_state);
 
 				if (static_cast<std::uint8_t>(decryptedData[0]) == 0x78)
@@ -3145,7 +3146,7 @@ namespace Components
 			// un-read data, file is apparently not encrypted
 			Game::FS_Seek(*filePointer, 0, Game::FS_SEEK_SET);
 		}
-		
+
 		return retval;
 	}
 
@@ -3194,7 +3195,7 @@ namespace Components
 	void Zones::FS_FCloseFileHook(int filePointer)
 	{
 		std::lock_guard _(fileDataMutex);
-		
+
 		FS_FCloseFileOriginal(filePointer);
 
 		if (const auto itr = fileDataMap.find(filePointer); itr != fileDataMap.end())
@@ -3337,7 +3338,7 @@ namespace Components
 
 	void Zones::LoadFxWorldAsset(Game::FxWorld** asset)
 	{
-		Utils::Hook::Call<void(Game::FxWorld * *)>(0x4857F0)(asset);
+		Utils::Hook::Call<void(Game::FxWorld**)>(0x4857F0)(asset);
 
 		if (Zones::Version() >= 423 && asset && *asset)
 		{
@@ -3351,7 +3352,7 @@ namespace Components
 			memset(&glassMap, 0, sizeof Game::GameWorldMp);
 			memset(&glassData, 0, sizeof Game::G_GlassData);
 			glassPieces.clear();
-			
+
 			// generate glassPieces array
 			const auto pieceCount = (*asset)->glassSys.initPieceCount;
 			if (pieceCount > 0)
@@ -3399,7 +3400,7 @@ namespace Components
 			}
 		}
 
-		return Utils::Hook::Call<void(Game::XModel * *)>(0x47A690)(asset);
+		return Utils::Hook::Call<void(Game::XModel**)>(0x47A690)(asset);
 	}
 
 	// patch max file amount returned by Sys_ListFiles
@@ -3436,7 +3437,7 @@ namespace Components
 	}
 
 	void Zones::LoadTracerDef(bool atStreamStart, Game::TracerDef* tracer, int size)
-	{		
+	{
 		if (Zones::Version() >= 460)
 		{
 			size = 116;
@@ -3444,7 +3445,7 @@ namespace Components
 
 		Game::Load_Stream(atStreamStart, tracer, size);
 		*Game::varFxEffectDefHandle = nullptr;
-		
+
 		if (Zones::Version() >= 460)
 		{
 			*Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(tracer + 8);
@@ -3460,10 +3461,10 @@ namespace Components
 		{
 			Game::Load_FxEffectDefHandle(false);
 		}
-		
+
 		Game::DB_PopStreamPos();
 	}
-	
+
 	char* Zones::ParseShellShock_Stub(const char** data_p)
 	{
 		auto token = Game::Com_Parse(data_p);
@@ -3479,71 +3480,74 @@ namespace Components
 	{
 		Zones::ZoneVersion = 0;
 
-		Command::Add("decryptImages", [](Command::Params*)
+		if (ZoneBuilder::IsEnabled())
 		{
-			auto images = FileSystem::GetSysFileList("iw4x/images", "iwi");
-			Logger::Print("decrypting {} images...\n", images.size());
-			
-			for (auto& image : images)
+			Command::Add("decryptImages", [](Command::Params*)
 			{
-				char* buffer = nullptr;
-				auto fileLength = Game::FS_ReadFile(Utils::String::VA("images/%s", image.data()), &buffer);
+				auto images = FileSystem::GetSysFileList("iw4x/images", "iwi");
+				Logger::Print("decrypting {} images...\n", images.size());
 
-				if (fileLength && buffer)
+				for (auto& image : images)
 				{
-					if (!std::filesystem::exists("raw/images"))
-					{
-						std::filesystem::create_directories("raw/images");
-					}
+					char* buffer = nullptr;
+					auto fileLength = Game::FS_ReadFile(Utils::String::Format("images/{}", image), &buffer);
 
-					if (!std::filesystem::exists(Utils::String::VA("raw/images/%s", image.data())))
+					if (fileLength && buffer)
 					{
-						const auto fp = fopen(Utils::String::VA("raw/images/%s", image.data()), "wb");
-						if (fp)
+						if (!std::filesystem::exists("raw/images"))
 						{
-							fwrite(buffer, fileLength, 1, fp);
-							fclose(fp);
+							std::filesystem::create_directories("raw/images");
 						}
+
+						if (!std::filesystem::exists(Utils::String::Format("raw/images/{}", image)))
+						{
+							const auto fp = fopen(Utils::String::Format("raw/images/{}", image), "wb");
+							if (fp)
+							{
+								fwrite(buffer, fileLength, 1, fp);
+								fclose(fp);
+							}
+						}
+
+						Game::FS_FreeFile(buffer);
 					}
-
-					Game::FS_FreeFile(buffer);
 				}
-			}
 
-			Logger::Print("decrypted {} images!\n", images.size());
-		});
+				Logger::Print("decrypted {} images!\n", images.size());
+			});
 
-		Command::Add("decryptSounds", []([[maybe_unused]] Command::Params* params)
-		{
-			auto sounds = FileSystem::GetSysFileList("iw4x/sound", "iwi");
-			Logger::Print("decrypting {} sounds...\n", sounds.size());
-
-			for (auto& sound : sounds)
+			Command::Add("decryptSounds", []([[maybe_unused]] Command::Params* params)
 			{
-				char* buffer = nullptr;
-				auto len = Game::FS_ReadFile(Utils::String::Format("sound/{}", sound), &buffer);
+				auto sounds = FileSystem::GetSysFileList("iw4x/sound", "iwi");
+				Logger::Print("decrypting {} sounds...\n", sounds.size());
 
-				if (len && buffer)
+				for (auto& sound : sounds)
 				{
-					auto path = std::filesystem::path(sound.data());
-					std::filesystem::create_directories("raw/sound" / path.parent_path());
+					char* buffer = nullptr;
+					auto len = Game::FS_ReadFile(Utils::String::Format("sound/{}", sound), &buffer);
 
-					if (!std::filesystem::exists(std::format("raw/sound/{}", sound)))
+					if (len && buffer)
 					{
-						FILE* fp;
-						if (!fopen_s(&fp, Utils::String::Format("raw/sound/{}", sound), "wb") && fp)
+						auto path = std::filesystem::path(sound.data());
+						std::filesystem::create_directories("raw/sound" / path.parent_path());
+
+						if (!std::filesystem::exists(std::format("raw/sound/{}", sound)))
 						{
-							fwrite(buffer, len, 1, fp);
-							fclose(fp);
+							FILE* fp;
+							if (!fopen_s(&fp, Utils::String::Format("raw/sound/{}", sound), "wb") && fp)
+							{
+								fwrite(buffer, len, 1, fp);
+								fclose(fp);
+							}
 						}
+
+						Game::FS_FreeFile(buffer);
 					}
-
-					Game::FS_FreeFile(buffer);
 				}
-			}
 
-			Logger::Print("decrypted {} sounds!\n", sounds.size());
-		});
+				Logger::Print("decrypted {} sounds!\n", sounds.size());
+			});
+		}
 
 		// patch max filecount Sys_ListFiles can return
 		Utils::Hook::Set<std::uint32_t>(0x45A66B, (maxFileCount + fileCountMultiplier) * 4);
@@ -3552,7 +3556,7 @@ namespace Components
 		Utils::Hook::Set<std::uint32_t>(0x45A8CE, maxFileCount);
 		Utils::Hook(0x45A806, RelocateFileCount, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45A6A0, RelocateFileCount, HOOK_CALL).install()->quick();
-		
+
 #ifndef DEBUG
 		// Ignore missing soundaliases for now
 		// TODO: Include them in the dependency zone!
@@ -3566,11 +3570,14 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x418B31, 0x72);
 
 		// encrypted images hooks
-		Utils::Hook(0x462000, Zones::FS_FCloseFileHook, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x4A04C0, Zones::FS_ReadHook, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x643270, Zones::FS_FOpenFileReadForThreadHook, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x4A63D0, Zones::FS_SeekHook, HOOK_JUMP).install()->quick();
-		
+		if (ZoneBuilder::IsEnabled())
+		{
+			Utils::Hook(0x462000, Zones::FS_FCloseFileHook, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x4A04C0, Zones::FS_ReadHook, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x643270, Zones::FS_FOpenFileReadForThreadHook, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x4A63D0, Zones::FS_SeekHook, HOOK_JUMP).install()->quick();
+		}
+
 		// asset hooks
 		Utils::Hook(0x47146D, Zones::LoadTracerDef, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4714A3, Zones::LoadTracerDefFxEffect, HOOK_JUMP).install()->quick();
@@ -3624,7 +3631,7 @@ namespace Components
 
 		Utils::Hook(0x4B4EA1, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4B4F0C, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
-		
+
 		Utils::Hook(0x4F4D3B, []
 		{
 			if (Zones::ZoneVersion >= VERSION_ALPHA3)
@@ -3639,7 +3646,7 @@ namespace Components
 		}, HOOK_CALL).install()->quick();
 
 		// Change stream for images
-		Utils::Hook(0x4D3225, [] ()
+		Utils::Hook(0x4D3225, []()
 		{
 			Game::DB_PushStreamPos((Zones::ZoneVersion >= 332) ? 3 : 0);
 		}, HOOK_CALL).install()->quick();
@@ -3651,7 +3658,7 @@ namespace Components
 		// Easy dirty disk debugging
 		Utils::Hook::Set<WORD>(0x4CF7F0, 0xC3CC);
 		// disable _invoke_watson to allow debugging
-		Utils::Hook::Set<WORD>(0x6B9602,0xCCCC);
+		Utils::Hook::Set<WORD>(0x6B9602, 0xCCCC);
 #endif
 	}
 }
