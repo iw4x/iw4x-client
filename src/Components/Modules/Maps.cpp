@@ -1,8 +1,9 @@
 #include <STDInclude.hpp>
+
+#include "FastFiles.hpp"
 #include "RawFiles.hpp"
 #include "StartupMessages.hpp"
 #include "Theatre.hpp"
-#include "UIFeeder.hpp"
 
 namespace Components
 {
@@ -10,6 +11,7 @@ namespace Components
 	std::string Maps::CurrentMainZone;
 	std::vector<std::pair<std::string, std::string>> Maps::DependencyList;
 	std::vector<std::string> Maps::CurrentDependencies;
+	std::vector<std::string> Maps::FoundCustomMaps;
 
 	Dvar::Var Maps::RListSModels;
 
@@ -34,7 +36,7 @@ namespace Components
 		if (this->isValid() && !this->searchPath.iwd)
 		{
 			auto iwdName = std::format("{}.iwd", this->mapname);
-			auto path = std::format("{}\\usermaps\\{}\\{}", Dvar::Var("fs_basepath").get<std::string>(), this->mapname, iwdName);
+			auto path = std::format("{}\\usermaps\\{}\\{}", (*Game::fs_basepath)->current.string, this->mapname, iwdName);
 
 			if (Utils::IO::FileExists(path))
 			{
@@ -79,7 +81,7 @@ namespace Components
 			this->wasFreed = true;
 
 			// Unchain our searchpath
-			for (Game::searchpath_t** pathPtr = Game::fs_searchpaths; *pathPtr; pathPtr = &(*pathPtr)->next)
+			for (auto** pathPtr = Game::fs_searchpaths; *pathPtr; pathPtr = &(*pathPtr)->next)
 			{
 				if (*pathPtr == &this->searchPath)
 				{
@@ -104,8 +106,8 @@ namespace Components
 
 		if (Maps::UserMap.isValid())
 		{
-			const std::string mapname = Maps::UserMap.getName();
-			const auto* arena = Utils::String::VA("usermaps/%s/%s.arena", mapname.data(), mapname.data());
+			const auto mapname = Maps::UserMap.getName();
+			const auto arena = GetArenaPath(mapname);
 
 			if (Utils::IO::FileExists(arena))
 			{
@@ -182,17 +184,17 @@ namespace Components
 	void Maps::OverrideMapEnts(Game::MapEnts* ents)
 	{
 		auto callback = [] (Game::XAssetHeader header, void* ents)
-			{
-				Game::MapEnts* mapEnts = reinterpret_cast<Game::MapEnts*>(ents);
-				Game::clipMap_t* clipMap = header.clipMap;
+		{
+			Game::MapEnts* mapEnts = reinterpret_cast<Game::MapEnts*>(ents);
+			Game::clipMap_t* clipMap = header.clipMap;
 
-				if (clipMap && mapEnts && !_stricmp(mapEnts->name, clipMap->name))
-				{
-					clipMap->mapEnts = mapEnts;
-					//*Game::marMapEntsPtr = mapEnts;
-					//Game::G_SpawnEntitiesFromString();
-				}
-			};
+			if (clipMap && mapEnts && !_stricmp(mapEnts->name, clipMap->name))
+			{
+				clipMap->mapEnts = mapEnts;
+				//*Game::marMapEntsPtr = mapEnts;
+				//Game::G_SpawnEntitiesFromString();
+			}
+		};
 
 		// Internal doesn't lock the thread, as locking is impossible, due to executing this in the thread that holds the current lock
 		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_CLIPMAP_MP, callback, ents, true);
@@ -337,12 +339,33 @@ namespace Components
 		return (Utils::String::StartsWith(entity, "dyn_") || Utils::String::StartsWith(entity, "node_") || Utils::String::StartsWith(entity, "actor_"));
 	}
 
+	std::unordered_map<std::string, std::string> Maps::ParseCustomMapArena(const std::string& singleMapArena)
+	{
+		static const std::regex regex("  (\\w*) *\"?((?:\\w| )*)\"?");
+		std::unordered_map<std::string, std::string> arena;
+
+		std::smatch m;
+
+		std::string::const_iterator search_start(singleMapArena.cbegin());
+
+		while (std::regex_search(search_start, singleMapArena.cend(), m, regex))
+		{
+			if (m.size() > 2)
+			{
+				arena.emplace(m[1].str(), m[2].str());
+				search_start = m.suffix().first;
+			}
+		}
+
+		return arena;
+	}
+
 	Maps::MapDependencies Maps::GetDependenciesForMap(const std::string& map)
 	{
 		std::string teamAxis = "opforce_composite";
 		std::string teamAllies = "us_army";
 
-		Maps::MapDependencies dependencies{};
+		Maps::MapDependencies dependencies;
 
 		// True by default - cause some maps won't have an arenafile entry
 		dependencies.requiresTeamZones = true;
@@ -577,13 +600,53 @@ namespace Components
 		return Utils::IO::DirectoryExists(std::format("usermaps/{}", mapname)) && Utils::IO::FileExists(std::format("usermaps/{}/{}.ff", mapname, mapname));
 	}
 
+	void Maps::ScanCustomMaps()
+	{
+		FoundCustomMaps.clear();
+		Logger::Print("Looking for custom maps...\n");
+
+		std::filesystem::path basePath = (*Game::fs_basepath)->current.string;
+		basePath /= "usermaps";
+
+		if (!std::filesystem::exists(basePath))
+		{
+			return;
+		}
+
+		const auto entries = Utils::IO::ListFiles(basePath);
+
+		for (const auto& entry : entries)
+		{
+			if (entry.is_directory())
+			{
+				auto zoneName = entry.path().filename().string();
+				auto mapPath = std::format("{}\\{}.ff", entry.path().string(), zoneName);
+				if (Utils::IO::FileExists(mapPath))
+				{
+					FoundCustomMaps.push_back(zoneName);
+					Logger::Print("Discovered custom map {}\n", zoneName);
+				}
+			}
+		}
+	}
+
+	std::string Maps::GetArenaPath(const std::string& mapName)
+	{
+		return std::format("usermaps/{}/{}.arena", mapName, mapName);
+	}
+
+	const std::vector<std::string>& Maps::GetCustomMaps()
+	{
+		return FoundCustomMaps;
+	}
+
 	Game::XAssetEntry* Maps::GetAssetEntryPool()
 	{
 		return *reinterpret_cast<Game::XAssetEntry**>(0x48E6F4);
 	}
 
 	// dlcIsTrue serves as a check if the map is a custom map and if it's missing
-	bool Maps::CheckMapInstalled(const char* mapname, bool error, bool dlcIsTrue)
+	bool Maps::CheckMapInstalled(const std::string& mapname, bool error, bool dlcIsTrue)
 	{
 		if (FastFiles::Exists(mapname)) return true;
 
@@ -591,12 +654,12 @@ namespace Components
 		{
 			for (auto map : pack.maps)
 			{
-				if (map == std::string(mapname))
+				if (map == mapname)
 				{
 					if (error)
 					{
 						Logger::Error(Game::ERR_DISCONNECT, "Missing DLC pack {} ({}) containing map {} ({}).\nPlease download it to play this map.",
-							pack.name, pack.index, Game::UI_LocalizeMapName(mapname), mapname);
+							pack.name, pack.index, Game::UI_LocalizeMapName(mapname.data()), mapname);
 					}
 
 					return dlcIsTrue;
@@ -665,12 +728,25 @@ namespace Components
 		return Utils::Hook::Call<bool(Game::gentity_s*)>(0x5050C0)(ent);
 	}
 
-	int16 Maps::CM_TriggerModelBounds(int modelPointer, Game::Bounds* bounds) {
-#ifdef DEBUG
-		Game::MapEnts* ents = *reinterpret_cast<Game::MapEnts**>(0x1AA651C);  // Use me for debugging
-		(void)ents;
-#endif
-		return Utils::Hook::Call<int16(int, Game::Bounds*)>(0x4416C0)(modelPointer, bounds);
+	unsigned short Maps::CM_TriggerModelBounds_Hk(unsigned int triggerIndex, Game::Bounds* bounds)
+	{
+
+		auto* ents = *reinterpret_cast<Game::MapEnts**>(0x1AA651C);  // Use me for debugging
+
+		if (ents)
+		{
+			if (triggerIndex >= ents->trigger.count)
+			{
+				Logger::Error(Game::errorParm_t::ERR_DROP, "Invalid trigger index ({}) in entities exceeds the maximum trigger count ({}) defined in the clipmap. Check your map ents, or your clipmap!", triggerIndex, ents->trigger.count);
+				return 0;
+			}
+			else 
+			{
+				return Utils::Hook::Call<unsigned short(int, Game::Bounds*)>(0x4416C0)(triggerIndex, bounds);
+			}
+		}
+
+		return 0;
 	}
 	
 	Maps::Maps()
@@ -682,13 +758,9 @@ namespace Components
 
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
 			Maps::AddDlc({ 2, "Resurgence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });
-			Maps::AddDlc({ 3, "Nuketown", {"mp_nuked"} });
-			Maps::AddDlc({ 4, "Classics Pack #1", {"mp_cross_fire", "mp_cargoship", "mp_bloc"} });
-			Maps::AddDlc({ 5, "Classics Pack #2", {"mp_killhouse", "mp_bog_sh"} });
-			Maps::AddDlc({ 6, "Freighter", {"mp_cargoship_sh"} });
-			Maps::AddDlc({ 7, "Resurrection Pack", {"mp_shipment_long", "mp_rust_long", "mp_firingrange"} });
-			Maps::AddDlc({ 8, "Recycled Pack", {"mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"} });
-			Maps::AddDlc({ 9, "Classics Pack #3", {"mp_farm", "mp_backlot", "mp_pipeline", "mp_countdown", "mp_crash_snow", "mp_carentan", "mp_broadcast", "mp_showdown", "mp_convoy"} });
+			Maps::AddDlc({ 3, "IW4x Classics", {"mp_nuked", "mp_cross_fire", "mp_cargoship", "mp_bloc", "mp_killhouse", "mp_bog_sh", "mp_cargoship_sh", "mp_shipment_long", "mp_rust_long", "mp_firingrange", "mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"} });
+			Maps::AddDlc({ 4, "Call Of Duty 4 Pack", {"mp_farm", "mp_backlot", "mp_pipeline", "mp_countdown", "mp_crash_snow", "mp_carentan", "mp_broadcast", "mp_showdown", "mp_convoy"} });
+			Maps::AddDlc({ 5, "Modern Warfare 3 Pack", {"mp_dome", "mp_hardhat", "mp_paris", "mp_seatown", "mp_bravo", "mp_underground", "mp_plaza2", "mp_village", "mp_alpha"}});
 
 			Maps::UpdateDlcStatus();
 
@@ -713,11 +785,13 @@ namespace Components
 		Utils::Hook(0x5EE577, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
 		Utils::Hook(0x44A4D5, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
 
+		// Catch trigger errors before they're critical
+		Utils::Hook(0x5050D4, Maps::CM_TriggerModelBounds_Hk, HOOK_CALL).install()->quick();
+
 #ifdef DEBUG
 		// Check trigger models
 		Utils::Hook(0x5FC0F1, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5FC2671, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5050D4, Maps::CM_TriggerModelBounds, HOOK_CALL).install()->quick();
 #endif
 
 		// 
@@ -784,7 +858,7 @@ namespace Components
 			}, Scheduler::Pipeline::CLIENT, 10s);
 		});
 
-		if(Dedicated::IsEnabled())
+		if (Dedicated::IsEnabled())
 		{
 			Utils::Hook(0x4A7251, Maps::LoadNewMapCommand, HOOK_CALL).install()->quick();
 		}

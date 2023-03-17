@@ -16,22 +16,20 @@
 #include <ShlObj.h>
 #include <timeapi.h>
 #include <shellapi.h>
-#include <WinInet.h>
+#include <wininet.h>
 #include <d3d9.h>
 #include <AclAPI.h>
 #include <Psapi.h>
 #include <TlHelp32.h>
 #include <Shlwapi.h>
 
-#pragma warning(push)
-#pragma warning(disable: 4091)
-#pragma warning(disable: 4244)
 #include <DbgHelp.h>
 
 #include <algorithm>
 #include <cctype>
 #include <chrono>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -46,9 +44,10 @@
 #include <sstream>
 #include <thread>
 #include <type_traits>
+#include <map>
+#include <set>
 #include <unordered_map>
-
-#pragma warning(pop)
+#include <unordered_set>
 
 #include <d3dx9tex.h>
 #pragma comment(lib, "D3dx9.lib")
@@ -61,26 +60,8 @@
 
 // Ignore the warnings
 #pragma warning(push)
-#pragma warning(disable: 4005)
-#pragma warning(disable: 4091)
 #pragma warning(disable: 4100)
-#pragma warning(disable: 4244)
-#pragma warning(disable: 4389)
-#pragma warning(disable: 4702)
-#pragma warning(disable: 4800)
-#pragma warning(disable: 5054)
-#pragma warning(disable: 6001)
-#pragma warning(disable: 6011)
-#pragma warning(disable: 6031)
-#pragma warning(disable: 6255)
-#pragma warning(disable: 6258)
-#pragma warning(disable: 6386)
-#pragma warning(disable: 6387)
 #pragma warning(disable: 26812)
-
-#include <gsl/gsl>
-#include <tomcrypt.h>
-#include <zlib.h>
 
 // Enable additional literals
 using namespace std::literals;
@@ -93,11 +74,9 @@ using namespace std::literals;
 	#undef min
 #endif
 
-// Needs to be included after the nominmax above ^
-#ifdef snprintf
-	#undef snprintf
+#ifdef GetObject
+	#undef GetObject
 #endif
-#include <json.hpp>
 
 #define AssertSize(x, size) \
 	static_assert(sizeof(x) == (size), \
@@ -111,14 +90,9 @@ using namespace std::literals;
 
 #define AssertUnreachable assert(0 && "unreachable")
 
-// Protobuf
-#include "proto/session.pb.h"
-#include "proto/party.pb.h"
-#include "proto/auth.pb.h"
-#include "proto/node.pb.h"
-#include "proto/rcon.pb.h"
-#include "proto/ipc.pb.h"
-#include "proto/friends.pb.h"
+#include <gsl/gsl>
+#include <json.hpp>
+#include <tomcrypt.h>
 
 #pragma warning(pop)
 
@@ -126,15 +100,12 @@ using namespace std::literals;
 
 #include "Utils/Cache.hpp"
 #include "Utils/Chain.hpp"
-#include "Utils/Compression.hpp"
 #include "Utils/Concurrency.hpp"
 #include "Utils/Cryptography.hpp"
 #include "Utils/CSV.hpp"
 #include "Utils/Entities.hpp"
 #include "Utils/Hooking.hpp"
-#include "Utils/InfoString.hpp"
 #include "Utils/IO.hpp"
-#include "Utils/Json.hpp"
 #include "Utils/Library.hpp"
 #include "Utils/Maths.hpp"
 #include "Utils/NamedMutex.hpp"
@@ -142,7 +113,6 @@ using namespace std::literals;
 #include "Utils/Thread.hpp"
 #include "Utils/Time.hpp"
 #include "Utils/Utils.hpp"
-#include "Utils/WebIO.hpp"
 
 #include "Steam/Steam.hpp" // Some definitions are used in functions and structs
 

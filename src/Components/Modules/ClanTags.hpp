@@ -14,7 +14,7 @@ namespace Components
 		static void CL_SanitizeClanName();
 
 	private:
-		static Game::dvar_t* ClanName;
+		static const Game::dvar_t* ClanName;
 
 		static const char* dvarNameList[];
 

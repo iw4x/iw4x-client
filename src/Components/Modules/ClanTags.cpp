@@ -5,7 +5,7 @@
 
 namespace Components
 {
-	Game::dvar_t* ClanTags::ClanName;
+	const Game::dvar_t* ClanTags::ClanName;
 
 	// bgs_t and clientState_s do not have this
 	char ClanTags::ClientState[Game::MAX_CLIENTS][5];
@@ -28,7 +28,7 @@ namespace Components
 
 		for (std::size_t i = 0; i < Game::MAX_CLIENTS; ++i)
 		{
-			list.append(std::format("\\{}\\{}", std::to_string(i), ClientState[i]));
+			list.append(std::format("\\{}\\{}", i, ClientState[i]));
 		}
 
 		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} clanNames \"{}\"", 22, list));
@@ -118,7 +118,7 @@ namespace Components
 	{
 		AssertIn(clientNum, Game::MAX_CLIENTS);
 
-		auto* clanAbbrev = Game::Info_ValueForKey(s, "clanAbbrev");
+		const auto* clanAbbrev = Game::Info_ValueForKey(s, "clanAbbrev");
 
 		if (clanAbbrev[0] == '\0')
 		{
@@ -193,11 +193,11 @@ namespace Components
 
 	void __declspec(naked) ClanTags::PlayerCards_SetCachedPlayerData_Stub()
 	{
-		static DWORD func = 0x4D6F80; // I_strncpyz
+		using namespace Game;
 
 		__asm
 		{
-			call func
+			call I_strncpyz
 			add esp, 0xC
 
 			mov byte ptr [esi + 0x3C], 0x0
@@ -235,8 +235,7 @@ namespace Components
 	{
 		Events::OnClientInit([]
 		{
-			ClanName = Game::Dvar_RegisterString("clanName", "", Game::DVAR_ARCHIVE,
-				"Your clan abbreviation");
+			ClanName = Game::Dvar_RegisterString("clanName", "", Game::DVAR_ARCHIVE, "Your clan abbreviation");
 		});
 
 		std::memset(&ClientState, 0, sizeof(char[Game::MAX_CLIENTS][5]));

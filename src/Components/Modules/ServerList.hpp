@@ -10,15 +10,15 @@ namespace Components
 	public:
 		typedef int(SortCallback)(const void*, const void*);
 
-		class ServerInfo
+		struct ServerInfo
 		{
-		public:
 			Network::Address addr;
 			std::string hostname;
 			std::string mapname;
 			std::string gametype;
 			std::string mod;
 			std::string shortversion;
+			std::size_t hash;
 			int clients;
 			int bots;
 			int maxClients;
@@ -33,7 +33,8 @@ namespace Components
 		};
 
 		ServerList();
-		~ServerList();
+		
+		void preDestroy() override;
 
 		static void Refresh([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
 		static void RefreshVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
@@ -85,13 +86,13 @@ namespace Components
 				uint16_t port;
 			};
 
-			bool IsEndToken() const
+			[[nodiscard]] bool IsEndToken() const noexcept
 			{
 				// End of transmission or file token
 				return (token[0] == 'E' && token[1] == 'O' && (token[2] == 'T' || token[2] == 'F'));
 			}
 
-			bool HasSeparator() const
+			[[nodiscard]] bool HasSeparator() const noexcept
 			{
 				return (token[6] == '\\');
 			}
@@ -138,6 +139,7 @@ namespace Components
 		static ServerInfo* GetServer(unsigned int index);
 
 		static bool CompareVersion(const std::string& version1, const std::string& version2);
+		static bool IsServerDuplicate(const std::vector<ServerInfo>* list, const ServerInfo& server);
 
 		static int SortKey;
 		static bool SortAsc;
@@ -159,3 +161,20 @@ namespace Components
 		static bool IsServerListOpen();
 	};
 }
+
+template <>
+struct std::hash<Components::ServerList::ServerInfo>
+{
+	std::size_t operator()(const Components::ServerList::ServerInfo& x) const noexcept
+	{
+		std::size_t hash = 0;
+
+		hash ^= std::hash<std::string>()(x.hostname);
+		hash ^= std::hash<std::string>()(x.mapname);
+		hash ^= std::hash<std::string>()(x.mod);
+		hash ^= std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&x.addr.getIP().bytes[0]));
+		hash ^= x.clients;
+
+		return hash;
+	}
+};

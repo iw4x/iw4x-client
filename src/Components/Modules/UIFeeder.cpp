@@ -6,16 +6,20 @@ namespace Components
 	UIFeeder::Container UIFeeder::Current;
 	std::unordered_map<float, UIFeeder::Callbacks> UIFeeder::Feeders;
 
-	void UIFeeder::Add(float feeder, UIFeeder::GetItemCount_t itemCountCb, UIFeeder::GetItemText_t itemTextCb, UIFeeder::Select_t selectCb)
+	Dvar::Var UIFeeder::UIMapLong;
+	Dvar::Var UIFeeder::UIMapName;
+	Dvar::Var UIFeeder::UIMapDesc;
+
+	void UIFeeder::Add(float feeder, GetItemCount_t itemCountCb, GetItemText_t itemTextCb, Select_t selectCb)
 	{
-		UIFeeder::Feeders[feeder] = { itemCountCb, itemTextCb, selectCb };
+		Feeders[feeder] = { itemCountCb, itemTextCb, selectCb };
 	}
 
 	const char* UIFeeder::GetItemText()
 	{
-		if (UIFeeder::Feeders.contains(UIFeeder::Current.feeder))
+		if (Feeders.contains(Current.feeder))
 		{
-			return UIFeeder::Feeders[UIFeeder::Current.feeder].getItemText(UIFeeder::Current.index, UIFeeder::Current.column);
+			return Feeders[Current.feeder].getItemText(Current.index, Current.column);
 		}
 
 		return nullptr;
@@ -23,9 +27,9 @@ namespace Components
 
 	unsigned int UIFeeder::GetItemCount()
 	{
-		if (UIFeeder::Feeders.contains(UIFeeder::Current.feeder))
+		if (Feeders.contains(Current.feeder))
 		{
-			return UIFeeder::Feeders[UIFeeder::Current.feeder].getItemCount();
+			return Feeders[Current.feeder].getItemCount();
 		}
 
 		return 0;
@@ -33,9 +37,9 @@ namespace Components
 
 	bool UIFeeder::SetItemSelection()
 	{
-		if (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end())
+		if (Feeders.contains(Current.feeder))
 		{
-			UIFeeder::Feeders[UIFeeder::Current.feeder].select(UIFeeder::Current.index);
+			Feeders[Current.feeder].select(Current.index);
 			return true;
 		}
 
@@ -44,8 +48,8 @@ namespace Components
 
 	bool UIFeeder::CheckFeeder()
 	{
-		if (UIFeeder::Current.feeder == 15.0f) return false;
-		return (UIFeeder::Feeders.find(UIFeeder::Current.feeder) != UIFeeder::Feeders.end());
+		if (Current.feeder == 15.0f) return false;
+		return Feeders.contains(Current.feeder);
 	}
 
 	__declspec(naked) void UIFeeder::SetItemSelectionStub()
@@ -53,12 +57,12 @@ namespace Components
 		__asm
 		{
 			mov eax, [esp + 08h]
-			mov UIFeeder::Current.feeder, eax
+			mov Current.feeder, eax
 
 			mov eax, [esp + 0Ch]
-			mov UIFeeder::Current.index, eax
+			mov Current.index, eax
 
-			call UIFeeder::SetItemSelection
+			call SetItemSelection
 
 			test al, al
 			jz continue
@@ -78,15 +82,15 @@ namespace Components
 		__asm
 		{
 			mov eax, [esp + 0Ch]
-			mov UIFeeder::Current.feeder, eax
+			mov Current.feeder, eax
 
 			mov eax, [esp + 10h]
-			mov UIFeeder::Current.index, eax
+			mov Current.index, eax
 
 			mov eax, [esp + 14h]
-			mov UIFeeder::Current.column, eax
+			mov Current.column, eax
 
-			call UIFeeder::GetItemText
+			call GetItemText
 
 			test eax, eax
 			jz continue
@@ -111,9 +115,9 @@ namespace Components
 		__asm
 		{
 			mov eax, [esp + 8h]
-			mov UIFeeder::Current.feeder, eax
+			mov Current.feeder, eax
 
-			call UIFeeder::GetItemCount
+			call GetItemCount
 
 			test eax, eax
 			jz continue
@@ -125,23 +129,22 @@ namespace Components
 			fld ds:739FD0h
 
 			mov eax, 41A0D7h
-			jmp eax;
+			jmp eax
 		}
 	}
 
 	__declspec(naked) void UIFeeder::HandleKeyStub()
 	{
-		// ReSharper disable once CppEntityNeverUsed
 		static int nextClickTime = 0;
 
 		__asm
 		{
 			mov ebx, ebp
 			mov eax, [ebp + 12Ch]
-			mov UIFeeder::Current.feeder, eax
+			mov Current.feeder, eax
 
 			push ebx
-			call UIFeeder::CheckFeeder
+			call CheckFeeder
 			pop ebx
 
 			test al, al
@@ -180,9 +183,9 @@ namespace Components
 
 			// Update indices if not
 			mov [ecx], edx
-			mov UIFeeder::Current.index, edx
+			mov Current.index, edx
 
-			call UIFeeder::SetItemSelection
+			call SetItemSelection
 
 		returnSafe:
 			retn
@@ -198,9 +201,9 @@ namespace Components
 		__asm
 		{
 			mov eax, [edi + 12Ch]
-			mov UIFeeder::Current.feeder, eax
+			mov Current.feeder, eax
 
-			call UIFeeder::CheckFeeder
+			call CheckFeeder
 
 			test al, al
 			jnz continue
@@ -218,9 +221,9 @@ namespace Components
 		__asm
 		{
 			mov eax, [esp + 08h]
-			mov UIFeeder::Current.feeder, eax
+			mov Current.feeder, eax
 
-			call UIFeeder::CheckFeeder
+			call CheckFeeder
 
 			test al, al
 			jnz continue
@@ -238,9 +241,9 @@ namespace Components
 		__asm
 		{
 			mov eax, [edi + 12Ch]
-			mov UIFeeder::Current.feeder, eax
+			mov Current.feeder, eax
 
-			call UIFeeder::CheckFeeder
+			call CheckFeeder
 
 			test al, al
 			jnz continue
@@ -257,13 +260,13 @@ namespace Components
 	{
 		if (Game::uiContext->openMenuCount > 0)
 		{
-			Game::menuDef_t* menu = Game::uiContext->menuStack[Game::uiContext->openMenuCount - 1];
+			auto* menu = Game::uiContext->menuStack[Game::uiContext->openMenuCount - 1];
 
 			if (menu && menu->items)
 			{
 				for (int i = 0; i < menu->itemCount; ++i)
 				{
-					Game::itemDef_s* item = menu->items[i];
+					auto* item = menu->items[i];
 					if (item && item->type == 6 && item->special == feeder)
 					{
 						item->cursorPos[0] = static_cast<int>(index);
@@ -276,74 +279,81 @@ namespace Components
 
 	unsigned int UIFeeder::GetMapCount()
 	{
-		Game::UI_UpdateArenas();
-		Game::UI_SortArenas();
-		return *Game::arenaCount;
+		return Maps::GetCustomMaps().size();
 	}
 
 	const char* UIFeeder::GetMapText(unsigned int index, int /*column*/)
 	{
-		Game::UI_UpdateArenas();
-		Game::UI_SortArenas();
-
-		if (index < static_cast<unsigned int>(*Game::arenaCount))
+		const auto& maps = Maps::GetCustomMaps();
+		if (index < maps.size())
 		{
-			return Game::SEH_StringEd_GetString(ArenaLength::NewArenas[reinterpret_cast<int*>(0x633E934)[index]].uiName);
+			return maps.at(index).data();
 		}
+
+#ifdef DEBUG
+		if (IsDebuggerPresent())
+		{
+			__debugbreak();
+		}
+#endif
 
 		return "";
 	}
 
 	void UIFeeder::SelectMap(unsigned int index)
 	{
-		Game::UI_UpdateArenas();
-		Game::UI_SortArenas();
+		const auto& maps = Maps::GetCustomMaps();
 
-		if (index < static_cast<unsigned int>(*Game::arenaCount))
+		if (index < maps.size())
 		{
-			index = reinterpret_cast<int*>(0x633E934)[index];
-			const char* mapname = ArenaLength::NewArenas[index].mapName;
-			const char* longname = ArenaLength::NewArenas[index].uiName;
-			const char* description = ArenaLength::NewArenas[index].description;
+			std::string mapName = maps[index];
 
-			Dvar::Var("ui_map_name").set(mapname);
-			Dvar::Var("ui_map_long").set(Game::SEH_StringEd_GetString(longname));
-			Dvar::Var("ui_map_desc").set(Game::SEH_StringEd_GetString(description));
+			std::string longName = mapName;
+			std::string description = "(Missing arena file!)";
+
+			const auto& arenaPath = Maps::GetArenaPath(mapName);
+
+			if (Utils::IO::FileExists(arenaPath))
+			{
+				const auto& arena = Maps::ParseCustomMapArena(Utils::IO::ReadFile(arenaPath));
+
+				if (arena.contains("longname"))
+				{
+					longName = arena.at("longname");
+				}
+
+				if (arena.contains("map"))
+				{
+					mapName = arena.at("map");
+				}
+
+				if (arena.contains("description"))
+				{
+					description = arena.at("description");
+				}
+			}
+
+			UIMapName.set(Localization::Get(mapName.data()));
+			UIMapLong.set(Localization::Get(longName.data()));
+			UIMapDesc.set(Localization::Get(description.data()));
 		}
 	}
 
 	void UIFeeder::ApplyMap([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		const auto mapname = Dvar::Var("ui_map_name").get<std::string>();
+		const auto* mapname = Dvar::Var("ui_map_name").get<const char*>();
 
-		Dvar::Var("ui_mapname").set(mapname);
-		Utils::Hook::Call<void(const char*)>(0x503B50)(mapname.data()); // Party_SetDisplayMapName
+		if (*mapname)
+		{
+			Game::Dvar_SetString(*Game::ui_mapname, mapname);
+			Utils::Hook::Call<void(const char*)>(0x503B50)(mapname); // Party_SetDisplayMapName
+		}
 	}
 
 	void UIFeeder::ApplyInitialMap([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		const auto mapname = Dvar::Var("ui_mapname").get<std::string>();
-
-		Game::UI_UpdateArenas();
-		Game::UI_SortArenas();
-
-		for (unsigned int i = 0; i < static_cast<unsigned int>(*Game::arenaCount); ++i)
-		{
-			if (ArenaLength::NewArenas[i].mapName == mapname)
-			{
-				for (unsigned int j = 0; j < static_cast<unsigned int>(*Game::arenaCount); ++j)
-				{
-					if (reinterpret_cast<unsigned int*>(0x633E934)[j] == i)
-					{
-						UIFeeder::SelectMap(j);
-						UIFeeder::Select(60.0f, j);
-						break;
-					}
-				}
-
-				break;
-			}
-		}
+		Maps::ScanCustomMaps();
+		Select(60.0f, 0); // Will select nothing if there's no map
 	}
 
 	int UIFeeder::CheckSelection(int feeder)
@@ -361,7 +371,7 @@ namespace Components
 			call ecx // __ftol2_sse
 
 			push eax
-			call UIFeeder::CheckSelection
+			call CheckSelection
 
 			test al, al
 			jz returnSafe
@@ -382,12 +392,12 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled()) return;
 
-		Scheduler::Once([]
+		Events::OnDvarInit([]
 		{
-			Dvar::Register<const char*>("ui_map_long", "Afghan", Game::DVAR_NONE, "");
-			Dvar::Register<const char*>("ui_map_name", "mp_afghan", Game::DVAR_NONE, "");
-			Dvar::Register<const char*>("ui_map_desc", "", Game::DVAR_NONE, "");
-		}, Scheduler::Pipeline::MAIN);
+			UIMapLong = Dvar::Register<const char*>("ui_map_long", "", Game::DVAR_NONE, "");
+			UIMapName = Dvar::Register<const char*>("ui_map_name", "", Game::DVAR_NONE, "");
+			UIMapDesc = Dvar::Register<const char*>("ui_map_desc", "", Game::DVAR_NONE, "");
+		});
 
 		// Get feeder item count
 		Utils::Hook(0x41A0D0, UIFeeder::GetItemCountStub, HOOK_JUMP).install()->quick();

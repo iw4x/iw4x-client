@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+
 #include "Theatre.hpp"
 #include "UIFeeder.hpp"
 
@@ -8,9 +9,24 @@ namespace Components
 	unsigned int Theatre::CurrentSelection;
 	std::vector<Theatre::DemoInfo> Theatre::Demos;
 
+	Dvar::Var Theatre::CLAutoRecord;
+	Dvar::Var Theatre::CLDemosKeep;
+
 	char Theatre::BaselineSnapshot[131072] = {0};
 	int Theatre::BaselineSnapshotMsgLen;
 	int Theatre::BaselineSnapshotMsgOff;
+
+	nlohmann::json Theatre::DemoInfo::to_json() const
+	{
+		return nlohmann::json
+		{
+			{ "mapname", mapname },
+			{ "gametype", gametype },
+			{ "author", author },
+			{ "length", length },
+			{ "timestamp", std::to_string(timeStamp) },
+		};
+	}
 
 	void Theatre::GamestateWriteStub(Game::msg_t* msg, char byte)
 	{
@@ -20,8 +36,8 @@ namespace Components
 
 	void Theatre::RecordGamestateStub()
 	{
-		const auto sequence = (*Game::serverMessageSequence - 1);
-		Game::FS_WriteToDemo(&sequence, 4, *Game::demoFile);
+		const auto sequence = (Game::clientConnections->serverMessageSequence - 1);
+		Game::FS_WriteToDemo(&sequence, 4, Game::clientConnections->demofile);
 	}
 
 	void Theatre::StoreBaseline(PBYTE snapshotMsg)
@@ -54,7 +70,7 @@ namespace Components
 
 		Game::msg_t buf;
 
-		Game::MSG_Init(&buf, bufData, 131072);
+		Game::MSG_Init(&buf, bufData, sizeof(bufData));
 		Game::MSG_WriteData(&buf, &BaselineSnapshot[BaselineSnapshotMsgOff], BaselineSnapshotMsgLen - BaselineSnapshotMsgOff);
 		Game::MSG_WriteByte(&buf, 6);
 
@@ -62,12 +78,12 @@ namespace Components
 		const auto fileCompressedSize = compressedSize + 4;
 
 		int byte8 = 8;
-		char byte0 = 0;
+		unsigned char byte0 = 0;
 
-		Game::FS_WriteToDemo(&byte0, 1, *Game::demoFile);
-		Game::FS_WriteToDemo(Game::serverMessageSequence, 4, *Game::demoFile);
-		Game::FS_WriteToDemo(&fileCompressedSize, 4, *Game::demoFile);
-		Game::FS_WriteToDemo(&byte8, 4, *Game::demoFile);
+		Game::FS_WriteToDemo(&byte0, sizeof(unsigned char), Game::clientConnections->demofile);
+		Game::FS_WriteToDemo(&Game::clientConnections->serverMessageSequence, sizeof(int), Game::clientConnections->demofile);
+		Game::FS_WriteToDemo(&fileCompressedSize, sizeof(int), Game::clientConnections->demofile);
+		Game::FS_WriteToDemo(&byte8, sizeof(int), Game::clientConnections->demofile);
 
 		for (auto i = 0; i < compressedSize; i += 1024)
 		{
@@ -79,7 +95,7 @@ namespace Components
 				break;
 			}
 
-			Game::FS_WriteToDemo(&cmpData[i], size, *Game::demoFile);
+			Game::FS_WriteToDemo(&cmpData[i], size, Game::clientConnections->demofile);
 		}
 	}
 
@@ -105,7 +121,7 @@ namespace Components
 	{
 		__asm
 		{
-			mov eax, Game::demoPlaying
+			mov eax, 0xA5EA0C  // clientConnections.demoplaying
 			mov eax, [eax]
 			test al, al
 			jz continue
@@ -123,7 +139,7 @@ namespace Components
 	{
 		__asm
 		{
-			mov eax, Game::demoPlaying
+			mov eax, 0xA5EA0C  // clientConnections.demoplaying
 			mov eax, [eax]
 			test al, al
 			jz continue
@@ -142,7 +158,7 @@ namespace Components
 	{
 		__asm
 		{
-			mov eax, Game::demoPlaying
+			mov eax, 0xA5EA0C // clientConnections.demoplaying
 			mov eax, [eax]
 			test al, al
 			jz continue
@@ -157,6 +173,36 @@ namespace Components
 			push 4CB3F6h
 			retn
 		}
+	}
+
+	void Theatre::CG_CompassDrawPlayerMapLocationSelector_Stub(const int localClientNum, Game::CompassType compassType, const Game::rectDef_s* parentRect, const Game::rectDef_s* rect, Game::Material* material, float* color)
+	{
+		if (!Game::clientConnections->demoplaying)
+		{
+			Utils::Hook::Call<void(int, Game::CompassType, const Game::rectDef_s*, const Game::rectDef_s*, Game::Material*, float*)>(0x45BD60)(localClientNum, compassType, parentRect, rect, material, color);
+		}
+	}
+
+	void Theatre::CL_WriteDemoClientArchive_Hk(void(*write)(const void* buffer, int len, int localClientNum), const Game::playerState_s* ps, const float* viewangles, [[maybe_unused]] const float* selectedLocation, [[maybe_unused]] const float selectedLocationAngle, int localClientNum, int index)
+	{
+		assert(write);
+		assert(ps);
+
+		const unsigned char msgType = 1;
+		(write)(&msgType, sizeof(unsigned char), localClientNum);
+
+		(write)(&index, sizeof(int), localClientNum);
+
+		(write)(ps->origin, sizeof(float[3]), localClientNum);
+		(write)(ps->velocity, sizeof(float[3]), localClientNum);
+		(write)(&ps->movementDir, sizeof(int), localClientNum);
+		(write)(&ps->bobCycle, sizeof(int), localClientNum);
+		(write)(ps, sizeof(Game::playerState_s*), localClientNum);
+		(write)(viewangles, sizeof(float[3]), localClientNum);
+
+		// Disable locationSelectionInfo
+		const auto locationSelectionInfo = 0;
+		(write)(&locationSelectionInfo, sizeof(int), localClientNum);
 	}
 
 	void Theatre::RecordStub(int channel, char* message, char* file)
@@ -292,14 +338,14 @@ namespace Components
 		}
 	}
 
-	uint32_t Theatre::InitCGameStub()
+	int Theatre::CL_FirstSnapshot_Stub()
 	{
-		if (Dvar::Var("cl_autoRecord").get<bool>() && !*Game::demoPlaying)
+		if (CLAutoRecord.get<bool>() && !Game::clientConnections->demoplaying)
 		{
 			std::vector<std::string> files;
 			auto demos = FileSystem::GetFileList("demos/", "dm_13");
 
-			for (auto demo : demos)
+			for (auto& demo : demos)
 			{
 				if (Utils::String::StartsWith(demo, "auto_"))
 				{
@@ -307,7 +353,7 @@ namespace Components
 				}
 			}
 
-			auto numDel = static_cast<int>(files.size()) - Dvar::Var("cl_demosKeep").get<int>();
+			auto numDel = static_cast<int>(files.size()) - CLDemosKeep.get<int>();
 
 			for (auto i = 0; i < numDel; ++i)
 			{
@@ -319,18 +365,18 @@ namespace Components
 			Command::Execute(Utils::String::VA("record auto_%lld", std::time(nullptr)), true);
 		}
 
-		return Utils::Hook::Call<DWORD()>(0x42BBB0)();
+		return Utils::Hook::Call<int()>(0x42BBB0)(); // DB_GetLoadedFlags
 	}
 
-	void Theatre::MapChangeStub()
+	void Theatre::SV_SpawnServer_Stub()
 	{
 		StopRecording();
-		Utils::Hook::Call<void()>(0x464A60)();
+		Utils::Hook::Call<void()>(0x464A60)(); // Com_SyncThreads
 	}
 
 	void Theatre::StopRecording()
 	{
-		if (*Game::demoRecording)
+		if (Game::clientConnections->demorecording)
 		{
 			Command::Execute("stoprecord", true);
 		}
@@ -338,8 +384,13 @@ namespace Components
 
 	Theatre::Theatre()
 	{
-		Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games.");
-		Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord.");
+		AssertOffset(Game::clientConnection_t, demorecording, 0x40190);
+		AssertOffset(Game::clientConnection_t, demoplaying, 0x40194);
+		AssertOffset(Game::clientConnection_t, demofile, 0x401A4);
+		AssertOffset(Game::clientConnection_t, serverMessageSequence, 0x2013C);
+
+		CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games");
+		CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
 
 		Utils::Hook(0x5A8370, GamestateWriteStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A85D2, RecordGamestateStub, HOOK_CALL).install()->quick();
@@ -349,13 +400,17 @@ namespace Components
 		Utils::Hook(0x50320E, AdjustTimeDeltaStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A8E03, ServerTimedOutStub, HOOK_JUMP).install()->quick();
 
+		// Fix issue with locationSelectionInfo by disabling it
+		Utils::Hook(0x5AC20F, CL_WriteDemoClientArchive_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4964A6, CG_CompassDrawPlayerMapLocationSelector_Stub, HOOK_CALL).install()->quick();
+
 		// Hook commands to enforce metadata generation
 		Utils::Hook(0x5A82AE, RecordStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A8156, StopRecordStub, HOOK_CALL).install()->quick();
 
 		// Autorecording
-		Utils::Hook(0x5A1D6A, InitCGameStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4A712A, MapChangeStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A1D6A, CL_FirstSnapshot_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4A712A, SV_SpawnServer_Stub, HOOK_CALL).install()->quick();
 
 		// UIScripts
 		UIScript::Add("loadDemos", LoadDemos);
@@ -365,11 +420,11 @@ namespace Components
 		// Feeder
 		UIFeeder::Add(10.0f, GetDemoCount, GetDemoText, SelectDemo);
 
-		// set the configstrings stuff to load the default (empty) string table; this should allow demo recording on all gametypes/maps
+		// Set the configstrings stuff to load the default (empty) string table; this should allow demo recording on all gametypes/maps
 		if (!Dedicated::IsEnabled()) Utils::Hook::Set<const char*>(0x47440B, "mp/defaultStringTable.csv");
 
 		// Change font size
-		Utils::Hook::Set<BYTE>(0x5AC854, 2);
-		Utils::Hook::Set<BYTE>(0x5AC85A, 2);
+		Utils::Hook::Set<std::uint8_t>(0x5AC854, 2);
+		Utils::Hook::Set<std::uint8_t>(0x5AC85A, 2);
 	}
 }

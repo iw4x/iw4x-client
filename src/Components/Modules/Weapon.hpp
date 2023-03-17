@@ -34,6 +34,9 @@ namespace Components
 		static void JavelinResetHook_Stub();
 
 		static void WeaponEntCanBeGrabbed_Stub();
+
+		static void PlayerCmd_initialWeaponRaise(Game::scr_entref_t entref);
+
 		static void AddScriptMethods();
 	};
 }

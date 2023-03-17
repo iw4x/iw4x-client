@@ -2,16 +2,13 @@
 
 namespace Components
 {
-	const char* Dvar::ArchiveDvarPath = "userraw/archivedvars.cfg";
-
 	Dvar::Var Dvar::Name;
 
 	Dvar::Var::Var(const std::string& dvarName)
+		: dvar_(Game::Dvar_FindVar(dvarName.data()))
 	{
-		this->dvar_ = Game::Dvar_FindVar(dvarName.data());
-
 		// If the dvar can't be found it will be registered as an empty string dvar
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
 		{
 			this->dvar_ = const_cast<Game::dvar_t*>(Game::Dvar_SetFromStringByNameFromSource(dvarName.data(), "", Game::DVAR_SOURCE_INTERNAL));
 		}
@@ -24,13 +21,17 @@ namespace Components
 
 	template <> const char* Dvar::Var::get()
 	{
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
+		{
 			return "";
+		}
 
 		if (this->dvar_->type == Game::DVAR_TYPE_STRING || this->dvar_->type == Game::DVAR_TYPE_ENUM)
 		{
-			if (this->dvar_->current.string != nullptr)
+			if (this->dvar_->current.string)
+			{
 				return this->dvar_->current.string;
+			}
 		}
 
 		return "";
@@ -38,8 +39,10 @@ namespace Components
 
 	template <> int Dvar::Var::get()
 	{
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
+		{
 			return 0;
+		}
 
 		if (this->dvar_->type == Game::DVAR_TYPE_INT || this->dvar_->type == Game::DVAR_TYPE_ENUM)
 		{
@@ -51,8 +54,10 @@ namespace Components
 
 	template <> unsigned int Dvar::Var::get()
 	{
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
+		{
 			return 0;
+		}
 
 		if (this->dvar_->type == Game::DVAR_TYPE_INT)
 		{
@@ -64,8 +69,10 @@ namespace Components
 
 	template <> float Dvar::Var::get()
 	{
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
+		{
 			return 0.f;
+		}
 
 		if (this->dvar_->type == Game::DVAR_TYPE_FLOAT)
 		{
@@ -75,26 +82,12 @@ namespace Components
 		return 0.f;
 	}
 
-	template <> float* Dvar::Var::get()
-	{
-		static Game::vec4_t vector{0.f, 0.f, 0.f, 0.f};
-
-		if (this->dvar_ == nullptr)
-			return vector;
-
-		if (this->dvar_->type == Game::DVAR_TYPE_FLOAT_2 || this->dvar_->type == Game::DVAR_TYPE_FLOAT_3 ||
-			this->dvar_->type == Game::DVAR_TYPE_FLOAT_4)
-		{
-			return this->dvar_->current.vector;
-		}
-
-		return vector;
-	}
-
 	template <> bool Dvar::Var::get()
 	{
-		if (this->dvar_ == nullptr)
+		if (!this->dvar_)
+		{
 			return false;
+		}
 
 		if (this->dvar_->type == Game::DVAR_TYPE_BOOL)
 		{
@@ -111,7 +104,9 @@ namespace Components
 
 	void Dvar::Var::set(const char* string)
 	{
+		assert(string);
 		assert(this->dvar_->type == Game::DVAR_TYPE_STRING);
+
 		if (this->dvar_)
 		{
 			Game::Dvar_SetString(this->dvar_, string);
@@ -206,17 +201,7 @@ namespace Components
 		return Game::Dvar_RegisterFloat(dvarName, value, min, max, flag, description);
 	}
 
-	void Dvar::ResetDvarsValue()
-	{
-		if (!Utils::IO::FileExists(ArchiveDvarPath))
-			return;
-
-		Command::Execute("exec archivedvars.cfg", true);
-		// Clean up
-		Utils::IO::RemoveFile(ArchiveDvarPath);
-	}
-
-	Game::dvar_t* Dvar::Dvar_RegisterName(const char* name, const char* /*default*/, std::uint16_t flags, const char* description)
+	const Game::dvar_t* Dvar::Dvar_RegisterName(const char* dvarName, const char* /*value*/, std::uint16_t flags, const char* description)
 	{
 		// Name watcher
 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
@@ -250,19 +235,29 @@ namespace Components
 		{
 			const char* steamName = Steam::Proxy::SteamFriends->GetPersonaName();
 
-			if (steamName && *steamName != '\0')
+			if (steamName && *steamName)
 			{
 				username = steamName;
 			}
 		}
 
-		Name = Register<const char*>(name, username.data(), flags | Game::DVAR_ARCHIVE, description);
+		Name = Register<const char*>(dvarName, username.data(), flags | Game::DVAR_ARCHIVE, description);
 		return Name.get<Game::dvar_t*>();
+	}
+
+	const Game::dvar_t* Dvar::Dvar_RegisterSVNetworkFps(const char* dvarName, int /*value*/, int min, int /*max*/, std::uint16_t /*flags*/, const char* description)
+	{
+		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::DVAR_NONE, description);
+	}
+
+	const Game::dvar_t* Dvar::Dvar_RegisterPerkExtendedMeleeRange(const char* dvarName, float value, float min, float /*max*/, std::uint16_t flags, const char* description)
+	{
+		return Game::Dvar_RegisterFloat(dvarName, value, min, 10000.0f, flags, description);
 	}
 
 	void Dvar::SetFromStringByNameSafeExternal(const char* dvarName, const char* string)
 	{
-		static std::array<const char*, 8> exceptions =
+		static std::array exceptions =
 		{
 			"ui_showEndOfGame",
 			"systemlink",
@@ -276,7 +271,7 @@ namespace Components
 
 		for (const auto& entry : exceptions)
 		{
-			if (Utils::String::Compare(dvarName, entry))
+			if (!_stricmp(dvarName, entry))
 			{
 				Game::Dvar_SetFromStringByNameFromSource(dvarName, string, Game::DVAR_SOURCE_INTERNAL);
 				return;
@@ -291,47 +286,52 @@ namespace Components
 		Game::Dvar_SetFromStringByNameFromSource(dvarName, string, Game::DVAR_SOURCE_EXTERNAL);
 	}
 
-	bool Dvar::AreArchiveDvarsProtected()
+	bool Dvar::AreArchiveDvarsUnprotected()
 	{
 		static std::optional<bool> flag;
 
 		if (!flag.has_value())
 		{
-			flag.emplace(Flags::HasFlag("protect-saved-dvars"));
+			flag.emplace(Flags::HasFlag("unprotect-dvars"));
 		}
 
 		return flag.value();
 	}
 
-	void Dvar::SaveArchiveDvar(const Game::dvar_t* var)
+	bool Dvar::IsSettingDvarsDisabled()
 	{
-		if (!Utils::IO::FileExists(ArchiveDvarPath))
+		static std::optional<bool> flag;
+
+		if (!flag.has_value())
 		{
-			Utils::IO::WriteFile(ArchiveDvarPath, "// generated by IW4x, do not modify\n", false);
+			flag.emplace(Flags::HasFlag("protect-dvars"));
 		}
 
-		Utils::IO::WriteFile(ArchiveDvarPath, std::format("set {} \"{}\"\n", var->name, Game::Dvar_DisplayableValue(var)), true);
+		return flag.value();
 	}
 
 	void Dvar::DvarSetFromStringByName_Stub(const char* dvarName, const char* value)
 	{
+		if (IsSettingDvarsDisabled())
+		{
+			Logger::Debug("Not allowing server to set '{}'", dvarName);
+			return;
+		}
+
 		// Save the dvar original value if it has the archive flag
 		const auto* dvar = Game::Dvar_FindVar(dvarName);
-		if (dvar != nullptr && dvar->flags & Game::DVAR_ARCHIVE)
+		if (dvar && dvar->flags & Game::DVAR_ARCHIVE)
 		{
-			if (AreArchiveDvarsProtected())
+			if (!AreArchiveDvarsUnprotected())
 			{
 				Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Not allowing server to override saved dvar '{}'\n", dvar->name);
 				return;
 			}
 
-#ifdef DEBUG_DVARS
 			Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Server is overriding saved dvar '{}'\n", dvarName);
-#endif
-			SaveArchiveDvar(dvar);
 		}
 
-		if (dvar != nullptr && std::strcmp(dvar->name, "com_errorResolveCommand") == 0)
+		if (dvar && std::strcmp(dvar->name, "com_errorResolveCommand") == 0)
 		{
 			Logger::Print(Game::CON_CHANNEL_CONSOLEONLY, "Not allowing server to set '{}'\n", dvar->name);
 			return;
@@ -417,11 +417,6 @@ namespace Components
 		// remove write protection from fs_game
 		Utils::Hook::Xor<std::uint32_t>(0x6431EA, Game::DVAR_INIT);
 
-		// cheat protect g_hardcore
-		Utils::Hook::Xor<std::uint32_t>(0x5E374F, Game::DVAR_CHEAT);
-		Utils::Hook::Xor<std::uint32_t>(0x4D3689, Game::DVAR_CHEAT);
-		Utils::Hook::Xor<std::uint32_t>(0x4197C3, Game::DVAR_CHEAT);
-
 		// set cg_fov max to 160.0
 		// because that's the max on SP
 		static float cg_Fov = 160.0f;
@@ -439,6 +434,12 @@ namespace Components
 
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar_RegisterName, HOOK_CALL).install()->quick();
+
+		// Hook dvar 'sv_network_fps' registration
+		Utils::Hook(0x4D3C7B, Dvar_RegisterSVNetworkFps, HOOK_CALL).install()->quick();
+
+		// Hook dvar 'perk_extendedMeleeRange' and set a higher max, better than having people force this with external programs
+		Utils::Hook(0x492D2F, Dvar_RegisterPerkExtendedMeleeRange, HOOK_CALL).install()->quick();
 
 		// un-cheat safeArea_* and add archive flags
 		Utils::Hook::Xor<std::uint32_t>(0x42E3F5, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_horizontal
@@ -467,22 +468,11 @@ namespace Components
 		// Hook Dvar_SetFromStringByName inside CG_SetClientDvarFromServer so we can reset dvars when the player leaves the server
 		Utils::Hook(0x59386A, DvarSetFromStringByName_Stub, HOOK_CALL).install()->quick();
 
-		// If the game closed abruptly, the dvars would not have been restored
-		Scheduler::Once(ResetDvarsValue, Scheduler::Pipeline::MAIN);
-
-		// Reset archive dvars when client leaves a server
-		Events::OnSteamDisconnect(ResetDvarsValue);
-
 		// For debugging
 		Utils::Hook(0x6483FA, Dvar_RegisterVariant_Stub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x648438, Dvar_RegisterVariant_Stub, HOOK_JUMP).install()->quick();
 
 		// Fix crash
 		Utils::Hook(0x4B7120, Dvar_EnumToString_Stub, HOOK_JUMP).install()->quick();
-	}
-
-	Dvar::~Dvar()
-	{
-		Utils::IO::RemoveFile(ArchiveDvarPath);
 	}
 }

@@ -10,11 +10,5 @@ namespace Assets
 		void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
-
-	private:
-		std::map<void*, void*> triIndicies;
-		void loadXModelSurfs(Game::XModelSurfs* asset, Utils::Stream::Reader* reader, Components::ZoneBuilder::Zone* builder);
-		void loadXSurface(Game::XSurface* surf, Utils::Stream::Reader* reader, Components::ZoneBuilder::Zone* builder);
-		void loadXSurfaceCollisionTree(Game::XSurfaceCollisionTree* entry, Utils::Stream::Reader* reader);
 	};
 }

@@ -19,7 +19,7 @@ namespace Components
 		{
 			printf("%s", "IW4x " VERSION " (built " __DATE__ " " __TIME__ ")\n");
 			printf("%d\n", REVISION);
-			std::exit(0);
+			ExitProcess(EXIT_SUCCESS);
 		}
 
 		Console::FreeNativeConsole();
@@ -30,7 +30,7 @@ namespace Components
 
 		if (!FirstInstance && !ConnectProtocol::Used() && MessageBoxA(nullptr, "Do you want to start another instance?\nNot all features will be available!", "Game already running", MB_ICONEXCLAMATION | MB_YESNO) == IDNO)
 		{
-			std::exit(0);
+			ExitProcess(EXIT_SUCCESS);
 		}
 	}
 }

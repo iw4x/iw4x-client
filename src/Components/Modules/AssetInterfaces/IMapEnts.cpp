@@ -5,55 +5,7 @@ namespace Assets
 {
 	void IMapEnts::load(Game::XAssetHeader* header, const std::string& _name, Components::ZoneBuilder::Zone* builder)
 	{
-		std::string name = _name;
-		Utils::String::Replace(name, "maps/", "");
-		Utils::String::Replace(name, "mp/", "");
-		Utils::String::Replace(name, ".d3dbsp", "");
-
-		Components::FileSystem::File ents(std::format("mapents/{}.ents", name));
-		if (ents.exists())
-		{
-			Game::MapEnts* entites = builder->getAllocator()->allocate<Game::MapEnts>();
-			Game::MapEnts* orgEnts = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).mapEnts;
-
-			// TODO: Get rid of that
-			if (!orgEnts)
-			{
-				orgEnts = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MAP_ENTS, "maps/iw4_credits.d3dbsp").mapEnts;
-
-				if (!orgEnts)
-				{
-					Game::DB_EnumXAssets(Game::XAssetType::ASSET_TYPE_MAP_ENTS, [](Game::XAssetHeader header, void* mapEnts)
-					{
-						if (!*reinterpret_cast<void**>(mapEnts))
-						{
-							*reinterpret_cast<Game::MapEnts**>(mapEnts) = header.mapEnts;
-						}
-					}, &orgEnts, false);
-				}
-			}
-
-			if (orgEnts)
-			{
-				std::memcpy(entites, orgEnts, sizeof Game::MapEnts);
-			}
-			else
-			{
-				entites->stageCount = 1;
-				entites->stages = builder->getAllocator()->allocate<Game::Stage>();
-				entites->stages[0].name = "stage 0";
-				entites->stages[0].triggerIndex = 0x400;
-				entites->stages[0].sunPrimaryLightIndex = 0x1;
-			}
-
-			std::string entityString = ents.getBuffer();
-
-			entites->name = builder->getAllocator()->duplicateString(std::format("maps/mp/{}.d3dbsp", name));
-			entites->entityString = builder->getAllocator()->duplicateString(entityString);
-			entites->numEntityChars = entityString.size() + 1;
-
-			header->mapEnts = entites;
-		}
+		header->mapEnts = builder->getIW4OfApi()->read<Game::MapEnts>(Game::XAssetType::ASSET_TYPE_MAP_ENTS, _name);
 	}
 
 	void IMapEnts::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)

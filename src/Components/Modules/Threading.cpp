@@ -5,38 +5,37 @@ namespace Components
 {
 	namespace FrameTime
 	{
-		void NetSleep(int mSec)
+		void NetSleep(int ms)
 		{
-			if (mSec < 0) mSec = 0;
+			if (ms < 0) ms = 0;
 
 			fd_set fdr;
 			FD_ZERO(&fdr);
 
-			auto highestFd = INVALID_SOCKET;
+			auto maxfd = INVALID_SOCKET;
 			if (*Game::ip_socket != INVALID_SOCKET)
 			{
 				FD_SET(*Game::ip_socket, &fdr);
-				highestFd = *Game::ip_socket;
+				maxfd = *Game::ip_socket;
 			}
 
-			if (highestFd == INVALID_SOCKET)
+			if (maxfd == INVALID_SOCKET)
 			{
-				// windows ain't happy when select is called without valid FDs
-				std::this_thread::sleep_for(std::chrono::milliseconds(mSec));
+				// On Windows, select fails if no sockets
+				Game::Sys_Sleep(ms);
 				return;
 			}
 
-			timeval timeout;
-			timeout.tv_sec = mSec / 1000;
-			timeout.tv_usec = (mSec % 1000) * 1000;
+			timeval tv = { ms / 1000, (ms % 1000) * 1000 };
+			const auto result = ::select(maxfd + 1, &fdr, nullptr, nullptr, &tv);
 
-			const auto retVal = ::select(highestFd + 1, &fdr, nullptr, nullptr, &timeout);
-
-			if (retVal == SOCKET_ERROR)
+			if (result == SOCKET_ERROR)
 			{
 				Logger::Warning(Game::CON_CHANNEL_SYSTEM, "WinAPI: select failed: {}\n", Game::NET_ErrorString());
+				return;
 			}
-			else if (retVal > 0)
+
+			if (result > 0)
 			{
 				if (Dedicated::IsRunning())
 				{

@@ -1,4 +1,6 @@
-fonts = {}
+fonts = {
+	source = path.join(dependencies.basePath, "extra/font"),
+}
 
 function fonts.import()
 	fonts.includes()
@@ -6,7 +8,7 @@ end
 
 function fonts.includes()
 	includedirs {
-		path.join(dependencies.basePath, "extra/font"),
+		fonts.source,
 	}
 end
 
@@ -17,7 +19,7 @@ function fonts.project()
 		fonts.includes()
 
 		files {
-			path.join(dependencies.basePath, "extra/font/*.hpp"),
+			path.join(fonts.source, "Terminus_4.49.1.ttf.hpp"),
 		}
 
 		warnings "Off"

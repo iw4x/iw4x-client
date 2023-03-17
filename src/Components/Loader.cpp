@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
 
 #include "Modules/Bans.hpp"
 #include "Modules/Bots.hpp"
@@ -14,15 +15,18 @@
 #include "Modules/Console.hpp"
 #include "Modules/D3D9Ex.hpp"
 #include "Modules/Debug.hpp"
+#include "Modules/Discord.hpp"
 #include "Modules/Discovery.hpp"
 #include "Modules/Download.hpp"
 #include "Modules/Elevators.hpp"
+#include "Modules/FastFiles.hpp"
 #include "Modules/Gamepad.hpp"
 #include "Modules/Lean.hpp"
 #include "Modules/MapDump.hpp"
 #include "Modules/MapRotation.hpp"
 #include "Modules/NetworkDebug.hpp"
 #include "Modules/News.hpp"
+#include "Modules/Party.hpp"
 #include "Modules/PlayerMovement.hpp"
 #include "Modules/PlayerName.hpp"
 #include "Modules/Playlist.hpp"
@@ -44,11 +48,12 @@
 #include "Modules/Theatre.hpp"
 #include "Modules/Threading.hpp"
 #include "Modules/UIFeeder.hpp"
-#include "Modules/UserInfo.hpp"
 #include "Modules/VisionFile.hpp"
 #include "Modules/Voice.hpp"
 #include "Modules/Vote.hpp"
 #include "Modules/Weapon.hpp"
+
+#include "Modules/BotLib/lPrecomp.hpp"
 
 namespace Components
 {
@@ -79,14 +84,16 @@ namespace Components
 		Uninitializing = false;
 		Utils::Memory::GetAllocator()->clear();
 
+		// High priority
+		Register(new Singleton());
+
 		Register(new Auth());
 		Register(new Command());
 		Register(new Dvar());
-		Register(new Exception()); // Install our exception handler as early as posssible to get better debug dumps from startup crashes
-		Register(new Flags());
+		Register(new Exception()); // Install our exception handler as early as possible to get better debug dumps from startup crashes
+		Register(new IPCPipe());
 		Register(new Network());
 		Register(new Logger());
-		Register(new Singleton());
 		Register(new UIScript());
 		Register(new ZoneBuilder());
 		
@@ -107,6 +114,7 @@ namespace Components
 		Register(new D3D9Ex());
 		Register(new Debug());
 		Register(new Dedicated());
+		Register(new Discord());
 		Register(new Discovery());
 		Register(new Download());
 		Register(new Elevators());
@@ -115,7 +123,6 @@ namespace Components
 		Register(new FileSystem());
 		Register(new Friends());
 		Register(new Gamepad());
-		Register(new IPCPipe());
 		Register(new Lean());
 		Register(new Localization());
 		Register(new MapDump());
@@ -154,7 +161,6 @@ namespace Components
 		Register(new Threading());
 		Register(new Toast());
 		Register(new UIFeeder());
-		Register(new UserInfo());
 		Register(new VisionFile());
 		Register(new Voice());
 		Register(new Vote());
@@ -162,7 +168,9 @@ namespace Components
 		Register(new Window());
 		Register(new Zones());
 
-		Register(new GSC());
+		Register(new GSC::GSC());
+
+		Register(new BotLib::lPrecomp());
 
 		Pregame = false;
 

@@ -8,7 +8,7 @@ namespace Components
 
 	void FileSystem::File::read(Game::FsThread thread)
 	{
-		std::lock_guard _(FileSystem::FSMutex);
+		std::lock_guard _(FSMutex);
 
 		assert(!filePath.empty());
 
@@ -38,14 +38,14 @@ namespace Components
 	{
 		this->buffer.clear();
 
-		Game::RawFile* rawfile = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_RAWFILE, this->filePath.data()).rawfile;
+		auto* rawfile = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_RAWFILE, this->filePath.data()).rawfile;
 		if (!rawfile || Game::DB_IsXAssetDefault(Game::XAssetType::ASSET_TYPE_RAWFILE, this->filePath.data())) return;
 
 		this->buffer.resize(Game::DB_GetRawFileLen(rawfile));
 		Game::DB_GetRawBuffer(rawfile, this->buffer.data(), static_cast<int>(this->buffer.size()));
 	}
 
-	FileSystem::FileReader::FileReader(const std::string& file) : handle(0), name(file)
+	FileSystem::FileReader::FileReader(std::string file) : handle(0), name(std::move(file))
 	{
 		this->size = Game::FS_FOpenFileReadCurrentThread(this->name.data(), &this->handle);
 	}
@@ -58,25 +58,25 @@ namespace Components
 		}
 	}
 
-	bool FileSystem::FileReader::exists()
+	bool FileSystem::FileReader::exists() const noexcept
 	{
 		return (this->size >= 0 && this->handle);
 	}
 
-	std::string FileSystem::FileReader::getName()
+	std::string FileSystem::FileReader::getName() const
 	{
 		return this->name;
 	}
 
-	int FileSystem::FileReader::getSize()
+	int FileSystem::FileReader::getSize() const noexcept
 	{
 		return this->size;
 	}
 
-	std::string FileSystem::FileReader::getBuffer()
+	std::string FileSystem::FileReader::getBuffer() const
 	{
 		Utils::Memory::Allocator allocator;
-		if (!this->exists()) return std::string();
+		if (!this->exists()) return {};
 
 		const auto position = Game::FS_FTell(this->handle);
 		this->seek(0, Game::FS_SEEK_SET);
@@ -93,9 +93,9 @@ namespace Components
 		return {buffer, static_cast<std::size_t>(this->size)};
 	}
 
-	bool FileSystem::FileReader::read(void* buffer, size_t _size)
+	bool FileSystem::FileReader::read(void* buffer, std::size_t _size) const noexcept
 	{
-		if (!this->exists() || static_cast<size_t>(this->size) < _size || Game::FS_Read(buffer, _size, this->handle) != static_cast<int>(_size))
+		if (!this->exists() || static_cast<std::size_t>(this->size) < _size || Game::FS_Read(buffer, static_cast<int>(_size), this->handle) != static_cast<int>(_size))
 		{
 			return false;
 		}
@@ -103,7 +103,7 @@ namespace Components
 		return true;
 	}
 
-	void FileSystem::FileReader::seek(int offset, int origin)
+	void FileSystem::FileReader::seek(int offset, int origin) const
 	{
 		if (this->exists())
 		{
@@ -111,11 +111,11 @@ namespace Components
 		}
 	}
 
-	void FileSystem::FileWriter::write(const std::string& data)
+	void FileSystem::FileWriter::write(const std::string& data) const
 	{
 		if (this->handle)
 		{
-			Game::FS_Write(data.data(), data.size(), this->handle);
+			Game::FS_Write(data.data(), static_cast<int>(data.size()), this->handle);
 		}
 	}
 
@@ -204,27 +204,26 @@ namespace Components
 
 	bool FileSystem::_DeleteFile(const std::string& folder, const std::string& file)
 	{
-		char path[MAX_PATH] = {0};
-		Game::FS_BuildPathToFile(Dvar::Var("fs_basepath").get<const char*>(), reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
+		char path[MAX_PATH]{};
+		Game::FS_BuildPathToFile((*Game::fs_basepath)->current.string, reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
 		return Game::FS_Remove(path);
 	}
 
 	int FileSystem::ReadFile(const char* path, char** buffer)
 	{
 		if (!buffer) return -1;
-		else *buffer = nullptr;
 		if (!path) return -1;
 
-		std::lock_guard _(FileSystem::Mutex);
-		FileSystem::FileReader reader(path);
+		std::lock_guard _(Mutex);
+		FileReader reader(path);
 
 		int size = reader.getSize();
 		if (reader.exists() && size >= 0)
 		{
-			*buffer = FileSystem::AllocateFile(size + 1);
+			*buffer = AllocateFile(size + 1);
 			if (reader.read(*buffer, size)) return size;
 
-			FileSystem::FreeFile(*buffer);
+			FreeFile(*buffer);
 			*buffer = nullptr;
 		}
 
@@ -233,19 +232,19 @@ namespace Components
 
 	char* FileSystem::AllocateFile(int size)
 	{
-		return FileSystem::MemAllocator.allocateArray<char>(size);
+		return MemAllocator.allocateArray<char>(size);
 	}
 
 	void FileSystem::FreeFile(void* buffer)
 	{
-		FileSystem::MemAllocator.free(buffer);
+		MemAllocator.free(buffer);
 	}
 
 	void FileSystem::RegisterFolder(const char* folder)
 	{
-		const auto fs_cdpath = Dvar::Var("fs_cdpath").get<std::string>();
-		const auto fs_basepath = Dvar::Var("fs_basepath").get<std::string>();
-		const auto fs_homepath = Dvar::Var("fs_homepath").get<std::string>();
+		const std::string fs_cdpath = (*Game::fs_cdpath)->current.string;
+		const std::string fs_basepath = (*Game::fs_basepath)->current.string;
+		const std::string fs_homepath = (*Game::fs_homepath)->current.string;
 
 		if (!fs_cdpath.empty())   Game::FS_AddLocalizedGameDirectory(fs_cdpath.data(),   folder);
 		if (!fs_basepath.empty()) Game::FS_AddLocalizedGameDirectory(fs_basepath.data(), folder);
@@ -256,10 +255,10 @@ namespace Components
 	{
 		if (ZoneBuilder::IsEnabled())
 		{
-			FileSystem::RegisterFolder("zonedata");
+			RegisterFolder("zonedata");
 		}
 
-		FileSystem::RegisterFolder("userraw");
+		RegisterFolder("userraw");
 	}
 
 	__declspec(naked) void FileSystem::StartupStub()
@@ -286,34 +285,34 @@ namespace Components
 
 	void FileSystem::FsStartupSync(const char* a1)
 	{
-		std::lock_guard _(FileSystem::FSMutex);
+		std::lock_guard _(FSMutex);
 		return Utils::Hook::Call<void(const char*)>(0x4823A0)(a1); // FS_Startup
 	}
 
-	void FileSystem::FsRestartSync(int a1, int a2)
+	void FileSystem::FsRestartSync(int localClientNum, int checksumFeed)
 	{
-		std::lock_guard _(FileSystem::FSMutex);
+		std::lock_guard _(FSMutex);
 		Maps::GetUserMap()->freeIwd();
-		Utils::Hook::Call<void(int, int)>(0x461A50)(a1, a2); // FS_Restart
+		Utils::Hook::Call<void(int, int)>(0x461A50)(localClientNum, checksumFeed); // FS_Restart
 		Maps::GetUserMap()->reloadIwd();
 	}
 
-	void FileSystem::FsShutdownSync(int a1)
+	void FileSystem::FsShutdownSync(int closemfp)
 	{
-		std::lock_guard _(FileSystem::FSMutex);
+		std::lock_guard _(FSMutex);
 		Maps::GetUserMap()->freeIwd();
-		Utils::Hook::Call<void(int)>(0x4A46C0)(a1); // FS_Shutdown
+		Utils::Hook::Call<void(int)>(0x4A46C0)(closemfp); // FS_Shutdown
 	}
 
 	void FileSystem::DelayLoadImagesSync()
 	{
-		std::lock_guard<std::recursive_mutex> _(FileSystem::FSMutex);
+		std::lock_guard _(FSMutex);
 		return Utils::Hook::Call<void()>(0x494060)(); // DB_LoadDelayedImages
 	}
 
-	int FileSystem::LoadTextureSync(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image)
+	int FileSystem::LoadTextureSync(Game::GfxImageLoadDef** loadDef, Game::GfxImage* image)
 	{
-		std::lock_guard _(FileSystem::FSMutex);
+		std::lock_guard _(FSMutex);
 		return Game::Load_Texture(loadDef, image);
 	}
 
@@ -331,23 +330,20 @@ namespace Components
 
 	FileSystem::FileSystem()
 	{
-		FileSystem::MemAllocator.clear();
-
 		// Thread safe file system interaction
-		Utils::Hook(0x4F4BFF, FileSystem::AllocateFile, HOOK_CALL).install()->quick();
-		//Utils::Hook(Game::FS_ReadFile, FileSystem::ReadFile, HOOK_JUMP).install()->quick();
-		Utils::Hook(Game::FS_FreeFile, FileSystem::FreeFile, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x4F4BFF, AllocateFile, HOOK_CALL).install()->quick();
+		Utils::Hook(Game::FS_FreeFile, FreeFile, HOOK_JUMP).install()->quick();
 
 		// Filesystem config checks
-		Utils::Hook(0x6098FD, FileSystem::ExecIsFSStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6098FD, ExecIsFSStub, HOOK_CALL).install()->quick();
 
 		// Don't strip the folders from the config name (otherwise our ExecIsFSStub fails)
 		Utils::Hook::Nop(0x6098F2, 5);
 
 		// Register additional folders
-		Utils::Hook(0x482647, FileSystem::StartupStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x482647, StartupStub, HOOK_JUMP).install()->quick();
 
-		// exec whitelist removal (YAYFINITY WARD)
+		// exec whitelist removal
 		Utils::Hook::Nop(0x609685, 5);
 		Utils::Hook::Nop(0x60968C, 2);
 
@@ -355,30 +351,30 @@ namespace Components
 		Utils::Hook::Nop(0x642A4B, 5);
 
 		// Ignore bad magic, when trying to free hunk when it's already cleared
-		Utils::Hook::Set<WORD>(0x49AACE, 0xC35E);
+		Utils::Hook::Set<std::uint16_t>(0x49AACE, 0xC35E);
 
 		// Synchronize filesystem starts
-		Utils::Hook(0x4290C6, FileSystem::FsStartupSync, HOOK_CALL).install()->quick(); // FS_InitFilesystem
-		Utils::Hook(0x461A88, FileSystem::FsStartupSync, HOOK_CALL).install()->quick(); // FS_Restart
+		Utils::Hook(0x4290C6, FsStartupSync, HOOK_CALL).install()->quick(); // FS_InitFilesystem
+		Utils::Hook(0x461A88, FsStartupSync, HOOK_CALL).install()->quick(); // FS_Restart
 
 		// Synchronize filesystem restarts
-		Utils::Hook(0x4A745B, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // SV_SpawnServer
-		Utils::Hook(0x4C8609, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // FS_ConditionalRestart
-		Utils::Hook(0x5AC68E, FileSystem::FsRestartSync, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
+		Utils::Hook(0x4A745B, FsRestartSync, HOOK_CALL).install()->quick(); // SV_SpawnServer
+		Utils::Hook(0x4C8609, FsRestartSync, HOOK_CALL).install()->quick(); // FS_ConditionalRestart
+		Utils::Hook(0x5AC68E, FsRestartSync, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
 
 		// Synchronize filesystem stops
-		Utils::Hook(0x461A55, FileSystem::FsShutdownSync, HOOK_CALL).install()->quick(); // FS_Restart
-		Utils::Hook(0x4D40DB, FileSystem::FsShutdownSync, HOOK_CALL).install()->quick(); // Com_Quitf
+		Utils::Hook(0x461A55, FsShutdownSync, HOOK_CALL).install()->quick(); // FS_Restart
+		Utils::Hook(0x4D40DB, FsShutdownSync, HOOK_CALL).install()->quick(); // Com_Quitf
 
 		// Synchronize db image loading
-		Utils::Hook(0x415AB8, FileSystem::DelayLoadImagesSync, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4D32BC, FileSystem::LoadTextureSync, HOOK_CALL).install()->quick();
+		Utils::Hook(0x415AB8, DelayLoadImagesSync, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4D32BC, LoadTextureSync, HOOK_CALL).install()->quick();
 
 		// Handle IWD freeing
-		Utils::Hook(0x642F60, FileSystem::IwdFreeStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x642F60, IwdFreeStub, HOOK_CALL).install()->quick();
 
 		// Set the working dir based on info from the Xlabs launcher
-		Utils::Hook(0x4326E0, FileSystem::Sys_DefaultInstallPath_Hk, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x4326E0, Sys_DefaultInstallPath_Hk, HOOK_JUMP).install()->quick();
 	}
 
 	FileSystem::~FileSystem()

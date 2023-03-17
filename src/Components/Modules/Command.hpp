@@ -5,7 +5,7 @@ namespace Components
 	class Command : public Component
 	{
 	public:
-		static_assert(sizeof(Game::cmd_function_t) == 0x18);
+		static_assert(sizeof(Game::cmd_function_s) == 0x18);
 
 		class Params
 		{
@@ -13,8 +13,13 @@ namespace Components
 			Params() = default;
 			virtual ~Params() = default;
 
-			[[nodiscard]] virtual int size() const = 0;
-			[[nodiscard]] virtual const char* get(int index) const = 0;
+			Params(Params&&) = delete;
+			Params(const Params&) = delete;
+			Params& operator=(Params&&) = delete;
+			Params& operator=(const Params&) = delete;
+
+			[[nodiscard]] virtual int size() const noexcept = 0;
+			[[nodiscard]] virtual const char* get(int index) const noexcept = 0;
 			[[nodiscard]] virtual std::string join(int index) const;
 
 			virtual const char* operator[](const int index)
@@ -28,8 +33,8 @@ namespace Components
 		public:
 			ClientParams();
 
-			[[nodiscard]] int size() const override;
-			[[nodiscard]] const char* get(int index) const override;
+			[[nodiscard]] int size() const noexcept override;
+			[[nodiscard]] const char* get(int index) const noexcept override;
 
 		private:
 			int nesting_;
@@ -40,16 +45,16 @@ namespace Components
 		public:
 			ServerParams();
 
-			[[nodiscard]] int size() const override;
-			[[nodiscard]] const char* get(int index) const override;
+			[[nodiscard]] int size() const noexcept override;
+			[[nodiscard]] const char* get(int index) const noexcept override;
 
 		private:
 			int nesting_;
 		};
 
-		Command() = default;
+		Command();
 
-		static Game::cmd_function_t* Allocate();
+		static Game::cmd_function_s* Allocate();
 
 		static void Add(const char* name, const std::function<void()>& callback);
 		static void Add(const char* name, const std::function<void(Command::Params*)>& callback);
@@ -57,7 +62,7 @@ namespace Components
 		static void AddSV(const char* name, const std::function<void(Command::Params*)>& callback);
 		static void Execute(std::string command, bool sync = true);
 
-		static Game::cmd_function_t* Find(const std::string& command);
+		static Game::cmd_function_s* Find(const std::string& command);
 
 	private:
 		static std::unordered_map<std::string, std::function<void(Command::Params*)>> FunctionMap;
@@ -67,5 +72,8 @@ namespace Components
 
 		static void MainCallback();
 		static void MainCallbackSV();
+
+		static const std::vector<std::string>& GetExceptions();
+		static bool CL_ShouldSendNotify_Hk(const char* cmd);
 	};
 }

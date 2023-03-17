@@ -7,52 +7,7 @@ namespace Assets
 {
 	void IComWorld::load(Game::XAssetHeader* header, const std::string& _name, Components::ZoneBuilder::Zone* builder)
 	{
-		std::string name = _name;
-		Utils::String::Replace(name, "maps/mp/", "");
-		Utils::String::Replace(name, ".d3dbsp", "");
-
-		Components::FileSystem::File mapFile(std::format("comworld/{}.iw4xComWorld", name));
-
-		if (mapFile.exists())
-		{
-			Utils::Stream::Reader reader(builder->getAllocator(), mapFile.getBuffer());
-
-			__int64 magic = reader.read<__int64>();
-			if (std::memcmp(&magic, "IW4xComW", 8))
-			{
-				Components::Logger::Error(Game::ERR_FATAL, "Reading comworld '{}' failed, header is invalid!", name);
-			}
-
-			int version = reader.read<int>();
-			if (version != IW4X_COMMAP_VERSION)
-			{
-				Components::Logger::Error(Game::ERR_FATAL, "Reading comworld '{}' failed, expected version is {}, but it was {}!", name, IW4X_COMMAP_VERSION, version);
-			}
-
-			Game::ComWorld* asset = reader.readObject<Game::ComWorld>();
-			header->comWorld = asset;
-
-			if (asset->name)
-			{
-				asset->name = reader.readCString();
-			}
-
-			if (asset->primaryLights)
-			{
-				asset->primaryLights = reader.readArray<Game::ComPrimaryLight>(asset->primaryLightCount);
-
-				for (unsigned int i = 0; i < asset->primaryLightCount; ++i)
-				{
-					Game::ComPrimaryLight* light = &asset->primaryLights[i];
-
-					if (light->defName)
-					{
-						light->defName = reader.readCString();
-						Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_LIGHT_DEF, light->defName, builder);
-					}
-				}
-			}
-		}
+		header->comWorld = builder->getIW4OfApi()->read<Game::ComWorld>(Game::XAssetType::ASSET_TYPE_COMWORLD, _name);
 	}
 
 	void IComWorld::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)

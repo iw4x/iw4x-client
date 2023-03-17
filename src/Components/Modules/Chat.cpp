@@ -4,6 +4,7 @@
 #include "Voice.hpp"
 
 #include "GSC/Script.hpp"
+#include "GSC/ScriptExtension.hpp"
 
 namespace Components
 {
@@ -11,15 +12,21 @@ namespace Components
 	Dvar::Var Chat::sv_disableChat;
 	Dvar::Var Chat::sv_sayName;
 
-	Game::dvar_t** Chat::cg_chatHeight = reinterpret_cast<Game::dvar_t**>(0x7ED398);
-	Game::dvar_t** Chat::cg_chatTime = reinterpret_cast<Game::dvar_t**>(0x9F5DE8);
-
 	bool Chat::SendChat;
 
 	Utils::Concurrency::Container<Chat::muteList> Chat::MutedList;
+	const char* Chat::MutedListFile = "userraw/muted-users.json";
 
 	bool Chat::CanAddCallback = true;
 	std::vector<Scripting::Function> Chat::SayCallbacks;
+
+	// Have only one instance of IW4x read/write the file
+	std::unique_lock<Utils::NamedMutex> Chat::Lock()
+	{
+		static Utils::NamedMutex mutex{"iw4x-mute-list-lock"};
+		std::unique_lock lock{mutex};
+		return lock;
+	}
 
 	const char* Chat::EvaluateSay(char* text, Game::gentity_t* player, int mode)
 	{
@@ -59,18 +66,25 @@ namespace Components
 			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You are muted\"", 0x65));
 		}
 
+		if (sv_disableChat.get<bool>())
+		{
+			SendChat = false;
+			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
+		}
+
+		// Message might be empty after processing the '/'
+		if (text[msgIndex] == '\0')
+		{
+			SendChat = false;
+			return text;
+		}
+
 		for (const auto& callback : SayCallbacks)
 		{
 			if (!ChatCallback(player, callback.getPos(), (text + msgIndex), mode))
 			{
 				SendChat = false;
 			}
-		}
-
-		if (sv_disableChat.get<bool>())
-		{
-			SendChat = false;
-			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
 		}
 
 		TextRenderer::StripMaterialTextIcons(text, text, std::strlen(text) + 1);
@@ -167,9 +181,9 @@ namespace Components
 		// Text can only be 150 characters maximum. This is bigger than the teamChatMsgs buffers with 160 characters
 		// Therefore it is not needed to check for buffer lengths
 
-		const auto chatHeight = (*cg_chatHeight)->current.integer;
+		const auto chatHeight = (*Game::cg_chatHeight)->current.integer;
 		const auto chatWidth = static_cast<float>(cg_chatWidth.get<int>());
-		const auto chatTime = (*cg_chatTime)->current.integer;
+		const auto chatTime = (*Game::cg_chatTime)->current.integer;
 		if (chatHeight <= 0 || static_cast<unsigned>(chatHeight) > std::extent_v<decltype(Game::cgs_t::teamChatMsgs)> || chatWidth <= 0 || chatTime <= 0)
 		{
 			Game::cgsArray[0].teamLastChatPos = 0;
@@ -179,7 +193,7 @@ namespace Components
 
 		TextRenderer::FontIconInfo fontIconInfo{};
 		auto len = 0.0f;
-		auto lastColor = static_cast<int>(TEXT_COLOR_DEFAULT);
+		auto lastColor = static_cast<std::underlying_type_t<TextColor>>(TextColor::TEXT_COLOR_DEFAULT);
 		char* lastSpace = nullptr;
 		char* lastFontIcon = nullptr;
 		char* p = Game::cgsArray[0].teamChatMsgs[Game::cgsArray[0].teamChatPos % chatHeight];
@@ -232,7 +246,9 @@ namespace Components
 
 		Game::cgsArray[0].teamChatPos++;
 		if (Game::cgsArray[0].teamChatPos - Game::cgsArray[0].teamLastChatPos > chatHeight)
+		{
 			Game::cgsArray[0].teamLastChatPos = Game::cgsArray[0].teamChatPos + 1 - chatHeight;
+		}
 	}
 
 	__declspec(naked) void Chat::CG_AddToTeamChat_Stub()
@@ -255,7 +271,20 @@ namespace Components
 		const auto clientNum = ent - Game::g_entities;
 		const auto xuid = Game::svs_clients[clientNum].steamID;
 
-		const auto result = MutedList.access<bool>([&](muteList& clients)
+		const auto result = MutedList.access<bool>([&](const muteList& clients)
+		{
+			return clients.contains(xuid);
+		});
+
+		return result;
+	}
+
+	bool Chat::IsMuted(const Game::client_t* cl)
+	{
+		const auto clientNum = cl - Game::svs_clients;
+		const auto xuid = Game::svs_clients[clientNum].steamID;
+
+		const auto result = MutedList.access<bool>([&](const muteList& clients)
 		{
 			return clients.contains(xuid);
 		});
@@ -269,6 +298,7 @@ namespace Components
 		MutedList.access([&](muteList& clients)
 		{
 			clients.insert(xuid);
+			SaveMutedList(clients);
 		});
 
 		Logger::Print("{} was muted\n", client->name);
@@ -291,6 +321,67 @@ namespace Components
 				clients.clear();
 			else
 				clients.erase(id);
+
+			SaveMutedList(clients);
+		});
+	}
+
+	void Chat::SaveMutedList(const muteList& list)
+	{
+		const auto _ = Lock();
+
+		const nlohmann::json mutedUsers = nlohmann::json
+		{
+			{ "SteamID", list },
+		};
+
+		Utils::IO::WriteFile(MutedListFile, mutedUsers.dump());
+	}
+
+	void Chat::LoadMutedList()
+	{
+		const auto _ = Lock();
+
+		const auto mutedUsers = Utils::IO::ReadFile(MutedListFile);
+		if (mutedUsers.empty())
+		{
+			Logger::Debug("muted-users.json does not exist");
+			return;
+		}
+
+		nlohmann::json mutedUsersData;
+		try
+		{
+			mutedUsersData = nlohmann::json::parse(mutedUsers);
+		}
+		catch (const std::exception& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+			return;
+		}
+
+		if (!mutedUsersData.contains("SteamID"))
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "muted-users.json contains invalid data\n");
+			return;
+		}
+
+		const auto& list = mutedUsersData["SteamID"];
+		if (!list.is_array())
+		{
+			return;
+		}
+
+		MutedList.access([&](muteList& clients)
+		{
+			const nlohmann::json::array_t arr = list;
+			for (auto& entry : arr)
+			{
+				if (entry.is_number_unsigned())
+				{
+					clients.insert(entry.get<std::uint64_t>());
+				}
+			}
 		});
 	}
 
@@ -312,7 +403,7 @@ namespace Components
 			}
 
 			const auto* client = Game::SV_GetPlayerByNum();
-			if (client != nullptr)
+			if (client && !client->bIsTestClient)
 			{
 				Voice::SV_MuteClient(client - Game::svs_clients);
 				MuteClient(client);
@@ -335,8 +426,12 @@ namespace Components
 			}
 
 			const auto* client = Game::SV_GetPlayerByNum();
+			if (client->bIsTestClient)
+			{
+				return;
+			}
 
-			if (client != nullptr)
+			if (client)
 			{
 				UnmuteClient(client);
 				Voice::SV_UnmuteClient(client - Game::svs_clients);
@@ -466,42 +561,46 @@ namespace Components
 
 	int Chat::ChatCallback(Game::gentity_s* self, const char* codePos, const char* message, int mode)
 	{
-		const auto entityId = Game::Scr_GetEntityId(self - Game::g_entities, 0);
+		constexpr auto paramcount = 2;
 
 		Scripting::StackIsolation _;
 		Game::Scr_AddInt(mode);
 		Game::Scr_AddString(message);
 
-		Game::VariableValue value;
-		value.type = Game::VAR_OBJECT;
-		value.u.uintValue = entityId;
+		const auto objId = Game::Scr_GetEntityId(self - Game::g_entities, 0);
+		Game::AddRefToObject(objId);
+		const auto id = Game::VM_Execute_0(Game::AllocThread(objId), codePos, paramcount);
 
-		Game::AddRefToValue(value.type, value.u);
-		const auto localId = Game::AllocThread(entityId);
+		const auto result = GetCallbackReturn();
 
-		const auto result = Game::VM_Execute_0(localId, codePos, 2);
-		Game::RemoveRefToObject(result);
+		Game::RemoveRefToValue(Game::scrVmPub->top->type, Game::scrVmPub->top->u);
 
-		return GetCallbackReturn();
+		Game::scrVmPub->top->type = Game::VAR_UNDEFINED;
+		--Game::scrVmPub->top;
+		--Game::scrVmPub->inparamcount;
+
+		Game::Scr_FreeThread(static_cast<std::uint16_t>(id));
+
+		return result;
 	}
 
 	void Chat::AddScriptFunctions()
 	{
-		Script::AddFunction("OnPlayerSay", [] // gsc: OnPlayerSay(<function>)
+		GSC::Script::AddFunction("OnPlayerSay", [] // gsc: OnPlayerSay(<function>)
 		{
 			if (Game::Scr_GetNumParam() != 1)
 			{
-				Game::Scr_Error("^1OnPlayerSay: Needs one function pointer!\n");
+				Game::Scr_Error("OnPlayerSay: Needs one function pointer!");
 				return;
 			}
 
 			if (!CanAddCallback)
 			{
-				Game::Scr_Error("^1OnPlayerSay: Cannot add a callback in this context");
+				Game::Scr_Error("OnPlayerSay: Cannot add a callback in this context");
 				return;
 			}
 
-			const auto* func = Script::GetCodePosForParam(0);
+			const auto* func = GSC::ScriptExtension::GetCodePosForParam(0);
 			SayCallbacks.emplace_back(func);
 		});
 	}
@@ -513,6 +612,8 @@ namespace Components
 		cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
 		sv_disableChat = Dvar::Register<bool>("sv_disableChat", false, Game::DVAR_NONE, "Disable chat messages from clients");
 		Events::OnSVInit(AddChatCommands);
+
+		LoadMutedList();
 
 		// Intercept chat sending
 		Utils::Hook(0x4D000B, PreSayStub, HOOK_CALL).install()->quick();

@@ -7,9 +7,12 @@
 #include "FileSystem.hpp"
 #include "Functions.hpp"
 #include "Dvars.hpp"
+#include "PlayerMovement.hpp"
+#include "PreProcessor.hpp"
 #include "Script.hpp"
 #include "Server.hpp"
 #include "System.hpp"
+#include "Zone.hpp"
 
 namespace Game
 {

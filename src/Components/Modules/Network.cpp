@@ -91,7 +91,7 @@ namespace Components
 		return {this->getCString()};
 	}
 
-	bool Network::Address::isLocal()
+	bool Network::Address::isLocal() const noexcept
 	{
 		// According to: https://en.wikipedia.org/wiki/Private_network
 
@@ -112,7 +112,7 @@ namespace Components
 		return false;
 	}
 
-	bool Network::Address::isSelf()
+	bool Network::Address::isSelf() const noexcept
 	{
 		if (Game::NET_IsLocalAddress(this->address)) return true; // Loopback
 		if (this->getPort() != GetPort()) return false; // Port not equal
@@ -128,7 +128,7 @@ namespace Components
 		return false;
 	}
 
-	bool Network::Address::isLoopback() const
+	bool Network::Address::isLoopback() const noexcept
 	{
 		if (this->getIP().full == 0x100007f) // 127.0.0.1
 		{
@@ -138,7 +138,7 @@ namespace Components
 		return Game::NET_IsLocalAddress(this->address);
 	}
 
-	bool Network::Address::isValid() const
+	bool Network::Address::isValid() const noexcept
 	{
 		return (this->getType() != Game::NA_BAD && this->getType() >= Game::NA_BOT && this->getType() <= Game::NA_IP);
 	}
@@ -225,9 +225,11 @@ namespace Components
 		StartupSignal.clear();
 	}
 
-	unsigned short Network::GetPort()
+	std::uint16_t Network::GetPort()
 	{
-		return static_cast<unsigned short>(Dvar::Var(0x64A3004).get<unsigned int>());
+		assert((*Game::port));
+		assert((*Game::port)->current.unsignedInt <= std::numeric_limits<std::uint16_t>::max());
+		return static_cast<std::uint16_t>((*Game::port)->current.unsignedInt);
 	}
 
 	__declspec(naked) void Network::NetworkStartStub()
@@ -331,22 +333,22 @@ namespace Components
 	{
 		AssertSize(Game::netadr_t, 20);
 
-		// maximum size in NET_OutOfBandPrint
-		Utils::Hook::Set<DWORD>(0x4AEF08, 0x1FFFC);
-		Utils::Hook::Set<DWORD>(0x4AEFA3, 0x1FFFC);
+		// Maximum size in NET_OutOfBandPrint
+		Utils::Hook::Set<std::uint32_t>(0x4AEF08, 0x1FFFC);
+		Utils::Hook::Set<std::uint32_t>(0x4AEFA3, 0x1FFFC);
 
-		// increase max port binding attempts from 10 to 100
-		Utils::Hook::Set<BYTE>(0x4FD48A, 100);
+		// Increase max port binding attempts from 10 to 100
+		Utils::Hook::Set<std::uint8_t>(0x4FD48A, 100);
 
-		// increase cl_maxpackets limit
-		Utils::Hook::Set<BYTE>(0x4050A1, 125);
+		// Increase cl_maxpackets dvar limit
+		Utils::Hook::Set<std::uint8_t>(0x4050A1, 125);
 
-		// increase snaps
+		// Increase snaps (disabled for unknown reasons)
 		//Utils::Hook::Set<BYTE>(0x405357, 40);
 
-		// default maxpackets and snaps
-		Utils::Hook::Set<BYTE>(0x40535B, 30);
-		Utils::Hook::Set<BYTE>(0x4050A5, 125);
+		// Set default value of snaps and cl_maxpackets dvar
+		Utils::Hook::Set<std::uint8_t>(0x40535B, 30);
+		Utils::Hook::Set<std::uint8_t>(0x4050A5, 125);
 
 		// Parse port as short in Net_AddrToString
 		Utils::Hook::Set<const char*>(0x4698E3, "%u.%u.%u.%u:%hu");
@@ -364,11 +366,29 @@ namespace Components
 		Utils::Hook(0x5AA703, CL_HandleCommandStub, HOOK_JUMP).install()->quick();
 
 		// Disable unused OOB packets handlers just to be sure
-		Utils::Hook::Set<BYTE>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
-		Utils::Hook::Set<BYTE>(0x5AA69F, 0xEB); // echo
-		Utils::Hook::Set<BYTE>(0x5AAA82, 0xEB); // SP
-		Utils::Hook::Set<BYTE>(0x5A9F18, 0xEB); // CL_VoiceConnectionTestPacket
-		Utils::Hook::Set<BYTE>(0x5A9FF3, 0xEB); // CL_HandleRelayPacket
+		Utils::Hook::Set<std::uint8_t>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
+		Utils::Hook::Set<std::uint8_t>(0x5AA69F, 0xEB); // echo
+		Utils::Hook::Set<std::uint8_t>(0x5AAA82, 0xEB); // SP
+		Utils::Hook::Set<std::uint8_t>(0x5A9F18, 0xEB); // CL_VoiceConnectionTestPacket
+		Utils::Hook::Set<std::uint8_t>(0x5A9FF3, 0xEB); // CL_HandleRelayPacket
+
+		// Com_GetProtocol
+		Utils::Hook::Set<std::uint32_t>(0x4FB501, PROTOCOL);
+
+		// Set the default, min and max of the protocol dvar
+		Utils::Hook::Set<std::uint32_t>(0x4D36A9, PROTOCOL);
+		Utils::Hook::Set<std::uint32_t>(0x4D36AE, PROTOCOL);
+		Utils::Hook::Set<std::uint32_t>(0x4D36B3, PROTOCOL);
+
+		// Internal version is 99, most servers should accept it
+		Utils::Hook::Set<std::uint32_t>(0x463C61, 208); // getBuildNumberAsInt
+
+		// LSP disabled
+		Utils::Hook::Set<std::uint8_t>(0x435950, 0xC3); // LSP HELLO
+		Utils::Hook::Set<std::uint8_t>(0x49C220, 0xC3); // We wanted to send a logging packet, but we haven't connected to LSP!
+		Utils::Hook::Set<std::uint8_t>(0x4BD900, 0xC3); // main LSP response func
+		Utils::Hook::Set<std::uint8_t>(0x682170, 0xC3); // Telling LSP that we're playing a private match
+		Utils::Hook::Nop(0x4FD448, 5); // Don't create lsp_socket
 
 		OnClientPacket("resolveAddress", [](const Address& address, [[maybe_unused]] const std::string& data)
 		{

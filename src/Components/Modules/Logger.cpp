@@ -80,11 +80,12 @@ namespace Components
 
 	void Logger::ErrorInternal(const Game::errorParm_t error, const std::string_view& fmt, std::format_args&& args)
 	{
+		const auto msg = std::vformat(fmt, args);
+
 #ifdef _DEBUG
 		if (IsDebuggerPresent()) __debugbreak();
 #endif
 
-		const auto msg = std::vformat(fmt, args);
 		Game::Com_Error(error, "%s", msg.data());
 	}
 
@@ -95,7 +96,7 @@ namespace Components
 		++(*Game::com_errorPrintsCount);
 		MessagePrint(channel, msg);
 
-		if (Game::cls->uiStarted != 0 && (*Game::com_fixedConsolePosition == 0))
+		if (Game::cls->uiStarted && (*Game::com_fixedConsolePosition == 0))
 		{
 			Game::CL_ConsoleFixPosition();
 		}

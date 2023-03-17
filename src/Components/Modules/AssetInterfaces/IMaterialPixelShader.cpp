@@ -1,8 +1,6 @@
 #include <STDInclude.hpp>
 #include "IMaterialPixelShader.hpp"
 
-#define GFX_RENDERER_SHADER_SM3 0
-
 namespace Assets
 {
 
@@ -19,21 +17,7 @@ namespace Assets
 
 	void IMaterialPixelShader::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File psFile(std::format("ps/{}.cso", name));
-		if (!psFile.exists()) return;
-
-		auto buff = psFile.getBuffer();
-		auto programSize = buff.size() / 4;
-		Game::MaterialPixelShader* asset = builder->getAllocator()->allocate<Game::MaterialPixelShader>();
-
-		asset->name = builder->getAllocator()->duplicateString(name);
-		asset->prog.loadDef.loadForRenderer = GFX_RENDERER_SHADER_SM3;
-		asset->prog.loadDef.programSize = static_cast<unsigned short>(programSize);
-		asset->prog.loadDef.program = builder->getAllocator()->allocateArray<unsigned int>(programSize);
-		memcpy_s(asset->prog.loadDef.program, buff.size(), buff.data(), buff.size());
-
-
-		header->pixelShader = asset;
+		header->pixelShader = builder->getIW4OfApi()->read<Game::MaterialPixelShader>(Game::XAssetType::ASSET_TYPE_PIXELSHADER, name);
 	}
 
 	void IMaterialPixelShader::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)

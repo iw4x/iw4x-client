@@ -56,6 +56,12 @@ namespace Game
 	typedef void(*SV_WaitServer_t)();
 	extern SV_WaitServer_t SV_WaitServer;
 
+	typedef char*(*SV_GetClientPersistentDataBuffer_t)(int clientNum);
+	extern SV_GetClientPersistentDataBuffer_t SV_GetClientPersistentDataBuffer;
+
+	typedef char*(*SV_GetClientPersistentDataModifiedFlags_t)(int clientNum);
+	extern SV_GetClientPersistentDataModifiedFlags_t SV_GetClientPersistentDataModifiedFlags;
+
 	constexpr auto MAX_STATPACKETS = 7;
 
 	extern int* svs_time;

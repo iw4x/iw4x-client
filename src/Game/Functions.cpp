@@ -43,8 +43,6 @@ namespace Game
 
 	Svcmd_EntityList_f_t Svcmd_EntityList_f = Svcmd_EntityList_f_t(0x4B6A70);
 
-	GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript = GScr_LoadGameTypeScript_t(0x4ED9A0);
-
 	Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x53ABF0);
 	Image_Release_t Image_Release = Image_Release_t(0x51F010);
 
@@ -124,15 +122,12 @@ namespace Game
 	Live_GetPrestige_t Live_GetPrestige = Live_GetPrestige_t(0x430F90);
 	Live_GetXp_t Live_GetXp = Live_GetXp_t(0x404C60);
 	Live_GetLocalClientName_t Live_GetLocalClientName = Live_GetLocalClientName_t(0x441FC0);
+	Live_IsSystemUiActive_t Live_IsSystemUiActive = Live_IsSystemUiActive_t(0x4F5CB0);
 
 	LiveStorage_GetStat_t LiveStorage_GetStat = LiveStorage_GetStat_t(0x471F60);
 	LiveStorage_SetStat_t LiveStorage_SetStat = LiveStorage_SetStat_t(0x4CC5D0);
 
 	Scr_AddSourceBuffer_t Scr_AddSourceBuffer = Scr_AddSourceBuffer_t(0x61ABC0);
-
-	PC_ReadToken_t PC_ReadToken = PC_ReadToken_t(0x4ACCD0);
-	PC_ReadTokenHandle_t PC_ReadTokenHandle = PC_ReadTokenHandle_t(0x4D2060);
-	PC_SourceError_t PC_SourceError = PC_SourceError_t(0x467A00);
 
 	Party_GetMaxPlayers_t Party_GetMaxPlayers = Party_GetMaxPlayers_t(0x4F5D60);
 	PartyHost_CountMembers_t PartyHost_CountMembers = PartyHost_CountMembers_t(0x497330);
@@ -171,10 +166,6 @@ namespace Game
 
 	Steam_JoinLobby_t Steam_JoinLobby = Steam_JoinLobby_t(0x49CF70);
 
-	StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
-	StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow = StringTable_GetColumnValueForRow_t(0x4F2C80);
-	StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x475EB0);
-
 	TeleportPlayer_t TeleportPlayer = TeleportPlayer_t(0x496850);
 
 	UI_AddMenuList_t UI_AddMenuList = UI_AddMenuList_t(0x4533C0);
@@ -194,6 +185,7 @@ namespace Game
 	UI_SafeTranslateString_t UI_SafeTranslateString = UI_SafeTranslateString_t(0x4F1700);
 	UI_ReplaceConversions_t UI_ReplaceConversions = UI_ReplaceConversions_t(0x4E9740);
 	UI_ParseInfos_t UI_ParseInfos = UI_ParseInfos_t(0x4027A0);
+	UI_GetMapDisplayName_t UI_GetMapDisplayName = UI_GetMapDisplayName_t(0x420700);
 
 	Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
 
@@ -221,13 +213,6 @@ namespace Game
 	Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire = Weapon_RocketLauncher_Fire_t(0x424680);
 	Bullet_Fire_t Bullet_Fire = Bullet_Fire_t(0x4402C0);
 
-	Jump_ClearState_t Jump_ClearState = Jump_ClearState_t(0x04B3890);
-	PM_playerTrace_t PM_playerTrace = PM_playerTrace_t(0x458980);
-	PM_Trace_t PM_Trace = PM_Trace_t(0x441F60);
-	PM_GetEffectiveStance_t PM_GetEffectiveStance = PM_GetEffectiveStance_t(0x412540);
-	PM_UpdateLean_t PM_UpdateLean = PM_UpdateLean_t(0x43DED0);
-	PM_IsSprinting_t PM_IsSprinting = PM_IsSprinting_t(0x4B3830);
-
 	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
 
 	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);
@@ -247,9 +232,6 @@ namespace Game
 	Vec2Normalize_t Vec2Normalize = Vec2Normalize_t(0x416F70);
 	Vec2NormalizeFast_t Vec2NormalizeFast = Vec2NormalizeFast_t(0x5FC830);
 
-	Z_VirtualAlloc_t Z_VirtualAlloc = Z_VirtualAlloc_t(0x4CFBA0);
-	Z_Malloc_t Z_Malloc = Z_Malloc_t(0x4F3680);
-
 	I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
 	I_CleanStr_t I_CleanStr = I_CleanStr_t(0x4AD470);
 
@@ -262,14 +244,22 @@ namespace Game
 	LargeLocalBeginRight_t LargeLocalBeginRight = LargeLocalBeginRight_t(0x644140);
 	LargeLocalReset_t LargeLocalReset = LargeLocalReset_t(0x430630);
 
+	StructuredDataDef_GetAsset_t StructuredDataDef_GetAsset = StructuredDataDef_GetAsset_t(0x4D5C50);
+
+	StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
+	StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x475EB0);
+	StringTable_GetAsset_FastFile_t StringTable_GetAsset_FastFile = StringTable_GetAsset_FastFile_t(0x41A0B0);
+	StringTable_LookupRowNumForValue_t StringTable_LookupRowNumForValue = StringTable_LookupRowNumForValue_t(0x4AC180);
+	StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow = StringTable_GetColumnValueForRow_t(0x4F2C80);
+
 	longjmp_internal_t longjmp_internal = longjmp_internal_t(0x6B8898);
 
 	CmdArgs* cmd_args = reinterpret_cast<CmdArgs*>(0x1AAC5D0);
 	CmdArgs* sv_cmd_args = reinterpret_cast<CmdArgs*>(0x1ACF8A0);
 
-	cmd_function_t** cmd_functions = reinterpret_cast<cmd_function_t**>(0x1AAC658);
+	cmd_function_s** cmd_functions = reinterpret_cast<cmd_function_s**>(0x1AAC658);
 
-	source_t** sourceFiles = reinterpret_cast<source_t**>(0x7C4A98);
+	source_s** sourceFiles = reinterpret_cast<source_s**>(0x7C4A98);
 
 	float* cgameFOVSensitivityScale = reinterpret_cast<float*>(0xB2F884);
 
@@ -289,11 +279,6 @@ namespace Game
 
 	int* numIP = reinterpret_cast<int*>(0x64A1E68);
 	netIP_t* localIP = reinterpret_cast<netIP_t*>(0x64A1E28);
-
-	int* demoFile = reinterpret_cast<int*>(0xA5EA1C);
-	int* demoPlaying = reinterpret_cast<int*>(0xA5EA0C);
-	int* demoRecording = reinterpret_cast<int*>(0xA5EA08);
-	int* serverMessageSequence = reinterpret_cast<int*>(0xA3E9B4);
 
 	netadr_t* connectedHost = reinterpret_cast<netadr_t*>(0xA1E888);
 
@@ -400,6 +385,7 @@ namespace Game
 	int* ui_arenaBufPos = reinterpret_cast<int*>(0x62D278C);
 
 	punctuation_s* default_punctuations = reinterpret_cast<punctuation_s*>(0x797F80);
+	int* numtokens = reinterpret_cast<int*>(0x7C4BA0);
 
 	bool* s_havePlaylists = reinterpret_cast<bool*>(0x1AD3680);
 
@@ -791,7 +777,6 @@ namespace Game
 		I_strncpyz_s(dest, destsize, src, destsize);
 	}
 
-#pragma optimize("", off)
 	__declspec(naked) float UI_GetScoreboardLeft(void* /*a1*/)
 	{
 		__asm
@@ -1203,5 +1188,16 @@ namespace Game
 		return answer;
 	}
 
-#pragma optimize("", on)
+	void Player_SwitchToWeapon(gentity_s* player)
+	{
+		static DWORD Player_SwitchToWeapon_t = 0x5D97B0;
+
+		__asm
+		{
+			pushad
+			mov ebx, player
+			call Player_SwitchToWeapon_t
+			popad
+		}
+	}
 }

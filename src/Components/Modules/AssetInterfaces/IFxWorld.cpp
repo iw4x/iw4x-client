@@ -188,13 +188,26 @@ namespace Assets
 	
 	void IFxWorld::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
+		if (!header->fxWorld) loadFromDisk(header, name, builder);
+		if (!header->fxWorld) generate(header, name, builder);
+
+		assert(header->fxWorld);
+	}
+
+	void IFxWorld::loadFromDisk(Game::XAssetHeader* header, const std::string& _name, Components::ZoneBuilder::Zone* builder)
+	{
+		header->fxWorld = builder->getIW4OfApi()->read<Game::FxWorld>(Game::XAssetType::ASSET_TYPE_FXWORLD, _name);
+	}
+
+	void IFxWorld::generate(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+	{
 		Game::FxWorld* map = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_FXWORLD, name.data()).fxWorld;
 		if (map) return;
 
 		// Generate
 		map = builder->getAllocator()->allocate<Game::FxWorld>();
 		map->name = builder->getAllocator()->duplicateString(name);
-	
+
 		// No glass for you!
 		ZeroMemory(&map->glassSys, sizeof(map->glassSys));
 

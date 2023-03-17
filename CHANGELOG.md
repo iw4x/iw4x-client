@@ -4,6 +4,49 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.8] - 2023-03-17
+
+### Added
+- Clients can unprotect "saved" Dvars using the command line argument `-unprotect-dvars` (#694)
+- Clients can protect all Dvars from being modified by the server using the command line argument `-protect-dvars` (#823)
+- Add helpful information to script-related errors (#721)
+- Add command line `-disable-mongoose` to disable IW4x's built-in webserver (#728)
+- Add command line `-disable-rate-limit-check` to disable the rate check on RCon requests (#769)
+- Muted clients GUID is saved to the `muted-users.json` file in the `userraw` folder (#732)
+- Add `sv_nextMap` Dvar (#736)
+- Add `elifdef` and `elifndef` directives to the menu preprocessor (#747)
+- Add `r_drawRunners` Dvar (#758)
+- Add `r_drawLights` Dvar (#814)
+- Add Discord Rich Presence (#761)
+- Add `rcon_timeout` Dvar (#769)
+- Add `sv_clanName` Dvar (#771)
+- Add `InitialWeaponRaise` GSC method (#804)
+- Add `RconWhitelistAdd` SV Command (#804)
+- Add more options to `bg_bouncesAllAngles` Dvar (#806)
+- Add `GetChar` GSC function (#813)
+- Add `bg_bunnyHopAuto` Dvar (#818)
+- Add `bg_disableLandingSlowdown` Dvar (#818)
+- Add new map porting utility tool that makes the map porting process between CoD8 to CoD6 easy
+
+### Changed
+- Servers can no longer modify client Dvars that are saved in the client's config (#694)
+- `banClient` and `muteClient` server commands do not apply to bots anymore (#730)
+- Remove `zb_prefer_disk_assets` Dvar (#772)
+- The max value of `perk_extendedMeleeRange`Dvar was increased (#782)
+
+### Fixed
+- Fix bug where`reloadmenus` command would not free resources used by custom menus (#740)
+- Fix bug where demo playback would stop when opening a laptop based killstreak (#699)
+- Fix bug where mod download speed was inexplicably slow (#707)
+- Fix bug where `g_hardcore` could not be set by servers (#708)
+- Fix bots "user cmd angles" (#707)
+- Fix bug where `FileRead` GSC function could return buffers that are too big (#767)
+- Fix bug where the `OnPlayerSay` GSC function would cause issues (#776)
+
+### Known issues
+
+- Sound issue fix is experimental as the bug is not fully understood.
+
 ## [0.7.7] - 2022-12-31
 
 ### Added

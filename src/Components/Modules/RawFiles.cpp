@@ -8,7 +8,7 @@ namespace Components
 		auto fileHandle = 0;
 		auto fileSize = Game::FS_FOpenFileRead(filename, &fileHandle);
 
-		if (fileHandle != 0)
+		if (fileHandle)
 		{
 			if ((fileSize + 1) <= size)
 			{
@@ -37,7 +37,7 @@ namespace Components
 		auto fileHandle = 0;
 		auto fileSize = Game::FS_FOpenFileRead(filename, &fileHandle);
 
-		if (fileHandle != 0)
+		if (fileHandle)
 		{
 			if (fileSize < 0x8000)
 			{
@@ -99,9 +99,8 @@ namespace Components
 
 	const char* RawFiles::Com_LoadInfoString_Hk(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer)
 	{
-		const char* buffer;
 
-		buffer = Com_LoadInfoString_LoadObj(fileName, fileDesc, ident, loadBuffer);
+		const auto* buffer = Com_LoadInfoString_LoadObj(fileName, fileDesc, ident, loadBuffer);
 		if (!buffer)
 		{
 			buffer = Game::Com_LoadInfoString_FastFile(fileName, fileDesc, ident, loadBuffer);

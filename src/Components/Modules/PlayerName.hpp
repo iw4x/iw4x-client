@@ -7,7 +7,7 @@ namespace Components
 	public:
 		PlayerName();
 
-		static void UserInfoCopy(char* buffer, const char* name, size_t size);
+		static void UserInfoCopy(char* buffer, const char* name, int size);
 
 		static int GetClientName(int localClientNum, int index, char* buf, int size);
 

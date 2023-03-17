@@ -43,7 +43,7 @@ namespace Components
 			bool wasFreed;
 			unsigned int hash;
 			std::string mapname;
-			Game::searchpath_t searchPath;
+			Game::searchpath_s searchPath;
 		};
 
 		Maps();
@@ -54,7 +54,7 @@ namespace Components
 		static std::string CurrentMainZone;
 		static const char* UserMapFiles[4];
 
-		static bool CheckMapInstalled(const char* mapname, bool error = false, bool dlcIsTrue = false);
+		static bool CheckMapInstalled(const std::string& mapname, bool error = false, bool dlcIsTrue = false);
 
 		static UserMapContainer* GetUserMap();
 		static unsigned int GetUsermapHash(const std::string& map);
@@ -62,6 +62,12 @@ namespace Components
 		static Game::XAssetEntry* GetAssetEntryPool();
 		static bool IsCustomMap();
 		static bool IsUserMap(const std::string& mapname);
+
+		static void ScanCustomMaps();
+		static std::string GetArenaPath(const std::string& mapName);
+		static const std::vector<std::string>& GetCustomMaps();
+
+		static std::unordered_map<std::string, std::string> ParseCustomMapArena(const std::string& singleMapArena);
 
 	private:
 		class DLC
@@ -85,6 +91,7 @@ namespace Components
 
 		static std::vector<std::pair<std::string, std::string>> DependencyList;
 		static std::vector<std::string> CurrentDependencies;
+		static std::vector<std::string> FoundCustomMaps;
 
 		static Dvar::Var RListSModels;
 
@@ -121,6 +128,6 @@ namespace Components
 
 		static void G_SpawnTurretHook(Game::gentity_s* ent, int unk, int unk2);
 		static bool SV_SetTriggerModelHook(Game::gentity_s* ent);
-		static int16 CM_TriggerModelBounds(int brushModelPointer, Game::Bounds* bounds);
+		static unsigned short CM_TriggerModelBounds_Hk(unsigned int brushModelPointer, Game::Bounds* bounds);
 	};
 }

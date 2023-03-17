@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Chat.hpp"
 #include "Voice.hpp"
 
 namespace Components
@@ -104,10 +105,12 @@ namespace Components
 		{
 			return false;
 		}
+
 		if (ent1->client->sess.cs.team)
 		{
 			return ent1->client->sess.cs.team == ent2->client->sess.cs.team;
 		}
+
 		return false;
 	}
 
@@ -381,6 +384,13 @@ namespace Components
 
 		Events::OnSteamDisconnect(CL_ClearMutedList);
 		Events::OnClientDisconnect(SV_UnmuteClient);
+		Events::OnClientConnect([](Game::client_t* cl) -> void
+		{
+			if (Chat::IsMuted(cl))
+			{
+				SV_MuteClient(cl - Game::svs_clients);
+			}
+		});
 
 		// Write voice packets to the server instead of other clients
 		Utils::Hook(0x487935, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();

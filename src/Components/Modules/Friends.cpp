@@ -1,4 +1,11 @@
 #include <STDInclude.hpp>
+
+#pragma warning(push)
+#pragma warning(disable: 4100)
+#include <proto/friends.pb.h>
+#pragma warning(pop)
+
+#include "Party.hpp"
 #include "UIFeeder.hpp"
 
 namespace Components
@@ -556,8 +563,7 @@ namespace Components
 	{
 		Friends::LoggedOn = false;
 
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
-			return;
+		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
 
 		Friends::UIStreamFriendly = Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
 		Friends::CLAnonymous = Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");

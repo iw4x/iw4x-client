@@ -16,8 +16,4 @@ namespace Utils::Thread
 	}
 
 	std::vector<DWORD> GetThreadIds();
-	void ForEachThread(const std::function<void(HANDLE)>& callback);
-
-	void SuspendOtherThreads();
-	void ResumeOtherThreads();
 }

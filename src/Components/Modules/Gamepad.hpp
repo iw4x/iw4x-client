@@ -125,7 +125,7 @@ namespace Components
 		static const Game::AimScreenTarget* AimAssist_GetBestTarget(const Game::AimAssistGlobals* aaGlob, float range, float regionWidth, float regionHeight);
 		static const Game::AimScreenTarget* AimAssist_GetTargetFromEntity(const Game::AimAssistGlobals* aaGlob, int entIndex);
 		static const Game::AimScreenTarget* AimAssist_GetPrevOrBestTarget(const Game::AimAssistGlobals* aaGlob, float range, float regionWidth, float regionHeight, int prevTargetEnt);
-		static bool AimAssist_IsLockonActive(int gamePadIndex);
+		static bool AimAssist_IsLockonActive(int localClientNum);
 		static void AimAssist_ApplyLockOn(const Game::AimInput* input, Game::AimOutput* output);
 		static void AimAssist_CalcAdjustedAxis(const Game::AimInput* input, float* pitchAxis, float* yawAxis);
 		static bool AimAssist_IsSlowdownActive(const Game::AimAssistPlayerState* ps);
@@ -139,47 +139,48 @@ namespace Components
 		static bool CG_HandleLocationSelectionInput_GamePad(int localClientNum, Game::usercmd_s* cmd);
 		static void CG_HandleLocationSelectionInput_Stub();
 		static bool CG_ShouldUpdateViewAngles(int localClientNum);
-		static float CL_GamepadAxisValue(int gamePadIndex, Game::GamepadVirtualAxis virtualAxis);
+		static float CL_GamepadAxisValue(int localClientNum, Game::GamepadVirtualAxis virtualAxis);
 		static char ClampChar(int value);
-		static void CL_GamepadMove(int gamePadIndex, Game::usercmd_s* cmd, float frameTimeBase);
+		static void CL_GamepadMove(int localClientNum, float frameTimeBase, Game::usercmd_s* cmd);
+		static void CL_MouseMove(int localClientNum, Game::usercmd_s* cmd, float frametime_base);
 		static void CL_MouseMove_Stub();
 		
 		static bool Gamepad_ShouldUse(const Game::gentity_s* playerEnt, unsigned useTime);
 		static void Player_UseEntity_Stub();
 
 		static bool Key_IsValidGamePadChar(int key);
-		static void CL_GamepadResetMenuScrollTime(int gamePadIndex, int key, bool down, unsigned int time);
-		static bool Scoreboard_HandleInput(int gamePadIndex, int key);
-		static bool CL_CheckForIgnoreDueToRepeat(int gamePadIndex, int key, int repeatCount, unsigned int time);
-		static void UI_GamepadKeyEvent(int gamePadIndex, int key, bool down);
-		static void CL_GamepadGenerateAPad(int gamePadIndex, Game::GamepadPhysicalAxis physicalAxis, unsigned time);
-		static void CL_GamepadEvent(int gamePadIndex, Game::GamepadPhysicalAxis physicalAxis, float value, unsigned time);
-		static void CL_GamepadButtonEvent(int gamePadIndex, int key, Game::GamePadButtonEvent buttonEvent, unsigned time);
-		static void CL_GamepadButtonEventForPort(int gamePadIndex, int key, Game::GamePadButtonEvent buttonEvent, unsigned int time);
+		static void CL_GamepadResetMenuScrollTime(int localClientNum, int key, bool down, unsigned int time);
+		static bool Scoreboard_HandleInput(int localClientNum, int key);
+		static bool CL_CheckForIgnoreDueToRepeat(int localClientNum, int key, int repeatCount, unsigned int time);
+		static void UI_GamepadKeyEvent(int localClientNum, int key, bool down);
+		static void CL_GamepadGenerateAPad(int localClientNum, Game::GamepadPhysicalAxis physicalAxis, unsigned time);
+		static void CL_GamepadEvent(int localClientNum, Game::GamepadPhysicalAxis physicalAxis, float value, unsigned time);
+		static void CL_GamepadButtonEvent(int localClientNum, int key, Game::GamePadButtonEvent buttonEvent, unsigned time);
+		static void CL_GamepadButtonEventForPort(int localClientNum, int key, Game::GamePadButtonEvent buttonEvent, unsigned int time);
 
 		static void GPad_ConvertStickToFloat(short x, short y, float& outX, float& outY);
-		static float GPad_GetStick(int gamePadIndex, Game::GamePadStick stick);
-		static float GPad_GetButton(int gamePadIndex, Game::GamePadButton button);
-		static bool GPad_IsButtonPressed(int gamePadIndex, Game::GamePadButton button);
-		static bool GPad_ButtonRequiresUpdates(int gamePadIndex, Game::GamePadButton button);
-		static bool GPad_IsButtonReleased(int gamePadIndex, Game::GamePadButton button);
+		static float GPad_GetStick(int localClientNum, Game::GamePadStick stick);
+		static float GPad_GetButton(int localClientNum, Game::GamePadButton button);
+		static bool GPad_IsButtonPressed(int localClientNum, Game::GamePadButton button);
+		static bool GPad_ButtonRequiresUpdates(int localClientNum, Game::GamePadButton button);
+		static bool GPad_IsButtonReleased(int localClientNum, Game::GamePadButton button);
 
-		static void GPad_UpdateSticksDown(int gamePadIndex);
-		static void GPad_UpdateSticks(int gamePadIndex, const XINPUT_GAMEPAD& state);
-		static void GPad_UpdateDigitals(int gamePadIndex, const XINPUT_GAMEPAD& state);
-		static void GPad_UpdateAnalogs(int gamePadIndex, const XINPUT_GAMEPAD& state);
+		static void GPad_UpdateSticksDown(int localClientNum);
+		static void GPad_UpdateSticks(int localClientNum, const XINPUT_GAMEPAD& state);
+		static void GPad_UpdateDigitals(int localClientNum, const XINPUT_GAMEPAD& state);
+		static void GPad_UpdateAnalogs(int localClientNum, const XINPUT_GAMEPAD& state);
 
-		static bool GPad_Check(int gamePadIndex, int portIndex);
+		static bool GPad_Check(int localClientNum, int portIndex);
 		static void GPad_RefreshAll();
 		static void GPad_UpdateAll();
 		static void IN_GamePadsMove();
 		static void IN_Frame_Hk();
 
-		static void Gamepad_WriteBindings(int gamePadIndex, int handle);
+		static void Gamepad_WriteBindings(int localClientNum, int handle);
 		static void Key_WriteBindings_Hk(int localClientNum, int handle);
 		static void Com_WriteConfiguration_Modified_Stub();
 
-		static void Gamepad_BindAxis(int gamePadIndex, Game::GamepadPhysicalAxis realIndex, Game::GamepadVirtualAxis axisIndex, Game::GamepadMapping mapType);
+		static void Gamepad_BindAxis(int localClientNum, Game::GamepadPhysicalAxis realIndex, Game::GamepadVirtualAxis axisIndex, Game::GamepadMapping mapType);
 		static Game::GamepadPhysicalAxis StringToPhysicalAxis(const char* str);
 		static Game::GamepadVirtualAxis StringToVirtualAxis(const char* str);
 		static Game::GamepadMapping StringToGamePadMapping(const char* str);

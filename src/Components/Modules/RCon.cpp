@@ -1,9 +1,14 @@
 #include <STDInclude.hpp>
+#include <proto/rcon.pb.h>
+
 #include "RCon.hpp"
+#include "Party.hpp"
 
 namespace Components
 {
 	std::unordered_map<std::uint32_t, int> RCon::RateLimit;
+
+	std::vector<std::size_t> RCon::RconAddresses;
 
 	RCon::Container RCon::RconContainer;
 	Utils::Cryptography::ECC::Key RCon::RconKey;
@@ -12,6 +17,7 @@ namespace Components
 
 	Dvar::Var RCon::RconPassword;
 	Dvar::Var RCon::RconLogRequests;
+	Dvar::Var RCon::RconTimeout;
 
 	void RCon::AddCommands()
 	{
@@ -72,6 +78,33 @@ namespace Components
 				Network::SendCommand(target, "rconRequest");
 			}
 		});
+
+		Command::AddSV("RconWhitelistAdd", [](Command::Params* params)
+		{
+			if (params->size() < 2)
+			{
+				Logger::Print("Usage: %s <ip-address>\n", params->get(0));
+				return;
+			}
+
+			Network::Address address(params->get(1));
+			const auto hash = std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&address.getIP().bytes[0]));
+
+			if (address.isValid() && std::ranges::find(RconAddresses, hash) == RconAddresses.end())
+			{
+				RconAddresses.push_back(hash);
+			}
+		});
+	}
+
+	bool RCon::IsRateLimitCheckDisabled()
+	{
+		static std::optional<bool> flag;
+		if (!flag.has_value())
+		{
+			flag.emplace(Flags::HasFlag("disable-rate-limit-check"));
+		}
+		return flag.value();
 	}
 
 	bool RCon::RateLimitCheck(const Network::Address& address, const int time)
@@ -85,8 +118,7 @@ namespace Components
 
 		const auto lastTime = RateLimit[ip.full];
 
-		// Only one request every 500ms
-		if (lastTime && (time - lastTime) < 500)
+		if (lastTime && (time - lastTime) < RconTimeout.get<int>())
 		{
 			return false; // Flooding
 		}
@@ -100,7 +132,7 @@ namespace Components
 		for (auto i = RateLimit.begin(); i != RateLimit.end();)
 		{
 			// No longer at risk of flooding, remove
-			if ((time - i->second) > 500)
+			if ((time - i->second) > RconTimeout.get<int>())
 			{
 				i = RateLimit.erase(i);
 			}
@@ -113,7 +145,7 @@ namespace Components
 
 	RCon::RCon()
 	{
-		AddCommands();
+		Events::OnSVInit(AddCommands);
 
 		if (!Dedicated::IsEnabled())
 		{
@@ -158,16 +190,23 @@ namespace Components
 
 		RconContainer.timestamp = 0;
 
-		Scheduler::Once([]
+		Events::OnDvarInit([]
 		{
 			RconPassword =  Dvar::Register<const char*>("rcon_password", "", Game::DVAR_NONE, "The password for rcon");
-			RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::DVAR_NONE, "Print remote commands in the output log");
-		}, Scheduler::Pipeline::MAIN);
+			RconLogRequests = Dvar::Register<bool>("rcon_log_requests", false, Game::DVAR_NONE, "Print remote commands in log");
+			RconTimeout = Dvar::Register<int>("rcon_timeout", 500, 100, 10000, Game::DVAR_NONE, "");
+		});
 
 		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
+			const auto hash = std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&address.getIP().bytes[0]));
+			if (!RconAddresses.empty() && std::ranges::find(RconAddresses, hash) == RconAddresses.end())
+			{
+				return;
+			}
+
 			const auto time = Game::Sys_Milliseconds();
-			if (!RateLimitCheck(address, time))
+			if (!IsRateLimitCheckDisabled() && !RateLimitCheck(address, time))
 			{
 				return;
 			}

@@ -6,37 +6,41 @@ namespace Components
 	int StartupMessages::TotalMessages = -1;
 	std::list<std::string> StartupMessages::MessageList;
 
+	Dvar::Var StartupMessages::UIStartupMessage;
+	Dvar::Var StartupMessages::UIStartupMessageTitle;
+	Dvar::Var StartupMessages::UIStartupNextButtonText;
+
 	StartupMessages::StartupMessages()
 	{
-		Scheduler::Once([]
+		Events::OnDvarInit([]
 		{
-			Dvar::Register<const char*>("ui_startupMessage", "", Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
-			Dvar::Register<const char*>("ui_startupMessageTitle", "", Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
-			Dvar::Register<const char*>("ui_startupNextButtonText", "", Game::DVAR_EXTERNAL | Game::DVAR_INIT, "");
-		}, Scheduler::Pipeline::MAIN);
+			UIStartupMessage = Dvar::Register<const char*>("ui_startupMessage", "", Game::DVAR_NONE, "");
+			UIStartupMessageTitle = Dvar::Register<const char*>("ui_startupMessageTitle", "", Game::DVAR_NONE, "");
+			UIStartupNextButtonText = Dvar::Register<const char*>("ui_startupNextButtonText", "", Game::DVAR_NONE, "");
+		});
 
 		UIScript::Add("nextStartupMessage", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			if (!StartupMessages::MessageList.size()) return;
+			if (MessageList.empty()) return;
 
-			if (StartupMessages::TotalMessages < 1)
+			if (TotalMessages < 1)
 			{
-				StartupMessages::TotalMessages = StartupMessages::MessageList.size();
+				TotalMessages = static_cast<int>(MessageList.size());
 			}
 
-			const auto& message = StartupMessages::MessageList.front();
+			const auto& message = MessageList.front();
 
-			Game::Dvar_SetStringByName("ui_startupMessage", message.data());
-			Game::Dvar_SetStringByName("ui_startupMessageTitle", Utils::String::VA("Messages (%d/%d)", StartupMessages::TotalMessages - StartupMessages::MessageList.size(), StartupMessages::TotalMessages));
-			Game::Dvar_SetStringByName("ui_startupNextButtonText", StartupMessages::MessageList.size() ? "Next" : "Close");
+			UIStartupMessage.set(message);
+			UIStartupMessageTitle.set(std::format("Messages ({}/{})", TotalMessages - MessageList.size(), TotalMessages));
+			UIStartupNextButtonText.set(MessageList.empty() ? "Close" : "Next");
 			Game::Cbuf_AddText(0, "openmenu startup_messages\n");
 
-			StartupMessages::MessageList.pop_front();
+			MessageList.pop_front();
 		});
 	}
 
 	void StartupMessages::AddMessage(const std::string& message)
 	{
-		StartupMessages::MessageList.push_back(message);
+		MessageList.push_back(message);
 	}
 }

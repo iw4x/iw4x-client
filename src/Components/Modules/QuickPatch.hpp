@@ -12,6 +12,8 @@ namespace Components
 		static void UnlockStats();
 
 	private:
+		static Dvar::Var UIMousePitch;
+
 		static Dvar::Var r_customAspectRatio;
 		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* dvarName, const char** valueList, int defaultIndex, unsigned __int16 flags, const char* description);
 		static void SetAspectRatio_Stub();

@@ -2,7 +2,7 @@
 
 namespace Utils
 {
-	Utils::Memory::Allocator Memory::MemAllocator;
+	Memory::Allocator Memory::MemAllocator;
 
 	void* Memory::AllocateAlign(std::size_t length, std::size_t alignment)
 	{

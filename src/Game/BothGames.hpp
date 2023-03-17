@@ -19,4 +19,13 @@ namespace Game
 
 	typedef const char*(*BG_GetEntityTypeName_t)(int eType);
 	extern BG_GetEntityTypeName_t BG_GetEntityTypeName;
+
+	typedef bool(*BG_IsWeaponValid_t)(const playerState_s* ps, unsigned int weaponIndex);
+	extern BG_IsWeaponValid_t BG_IsWeaponValid;
+
+	typedef int(*BG_GetEquippedWeaponIndex_t)(const playerState_s* ps, unsigned int weaponIndex);
+	extern BG_GetEquippedWeaponIndex_t BG_GetEquippedWeaponIndex;
+
+	typedef PlayerEquippedWeaponState*(*BG_GetEquippedWeaponState_t)(playerState_s* ps, unsigned int weaponIndex);
+	extern BG_GetEquippedWeaponState_t BG_GetEquippedWeaponState;
 }

@@ -200,7 +200,8 @@ namespace Components
 	{
 		if (Used())
 		{
-			Command::Execute(std::format("connect {}", ConnectString), false);
+			const auto* cmd = Utils::String::Format("connect {}", ConnectString);
+			Command::Execute(cmd, false);
 		}
 	}
 
@@ -211,7 +212,8 @@ namespace Components
 		// IPC handler
 		IPCPipe::On("connect", [](const std::string& data)
 		{
-			Command::Execute(std::format("connect {}", data), false);
+			const auto* cmd = Utils::String::Format("connect {}", data);
+			Command::Execute(cmd, false);
 		});
 
 		// Invocation handler
@@ -227,7 +229,7 @@ namespace Components
 			if (!Singleton::IsFirstInstance())
 			{
 				IPCPipe::Write("connect", ConnectString);
-				ExitProcess(0);
+				ExitProcess(EXIT_SUCCESS);
 			}
 			else
 			{
@@ -237,7 +239,7 @@ namespace Components
 				Scheduler::Once([]
 				{
 					Command::Execute("openmenu popup_reconnectingtoparty", false);
-				}, Scheduler::Pipeline::CLIENT, 8s);
+				}, Scheduler::Pipeline::MAIN, 8s);
 			}
 		}
 	}

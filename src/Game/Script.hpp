@@ -8,11 +8,32 @@ namespace Game
 	typedef void(*RemoveRefToObject_t)(unsigned int id);
 	extern RemoveRefToObject_t RemoveRefToObject;
 
+	typedef void(*RemoveRefToValue_t)(int type, VariableUnion u);
+	extern RemoveRefToValue_t RemoveRefToValue;
+
 	typedef unsigned int(*AllocObject_t)();
 	extern AllocObject_t AllocObject;
 
 	typedef void(*AddRefToValue_t)(int type, VariableUnion u);
 	extern AddRefToValue_t AddRefToValue;
+
+	typedef unsigned int(*FindVariable_t)(unsigned int parentId, unsigned int unsignedValue);
+	extern FindVariable_t FindVariable;
+
+	typedef unsigned int(*GetVariable_t)(unsigned int parentId, unsigned int unsignedValue);
+	extern GetVariable_t GetVariable;
+
+	typedef void(*RemoveVariable_t)(unsigned int parentId, unsigned int unsignedValue);
+	extern RemoveVariable_t RemoveVariable;
+
+	typedef unsigned int(*FindObject_t)(unsigned int parentId, unsigned int id);
+	extern FindObject_t FindObject;
+
+	typedef unsigned int(*GetObject_t)(unsigned int parentId, unsigned int id);
+	extern GetObject_t GetObject;
+
+	typedef unsigned int(*GetNewVariable_t)(unsigned int parentId, unsigned int unsignedValue);
+	extern GetNewVariable_t GetNewVariable;
 
 	typedef unsigned int(*AllocThread_t)(unsigned int self);
 	extern AllocThread_t AllocThread;
@@ -44,7 +65,7 @@ namespace Game
 	typedef void(*Scr_ShutdownAllocNode_t)();
 	extern Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode;
 
-	typedef char* (*Scr_GetGameTypeNameForScript_t)(const char* pszGameTypeScript);
+	typedef char*(*Scr_GetGameTypeNameForScript_t)(const char* pszGameTypeScript);
 	extern Scr_GetGameTypeNameForScript_t Scr_GetGameTypeNameForScript;
 
 	typedef int(*Scr_IsValidGameType_t)(const char* pszGameType);
@@ -58,6 +79,15 @@ namespace Game
 
 	typedef int(*Scr_LoadScript_t)(const char*);
 	extern Scr_LoadScript_t Scr_LoadScript;
+
+	typedef char*(*Scr_ReadFile_FastFile_t)(const char* filename, const char* extFilename, const char* codePos, const char* archive);
+	extern Scr_ReadFile_FastFile_t Scr_ReadFile_FastFile;
+
+	typedef int(*Scr_GetFunctionHandle_t)(const char* filename, const char* name);
+	extern Scr_GetFunctionHandle_t Scr_GetFunctionHandle;
+
+	typedef unsigned int(*Scr_CreateCanonicalFilename_t)(const char* filename);
+	extern Scr_CreateCanonicalFilename_t Scr_CreateCanonicalFilename;
 
 	typedef const char*(*Scr_GetString_t)(unsigned int index);
 	extern Scr_GetString_t Scr_GetString;
@@ -85,9 +115,6 @@ namespace Game
 
 	typedef unsigned int(*Scr_GetEntityId_t)(int entnum, unsigned int classnum);
 	extern Scr_GetEntityId_t Scr_GetEntityId;
-
-	typedef int(*Scr_GetFunctionHandle_t)(const char* filename, const char* name);
-	extern Scr_GetFunctionHandle_t Scr_GetFunctionHandle;
 
 	typedef int(*Scr_ExecThread_t)(int handle, unsigned int paramcount);
 	extern Scr_ExecThread_t Scr_ExecThread;
@@ -119,6 +146,9 @@ namespace Game
 	typedef int(*Scr_GetPointerType_t)(unsigned int index);
 	extern Scr_GetPointerType_t Scr_GetPointerType;
 
+	typedef void(*Scr_ErrorInternal_t)();
+	extern Scr_ErrorInternal_t Scr_ErrorInternal;
+
 	typedef void(*Scr_Error_t)(const char* error);
 	extern Scr_Error_t Scr_Error;
 
@@ -149,6 +179,9 @@ namespace Game
 	typedef void(*Scr_FreeHudElemConstStrings_t)(game_hudelem_s* hud);
 	extern Scr_FreeHudElemConstStrings_t Scr_FreeHudElemConstStrings;
 
+	typedef void(*GScr_LoadGameTypeScript_t)();
+	extern GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript;
+
 	typedef gentity_s*(*GetPlayerEntity_t)(scr_entref_t entref);
 	extern GetPlayerEntity_t GetPlayerEntity;
 
@@ -176,6 +209,18 @@ namespace Game
 	typedef void(*SL_RemoveRefToString_t)(unsigned int stringValue);
 	extern SL_RemoveRefToString_t SL_RemoveRefToString;
 
+	typedef void(*ScriptParse_t)(sval_u* parseData, unsigned char user);
+	extern ScriptParse_t ScriptParse;
+
+	typedef void(*ScriptCompile_t)(sval_u* val, unsigned int filePosId, unsigned int fileCountId, unsigned int scriptId, PrecacheEntry* entries, int entriesCount);
+	extern ScriptCompile_t ScriptCompile;
+
+	constexpr auto MAX_OPCODE_LOOKUP_SIZE = 0x1000000;
+	constexpr auto MAX_SOURCEPOS_LOOKUP_SIZE = 0x800000;
+	constexpr auto MAX_SOURCEBUF_LOOKUP_SIZE = 0x40000;
+
+	constexpr auto LOCAL_VAR_STACK_SIZE = 64;
+
 	extern void IncInParam();
 
 	extern void Scr_AddBool(int value);
@@ -188,6 +233,11 @@ namespace Game
 
 	extern scrVmPub_t* scrVmPub;
 	extern scrVarPub_t* scrVarPub;
+	extern scrCompilePub_t* scrCompilePub;
+	extern scrAnimPub_t* scrAnimPub;
+
+	extern char* g_EndPos;
+	extern bool* g_loadedImpureScript;
 
 	extern game_hudelem_s* g_hudelems;
 }

@@ -1,4 +1,8 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
+#include <proto/auth.pb.h>
+
 #include "Bans.hpp"
 
 namespace Components
@@ -467,7 +471,7 @@ namespace Components
 				}
 				else
 				{
-					const auto level = static_cast<uint32_t>(atoi(params->get(1)));
+					const auto level = std::strtoul(params->get(1), nullptr, 10);
 					Auth::IncreaseSecurityLevel(level);
 				}
 			});

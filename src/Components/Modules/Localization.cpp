@@ -246,7 +246,7 @@ namespace Components
 
 				for (i = 0; i < iTokenLen - 2; ++i)
 				{
-					if (!std::strncmp(&szTokenBuf[i], "&&", 2) && std::isdigit(szTokenBuf[i + 2]))
+					if (!std::strncmp(&szTokenBuf[i], "&&", 2) && std::isdigit(static_cast<unsigned char>(szTokenBuf[i + 2])))
 					{
 						if (bInsertEnabled)
 						{
@@ -268,7 +268,7 @@ namespace Components
 				{
 					for (i = 0; i < iLen - 2; ++i)
 					{
-						if (!std::strncmp(&pszString[i], "&&", 2) && std::isdigit(pszString[i + 2]))
+						if (!std::strncmp(&pszString[i], "&&", 2) && std::isdigit(static_cast<unsigned char>(pszString[i + 2])))
 						{
 							const auto digit = pszString[i + 2] - 48;
 							if (!digit)

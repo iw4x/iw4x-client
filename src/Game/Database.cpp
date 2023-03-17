@@ -48,6 +48,9 @@ namespace Game
 	const char* DB_GetXAssetName(XAsset* asset)
 	{
 		if (!asset) return "";
+
+		assert(asset->header.data);
+
 		return DB_GetXAssetNameHandlers[asset->type](&asset->header);
 	}
 

@@ -54,6 +54,9 @@ namespace Game
 	typedef void(*Dvar_SetFloat_t)(const dvar_t* dvar, float value);
 	extern Dvar_SetFloat_t Dvar_SetFloat;
 
+	typedef void(*Dvar_SetFloatByName_t)(const char* dvarName, float value);
+	extern Dvar_SetFloatByName_t Dvar_SetFloatByName;
+
 	typedef void(*Dvar_SetInt_t)(const dvar_t* dvar, int integer);
 	extern Dvar_SetInt_t Dvar_SetInt;
 
@@ -84,13 +87,19 @@ namespace Game
 	extern const dvar_t** com_developer;
 	extern const dvar_t** com_developer_script;
 	extern const dvar_t** com_timescale;
+	extern const dvar_t** com_maxFrameTime;
 	extern const dvar_t** com_sv_running;
+	extern const dvar_t** com_masterServerName;
+	extern const dvar_t** com_masterPort;
 
 	extern const dvar_t** dev_timescale;
 
 	extern const dvar_t** dvar_cheats;
 
+	extern const dvar_t** fs_cdpath;
+	extern const dvar_t** fs_basepath;
 	extern const dvar_t** fs_gameDirVar;
+	extern const dvar_t** fs_homepath;
 
 	extern const dvar_t** sv_hostname;
 	extern const dvar_t** sv_gametype;
@@ -100,6 +109,8 @@ namespace Game
 	extern const dvar_t** sv_maxclients;
 	extern const dvar_t** sv_cheats;
 	extern const dvar_t** sv_voiceQuality;
+
+	extern const dvar_t** nextmap;
 
 	extern const dvar_t** cl_showSend;
 	extern const dvar_t** cl_voice;
@@ -112,6 +123,11 @@ namespace Game
 	extern const dvar_t** g_oldVoting;
 	extern const dvar_t** g_gametype;
 	extern const dvar_t** g_password;
+
+	extern const dvar_t** cg_chatHeight;
+	extern const dvar_t** cg_chatTime;
+	extern const dvar_t** cg_scoreboardHeight;
+	extern const dvar_t** cg_scoreboardWidth;
 
 	extern const dvar_t** version;
 
@@ -126,6 +142,12 @@ namespace Game
 
 	extern const dvar_t** loc_warnings;
 	extern const dvar_t** loc_warningsAsErrors;
+
+	extern const dvar_t** party_minplayers;
+	extern const dvar_t** party_maxplayers;
+
+	extern const dvar_t** ip;
+	extern const dvar_t** port;
 
 	extern void Dvar_SetVariant(dvar_t* var, DvarValue value, DvarSetSource source);
 	extern void Dvar_SetFromStringFromSource(const dvar_t* dvar, const char* string, DvarSetSource source);

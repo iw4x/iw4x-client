@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
+#include <Utils/Compression.hpp>
+
 #include "Console.hpp"
+#include "FastFiles.hpp"
 
 #include <version.hpp>
 
@@ -16,8 +19,6 @@ namespace Components
 	volatile bool ZoneBuilder::CommandThreadTerminate = false;
 	std::thread ZoneBuilder::CommandThread;
 
-	Dvar::Var ZoneBuilder::PreferDiskAssetsDvar;
-
 	ZoneBuilder::Zone::Zone(const std::string& name) : indexStart(0), externalSize(0),
 		// Reserve 100MB by default.
 		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
@@ -25,7 +26,11 @@ namespace Components
 		// Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
 		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
 		buffer(0xC800000),
-		zoneName(name), dataMap("zone_source/" + name + ".csv"), branding{nullptr}, assetDepth(0)
+		zoneName(name),
+		dataMap("zone_source/" + name + ".csv"),
+		branding{nullptr},
+		assetDepth(0),
+		iw4ofApi(getIW4OfApiParams())
 	{
 	}
 
@@ -93,6 +98,11 @@ namespace Components
 	Utils::Memory::Allocator* ZoneBuilder::Zone::getAllocator()
 	{
 		return &this->memAllocator;
+	}
+
+	iw4of::api* ZoneBuilder::Zone::getIW4OfApi()
+	{
+		return &iw4ofApi;
 	}
 
 	void ZoneBuilder::Zone::Zone::build()
@@ -362,7 +372,6 @@ namespace Components
 					Logger::Error(Game::ERR_FATAL, "Missing required asset '{}' ({}). Export failed!", name, Game::DB_GetXAssetTypeName(type));
 				}
 
-				Logger::Debug("Saving require ({}): {}", Game::DB_GetXAssetTypeName(type), Game::DB_GetXAssetNameHandlers[type](&header));
 
 				// we alias the next 4 (aligned) bytes of the stream b/c DB_InsertPointer gives us a nice pointer to use as the alias
 				// otherwise it would be a fuckfest trying to figure out where the alias is in the stream
@@ -498,7 +507,6 @@ namespace Components
 			this->buffer.pushBlock(Game::XFILE_BLOCK_TEMP);
 			this->buffer.align(Utils::Stream::ALIGN_4);
 
-			Logger::Debug("Saving ({}): {}", Game::DB_GetXAssetTypeName(asset.type), Game::DB_GetXAssetNameHandlers[asset.type](&asset.header));
 
 			this->store(asset.header);
 			AssetHandler::ZoneSave(asset, this);
@@ -525,18 +533,20 @@ namespace Components
 	// Add branding asset
 	void ZoneBuilder::Zone::addBranding()
 	{
-		constexpr auto* data = "Built using the IW4x Zone:B:uilder Version 4";
-		auto dataLen = std::strlen(data); // + 1 is added by the save code
+		const auto now = std::chrono::system_clock::now();
+		
+		auto zoneBranding = std::format("Built using the IW4x ZoneBuilder! {:%d-%m-%Y %H:%M:%OS}", now);
+		auto brandingLen = zoneBranding.size(); // + 1 is added by the save code
 
-		this->branding = {this->zoneName.data(), 0, static_cast<int>(dataLen), data};
+		this->branding = {this->zoneName.data(), 0, static_cast<int>(brandingLen), getAllocator()->duplicateString(zoneBranding)};
 
-		if (this->findAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
+		if (this->findAsset(Game::ASSET_TYPE_RAWFILE, this->branding.name) != -1)
 		{
 			Logger::Error(Game::ERR_FATAL, "Unable to add branding. Asset '{}' already exists!", this->branding.name);
 		}
 
 		Game::XAssetHeader header = { &this->branding };
-		Game::XAsset brandingAsset = { Game::XAssetType::ASSET_TYPE_RAWFILE, header };
+		Game::XAsset brandingAsset = { Game::ASSET_TYPE_RAWFILE, header };
 		this->loadedAssets.push_back(brandingAsset);
 	}
 
@@ -745,6 +755,58 @@ namespace Components
 		}
 
 		return header;
+	}
+
+	iw4of::params_t ZoneBuilder::Zone::getIW4OfApiParams()
+	{
+		iw4of::params_t params{};
+
+		params.write_only_once = true;
+
+		params.find_other_asset = [this](int type, const std::string& name) -> void*
+		{
+			return AssetHandler::FindAssetForZone(static_cast<Game::XAssetType>(type), name, this).data;
+		};
+
+		params.fs_read_file = [](const std::string& filename) -> std::string
+		{
+			auto file = FileSystem::File(filename);
+			if (file.exists())
+			{
+				return file.getBuffer();
+			}
+
+			return {};
+		};
+
+		params.store_in_string_table = [](const std::string& text) -> unsigned int
+		{
+			return Game::SL_GetString(text.data(), 0);
+		};
+
+		params.print = [](iw4of::params_t::print_type t, const std::string& message) -> void
+		{
+			switch (t)
+			{
+			case iw4of::params_t::P_ERR:
+				Logger::Error(Game::ERR_FATAL, "{}", message);
+				break;
+			case iw4of::params_t::P_WARN:
+				Logger::Print("{}", message);
+				break;
+			}
+		};
+
+		if (*Game::fs_basepath && *Game::fs_gameDirVar)
+		{
+			params.work_directory = std::format("{}/{}", (*Game::fs_basepath)->current.string, (*Game::fs_gameDirVar)->current.string);
+		}
+		else
+		{
+			Logger::Error(Game::ERR_FATAL, "Missing FS Game directory or basepath directory!");
+		}
+
+		return params;
 	}
 
 	int ZoneBuilder::StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image)
@@ -1096,18 +1158,6 @@ namespace Components
 			Utils::Hook::Set<int*>(0x5BC759, g_copyInfo_new);
 			Utils::Hook::Set<int>(0x5BB9AD, newLimit); // limit check
 
-			// this one lets us keep loading zones and it will ignore assets when the pool is filled
-			/*
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, const std::string&, bool* restrict)
-			{
-				//if (*static_cast<int*>(Game::DB_XAssetPool[type].data) == 0)
-				if (Game::g_poolSize[type] == 0)
-				{
-					*restrict = true;
-				}
-			});
-			*/
-
 			// hunk size (was 300 MiB)
 			Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
@@ -1212,7 +1262,7 @@ namespace Components
 
 			Command::Add("buildall", []([[maybe_unused]] Command::Params* params)
 			{
-				auto path = std::format("{}\\zone_source", Dvar::Var("fs_basepath").get<std::string>());
+				auto path = std::format("{}\\zone_source", (*Game::fs_basepath)->current.string);
 				auto zoneSources = FileSystem::GetSysFileList(path, "csv", false);
 
 				for (auto source : zoneSources)
@@ -1284,9 +1334,11 @@ namespace Components
 
 				std::string csvStr;
 
-				auto fileList = Utils::IO::ListFiles(Utils::String::VA("zone/%s", Game::Win_GetLanguage()));
-				for (auto zone : fileList)
+				const auto dir = std::format("zone/{}", Game::Win_GetLanguage());
+				auto fileList = Utils::IO::ListFiles(dir, false);
+				for (const auto& entry : fileList)
 				{
+					auto zone = entry.path().string();
 					Utils::String::Replace(zone, Utils::String::VA("zone/%s/", Game::Win_GetLanguage()), "");
 					Utils::String::Replace(zone, ".ff", "");
 
@@ -1320,7 +1372,7 @@ namespace Components
 
 					while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms); // wait till its fully loaded
 
-					if (curTechsets_list.size() == 0)
+					if (curTechsets_list.empty())
 					{
 						Logger::Print("Skipping empty zone {}\n", zone);
 						// unload zone
@@ -1347,7 +1399,7 @@ namespace Components
 					}
 
 					// save csv
-					Utils::IO::WriteFile("zone_source/techsets/" + zone + "_techsets.csv", csvStr.data());
+					Utils::IO::WriteFile("zone_source/techsets/" + zone + "_techsets.csv", csvStr);
 
 					// build the techset zone
 					std::string zoneName = "techsets/" + zone + "_techsets";
@@ -1377,11 +1429,13 @@ namespace Components
 				Utils::Hook::Set<const char*>(0x649E740, "techsets");
 
 				// load generated techset fastfiles
-				auto list = Utils::IO::ListFiles("zone/techsets");
+				auto list = Utils::IO::ListFiles("zone/techsets", false);
 				int i = 0;
 				int subCount = 0;
-				for (auto it : list)
+				for (const auto& entry : list)
 				{
+					auto it = entry.path().string();
+
 					Utils::String::Replace(it, "zone/techsets/", "");
 					Utils::String::Replace(it, ".ff", "");
 
@@ -1422,7 +1476,7 @@ namespace Components
 						std::string tempZoneFile = Utils::String::VA("zone_source/techsets/techsets%d.csv", subCount);
 						std::string tempZone = Utils::String::VA("techsets/techsets%d", subCount);
 
-						Utils::IO::WriteFile(tempZoneFile, csvStr.data());
+						Utils::IO::WriteFile(tempZoneFile, csvStr);
 
 						Logger::Print("Building zone '{}'...\n", tempZone);
 						Zone(tempZone).build();
@@ -1467,7 +1521,7 @@ namespace Components
 					std::string tempZoneFile = Utils::String::VA("zone_source/techsets/techsets%d.csv", subCount);
 					std::string tempZone = Utils::String::VA("techsets/techsets%d", subCount);
 
-					Utils::IO::WriteFile(tempZoneFile, csvStr.data());
+					Utils::IO::WriteFile(tempZoneFile, csvStr);
 
 					Logger::Print("Building zone '{}'...\n", tempZone);
 					Zone(tempZone).build();
@@ -1504,9 +1558,9 @@ namespace Components
 
 				// create csv with the techsets in it
 				csvStr.clear();
-				for (auto tech : curTechsets_list)
+				for (const auto& tech : curTechsets_list)
 				{
-					std::string mat = ZoneBuilder::FindMaterialByTechnique(tech);
+					auto mat = ZoneBuilder::FindMaterialByTechnique(tech);
 					if (mat.length() == 0)
 					{
 						csvStr.append("techset," + tech + "\n");
@@ -1517,7 +1571,7 @@ namespace Components
 					}
 				}
 
-				Utils::IO::WriteFile("zone_source/techsets/techsets.csv", csvStr.data());
+				Utils::IO::WriteFile("zone_source/techsets/techsets.csv", csvStr);
 
 				// set language back
 				Utils::Hook::Set<const char*>(0x649E740, language);
@@ -1578,7 +1632,7 @@ namespace Components
 			{
 				if (params->size() < 2) return;
 
-				auto path = std::format("{}\\mods\\{}\\images", Dvar::Var("fs_basepath").get<std::string>(), params->get(1));
+				auto path = std::format("{}\\mods\\{}\\images", (*Game::fs_basepath)->current.string, params->get(1));
 				auto images = FileSystem::GetSysFileList(path, "iwi", false);
 
 				for (auto i = images.begin(); i != images.end();)
@@ -1598,9 +1652,6 @@ namespace Components
 				Logger::Print("{}\n", nlohmann::json(images).dump());
 				Logger::Print("------------------- END IWI DUMP -------------------\n");
 			});
-
-			// True by default, but can be put to zero for backward compatibility if needed
-			ZoneBuilder::PreferDiskAssetsDvar = Dvar::Register<bool>("zb_prefer_disk_assets", true, Game::DVAR_NONE, "Should zonebuilder prefer in-memory assets (requirements) or disk assets, when both are present?");
 		}
 	}
 

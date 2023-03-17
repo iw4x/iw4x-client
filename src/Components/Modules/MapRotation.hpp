@@ -9,12 +9,14 @@ namespace Components
 
 		static bool Contains(const std::string& key, const std::string& value);
 
+		static nlohmann::json to_json();
+
 		bool unitTest() override;
 
 	private:
-		struct ParseRotationError : public std::exception
+		struct MapRotationParseError : public std::exception
 		{
-			const char* what() const noexcept override { return "Parse Rotation Error"; }
+			[[nodiscard]] const char* what() const noexcept override { return "Map Rotation Parse Error"; }
 		};
 
 		class RotationData
@@ -32,6 +34,7 @@ namespace Components
 
 			[[nodiscard]] std::size_t getEntriesSize() const noexcept;
 			rotationEntry& getNextEntry();
+			rotationEntry& peekNextEntry();
 
 			void parse(const std::string& data);
 
@@ -49,6 +52,7 @@ namespace Components
 		// Rotation Dvars
 		static Dvar::Var SVRandomMapRotation;
 		static Dvar::Var SVDontRotate;
+		static Dvar::Var SVNextMap;
 
 		// Holds the parsed data from sv_mapRotation
 		static RotationData DedicatedRotation;
@@ -58,6 +62,7 @@ namespace Components
 
 		// Use these commands before SV_MapRotate_f is called
 		static void AddMapRotationCommands();
+		static void RegisterMapRotationDvars();
 
 		static bool ShouldRotate();
 		static void ApplyMap(const std::string& map);
@@ -65,6 +70,11 @@ namespace Components
 		static void RestartCurrentMap();
 		static void ApplyRotation(RotationData& rotation);
 		static void ApplyMapRotationCurrent(const std::string& data);
+
+		// Utils functions
+		static void SetNextMap(RotationData& rotation); // Only call this after ApplyRotation
+		static void SetNextMap(const char* value);
+		static void ClearNextMap();
 		static void RandomizeMapRotation();
 
 		static void SV_MapRotate_f();

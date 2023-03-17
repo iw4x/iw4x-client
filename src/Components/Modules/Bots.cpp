@@ -1,13 +1,20 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
 #include "Bots.hpp"
+#include "ServerList.hpp"
 
 #include "GSC/Script.hpp"
+
+// From Quake-III
+#define	ANGLE2SHORT(x) ((int)((x) * (USHRT_MAX + 1) / 360.0f) & USHRT_MAX)
+#define	SHORT2ANGLE(x) ((x)* (360.0f / (USHRT_MAX + 1)))
 
 namespace Components
 {
 	std::vector<Bots::botData> Bots::BotNames;
 
-	Dvar::Var Bots::SVRandomBotNames;
+	Dvar::Var Bots::SVClanName;
 
 	struct BotMovementInfo
 	{
@@ -45,72 +52,112 @@ namespace Components
 		{ "activate", Game::CMD_BUTTON_ACTIVATE },
 	};
 
+	void Bots::RandomizeBotNames()
+	{
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::ranges::shuffle(BotNames, gen);
+	}
+
+	void Bots::UpdateBotNames()
+	{
+		const auto masterPort = (*Game::com_masterPort)->current.integer;
+		const auto* masterServerName = (*Game::com_masterServerName)->current.string;
+
+		Game::netadr_t master;
+		if (ServerList::GetMasterServer(masterServerName, masterPort, master))
+		{
+			Logger::Print("Getting bots...\n");
+			Network::Send(master, "getbots");
+		}
+	}
+
+	void Bots::LoadBotNames()
+	{
+		FileSystem::File bots("bots.txt");
+
+		if (!bots.exists())
+		{
+			return;
+		}
+
+		auto data = Utils::String::Split(bots.getBuffer(), '\n');
+
+		auto i = 0;
+		for (auto& entry : data)
+		{
+			if (i >= 18)
+			{
+				// Only parse 18 names from the file
+				break;
+			}
+
+			// Take into account for CR line endings
+			Utils::String::Replace(entry, "\r", "");
+			// Remove whitespace
+			Utils::String::Trim(entry);
+
+			if (entry.empty())
+			{
+				continue;
+			}
+
+			std::string clanAbbrev;
+
+			// Check if there is a clan tag
+			if (const auto pos = entry.find(','); pos != std::string::npos)
+			{
+				// Only start copying over from non-null characters (otherwise it can be "<=")
+				if ((pos + 1) < entry.size())
+				{
+					clanAbbrev = entry.substr(pos + 1);
+				}
+
+				entry = entry.substr(0, pos);
+			}
+
+			BotNames.emplace_back(std::make_pair(entry, clanAbbrev));
+			++i;
+		}
+
+		if (i)
+		{
+			RandomizeBotNames();
+		}
+	}
+
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
 		static size_t botId = 0; // Loop over the BotNames vector
 		static bool loadedNames = false; // Load file only once
-		const char* botName;
-		const char* clanName;
+		std::string botName;
+		std::string clanName;
 
-		if (BotNames.empty() && !loadedNames)
+		if (!loadedNames)
 		{
-			FileSystem::File bots("bots.txt");
 			loadedNames = true;
-
-			if (bots.exists())
-			{
-				auto data = Utils::String::Split(bots.getBuffer(), '\n');
-
-				if (SVRandomBotNames.get<bool>())
-				{
-					std::random_device rd;
-					std::mt19937 gen(rd());
-					std::ranges::shuffle(data, gen);
-				}
-
-				for (auto& entry : data)
-				{
-					// Take into account for CR line endings
-					Utils::String::Replace(entry, "\r", "");
-					// Remove whitespace
-					Utils::String::Trim(entry);
-
-					if (!entry.empty())
-					{
-						std::string clanAbbrev;
-
-						// Check if there is a clan tag
-						if (const auto pos = entry.find(','); pos != std::string::npos)
-						{
-							// Only start copying over from non-null characters (otherwise it can be "<=")
-							if ((pos + 1) < entry.size())
-							{
-								clanAbbrev = entry.substr(pos + 1);
-							}
-
-							entry = entry.substr(0, pos);
-						}
-
-						BotNames.emplace_back(std::make_pair(entry, clanAbbrev));
-					}
-				}
-			}
+			LoadBotNames();
 		}
 
 		if (!BotNames.empty())
 		{
 			botId %= BotNames.size();
 			const auto index = botId++;
-			botName = BotNames[index].first.data();
-			clanName = BotNames[index].second.data();
+			botName = BotNames[index].first;
+			clanName = BotNames[index].second;
 		}
 		else
 		{
-			botName = Utils::String::VA("bot%d", ++botId);
-			clanName = "BOT";
+			botName = std::format("bot{}", ++botId);
+			clanName = "BOT"s;
 		}
 
-		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName, clanName, protocol, checksum, statVer, statStuff, port);
+		if (const auto svClanName = SVClanName.get<std::string>(); !svClanName.empty())
+		{
+			clanName = svClanName;
+		}
+
+		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName.data(), clanName.data(), protocol, checksum, statVer, statStuff, port);
 	}
 
 	void Bots::Spawn(unsigned int count)
@@ -120,8 +167,10 @@ namespace Components
 			Scheduler::Once([]
 			{
 				auto* ent = Game::SV_AddTestClient();
-				if (ent == nullptr)
+				if (!ent)
+				{
 					return;
+				}
 
 				Scheduler::Once([ent]
 				{
@@ -156,15 +205,15 @@ namespace Components
 
 	void Bots::AddMethods()
 	{
-		Script::AddMethMultiple(GScr_isTestClient, false, {"IsTestClient", "IsBot"}); // Usage: self IsTestClient();
+		GSC::Script::AddMethMultiple(GScr_isTestClient, false, {"IsTestClient", "IsBot"}); // Usage: self IsTestClient();
 
-		Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
+		GSC::Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
-				Game::Scr_Error("^1BotStop: Can only call on a bot!\n");
+				Game::Scr_Error("BotStop: Can only call on a bot!");
 				return;
 			}
 
@@ -173,19 +222,19 @@ namespace Components
 			g_botai[entref.entnum].active = true;
 		});
 
-		Script::AddMethod("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
+		GSC::Script::AddMethod("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
-				Game::Scr_Error("^1BotWeapon: Can only call on a bot!\n");
+				Game::Scr_Error("BotWeapon: Can only call on a bot!");
 				return;
 			}
 
 			const auto* weapon = Game::Scr_GetString(0);
 
-			if (weapon == nullptr || weapon[0] == '\0')
+			if (!weapon || !*weapon)
 			{
 				g_botai[entref.entnum].weapon = 1;
 				return;
@@ -196,27 +245,27 @@ namespace Components
 			g_botai[entref.entnum].active = true;
 		});
 
-		Script::AddMethod("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
+		GSC::Script::AddMethod("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
-				Game::Scr_Error("^1BotAction: Can only call on a bot!\n");
+				Game::Scr_Error("BotAction: Can only call on a bot!");
 				return;
 			}
 
 			const auto* action = Game::Scr_GetString(0);
 
-			if (action == nullptr)
+			if (!action)
 			{
-				Game::Scr_ParamError(0, "^1BotAction: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "BotAction: Illegal parameter!");
 				return;
 			}
 
 			if (action[0] != '+' && action[0] != '-')
 			{
-				Game::Scr_ParamError(0, "^1BotAction: Sign for action must be '+' or '-'.\n");
+				Game::Scr_ParamError(0, "BotAction: Sign for action must be '+' or '-'");
 				return;
 			}
 
@@ -234,16 +283,16 @@ namespace Components
 				return;
 			}
 
-			Game::Scr_ParamError(0, "^1BotAction: Unknown action.\n");
+			Game::Scr_ParamError(0, "BotAction: Unknown action");
 		});
 
-		Script::AddMethod("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
+		GSC::Script::AddMethod("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			if (Game::SV_IsTestClient(ent->s.number) == 0)
 			{
-				Game::Scr_Error("^1BotMovement: Can only call on a bot!\n");
+				Game::Scr_Error("BotMovement: Can only call on a bot!");
 				return;
 			}
 
@@ -258,8 +307,10 @@ namespace Components
 
 	void Bots::BotAiAction(Game::client_t* cl)
 	{
-		if (cl->gentity == nullptr)
+		if (!cl->gentity)
+		{
 			return;
+		}
 
 		const auto entnum = cl->gentity->s.number;
 
@@ -280,10 +331,13 @@ namespace Components
 		userCmd.rightmove = g_botai[entnum].right;
 		userCmd.weapon = g_botai[entnum].weapon;
 
+		userCmd.angles[0] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[0] - cl->gentity->client->ps.delta_angles[0]));
+		userCmd.angles[1] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[1] - cl->gentity->client->ps.delta_angles[1]));
+		userCmd.angles[2] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[2] - cl->gentity->client->ps.delta_angles[2]));
+
 		Game::SV_ClientThink(cl, &userCmd);
 	}
 
-	constexpr auto SV_BotUserMove = 0x626E50;
 	__declspec(naked) void Bots::SV_BotUserMove_Hk()
 	{
 		__asm
@@ -345,7 +399,30 @@ namespace Components
 
 		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
 
-		SVRandomBotNames = Dvar::Register<bool>("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
+		Events::OnDvarInit([]
+		{
+			SVClanName = Dvar::Register<const char*>("sv_clanName", "", Game::DVAR_NONE, "The clan name for test clients");
+		});
+
+		Scheduler::OnGameInitialized(UpdateBotNames, Scheduler::Pipeline::MAIN);
+
+		Network::OnClientPacket("getbotsResponse", [](const Network::Address& address, const std::string& data)
+		{
+			const auto masterPort = (*Game::com_masterPort)->current.integer;
+			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
+
+			Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
+			if (master == address)
+			{
+				auto botNames = Utils::String::Split(data, '\n');
+				for (const auto& entry : botNames)
+				{
+					BotNames.emplace_back(std::make_pair(entry, "BOT"));
+				}
+
+				RandomizeBotNames();
+			}
+		});
 
 		// Reset BotMovementInfo.active when client is dropped
 		Events::OnClientDisconnect([](const int clientNum)
@@ -362,13 +439,19 @@ namespace Components
 
 		Command::Add("spawnBot", [](Command::Params* params)
 		{
-			auto count = 1u;
+			if (!Dedicated::IsRunning())
+			{
+				Logger::Print("Server is not running.\n");
+				return;
+			}
+
+			std::size_t count = 1;
 
 			if (params->size() > 1)
 			{
 				if (params->get(1) == "all"s)
 				{
-					count = *Game::svs_clientCount;
+					count = Game::MAX_CLIENTS;
 				}
 				else
 				{
@@ -385,18 +468,9 @@ namespace Components
 				}
 			}
 
-			count = std::min(static_cast<unsigned int>(*Game::svs_clientCount), count);
+			count = std::min(Game::MAX_CLIENTS, count);
 
-			// Check if ingame and host
-			if (!Game::SV_Loaded())
-			{
-				Toast::Show("cardicon_headshot", "^1Error", "You need to be host to spawn bots!", 3000);
-				Logger::Print("You need to be host to spawn bots!\n");
-				return;
-			}
-
-			Toast::Show("cardicon_headshot", "^2Success", Utils::String::VA("Spawning %d %s...", count, (count == 1 ? "bot" : "bots")), 3000);
-			Logger::Debug("Spawning {} {}", count, (count == 1 ? "bot" : "bots"));
+			Logger::Print("Spawning {} {}", count, (count == 1 ? "bot" : "bots"));
 
 			Spawn(count);
 		});

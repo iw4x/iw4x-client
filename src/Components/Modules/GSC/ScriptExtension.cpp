@@ -2,10 +2,13 @@
 #include "ScriptExtension.hpp"
 #include "Script.hpp"
 
-namespace Components
+namespace Components::GSC
 {
 	std::unordered_map<std::uint16_t, Game::ent_field_t> ScriptExtension::CustomEntityFields;
 	std::unordered_map<std::uint16_t, Game::client_fields_s> ScriptExtension::CustomClientFields;
+
+	std::unordered_map<const char*, const char*> ScriptExtension::ReplacedFunctions;
+	const char* ScriptExtension::ReplacedPos = nullptr;
 
 	void ScriptExtension::AddEntityField(const char* name, Game::fieldtype_t type,
 		const Game::ScriptCallbackEnt& setter, const Game::ScriptCallbackEnt& getter)
@@ -106,80 +109,96 @@ namespace Components
 		Game::Scr_GetEntityField(entnum, offset);
 	}
 
+	const char* ScriptExtension::GetCodePosForParam(int index)
+	{
+		if (static_cast<unsigned int>(index) >= Game::scrVmPub->outparamcount)
+		{
+			Game::Scr_ParamError(static_cast<unsigned int>(index), "GetCodePosForParam: Index is out of range!");
+			return "";
+		}
+
+		const auto* value = &Game::scrVmPub->top[-index];
+
+		if (value->type != Game::VAR_FUNCTION)
+		{
+			Game::Scr_ParamError(static_cast<unsigned int>(index), "GetCodePosForParam: Expects a function as parameter!");
+			return "";
+		}
+
+		return value->u.codePosValue;
+	}
+
+	void ScriptExtension::GetReplacedPos(const char* pos)
+	{
+		if (ReplacedFunctions.contains(pos))
+		{
+			ReplacedPos = ReplacedFunctions[pos];
+		}
+	}
+
+	void ScriptExtension::SetReplacedPos(const char* what, const char* with)
+	{
+		if (!*what || !*with)
+		{
+			Logger::Warning(Game::CON_CHANNEL_SCRIPT, "Invalid parameters passed to ReplacedFunctions\n");
+			return;
+		}
+
+		if (ReplacedFunctions.contains(what))
+		{
+			Logger::Warning(Game::CON_CHANNEL_SCRIPT, "ReplacedFunctions already contains codePosValue for a function\n");
+		}
+
+		ReplacedFunctions[what] = with;
+	}
+
+	__declspec(naked) void ScriptExtension::VMExecuteInternalStub()
+	{
+		__asm
+		{
+			pushad
+
+			push edx
+			call GetReplacedPos
+
+			pop edx
+			popad
+
+			cmp ReplacedPos, 0
+			jne SetPos
+
+			movzx eax, byte ptr [edx]
+			inc edx
+
+		Loc1:
+			cmp eax, 0x8B
+
+			push ecx
+
+			mov ecx, 0x2045094
+			mov [ecx], eax
+
+			mov ecx, 0x2040CD4
+			mov [ecx], edx
+
+			pop ecx
+
+			push 0x61E944
+			ret
+
+		SetPos:
+			mov edx, ReplacedPos
+			mov ReplacedPos, 0
+
+			movzx eax, byte ptr [edx]
+			inc edx
+
+			jmp Loc1
+		}
+	}
+
 	void ScriptExtension::AddFunctions()
 	{
-		// Misc functions
-		Script::AddFunction("ToUpper", [] // gsc: ToUpper(<string>)
-		{
-			const auto scriptValue = Game::Scr_GetConstString(0);
-			const auto* string = Game::SL_ConvertToString(scriptValue);
-
-			char out[1024] = {0}; // 1024 is the max for a string in this SL system
-			bool changed = false;
-
-			size_t i = 0;
-			while (i < sizeof(out))
-			{
-				const auto value = *string;
-				const auto result = static_cast<char>(std::toupper(static_cast<unsigned char>(value)));
-				out[i] = result;
-
-				if (value != result)
-					changed = true;
-
-				if (result == '\0') // Finished converting string
-					break;
-
-				++string;
-				++i;
-			}
-
-			// Null terminating character was overwritten 
-			if (i >= sizeof(out))
-			{
-				Game::Scr_Error("string too long");
-				return;
-			}
-
-			if (changed)
-			{
-				Game::Scr_AddString(out);
-			}
-			else
-			{
-				Game::SL_AddRefToString(scriptValue);
-				Game::Scr_AddConstString(scriptValue);
-				Game::SL_RemoveRefToString(scriptValue);
-			}
-		});
-
-		// Func present on IW5
-		Script::AddFunction("StrICmp", [] // gsc: StrICmp(<string>, <string>)
-		{
-			const auto value1 = Game::Scr_GetConstString(0);
-			const auto value2 = Game::Scr_GetConstString(1);
-
-			const auto result = _stricmp(Game::SL_ConvertToString(value1),
-				Game::SL_ConvertToString(value2));
-
-			Game::Scr_AddInt(result);
-		});
-
-		// Func present on IW5
-		Script::AddFunction("IsEndStr", [] // gsc: IsEndStr(<string>, <string>)
-		{
-			const auto* str = Game::Scr_GetString(0);
-			const auto* suffix = Game::Scr_GetString(1);
-
-			if (str == nullptr || suffix == nullptr)
-			{
-				Game::Scr_Error("^1IsEndStr: Illegal parameters!\n");
-				return;
-			}
-
-			Game::Scr_AddBool(Utils::String::EndsWith(str, suffix));
-		});
-
 		Script::AddFunction("IsArray", [] // gsc: IsArray(<object>)
 		{
 			auto type = Game::Scr_GetType(0);
@@ -200,40 +219,56 @@ namespace Components
 			Game::Scr_AddBool(result);
 		});
 
-		// Func present on IW5
-		Script::AddFunction("CastFloat", [] // gsc: CastFloat()
+		Script::AddFunction("ReplaceFunc", [] // gsc: ReplaceFunc(<function>, <function>)
 		{
-			switch (Game::Scr_GetType(0))
+			if (Game::Scr_GetNumParam() != 2)
 			{
-			case Game::VAR_STRING:
-				Game::Scr_AddFloat(static_cast<float>(std::atof(Game::Scr_GetString(0))));
-				break;
-			case Game::VAR_FLOAT:
-				Game::Scr_AddFloat(Game::Scr_GetFloat(0));
-				break;
-			case Game::VAR_INTEGER:
-				Game::Scr_AddFloat(static_cast<float>(Game::Scr_GetInt(0)));
-				break;
-			default:
-				Game::Scr_ParamError(0, Utils::String::VA("cannot cast %s to float", Game::Scr_GetTypeName(0)));
-				break;
-			}
-		});
-
-		Script::AddFunction("Strtol", [] // gsc: Strtol(<string>, <int>)
-		{
-			const auto* input = Game::Scr_GetString(0);
-			const auto base = Game::Scr_GetInt(1);
-
-			char* end;
-			const auto result = std::strtol(input, &end, base);
-			if (input == end)
-			{
-				Game::Scr_ParamError(0, "cannot cast string to int");
+				Game::Scr_Error("ReplaceFunc: Needs two parameters!");
+				return;
 			}
 
-			Game::Scr_AddInt(result);
+			const auto what = GetCodePosForParam(0);
+			const auto with = GetCodePosForParam(1);
+
+			SetReplacedPos(what, with);
 		});
+
+
+		Script::AddFunction("GetSystemMilliseconds", [] // gsc: GetSystemMilliseconds()
+		{
+			SYSTEMTIME time;
+			GetSystemTime(&time);
+
+			Game::Scr_AddInt(time.wMilliseconds);
+		});
+
+		Script::AddFunction("Exec", [] // gsc: Exec(<string>)
+		{
+			const auto* str = Game::Scr_GetString(0);
+			if (!str)
+			{
+				Game::Scr_ParamError(0, "Exec: Illegal parameter!");
+				return;
+			}
+
+			Command::Execute(str, false);
+		});
+
+		// Allow printing to the console even when developer is 0
+		Script::AddFunction("PrintConsole", [] // gsc: PrintConsole(<string>)
+		{
+			for (std::size_t i = 0; i < Game::Scr_GetNumParam(); ++i)
+			{
+				const auto* str = Game::Scr_GetString(i);
+				if (!str)
+				{
+					Game::Scr_ParamError(i, "PrintConsole: Illegal parameter!");
+					return;
+				}
+
+				Logger::Print(Game::level->scriptPrintChannel, "{}", str);
+			}
+		});		
 	}
 
 	void ScriptExtension::AddMethods()
@@ -241,20 +276,31 @@ namespace Components
 		// ScriptExtension methods
 		Script::AddMethod("GetIp", [](const Game::scr_entref_t entref) // gsc: self GetIp()
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = Script::Scr_GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);
 
 			std::string ip = Game::NET_AdrToString(client->header.netchan.remoteAddress);
 
-			if (const auto pos = ip.find_first_of(":"); pos != std::string::npos)
-				ip.erase(ip.begin() + pos, ip.end()); // Erase port
+			const auto extractIPAddress = [](const std::string& input) -> std::string
+			{
+				const auto colonPos = input.find(':');
+				if (colonPos == std::string::npos)
+				{
+					return input;
+				}
+
+				auto ipAddress = input.substr(0, colonPos);
+				return ipAddress;
+			};
+
+			ip = extractIPAddress(ip);
 
 			Game::Scr_AddString(ip.data());
 		});
 
 		Script::AddMethod("GetPing", [](const Game::scr_entref_t entref) // gsc: self GetPing()
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = Script::Scr_GetPlayerEntity(entref);
 			const auto* client = Script::GetClient(ent);
 
 			Game::Scr_AddInt(client->ping);
@@ -266,10 +312,17 @@ namespace Components
 
 			ping = std::clamp(ping, 0, 999);
 
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = Script::Scr_GetPlayerEntity(entref);
 			auto* client = Script::GetClient(ent);
 
 			client->ping = ping;
+		});
+
+		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
+		Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
+		{
+			const auto* ent = Script::Scr_GetPlayerEntity(entref);
+			Game::Scr_AddBool((ent->client->flags & Game::PF_FROZEN) != 0);
 		});
 	}
 
@@ -311,5 +364,13 @@ namespace Components
 		Utils::Hook(0x41BED2, Scr_SetObjectFieldStub, HOOK_CALL).install()->quick(); // SetEntityFieldValue
 		Utils::Hook(0x5FBF01, Scr_SetClientFieldStub, HOOK_CALL).install()->quick(); // Scr_SetObjectField
 		Utils::Hook(0x4FF413, Scr_GetEntityFieldStub, HOOK_CALL).install()->quick(); // Scr_GetObjectField
+
+		Utils::Hook(0x61E92E, VMExecuteInternalStub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x61E933, 1);
+
+		Events::OnVMShutdown([]
+		{
+			ReplacedFunctions.clear();
+		});
 	}
 }

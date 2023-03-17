@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "InfoString.hpp"
 
 namespace Utils
 {

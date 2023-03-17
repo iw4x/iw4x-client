@@ -1,6 +1,5 @@
 #pragma once
 
-#define MAX_SOURCEFILES	64
 #undef LoadMenu
 
 namespace Components
@@ -17,7 +16,7 @@ namespace Components
 
 		static Game::MenuList* LoadCustomMenuList(const std::string& menu, Utils::Memory::Allocator* allocator);
 		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(Game::menuDef_t* menudef);
-		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(const std::string& file);
+		static std::vector<std::pair<bool, Game::menuDef_t*>> LoadMenu(const std::string& menu);
 		
 	private:
 		static std::unordered_map<std::string, Game::menuDef_t*> MenuList;
@@ -32,7 +31,7 @@ namespace Components
 
 		static void SafeMergeMenus(std::vector<std::pair<bool, Game::menuDef_t*>>* menus, std::vector<std::pair<bool, Game::menuDef_t*>> newMenus);
 
-		static Game::script_t* LoadMenuScript(const std::string& name, const std::string& buffer);
+		static Game::script_s* LoadMenuScript(const std::string& name, const std::string& buffer);
 		static int LoadMenuSource(const std::string& name, const std::string& buffer);
 
 		static int ReserveSourceHandle();
@@ -40,6 +39,7 @@ namespace Components
 
 		static Game::menuDef_t* ParseMenu(int handle);
 
+		static void FreeScript(Game::script_s* script);
 		static void FreeMenuSource(int handle);
 
 		static void FreeMenuList(Game::MenuList* menuList);

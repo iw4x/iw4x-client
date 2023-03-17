@@ -15,6 +15,8 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::PlayerSpectateSpeedScale;
 	const Game::dvar_t* PlayerMovement::BGBounces;
 	const Game::dvar_t* PlayerMovement::BGBouncesAllAngles;
+	const Game::dvar_t* PlayerMovement::BGDisableLandingSlowdown;
+	const Game::dvar_t* PlayerMovement::BGBunnyHopAuto;
 	const Game::dvar_t* PlayerMovement::PlayerDuckedSpeedScale;
 	const Game::dvar_t* PlayerMovement::PlayerProneSpeedScale;
 
@@ -105,27 +107,40 @@ namespace Components
 		__asm
 		{
 			// Check the value of BGBounces
-			push ecx
 			push eax
 
 			mov eax, BGBounces
-			mov ecx, dword ptr [eax + 0x10]
-			test ecx, ecx
+			mov eax, dword ptr [eax + 0x10]
+			test eax, eax
 
 			pop eax
-			pop ecx
 
 			// Do not bounce if BGBounces is 0
 			jle noBounce
 
+			push eax
+
+			mov eax, BGBouncesAllAngles
+			mov eax, dword ptr [eax + 0x10]
+			cmp eax, 2
+
+			pop eax
+
+			// Do not apply all angles patch if BGBouncesAllAngles is not set to "all surfaces"
+			jne regularBounce
+
+			push 0x4B1B7D
+			ret
+		
 			// Bounce
+		regularBounce:
 			push 0x4B1B34
 			ret
 
 		noBounce:
 			// Original game code
 			cmp dword ptr [esp + 0x24], 0
-			push 0x4B1B48
+			push 0x4B1B32
 			ret
 		}
 	}
@@ -133,10 +148,12 @@ namespace Components
 	// Double bounces
 	void PlayerMovement::Jump_ClearState_Hk(Game::playerState_s* ps)
 	{
-		if (BGBounces->current.integer != DOUBLE)
+		if (BGBounces->current.integer == DOUBLE)
 		{
-			Game::Jump_ClearState(ps);
+			return;
 		}
+
+		Game::Jump_ClearState(ps);
 	}
 
 	__declspec(naked) void PlayerMovement::PM_ProjectVelocityStub()
@@ -145,18 +162,20 @@ namespace Components
 		{
 			push eax
 			mov eax, BGBouncesAllAngles
-			cmp byte ptr [eax + 0x10], 1
+			mov eax, dword ptr [eax + 0x10]
+			test eax, eax
 			pop eax
 
-			je bounce
+			je noBounce
 
+			// Force the bounce
+			push 0x417B6F
+			ret
+
+		noBounce:
 			fstp ST(0)
 			pop esi
 			add esp, 0x10
-			ret
-
-		bounce:
-			push 0x417B6F
 			ret
 		}
 	}
@@ -200,6 +219,38 @@ namespace Components
 		}
 	}
 
+	void PlayerMovement::PM_CrashLand_Stub(const float* v, float scale, const float* result)
+	{
+		if (!BGDisableLandingSlowdown->current.enabled)
+		{
+			Utils::Hook::Call<void(const float*, float, const float*)>(0x4C12B0)(v, scale, result);
+		}
+	}
+
+	__declspec(naked) void PlayerMovement::Jump_Check_Stub()
+	{
+		using namespace Game;
+
+		__asm
+		{
+			push eax
+			mov eax, BGBunnyHopAuto
+			cmp byte ptr [eax + 0x10], 1
+			pop eax
+
+			je autoHop
+
+			// Game's code
+			test dword ptr [ebp + 0x30], CMD_BUTTON_UP
+			push 0x4E9890
+			ret
+
+		autoHop:
+			push 0x4E989F
+			ret
+		}
+	}
+
 	void PlayerMovement::GScr_IsSprinting(const Game::scr_entref_t entref)
 	{
 		const auto* client = Game::GetEntity(entref)->client;
@@ -240,8 +291,11 @@ namespace Components
 			3.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT | Game::DVAR_CODINFO,
 			"The speed at which noclip camera moves");
 
-		BGBouncesAllAngles = Game::Dvar_RegisterBool("bg_bouncesAllAngles",
-			false, Game::DVAR_CODINFO, "Force bounce from all angles");
+		BGDisableLandingSlowdown = Game::Dvar_RegisterBool("bg_disableLandingSlowdown",
+			false, Game::DVAR_CODINFO, "Toggle landing slowdown");
+
+		BGBunnyHopAuto = Game::Dvar_RegisterBool("bg_bunnyHopAuto",
+			false, Game::DVAR_CODINFO, "Constantly jump when holding space");
 
 		BGRocketJump = Dvar::Register<bool>("bg_rocketJump",
 			false, Game::DVAR_CODINFO, "Enable CoD4 rocket jumps");
@@ -265,21 +319,29 @@ namespace Components
 		AssertOffset(Game::playerState_s, eFlags, 0xB0);
 		AssertOffset(Game::playerState_s, pm_flags, 0xC);
 
-		Scheduler::Once([]
+		Events::OnDvarInit([]
 		{
 			static const char* bg_bouncesValues[] =
 			{
 				"disabled",
 				"enabled",
 				"double",
-				nullptr
+				nullptr,
 			};
 
-			BGBounces = Game::Dvar_RegisterEnum("bg_bounces",
-				bg_bouncesValues, DISABLED, Game::DVAR_CODINFO, "Bounce glitch settings");
-		}, Scheduler::Pipeline::MAIN);
+			static const char* bg_bouncesAllAnglesValues[] =
+			{
+				"disabled",
+				"simple",
+				"all surfaces",
+				nullptr,
+			};
 
-		// Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used.
+			BGBounces = Game::Dvar_RegisterEnum("bg_bounces", bg_bouncesValues, DISABLED, Game::DVAR_CODINFO, "Bounce glitch settings");
+			BGBouncesAllAngles = Game::Dvar_RegisterEnum("bg_bouncesAllAngles", bg_bouncesAllAnglesValues, DISABLED, Game::DVAR_CODINFO, "Force bounce from all angles");
+		});
+
+		// Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used
 		Utils::Hook(0x448990, Dvar_RegisterSpectateSpeedScale, HOOK_CALL).install()->quick();
 
 		// PM_CmdScaleForStance
@@ -299,7 +361,7 @@ namespace Components
 		// Rocket jump
 		Utils::Hook(0x4A4F9B, Weapon_RocketLauncher_Fire_Hk, HOOK_CALL).install()->quick(); //  FireWeapon        
 
-		// Hook StuckInClient & CM_TransformedCapsuleTrace 
+		// Hook StuckInClient & CM_TransformedCapsuleTrace
 		// so we can prevent intersecting players from being pushed away from each other
 		Utils::Hook(0x5D8153, StuckInClient_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x45A5BF, CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // SV_ClipMoveToEntity
@@ -308,7 +370,10 @@ namespace Components
 		Utils::Hook(0x573F39, PM_PlayerTraceStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x573E93, PM_PlayerTraceStub, HOOK_CALL).install()->quick();
 
-		Script::AddMethod("IsSprinting", GScr_IsSprinting);
+		Utils::Hook(0x570020, PM_CrashLand_Stub, HOOK_CALL).install()->quick(); // Vec3Scale
+		Utils::Hook(0x4E9889, Jump_Check_Stub, HOOK_JUMP).install()->quick();
+
+		GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
 
 		RegisterMovementDvars();
 	}
