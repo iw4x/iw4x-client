@@ -25,7 +25,7 @@ namespace Components
 		bool active;
 	};
 
-	static BotMovementInfo g_botai[18];
+	static BotMovementInfo g_botai[Game::MAX_CLIENTS];
 
 	struct BotAction
 	{
@@ -83,15 +83,8 @@ namespace Components
 
 		auto data = Utils::String::Split(bots.getBuffer(), '\n');
 
-		auto i = 0;
 		for (auto& entry : data)
 		{
-			if (i >= 18)
-			{
-				// Only parse 18 names from the file
-				break;
-			}
-
 			// Take into account for CR line endings
 			Utils::String::Replace(entry, "\r", "");
 			// Remove whitespace
@@ -116,19 +109,15 @@ namespace Components
 				entry = entry.substr(0, pos);
 			}
 
-			BotNames.emplace_back(std::make_pair(entry, clanAbbrev));
-			++i;
+			BotNames.emplace_back(entry, clanAbbrev);
 		}
 
-		if (i)
-		{
-			RandomizeBotNames();
-		}
+		RandomizeBotNames();
 	}
 
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
-		static size_t botId = 0; // Loop over the BotNames vector
+		static std::size_t botId = 0; // Loop over the BotNames vector
 		static bool loadedNames = false; // Load file only once
 		std::string botName;
 		std::string clanName;
@@ -203,15 +192,14 @@ namespace Components
 		Game::Scr_AddBool(Game::SV_IsTestClient(ent->s.number) != 0);
 	}
 
-	void Bots::AddMethods()
+	void Bots::AddScriptMethods()
 	{
 		GSC::Script::AddMethMultiple(GScr_isTestClient, false, {"IsTestClient", "IsBot"}); // Usage: self IsTestClient();
 
 		GSC::Script::AddMethod("BotStop", [](Game::scr_entref_t entref) // Usage: <bot> BotStop();
 		{
 			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
-
-			if (Game::SV_IsTestClient(ent->s.number) == 0)
+			if (!Game::SV_IsTestClient(ent->s.number))
 			{
 				Game::Scr_Error("BotStop: Can only call on a bot!");
 				return;
@@ -225,15 +213,13 @@ namespace Components
 		GSC::Script::AddMethod("BotWeapon", [](Game::scr_entref_t entref) // Usage: <bot> BotWeapon(<str>);
 		{
 			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
-
-			if (Game::SV_IsTestClient(ent->s.number) == 0)
+			if (!Game::SV_IsTestClient(ent->s.number))
 			{
 				Game::Scr_Error("BotWeapon: Can only call on a bot!");
 				return;
 			}
 
 			const auto* weapon = Game::Scr_GetString(0);
-
 			if (!weapon || !*weapon)
 			{
 				g_botai[entref.entnum].weapon = 1;
@@ -248,15 +234,13 @@ namespace Components
 		GSC::Script::AddMethod("BotAction", [](Game::scr_entref_t entref) // Usage: <bot> BotAction(<str action>);
 		{
 			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
-
-			if (Game::SV_IsTestClient(ent->s.number) == 0)
+			if (!Game::SV_IsTestClient(ent->s.number))
 			{
 				Game::Scr_Error("BotAction: Can only call on a bot!");
 				return;
 			}
 
 			const auto* action = Game::Scr_GetString(0);
-
 			if (!action)
 			{
 				Game::Scr_ParamError(0, "BotAction: Illegal parameter!");
@@ -289,8 +273,7 @@ namespace Components
 		GSC::Script::AddMethod("BotMovement", [](Game::scr_entref_t entref) // Usage: <bot> BotMovement(<int>, <int>);
 		{
 			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
-
-			if (Game::SV_IsTestClient(ent->s.number) == 0)
+			if (!Game::SV_IsTestClient(ent->s.number))
 			{
 				Game::Scr_Error("BotMovement: Can only call on a bot!");
 				return;
@@ -475,7 +458,7 @@ namespace Components
 			Spawn(count);
 		});
 
-		AddMethods();
+		AddScriptMethods();
 
 		// In case a loaded mod didn't call "BotStop" before the VM shutdown
 		Events::OnVMShutdown([]

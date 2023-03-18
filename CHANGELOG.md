@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - `banClient` and `muteClient` server commands do not apply to bots anymore (#730)
 - Remove `zb_prefer_disk_assets` Dvar (#772)
 - The max value of `perk_extendedMeleeRange`Dvar was increased (#782)
+- Test Clients will receive names from the Xlabs Patreon website in addition to the names from the bots.txt file (#771)
 
 ### Fixed
 - Fix bug where`reloadmenus` command would not free resources used by custom menus (#740)

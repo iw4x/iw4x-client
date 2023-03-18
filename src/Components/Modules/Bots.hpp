@@ -21,7 +21,7 @@ namespace Components
 		static void Spawn(unsigned int count);
 
 		static void GScr_isTestClient(Game::scr_entref_t entref);
-		static void AddMethods();
+		static void AddScriptMethods();
 
 		static void BotAiAction(Game::client_t* cl);
 		static void SV_BotUserMove_Hk();
