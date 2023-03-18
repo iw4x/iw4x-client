@@ -432,23 +432,27 @@ namespace Components
 		for (auto i = 0; i < Game::MAX_CLIENTS; ++i)
 		{
 			std::unordered_map<std::string, nlohmann::json> playerInfo;
+			// Insert default values
 			playerInfo["score"] = 0;
 			playerInfo["ping"] = 0;
 			playerInfo["name"] = "";
+			playerInfo["test_client"] = 0;
 
 			if (Dedicated::IsRunning())
 			{
-				if (Game::svs_clients[i].header.state < Game::CS_CONNECTED) continue;
+				if (Game::svs_clients[i].header.state < Game::CS_ACTIVE) continue;
+				if (!Game::svs_clients[i].gentity || !Game::svs_clients[i].gentity->client) continue;
 
 				playerInfo["score"] = Game::SV_GameClientNum_Score(i);
 				playerInfo["ping"] = Game::svs_clients[i].ping;
 				playerInfo["name"] = Game::svs_clients[i].name;
+				playerInfo["test_client"] = Game::svs_clients[i].bIsTestClient;
 			}
 			else
 			{
 				// Score and ping are irrelevant
 				const auto* name = Game::PartyHost_GetMemberName(Game::g_lobbyData, i);
-				if (name == nullptr || *name == '\0') continue;
+				if (!name || !*name) continue;
 
 				playerInfo["name"] = name;
 			}

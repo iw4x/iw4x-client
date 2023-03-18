@@ -220,7 +220,7 @@ namespace Components
 
 					const auto* client = Game::svs_clients[i].gentity->client;
 					const auto team = client->sess.cs.team;
-					if (team == Game::TEAM_SPECTATOR)
+					if (Game::svs_clients[i].bIsTestClient || team == Game::TEAM_SPECTATOR)
 					{
 						continue;
 					}
@@ -233,7 +233,7 @@ namespace Components
 				{
 					// Score and ping are irrelevant
 					const auto* namePtr = Game::PartyHost_GetMemberName(reinterpret_cast<Game::PartyData*>(0x1081C00), i);
-					if (!namePtr || !namePtr[0]) continue;
+					if (!namePtr || !*namePtr) continue;
 
 					name = namePtr;
 				}
