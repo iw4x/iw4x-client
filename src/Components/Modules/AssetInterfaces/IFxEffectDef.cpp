@@ -12,56 +12,6 @@ namespace Assets
 		assert(header->data);
 	}
 
-	void IFxEffectDef::loadFxElemVisuals(Game::FxElemVisuals* visuals, char elemType, Components::ZoneBuilder::Zone* builder, Utils::Stream::Reader* reader)
-	{
-
-		switch (elemType)
-		{
-		case Game::FX_ELEM_TYPE_MODEL:
-		{
-			if (visuals->model)
-			{
-				visuals->model = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_XMODEL, reader->readString(), builder).model;
-			}
-
-			break;
-		}
-
-		case Game::FX_ELEM_TYPE_OMNI_LIGHT:
-		case Game::FX_ELEM_TYPE_SPOT_LIGHT:
-			break;
-
-		case Game::FX_ELEM_TYPE_SOUND:
-		{
-			if (visuals->soundName)
-			{
-				visuals->soundName = reader->readCString();
-			}
-			break;
-		}
-
-		case Game::FX_ELEM_TYPE_RUNNER:
-		{
-			if (visuals->effectDef.handle)
-			{
-				visuals->effectDef.handle = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_FX, reader->readString(), builder).fx;
-			}
-
-			break;
-		}
-
-		default:
-		{
-			if (visuals->material)
-			{
-				visuals->material = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_MATERIAL, reader->readString(), builder).material;
-			}
-
-			break;
-		}
-		}
-	}
-
 	void IFxEffectDef::loadFromIW4OF(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		header->fx = builder->getIW4OfApi()->read<Game::FxEffectDef>(Game::XAssetType::ASSET_TYPE_FX, name);
@@ -169,7 +119,16 @@ namespace Assets
 
 		case 0xA:
 		{
-			builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName, false);
+			if (visuals->soundName)
+			{
+				// Double "find call" but we have to because otherwise we'd crash on missing asset
+				// Sometimes Fx reference by name a sound that does not exist. IW oversight ? 
+				// Never happens on iw3 but often happens on iw5, especially DLC maps.
+				if (Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName, builder, false).data)
+				{
+					builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName, false);
+				}
+			}
 			break;
 		}
 
