@@ -44,6 +44,7 @@ namespace Components
 		Utils::Hook::Nop(0x43EC96, 9);
 		Utils::Hook::Nop(0x4675C6, 9);
 		Utils::Hook::Nop(0x405A36, 9);
+		Utils::Hook::Nop(0x4CE656, 9);
 
 		// Random checks scattered throughout the binary
 		Utils::Hook::Set<std::uint8_t>(0x499F90, 0xC3);
