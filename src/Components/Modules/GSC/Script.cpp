@@ -35,24 +35,23 @@ namespace Components::GSC
 		Game::Scr_StartupGameType();
 	}
 
-	// Do not use C++ objects because Scr_LoadScript may longjmp
-	void Script::GScr_LoadGameTypeScript_Stub()
+	void Script::LoadCustomScriptsFromFolder(const char* dir)
 	{
-		// Clear handles (from previous GSC loading session)
-		ScriptMainHandles.clear();
-		ScriptInitHandles.clear();
+		char path[MAX_OSPATH]{};
+		char searchPath[MAX_OSPATH]{};
 
-		char path[MAX_PATH]{};
+		strncpy_s(searchPath, dir, _TRUNCATE);
+		strncat_s(searchPath, "/", _TRUNCATE);
 
 		auto numFiles = 0;
-		const auto** files = Game::FS_ListFiles("scripts/", "gsc", Game::FS_LIST_ALL, &numFiles, 10);
+		const auto** files = Game::FS_ListFiles(searchPath, "gsc", Game::FS_LIST_ALL, &numFiles, 10);
 
 		for (auto i = 0; i < numFiles; ++i)
 		{
 			const auto* scriptFile = files[i];
 			Logger::Print("Loading script {}...\n", scriptFile);
 
-			const auto len = sprintf_s(path, "%s/%s", "scripts", scriptFile);
+			const auto len = sprintf_s(path, "%s/%s", dir, scriptFile);
 			if (len == -1)
 			{
 				continue;
@@ -63,7 +62,7 @@ namespace Components::GSC
 
 			if (!Game::Scr_LoadScript(path))
 			{
-				Logger::Print("Script {} encountered an error while loading. (doesn't exist?)", path);
+				Logger::Print("Script {} encountered an error while loading. A compilation error is the most likely cause\n", path);
 				continue;
 			}
 
@@ -72,12 +71,14 @@ namespace Components::GSC
 			const auto initHandle = Game::Scr_GetFunctionHandle(path, "init");
 			if (initHandle != 0)
 			{
+				Logger::Debug("Loaded '{}::init'", path);
 				ScriptInitHandles.insert_or_assign(path, initHandle);
 			}
 
 			const auto mainHandle = Game::Scr_GetFunctionHandle(path, "main");
 			if (mainHandle != 0)
 			{
+				Logger::Debug("Loaded '{}::main'", path);
 				ScriptMainHandles.insert_or_assign(path, mainHandle);
 			}
 
@@ -85,6 +86,34 @@ namespace Components::GSC
 		}
 
 		Game::FS_FreeFileList(files, 10);
+	}
+
+	void Script::LoadCustomScripts()
+	{
+		LoadCustomScriptsFromFolder("scripts");
+
+		// Game specific
+		const auto* gameDir = "scripts/mp";
+		LoadCustomScriptsFromFolder(gameDir);
+
+		// Map specific
+		const auto* mapDir = Utils::String::Format("scripts/mp/{}", (*Game::sv_mapname)->current.string);
+		LoadCustomScriptsFromFolder(mapDir);
+
+		// Mode specific
+		const auto modeDir = Utils::String::Format("scripts/mp/{}", (*Game::g_gametype)->current.string);
+		LoadCustomScriptsFromFolder(modeDir);
+	}
+
+	// Do not use C++ objects because Scr_LoadScript may longjmp and crash or leak memory
+	void Script::GScr_LoadGameTypeScript_Stub()
+	{
+		// Clear handles (from previous GSC loading session)
+		ScriptMainHandles.clear();
+		ScriptInitHandles.clear();
+
+		LoadCustomScripts();
+
 		Game::GScr_LoadGameTypeScript();
 	}
 

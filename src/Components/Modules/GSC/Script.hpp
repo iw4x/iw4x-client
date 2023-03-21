@@ -39,6 +39,9 @@ namespace Components::GSC
 		static std::unordered_map<std::string, int> ScriptMainHandles;
 		static std::unordered_map<std::string, int> ScriptInitHandles;
 
+		static void LoadCustomScriptsFromFolder(const char* dir);
+		static void LoadCustomScripts();
+
 		static void Scr_LoadGameType_Stub();
 		static void Scr_StartupGameType_Stub();
 		static void GScr_LoadGameTypeScript_Stub();
