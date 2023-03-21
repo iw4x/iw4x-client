@@ -8,7 +8,9 @@ namespace Components::GSC
 		IO();
 
 	private:
-		static const char* QueryStrings[];
+		static const char* ForbiddenStrings[];
+
+		static std::filesystem::path Path;
 
 		static void AddScriptFunctions();
 	};

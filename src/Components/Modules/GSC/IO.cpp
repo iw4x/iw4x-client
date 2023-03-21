@@ -4,17 +4,19 @@
 
 namespace Components::GSC
 {
-	const char* IO::QueryStrings[] = { R"(..)", R"(../)", R"(..\)" };
+	const char* IO::ForbiddenStrings[] = { R"(..)", R"(../)", R"(..\)" };
+
+	std::filesystem::path IO::Path;
 
 	void IO::AddScriptFunctions()
 	{
 		Script::AddFunction("FileWrite", [] // gsc: FileWrite(<filepath>, <string>, <mode>)
 		{
-			const auto* path = Game::Scr_GetString(0);
+			const auto* filepath = Game::Scr_GetString(0);
 			auto* text = Game::Scr_GetString(1);
 			auto* mode = Game::Scr_GetString(2);
 
-			if (!path)
+			if (!filepath)
 			{
 				Game::Scr_ParamError(0, "FileWrite: filepath is not defined!");
 				return;
@@ -26,9 +28,9 @@ namespace Components::GSC
 				return;
 			}
 
-			for (std::size_t i = 0; i < ARRAYSIZE(QueryStrings); ++i)
+			for (std::size_t i = 0; i < std::extent_v<decltype(ForbiddenStrings)>; ++i)
 			{
-				if (std::strstr(path, QueryStrings[i]) != nullptr)
+				if (std::strstr(filepath, ForbiddenStrings[i]) != nullptr)
 				{
 					Logger::PrintError(Game::CON_CHANNEL_ERROR, "FileWrite: directory traversal is not allowed!\n");
 					return;
@@ -41,102 +43,91 @@ namespace Components::GSC
 				mode = "write";
 			}
 
-			const auto* scriptData = Utils::String::VA("%s/%s", "scriptdata", path);
-
-			if (mode == "write"s)
-			{
-				FileSystem::FileWriter(scriptData).write(text);
-			}
-			else if (mode == "append"s)
-			{
-				FileSystem::FileWriter(scriptData, true).write(text);
-			}
+			const auto append = mode == "append"s;
+			const auto scriptData = Path / "scriptdata"s / filepath;
+			Utils::IO::WriteFile(scriptData.string(), text, append);
 		});
 
 		Script::AddFunction("FileRead", [] // gsc: FileRead(<filepath>)
 		{
-			const auto* path = Game::Scr_GetString(0);
-
-			if (!path)
+			const auto* filepath = Game::Scr_GetString(0);
+			if (!filepath)
 			{
 				Game::Scr_ParamError(0, "FileRead: filepath is not defined!");
 				return;
 			}
 
-			for (std::size_t i = 0; i < ARRAYSIZE(QueryStrings); ++i)
+			for (std::size_t i = 0; i < std::extent_v<decltype(ForbiddenStrings)>; ++i)
 			{
-				if (std::strstr(path, QueryStrings[i]) != nullptr)
+				if (std::strstr(filepath, ForbiddenStrings[i]) != nullptr)
 				{
 					Logger::PrintError(Game::CON_CHANNEL_ERROR, "FileRead: directory traversal is not allowed!\n");
 					return;
 				}
 			}
 
-			const auto* scriptData = Utils::String::VA("%s/%s", "scriptdata", path);
+			const auto scriptData = Path / "scriptdata"s / filepath;
 
-			const auto file = FileSystem::FileReader(scriptData);
-			if (!file.exists())
+			std::string file;
+			if (!Utils::IO::ReadFile(scriptData.string(), &file))
 			{
-				Logger::PrintError(Game::CON_CHANNEL_ERROR, "FileRead: file '{}' not found!\n", scriptData);
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "FileRead: file '{}' not found!\n", scriptData.string());
 				return;
 			}
 
-			auto buffer = file.getBuffer();
-			buffer = buffer.substr(0, 1024 - 1); // 1024 is the max string size for the SL system
-			Game::Scr_AddString(buffer.data());
+			file = file.substr(0, 1024 - 1); // 1024 is the max string size for the SL system
+			Game::Scr_AddString(file.data());
 		});
 
 		Script::AddFunction("FileExists", [] // gsc: FileExists(<filepath>)
 		{
-			const auto* path = Game::Scr_GetString(0);
-
-			if (!path)
+			const auto* filepath = Game::Scr_GetString(0);
+			if (!filepath)
 			{
 				Game::Scr_ParamError(0, "FileExists: filepath is not defined!");
 				return;
 			}
 
-			for (std::size_t i = 0; i < ARRAYSIZE(QueryStrings); ++i)
+			for (std::size_t i = 0; i < std::extent_v<decltype(ForbiddenStrings)>; ++i)
 			{
-				if (std::strstr(path, QueryStrings[i]) != nullptr)
+				if (std::strstr(filepath, ForbiddenStrings[i]) != nullptr)
 				{
 					Logger::PrintError(Game::CON_CHANNEL_ERROR, "FileExists: directory traversal is not allowed!\n");
 					return;
 				}
 			}
 
-			const auto* scriptData = Utils::String::VA("%s/%s", "scriptdata", path);
-			Game::Scr_AddBool(FileSystem::FileReader(scriptData).exists());
+			const auto scriptData = Path / "scriptdata"s / filepath;
+			Game::Scr_AddBool(Utils::IO::FileExists(scriptData.string()));
 		});
 
 		Script::AddFunction("FileRemove", [] // gsc: FileRemove(<filepath>)
 		{
-			const auto* path = Game::Scr_GetString(0);
-
-			if (!path)
+			const auto* filepath = Game::Scr_GetString(0);
+			if (!filepath)
 			{
 				Game::Scr_ParamError(0, "FileRemove: filepath is not defined!");
 				return;
 			}
 
-			for (std::size_t i = 0; i < ARRAYSIZE(QueryStrings); ++i)
+			for (std::size_t i = 0; i < std::extent_v<decltype(ForbiddenStrings)>; ++i)
 			{
-				if (std::strstr(path, QueryStrings[i]) != nullptr)
+				if (std::strstr(filepath, ForbiddenStrings[i]) != nullptr)
 				{
 					Logger::Print("FileRemove: directory traversal is not allowed!\n");
 					return;
 				}
 			}
 
-			const auto p = "scriptdata"s / std::filesystem::path(path);
-			const auto folder = p.parent_path().string();
-			const auto file = p.filename().string();
-			Game::Scr_AddInt(FileSystem::_DeleteFile(folder, file));
+			const auto scriptData = Path / "scriptdata"s / filepath;
+			Game::Scr_AddInt(Utils::IO::RemoveFile(scriptData.string()));
 		});
 	}
 
 	IO::IO()
 	{
+		Path = "userraw"s;
+
 		AddScriptFunctions();
 	}
 }
