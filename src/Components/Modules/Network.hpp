@@ -65,8 +65,8 @@ namespace Components
 		static void SendRaw(Game::netsrc_t type, Address target, const std::string& data);
 
 		// Send quake-style command using binary data
-		static void SendCommand(Address target, const std::string& command, const std::string& data = "");
-		static void SendCommand(Game::netsrc_t type, Address target, const std::string& command, const std::string& data = "");
+		static void SendCommand(Address target, const std::string& command, const std::string& data = {});
+		static void SendCommand(Game::netsrc_t type, Address target, const std::string& command, const std::string& data = {});
 
 		static void Broadcast(unsigned short port, const std::string& data);
 		static void BroadcastRange(unsigned int min, unsigned int max, const std::string& data);

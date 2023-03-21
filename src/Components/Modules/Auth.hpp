@@ -19,7 +19,7 @@ namespace Components
 		static unsigned __int64 GetKeyHash(const std::string& key);
 
 		static uint32_t GetSecurityLevel();
-		static void IncreaseSecurityLevel(uint32_t level, const std::string& command = "");
+		static void IncreaseSecurityLevel(uint32_t level, const std::string& command = {});
 
 		static uint32_t GetZeroBits(Utils::Cryptography::Token token, const std::string& publicKey);
 		static void IncrementToken(Utils::Cryptography::Token& token, Utils::Cryptography::Token& computeToken, const std::string& publicKey, uint32_t zeroBits, bool* cancel = nullptr, uint64_t* count = nullptr);
