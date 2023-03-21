@@ -200,7 +200,7 @@ namespace Components::GSC
 			}
 
 			const auto scriptData = Path / "scriptdata"s / filepath;
-			Game::Scr_AddInt(Utils::IO::RemoveFile(scriptData.string()));
+			Game::Scr_AddBool(Utils::IO::RemoveFile(scriptData.string()));
 		});
 
 		Script::AddFunction("ReadStream", GScr_ReadStream);
