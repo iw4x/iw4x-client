@@ -20,6 +20,7 @@ namespace Components::GSC
 			if (std::strstr(filepath, ForbiddenStrings[i]) != nullptr)
 			{
 				Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "OpenFile: directory traversal is not allowed!\n");
+				Game::Scr_AddInt(-1);
 				return;
 			}
 		}
