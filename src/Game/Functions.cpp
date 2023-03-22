@@ -399,25 +399,6 @@ namespace Game
 		return value;
 	}
 
-	const char* UI_LocalizeMapName(const char* mapName)
-	{
-		for (int i = 0; i < *arenaCount; ++i)
-		{
-			if (!_stricmp(Components::ArenaLength::NewArenas[i].mapName, mapName))
-			{
-				char* uiName = &Components::ArenaLength::NewArenas[i].uiName[0];
-				if ((uiName[0] == 'M' && uiName[1] == 'P') || (uiName[0] == 'P' && uiName[1] == 'A')) // MPUI/PATCH
-				{
-					return SEH_StringEd_GetString(uiName);
-				}
-
-				return uiName;
-			}
-		}
-
-		return mapName;
-	}
-
 	const char* UI_LocalizeGameType(const char* gameType)
 	{
 		if (!gameType || !*gameType)

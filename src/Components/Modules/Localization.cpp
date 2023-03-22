@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "ArenaLength.hpp"
 
 namespace Components
 {
@@ -328,6 +329,25 @@ namespace Components
 		}
 
 		return pszString;
+	}
+
+	const char* Localization::LocalizeMapName(const char* mapName)
+	{
+		for (int i = 0; i < *Game::arenaCount; ++i)
+		{
+			if (!_stricmp(ArenaLength::NewArenas[i].mapName, mapName))
+			{
+				auto* uiName = &ArenaLength::NewArenas[i].uiName[0];
+				if ((uiName[0] == 'M' && uiName[1] == 'P') || (uiName[0] == 'P' && uiName[1] == 'A')) // MPUI/PATCH
+				{
+					return Get(uiName);
+				}
+
+				return uiName;
+			}
+		}
+
+		return mapName;
 	}
 
 	Localization::Localization()

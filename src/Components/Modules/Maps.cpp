@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 
+#include "ArenaLength.hpp"
 #include "FastFiles.hpp"
 #include "RawFiles.hpp"
 #include "StartupMessages.hpp"
@@ -659,7 +660,7 @@ namespace Components
 					if (error)
 					{
 						Logger::Error(Game::ERR_DISCONNECT, "Missing DLC pack {} ({}) containing map {} ({}).\nPlease download it to play this map.",
-							pack.name, pack.index, Game::UI_LocalizeMapName(mapname.data()), mapname);
+							pack.name, pack.index, Localization::LocalizeMapName(mapname.data()), mapname);
 					}
 
 					return dlcIsTrue;

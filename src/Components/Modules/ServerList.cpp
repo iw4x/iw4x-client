@@ -118,13 +118,13 @@ namespace Components
 			{
 				if (!sorting && !Maps::CheckMapInstalled(server->mapname))
 				{
-					return Utils::String::VA("^1%s", Game::UI_LocalizeMapName(server->mapname.data()));
+					return Utils::String::VA("^1%s", Localization::LocalizeMapName(server->mapname.data()));
 				}
 
-				return Game::UI_LocalizeMapName(server->mapname.data());
+				return Localization::LocalizeMapName(server->mapname.data());
 			}
 
-			return Utils::String::VA("^3%s", Game::UI_LocalizeMapName(server->mapname.data()));
+			return Utils::String::VA("^3%s", Localization::LocalizeMapName(server->mapname.data()));
 		}
 
 		case Column::Players:

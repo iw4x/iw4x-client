@@ -1,6 +1,7 @@
 #include <STDInclude.hpp>
 #include <Utils/InfoString.hpp>
 
+#include "Modules/ArenaLength.hpp"
 #include "Modules/Bans.hpp"
 #include "Modules/Bots.hpp"
 #include "Modules/Branding.hpp"

@@ -438,7 +438,7 @@ namespace Components
 			if (!Friends::IsOnline(user.lastTime)) return "Online";
 			if (user.server.getType() == Game::NA_BAD) return "Playing IW4x";
 			if (user.serverName.empty()) return Utils::String::VA("Playing on %s", user.server.getCString());
-			return Utils::String::VA("Playing %s on %s", Game::UI_LocalizeMapName(user.mapname.data()), user.serverName.data());
+			return Utils::String::VA("Playing %s on %s", Localization::LocalizeMapName(user.mapname.data()), user.serverName.data());
 		}
 
 		default:

@@ -290,7 +290,7 @@ namespace Components
 			return maps.at(index).data();
 		}
 
-#ifdef DEBUG
+#ifdef _DEBUG
 		if (IsDebuggerPresent())
 		{
 			__debugbreak();

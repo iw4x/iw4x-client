@@ -64,7 +64,7 @@ namespace Components
 			Dvar::Var("uiSi_KillCam").set("@MENU_NO");
 			Dvar::Var("uiSi_ffType").set("@MENU_DISABLED");
 			Dvar::Var("uiSi_MapName").set(serverInfo->mapname);
-			Dvar::Var("uiSi_MapNameLoc").set(Game::UI_LocalizeMapName(serverInfo->mapname.data()));
+			Dvar::Var("uiSi_MapNameLoc").set(Localization::LocalizeMapName(serverInfo->mapname.data()));
 			Dvar::Var("uiSi_GameType").set(Game::UI_LocalizeGameType(serverInfo->gametype.data()));
 			Dvar::Var("uiSi_ModName").set("");
 			Dvar::Var("uiSi_aimAssist").set(serverInfo->aimassist ? "@MENU_YES" : "@MENU_NO");
@@ -261,7 +261,7 @@ namespace Components
 			Dvar::Var("uiSi_Hardcore").set(info.get("g_hardcore") == "0" ? "@MENU_DISABLED" : "@MENU_ENABLED");
 			Dvar::Var("uiSi_KillCam").set(info.get("scr_game_allowkillcam") == "0" ? "@MENU_NO" : "@MENU_YES");
 			Dvar::Var("uiSi_MapName").set(info.get("mapname"));
-			Dvar::Var("uiSi_MapNameLoc").set(Game::UI_LocalizeMapName(info.get("mapname").data()));
+			Dvar::Var("uiSi_MapNameLoc").set(Localization::LocalizeMapName(info.get("mapname").data()));
 			Dvar::Var("uiSi_GameType").set(Game::UI_LocalizeGameType(info.get("g_gametype").data()));
 			Dvar::Var("uiSi_ModName").set("");
 			Dvar::Var("uiSi_aimAssist").set(info.get("aimAssist") == "0" ? "@MENU_DISABLED" : "@MENU_ENABLED");

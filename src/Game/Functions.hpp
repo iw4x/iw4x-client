@@ -737,7 +737,6 @@ namespace Game
 	void Menu_SetNextCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	void Menu_SetPrevCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
-	const char* UI_LocalizeMapName(const char* mapName);
 	const char* UI_LocalizeGameType(const char* gameType);
 	float UI_GetScoreboardLeft(void*);
 
