@@ -119,7 +119,7 @@ namespace Components
 	{
 		sv_allowColoredNames = Dvar::Register<bool>("sv_allowColoredNames", true, Game::DVAR_NONE, "Allow colored names on the server");
 
-		// Disable SV_UpdateUserinfo_f, to block changing the name ingame
+		// Disable SV_UpdateUserinfo_f to block changing the name ingame
 		Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
 
 		// Allow colored names ingame. Hook placed in ClientUserinfoChanged
