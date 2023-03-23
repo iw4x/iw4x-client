@@ -226,7 +226,7 @@ namespace Components
 		Command::Add("ipcping", []([[maybe_unused]] Command::Params* params)
 		{
 			Logger::Print("Sending ping to pipe!\n");
-			Write("ping", "");
+			Write("ping", {});
 		});
 	}
 

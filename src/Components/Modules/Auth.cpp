@@ -451,7 +451,7 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4D0D60, 0xC301B0);
 
 		// Guid command
-		Command::Add("guid", [](Command::Params*)
+		Command::Add("guid", []
 		{
 			Logger::Print("Your guid: {:#X}\n", Steam::SteamUser()->GetSteamID().bits);
 		});

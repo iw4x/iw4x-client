@@ -461,8 +461,8 @@ namespace Components
 
 			if (params->size() < 2) return;
 
-			auto message = params->join(1);
-			auto name = sv_sayName.get<std::string>();
+			const auto message = params->join(1);
+			const auto name = sv_sayName.get<std::string>();
 
 			if (!name.empty())
 			{
@@ -486,19 +486,21 @@ namespace Components
 
 			if (params->size() < 3) return;
 
-			const auto client = std::atoi(params->get(1));
-			auto message = params->join(2);
-			auto name = sv_sayName.get<std::string>();
+			const auto parsedInput = std::strtoul(params->get(1), nullptr, 10);
+			const auto clientNum = static_cast<int>(std::min<std::size_t>(parsedInput, Game::MAX_CLIENTS));
+
+			const auto message = params->join(2);
+			const auto name = sv_sayName.get<std::string>();
 
 			if (!name.empty())
 			{
-				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name.data(), message));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "{} -> {}: {}\n", name, client, message);
+				Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name.data(), message));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "{} -> {}: {}\n", name, clientNum, message);
 			}
 			else
 			{
-				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Console -> {}: {}\n", client, message);
+				Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Console -> {}: {}\n", clientNum, message);
 			}
 		});
 
@@ -512,7 +514,7 @@ namespace Components
 
 			if (params->size() < 2) return;
 
-			auto message = params->join(1);
+			const auto message = params->join(1);
 			Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
 			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw: {}\n", message);
 		});
@@ -527,10 +529,12 @@ namespace Components
 
 			if (params->size() < 3) return;
 
-			const auto client = atoi(params->get(1));
-			std::string message = params->join(2);
-			Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
-			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw -> {}: {}\n", client, message);
+			const auto parsedInput = std::strtoul(params->get(1), nullptr, 10);
+			const auto clientNum = static_cast<int>(std::min<std::size_t>(parsedInput, Game::MAX_CLIENTS));
+
+			const auto message = params->join(2);
+			Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw -> {}: {}\n", clientNum, message);
 		});
 
 		sv_sayName = Dvar::Register<const char*>("sv_sayName", "^7Console", Game::DVAR_NONE, "The alias of the server when broadcasting a chat message");

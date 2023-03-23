@@ -45,7 +45,7 @@ namespace Utils::String
 
 	bool Compare(const std::string& lhs, const std::string& rhs)
 	{
-		return std::ranges::equal(lhs, rhs, [](const unsigned char a, const unsigned char b)
+		return std::ranges::equal(lhs, rhs, [](const unsigned char a, const unsigned char b) -> bool
 		{
 			return std::tolower(a) == std::tolower(b);
 		});

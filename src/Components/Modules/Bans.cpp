@@ -259,17 +259,17 @@ namespace Components
 				}
 			}
 
-			const auto num = std::atoi(input);
-			if (num < 0 || num >= *Game::svs_clientCount)
+			const auto clientNum = std::strtoul(input, nullptr, 10);
+			if (clientNum >= Game::MAX_CLIENTS)
 			{
-				Logger::Print("Bad client slot: {}\n", num);
+				Logger::Print("Bad client slot: {}\n", clientNum);
 				return;
 			}
 
-			const auto* cl = &Game::svs_clients[num];
-			if (cl->header.state == Game::CS_FREE)
+			const auto* cl = &Game::svs_clients[clientNum];
+			if (cl->header.state < Game::CS_ACTIVE)
 			{
-				Logger::Print("Client {} is not active\n", num);
+				Logger::Print("Client {} is not active\n", clientNum);
 				return;
 			}
 
@@ -279,7 +279,7 @@ namespace Components
 			}
 
 			const std::string reason = params->size() < 3 ? "EXE_ERR_BANNED_PERM" : params->join(2);
-			BanClient(&Game::svs_clients[num], reason);
+			BanClient(&Game::svs_clients[clientNum], reason);
 		});
 
 		Command::Add("unbanClient", [](Command::Params* params)
@@ -309,7 +309,7 @@ namespace Components
 			else if (type == "guid"s)
 			{
 				SteamID id;
-				id.bits = strtoull(params->get(2), nullptr, 16);
+				id.bits = std::strtoull(params->get(2), nullptr, 16);
 
 				UnbanClient(id);
 
