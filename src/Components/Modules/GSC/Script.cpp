@@ -101,7 +101,7 @@ namespace Components::GSC
 		LoadCustomScriptsFromFolder(mapDir);
 
 		// Mode specific
-		const auto modeDir = Utils::String::Format("scripts/mp/{}", (*Game::g_gametype)->current.string);
+		const auto* modeDir = Utils::String::Format("scripts/mp/{}", (*Game::g_gametype)->current.string);
 		LoadCustomScriptsFromFolder(modeDir);
 	}
 

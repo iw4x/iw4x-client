@@ -73,7 +73,7 @@ namespace Utils::String
 		Entry stringPool[Buffers];
 	};
 
-	template <typename Arg> // This should display a nice "null" instead of a number
+	template <typename Arg> // This should display a nice "nullptr" instead of a number
 	static void SanitizeFormatArgs(Arg& arg)
 	{
 		if constexpr (std::is_same_v<Arg, char*> || std::is_same_v<Arg, const char*>)

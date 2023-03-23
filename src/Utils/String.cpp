@@ -24,7 +24,7 @@ namespace Utils::String
 	std::string ToLower(const std::string& text)
 	{
 		std::string result;
-		std::ranges::transform(text, std::back_inserter(result), [](const unsigned char input)
+		std::ranges::transform(text, std::back_inserter(result), [](const unsigned char input) -> char
 		{
 			return static_cast<char>(std::tolower(input));
 		});
@@ -35,7 +35,7 @@ namespace Utils::String
 	std::string ToUpper(const std::string& text)
 	{
 		std::string result;
-		std::ranges::transform(text, std::back_inserter(result), [](const unsigned char input)
+		std::ranges::transform(text, std::back_inserter(result), [](const unsigned char input) -> char
 		{
 			return static_cast<char>(std::toupper(input));
 		});

@@ -103,6 +103,7 @@ namespace Game
 	MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey = MSG_ReadDeltaUsercmdKey_t(0x491F00);
 	MSG_ReadBitsCompress_t MSG_ReadBitsCompress = MSG_ReadBitsCompress_t(0x4DCC30);
 	MSG_WriteBitsCompress_t MSG_WriteBitsCompress = MSG_WriteBitsCompress_t(0x4319D0);
+	Huff_offsetReceive_t Huff_offsetReceive = Huff_offsetReceive_t(0x466060);
 
 	NetadrToSockadr_t NetadrToSockadr = NetadrToSockadr_t(0x4B4B40);
 
@@ -388,6 +389,8 @@ namespace Game
 	int* numtokens = reinterpret_cast<int*>(0x7C4BA0);
 
 	bool* s_havePlaylists = reinterpret_cast<bool*>(0x1AD3680);
+
+	huffman_t* msgHuff = reinterpret_cast<huffman_t*>(0x1CB9EC0);
 
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{

@@ -11011,6 +11011,31 @@ namespace Game
 		snd_alias_list_t* aliasList;
 	};
 
+	struct nodetype
+	{
+		nodetype* left;
+		nodetype* right;
+		nodetype* parent;
+		int weight;
+		int symbol;
+	};
+
+	struct huff_t
+	{
+		int blocNode;
+		int blocPtrs;
+		nodetype* tree;
+		nodetype* loc[257];
+		nodetype** freelist;
+		nodetype nodeList[768];
+		nodetype* nodePtrs[768];
+	};
+
+	struct huffman_t
+	{
+		huff_t compressDecompress;
+	};
+
 #pragma endregion
 
 #ifndef IDA

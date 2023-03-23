@@ -93,9 +93,9 @@ namespace Components
 
 			Game::unzClose(this->searchPath.iwd->handle);
 
-			auto _free = Utils::Hook::Call<void(void*)>(0x6B5CF2);
-			_free(this->searchPath.iwd->buildBuffer);
-			_free(this->searchPath.iwd);
+			// Use game's free function
+			Utils::Hook::Call<void(void*)>(0x6B5CF2)(this->searchPath.iwd->buildBuffer);
+			Utils::Hook::Call<void(void*)>(0x6B5CF2)(this->searchPath.iwd);
 
 			ZeroMemory(&this->searchPath, sizeof this->searchPath);
 		}
