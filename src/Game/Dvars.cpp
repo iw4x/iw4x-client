@@ -97,7 +97,7 @@ namespace Game
 	const dvar_t** ip = reinterpret_cast<const dvar_t**>(0x64A1DF8);
 	const dvar_t** port = reinterpret_cast<const dvar_t**>(0x64A3004);
 
-	__declspec(naked) void Dvar_SetVariant(dvar_t*, DvarValue, DvarSetSource)
+	__declspec(naked) void Dvar_SetVariant(dvar_t* /*dvar*/, DvarValue /*value*/, DvarSetSource /*source*/)
 	{
 		static DWORD Dvar_SetVariant_t = 0x647400;
 
