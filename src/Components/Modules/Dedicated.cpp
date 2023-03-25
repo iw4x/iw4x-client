@@ -264,9 +264,9 @@ namespace Components
 					// Dedicated only behaviour from IW5MP Dedicated Server.
 					if (com_dedicated->current.integer != 1 && com_dedicated->current.integer != 2)
 					{
-						Game::DvarValue val;
-						val.integer = 0;
-						Game::Dvar_SetVariant(const_cast<Game::dvar_t*>(com_dedicated), val, Game::DVAR_SOURCE_INTERNAL);
+						Game::DvarValue value;
+						value.integer = 0;
+						Game::Dvar_SetVariant(const_cast<Game::dvar_t*>(com_dedicated), value, Game::DVAR_SOURCE_INTERNAL);
 
 					}
 				});
