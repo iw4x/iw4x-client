@@ -12,6 +12,8 @@ namespace Components
 {
 	std::vector<Bots::botData> Bots::BotNames;
 
+	Dvar::Var Bots::SVRandomBotNames;
+
 	struct BotMovementInfo
 	{
 		std::int32_t buttons; // Actions
@@ -47,6 +49,13 @@ namespace Components
 		{ "usereload", Game::CMD_BUTTON_USE_RELOAD },
 		{ "activate", Game::CMD_BUTTON_ACTIVATE },
 	};
+
+	void Bots::RandomizeBotNames()
+	{
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::ranges::shuffle(BotNames, gen);
+	}
 
 	void Bots::LoadBotNames()
 	{
@@ -86,6 +95,11 @@ namespace Components
 			}
 
 			BotNames.emplace_back(entry, clanAbbrev);
+		}
+
+		if (SVRandomBotNames.get<bool>())
+		{
+			RandomizeBotNames();
 		}
 	}
 
@@ -350,6 +364,8 @@ namespace Components
 		Utils::Hook(0x627241, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
+
+		SVRandomBotNames = Dvar::Register<bool>("sv_RandomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
 
 		// Reset BotMovementInfo.active when client is dropped
 		Events::OnClientDisconnect([](const int clientNum)
