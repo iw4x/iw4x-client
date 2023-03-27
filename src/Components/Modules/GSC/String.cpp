@@ -5,6 +5,8 @@
 
 namespace Components::GSC
 {
+	using namespace Utils::String;
+
 	void String::AddScriptFunctions()
 	{
 		Script::AddFunction("ToUpper", [] // gsc: ToUpper(<string>)
@@ -122,7 +124,7 @@ namespace Components::GSC
 				Game::Scr_AddFloat(static_cast<float>(Game::Scr_GetInt(0)));
 				break;
 			default:
-				Game::Scr_ParamError(0, Utils::String::VA("cannot cast %s to float", Game::Scr_GetTypeName(0)));
+				Game::Scr_ParamError(0, VA("cannot cast %s to float", Game::Scr_GetTypeName(0)));
 				break;
 			}
 		});
@@ -140,6 +142,22 @@ namespace Components::GSC
 			}
 
 			Game::Scr_AddInt(result);
+		});
+
+		Script::AddFunction("IString", [] // gsc: IString(<string>)
+		{
+			if (Game::Scr_GetType(0) != Game::VAR_STRING)
+			{
+				Game::Scr_ParamError(0, VA("cannot cast %s to istring", Game::Scr_GetTypeName(0)));
+				return;
+			}
+
+			const auto value = Game::Scr_GetConstString(0);
+
+			Game::SL_AddRefToString(value);
+			Game::Scr_AddIString(Game::Scr_GetString(0));
+
+			Game::SL_RemoveRefToString(value);
 		});
 	}
 
