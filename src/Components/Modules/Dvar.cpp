@@ -432,6 +432,9 @@ namespace Components
 		// Uncheat ui_debugMode
 		Utils::Hook::Xor<std::uint8_t>(0x6312DE, Game::DVAR_CHEAT);
 
+		// Uncheat jump_slowdownEnable
+		Utils::Hook::Xor<std::uint32_t>(0x4EFABE, Game::DVAR_CHEAT);
+
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar_RegisterName, HOOK_CALL).install()->quick();
 

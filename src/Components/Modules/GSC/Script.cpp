@@ -286,7 +286,7 @@ namespace Components::GSC
 		Utils::Hook(0x5F41A3, SetExpFogStub, HOOK_CALL).install()->quick();
 
 		// Restore IW3's compiler behaviour when dealing with 'overriding builtin function'
-		Utils::Hook::Nop(0x613EDA, 2);
-		Utils::Hook::Nop(0x613EF0, 2);
+		Utils::Hook::Nop(0x613EDA, 2); // Scr_GetFunction
+		Utils::Hook::Nop(0x613EF0, 2); // Scr_GetMethod
 	}
 }
