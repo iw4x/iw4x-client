@@ -28,7 +28,12 @@ namespace Components
 
 	void Logger::MessagePrint(const int channel, const std::string& msg)
 	{
-		if (Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests())
+		static const auto shouldPrint = []() -> bool
+		{
+			return Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests();
+		}();
+
+		if (shouldPrint)
 		{
 			std::printf("%s", msg.data());
 			std::fflush(stdout);

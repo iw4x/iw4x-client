@@ -26,6 +26,8 @@ namespace Components
 	volatile bool Download::Terminate;
 	bool Download::ServerRunning;
 
+	std::string Download::MongooseLogBuffer;
+
 #pragma region Client
 
 	void Download::InitiateMapDownload(const std::string& map, bool needPassword)
@@ -416,6 +418,19 @@ namespace Components
 
 #pragma region Server
 
+	void Download::LogFn(char c, [[maybe_unused]] void* param)
+	{
+		// Truncate & print if buffer is 1024 characters in length or otherwise only print when we reached a 'new line'
+		if (!std::isprint(static_cast<unsigned char>(c)) || MongooseLogBuffer.size() == 1024)
+		{
+			Logger::Print(Game::CON_CHANNEL_NETWORK, "{}\n", MongooseLogBuffer);
+			MongooseLogBuffer.clear();
+			return;
+		}
+
+		MongooseLogBuffer.push_back(c);
+	}
+
 	static std::string InfoHandler()
 	{
 		const auto status = ServerInfo::GetInfo();
@@ -462,7 +477,7 @@ namespace Components
 		}
 
 		info["players"] = players;
-		return {nlohmann::json(info).dump()};
+		return nlohmann::json(info).dump();
 	}
 
 	static std::string ListHandler()
@@ -508,7 +523,7 @@ namespace Components
 			jsonList = fileList;
 		}
 
-		return {jsonList.dump()};
+		return jsonList.dump();
 	}
 
 	static std::string MapHandler()
@@ -552,7 +567,7 @@ namespace Components
 			jsonList = fileList;
 		}
 
-		return {jsonList.dump()};
+		return jsonList.dump();
 	}
 
 	static void FileHandler(mg_connection* c, const mg_http_message* hm)
@@ -668,6 +683,13 @@ namespace Components
 		{
 			if (!Flags::HasFlag("disable-mongoose"))
 			{
+#ifdef _DEBUG
+				mg_log_set(MG_LL_INFO);
+#else
+				mg_log_set(MG_LL_ERROR);
+#endif
+
+				mg_log_set_fn(LogFn, nullptr);
 				mg_mgr_init(&Mgr);
 
 				Network::OnStart([]
