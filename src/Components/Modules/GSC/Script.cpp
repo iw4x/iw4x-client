@@ -288,6 +288,5 @@ namespace Components::GSC
 		// Restore IW3's compiler behaviour when dealing with 'overriding builtin function'
 		Utils::Hook::Nop(0x613EDA, 2);
 		Utils::Hook::Nop(0x613EF0, 2);
-		Utils::Hook::Set<std::uint8_t>(0x613EF9, 0xEB);
 	}
 }
