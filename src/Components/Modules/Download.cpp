@@ -9,6 +9,8 @@
 
 #include <mongoose.h>
 
+#define MG_OVERRIDE_LOG_FN
+
 namespace Components
 {
 	static mg_mgr Mgr;
@@ -689,7 +691,10 @@ namespace Components
 				mg_log_set(MG_LL_ERROR);
 #endif
 
+#ifdef MG_OVERRIDE_LOG_FN
 				mg_log_set_fn(LogFn, nullptr);
+#endif
+
 				mg_mgr_init(&Mgr);
 
 				Network::OnStart([]

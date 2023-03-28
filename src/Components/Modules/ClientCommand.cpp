@@ -61,31 +61,8 @@ namespace Components
 
 	void ClientCommand::AddCheatCommands()
 	{
-		Add("noclip", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
-		{
-			if (!CheatsOk(ent))
-				return;
-
-			ent->client->flags ^= Game::PF_NOCLIP;
-
-			const auto entNum = ent->s.number;
-			Logger::Debug("Noclip toggled for entity {}", entNum);
-
-			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::PF_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
-		});
-
-		Add("ufo", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
-		{
-			if (!CheatsOk(ent))
-				return;
-
-			ent->client->flags ^= Game::PF_UFO;
-
-			const auto entNum = ent->s.number;
-			Logger::Debug("UFO toggled for entity {}", entNum);
-
-			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::PF_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
-		});
+		Add("noclip", Cmd_Noclip_f);
+		Add("ufo", Cmd_UFO_f);
 
 		Add("god", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
@@ -369,6 +346,21 @@ namespace Components
 		});
 	}
 
+	void ClientCommand::AddScriptMethods()
+	{
+		GSC::Script::AddMethod("Noclip", [](const Game::scr_entref_t entref) // gsc: self Noclip();
+		{
+			auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+			Cmd_Noclip_f(ent, nullptr);
+		});
+
+		GSC::Script::AddMethod("Ufo", [](const Game::scr_entref_t entref) // gsc: self Ufo();
+		{
+			auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+			Cmd_UFO_f(ent, nullptr);
+		});
+	}
+
 	const char* ClientCommand::EntInfoLine(const int entNum)
 	{
 		const auto* ent = &Game::g_entities[entNum];
@@ -477,6 +469,32 @@ namespace Components
 		Logger::Print(Game::CON_CHANNEL_SERVER, "Done writing file.\n");
 	}
 
+	void ClientCommand::Cmd_Noclip_f(Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+	{
+		if (!CheatsOk(ent))
+			return;
+
+		ent->client->flags ^= Game::PF_NOCLIP;
+
+		const auto entNum = ent->s.number;
+		Logger::Debug("Noclip toggled for entity {}", entNum);
+
+		Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::PF_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
+	}
+
+	void ClientCommand::Cmd_UFO_f(Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+	{
+		if (!CheatsOk(ent))
+			return;
+
+		ent->client->flags ^= Game::PF_UFO;
+
+		const auto entNum = ent->s.number;
+		Logger::Debug("UFO toggled for entity {}", entNum);
+
+		Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::PF_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
+	}
+
 	ClientCommand::ClientCommand()
 	{
 		AssertOffset(Game::playerState_s, stats, 0x150);
@@ -486,6 +504,7 @@ namespace Components
 
 		AddCheatCommands();
 		AddScriptFunctions();
+		AddScriptMethods();
 #ifdef _DEBUG
 		AddDevelopmentCommands();
 #endif
