@@ -624,6 +624,9 @@ namespace Components
 		Utils::Hook(0x4D00D4, PostSayStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4D0110, PostSayStub, HOOK_CALL).install()->quick();
 
+		// Patch G_SayTo to use SV_CMD_RELIABLE
+		Utils::Hook::Set<std::uint8_t>(0x5DF7E3, Game::SV_CMD_RELIABLE);
+
 		// Change logic that does word splitting with new lines for chat messages to support fonticons
 		Utils::Hook(0x592E10, CG_AddToTeamChat_Stub, HOOK_JUMP).install()->quick();
 
