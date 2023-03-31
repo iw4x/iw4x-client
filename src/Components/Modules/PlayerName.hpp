@@ -16,6 +16,8 @@ namespace Components
 		// Message used when kicking players
 		static constexpr auto INVALID_NAME_MSG = "Invalid name detected";
 
+		static bool IsBadChar(int c);
+
 		static char* CleanStrStub(char* string);
 		static void ClientCleanName();
 

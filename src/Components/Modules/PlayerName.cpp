@@ -6,6 +6,21 @@ namespace Components
 {
 	Dvar::Var PlayerName::sv_allowColoredNames;
 
+	bool PlayerName::IsBadChar(int c)
+	{
+		if (c == '%')
+		{
+			return true;
+		}
+
+		if (c < 32 || c > 126)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 	void PlayerName::UserInfoCopy(char* buffer, const char* name, const int size)
 	{
 		if (!sv_allowColoredNames.get<bool>())
@@ -71,13 +86,8 @@ namespace Components
 		while (i < size - 1 && dest[i] != '\0')
 		{
 			// Check for various illegal characters
-
-			if (dest[i] == '%')
-			{
-				return false;
-			}
-
-			if (std::iscntrl(static_cast<unsigned char>(dest[i])))
+			const auto c = static_cast<unsigned char>(dest[i]);
+			if (IsBadChar(c))
 			{
 				return false;
 			}
