@@ -6,26 +6,6 @@ namespace Components
 {
 	Dvar::Var PlayerName::sv_allowColoredNames;
 
-	bool PlayerName::IsBadChar(int c)
-	{
-		if (c == '%')
-		{
-			return true;
-		}
-
-		if (c == '~')
-		{
-			return true;
-		}
-
-		if (c < 32 || c > 126)
-		{
-			return true;
-		}
-
-		return false;
-	}
-
 	void PlayerName::UserInfoCopy(char* buffer, const char* name, const int size)
 	{
 		if (!sv_allowColoredNames.get<bool>())
@@ -83,6 +63,26 @@ namespace Components
 		return string;
 	}
 
+	bool PlayerName::IsBadChar(int c)
+	{
+		if (c == '%')
+		{
+			return true;
+		}
+
+		if (c == '~')
+		{
+			return true;
+		}
+
+		if (c < 32 || c > 126)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 	bool PlayerName::CopyClientNameCheck(char* dest, const char* source, int size)
 	{
 		Utils::Hook::Call<void(char*, const char*, int)>(0x4D6F80)(dest, source, size); // I_strncpyz
@@ -103,10 +103,15 @@ namespace Components
 		return true;
 	}
 
+	void PlayerName::DropClient(Game::client_t* drop)
+	{
+		const auto* reason = "Invalid name detected";
+		Network::SendCommand(drop->header.netchan.remoteAddress, "error", reason);
+		Game::SV_DropClient(drop, reason, false);
+	}
+
 	__declspec(naked) void PlayerName::SV_UserinfoChangedStub()
 	{
-		using namespace Game;
-
 		__asm
 		{
 			call CopyClientNameCheck
@@ -116,11 +121,9 @@ namespace Components
 
 			pushad
 
-			push 1 // tellThem
-			push INVALID_NAME_MSG // reason
 			push edi // drop
-			call SV_DropClient
-			add esp, 0xC
+			call DropClient
+			add esp, 0x4
 
 			popad
 
