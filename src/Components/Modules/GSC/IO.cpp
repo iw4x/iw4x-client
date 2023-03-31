@@ -68,7 +68,7 @@ namespace Components::GSC
 			return;
 		}
 
-		Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "ReadStream failed.\n");
+		Logger::Warning(Game::CON_CHANNEL_PARSERSCRIPT, "ReadStream failed.\n");
 		
 		if (std::feof(openScriptIOFileHandle))
 		{
@@ -219,5 +219,14 @@ namespace Components::GSC
 
 		Utils::Hook::Set<Game::BuiltinFunction>(0x79A864, GScr_CloseFile);
 		Utils::Hook::Set<int>(0x79A868, 0);
+
+		Events::OnVMShutdown([]
+		{
+			if (openScriptIOFileHandle)
+			{
+				std::fclose(openScriptIOFileHandle);
+				openScriptIOFileHandle = nullptr;
+			}
+		});
 	}
 }

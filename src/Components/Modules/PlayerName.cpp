@@ -13,6 +13,11 @@ namespace Components
 			return true;
 		}
 
+		if (c == '~')
+		{
+			return true;
+		}
+
 		if (c < 32 || c > 126)
 		{
 			return true;
