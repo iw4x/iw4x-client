@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 
+#include "ArenaLength.hpp"
 #include "FastFiles.hpp"
 #include "RawFiles.hpp"
 #include "StartupMessages.hpp"
@@ -92,9 +93,9 @@ namespace Components
 
 			Game::unzClose(this->searchPath.iwd->handle);
 
-			auto _free = Utils::Hook::Call<void(void*)>(0x6B5CF2);
-			_free(this->searchPath.iwd->buildBuffer);
-			_free(this->searchPath.iwd);
+			// Use game's free function
+			Utils::Hook::Call<void(void*)>(0x6B5CF2)(this->searchPath.iwd->buildBuffer);
+			Utils::Hook::Call<void(void*)>(0x6B5CF2)(this->searchPath.iwd);
 
 			ZeroMemory(&this->searchPath, sizeof this->searchPath);
 		}
@@ -619,8 +620,8 @@ namespace Components
 		{
 			if (entry.is_directory())
 			{
-				auto zoneName = entry.path().filename().string();
-				auto mapPath = std::format("{}\\{}.ff", entry.path().string(), zoneName);
+				const auto zoneName = entry.path().filename().string();
+				const auto mapPath = std::format("{}\\{}.ff", entry.path().string(), zoneName);
 				if (Utils::IO::FileExists(mapPath))
 				{
 					FoundCustomMaps.push_back(zoneName);
@@ -659,7 +660,7 @@ namespace Components
 					if (error)
 					{
 						Logger::Error(Game::ERR_DISCONNECT, "Missing DLC pack {} ({}) containing map {} ({}).\nPlease download it to play this map.",
-							pack.name, pack.index, Game::UI_LocalizeMapName(mapname.data()), mapname);
+							pack.name, pack.index, Localization::LocalizeMapName(mapname.data()), mapname);
 					}
 
 					return dlcIsTrue;
@@ -758,8 +759,8 @@ namespace Components
 
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
 			Maps::AddDlc({ 2, "Resurgence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });
-			Maps::AddDlc({ 3, "IW4x Classics", {"mp_nuked", "mp_cross_fire", "mp_cargoship", "mp_bloc", "mp_killhouse", "mp_bog_sh", "mp_cargoship_sh", "mp_shipment_long", "mp_rust_long", "mp_firingrange", "mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"} });
-			Maps::AddDlc({ 4, "Call Of Duty 4 Pack", {"mp_farm", "mp_backlot", "mp_pipeline", "mp_countdown", "mp_crash_snow", "mp_carentan", "mp_broadcast", "mp_showdown", "mp_convoy"} });
+			Maps::AddDlc({ 3, "IW4x Classics", {"mp_nuked", "mp_cross_fire", "mp_cargoship", "mp_bloc", "mp_killhouse", "mp_bog_sh", "mp_cargoship_sh", "mp_shipment", "mp_shipment_long", "mp_rust_long", "mp_firingrange", "mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"} });
+			Maps::AddDlc({ 4, "Call Of Duty 4 Pack", {"mp_farm", "mp_backlot", "mp_pipeline", "mp_countdown", "mp_crash_snow", "mp_carentan", "mp_broadcast", "mp_showdown", "mp_convoy", "mp_citystreets"} });
 			Maps::AddDlc({ 5, "Modern Warfare 3 Pack", {"mp_dome", "mp_hardhat", "mp_paris", "mp_seatown", "mp_bravo", "mp_underground", "mp_plaza2", "mp_village", "mp_alpha"}});
 
 			Maps::UpdateDlcStatus();

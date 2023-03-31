@@ -21,7 +21,7 @@ namespace Components
 		{Game::GPAD_UP, Game::K_DPAD_UP},
 		{Game::GPAD_DOWN, Game::K_DPAD_DOWN},
 		{Game::GPAD_LEFT, Game::K_DPAD_LEFT},
-		{Game::GPAD_RIGHT, Game::K_DPAD_RIGHT}
+		{Game::GPAD_RIGHT, Game::K_DPAD_RIGHT},
 	};
 
 	Game::StickToCodeMap_t Gamepad::analogStickList[4]
@@ -712,6 +712,8 @@ namespace Components
 
 	void Gamepad::AimAssist_UpdateGamePadInput(const Game::AimInput* input, Game::AimOutput* output)
 	{
+		assert(input);
+		assert(output);
 		AssertIn(input->localClientNum, Game::STATIC_MAX_LOCAL_CLIENTS);
 
 		auto& aaGlob = Game::aaGlobArray[input->localClientNum];
@@ -724,13 +726,11 @@ namespace Components
 			Game::AimAssist_UpdateTweakables(input->localClientNum);
 			Game::AimAssist_UpdateAdsLerp(input);
 			AimAssist_ApplyTurnRates(input, output);
-
-			// Automelee has already been done by keyboard so don't do it again
-
+			Game::AimAssist_ApplyAutoMelee(input, output);
 			AimAssist_ApplyLockOn(input, output);
-		}
 
-		aaGlob.prevButtons = input->buttons;
+			aaGlob.prevButtons = input->buttons;
+		}
 	}
 
 	void Gamepad::CL_RemoteControlMove_GamePad(const int localClientNum, Game::usercmd_s* cmd)
@@ -960,6 +960,10 @@ namespace Components
 			aimInput.forwardAxis = forward;
 			aimInput.rightAxis = side;
 			AimAssist_UpdateGamePadInput(&aimInput, &aimOutput);
+
+			cmd->meleeChargeDist = aimOutput.meleeChargeDist;
+			cmd->meleeChargeYaw = aimOutput.meleeChargeYaw;
+
 			clientActive.clViewangles[0] = aimOutput.pitch;
 			clientActive.clViewangles[1] = aimOutput.yaw;
 		}

@@ -35,14 +35,14 @@ namespace Components::GSC
 
 	void ScriptExtension::GScr_AddFieldsForEntityStub()
 	{
-		for (const auto& [offset, field] : CustomEntityFields)
+		for (const auto& field : CustomEntityFields | std::views::values)
 		{
 			Game::Scr_AddClassField(Game::ClassNum::CLASS_NUM_ENTITY, field.name, field.ofs);
 		}
 
 		Utils::Hook::Call<void()>(0x4A7CF0)(); // GScr_AddFieldsForClient
 
-		for (const auto& [offset, field] : CustomClientFields)
+		for (const auto& field : CustomClientFields | std::views::values)
 		{
 			Game::Scr_AddClassField(Game::ClassNum::CLASS_NUM_ENTITY, field.name, field.ofs);
 		}

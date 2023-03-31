@@ -311,7 +311,7 @@ namespace Components
 		if (item < Demos.size())
 		{
 			auto info = Demos.at(item);
-			return Utils::String::VA("%s on %s", Game::UI_LocalizeGameType(info.gametype.data()), Game::UI_LocalizeMapName(info.mapname.data()));
+			return Utils::String::VA("%s on %s", Game::UI_LocalizeGameType(info.gametype.data()), Localization::LocalizeMapName(info.mapname.data()));
 		}
 
 		return "";
@@ -330,7 +330,7 @@ namespace Components
 			asctime_s(buffer, sizeof buffer, &time);
 
 			Dvar::Var("ui_demo_mapname").set(info.mapname);
-			Dvar::Var("ui_demo_mapname_localized").set(Game::UI_LocalizeMapName(info.mapname.data()));
+			Dvar::Var("ui_demo_mapname_localized").set(Localization::LocalizeMapName(info.mapname.data()));
 			Dvar::Var("ui_demo_gametype").set(Game::UI_LocalizeGameType(info.gametype.data()));
 			Dvar::Var("ui_demo_length").set(Utils::String::FormatTimeSpan(info.length));
 			Dvar::Var("ui_demo_author").set(info.author);

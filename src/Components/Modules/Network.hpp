@@ -8,7 +8,7 @@ namespace Components
 		class Address
 		{
 		public:
-			Address() { setType(Game::NA_BAD); }
+			Address();
 			Address(const std::string& addrString);
 			Address(sockaddr* addr);
 			Address(sockaddr addr) : Address(&addr) {}
@@ -33,7 +33,7 @@ namespace Components
 			[[nodiscard]] sockaddr getSockAddr();
 			void toSockAddr(sockaddr* addr);
 			void toSockAddr(sockaddr_in* addr);
-			Game::netadr_t* get();
+			[[nodiscard]] const Game::netadr_t* get() const noexcept;
 			[[nodiscard]] const char* getCString() const;
 			[[nodiscard]] std::string getString() const;
 
@@ -57,16 +57,16 @@ namespace Components
 		static void OnStart(const Utils::Slot<CallbackRaw>& callback);
 		
 		// Send quake-styled binary data
-		static void Send(Address target, const std::string& data);
-		static void Send(Game::netsrc_t type, Address target, const std::string& data);
+		static void Send(const Address& target, const std::string& data);
+		static void Send(Game::netsrc_t type, const Address& target, const std::string& data);
 
 		// Allows sending raw data without quake header
-		static void SendRaw(Address target, const std::string& data);
-		static void SendRaw(Game::netsrc_t type, Address target, const std::string& data);
+		static void SendRaw(const Address& target, const std::string& data);
+		static void SendRaw(Game::netsrc_t type, const Address& target, const std::string& data);
 
 		// Send quake-style command using binary data
-		static void SendCommand(Address target, const std::string& command, const std::string& data = "");
-		static void SendCommand(Game::netsrc_t type, Address target, const std::string& command, const std::string& data = "");
+		static void SendCommand(const Address& target, const std::string& command, const std::string& data = {});
+		static void SendCommand(Game::netsrc_t type, const Address& target, const std::string& command, const std::string& data = {});
 
 		static void Broadcast(unsigned short port, const std::string& data);
 		static void BroadcastRange(unsigned int min, unsigned int max, const std::string& data);

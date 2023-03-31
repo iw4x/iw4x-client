@@ -72,16 +72,20 @@ namespace Components::GSC
 			const auto* op = Game::Scr_GetString(1);
 			const auto b = GetInt64Arg(2, true);
 
-			if (const auto itr = Operations.find(op); itr != Operations.end())
 			{
-				Game::Scr_AddString(Utils::String::VA("%lld", itr->second(a, b)));
-				return;
+				if (const auto itr = Operations.find(op); itr != Operations.end())
+				{
+					Game::Scr_AddString(Utils::String::VA("%lld", itr->second(a, b)));
+					return;
+				}
 			}
 
-			if (const auto itr = Comparisons.find(op); itr != Comparisons.end())
 			{
-				Game::Scr_AddBool(itr->second(a, b));
-				return;
+				if (const auto itr = Comparisons.find(op); itr != Comparisons.end())
+				{
+					Game::Scr_AddBool(itr->second(a, b));
+					return;
+				}
 			}
 
 			Game::Scr_ParamError(1, "Invalid int64 operation");

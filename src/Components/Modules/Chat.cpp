@@ -63,13 +63,13 @@ namespace Components
 		if (IsMuted(player))
 		{
 			SendChat = false;
-			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You are muted\"", 0x65));
+			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_RELIABLE, Utils::String::VA("%c \"You are muted\"", 0x65));
 		}
 
 		if (sv_disableChat.get<bool>())
 		{
 			SendChat = false;
-			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
+			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_RELIABLE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
 		}
 
 		// Message might be empty after processing the '/'
@@ -302,7 +302,7 @@ namespace Components
 		});
 
 		Logger::Print("{} was muted\n", client->name);
-		Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You were muted\"", 0x65));
+		Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_RELIABLE, Utils::String::VA("%c \"You were muted\"", 0x65));
 	}
 
 	void Chat::UnmuteClient(const Game::client_t* client)
@@ -310,7 +310,7 @@ namespace Components
 		UnmuteInternal(client->steamID);
 
 		Logger::Print("{} was unmuted\n", client->name);
-		Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You were unmuted\"", 0x65));
+		Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_RELIABLE, Utils::String::VA("%c \"You were unmuted\"", 0x65));
 	}
 
 	void Chat::UnmuteInternal(const std::uint64_t id, bool everyone)
@@ -461,17 +461,17 @@ namespace Components
 
 			if (params->size() < 2) return;
 
-			auto message = params->join(1);
-			auto name = sv_sayName.get<std::string>();
+			const auto message = params->join(1);
+			const auto name = sv_sayName.get<std::string>();
 
 			if (!name.empty())
 			{
-				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name, message));
+				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_RELIABLE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name, message));
 				Logger::Print(Game::CON_CHANNEL_SERVER, "{}: {}\n", name, message);
 			}
 			else
 			{
-				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
+				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_RELIABLE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
 				Logger::Print(Game::CON_CHANNEL_SERVER, "Console: {}\n", message);
 			}
 		});
@@ -486,19 +486,21 @@ namespace Components
 
 			if (params->size() < 3) return;
 
-			const auto client = std::atoi(params->get(1));
-			auto message = params->join(2);
-			auto name = sv_sayName.get<std::string>();
+			const auto parsedInput = std::strtoul(params->get(1), nullptr, 10);
+			const auto clientNum = static_cast<int>(std::min<std::size_t>(parsedInput, Game::MAX_CLIENTS));
+
+			const auto message = params->join(2);
+			const auto name = sv_sayName.get<std::string>();
 
 			if (!name.empty())
 			{
-				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name.data(), message));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "{} -> {}: {}\n", name, client, message);
+				Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_RELIABLE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name.data(), message));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "{} -> {}: {}\n", name, clientNum, message);
 			}
 			else
 			{
-				Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Console -> {}: {}\n", client, message);
+				Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_RELIABLE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
+				Logger::Print(Game::CON_CHANNEL_SERVER, "Console -> {}: {}\n", clientNum, message);
 			}
 		});
 
@@ -512,8 +514,8 @@ namespace Components
 
 			if (params->size() < 2) return;
 
-			auto message = params->join(1);
-			Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
+			const auto message = params->join(1);
+			Game::SV_GameSendServerCommand(-1, Game::SV_CMD_RELIABLE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
 			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw: {}\n", message);
 		});
 
@@ -527,10 +529,12 @@ namespace Components
 
 			if (params->size() < 3) return;
 
-			const auto client = atoi(params->get(1));
-			std::string message = params->join(2);
-			Game::SV_GameSendServerCommand(client, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
-			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw -> {}: {}\n", client, message);
+			const auto parsedInput = std::strtoul(params->get(1), nullptr, 10);
+			const auto clientNum = static_cast<int>(std::min<std::size_t>(parsedInput, Game::MAX_CLIENTS));
+
+			const auto message = params->join(2);
+			Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_RELIABLE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw -> {}: {}\n", clientNum, message);
 		});
 
 		sv_sayName = Dvar::Register<const char*>("sv_sayName", "^7Console", Game::DVAR_NONE, "The alias of the server when broadcasting a chat message");
@@ -619,6 +623,9 @@ namespace Components
 		Utils::Hook(0x4D000B, PreSayStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4D00D4, PostSayStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4D0110, PostSayStub, HOOK_CALL).install()->quick();
+
+		// Patch G_SayTo to use SV_CMD_RELIABLE
+		Utils::Hook::Set<std::uint8_t>(0x5DF7E3, Game::SV_CMD_RELIABLE);
 
 		// Change logic that does word splitting with new lines for chat messages to support fonticons
 		Utils::Hook(0x592E10, CG_AddToTeamChat_Stub, HOOK_JUMP).install()->quick();

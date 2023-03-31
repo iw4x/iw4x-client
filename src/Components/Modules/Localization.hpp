@@ -14,6 +14,8 @@ namespace Components
 		static std::optional<std::string> PrefixOverride;
 		static void ParseOutput(const std::function<void(Game::LocalizeEntry*)>& callback);
 
+		static const char* LocalizeMapName(const char* mapName);
+
 	private:
 		static std::recursive_mutex LocalizeMutex;
 		static std::unordered_map<std::string, Game::LocalizeEntry*> LocalizeMap;

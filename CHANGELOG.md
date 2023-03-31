@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.9] - 2023-03-31
+
+### Added
+- Game scripts can be loaded from the `scripts/mp`, `scripts/mp/<map name>` and `scripts/mp/<game type>` folders (#859)
+- Add `ReadStream` GSC function (#862)
+- Add `IString` GSC function (#877)
+
+### Changed
+- Test Clients will no longer receive names from the Xlabs Patreon website. The old behaviour was restored (#852)
+- Enabled `OpenFile` GSC function (#862)
+- Enabled `CloseFile` GSC function (#862)
+- Chat system uses "reliable message" to mitigate message duplication (#873)
+- The built-in GSC compiler no longer throws fatal errors when overriding a built-in function or method (IW3 behaviour) (#880)
+- `CastFloat` GSC function was renamed to `Float` (#880)
+
+### Fixed
+- Fix bug where knife lounges would not work with a gamepad (#848)
+- Fix rare RCon crash (#861)
+- Fix bug where `sv_RandomBotNames` stopped working (#876)
+- Fix crash caused by "Mongoose" (dependency) (#874)
+
+### Known issues
+
+- Sound issue fix is experimental as the bug is not fully understood.
+
 ## [0.7.8] - 2023-03-17
 
 ### Added
@@ -32,7 +57,8 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Servers can no longer modify client Dvars that are saved in the client's config (#694)
 - `banClient` and `muteClient` server commands do not apply to bots anymore (#730)
 - Remove `zb_prefer_disk_assets` Dvar (#772)
-- The max value of `perk_extendedMeleeRange`Dvar was increased (#782)
+- The max value of `perk_extendedMeleeRange` Dvar was increased (#782)
+- Test Clients will receive names from the Xlabs Patreon website in addition to the names from the bots.txt file (#771)
 
 ### Fixed
 - Fix bug where`reloadmenus` command would not free resources used by custom menus (#740)

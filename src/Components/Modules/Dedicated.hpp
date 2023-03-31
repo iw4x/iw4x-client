@@ -12,6 +12,8 @@ namespace Components
 		static Dvar::Var SVMOTD;
 		static Dvar::Var COMLogFilter;
 
+		static const Game::dvar_t* com_dedicated;
+
 		static bool IsEnabled();
 		static bool IsRunning();
 

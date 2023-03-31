@@ -14,6 +14,8 @@ namespace Components
 	Dvar::Var Dedicated::SVMOTD;
 	Dvar::Var Dedicated::COMLogFilter;
 
+	const Game::dvar_t* Dedicated::com_dedicated;
+
 	bool Dedicated::IsEnabled()
 	{
 		static std::optional<bool> flag;
@@ -184,8 +186,6 @@ namespace Components
 			// Make sure all callbacks are handled
 			Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::SERVER);
 
-			SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false, Game::DVAR_NONE, "Don't act as node");
-
 			Utils::Hook(0x60BE98, InitDedicatedServer, HOOK_CALL).install()->quick();
 
 			Utils::Hook::Set<BYTE>(0x683370, 0xC3); // steam sometimes doesn't like the server
@@ -249,6 +249,26 @@ namespace Components
 				Events::OnDvarInit([]
 				{
 					SVMOTD = Dvar::Register<const char*>("sv_motd", "", Game::DVAR_NONE, "A custom message of the day for servers");
+					SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false, Game::DVAR_NONE, "Don't act as node");
+
+					static const char* g_dedicatedEnumNames[] =
+					{
+						"listen server",
+						"dedicated LAN server",
+						"dedicated internet server",
+						nullptr,
+					};
+
+					// IW5MP Dedicated Server adds another flag. That flag should not exist on this version of IW4
+					com_dedicated = Game::Dvar_RegisterEnum("dedicated", g_dedicatedEnumNames, 2, Game::DVAR_ROM, "True if this is a dedicated server");
+					// Dedicated only behaviour from IW5MP Dedicated Server.
+					if (com_dedicated->current.integer != 1 && com_dedicated->current.integer != 2)
+					{
+						Game::DvarValue value;
+						value.integer = 0;
+						Game::Dvar_SetVariant(const_cast<Game::dvar_t*>(com_dedicated), value, Game::DVAR_SOURCE_INTERNAL);
+
+					}
 				});
 
 				// Post initialization point

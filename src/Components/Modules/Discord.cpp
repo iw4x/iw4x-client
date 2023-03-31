@@ -62,6 +62,8 @@ namespace Components
 			return;
 		}
 
+		char hostNameBuffer[256]{};
+
 		const auto* map = Game::UI_GetMapDisplayName((*Game::ui_mapname)->current.string);
 
 		const Game::StringTable* table;
@@ -86,7 +88,6 @@ namespace Components
 		}
 		else
 		{
-			char hostNameBuffer[256]{};
 			TextRenderer::StripColors(Party::GetHostName().data(), hostNameBuffer, sizeof(hostNameBuffer));
 			TextRenderer::StripAllTextIcons(hostNameBuffer, hostNameBuffer, sizeof(hostNameBuffer));
 
@@ -97,7 +98,7 @@ namespace Components
 		std::hash<Network::Address> hashFn;
 		const auto address = Party::Target();
 
-		DiscordPresence.partyId = Utils::String::VA("%zu", hashFn(address) ^ GetDiscordNonce());
+		DiscordPresence.partyId = Utils::String::VA("%s - %zu", hostNameBuffer, hashFn(address) ^ GetDiscordNonce());
 		DiscordPresence.joinSecret = address.getCString();
 		DiscordPresence.partySize = Game::cgArray[0].snap ? Game::cgArray[0].snap->numClients : 1;
 		DiscordPresence.partyMax = Party::GetMaxClients();

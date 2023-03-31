@@ -73,7 +73,6 @@ namespace Components
 #include "Modules/UIScript.hpp"
 #include "Modules/ZoneBuilder.hpp"
 
-#include "Modules/ArenaLength.hpp"
 #include "Modules/AssetHandler.hpp"
 #include "Modules/Dedicated.hpp"
 #include "Modules/Events.hpp"

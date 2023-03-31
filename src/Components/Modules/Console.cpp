@@ -34,14 +34,14 @@ namespace Components
 	bool Console::SkipShutdown = false;
 
 	COLORREF Console::TextColor = 
-#if _DEBUG
+#ifdef _DEBUG
 		RGB(255, 200, 117);
 #else
 		RGB(120, 237, 122);
 #endif
 
 	COLORREF Console::BackgroundColor =
-#if _DEBUG
+#ifdef _DEBUG
 		RGB(35, 21, 0);
 #else
 		RGB(25, 32, 25);
@@ -383,6 +383,7 @@ namespace Components
 
 		RefreshOutput();
 
+#ifdef _DEBUG
 		if (IsDebuggerPresent())
 		{
 			while (true)
@@ -390,6 +391,7 @@ namespace Components
 				std::this_thread::sleep_for(5s);
 			}
 		}
+#endif
 
 		TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
 	}
@@ -894,7 +896,7 @@ namespace Components
 		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).install()->quick();
 
 #ifdef _DEBUG
-		Console::AddConsoleCommand();
+		AddConsoleCommand();
 #endif
 
 		if (Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())

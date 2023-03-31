@@ -41,14 +41,14 @@ namespace Components
 		Game::msg_t msg{};
 		const auto clientNum = client - Game::svs_clients;
 
-		const auto msg_buf_large = std::make_unique<unsigned char[]>(0x10000);
+		const auto msg_buf_large = std::make_unique<unsigned char[]>(0x20000);
 		auto* msg_buf = msg_buf_large.get();
 
 		assert(VoicePacketCount[clientNum] >= 0);
 
 		if (client->header.state == Game::CS_ACTIVE && VoicePacketCount[clientNum])
 		{
-			Game::MSG_Init(&msg, msg_buf, 0x10000);
+			Game::MSG_Init(&msg, msg_buf, 0x20000);
 
 			assert(msg.cursize == 0);
 			assert(msg.bit == 0);

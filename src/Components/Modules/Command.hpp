@@ -57,16 +57,16 @@ namespace Components
 		static Game::cmd_function_s* Allocate();
 
 		static void Add(const char* name, const std::function<void()>& callback);
-		static void Add(const char* name, const std::function<void(Command::Params*)>& callback);
+		static void Add(const char* name, const std::function<void(Params*)>& callback);
 		static void AddRaw(const char* name, void(*callback)(), bool key = false);
-		static void AddSV(const char* name, const std::function<void(Command::Params*)>& callback);
+		static void AddSV(const char* name, const std::function<void(Params*)>& callback);
 		static void Execute(std::string command, bool sync = true);
 
 		static Game::cmd_function_s* Find(const std::string& command);
 
 	private:
-		static std::unordered_map<std::string, std::function<void(Command::Params*)>> FunctionMap;
-		static std::unordered_map<std::string, std::function<void(Command::Params*)>> FunctionMapSV;
+		static std::unordered_map<std::string, std::function<void(Params*)>> FunctionMap;
+		static std::unordered_map<std::string, std::function<void(Params*)>> FunctionMapSV;
 
 		static void AddRawSV(const char* name, void(*callback)());
 

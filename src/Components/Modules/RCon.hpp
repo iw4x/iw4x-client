@@ -47,5 +47,7 @@ namespace Components
 		static bool IsRateLimitCheckDisabled();
 		static bool RateLimitCheck(const Network::Address& address, int time);
 		static void RateLimitCleanup(int time);
+
+		static void RconExecuter(const Network::Address& address, std::string data);
 	};
 }

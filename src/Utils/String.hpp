@@ -11,69 +11,68 @@ namespace Utils::String
 	public:
 		static_assert(Buffers != 0 && MinBufferSize != 0, "Buffers and MinBufferSize mustn't be 0");
 
-		VAProvider() : currentBuffer(0) {}
-		~VAProvider() = default;
+		VAProvider() : currentBuffer_(0) {}
 
 		[[nodiscard]] const char* get(const char* format, va_list ap)
 		{
-			++this->currentBuffer %= ARRAY_COUNT(this->stringPool);
-			auto entry = &this->stringPool[this->currentBuffer];
+			++this->currentBuffer_ %= ARRAY_COUNT(this->stringPool_);
+			auto entry = &this->stringPool_[this->currentBuffer_];
 
-			if (!entry->size || !entry->buffer)
+			if (!entry->size_ || !entry->buffer_)
 			{
 				throw std::runtime_error("String pool not initialized");
 			}
 
 			while (true)
 			{
-				const auto res = vsnprintf_s(entry->buffer, entry->size, _TRUNCATE, format, ap);
+				const auto res = vsnprintf_s(entry->buffer_, entry->size_, _TRUNCATE, format, ap);
 				if (res > 0) break; // Success
 				if (res == 0) return ""; // Error
 
 				entry->doubleSize();
 			}
 
-			return entry->buffer;
+			return entry->buffer_;
 		}
 
 	private:
 		class Entry
 		{
 		public:
-			Entry(std::size_t _size = MinBufferSize) : size(_size), buffer(nullptr)
+			Entry(std::size_t size = MinBufferSize) : size_(size), buffer_(nullptr)
 			{
-				if (this->size < MinBufferSize) this->size = MinBufferSize;
+				if (this->size_ < MinBufferSize) this->size_ = MinBufferSize;
 				this->allocate();
 			}
 
 			~Entry()
 			{
-				if (this->buffer) Memory::GetAllocator()->free(this->buffer);
-				this->size = 0;
-				this->buffer = nullptr;
+				if (this->buffer_) Memory::GetAllocator()->free(this->buffer_);
+				this->size_ = 0;
+				this->buffer_ = nullptr;
 			}
 
 			void allocate()
 			{
-				if (this->buffer) Memory::GetAllocator()->free(this->buffer);
-				this->buffer = Memory::GetAllocator()->allocateArray<char>(this->size + 1);
+				if (this->buffer_) Memory::GetAllocator()->free(this->buffer_);
+				this->buffer_ = Memory::GetAllocator()->allocateArray<char>(this->size_ + 1);
 			}
 
 			void doubleSize()
 			{
-				this->size *= 2;
+				this->size_ *= 2;
 				this->allocate();
 			}
 
-			std::size_t size;
-			char* buffer;
+			std::size_t size_;
+			char* buffer_;
 		};
 
-		std::size_t currentBuffer;
-		Entry stringPool[Buffers];
+		std::size_t currentBuffer_;
+		Entry stringPool_[Buffers];
 	};
 
-	template <typename Arg> // This should display a nice "null" instead of a number
+	template <typename Arg> // This should display a nice "nullptr" instead of a number
 	static void SanitizeFormatArgs(Arg& arg)
 	{
 		if constexpr (std::is_same_v<Arg, char*> || std::is_same_v<Arg, const char*>)

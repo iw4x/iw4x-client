@@ -142,7 +142,7 @@ namespace Components
 
 			const char* data = Game::Scr_AddSourceBuffer(nullptr, file.getName().data(), nullptr, false);
 
-			if (data != nullptr)
+			if (data)
 			{
 				Utils::IO::WriteFile("raw/" + file.getName(), data);
 				Logger::Print("File '{}' written to raw!\n", file.getName());

@@ -103,6 +103,7 @@ namespace Game
 	MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey = MSG_ReadDeltaUsercmdKey_t(0x491F00);
 	MSG_ReadBitsCompress_t MSG_ReadBitsCompress = MSG_ReadBitsCompress_t(0x4DCC30);
 	MSG_WriteBitsCompress_t MSG_WriteBitsCompress = MSG_WriteBitsCompress_t(0x4319D0);
+	Huff_offsetReceive_t Huff_offsetReceive = Huff_offsetReceive_t(0x466060);
 
 	NetadrToSockadr_t NetadrToSockadr = NetadrToSockadr_t(0x4B4B40);
 
@@ -389,6 +390,8 @@ namespace Game
 
 	bool* s_havePlaylists = reinterpret_cast<bool*>(0x1AD3680);
 
+	huffman_t* msgHuff = reinterpret_cast<huffman_t*>(0x1CB9EC0);
+
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{
 		if (!stringtable || !stringtable->values || row >= stringtable->rowCount || column >= stringtable->columnCount) return "";
@@ -397,25 +400,6 @@ namespace Game
 		if (!value) value = "";
 
 		return value;
-	}
-
-	const char* UI_LocalizeMapName(const char* mapName)
-	{
-		for (int i = 0; i < *arenaCount; ++i)
-		{
-			if (!_stricmp(Components::ArenaLength::NewArenas[i].mapName, mapName))
-			{
-				char* uiName = &Components::ArenaLength::NewArenas[i].uiName[0];
-				if ((uiName[0] == 'M' && uiName[1] == 'P') || (uiName[0] == 'P' && uiName[1] == 'A')) // MPUI/PATCH
-				{
-					return SEH_StringEd_GetString(uiName);
-				}
-
-				return uiName;
-			}
-		}
-
-		return mapName;
 	}
 
 	const char* UI_LocalizeGameType(const char* gameType)

@@ -263,6 +263,9 @@ namespace Game
 	typedef int(*MSG_WriteBitsCompress_t)(bool trainHuffman, const unsigned char* from, unsigned char* to, int size);
 	extern MSG_WriteBitsCompress_t MSG_WriteBitsCompress;
 
+	typedef void(*Huff_offsetReceive_t)(nodetype* node, int* ch, const unsigned char* fin, int* offset);
+	extern Huff_offsetReceive_t Huff_offsetReceive;
+
 	typedef void(*NetadrToSockadr_t)(netadr_t *a, sockaddr *s);
 	extern NetadrToSockadr_t NetadrToSockadr;
 
@@ -727,6 +730,8 @@ namespace Game
 
 	extern bool* s_havePlaylists;
 
+	extern huffman_t* msgHuff;
+
 	constexpr auto MAX_MSGLEN = 0x20000;
 
 	ScreenPlacement* ScrPlace_GetFullPlacement();
@@ -737,7 +742,6 @@ namespace Game
 	void Menu_SetNextCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	void Menu_SetPrevCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	const char* TableLookup(StringTable* stringtable, int row, int column);
-	const char* UI_LocalizeMapName(const char* mapName);
 	const char* UI_LocalizeGameType(const char* gameType);
 	float UI_GetScoreboardLeft(void*);
 

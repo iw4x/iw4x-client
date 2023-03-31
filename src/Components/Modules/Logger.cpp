@@ -28,25 +28,24 @@ namespace Components
 
 	void Logger::MessagePrint(const int channel, const std::string& msg)
 	{
-		std::string out = msg;
-
-		// Filter out coloured strings for stdout
-		if (out[0] == '^' && out[1] != '\0')
+		static const auto shouldPrint = []() -> bool
 		{
-			out = out.substr(2);
-		}
+			return Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests();
+		}();
 
-		if (Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests())
+		if (shouldPrint)
 		{
-			printf("%s", out.data());
-			fflush(stdout);
+			std::printf("%s", msg.data());
+			std::fflush(stdout);
 			return;
 		}
 
+#ifdef _DEBUG
 		if (!IsConsoleReady())
 		{
-			OutputDebugStringA(out.data());
+			OutputDebugStringA(msg.data());
 		}
+#endif
 
 		if (!Game::Sys_IsMainThread())
 		{
@@ -141,7 +140,7 @@ namespace Components
 
 	void Logger::NetworkLog(const char* data, bool gLog)
 	{
-		if (data == nullptr)
+		if (!data)
 		{
 			return;
 		}
@@ -163,7 +162,7 @@ namespace Components
 		va_end(ap);
 
 		const auto time = Game::level->time / 1000;
-		const auto len = _snprintf_s(string, _TRUNCATE, "%3i:%i%i %s", time / 60, time % 60 / 10, time % 60 % 10, string2);
+		const auto len = sprintf_s(string, "%3i:%i%i %s", time / 60, time % 60 / 10, time % 60 % 10, string2);
 
 		if (Game::level->logFile)
 		{
@@ -183,25 +182,29 @@ namespace Components
 			jz returnPrint
 
 			pushad
+
 			push [esp + 28h]
 			call PrintMessagePipe
 			add esp, 4h
+
 			popad
-			retn
+			ret
 
 		returnPrint:
 			pushad
-			push 0
-			push [esp + 2Ch]
+
+			push 0 // gLog
+			push [esp + 2Ch] // data
 			call NetworkLog
 			add esp, 8h
+
 			popad
 
 			push esi
 			mov esi, [esp + 0Ch]
 
 			push 4AA835h
-			retn
+			ret
 		}
 	}
 
