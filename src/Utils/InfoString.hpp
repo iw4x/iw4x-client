@@ -21,7 +21,8 @@ namespace Utils
 		[[nodiscard]] nlohmann::json to_json() const;
 
 	private:
-		std::unordered_map<std::string, std::string> keyValuePairs;
+		std::unordered_map<std::string, std::string> keyValuePairs_;
+
 		void parse(std::string buffer);
 	};
 }
