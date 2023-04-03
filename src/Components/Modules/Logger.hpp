@@ -111,7 +111,7 @@ namespace Components
 		static std::mutex MessageMutex;
 		static std::vector<std::string> MessageQueue;
 
-		static std::mutex LoggingMutex;
+		static std::recursive_mutex LoggingMutex;
 		static std::vector<Network::Address> LoggingAddresses[2];
 
 		static Dvar::Var IW4x_oneLog;

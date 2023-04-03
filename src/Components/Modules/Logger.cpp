@@ -8,7 +8,7 @@ namespace Components
 	std::mutex Logger::MessageMutex;
 	std::vector<std::string> Logger::MessageQueue;
 
-	std::mutex Logger::LoggingMutex;
+	std::recursive_mutex Logger::LoggingMutex;
 	std::vector<Network::Address> Logger::LoggingAddresses[2];
 
 	Dvar::Var Logger::IW4x_oneLog;
@@ -223,7 +223,9 @@ namespace Components
 
 	void Logger::RedirectOSPath(const char* file, char* folder)
 	{
-		if (std::strcmp((*Game::g_log)->current.string, file) == 0)
+		const auto* g_log = (*Game::g_log) ? (*Game::g_log)->current.string : "";
+
+		if (std::strcmp(g_log, file) == 0)
 		{
 			if (std::strcmp(folder, "userraw") != 0)
 			{
