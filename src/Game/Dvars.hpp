@@ -123,6 +123,7 @@ namespace Game
 	extern const dvar_t** g_oldVoting;
 	extern const dvar_t** g_gametype;
 	extern const dvar_t** g_password;
+	extern const dvar_t** g_log;
 
 	extern const dvar_t** cg_chatHeight;
 	extern const dvar_t** cg_chatTime;

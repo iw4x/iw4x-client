@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <cctype>
 #include <chrono>
+#include <cinttypes>
 #include <cmath>
 #include <cstring>
 #include <filesystem>

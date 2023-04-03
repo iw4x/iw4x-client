@@ -110,7 +110,11 @@ namespace Components
 	private:
 		static std::mutex MessageMutex;
 		static std::vector<std::string> MessageQueue;
+
+		static std::mutex LoggingMutex;
 		static std::vector<Network::Address> LoggingAddresses[2];
+
+		static Dvar::Var IW4x_oneLog;
 
 		static void(*PipeCallback)(const std::string&);
 
@@ -127,6 +131,9 @@ namespace Components
 		static void RedirectOSPath(const char* file, char* folder);
 
 		static void NetworkLog(const char* data, bool gLog);
+
+		static void LSP_LogString_Stub(int localControllerIndex, const char* string);
+		static void LSP_LogStringAboutUser_Stub(int localControllerIndex, std::uint64_t xuid, const char* string);
 
 		static void AddServerCommands();
 	};
