@@ -321,12 +321,6 @@ namespace Components
 			format = "maps/%s.d3dbsp";
 		}
 
-		// Redirect shipment to shipment long
-		if (mapname == "mp_shipment"s)
-		{
-			mapname = "mp_shipment_long";
-		}
-
 		_snprintf_s(buffer, size, _TRUNCATE, format, mapname);
 	}
 
