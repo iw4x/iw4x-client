@@ -49,6 +49,7 @@ namespace Game
 	const dvar_t** fs_gameDirVar = reinterpret_cast<const dvar_t**>(0x63D0CC0);
 	const dvar_t** fs_homepath = reinterpret_cast<const dvar_t**>(0x63D4FD8);
 
+	const dvar_t** sv_privatePassword = reinterpret_cast<const dvar_t**>(0x62C7C14);
 	const dvar_t** sv_hostname = reinterpret_cast<const dvar_t**>(0x2098D98);
 	const dvar_t** sv_gametype = reinterpret_cast<const dvar_t**>(0x2098DD4);
 	const dvar_t** sv_mapname = reinterpret_cast<const dvar_t**>(0x2098DDC);

@@ -101,6 +101,7 @@ namespace Game
 	extern const dvar_t** fs_gameDirVar;
 	extern const dvar_t** fs_homepath;
 
+	extern const dvar_t** sv_privatePassword;
 	extern const dvar_t** sv_hostname;
 	extern const dvar_t** sv_gametype;
 	extern const dvar_t** sv_mapname;

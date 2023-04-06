@@ -128,8 +128,8 @@ namespace Components
 		Utils::Hook(0x4A9F56, MsgReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
 		Utils::Hook(0x407376, SVCanReplaceServerCommand, HOOK_CALL).install()->quick(); // SV_CanReplaceServerCommand
 
-		Utils::Hook::Set<BYTE>(0x412370, 0xC3); // SV_SteamAuthClient
-		Utils::Hook::Set<BYTE>(0x5A8C70, 0xC3); // CL_HandleRelayPacket
+		Utils::Hook::Set<std::uint8_t>(0x412370, 0xC3); // SV_SteamAuthClient
+		Utils::Hook::Set<std::uint8_t>(0x5A8C70, 0xC3); // CL_HandleRelayPacket
 
 		Utils::Hook::Nop(0x41698E, 5); // Disable Svcmd_EntityList_f
 
@@ -148,6 +148,9 @@ namespace Components
 
 		// Fix packets causing buffer overflow
 		Utils::Hook(0x6267E3, NET_DeferPacketToClientStub, HOOK_CALL).install()->quick();
+
+		// The client can fake the info string
+		Utils::Hook::Set<std::uint8_t>(0x460F6D, 0xEB); // SV_DirectConnect
 
 		// Prevent curl 7_19_4 from running
 		// Call to DL_Init from Live_Init

@@ -66,7 +66,7 @@ namespace Components
 		}
 	}
 	
-	void Auth::SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char *format, int len)
+	void Auth::SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char* format, int len)
 	{
 		// Ensure our certificate is loaded
 		Steam::SteamUser()->GetSteamID();
@@ -185,8 +185,8 @@ namespace Components
 			Utils::InfoString infostr(params[2]);
 
 			// Read the required data
-			const auto& steamId = infostr.get("xuid");
-			const auto& challenge = infostr.get("challenge");
+			const auto steamId = infostr.get("xuid");
+			const auto challenge = infostr.get("challenge");
 
 			if (steamId.empty() || challenge.empty())
 			{
