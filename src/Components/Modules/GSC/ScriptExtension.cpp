@@ -273,51 +273,6 @@ namespace Components::GSC
 
 	void ScriptExtension::AddMethods()
 	{
-		// ScriptExtension methods
-		Script::AddMethod("GetIp", [](const Game::scr_entref_t entref) // gsc: self GetIp()
-		{
-			const auto* ent = Script::Scr_GetPlayerEntity(entref);
-			const auto* client = Script::GetClient(ent);
-
-			std::string ip = Game::NET_AdrToString(client->header.netchan.remoteAddress);
-
-			const auto extractIPAddress = [](const std::string& input) -> std::string
-			{
-				const auto colonPos = input.find(':');
-				if (colonPos == std::string::npos)
-				{
-					return input;
-				}
-
-				auto ipAddress = input.substr(0, colonPos);
-				return ipAddress;
-			};
-
-			ip = extractIPAddress(ip);
-
-			Game::Scr_AddString(ip.data());
-		});
-
-		Script::AddMethod("GetPing", [](const Game::scr_entref_t entref) // gsc: self GetPing()
-		{
-			const auto* ent = Script::Scr_GetPlayerEntity(entref);
-			const auto* client = Script::GetClient(ent);
-
-			Game::Scr_AddInt(client->ping);
-		});
-
-		Script::AddMethod("SetPing", [](const Game::scr_entref_t entref) // gsc: self SetPing(<int>)
-		{
-			auto ping = Game::Scr_GetInt(0);
-
-			ping = std::clamp(ping, 0, 999);
-
-			const auto* ent = Script::Scr_GetPlayerEntity(entref);
-			auto* client = Script::GetClient(ent);
-
-			client->ping = ping;
-		});
-
 		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
 		Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
 		{
