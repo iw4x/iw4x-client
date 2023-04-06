@@ -238,10 +238,10 @@ namespace Components
 					name = namePtr;
 				}
 
-				playerList.append(Utils::String::VA("%i %i \"%s\"\n", score, ping, name.data()));
+				playerList.append(std::format("{} {} \"{}\"\n", score, ping, name));
 			}
 
-			Network::SendCommand(address, "statusResponse", "\\" + info.build() + "\n" + playerList + "\n");
+			Network::SendCommand(address, "statusResponse", info.build() + "\n"s + playerList + "\n"s);
 		});
 
 		Network::OnClientPacket("statusResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
@@ -302,13 +302,13 @@ namespace Components
 				if (currentData.size() < 3) continue;
 
 				// Insert score
-				player.score = atoi(currentData.substr(0, currentData.find_first_of(' ')).data());
+				player.score = std::strtol(currentData.substr(0, currentData.find_first_of(' ')).data(), nullptr, 10);
 
 				// Remove score
 				currentData = currentData.substr(currentData.find_first_of(' ') + 1);
 
 				// Insert ping
-				player.ping = atoi(currentData.substr(0, currentData.find_first_of(' ')).data());
+				player.ping = std::strtol(currentData.substr(0, currentData.find_first_of(' ')).data(), nullptr, 10);
 
 				// Remove ping
 				currentData = currentData.substr(currentData.find_first_of(' ') + 1);

@@ -434,7 +434,7 @@ namespace Components
 			info.set("wwwDownload", (Download::SV_wwwDownload.get<bool>() ? "1" : "0"));
 			info.set("wwwUrl", Download::SV_wwwBaseUrl.get<std::string>());
 
-			Network::SendCommand(address, "infoResponse", "\\" + info.build());
+			Network::SendCommand(address, "infoResponse", info.build());
 		});
 
 		Network::OnClientPacket("infoResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)

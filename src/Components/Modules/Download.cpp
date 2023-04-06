@@ -453,7 +453,7 @@ namespace Components
 			// Insert default values
 			playerInfo["score"] = 0;
 			playerInfo["ping"] = 0;
-			playerInfo["name"] = "";
+			playerInfo["name"] = "Unknown Soldier";
 			playerInfo["test_client"] = 0;
 
 			if (Dedicated::IsRunning())

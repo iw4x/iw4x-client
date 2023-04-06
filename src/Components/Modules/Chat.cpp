@@ -79,6 +79,8 @@ namespace Components
 			return text;
 		}
 
+		Logger::Print("{}: {}\n", Game::svs_clients[player - Game::g_entities].name, (text + msgIndex));
+
 		for (const auto& callback : SayCallbacks)
 		{
 			if (!ChatCallback(player, callback.getPos(), (text + msgIndex), mode))
