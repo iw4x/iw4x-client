@@ -10,19 +10,29 @@ namespace Components::GSC
 
 	std::filesystem::path IO::Path;
 
+	bool IO::ValidatePath(const char* function, const char* path)
+	{
+		for (std::size_t i = 0; i < std::extent_v<decltype(ForbiddenStrings)>; ++i)
+		{
+			if (std::strstr(path, ForbiddenStrings[i]) != nullptr)
+			{
+				Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "{}: directory traversal is not allowed!\n", function);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	void IO::GScr_OpenFile()
 	{
 		const auto* filepath = Game::Scr_GetString(0);
 		const auto* mode = Game::Scr_GetString(1);
 
-		for (std::size_t i = 0; i < std::extent_v<decltype(ForbiddenStrings)>; ++i)
+		if (!ValidatePath("OpenFile", filepath))
 		{
-			if (std::strstr(filepath, ForbiddenStrings[i]) != nullptr)
-			{
-				Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "OpenFile: directory traversal is not allowed!\n");
-				Game::Scr_AddInt(-1);
-				return;
-			}
+			Game::Scr_AddInt(-1);
+			return;
 		}
 
 		if (mode != "read"s)
@@ -97,25 +107,9 @@ namespace Components::GSC
 			const auto* text = Game::Scr_GetString(1);
 			const auto* mode = Game::Scr_GetString(2);
 
-			if (!filepath)
+			if (!ValidatePath("FileWrite", filepath))
 			{
-				Game::Scr_ParamError(0, "FileWrite: filepath is not defined!");
 				return;
-			}
-
-			if (!text || !mode)
-			{
-				Game::Scr_Error("FileWrite: Illegal parameters!");
-				return;
-			}
-
-			for (std::size_t i = 0; i < std::extent_v<decltype(ForbiddenStrings)>; ++i)
-			{
-				if (std::strstr(filepath, ForbiddenStrings[i]) != nullptr)
-				{
-					Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "FileWrite: directory traversal is not allowed!\n");
-					return;
-				}
 			}
 
 			if (mode != "append"s && mode != "write"s)
@@ -132,19 +126,9 @@ namespace Components::GSC
 		Script::AddFunction("FileRead", [] // gsc: FileRead(<filepath>)
 		{
 			const auto* filepath = Game::Scr_GetString(0);
-			if (!filepath)
+			if (!ValidatePath("FileRead", filepath))
 			{
-				Game::Scr_ParamError(0, "FileRead: filepath is not defined!");
 				return;
-			}
-
-			for (std::size_t i = 0; i < std::extent_v<decltype(ForbiddenStrings)>; ++i)
-			{
-				if (std::strstr(filepath, ForbiddenStrings[i]) != nullptr)
-				{
-					Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "FileRead: directory traversal is not allowed!\n");
-					return;
-				}
 			}
 
 			const auto scriptData = Path / "scriptdata"s / filepath;
@@ -163,19 +147,9 @@ namespace Components::GSC
 		Script::AddFunction("FileExists", [] // gsc: FileExists(<filepath>)
 		{
 			const auto* filepath = Game::Scr_GetString(0);
-			if (!filepath)
+			if (!ValidatePath("FileExists", filepath))
 			{
-				Game::Scr_ParamError(0, "FileExists: filepath is not defined!");
 				return;
-			}
-
-			for (std::size_t i = 0; i < std::extent_v<decltype(ForbiddenStrings)>; ++i)
-			{
-				if (std::strstr(filepath, ForbiddenStrings[i]) != nullptr)
-				{
-					Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "FileExists: directory traversal is not allowed!\n");
-					return;
-				}
 			}
 
 			const auto scriptData = Path / "scriptdata"s / filepath;
@@ -185,23 +159,61 @@ namespace Components::GSC
 		Script::AddFunction("FileRemove", [] // gsc: FileRemove(<filepath>)
 		{
 			const auto* filepath = Game::Scr_GetString(0);
-			if (!filepath)
+			if (!ValidatePath("FileRemove", filepath))
 			{
-				Game::Scr_ParamError(0, "FileRemove: filepath is not defined!");
 				return;
-			}
-
-			for (std::size_t i = 0; i < std::extent_v<decltype(ForbiddenStrings)>; ++i)
-			{
-				if (std::strstr(filepath, ForbiddenStrings[i]) != nullptr)
-				{
-					Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "FileRemove: directory traversal is not allowed!\n");
-					return;
-				}
 			}
 
 			const auto scriptData = Path / "scriptdata"s / filepath;
 			Game::Scr_AddBool(Utils::IO::RemoveFile(scriptData.string()));
+		});
+
+		Script::AddFunction("FileRename", [] // gsc: FileRename(<filepath>, <filepath>)
+		{
+			const auto* filepath = Game::Scr_GetString(0);
+			const auto* destpath = Game::Scr_GetString(0);
+			if (!ValidatePath("FileRename", filepath) || !ValidatePath("FileRename", destpath))
+			{
+				return;
+			}
+
+			const auto from = Path / "scriptdata"s / filepath;
+			const auto to = Path / "scriptdata"s / destpath;
+
+			std::error_code err;
+			std::filesystem::rename(from, to, err);
+			if (err.value())
+			{
+				Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "FileRename: failed to rename file! Error message: {}\n", err.message());
+				Game::Scr_AddInt(-1);
+				return;
+			}
+
+			Game::Scr_AddInt(1);
+		});
+
+		Script::AddFunction("FileCopy", [] // gsc: FileCopy(<filepath>, <filepath>)
+		{
+			const auto* filepath = Game::Scr_GetString(0);
+			const auto* destpath = Game::Scr_GetString(0);
+			if (!ValidatePath("FileCopy", filepath) || !ValidatePath("FileCopy", destpath))
+			{
+				return;
+			}
+
+			const auto from = Path / "scriptdata"s / filepath;
+			const auto to = Path / "scriptdata"s / destpath;
+
+			std::error_code err;
+			std::filesystem::copy(from, to, err);
+			if (err.value())
+			{
+				Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "FileCopy: failed to copy file! Error message: {}\n", err.message());
+				Game::Scr_AddInt(-1);
+				return;
+			}
+
+			Game::Scr_AddInt(1);
 		});
 
 		Script::AddFunction("ReadStream", GScr_ReadStream);

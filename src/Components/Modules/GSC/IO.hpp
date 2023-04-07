@@ -14,6 +14,8 @@ namespace Components::GSC
 
 		static std::filesystem::path Path;
 
+		static bool ValidatePath(const char* function, const char* path);
+
 		static void GScr_OpenFile();
 		static void GScr_ReadStream();
 		static void GScr_CloseFile();
