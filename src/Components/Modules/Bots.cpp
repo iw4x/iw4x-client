@@ -278,10 +278,8 @@ namespace Components
 			return;
 		}
 
-		const auto entnum = cl->gentity->s.number;
-
 		// Keep test client functionality
-		if (!g_botai[entnum].active)
+		if (!g_botai[cl - Game::svs_clients].active)
 		{
 			Game::SV_BotUserMove(cl);
 			return;
@@ -292,10 +290,10 @@ namespace Components
 
 		userCmd.serverTime = *Game::svs_time;
 
-		userCmd.buttons = g_botai[entnum].buttons;
-		userCmd.forwardmove = g_botai[entnum].forward;
-		userCmd.rightmove = g_botai[entnum].right;
-		userCmd.weapon = g_botai[entnum].weapon;
+		userCmd.buttons = g_botai[cl - Game::svs_clients].buttons;
+		userCmd.forwardmove = g_botai[cl - Game::svs_clients].forward;
+		userCmd.rightmove = g_botai[cl - Game::svs_clients].right;
+		userCmd.weapon = g_botai[cl - Game::svs_clients].weapon;
 
 		userCmd.angles[0] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[0] - cl->gentity->client->ps.delta_angles[0]));
 		userCmd.angles[1] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[1] - cl->gentity->client->ps.delta_angles[1]));
@@ -349,10 +347,23 @@ namespace Components
 		}
 	}
 
+	int Bots::SV_GetClientPing_Hk(const int clientNum)
+	{
+		AssertIn(clientNum, Game::MAX_CLIENTS);
+
+		if (Game::SV_IsTestClient(clientNum))
+		{
+			return -1;
+		}
+
+		return Game::svs_clients[clientNum].ping;
+	}
+
 	Bots::Bots()
 	{
 		AssertOffset(Game::client_t, bIsTestClient, 0x41AF0);
 		AssertOffset(Game::client_t, ping, 0x212C8);
+		AssertOffset(Game::client_t, gentity, 0x212A0);
 
 		// Replace connect string
 		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\clanAbbrev\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
@@ -365,10 +376,12 @@ namespace Components
 
 		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
 
+		Utils::Hook(0x459654, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
+
 		SVRandomBotNames = Dvar::Register<bool>("sv_RandomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
 
 		// Reset BotMovementInfo.active when client is dropped
-		Events::OnClientDisconnect([](const int clientNum)
+		Events::OnClientDisconnect([](const int clientNum) -> void
 		{
 			g_botai[clientNum].active = false;
 		});

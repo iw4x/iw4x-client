@@ -27,5 +27,7 @@ namespace Components
 
 		static void G_SelectWeaponIndex(int clientNum, int iWeaponIndex);
 		static void G_SelectWeaponIndex_Hk();
+
+		static int SV_GetClientPing_Hk(int clientNum);
 	};
 }
