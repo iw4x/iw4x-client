@@ -8,7 +8,7 @@ namespace Components::GSC
 
 	FILE* IO::openScriptIOFileHandle;
 
-	std::filesystem::path IO::Path;
+	std::filesystem::path IO::DefaultDestPath;
 
 	bool IO::ValidatePath(const char* function, const char* path)
 	{
@@ -22,6 +22,17 @@ namespace Components::GSC
 		}
 
 		return true;
+	}
+
+	std::filesystem::path IO::BuildPath(const char* path)
+	{
+		const std::filesystem::path fsGame = (*Game::fs_gameDirVar)->current.string;
+		if (!fsGame.empty())
+		{
+			return fsGame / "scriptdata"s / path;
+		}
+
+		return DefaultDestPath / "scriptdata"s / path;
 	}
 
 	void IO::GScr_OpenFile()
@@ -49,10 +60,10 @@ namespace Components::GSC
 			return;
 		}
 
-		const auto scriptData = Path / "scriptdata"s / filepath;
+		const auto dest = BuildPath(filepath);
 
 		_set_errno(0);
-		const auto result = fopen_s(&openScriptIOFileHandle, scriptData.string().data(), "r");
+		const auto result = fopen_s(&openScriptIOFileHandle, dest.string().data(), "r");
 		if (result || !openScriptIOFileHandle)
 		{
 			Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "OpenFile failed. '{}'", result);
@@ -119,8 +130,8 @@ namespace Components::GSC
 			}
 
 			const auto append = mode == "append"s;
-			const auto scriptData = Path / "scriptdata"s / filepath;
-			Utils::IO::WriteFile(scriptData.string(), text, append);
+			const auto dest = BuildPath(filepath);
+			Utils::IO::WriteFile(dest.string(), text, append);
 		});
 
 		Script::AddFunction("FileRead", [] // gsc: FileRead(<filepath>)
@@ -131,12 +142,12 @@ namespace Components::GSC
 				return;
 			}
 
-			const auto scriptData = Path / "scriptdata"s / filepath;
+			const auto dest = BuildPath(filepath);
 
 			std::string file;
-			if (!Utils::IO::ReadFile(scriptData.string(), &file))
+			if (!Utils::IO::ReadFile(dest.string(), &file))
 			{
-				Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "FileRead: file '{}' not found!\n", scriptData.string());
+				Logger::PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "FileRead: file '{}' not found!\n", dest.string());
 				return;
 			}
 
@@ -152,8 +163,8 @@ namespace Components::GSC
 				return;
 			}
 
-			const auto scriptData = Path / "scriptdata"s / filepath;
-			Game::Scr_AddBool(Utils::IO::FileExists(scriptData.string()));
+			const auto dest = BuildPath(filepath);
+			Game::Scr_AddBool(Utils::IO::FileExists(dest.string()));
 		});
 
 		Script::AddFunction("FileRemove", [] // gsc: FileRemove(<filepath>)
@@ -164,8 +175,8 @@ namespace Components::GSC
 				return;
 			}
 
-			const auto scriptData = Path / "scriptdata"s / filepath;
-			Game::Scr_AddBool(Utils::IO::RemoveFile(scriptData.string()));
+			const auto dest = BuildPath(filepath);
+			Game::Scr_AddBool(Utils::IO::RemoveFile(dest.string()));
 		});
 
 		Script::AddFunction("FileRename", [] // gsc: FileRename(<filepath>, <filepath>)
@@ -177,8 +188,8 @@ namespace Components::GSC
 				return;
 			}
 
-			const auto from = Path / "scriptdata"s / filepath;
-			const auto to = Path / "scriptdata"s / destpath;
+			const auto from = BuildPath(filepath);
+			const auto to = BuildPath(destpath);
 
 			std::error_code err;
 			std::filesystem::rename(from, to, err);
@@ -201,8 +212,8 @@ namespace Components::GSC
 				return;
 			}
 
-			const auto from = Path / "scriptdata"s / filepath;
-			const auto to = Path / "scriptdata"s / destpath;
+			const auto from = BuildPath(filepath);
+			const auto to = BuildPath(destpath);
 
 			std::error_code err;
 			std::filesystem::copy(from, to, err);
@@ -222,7 +233,7 @@ namespace Components::GSC
 	IO::IO()
 	{
 		openScriptIOFileHandle = nullptr;
-		Path = "userraw"s;
+		DefaultDestPath = "userraw"s;
 
 		AddScriptFunctions();
 
