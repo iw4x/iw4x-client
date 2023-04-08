@@ -278,9 +278,17 @@ namespace Components
 		}
 	}
 
-	int FileSystem::ExecIsFSStub(const char* execFilename)
+	int FileSystem::Cmd_Exec_f_Stub(const char* s0, [[maybe_unused]] const char* s1)
 	{
-		return !File(execFilename).exists();
+		int f;
+		auto len = Game::FS_FOpenFileByMode(s0, &f, Game::FS_READ);
+		if (len < 0)
+		{
+			return 1; // Not found
+		}
+
+		Game::FS_FCloseFile(f);
+		return 0; // Found
 	}
 
 	void FileSystem::FsStartupSync(const char* a1)
@@ -335,7 +343,7 @@ namespace Components
 		Utils::Hook(Game::FS_FreeFile, FreeFile, HOOK_JUMP).install()->quick();
 
 		// Filesystem config checks
-		Utils::Hook(0x6098FD, ExecIsFSStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6098FD, Cmd_Exec_f_Stub, HOOK_CALL).install()->quick();
 
 		// Don't strip the folders from the config name (otherwise our ExecIsFSStub fails)
 		Utils::Hook::Nop(0x6098F2, 5);
