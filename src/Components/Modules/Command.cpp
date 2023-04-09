@@ -116,6 +116,11 @@ namespace Components
 
 	void Command::Execute(std::string command, bool sync)
 	{
+		if (command.empty())
+		{
+			return;
+		}
+
 		command.append("\n"); // Make sure it's terminated
 
 		assert(command.size() < Game::MAX_CMD_LINE);
