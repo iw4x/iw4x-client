@@ -411,6 +411,24 @@ namespace Components
 		// un-cheat cg_draw2D
 		Utils::Hook::Set<std::uint8_t>(0x4F8EEE, Game::DVAR_NONE);
 
+		// un-cheat cg_overheadNamesFarScale
+		Utils::Hook::Set<std::uint8_t>(0x4FA7C4, Game::DVAR_NONE);
+
+		// un-cheat cg_overheadNamesSize
+		Utils::Hook::Set<std::uint8_t>(0x4FA7F9, Game::DVAR_NONE);
+
+		// un-cheat cg_overheadRankSize
+		Utils::Hook::Set<std::uint8_t>(0x4FA863, Game::DVAR_NONE);
+
+		// un-cheat cg_overheadIconSize
+		Utils::Hook::Set<std::uint8_t>(0x4FA833, Game::DVAR_NONE);
+
+		// un-cheat cg_overheadTitleSize
+		Utils::Hook::Set<std::uint8_t>(0x4FA898, Game::DVAR_NONE);
+
+		// un-cheat cg_overheadNamesGlow
+		Utils::Hook::Set<std::uint8_t>(0x4FA8C9, Game::DVAR_NONE);
+
 		// remove archive flags for cg_hudChatPosition
 		Utils::Hook::Xor<std::uint8_t>(0x4F9992, Game::DVAR_ARCHIVE);
 
