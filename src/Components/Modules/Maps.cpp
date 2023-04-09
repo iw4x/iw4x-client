@@ -316,9 +316,15 @@ namespace Components
 
 	void Maps::GetBSPName(char* buffer, size_t size, const char* format, const char* mapname)
 	{
-		if (!Utils::String::StartsWith(mapname, "mp_") && !Utils::String::StartsWith(mapname, "zm_"))
+		if (!Utils::String::StartsWith(mapname, "mp_"))
 		{
 			format = "maps/%s.d3dbsp";
+		}
+
+		// TODO: Remove this hack by using CoD4 version of the map
+		if (std::strcmp(mapname, "mp_shipment") == 0)
+		{
+			mapname = "mp_shipment_long";
 		}
 
 		_snprintf_s(buffer, size, _TRUNCATE, format, mapname);

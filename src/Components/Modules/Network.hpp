@@ -48,7 +48,7 @@ namespace Components
 
 		typedef void(CallbackRaw)();
 
-		using NetworkCallback = std::function<void(Address&, const std::string&)>;
+		using networkCallback = std::function<void(Address&, const std::string&)>;
 
 		Network();
 
@@ -72,11 +72,11 @@ namespace Components
 		static void BroadcastRange(unsigned int min, unsigned int max, const std::string& data);
 		static void BroadcastAll(const std::string& data);
 
-		static void OnClientPacket(const std::string& command, const NetworkCallback& callback);
+		static void OnClientPacket(const std::string& command, const networkCallback& callback);
 
 	private:
 		static Utils::Signal<CallbackRaw> StartupSignal;
-		static std::unordered_map<std::string, NetworkCallback> CL_Callbacks;
+		static std::unordered_map<std::string, networkCallback> CL_Callbacks;
 
 		static void NetworkStart();
 		static void NetworkStartStub();

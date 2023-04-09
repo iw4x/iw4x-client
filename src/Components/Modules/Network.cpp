@@ -4,7 +4,7 @@ namespace Components
 {
 	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
 	// Packet interception
-	std::unordered_map<std::string, Network::NetworkCallback> Network::CL_Callbacks;
+	std::unordered_map<std::string, Network::networkCallback> Network::CL_Callbacks;
 
 	Network::Address::Address()
 	{
@@ -283,7 +283,7 @@ namespace Components
 		Utils::Hook::Call<void(Game::client_t*, Game::msg_t*)>(0x414D40)(client, msg);
 	}
 
-	void Network::OnClientPacket(const std::string& command, const NetworkCallback& callback)
+	void Network::OnClientPacket(const std::string& command, const networkCallback& callback)
 	{
 		CL_Callbacks[Utils::String::ToLower(command)] = callback;
 	}

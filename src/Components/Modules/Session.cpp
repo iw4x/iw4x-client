@@ -14,7 +14,7 @@ namespace Components
 
 	Utils::Cryptography::ECC::Key Session::SignatureKey;
 
-	std::unordered_map<std::string, Network::NetworkCallback> Session::PacketHandlers;
+	std::unordered_map<std::string, Network::networkCallback> Session::PacketHandlers;
 
 	std::queue<std::pair<Network::Address, std::string>> Session::SignatureQueue;
 
@@ -61,7 +61,7 @@ namespace Components
 #endif
 	}
 
-	void Session::Handle(const std::string& packet, const Network::NetworkCallback& callback)
+	void Session::Handle(const std::string& packet, const Network::networkCallback& callback)
 	{
 #ifdef DISABLE_SESSION
 		Network::OnClientPacket(packet, callback);

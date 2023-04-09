@@ -121,7 +121,7 @@ namespace Components
 			return;
 		}
 
-		command.append("\n"); // Make sure it's terminated
+		command.push_back('\n'); // Make sure it's terminated
 
 		assert(command.size() < Game::MAX_CMD_LINE);
 
