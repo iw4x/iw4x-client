@@ -70,7 +70,7 @@ namespace Components
 
 			if (!this->containsHandler(key))
 			{
-				throw MapRotationParseError(std::format("Invalid key {}", key));
+				throw MapRotationParseError(std::format("Invalid key '{}'", key));
 			}
 
 			this->addEntry(key, value);
@@ -237,7 +237,6 @@ namespace Components
 	void MapRotation::ApplyExec(const std::string& name)
 	{
 		assert(!name.empty());
-		Command::Execute(std::format("exec {}", name), false);
 		Command::Execute(std::format("exec game_settings/{}", name), false);
 	}
 
