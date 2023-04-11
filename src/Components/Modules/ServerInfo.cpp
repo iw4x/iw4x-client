@@ -86,7 +86,6 @@ namespace Components
 		const auto* cxt = Game::ScrPlace_GetActivePlacement(localClientNum);
 
 		auto addressText = Network::Address(*Game::connectedHost).getString();
-
 		if (addressText == "0.0.0.0:0"s || addressText == "loopback"s)
 		{
 			addressText = "Listen Server"s;
@@ -251,7 +250,13 @@ namespace Components
 				return;
 			}
 
-			const Utils::InfoString info(data.substr(0, data.find_first_of('\n')));
+			const auto pos = data.find_first_of('\n');
+			if (pos == std::string::npos)
+			{
+				return;
+			}
+
+			const Utils::InfoString info(data.substr(0, pos));
 
 			Dvar::Var("uiSi_ServerName").set(info.get("sv_hostname"));
 			Dvar::Var("uiSi_MaxClients").set(info.get("sv_maxclients"));
