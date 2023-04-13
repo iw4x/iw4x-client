@@ -486,7 +486,7 @@ namespace Components
 		Utils::Hook(0x636608, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 		Utils::Hook(0x636695, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 
-		// Hook Dvar_SetFromStringByName inside CG_SetClientDvarFromServer so we can reset dvars when the player leaves the server
+		// Hook Dvar_SetFromStringByName inside CG_SetClientDvarFromServer so we can protect dvars
 		Utils::Hook(0x59386A, DvarSetFromStringByName_Stub, HOOK_CALL).install()->quick();
 
 		// For debugging
