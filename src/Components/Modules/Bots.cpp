@@ -1,6 +1,7 @@
 #include <STDInclude.hpp>
 
 #include "Bots.hpp"
+#include "ClanTags.hpp"
 
 #include "GSC/Script.hpp"
 
@@ -10,6 +11,8 @@
 
 namespace Components
 {
+	constexpr std::size_t MAX_NAME_LENGTH = 16;
+
 	std::vector<Bots::botData> Bots::BotNames;
 
 	Dvar::Var Bots::SVRandomBotNames;
@@ -57,6 +60,16 @@ namespace Components
 		std::ranges::shuffle(BotNames, gen);
 	}
 
+	std::string Bots::TruncBotString(const std::string& input, const std::size_t length)
+	{
+		if (length > input.size())
+		{
+			return input;
+		}
+
+		return input.substr(length);
+	}
+
 	void Bots::LoadBotNames()
 	{
 		FileSystem::File bots("bots.txt");
@@ -93,6 +106,9 @@ namespace Components
 
 				entry = entry.substr(0, pos);
 			}
+
+			entry = TruncBotString(entry, MAX_NAME_LENGTH - 1);
+			clanAbbrev = TruncBotString(clanAbbrev, ClanTags::MAX_CLAN_NAME_LENGTH - 1);
 
 			BotNames.emplace_back(entry, clanAbbrev);
 		}
@@ -381,7 +397,7 @@ namespace Components
 
 		Utils::Hook(0x459654, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
 
-		SVRandomBotNames = Dvar::Register<bool>("sv_RandomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
+		SVRandomBotNames = Dvar::Register<bool>("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
 
 		// Reset BotMovementInfo.active when client is dropped
 		Events::OnClientDisconnect([](const int clientNum) -> void

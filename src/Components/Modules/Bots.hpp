@@ -14,6 +14,7 @@ namespace Components
 		static Dvar::Var SVRandomBotNames;
 
 		static void RandomizeBotNames();
+		static std::string TruncBotString(const std::string& input, std::size_t length);
 		static void LoadBotNames();
 		static int BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port);
 
