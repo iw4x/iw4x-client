@@ -51,7 +51,7 @@ namespace Components
 		static void ParseConnectData(Game::msg_t* msg, Game::netadr_t* addr);
 		static void DirectConnectStub();
 		static char* Info_ValueForKeyStub(const char* s, const char* key);
-		static void DirectConnectPrivateClientStub();
+		static int NET_IsLocalAddressStub(Game::netadr_t adr);
 
 		static void Frame();
 	};

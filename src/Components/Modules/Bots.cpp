@@ -168,7 +168,7 @@ namespace Components
 
 					Scheduler::Once([ent]
 					{
-						Game::Scr_AddString(Utils::String::VA("class%u", Utils::Cryptography::Rand::GenerateInt() % 5u));
+						Game::Scr_AddString(Utils::String::Format("class{}", std::rand() % 5));
 						Game::Scr_AddString("changeclass");
 						Game::Scr_Notify(ent, static_cast<std::uint16_t>(Game::SL_GetString("menuresponse", 0)), 2);
 					}, Scheduler::Pipeline::SERVER, 1s);
