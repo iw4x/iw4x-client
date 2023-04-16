@@ -266,7 +266,7 @@ namespace Components
 				return;
 			}
 
-			const auto* cl = &Game::svs_clients[clientNum];
+			auto* cl = &Game::svs_clients[clientNum];
 			if (cl->header.state < Game::CS_ACTIVE)
 			{
 				Logger::Print("Client {} is not active\n", clientNum);
@@ -279,7 +279,7 @@ namespace Components
 			}
 
 			const std::string reason = params->size() < 3 ? "EXE_ERR_BANNED_PERM" : params->join(2);
-			BanClient(&Game::svs_clients[clientNum], reason);
+			BanClient(cl, reason);
 		});
 
 		Command::Add("unbanClient", [](Command::Params* params)
