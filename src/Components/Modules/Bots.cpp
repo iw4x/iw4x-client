@@ -15,7 +15,8 @@ namespace Components
 
 	std::vector<Bots::botData> Bots::BotNames;
 
-	Dvar::Var Bots::SVRandomBotNames;
+	const Game::dvar_t* Bots::sv_randomBotNames;
+	const Game::dvar_t* Bots::sv_replaceBots;
 
 	struct BotMovementInfo
 	{
@@ -113,7 +114,7 @@ namespace Components
 			BotNames.emplace_back(entry, clanAbbrev);
 		}
 
-		if (SVRandomBotNames.get<bool>())
+		if (sv_randomBotNames->current.enabled)
 		{
 			RandomizeBotNames();
 		}
@@ -378,6 +379,24 @@ namespace Components
 		return Game::svs_clients[clientNum].ping;
 	}
 
+	void Bots::SV_DirectConnect_Full_Check()
+	{
+		if (!sv_replaceBots->current.enabled)
+		{
+			return;
+		}
+
+		for (auto i = 0; i < (*Game::sv_maxclients)->current.integer; ++i)
+		{
+			auto* cl = &Game::svs_clients[i];
+			if (cl->bIsTestClient)
+			{
+				Game::SV_DropClient(cl, "EXE_DISCONNECTED", false);
+				return;
+			}
+		}
+	}
+
 	Bots::Bots()
 	{
 		AssertOffset(Game::client_t, bIsTestClient, 0x41AF0);
@@ -397,7 +416,8 @@ namespace Components
 
 		Utils::Hook(0x459654, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
 
-		SVRandomBotNames = Dvar::Register<bool>("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
+		sv_randomBotNames = Game::Dvar_RegisterBool("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
+		sv_replaceBots = Game::Dvar_RegisterBool("sv_replaceBots", false, Game::DVAR_NONE, "Test clients will be replaced by connecting players when the server is full.");
 
 		// Reset BotMovementInfo.active when client is dropped
 		Events::OnClientDisconnect([](const int clientNum) -> void

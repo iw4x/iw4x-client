@@ -4,6 +4,7 @@
 #include <proto/auth.pb.h>
 
 #include "Bans.hpp"
+#include "Bots.hpp"
 
 namespace Components
 {
@@ -269,6 +270,9 @@ namespace Components
 		auto* value = Game::Info_ValueForKey(s, key);
 
 		HasAccessToReservedSlot = std::strcmp((*Game::sv_privatePassword)->current.string, value) == 0;
+
+		// This stubs runs right before the 'server is full check' so we can call this here
+		Bots::SV_DirectConnect_Full_Check();
 
 		return value;
 	}

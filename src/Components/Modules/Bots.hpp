@@ -7,11 +7,14 @@ namespace Components
 	public:
 		Bots();
 
+		static void SV_DirectConnect_Full_Check();
+
 	private:
 		using botData = std::pair< std::string, std::string>;
 		static std::vector<botData> BotNames;
 
-		static Dvar::Var SVRandomBotNames;
+		static const Game::dvar_t* sv_randomBotNames;
+		static const Game::dvar_t* sv_replaceBots;
 
 		static void RandomizeBotNames();
 		static std::string TruncBotString(const std::string& input, std::size_t length);
