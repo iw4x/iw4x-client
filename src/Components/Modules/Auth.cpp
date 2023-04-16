@@ -271,7 +271,7 @@ namespace Components
 
 		HasAccessToReservedSlot = std::strcmp((*Game::sv_privatePassword)->current.string, value) == 0;
 
-		// This stubs runs right before the 'server is full check' so we can call this here
+		// This stub runs right before the 'server is full check' so we can call this here
 		Bots::SV_DirectConnect_Full_Check();
 
 		return value;
