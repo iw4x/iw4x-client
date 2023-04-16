@@ -398,7 +398,7 @@ namespace Components
 
 	void Bots::SV_DirectConnect_Full_Check()
 	{
-		if (!sv_replaceBots->current.enabled && !IsFull())
+		if (!sv_replaceBots->current.enabled || !IsFull())
 		{
 			return;
 		}
@@ -409,6 +409,7 @@ namespace Components
 			if (cl->bIsTestClient)
 			{
 				Game::SV_DropClient(cl, "EXE_DISCONNECTED", false);
+				cl->header.state = Game::CS_FREE;
 				return;
 			}
 		}
