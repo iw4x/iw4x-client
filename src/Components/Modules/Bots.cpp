@@ -379,9 +379,26 @@ namespace Components
 		return Game::svs_clients[clientNum].ping;
 	}
 
+	bool Bots::IsFull()
+	{
+		auto i = 0;
+		while (i < *Game::svs_clientCount)
+		{
+			if (Game::svs_clients[i].header.state == Game::CS_FREE)
+			{
+				// Free slot was found
+				break;
+			}
+
+			++i;
+		}
+
+		return i == *Game::svs_clientCount;
+	}
+
 	void Bots::SV_DirectConnect_Full_Check()
 	{
-		if (!sv_replaceBots->current.enabled)
+		if (!sv_replaceBots->current.enabled && !IsFull())
 		{
 			return;
 		}
@@ -437,6 +454,12 @@ namespace Components
 			if (!Dedicated::IsRunning())
 			{
 				Logger::Print("Server is not running.\n");
+				return;
+			}
+
+			if (IsFull())
+			{
+				Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Server is full.\n");
 				return;
 			}
 
