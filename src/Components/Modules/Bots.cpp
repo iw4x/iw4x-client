@@ -415,6 +415,15 @@ namespace Components
 		}
 	}
 
+	void Bots::CleanBotArray()
+	{
+		ZeroMemory(&g_botai, sizeof(g_botai));
+		for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; ++i)
+		{
+			g_botai[i].weapon = 1; // Prevent the bots from defaulting to the 'none' weapon
+		}
+	}
+
 	Bots::Bots()
 	{
 		AssertOffset(Game::client_t, bIsTestClient, 0x41AF0);
@@ -443,12 +452,7 @@ namespace Components
 			g_botai[clientNum].active = false;
 		});
 
-		// Zero the bot command array
-		for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; ++i)
-		{
-			ZeroMemory(&g_botai[i], sizeof(BotMovementInfo));
-			g_botai[i].weapon = 1; // Prevent the bots from defaulting to the 'none' weapon
-		}
+		CleanBotArray();
 
 		Command::Add("spawnBot", [](Command::Params* params)
 		{
@@ -497,12 +501,6 @@ namespace Components
 		AddScriptMethods();
 
 		// In case a loaded mod didn't call "BotStop" before the VM shutdown
-		Events::OnVMShutdown([]
-		{
-			for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; ++i)
-			{
-				g_botai[i].active = false;
-			}
-		});
+		Events::OnVMShutdown(CleanBotArray);
 	}
 }

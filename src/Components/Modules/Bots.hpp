@@ -35,5 +35,7 @@ namespace Components
 		static int SV_GetClientPing_Hk(int clientNum);
 
 		static bool IsFull();
+
+		static void CleanBotArray();
 	};
 }
