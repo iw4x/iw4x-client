@@ -273,16 +273,33 @@ namespace Components
 		return value;
 	}
 
-	int Auth::NET_IsLocalAddressStub(Game::netadr_t adr)
+	__declspec(naked) void Auth::DirectConnectPrivateClientStub()
 	{
-		if (HasAccessToReservedSlot)
+		__asm
 		{
-			// Bypass sv_privateClients if client has the password
-			return 1;
-		}
+			push eax
 
-		// Only bypass if address is local. Original behaviour
-		return Utils::Hook::Call<int(Game::netadr_t)>(0x402BD0)(adr);
+			mov al, HasAccessToReservedSlot
+			test al, al
+
+			pop eax
+
+			je noAccess
+
+			// Set the number of private clients to 0 if the client has the right password
+			xor eax, eax
+			jmp safeContinue
+
+		noAccess:
+			mov eax, dword ptr [edx + 0x10]
+
+		safeContinue:
+			// Game code skipped by hook
+			add esp, 0xC
+
+			push 0x460FB3
+			ret
+		}
 	}
 
 	unsigned __int64 Auth::GetKeyHash(const std::string& key)
@@ -467,7 +484,8 @@ namespace Components
 		// Install registration hook
 		Utils::Hook(0x6265F9, DirectConnectStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x460EF5, Info_ValueForKeyStub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x460F89, NET_IsLocalAddressStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x460FAD, DirectConnectPrivateClientStub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x460FAD + 5, 1);
 
 		Utils::Hook(0x41D3E3, SendConnectDataStub, HOOK_CALL).install()->quick();
 
