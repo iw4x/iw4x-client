@@ -40,24 +40,16 @@ namespace Components
 		// Prevent callbacks from adding a new callback (would make the vector iterator invalid)
 		CanAddCallback = false;
 
-		// Chat messages sent through the console do not begin with \x15
+		// Chat messages sent through the console do not begin with \x15. In some cases it contains \x14
 		auto msgIndex = 0;
-		if (text[msgIndex] == '\x15')
+		while (text[msgIndex] == '\x15' || text[msgIndex] == '\x14')
 		{
-			msgIndex = 1;
+			++msgIndex;
 		}
 
 		if (text[msgIndex] == '/')
 		{
 			SendChat = false;
-
-			if (msgIndex == 1)
-			{
-				// Overwrite / with \x15
-				text[msgIndex] = text[msgIndex - 1];
-			}
-			// Skip over the first character
-			++text;
 		}
 
 		if (IsMuted(player))
@@ -72,7 +64,7 @@ namespace Components
 			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_RELIABLE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
 		}
 
-		// Message might be empty after processing the '/'
+		// Message might be empty after the special characters
 		if (text[msgIndex] == '\0')
 		{
 			SendChat = false;
