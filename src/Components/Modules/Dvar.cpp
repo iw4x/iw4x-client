@@ -432,6 +432,9 @@ namespace Components
 		// remove archive flags for cg_hudChatPosition
 		Utils::Hook::Xor<std::uint8_t>(0x4F9992, Game::DVAR_ARCHIVE);
 
+		// remove archive flags for sv_hostname
+		Utils::Hook::Xor<std::uint32_t>(0x4D3786, Game::DVAR_ARCHIVE);
+
 		// remove write protection from fs_game
 		Utils::Hook::Xor<std::uint32_t>(0x6431EA, Game::DVAR_INIT);
 
@@ -444,13 +447,13 @@ namespace Components
 		static float volume = 1.0f;
 		Utils::Hook::Set<float*>(0x408078, &volume);
 
-		// Uncheat ui_showList
+		// un-cheat ui_showList
 		Utils::Hook::Xor<std::uint8_t>(0x6310DC, Game::DVAR_CHEAT);
 
-		// Uncheat ui_debugMode
+		// un-cheat ui_debugMode
 		Utils::Hook::Xor<std::uint8_t>(0x6312DE, Game::DVAR_CHEAT);
 
-		// Uncheat jump_slowdownEnable
+		// un-cheat jump_slowdownEnable
 		Utils::Hook::Xor<std::uint32_t>(0x4EFABE, Game::DVAR_CHEAT);
 
 		// Hook dvar 'name' registration
