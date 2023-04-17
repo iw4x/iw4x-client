@@ -2,8 +2,11 @@
 #include <Utils/InfoString.hpp>
 
 #include "Discovery.hpp"
+#include "Node.hpp"
 #include "Party.hpp"
 #include "ServerList.hpp"
+#include "TextRenderer.hpp"
+#include "Toast.hpp"
 #include "UIFeeder.hpp"
 
 #include <version.hpp>

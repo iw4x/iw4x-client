@@ -1,6 +1,7 @@
 #include <STDInclude.hpp>
 
 #include "FastFiles.hpp"
+#include "Window.hpp"
 
 namespace Components
 {

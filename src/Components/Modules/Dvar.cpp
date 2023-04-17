@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
 
+#include "Friends.hpp"
+#include "TextRenderer.hpp"
+
 namespace Components
 {
 	Dvar::Var Dvar::Name;

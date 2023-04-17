@@ -2,6 +2,7 @@
 #include <Utils/InfoString.hpp>
 
 #include "Modules/ArenaLength.hpp"
+#include "Modules/Auth.hpp"
 #include "Modules/Bans.hpp"
 #include "Modules/Bots.hpp"
 #include "Modules/Branding.hpp"
@@ -20,13 +21,20 @@
 #include "Modules/Discovery.hpp"
 #include "Modules/Download.hpp"
 #include "Modules/Elevators.hpp"
+#include "Modules/Exception.hpp"
 #include "Modules/FastFiles.hpp"
+#include "Modules/Friends.hpp"
 #include "Modules/Gamepad.hpp"
+#include "Modules/IPCPipe.hpp"
 #include "Modules/Lean.hpp"
 #include "Modules/MapDump.hpp"
 #include "Modules/MapRotation.hpp"
+#include "Modules/Materials.hpp"
+#include "Modules/ModList.hpp"
+#include "Modules/ModelSurfs.hpp"
 #include "Modules/NetworkDebug.hpp"
 #include "Modules/News.hpp"
+#include "Modules/Node.hpp"
 #include "Modules/Party.hpp"
 #include "Modules/PlayerMovement.hpp"
 #include "Modules/PlayerName.hpp"
@@ -46,13 +54,16 @@
 #include "Modules/Stats.hpp"
 #include "Modules/StringTable.hpp"
 #include "Modules/StructuredData.hpp"
+#include "Modules/TextRenderer.hpp"
 #include "Modules/Theatre.hpp"
 #include "Modules/Threading.hpp"
+#include "Modules/Toast.hpp"
 #include "Modules/UIFeeder.hpp"
 #include "Modules/VisionFile.hpp"
 #include "Modules/Voice.hpp"
 #include "Modules/Vote.hpp"
 #include "Modules/Weapon.hpp"
+#include "Modules/Window.hpp"
 
 #include "Modules/BotLib/lPrecomp.hpp"
 
@@ -97,7 +108,7 @@ namespace Components
 		Register(new Logger());
 		Register(new UIScript());
 		Register(new ZoneBuilder());
-		
+
 		Register(new ArenaLength());
 		Register(new AssetHandler());
 		Register(new Bans());

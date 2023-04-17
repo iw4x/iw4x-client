@@ -1,5 +1,6 @@
 ﻿#include <STDInclude.hpp>
 #include "Console.hpp"
+#include "TextRenderer.hpp"
 
 #include "Terminus_4.49.1.ttf.hpp"
 

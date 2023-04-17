@@ -2,6 +2,8 @@
 #include <Utils/Compression.hpp>
 
 #include "QuickPatch.hpp"
+#include "TextRenderer.hpp"
+#include "Toast.hpp"
 
 namespace Components
 {
@@ -196,10 +198,14 @@ namespace Components
 	void QuickPatch::CL_KeyEvent_OnEscape()
 	{
 		if (Game::Con_CancelAutoComplete())
+		{
 			return;
+		}
 
 		if (TextRenderer::HandleFontIconAutocompleteKey(0, TextRenderer::FONT_ICON_ACI_CONSOLE, Game::K_ESCAPE))
+		{
 			return;
+		}
 
 		// Close console
 		Game::Key_RemoveCatcher(0, ~Game::KEYCATCH_CONSOLE);

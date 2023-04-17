@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "TextRenderer.hpp"
 
 namespace Game
 {

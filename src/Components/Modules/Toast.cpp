@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
 
+#include "Materials.hpp"
+#include "Toast.hpp"
+
 namespace Components
 {
 	std::queue<Toast::UIToast> Toast::Queue;

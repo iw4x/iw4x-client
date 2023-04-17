@@ -1,6 +1,7 @@
 #include <STDInclude.hpp>
 #include <Utils/InfoString.hpp>
 
+#include "Friends.hpp"
 #include "Gamepad.hpp"
 #include "Party.hpp"
 #include "ServerInfo.hpp"
