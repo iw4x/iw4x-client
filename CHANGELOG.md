@@ -4,14 +4,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## r4190 - 2023-04-19
+
+### Added
+
+- Add `LogString` GSC function (#895)
+- Add `LogString` GSC method (#895)
+- Add `sv_replaceTestClients` Dvar (#930)
+
+### Changed
+
+- `sv_mapRotationCurrent` supports `exec` directive for executing cfg scripts from the `game_settings` folder
+
+### Fixed
+
+- `sv_privatePassword` will work as intended (#908)
+
+### Known issues
+
+- Sound issue fix is experimental as the bug is not fully understood.
+
 ## [0.7.9] - 2023-03-31
 
 ### Added
+
 - Game scripts can be loaded from the `scripts/mp`, `scripts/mp/<map name>` and `scripts/mp/<game type>` folders (#859)
 - Add `ReadStream` GSC function (#862)
 - Add `IString` GSC function (#877)
 
 ### Changed
+
 - Test Clients will no longer receive names from the Xlabs Patreon website. The old behaviour was restored (#852)
 - Enabled `OpenFile` GSC function (#862)
 - Enabled `CloseFile` GSC function (#862)
@@ -20,6 +42,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - `CastFloat` GSC function was renamed to `Float` (#880)
 
 ### Fixed
+
 - Fix bug where knife lounges would not work with a gamepad (#848)
 - Fix rare RCon crash (#861)
 - Fix bug where `sv_RandomBotNames` stopped working (#876)
@@ -32,6 +55,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ## [0.7.8] - 2023-03-17
 
 ### Added
+
 - Clients can unprotect "saved" Dvars using the command line argument `-unprotect-dvars` (#694)
 - Clients can protect all Dvars from being modified by the server using the command line argument `-protect-dvars` (#823)
 - Add helpful information to script-related errors (#721)
@@ -54,6 +78,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add new map porting utility tool that makes the map porting process between CoD8 to CoD6 easy
 
 ### Changed
+
 - Servers can no longer modify client Dvars that are saved in the client's config (#694)
 - `banClient` and `muteClient` server commands do not apply to bots anymore (#730)
 - Remove `zb_prefer_disk_assets` Dvar (#772)
@@ -61,6 +86,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Test Clients will receive names from the Xlabs Patreon website in addition to the names from the bots.txt file (#771)
 
 ### Fixed
+
 - Fix bug where`reloadmenus` command would not free resources used by custom menus (#740)
 - Fix bug where demo playback would stop when opening a laptop based killstreak (#699)
 - Fix bug where mod download speed was inexplicably slow (#707)

@@ -9,8 +9,6 @@
 #include "Toast.hpp"
 #include "UIFeeder.hpp"
 
-#include <version.hpp>
-
 namespace Components
 {
 	bool ServerList::SortAsc = true;
@@ -587,11 +585,7 @@ namespace Components
 				}
 			}
 
-			if (info.get("gamename") == "IW4"s && server.matchType
-#if !defined(DEBUG) && defined(VERSION_FILTER)
-				&& CompareVersion(server.shortversion, SHORTVERSION)
-#endif
-				)
+			if (info.get("gamename") == "IW4"s && server.matchType)
 			{
 				auto* lList = GetList();
 				if (lList)
