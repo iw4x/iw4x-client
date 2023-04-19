@@ -12,7 +12,10 @@ namespace Components::GSC
 
 		static FILE* openScriptIOFileHandle;
 
-		static std::filesystem::path Path;
+		static std::filesystem::path DefaultDestPath;
+
+		static bool ValidatePath(const char* function, const char* path);
+		static std::filesystem::path BuildPath(const char* path);
 
 		static void GScr_OpenFile();
 		static void GScr_ReadStream();

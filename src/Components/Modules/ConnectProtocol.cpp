@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 #include "ConnectProtocol.hpp"
+#include "IPCPipe.hpp"
 
 namespace Components
 {

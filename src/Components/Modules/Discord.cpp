@@ -1,6 +1,7 @@
 #include <STDInclude.hpp>
 #include "Discord.hpp"
 #include "Party.hpp"
+#include "TextRenderer.hpp"
 
 #include <discord_rpc.h>
 

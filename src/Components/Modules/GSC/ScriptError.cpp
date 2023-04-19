@@ -754,7 +754,7 @@ namespace Components::GSC
 			assert(scrParserGlob.saveSourceBufferLookupLen > 0);
 			--scrParserGlob.saveSourceBufferLookupLen;
 
-			auto* saveSourceBuffer = scrParserGlob.saveSourceBufferLookup + scrParserGlob.saveSourceBufferLookupLen;
+			const auto* saveSourceBuffer = scrParserGlob.saveSourceBufferLookup + scrParserGlob.saveSourceBufferLookupLen;
 			const auto len = saveSourceBuffer->len;
 			assert(len >= -1);
 
@@ -799,7 +799,7 @@ namespace Components::GSC
 		if (Game::FindVariable(Game::scrCompilePub->loadedscripts, name))
 		{
 			Game::SL_RemoveRefToString(name);
-			auto filePosPtr = Game::FindVariable(Game::scrCompilePub->scriptsPos, name);
+			const auto filePosPtr = Game::FindVariable(Game::scrCompilePub->scriptsPos, name);
 			return filePosPtr ? Game::FindObject(Game::scrCompilePub->scriptsPos, filePosPtr) : 0;
 		}
 
@@ -809,7 +809,7 @@ namespace Components::GSC
 		sprintf_s(extFilename, "%s.gsc", Game::SL_ConvertToString(static_cast<unsigned short>(name)));
 
 		const auto* oldSourceBuf = scrParserPub.sourceBuf;
-		auto* sourceBuffer = Scr_AddSourceBuffer(Game::SL_ConvertToString(static_cast<unsigned short>(name)), extFilename, Game::TempMalloc(0), true);
+		const auto* sourceBuffer = Scr_AddSourceBuffer(Game::SL_ConvertToString(static_cast<unsigned short>(name)), extFilename, Game::TempMalloc(0), true);
 
 		if (!sourceBuffer)
 		{

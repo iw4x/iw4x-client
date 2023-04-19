@@ -3,7 +3,11 @@
 
 #include <proto/auth.pb.h>
 
+#include "Auth.hpp"
 #include "Bans.hpp"
+#include "Bots.hpp"
+#include "Friends.hpp"
+#include "Toast.hpp"
 
 namespace Components
 {
@@ -19,10 +23,12 @@ namespace Components
 		0xf7e33c4081337fa3,
 		0x6f5597f103cc50e9
 	};
+
+	bool Auth::HasAccessToReservedSlot;
 	
 	void Auth::Frame()
 	{
-		if (Auth::TokenContainer.generating)
+		if (TokenContainer.generating)
 		{
 			static double mseconds = 0;
 			static Utils::Time::Interval interval;
@@ -31,54 +37,54 @@ namespace Components
 			{
 				interval.update();
 
-				int diff = Game::Sys_Milliseconds() - Auth::TokenContainer.startTime;
-				double hashPMS = (Auth::TokenContainer.hashes * 1.0) / diff;
-				double requiredHashes = std::pow(2, Auth::TokenContainer.targetLevel + 1) - Auth::TokenContainer.hashes;
+				int diff = Game::Sys_Milliseconds() - TokenContainer.startTime;
+				double hashPMS = (TokenContainer.hashes * 1.0) / diff;
+				double requiredHashes = std::pow(2, TokenContainer.targetLevel + 1) - TokenContainer.hashes;
 				mseconds = requiredHashes / hashPMS;
 				if (mseconds < 0) mseconds = 0;
 			}
 
-			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", Utils::String::VA("Increasing security level from %d to %d (est. %s)", Auth::GetSecurityLevel(), Auth::TokenContainer.targetLevel, Utils::String::FormatTimeSpan(static_cast<int>(mseconds)).data()));
+			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", Utils::String::VA("Increasing security level from %d to %d (est. %s)",GetSecurityLevel(), TokenContainer.targetLevel, Utils::String::FormatTimeSpan(static_cast<int>(mseconds)).data()));
 		}
-		else if (Auth::TokenContainer.thread.joinable())
+		else if (TokenContainer.thread.joinable())
 		{
-			Auth::TokenContainer.thread.join();
-			Auth::TokenContainer.generating = false;
+			TokenContainer.thread.join();
+			TokenContainer.generating = false;
 
-			Auth::StoreKey();
-			Logger::Debug("Security level is {}", Auth::GetSecurityLevel());
+			StoreKey();
+			Logger::Debug("Security level is {}",GetSecurityLevel());
 			Command::Execute("closemenu security_increase_popmenu", false);
 
-			if (!Auth::TokenContainer.cancel)
+			if (!TokenContainer.cancel)
 			{
-				if (Auth::TokenContainer.command.empty())
+				if (TokenContainer.command.empty())
 				{
-					Game::ShowMessageBox(Utils::String::VA("Your new security level is %d", Auth::GetSecurityLevel()), "Success");
+					Game::ShowMessageBox(Utils::String::VA("Your new security level is %d", GetSecurityLevel()), "Success");
 				}
 				else
 				{
-					Toast::Show("cardicon_locked", "Success", Utils::String::VA("Your new security level is %d", Auth::GetSecurityLevel()), 5000);
-					Command::Execute(Auth::TokenContainer.command, false);
+					Toast::Show("cardicon_locked", "Success", Utils::String::VA("Your new security level is %d", GetSecurityLevel()), 5000);
+					Command::Execute(TokenContainer.command, false);
 				}
 			}
 
-			Auth::TokenContainer.cancel = false;
+			TokenContainer.cancel = false;
 		}
 	}
 	
-	void Auth::SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char *format, int len)
+	void Auth::SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char* format, int len)
 	{
 		// Ensure our certificate is loaded
 		Steam::SteamUser()->GetSteamID();
-		if (!Auth::GuidKey.isValid())
+		if (!GuidKey.isValid())
 		{
 			Logger::Error(Game::ERR_SERVERDISCONNECT, "Connecting failed: Guid key is invalid!");
 			return;
 		}
 
-		if (std::find(Auth::BannedUids.begin(), Auth::BannedUids.end(), Steam::SteamUser()->GetSteamID().bits) != Auth::BannedUids.end())
+		if (std::find(BannedUids.begin(), BannedUids.end(), Steam::SteamUser()->GetSteamID().bits) != BannedUids.end())
 		{
-			Auth::GenerateKey();
+			GenerateKey();
 			Logger::Error(Game::ERR_SERVERDISCONNECT, "Your online profile is invalid. A new key has been generated.");
 			return;
 		}
@@ -121,9 +127,9 @@ namespace Components
 		Game::SV_Cmd_EndTokenizedString();
 
 		Proto::Auth::Connect connectData;
-		connectData.set_token(Auth::GuidToken.toString());
-		connectData.set_publickey(Auth::GuidKey.getPublicKey());
-		connectData.set_signature(Utils::Cryptography::ECC::SignMessage(Auth::GuidKey, challenge));
+		connectData.set_token(GuidToken.toString());
+		connectData.set_publickey(GuidKey.getPublicKey());
+		connectData.set_signature(Utils::Cryptography::ECC::SignMessage(GuidKey, challenge));
 		connectData.set_infostring(connectString);
 
 		Network::SendCommand(sock, adr, "connect", connectData.SerializeAsString());
@@ -182,11 +188,11 @@ namespace Components
 			}
 
 			// Parse the infostring
-			Utils::InfoString infostr(params[2]);
+			Utils::InfoString infostr(params.get(2));
 
 			// Read the required data
-			const auto& steamId = infostr.get("xuid");
-			const auto& challenge = infostr.get("challenge");
+			const auto steamId = infostr.get("xuid");
+			const auto challenge = infostr.get("challenge");
 
 			if (steamId.empty() || challenge.empty())
 			{
@@ -206,13 +212,13 @@ namespace Components
 				return;
 			}
 
-			if (std::find(Auth::BannedUids.begin(), Auth::BannedUids.end(), xuid) != Auth::BannedUids.end())
+			if (std::find(BannedUids.begin(), BannedUids.end(), xuid) != BannedUids.end())
 			{
 				Network::Send(address, "error\nYour online profile is invalid. Delete your players folder and restart ^2IW4x^7.");
 				return;
 			}
 
-			if (xuid != Auth::GetKeyHash(connectData.publickey()))
+			if (xuid != GetKeyHash(connectData.publickey()))
 			{
 				Network::Send(address, "error\nXUID doesn't match the certificate!");
 				return;
@@ -230,7 +236,7 @@ namespace Components
 
 			// Verify the security level
 			auto ourLevel = Dvar::Var("sv_securityLevel").get<unsigned int>();
-			auto userLevel = Auth::GetZeroBits(connectData.token(), connectData.publickey());
+			auto userLevel = GetZeroBits(connectData.token(), connectData.publickey());
 
 			if (userLevel < ourLevel)
 			{
@@ -252,13 +258,54 @@ namespace Components
 			lea eax, [esp + 20h]
 			push eax
 			push esi
-			call Auth::ParseConnectData
+			call ParseConnectData
 			pop esi
 			pop eax
 			popad
 
 			push 6265FEh
 			retn
+		}
+	}
+
+	char* Auth::Info_ValueForKeyStub(const char* s, const char* key)
+	{
+		auto* value = Game::Info_ValueForKey(s, key);
+
+		HasAccessToReservedSlot = std::strcmp((*Game::sv_privatePassword)->current.string, value) == 0;
+
+		// This stub runs right before the 'server is full check' so we can call this here
+		Bots::SV_DirectConnect_Full_Check();
+
+		return value;
+	}
+
+	__declspec(naked) void Auth::DirectConnectPrivateClientStub()
+	{
+		__asm
+		{
+			push eax
+
+			mov al, HasAccessToReservedSlot
+			test al, al
+
+			pop eax
+
+			je noAccess
+
+			// Set the number of private clients to 0 if the client has the right password
+			xor eax, eax
+			jmp safeContinue
+
+		noAccess:
+			mov eax, dword ptr [edx + 0x10]
+
+		safeContinue:
+			// Game code skipped by hook
+			add esp, 0xC
+
+			push 0x460FB3
+			ret
 		}
 	}
 
@@ -276,18 +323,18 @@ namespace Components
 
 	unsigned __int64 Auth::GetKeyHash()
 	{
-		Auth::LoadKey();
-		return Auth::GetKeyHash(Auth::GuidKey.getPublicKey());
+		LoadKey();
+		return GetKeyHash(GuidKey.getPublicKey());
 	}
 
 	void Auth::StoreKey()
 	{
-		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && Auth::GuidKey.isValid())
+		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && GuidKey.isValid())
 		{
 			Proto::Auth::Certificate cert;
-			cert.set_token(Auth::GuidToken.toString());
-			cert.set_ctoken(Auth::ComputeToken.toString());
-			cert.set_privatekey(Auth::GuidKey.serialize(PK_PRIVATE));
+			cert.set_token(GuidToken.toString());
+			cert.set_ctoken(ComputeToken.toString());
+			cert.set_privatekey(GuidKey.serialize(PK_PRIVATE));
 
 			Utils::IO::WriteFile("players/guid.dat", cert.SerializeAsString());
 		}
@@ -295,30 +342,30 @@ namespace Components
 
 	void Auth::GenerateKey()
 	{
-		Auth::GuidToken.clear();
-		Auth::ComputeToken.clear();
-		Auth::GuidKey = Utils::Cryptography::ECC::GenerateKey(512);
-		Auth::StoreKey();
+		GuidToken.clear();
+		ComputeToken.clear();
+		GuidKey = Utils::Cryptography::ECC::GenerateKey(512);
+		StoreKey();
 	}
 
 	void Auth::LoadKey(bool force)
 	{
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
-		if (!force && Auth::GuidKey.isValid()) return;
+		if (!force && GuidKey.isValid()) return;
 
 		Proto::Auth::Certificate cert;
 		if (cert.ParseFromString(::Utils::IO::ReadFile("players/guid.dat")))
 		{
-			Auth::GuidKey.deserialize(cert.privatekey());
-			Auth::GuidToken = cert.token();
-			Auth::ComputeToken = cert.ctoken();
+			GuidKey.deserialize(cert.privatekey());
+			GuidToken = cert.token();
+			ComputeToken = cert.ctoken();
 		}
 		else
 		{
-			Auth::GuidKey.free();
+			GuidKey.free();
 		}
 
-		if (!Auth::GuidKey.isValid())
+		if (!GuidKey.isValid())
 		{
 			Auth::GenerateKey();
 		}
@@ -326,32 +373,32 @@ namespace Components
 
 	uint32_t Auth::GetSecurityLevel()
 	{
-		return Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
+		return GetZeroBits(GuidToken, GuidKey.getPublicKey());
 	}
 
 	void Auth::IncreaseSecurityLevel(uint32_t level, const std::string& command)
 	{
-		if (Auth::GetSecurityLevel() >= level) return;
+		if (GetSecurityLevel() >= level) return;
 
-		if (!Auth::TokenContainer.generating)
+		if (!TokenContainer.generating)
 		{
-			Auth::TokenContainer.cancel = false;
-			Auth::TokenContainer.targetLevel = level;
-			Auth::TokenContainer.command = command;
+			TokenContainer.cancel = false;
+			TokenContainer.targetLevel = level;
+			TokenContainer.command = command;
 
 			// Open menu
 			Command::Execute("openmenu security_increase_popmenu", true);
 
 			// Start thread
-			Auth::TokenContainer.thread = std::thread([&level]()
+			TokenContainer.thread = std::thread([&level]()
 			{
-				Auth::TokenContainer.generating = true;
-				Auth::TokenContainer.hashes = 0;
-				Auth::TokenContainer.startTime = Game::Sys_Milliseconds();
-				Auth::IncrementToken(Auth::GuidToken, Auth::ComputeToken, Auth::GuidKey.getPublicKey(), Auth::TokenContainer.targetLevel, &Auth::TokenContainer.cancel, &Auth::TokenContainer.hashes);
-				Auth::TokenContainer.generating = false;
+				TokenContainer.generating = true;
+				TokenContainer.hashes = 0;
+				TokenContainer.startTime = Game::Sys_Milliseconds();
+				IncrementToken(GuidToken, ComputeToken, GuidKey.getPublicKey(), TokenContainer.targetLevel, &TokenContainer.cancel, &TokenContainer.hashes);
+				TokenContainer.generating = false;
 
-				if (Auth::TokenContainer.cancel)
+				if (TokenContainer.cancel)
 				{
 					Logger::Print("Token incrementation thread terminated\n");
 				}
@@ -399,7 +446,7 @@ namespace Components
 		}
 
 		// Check if we already have the desired security level
-		uint32_t lastLevel = Auth::GetZeroBits(token, publicKey);
+		uint32_t lastLevel = GetZeroBits(token, publicKey);
 		uint32_t level = lastLevel;
 		if (level >= zeroBits) return;
 
@@ -407,7 +454,7 @@ namespace Components
 		{
 			++computeToken;
 			if (count) ++(*count);
-			level = Auth::GetZeroBits(computeToken, publicKey);
+			level = GetZeroBits(computeToken, publicKey);
 
 			// Store level if higher than the last one
 			if (level >= lastLevel)
@@ -425,30 +472,36 @@ namespace Components
 
 	Auth::Auth()
 	{
-		Auth::TokenContainer.cancel = false;
-		Auth::TokenContainer.generating = false;
+		TokenContainer.cancel = false;
+		TokenContainer.generating = false;
+
+		HasAccessToReservedSlot = false;
 
 		Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", "");
 
 		// Load the key
-		Auth::LoadKey(true);
+		LoadKey(true);
 		Steam::SteamUser()->GetSteamID();
 
-		Scheduler::Loop(Auth::Frame, Scheduler::Pipeline::MAIN);
+		Scheduler::Loop(Frame, Scheduler::Pipeline::MAIN);
 
 		// Register dvar
 		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::DVAR_SERVERINFO, "Security level for GUID certificates (POW)");
 
 		// Install registration hook
-		Utils::Hook(0x6265F9, Auth::DirectConnectStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x41D3E3, Auth::SendConnectDataStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6265F9, DirectConnectStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x460EF5, Info_ValueForKeyStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x460FAD, DirectConnectPrivateClientStub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x460FAD + 5, 1);
+
+		Utils::Hook(0x41D3E3, SendConnectDataStub, HOOK_CALL).install()->quick();
 
 		// SteamIDs can only contain 31 bits of actual 'id' data.
 		// The other 33 bits are steam internal data like universe and so on.
 		// Using only 31 bits for fingerprints is pretty insecure.
 		// The function below verifies the integrity steam's part of the SteamID.
 		// Patching that check allows us to use 64 bit for fingerprints.
-		Utils::Hook::Set<DWORD>(0x4D0D60, 0xC301B0);
+		Utils::Hook::Set<std::uint32_t>(0x4D0D60, 0xC301B0);
 
 		// Guid command
 		Command::Add("guid", []
@@ -462,42 +515,42 @@ namespace Components
 			{
 				if (params->size() < 2)
 				{
-					const auto level = Auth::GetZeroBits(Auth::GuidToken, Auth::GuidKey.getPublicKey());
+					const auto level = GetZeroBits(GuidToken, GuidKey.getPublicKey());
 					Logger::Print("Your current security level is {}\n", level);
-					Logger::Print("Your security token is: {}\n", Utils::String::DumpHex(Auth::GuidToken.toString(), ""));
-					Logger::Print("Your computation token is: {}\n", Utils::String::DumpHex(Auth::ComputeToken.toString(), ""));
+					Logger::Print("Your security token is: {}\n", Utils::String::DumpHex(GuidToken.toString(), ""));
+					Logger::Print("Your computation token is: {}\n", Utils::String::DumpHex(ComputeToken.toString(), ""));
 
 					Toast::Show("cardicon_locked", "^5Security Level", Utils::String::VA("Your security level is %d", level), 3000);
 				}
 				else
 				{
 					const auto level = std::strtoul(params->get(1), nullptr, 10);
-					Auth::IncreaseSecurityLevel(level);
+					IncreaseSecurityLevel(level);
 				}
 			});
 		}
 
 		UIScript::Add("security_increase_cancel", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			Auth::TokenContainer.cancel = true;
+			TokenContainer.cancel = true;
 			Logger::Print("Token incrementation process canceled!\n");
 		});
 	}
 
 	Auth::~Auth()
 	{
-		Auth::StoreKey();
+		StoreKey();
 	}
 
 	void Auth::preDestroy()
 	{
-		Auth::TokenContainer.cancel = true;
-		Auth::TokenContainer.generating = false;
+		TokenContainer.cancel = true;
+		TokenContainer.generating = false;
 
 		// Terminate thread
-		if (Auth::TokenContainer.thread.joinable())
+		if (TokenContainer.thread.joinable())
 		{
-			Auth::TokenContainer.thread.join();
+			TokenContainer.thread.join();
 		}
 	}
 

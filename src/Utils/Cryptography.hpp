@@ -335,7 +335,7 @@ namespace Utils
 		{
 		public:
 			static unsigned int Compute(const std::string& data);
-			static unsigned int Compute(const char *key, std::size_t len);
+			static unsigned int Compute(const char* key, std::size_t len);
 		};
 	}
 }

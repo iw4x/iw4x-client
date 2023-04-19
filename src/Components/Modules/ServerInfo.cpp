@@ -1,6 +1,7 @@
 #include <STDInclude.hpp>
 #include <Utils/InfoString.hpp>
 
+#include "Friends.hpp"
 #include "Gamepad.hpp"
 #include "Party.hpp"
 #include "ServerInfo.hpp"
@@ -86,7 +87,6 @@ namespace Components
 		const auto* cxt = Game::ScrPlace_GetActivePlacement(localClientNum);
 
 		auto addressText = Network::Address(*Game::connectedHost).getString();
-
 		if (addressText == "0.0.0.0:0"s || addressText == "loopback"s)
 		{
 			addressText = "Listen Server"s;
@@ -149,7 +149,7 @@ namespace Components
 		info.set("gamename", "IW4");
 		info.set("sv_maxclients", std::to_string(maxClientCount));
 		info.set("protocol", std::to_string(PROTOCOL));
-		info.set("shortversion", SHORTVERSION);
+		info.set("version", GIT_TAG);
 		info.set("version", (*Game::version)->current.string);
 		info.set("mapname", (*Game::sv_mapname)->current.string);
 		info.set("isPrivate", *password ? "1" : "0");
@@ -238,10 +238,10 @@ namespace Components
 					name = namePtr;
 				}
 
-				playerList.append(Utils::String::VA("%i %i \"%s\"\n", score, ping, name.data()));
+				playerList.append(std::format("{} {} \"{}\"\n", score, ping, name));
 			}
 
-			Network::SendCommand(address, "statusResponse", "\\" + info.build() + "\n" + playerList + "\n");
+			Network::SendCommand(address, "statusResponse", info.build() + "\n"s + playerList + "\n"s);
 		});
 
 		Network::OnClientPacket("statusResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
@@ -251,7 +251,13 @@ namespace Components
 				return;
 			}
 
-			const Utils::InfoString info(data.substr(0, data.find_first_of('\n')));
+			const auto pos = data.find_first_of('\n');
+			if (pos == std::string::npos)
+			{
+				return;
+			}
+
+			const Utils::InfoString info(data.substr(0, pos));
 
 			Dvar::Var("uiSi_ServerName").set(info.get("sv_hostname"));
 			Dvar::Var("uiSi_MaxClients").set(info.get("sv_maxclients"));
@@ -302,13 +308,13 @@ namespace Components
 				if (currentData.size() < 3) continue;
 
 				// Insert score
-				player.score = atoi(currentData.substr(0, currentData.find_first_of(' ')).data());
+				player.score = std::strtol(currentData.substr(0, currentData.find_first_of(' ')).data(), nullptr, 10);
 
 				// Remove score
 				currentData = currentData.substr(currentData.find_first_of(' ') + 1);
 
 				// Insert ping
-				player.ping = atoi(currentData.substr(0, currentData.find_first_of(' ')).data());
+				player.ping = std::strtol(currentData.substr(0, currentData.find_first_of(' ')).data(), nullptr, 10);
 
 				// Remove ping
 				currentData = currentData.substr(currentData.find_first_of(' ') + 1);

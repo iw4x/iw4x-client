@@ -7,11 +7,14 @@ namespace Components
 	public:
 		Bots();
 
+		static void SV_DirectConnect_Full_Check();
+
 	private:
 		using botData = std::pair< std::string, std::string>;
 		static std::vector<botData> BotNames;
 
-		static Dvar::Var SVRandomBotNames;
+		static const Game::dvar_t* sv_randomBotNames;
+		static const Game::dvar_t* sv_replaceBots;
 
 		static void RandomizeBotNames();
 		static void LoadBotNames();
@@ -27,5 +30,11 @@ namespace Components
 
 		static void G_SelectWeaponIndex(int clientNum, int iWeaponIndex);
 		static void G_SelectWeaponIndex_Hk();
+
+		static int SV_GetClientPing_Hk(int clientNum);
+
+		static bool IsFull();
+
+		static void CleanBotArray();
 	};
 }

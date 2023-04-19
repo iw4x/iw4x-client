@@ -1,18 +1,22 @@
 #include <STDInclude.hpp>
 
 #include "Bots.hpp"
+#include "ClanTags.hpp"
 
 #include "GSC/Script.hpp"
 
 // From Quake-III
-#define	ANGLE2SHORT(x) ((int)((x) * (USHRT_MAX + 1) / 360.0f) & USHRT_MAX)
-#define	SHORT2ANGLE(x) ((x)* (360.0f / (USHRT_MAX + 1)))
+#define ANGLE2SHORT(x) ((int)((x) * (USHRT_MAX + 1) / 360.0f) & USHRT_MAX)
+#define SHORT2ANGLE(x) ((x)* (360.0f / (USHRT_MAX + 1)))
 
 namespace Components
 {
+	constexpr std::size_t MAX_NAME_LENGTH = 16;
+
 	std::vector<Bots::botData> Bots::BotNames;
 
-	Dvar::Var Bots::SVRandomBotNames;
+	const Game::dvar_t* Bots::sv_randomBotNames;
+	const Game::dvar_t* Bots::sv_replaceBots;
 
 	struct BotMovementInfo
 	{
@@ -88,16 +92,18 @@ namespace Components
 				// Only start copying over from non-null characters (otherwise it can be "<=")
 				if ((pos + 1) < entry.size())
 				{
-					clanAbbrev = entry.substr(pos + 1);
+					clanAbbrev = entry.substr(pos + 1, ClanTags::MAX_CLAN_NAME_LENGTH - 1);
 				}
 
 				entry = entry.substr(0, pos);
 			}
 
+			entry = entry.substr(0, MAX_NAME_LENGTH - 1);
+
 			BotNames.emplace_back(entry, clanAbbrev);
 		}
 
-		if (SVRandomBotNames.get<bool>())
+		if (sv_randomBotNames->current.enabled)
 		{
 			RandomizeBotNames();
 		}
@@ -152,7 +158,7 @@ namespace Components
 
 					Scheduler::Once([ent]
 					{
-						Game::Scr_AddString(Utils::String::VA("class%u", Utils::Cryptography::Rand::GenerateInt() % 5u));
+						Game::Scr_AddString(Utils::String::Format("class{}", std::rand() % 5));
 						Game::Scr_AddString("changeclass");
 						Game::Scr_Notify(ent, static_cast<std::uint16_t>(Game::SL_GetString("menuresponse", 0)), 2);
 					}, Scheduler::Pipeline::SERVER, 1s);
@@ -269,6 +275,9 @@ namespace Components
 			g_botai[entref.entnum].right = static_cast<int8_t>(rightInt);
 			g_botai[entref.entnum].active = true;
 		});
+
+		GSC::Script::AddMethod("SetPing", []([[maybe_unused]] const Game::scr_entref_t entref)
+		{});
 	}
 
 	void Bots::BotAiAction(Game::client_t* cl)
@@ -278,10 +287,8 @@ namespace Components
 			return;
 		}
 
-		const auto entnum = cl->gentity->s.number;
-
 		// Keep test client functionality
-		if (!g_botai[entnum].active)
+		if (!g_botai[cl - Game::svs_clients].active)
 		{
 			Game::SV_BotUserMove(cl);
 			return;
@@ -292,10 +299,10 @@ namespace Components
 
 		userCmd.serverTime = *Game::svs_time;
 
-		userCmd.buttons = g_botai[entnum].buttons;
-		userCmd.forwardmove = g_botai[entnum].forward;
-		userCmd.rightmove = g_botai[entnum].right;
-		userCmd.weapon = g_botai[entnum].weapon;
+		userCmd.buttons = g_botai[cl - Game::svs_clients].buttons;
+		userCmd.forwardmove = g_botai[cl - Game::svs_clients].forward;
+		userCmd.rightmove = g_botai[cl - Game::svs_clients].right;
+		userCmd.weapon = g_botai[cl - Game::svs_clients].weapon;
 
 		userCmd.angles[0] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[0] - cl->gentity->client->ps.delta_angles[0]));
 		userCmd.angles[1] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[1] - cl->gentity->client->ps.delta_angles[1]));
@@ -349,10 +356,68 @@ namespace Components
 		}
 	}
 
+	int Bots::SV_GetClientPing_Hk(const int clientNum)
+	{
+		AssertIn(clientNum, Game::MAX_CLIENTS);
+
+		if (Game::SV_IsTestClient(clientNum))
+		{
+			return -1;
+		}
+
+		return Game::svs_clients[clientNum].ping;
+	}
+
+	bool Bots::IsFull()
+	{
+		auto i = 0;
+		while (i < *Game::svs_clientCount)
+		{
+			if (Game::svs_clients[i].header.state == Game::CS_FREE)
+			{
+				// Free slot was found
+				break;
+			}
+
+			++i;
+		}
+
+		return i == *Game::svs_clientCount;
+	}
+
+	void Bots::SV_DirectConnect_Full_Check()
+	{
+		if (!sv_replaceBots->current.enabled || !IsFull())
+		{
+			return;
+		}
+
+		for (auto i = 0; i < (*Game::sv_maxclients)->current.integer; ++i)
+		{
+			auto* cl = &Game::svs_clients[i];
+			if (cl->bIsTestClient)
+			{
+				Game::SV_DropClient(cl, "EXE_DISCONNECTED", false);
+				cl->header.state = Game::CS_FREE;
+				return;
+			}
+		}
+	}
+
+	void Bots::CleanBotArray()
+	{
+		ZeroMemory(&g_botai, sizeof(g_botai));
+		for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; ++i)
+		{
+			g_botai[i].weapon = 1; // Prevent the bots from defaulting to the 'none' weapon
+		}
+	}
+
 	Bots::Bots()
 	{
 		AssertOffset(Game::client_t, bIsTestClient, 0x41AF0);
 		AssertOffset(Game::client_t, ping, 0x212C8);
+		AssertOffset(Game::client_t, gentity, 0x212A0);
 
 		// Replace connect string
 		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\clanAbbrev\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
@@ -365,26 +430,30 @@ namespace Components
 
 		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
 
-		SVRandomBotNames = Dvar::Register<bool>("sv_RandomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
+		Utils::Hook(0x459654, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
+
+		sv_randomBotNames = Game::Dvar_RegisterBool("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
+		sv_replaceBots = Game::Dvar_RegisterBool("sv_replaceBots", false, Game::DVAR_NONE, "Test clients will be replaced by connecting players when the server is full.");
 
 		// Reset BotMovementInfo.active when client is dropped
-		Events::OnClientDisconnect([](const int clientNum)
+		Events::OnClientDisconnect([](const int clientNum) -> void
 		{
 			g_botai[clientNum].active = false;
 		});
 
-		// Zero the bot command array
-		for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; ++i)
-		{
-			ZeroMemory(&g_botai[i], sizeof(BotMovementInfo));
-			g_botai[i].weapon = 1; // Prevent the bots from defaulting to the 'none' weapon
-		}
+		CleanBotArray();
 
 		Command::Add("spawnBot", [](Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
 				Logger::Print("Server is not running.\n");
+				return;
+			}
+
+			if (IsFull())
+			{
+				Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Server is full.\n");
 				return;
 			}
 
@@ -421,12 +490,6 @@ namespace Components
 		AddScriptMethods();
 
 		// In case a loaded mod didn't call "BotStop" before the VM shutdown
-		Events::OnVMShutdown([]
-		{
-			for (std::size_t i = 0; i < std::extent_v<decltype(g_botai)>; ++i)
-			{
-				g_botai[i].active = false;
-			}
-		});
+		Events::OnVMShutdown(CleanBotArray);
 	}
 }

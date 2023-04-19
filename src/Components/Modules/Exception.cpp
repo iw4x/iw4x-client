@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
+
 #include "Console.hpp"
+#include "Exception.hpp"
+#include "Window.hpp"
 
 #include <version.hpp>
 
@@ -50,32 +53,39 @@ namespace Components
 		Game::Sys_SuspendOtherThreads();
 	}
 
-	void Exception::CopyMessageToClipboard(const std::string& error)
+	void Exception::CopyMessageToClipboard(const char* error)
 	{
 		const auto hWndNewOwner = GetDesktopWindow();
 		const auto result = OpenClipboard(hWndNewOwner);
 
 		if (result == FALSE)
+		{
 			return;
+		}
 
-		EmptyClipboard();
-		auto* hMem = GlobalAlloc(GMEM_MOVEABLE, error.size() + 1);
-
-		if (hMem == nullptr)
+		const auto _0 = gsl::finally([]
 		{
 			CloseClipboard();
+		});
+
+		EmptyClipboard();
+
+		const auto len = std::strlen(error);
+		auto* hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
+
+		if (!hMem)
+		{
 			return;
 		}
 
 		auto* lock = GlobalLock(hMem);
-		if (lock != nullptr)
+		if (lock)
 		{
-			std::memcpy(lock, error.data(), error.size() + 1);
+			std::memcpy(lock, error, len + 1);
 			GlobalUnlock(hMem);
-			SetClipboardData(1, hMem);
+			SetClipboardData(CF_TEXT, hMem);
 		}
 
-		CloseClipboard();
 		GlobalFree(hMem);
 	}
 
@@ -88,18 +98,18 @@ namespace Components
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
 
-		std::string errorStr;
+		const char* error;
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 		{
-			errorStr = "Termination because of a stack overflow.\nCopy exception address to clipboard?";
+			error = "Termination because of a stack overflow.\nCopy exception address to clipboard?";
 		}
 		else
 		{
-			errorStr = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.\nCopy exception address to clipboard?", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
+			error = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.\nCopy exception address to clipboard?", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
 		}
 
 		// Message should be copied to the keyboard if no button is pressed
-		if (MessageBoxA(nullptr, errorStr.data(), nullptr, MB_YESNO | MB_ICONERROR) == IDYES)
+		if (MessageBoxA(nullptr, error, nullptr, MB_YESNO | MB_ICONERROR) == IDYES)
 		{
 			CopyMessageToClipboard(Utils::String::VA("0x%08X", ExceptionInfo->ExceptionRecord->ExceptionAddress));
 		}
@@ -136,8 +146,8 @@ namespace Components
 			MessageBoxA(nullptr, Utils::String::Format("There was an error creating the minidump ({})! Hit OK to close the program.", Utils::GetLastWindowsError()), "ERROR", MB_OK | MB_ICONERROR);
 #ifdef _DEBUG
 			OutputDebugStringA("Failed to create new minidump!");
-#endif
 			Utils::OutputDebugLastError();
+#endif
 			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
 		}
 
@@ -190,25 +200,6 @@ namespace Components
 		Utils::Hook(0x61F17D, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x61F248, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x61F5E7, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
-
-#ifdef MAP_TEST
-		Command::Add("mapTest", [](Command::Params* params)
-		{
-			Game::UI_UpdateArenas();
-
-			std::string command;
-			for (auto i = 0; i < (params->size() >= 2 ? atoi(params->get(1)) : *Game::arenaCount); ++i)
-			{
-				const auto* mapName = ArenaLength::NewArenas[i % *Game::arenaCount].mapName;
-
-				if (!(i % 2)) command.append("wait 250;disconnect;wait 750;"); // Test a disconnect
-				else command.append("wait 500;"); // Test direct map switch
-				command.append(Utils::String::VA("map %s;", mapName));
-			}
-
-			Command::Execute(command, false);
-		});
-#endif
 	}
 
 	Exception::~Exception()

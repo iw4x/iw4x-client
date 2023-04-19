@@ -18,7 +18,7 @@ namespace Components
 		if (Flags::HasFlag("version"))
 		{
 			printf("%s", "IW4x " VERSION " (built " __DATE__ " " __TIME__ ")\n");
-			printf("%d\n", REVISION);
+			printf("Revision: %i\n", REVISION);
 			ExitProcess(EXIT_SUCCESS);
 		}
 

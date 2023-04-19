@@ -188,7 +188,7 @@ namespace Utils
 			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
 			if (!hex) return hash;
 
-			return String::DumpHex(hash, "");
+			return String::DumpHex(hash, {});
 		}
 
 #pragma endregion
@@ -212,7 +212,7 @@ namespace Utils
 			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
 			if (!hex) return hash;
 
-			return String::DumpHex(hash, "");
+			return String::DumpHex(hash, {});
 		}
 
 #pragma endregion
@@ -236,7 +236,7 @@ namespace Utils
 			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
 			if (!hex) return hash;
 
-			return String::DumpHex(hash, "");
+			return String::DumpHex(hash, {});
 		}
 
 #pragma endregion
@@ -260,7 +260,7 @@ namespace Utils
 			std::string hash(reinterpret_cast<char*>(buffer), sizeof(buffer));
 			if (!hex) return hash;
 
-			return String::DumpHex(hash, "");
+			return String::DumpHex(hash, {});
 		}
 
 #pragma endregion
@@ -272,7 +272,7 @@ namespace Utils
 			return Compute(data.data(), data.size());
 		}
 
-		unsigned int JenkinsOneAtATime::Compute(const char *key, std::size_t len)
+		unsigned int JenkinsOneAtATime::Compute(const char* key, std::size_t len)
 		{
 			unsigned int hash, i;
 			for (hash = i = 0; i < len; ++i)

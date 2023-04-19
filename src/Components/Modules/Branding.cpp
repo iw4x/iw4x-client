@@ -48,16 +48,14 @@ namespace Components
 
 	const char* Branding::GetBuildNumber()
 	{
-		return SHORTVERSION " latest " __DATE__ " " __TIME__;
+		return VERSION " latest " __DATE__ " " __TIME__;
 	}
 
 	const char* Branding::GetVersionString()
 	{
 		// IW4x is technically a beta
-		const auto* result = Utils::String::VA("%s %s build %s %s",
+		return Utils::String::VA("%s %s build %s %s",
 			BUILD_TYPE, "(Beta)", Branding::GetBuildNumber(), reinterpret_cast<const char*>(0x7170A0));
-
-		return result;
 	}
 
 	void Branding::Dvar_SetVersionString(const Game::dvar_t* dvar, [[maybe_unused]] const char* value)
@@ -100,14 +98,14 @@ namespace Components
 		Branding::RegisterBrandingDvars();
 
 		// UI version string
-		Utils::Hook::Set<const char*>(0x43F73B, "IW4x: " VERSION);
+		Utils::Hook::Set<const char*>(0x43F73B, "IW4x - " GIT_TAG);
 
 		// Short version dvar
-		Utils::Hook::Set<const char*>(0x60BD91, SHORTVERSION);
+		Utils::Hook::Set<const char*>(0x60BD91, GIT_TAG);
 
 		// Com_Init_Try_Block_Function
 		Utils::Hook::Set<const char*>(0x60BAF4, BUILD_TYPE);
-		Utils::Hook::Set<const char*>(0x60BAEf, SHORTVERSION);
+		Utils::Hook::Set<const char*>(0x60BAEf, GIT_TAG);
 		Utils::Hook::Set<const char*>(0x60BAE5, __DATE__);
 
 		// G_InitGame
@@ -132,15 +130,15 @@ namespace Components
 		// Console title
 		if (ZoneBuilder::IsEnabled())
 		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): ZoneBuilder");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" GIT_TAG "): ZoneBuilder");
 		}
 		else if (Dedicated::IsEnabled())
 		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): Dedicated");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" GIT_TAG "): Dedicated");
 		}
 		else
 		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" VERSION "): Console");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" GIT_TAG "): Console");
 		}
 	}
 }

@@ -112,7 +112,7 @@ namespace Components
 
 		static void RegisterFolders();
 		static void StartupStub();
-		static int ExecIsFSStub(const char* execFilename);
+		static int Cmd_Exec_f_Stub(const char* s0, const char* s1);
 
 		static void FsStartupSync(const char* a1);
 		static void FsRestartSync(int localClientNum, int checksumFeed);

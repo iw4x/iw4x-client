@@ -5,7 +5,12 @@
 #include <proto/friends.pb.h>
 #pragma warning(pop)
 
+#include "Friends.hpp"
+#include "Materials.hpp"
+#include "Node.hpp"
 #include "Party.hpp"
+#include "TextRenderer.hpp"
+#include "Toast.hpp"
 #include "UIFeeder.hpp"
 
 namespace Components

@@ -2,11 +2,12 @@
 #include <Utils/InfoString.hpp>
 
 #include "Discovery.hpp"
+#include "Node.hpp"
 #include "Party.hpp"
 #include "ServerList.hpp"
+#include "TextRenderer.hpp"
+#include "Toast.hpp"
 #include "UIFeeder.hpp"
-
-#include <version.hpp>
 
 namespace Components
 {
@@ -584,11 +585,7 @@ namespace Components
 				}
 			}
 
-			if (info.get("gamename") == "IW4"s && server.matchType
-#if !defined(DEBUG) && defined(VERSION_FILTER)
-				&& CompareVersion(server.shortversion, SHORTVERSION)
-#endif
-				)
+			if (info.get("gamename") == "IW4"s && server.matchType)
 			{
 				auto* lList = GetList();
 				if (lList)
@@ -936,7 +933,7 @@ namespace Components
 		UIScript::Add("CreateListFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
 			auto* serverInfo = GetCurrentServer();
-			if (info)
+			if (info && serverInfo && serverInfo->addr.isValid())
 			{
 				StoreFavourite(serverInfo->addr.getString());
 			}
@@ -944,7 +941,11 @@ namespace Components
 
 		UIScript::Add("CreateFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			StoreFavourite(Dvar::Var("ui_favoriteAddress").get<std::string>());
+			const auto value = Dvar::Var("ui_favoriteAddress").get<std::string>();
+			if (!value.empty())
+			{
+				StoreFavourite(value);
+			}
 		});
 
 		UIScript::Add("CreateCurrentServerFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)

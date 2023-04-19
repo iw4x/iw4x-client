@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include <proto/ipc.pb.h>
 
+#include "IPCPipe.hpp"
+
 namespace Components
 {
 	Pipe IPCPipe::ServerPipe;

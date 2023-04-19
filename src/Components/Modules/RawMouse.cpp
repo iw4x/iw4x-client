@@ -1,6 +1,7 @@
 #include <STDInclude.hpp>
 #include "Gamepad.hpp"
 #include "RawMouse.hpp"
+#include "Window.hpp"
 
 namespace Components
 {

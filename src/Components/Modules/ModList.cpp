@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "ModList.hpp"
 #include "UIFeeder.hpp"
 
 namespace Components

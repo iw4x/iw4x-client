@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 #include "Debug.hpp"
+#include "TextRenderer.hpp"
 
 #include "Game/Engine/ScopedCriticalSection.hpp"
 

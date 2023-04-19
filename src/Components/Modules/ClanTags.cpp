@@ -8,7 +8,7 @@ namespace Components
 	const Game::dvar_t* ClanTags::ClanName;
 
 	// bgs_t and clientState_s do not have this
-	char ClanTags::ClientState[Game::MAX_CLIENTS][5];
+	char ClanTags::ClientState[Game::MAX_CLIENTS][MAX_CLAN_NAME_LENGTH];
 
 	const char* ClanTags::GetClanTagWithName(int clientNum, const char* playerName)
 	{
@@ -73,7 +73,7 @@ namespace Components
 
 	void ClanTags::CL_SanitizeClanName()
 	{
-		char saneNameBuf[5]{};
+		char saneNameBuf[MAX_CLAN_NAME_LENGTH]{};
 		auto* saneName = saneNameBuf;
 		
 		assert(ClanName);
@@ -238,7 +238,7 @@ namespace Components
 			ClanName = Game::Dvar_RegisterString("clanName", "", Game::DVAR_ARCHIVE, "Your clan abbreviation");
 		});
 
-		std::memset(&ClientState, 0, sizeof(char[Game::MAX_CLIENTS][5]));
+		std::memset(&ClientState, 0, sizeof(char[Game::MAX_CLIENTS][MAX_CLAN_NAME_LENGTH]));
 
 		ServerCommands::OnCommand(22, [](Command::Params* params)
 		{

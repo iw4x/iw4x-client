@@ -1,8 +1,11 @@
 #include <STDInclude.hpp>
 #include <Utils/InfoString.hpp>
 
+#include "Auth.hpp"
 #include "Download.hpp"
+#include "Friends.hpp"
 #include "Gamepad.hpp"
+#include "Node.hpp"
 #include "Party.hpp"
 #include "ServerList.hpp"
 #include "Stats.hpp"
@@ -383,7 +386,7 @@ namespace Components
 			info.set("bots", std::to_string(botCount));
 			info.set("sv_maxclients", std::to_string(maxClientCount));
 			info.set("protocol", std::to_string(PROTOCOL));
-			info.set("shortversion", SHORTVERSION);
+			info.set("version", GIT_TAG);
 			info.set("checksum", std::to_string(Game::Sys_Milliseconds()));
 			info.set("mapname", Dvar::Var("mapname").get<std::string>());
 			info.set("isPrivate", *password ? "1" : "0");
@@ -434,7 +437,7 @@ namespace Components
 			info.set("wwwDownload", (Download::SV_wwwDownload.get<bool>() ? "1" : "0"));
 			info.set("wwwUrl", Download::SV_wwwBaseUrl.get<std::string>());
 
-			Network::SendCommand(address, "infoResponse", "\\" + info.build());
+			Network::SendCommand(address, "infoResponse", info.build());
 		});
 
 		Network::OnClientPacket("infoResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)

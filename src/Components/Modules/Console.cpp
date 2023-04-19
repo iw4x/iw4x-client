@@ -1,5 +1,6 @@
 ﻿#include <STDInclude.hpp>
 #include "Console.hpp"
+#include "TextRenderer.hpp"
 
 #include "Terminus_4.49.1.ttf.hpp"
 
@@ -95,14 +96,14 @@ namespace Components
 		}
 		else if (IsWindow(GetWindow()) != FALSE)
 		{
-			SetWindowTextA(GetWindow(), Utils::String::VA("IW4x(" VERSION ") : %s", hostname.data()));
+			SetWindowTextA(GetWindow(), Utils::String::VA("IW4x(" GIT_TAG ") : %s", hostname.data()));
 		}
 	}
 
 	void Console::ShowPrompt()
 	{
 		wattron(InputWindow, COLOR_PAIR(10) | A_BOLD);
-		wprintw(InputWindow, "%s> ", VERSION);
+		wprintw(InputWindow, "%s> ", GIT_TAG);
 	}
 
 	void Console::RefreshOutput()
@@ -859,7 +860,7 @@ namespace Components
 		AssertOffset(Game::clientUIActive_t, keyCatchers, 0x9B0);
 
 		// Console '%s: %s> ' string
-		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " VERSION "> ");
+		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x_MP: " GIT_TAG "> ");
 
 		// Patch console color
 		static float consoleColor[] = { 0.70f, 1.00f, 0.00f, 1.00f };

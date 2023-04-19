@@ -62,10 +62,8 @@ namespace Components
 }
 
 // Priority
-#include "Modules/Auth.hpp"
 #include "Modules/Command.hpp"
 #include "Modules/Dvar.hpp"
-#include "Modules/Exception.hpp"
 #include "Modules/Flags.hpp"
 #include "Modules/Network.hpp"
 #include "Modules/Logger.hpp"
@@ -77,20 +75,11 @@ namespace Components
 #include "Modules/Dedicated.hpp"
 #include "Modules/Events.hpp"
 #include "Modules/FileSystem.hpp"
-#include "Modules/Friends.hpp"
-#include "Modules/IPCPipe.hpp"
 #include "Modules/Localization.hpp"
 #include "Modules/Maps.hpp"
-#include "Modules/Materials.hpp"
 #include "Modules/Menus.hpp"
-#include "Modules/ModList.hpp"
-#include "Modules/ModelSurfs.hpp"
-#include "Modules/Node.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/Scheduler.hpp"
-#include "Modules/TextRenderer.hpp"
-#include "Modules/Toast.hpp"
-#include "Modules/Window.hpp"
 #include "Modules/Zones.hpp"
 
 #include "Modules/GSC/GSC.hpp"

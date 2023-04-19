@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 #include "MapRotation.hpp"
+#include "Party.hpp"
 
 namespace Components
 {
@@ -25,7 +26,7 @@ namespace Components
 
 	void MapRotation::RotationData::addEntry(const std::string& key, const std::string& value)
 	{
-		this->rotationEntries_.emplace_back(std::make_pair(key, value));
+		this->rotationEntries_.emplace_back(key, value);
 	}
 
 	std::size_t MapRotation::RotationData::getEntriesSize() const noexcept
@@ -36,13 +37,26 @@ namespace Components
 	MapRotation::RotationData::rotationEntry& MapRotation::RotationData::getNextEntry()
 	{
 		const auto index = this->index_;
-		++this->index_ %= this->rotationEntries_.size(); // Point index_ to the next entry
+		++this->index_ %= this->rotationEntries_.size();
 		return this->rotationEntries_.at(index);
 	}
 
 	MapRotation::RotationData::rotationEntry& MapRotation::RotationData::peekNextEntry()
 	{
 		return this->rotationEntries_.at(this->index_);
+	}
+
+	void MapRotation::RotationData::setHandler(const std::string& key, const rotationCallback& callback)
+	{
+		this->rotationHandlers_[key] = callback;
+	}
+
+	void MapRotation::RotationData::callHandler(const rotationEntry& entry) const
+	{
+		if (const auto itr = this->rotationHandlers_.find(entry.first); itr != this->rotationHandlers_.end())
+		{
+			itr->second(entry.second);
+		}
 	}
 
 	void MapRotation::RotationData::parse(const std::string& data)
@@ -54,14 +68,12 @@ namespace Components
 			const auto& key = tokens[i];
 			const auto& value = tokens[i + 1];
 
-			if (key == "map"s || key == "gametype"s)
+			if (!this->containsHandler(key))
 			{
-				this->addEntry(key, value);
+				throw MapRotationParseError(std::format("Invalid key '{}'", key));
 			}
-			else
-			{
-				throw MapRotationParseError();
-			}
+
+			this->addEntry(key, value);
 		}
 	}
 
@@ -76,6 +88,16 @@ namespace Components
 		{
 			return entry.first == key && entry.second == value;
 		});
+	}
+
+	bool MapRotation::RotationData::containsHandler(const std::string& key) const
+	{
+		return this->rotationHandlers_.contains(key);
+	}
+
+	void MapRotation::RotationData::clear() noexcept
+	{
+		this->rotationEntries_.clear();
 	}
 
 	nlohmann::json MapRotation::RotationData::to_json() const
@@ -97,8 +119,8 @@ namespace Components
 
 		auto mapRotationJson = nlohmann::json
 		{
-			{"maps", mapVector},
-			{"gametypes", gametypeVector},
+			{ "maps", mapVector },
+			{ "gametypes", gametypeVector },
 		};
 
 		return mapRotationJson;
@@ -183,7 +205,7 @@ namespace Components
 			return false;
 		}
 
-		if (Dvar::Var("party_enable").get<bool>() && Dvar::Var("party_host").get<bool>())
+		if (Party::IsEnabled() && Dvar::Var("party_host").get<bool>())
 		{
 			Logger::Warning(Game::CON_CHANNEL_SERVER, "Not performing map rotation as we are hosting a party!\n");
 			return false;
@@ -212,6 +234,12 @@ namespace Components
 		Game::Dvar_SetStringByName("g_gametype", gametype.data());
 	}
 
+	void MapRotation::ApplyExec(const std::string& name)
+	{
+		assert(!name.empty());
+		Command::Execute(std::format("exec game_settings/{}", name), false);
+	}
+
 	void MapRotation::RestartCurrentMap()
 	{
 		std::string svMapname = (*Game::sv_mapname)->current.string;
@@ -234,19 +262,13 @@ namespace Components
 		while (i < rotation.getEntriesSize())
 		{
 			const auto& entry = rotation.getNextEntry();
+			rotation.callHandler(entry);
+			Logger::Print("MapRotation: applying key '{}' with value '{}'\n", entry.first, entry.second);
+
 			if (entry.first == "map"s)
 			{
-				Logger::Print("Loading new map: '{}'", entry.second);
-				ApplyMap(entry.second);
-
 				// Map was found so we exit the loop
 				break;
-			}
-
-			if (entry.first == "gametype"s)
-			{
-				Logger::Print("Applying new gametype: '{}'", entry.second);
-				ApplyGametype(entry.second);
 			}
 
 			++i;
@@ -374,13 +396,15 @@ namespace Components
 		AddMapRotationCommands();
 		Utils::Hook::Set<void(*)()>(0x4152E8, SV_MapRotate_f);
 
+		DedicatedRotation.setHandler("map", ApplyMap);
+		DedicatedRotation.setHandler("gametype", ApplyGametype);
+		DedicatedRotation.setHandler("exec", ApplyExec);
+
 		Events::OnDvarInit(RegisterMapRotationDvars);
 	}
 
 	bool MapRotation::unitTest()
 	{
-		RotationData rotation;
-
 		Logger::Debug("Testing map rotation parsing...");
 
 		const auto* normal = "map mp_highrise map mp_terminal map mp_firingrange map mp_trailerpark gametype dm map mp_shipment_long";
@@ -394,6 +418,8 @@ namespace Components
 			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}: parsing of 'normal' failed\n", ex.what());
 			return false;
 		}
+
+		DedicatedRotation.clear();
 
 		const auto* mistake = "spdevmap mp_dome";
 		auto success = false;

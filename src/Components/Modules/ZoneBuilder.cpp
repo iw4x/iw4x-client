@@ -978,7 +978,7 @@ namespace Components
 		}
 
 		Logger::Print(" --------------------------------------------------------------------------------\n");
-		Logger::Print(" IW4x ZoneBuilder ({})\n", VERSION);
+		Logger::Print(" IW4x ZoneBuilder - {}\n", VERSION);
 		Logger::Print(" Commands:\n");
 		Logger::Print("\t-buildzone [zone]: builds a zone from a csv located in zone_source\n");
 		Logger::Print("\t-buildall: builds all zones in zone_source\n");

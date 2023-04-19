@@ -4,6 +4,7 @@
 
 #include <proto/node.pb.h>
 
+#include "Node.hpp"
 #include "ServerList.hpp"
 #include "Session.hpp"
 

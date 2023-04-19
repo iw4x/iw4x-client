@@ -14,15 +14,35 @@ namespace Components
 		bool unitTest() override;
 
 	private:
-		struct MapRotationParseError : public std::exception
+		class MapRotationParseError : public std::runtime_error
 		{
-			[[nodiscard]] const char* what() const noexcept override { return "Map Rotation Parse Error"; }
+		private:
+			static std::string fmt(const std::string& message)
+			{
+				std::string error = "Map Rotation Parse Error";
+
+				if (!message.empty())
+				{
+					error.append(": ");
+					error.append(message);
+				}
+
+				return error;
+			}
+
+		public:
+			MapRotationParseError(const std::string& message)
+				: std::runtime_error(fmt(message))
+			{
+			}
 		};
 
 		class RotationData
 		{
 		public:
 			using rotationEntry = std::pair<std::string, std::string>;
+
+			using rotationCallback = std::function<void(const std::string&)>;
 
 			RotationData();
 
@@ -36,15 +56,22 @@ namespace Components
 			rotationEntry& getNextEntry();
 			rotationEntry& peekNextEntry();
 
+			void setHandler(const std::string& key, const rotationCallback& callback);
+			void callHandler(const rotationEntry& entry) const;
+
 			void parse(const std::string& data);
 
 			[[nodiscard]] bool empty() const noexcept;
 			[[nodiscard]] bool contains(const std::string& key, const std::string& value) const;
+			[[nodiscard]] bool containsHandler(const std::string& key) const;
+
+			void clear() noexcept;
 
 			[[nodiscard]] nlohmann::json to_json() const;
 
 		private:
 			std::vector<rotationEntry> rotationEntries_;
+			std::unordered_map<std::string, rotationCallback> rotationHandlers_;
 
 			std::size_t index_;
 		};
@@ -67,6 +94,7 @@ namespace Components
 		static bool ShouldRotate();
 		static void ApplyMap(const std::string& map);
 		static void ApplyGametype(const std::string& gametype);
+		static void ApplyExec(const std::string& name);
 		static void RestartCurrentMap();
 		static void ApplyRotation(RotationData& rotation);
 		static void ApplyMapRotationCurrent(const std::string& data);
