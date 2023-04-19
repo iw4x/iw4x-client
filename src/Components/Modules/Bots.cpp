@@ -6,8 +6,8 @@
 #include "GSC/Script.hpp"
 
 // From Quake-III
-#define	ANGLE2SHORT(x) ((int)((x) * (USHRT_MAX + 1) / 360.0f) & USHRT_MAX)
-#define	SHORT2ANGLE(x) ((x)* (360.0f / (USHRT_MAX + 1)))
+#define ANGLE2SHORT(x) ((int)((x) * (USHRT_MAX + 1) / 360.0f) & USHRT_MAX)
+#define SHORT2ANGLE(x) ((x)* (360.0f / (USHRT_MAX + 1)))
 
 namespace Components
 {
@@ -61,16 +61,6 @@ namespace Components
 		std::ranges::shuffle(BotNames, gen);
 	}
 
-	std::string Bots::TruncBotString(const std::string& input, const std::size_t length)
-	{
-		if (length > input.size())
-		{
-			return input;
-		}
-
-		return input.substr(length);
-	}
-
 	void Bots::LoadBotNames()
 	{
 		FileSystem::File bots("bots.txt");
@@ -102,14 +92,13 @@ namespace Components
 				// Only start copying over from non-null characters (otherwise it can be "<=")
 				if ((pos + 1) < entry.size())
 				{
-					clanAbbrev = entry.substr(pos + 1);
+					clanAbbrev = entry.substr(pos + 1, ClanTags::MAX_CLAN_NAME_LENGTH - 1);
 				}
 
 				entry = entry.substr(0, pos);
 			}
 
-			entry = TruncBotString(entry, MAX_NAME_LENGTH - 1);
-			clanAbbrev = TruncBotString(clanAbbrev, ClanTags::MAX_CLAN_NAME_LENGTH - 1);
+			entry = entry.substr(0, MAX_NAME_LENGTH - 1);
 
 			BotNames.emplace_back(entry, clanAbbrev);
 		}
