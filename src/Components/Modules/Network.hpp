@@ -83,8 +83,6 @@ namespace Components
 
 		static void PacketErrorCheck();
 
-		static void SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg);
-
 		static bool CL_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message);
 
 		static void CL_HandleCommandStub();

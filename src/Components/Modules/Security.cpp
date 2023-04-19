@@ -3,7 +3,7 @@
 
 namespace Components
 {
-	int Security::MsgReadBitsCompressCheckSV(const unsigned char* from, unsigned char* to, int size)
+	int Security::Msg_ReadBitsCompressCheckSV(const unsigned char* from, unsigned char* to, int size)
 	{
 		static unsigned char buffer[0x8000];
 
@@ -16,7 +16,7 @@ namespace Components
 		return size;
 	}
 
-	int Security::MsgReadBitsCompressCheckCL(const unsigned char* from, unsigned char* to, int size)
+	int Security::Msg_ReadBitsCompressCheckCL(const unsigned char* from, unsigned char* to, int size)
 	{
 		static unsigned char buffer[0x100000];
 
@@ -29,7 +29,7 @@ namespace Components
 		return size;
 	}
 
-	int Security::SVCanReplaceServerCommand(Game::client_t* /*client*/, const char* /*cmd*/)
+	int Security::SV_CanReplaceServerCommand_Hk([[maybe_unused]] Game::client_t* client, [[maybe_unused]] const char* cmd)
 	{
 		// This is a fix copied from V2. As I don't have time to investigate, let's simply trust them
 		return -1;
@@ -40,7 +40,7 @@ namespace Components
 		return std::min<long>(std::atol(string), 18);
 	}
 
-	void Security::SelectStringTableEntryInDvarStub()
+	void Security::SelectStringTableEntryInDvar_Stub()
 	{
 		Command::ClientParams params;
 
@@ -76,7 +76,7 @@ namespace Components
 		Game::CL_SelectStringTableEntryInDvar_f();
 	}
 
-	__declspec(naked) int Security::G_GetClientScore()
+	__declspec(naked) int Security::G_GetClientScore_Hk()
 	{
 		__asm
 		{
@@ -96,12 +96,12 @@ namespace Components
 		}
 	}
 
-	void Security::G_LogPrintfStub(const char* fmt)
+	void Security::G_LogPrintf_Stub(const char* fmt)
 	{
 		Game::G_LogPrintf("%s", fmt);
 	}
 
-	void Security::NET_DeferPacketToClientStub(Game::netadr_t* net_from, Game::msg_t* net_message)
+	void Security::NET_DeferPacketToClient_Hk(Game::netadr_t* net_from, Game::msg_t* net_message)
 	{
 		assert(net_from);
 		assert(net_message);
@@ -121,12 +121,26 @@ namespace Components
 		InterlockedIncrement(&Game::deferredQueue->send);
 	}
 
+	void Security::SV_ExecuteClientMessage_Stub(Game::client_t* client, Game::msg_t* msg)
+	{
+		if ((client->reliableSequence - client->reliableAcknowledge) < 0)
+		{
+			Logger::Print(Game::CON_CHANNEL_NETWORK, "Negative reliableAcknowledge from {} - cl->reliableSequence is {}, reliableAcknowledge is {}\n",
+				client->name, client->reliableSequence, client->reliableAcknowledge);
+			client->reliableAcknowledge = client->reliableSequence;
+			Game::SV_DropClient(client, "EXE_LOSTRELIABLECOMMANDS", true);
+			return;
+		}
+
+		Utils::Hook::Call<void(Game::client_t*, Game::msg_t*)>(0x414D40)(client, msg);
+	}
+
 	Security::Security()
 	{
 		// Exploit fixes
-		Utils::Hook(0x414D92, MsgReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
-		Utils::Hook(0x4A9F56, MsgReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
-		Utils::Hook(0x407376, SVCanReplaceServerCommand, HOOK_CALL).install()->quick(); // SV_CanReplaceServerCommand
+		Utils::Hook(0x414D92, Msg_ReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
+		Utils::Hook(0x4A9F56, Msg_ReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
+		Utils::Hook(0x407376, SV_CanReplaceServerCommand_Hk, HOOK_CALL).install()->quick(); // SV_CanReplaceServerCommand
 
 		Utils::Hook::Set<std::uint8_t>(0x412370, 0xC3); // SV_SteamAuthClient
 		Utils::Hook::Set<std::uint8_t>(0x5A8C70, 0xC3); // CL_HandleRelayPacket
@@ -134,20 +148,23 @@ namespace Components
 		Utils::Hook::Nop(0x41698E, 5); // Disable Svcmd_EntityList_f
 
 		// Patch selectStringTableEntryInDvar
-		Utils::Hook::Set<void(*)()>(0x405959, SelectStringTableEntryInDvarStub);
+		Utils::Hook::Set<void(*)()>(0x405959, SelectStringTableEntryInDvar_Stub);
 
 		// Patch G_GetClientScore for uninitialized game
-		Utils::Hook(0x469AC0, G_GetClientScore, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x469AC0, G_GetClientScore_Hk, HOOK_JUMP).install()->quick();
 
 		// Requests can be malicious
 		Utils::Hook(0x5B67ED, AtolAdjustPlayerLimit, HOOK_CALL).install()->quick(); // PartyHost_HandleJoinPartyRequest
 
 		// Patch unsecure call to G_LogPrint inside GScr_LogPrint
 		// This function is unsafe because IW devs forgot to G_LogPrintf("%s", fmt)
-		Utils::Hook(0x5F70B5, G_LogPrintfStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5F70B5, G_LogPrintf_Stub, HOOK_CALL).install()->quick();
 
 		// Fix packets causing buffer overflow
-		Utils::Hook(0x6267E3, NET_DeferPacketToClientStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6267E3, NET_DeferPacketToClient_Hk, HOOK_CALL).install()->quick();
+
+		// Fix server freezer exploit
+		Utils::Hook(0x626996, SV_ExecuteClientMessage_Stub, HOOK_CALL).install()->quick();
 
 		// The client can fake the info string
 		Utils::Hook::Set<std::uint8_t>(0x460F6D, 0xEB); // SV_DirectConnect

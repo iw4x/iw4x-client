@@ -269,20 +269,6 @@ namespace Components
 		}
 	}
 
-	void Network::SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg)
-	{
-		if (client->reliableAcknowledge < 0)
-		{
-			Logger::Print(Game::CON_CHANNEL_NETWORK, "Negative reliableAcknowledge from {} - cl->reliableSequence is {}, reliableAcknowledge is {}\n",
-				client->name, client->reliableSequence, client->reliableAcknowledge);
-			client->reliableAcknowledge = client->reliableSequence;
-			SendCommand(Game::NS_SERVER, client->header.netchan.remoteAddress, "error", "EXE_LOSTRELIABLECOMMANDS");
-			return;
-		}
-
-		Utils::Hook::Call<void(Game::client_t*, Game::msg_t*)>(0x414D40)(client, msg);
-	}
-
 	void Network::OnClientPacket(const std::string& command, const networkCallback& callback)
 	{
 		CL_Callbacks[Utils::String::ToLower(command)] = callback;
@@ -366,9 +352,6 @@ namespace Components
 
 		// Prevent recvfrom error spam
 		Utils::Hook(0x46531A, PacketErrorCheck, HOOK_JUMP).install()->quick();
-
-		// Fix server freezer exploit
-		Utils::Hook(0x626996, SV_ExecuteClientMessageStub, HOOK_CALL).install()->quick();
 		
 		// Handle client packets
 		Utils::Hook(0x5AA703, CL_HandleCommandStub, HOOK_JUMP).install()->quick();
