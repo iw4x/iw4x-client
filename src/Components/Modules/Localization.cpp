@@ -137,6 +137,7 @@ namespace Components
 			"Dasfonia",
 			"Deity",
 			"Dizzy",
+			"Evan/Eve"
 			"HardNougat",
 			"INeedGames",
 			"JTAG",
