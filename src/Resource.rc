@@ -69,12 +69,12 @@ BEGIN
 #else
             VALUE "FileDescription", "IW4 client modification"
 #endif
-            VALUE "FileVersion", GIT_TAG 
+            VALUE "FileVersion", REVISION_STR
             VALUE "InternalName", "iw4x"
             VALUE "LegalCopyright", "Copyright 2023 The XLabsProject Team. All rights reserved."
             VALUE "OriginalFilename", "iw4x.dll"
             VALUE "ProductName", "IW4x"
-            VALUE "ProductVersion", GIT_TAG
+            VALUE "ProductVersion", REVISION_STR
         END
     END
     BLOCK "VarFileInfo"

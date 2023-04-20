@@ -522,7 +522,7 @@ namespace Components
 			server.hostname = info.get("hostname");
 			server.mapname = info.get("mapname");
 			server.gametype = info.get("gametype");
-			server.shortversion = info.get("shortversion");
+			server.version = info.get("version");
 			server.mod = info.get("fs_game");
 			server.matchType = std::strtol(info.get("matchtype").data(), nullptr, 10);
 			server.clients = std::strtol(info.get("clients").data(), nullptr, 10);

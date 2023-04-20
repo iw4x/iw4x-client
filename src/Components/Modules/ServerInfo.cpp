@@ -58,7 +58,7 @@ namespace Components
 		{
 			Dvar::Var("uiSi_ServerName").set(serverInfo->hostname);
 			Dvar::Var("uiSi_MaxClients").set(serverInfo->clients);
-			Dvar::Var("uiSi_Version").set(serverInfo->shortversion);
+			Dvar::Var("uiSi_Version").set(serverInfo->version);
 			Dvar::Var("uiSi_SecurityLevel").set(serverInfo->securityLevel);
 			Dvar::Var("uiSi_isPrivate").set(serverInfo->password ? "@MENU_YES" : "@MENU_NO");
 			Dvar::Var("uiSi_Hardcore").set(serverInfo->hardcore ? "@MENU_ENABLED" : "@MENU_DISABLED");
@@ -149,7 +149,7 @@ namespace Components
 		info.set("gamename", "IW4");
 		info.set("sv_maxclients", std::to_string(maxClientCount));
 		info.set("protocol", std::to_string(PROTOCOL));
-		info.set("version", GIT_TAG);
+		info.set("version", REVISION_STR);
 		info.set("version", (*Game::version)->current.string);
 		info.set("mapname", (*Game::sv_mapname)->current.string);
 		info.set("isPrivate", *password ? "1" : "0");
@@ -261,7 +261,7 @@ namespace Components
 
 			Dvar::Var("uiSi_ServerName").set(info.get("sv_hostname"));
 			Dvar::Var("uiSi_MaxClients").set(info.get("sv_maxclients"));
-			Dvar::Var("uiSi_Version").set(info.get("shortversion"));
+			Dvar::Var("uiSi_Version").set(info.get("version"));
 			Dvar::Var("uiSi_SecurityLevel").set(info.get("sv_securityLevel"));
 			Dvar::Var("uiSi_isPrivate").set(info.get("isPrivate") == "0" ? "@MENU_NO" : "@MENU_YES");
 			Dvar::Var("uiSi_Hardcore").set(info.get("g_hardcore") == "0" ? "@MENU_DISABLED" : "@MENU_ENABLED");

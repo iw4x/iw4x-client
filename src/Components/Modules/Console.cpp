@@ -96,14 +96,14 @@ namespace Components
 		}
 		else if (IsWindow(GetWindow()) != FALSE)
 		{
-			SetWindowTextA(GetWindow(), Utils::String::VA("IW4x(" GIT_TAG ") : %s", hostname.data()));
+			SetWindowTextA(GetWindow(), Utils::String::VA("IW4x(" REVISION_STR ") : %s", hostname.data()));
 		}
 	}
 
 	void Console::ShowPrompt()
 	{
 		wattron(InputWindow, COLOR_PAIR(10) | A_BOLD);
-		wprintw(InputWindow, "%s> ", GIT_TAG);
+		wprintw(InputWindow, "%s> ", REVISION_STR);
 	}
 
 	void Console::RefreshOutput()
@@ -427,38 +427,15 @@ namespace Components
 		RefreshOutput();
 	}
 
-	HFONT CALLBACK Console::ReplaceFont(
-		[[maybe_unused]] int cHeight,
-		int cWidth,
-		int cEscapement,
-		int cOrientation,
-		[[maybe_unused]] int cWeight,
-		DWORD bItalic,
-		DWORD bUnderline,
-		DWORD bStrikeOut,
-		DWORD iCharSet,
-		[[maybe_unused]] DWORD iOutPrecision,
-		DWORD iClipPrecision,
-		[[maybe_unused]] DWORD iQuality,
-		[[maybe_unused]] DWORD iPitchAndFamily,
-		[[maybe_unused]] LPCSTR pszFaceName)
+	HFONT CALLBACK Console::ReplaceFont([[maybe_unused]] int cHeight, int cWidth, int cEscapement, int cOrientation, [[maybe_unused]] int cWeight, DWORD bItalic, DWORD bUnderline,
+	                                    DWORD bStrikeOut, DWORD iCharSet, [[maybe_unused]] DWORD iOutPrecision, DWORD iClipPrecision, [[maybe_unused]] DWORD iQuality,
+	                                    [[maybe_unused]] DWORD iPitchAndFamily, [[maybe_unused]] LPCSTR pszFaceName)
 	{
-		HFONT font = CreateFontA(
-			12, 
-			cWidth, 
-			cEscapement, 
-			cOrientation, 
-			700, 
-			bItalic, 
-			bUnderline,
-			bStrikeOut, 
-			iCharSet, 
-			OUT_RASTER_PRECIS,
-			iClipPrecision, 
-			NONANTIALIASED_QUALITY,
-			0x31, 
-			"Terminus (TTF)"
-		); // Terminus (TTF)
+		HFONT font = CreateFontA(12, cWidth, cEscapement, cOrientation, 700, bItalic,
+		                         bUnderline, bStrikeOut, iCharSet, OUT_RASTER_PRECIS,
+		                         iClipPrecision, NONANTIALIASED_QUALITY, 0x31,
+		                         "Terminus (TTF)"
+		);
 
 		return font;
 	}
@@ -860,7 +837,7 @@ namespace Components
 		AssertOffset(Game::clientUIActive_t, keyCatchers, 0x9B0);
 
 		// Console '%s: %s> ' string
-		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x_MP: " GIT_TAG "> ");
+		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " REVISION_STR "> ");
 
 		// Patch console color
 		static float consoleColor[] = { 0.70f, 1.00f, 0.00f, 1.00f };

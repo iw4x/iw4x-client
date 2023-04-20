@@ -17,7 +17,7 @@ namespace Components
 			std::string mapname;
 			std::string gametype;
 			std::string mod;
-			std::string shortversion;
+			std::string version;
 			std::size_t hash;
 			int clients;
 			int bots;

@@ -160,6 +160,7 @@ newaction {
 			versionHeader:write("\n")
 			versionHeader:write("// New revision definition. Will be used from now on\n")
 			versionHeader:write("#define REVISION " .. revNumber .. "\n")
+			versionHeader:write("#define REVISION_STR \"r" .. revNumber .. "\"\n")
 			versionHeader:write("\n")
 			versionHeader:write("// Alias definitions\n")
 			versionHeader:write("#define VERSION GIT_DESCRIBE\n")

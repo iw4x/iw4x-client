@@ -386,7 +386,7 @@ namespace Components
 			info.set("bots", std::to_string(botCount));
 			info.set("sv_maxclients", std::to_string(maxClientCount));
 			info.set("protocol", std::to_string(PROTOCOL));
-			info.set("version", GIT_TAG);
+			info.set("version", REVISION_STR);
 			info.set("checksum", std::to_string(Game::Sys_Milliseconds()));
 			info.set("mapname", Dvar::Var("mapname").get<std::string>());
 			info.set("isPrivate", *password ? "1" : "0");
