@@ -74,8 +74,7 @@ namespace Components
 	Game::dvar_t* Branding::Dvar_RegisterUIBuildLocation(const char* dvarName, [[maybe_unused]] float x,
 		[[maybe_unused]] float y, float min, float max, [[maybe_unused]] int flags, const char* description)
 	{
-		return Game::Dvar_RegisterVec2(dvarName, -60.0f,
-			474.0f, min, max, Game::DVAR_ROM, description);
+		return Game::Dvar_RegisterVec2(dvarName, -60.0f, 472.0f, min, max, Game::DVAR_ROM, description);
 	}
 
 	void Branding::RegisterBrandingDvars()
