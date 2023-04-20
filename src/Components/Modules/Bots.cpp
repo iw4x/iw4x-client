@@ -128,7 +128,7 @@ namespace Components
 		}
 		else
 		{
-			botName = std::format("bot{}", port);
+			botName = std::format("bot{}", num);
 			clanName = "BOT"s;
 		}
 
