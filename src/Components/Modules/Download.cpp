@@ -442,7 +442,7 @@ namespace Components
 		info["status"] = status.to_json();
 		info["host"] = host.to_json();
 		info["map_rotation"] = MapRotation::to_json();
-		info["dedicated"] = Dedicated::com_dedicated->current.value;
+		info["dedicated"] = Dedicated::com_dedicated->current.integer;
 
 		std::vector<nlohmann::json> players;
 
