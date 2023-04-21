@@ -96,14 +96,22 @@ namespace Components
 		}
 		else if (IsWindow(GetWindow()) != FALSE)
 		{
-			SetWindowTextA(GetWindow(), Utils::String::VA("IW4x(" REVISION_STR ") : %s", hostname.data()));
+#ifdef EXPERIMENTAL_BUILD
+			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR "-develop : %s", hostname));
+#else
+			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR " : %s", hostname));
+#endif
 		}
 	}
 
 	void Console::ShowPrompt()
 	{
 		wattron(InputWindow, COLOR_PAIR(10) | A_BOLD);
+#ifdef EXPERIMENTAL_BUILD
+		wprintw(InputWindow, "%s-develop> ", REVISION_STR);
+#else
 		wprintw(InputWindow, "%s> ", REVISION_STR);
+#endif
 	}
 
 	void Console::RefreshOutput()
@@ -837,7 +845,11 @@ namespace Components
 		AssertOffset(Game::clientUIActive_t, keyCatchers, 0x9B0);
 
 		// Console '%s: %s> ' string
+#ifdef EXPERIMENTAL_BUILD
+		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " REVISION_STR "-develop> ");
+#else
 		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " REVISION_STR "> ");
+#endif
 
 		// Patch console color
 		static float consoleColor[] = { 0.70f, 1.00f, 0.00f, 1.00f };

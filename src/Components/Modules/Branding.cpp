@@ -48,7 +48,11 @@ namespace Components
 
 	const char* Branding::GetBuildNumber()
 	{
+#ifdef EXPERIMENTAL_BUILD
+		return REVISION_STR "-develop latest " __DATE__ " " __TIME__;
+#else
 		return REVISION_STR " latest " __DATE__ " " __TIME__;
+#endif
 	}
 
 	const char* Branding::GetVersionString()
@@ -97,14 +101,22 @@ namespace Components
 		RegisterBrandingDvars();
 
 		// UI version string
+#ifdef EXPERIMENTAL_BUILD
+		Utils::Hook::Set<const char*>(0x43F73B, "IW4x - " REVISION_STR "-develop");
+#else
 		Utils::Hook::Set<const char*>(0x43F73B, "IW4x - " REVISION_STR);
+#endif
 
 		// Short version dvar
 		Utils::Hook::Set<const char*>(0x60BD91, REVISION_STR);
 
 		// Com_Init_Try_Block_Function
 		Utils::Hook::Set<const char*>(0x60BAF4, BUILD_TYPE);
+#ifdef EXPERIMENTAL_BUILD
+		Utils::Hook::Set<const char*>(0x60BAEf, REVISION_STR "-develop");
+#else
 		Utils::Hook::Set<const char*>(0x60BAEf, REVISION_STR);
+#endif
 		Utils::Hook::Set<const char*>(0x60BAE5, __DATE__);
 
 		// G_InitGame
@@ -133,7 +145,11 @@ namespace Components
 		}
 		else if (Dedicated::IsEnabled())
 		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" REVISION_STR "): Dedicated");
+#ifdef EXPERIMENTAL_BUILD
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x " REVISION_STR "-develop: Dedicated");
+#else
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4x " REVISION_STR ": Dedicated");
+#endif
 		}
 		else
 		{
