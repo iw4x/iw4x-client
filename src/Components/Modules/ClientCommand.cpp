@@ -9,11 +9,23 @@ namespace Components
 {
 	std::unordered_map<std::string, std::function<void(Game::gentity_s*, const Command::ServerParams*)>> ClientCommand::HandlersSV;
 
+	bool ClientCommand::CheatsEnabled;
+
+	ClientCommand::CheatsScopedLock::CheatsScopedLock()
+	{
+		CheatsEnabled = true;
+	}
+
+	ClientCommand::CheatsScopedLock::~CheatsScopedLock()
+	{
+		CheatsEnabled = false;
+	}
+
 	bool ClientCommand::CheatsOk(const Game::gentity_s* ent)
 	{
 		const auto entNum = ent->s.number;
 
-		if (!(*Game::g_cheats)->current.enabled)
+		if (!(*Game::g_cheats)->current.enabled && !CheatsEnabled)
 		{
 			Logger::Debug("Cheats are disabled!");
 			Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_CHEATSNOTENABLED\"", 0x65));
@@ -351,12 +363,16 @@ namespace Components
 		GSC::Script::AddMethod("Noclip", [](const Game::scr_entref_t entref) // gsc: self Noclip();
 		{
 			auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+
+			CheatsScopedLock cheatsLock;
 			Cmd_Noclip_f(ent, nullptr);
 		});
 
 		GSC::Script::AddMethod("Ufo", [](const Game::scr_entref_t entref) // gsc: self Ufo();
 		{
 			auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+
+			CheatsScopedLock cheatsLock;
 			Cmd_UFO_f(ent, nullptr);
 		});
 	}
@@ -501,6 +517,8 @@ namespace Components
 
 		// Hook call to ClientCommand in SV_ExecuteClientCommand so we may add custom commands
 		Utils::Hook(0x6259FA, ClientCommandStub, HOOK_CALL).install()->quick();
+
+		CheatsEnabled = false;
 
 		AddCheatCommands();
 		AddScriptFunctions();
