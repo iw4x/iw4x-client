@@ -90,10 +90,8 @@ namespace Utils::String
 	[[nodiscard]] const char* Format(std::string_view fmt, Args&&... args)
 	{
 		static thread_local std::string vaBuffer;
-		vaBuffer.clear();
-
 		(SanitizeFormatArgs(args), ...);
-		std::vformat_to(std::back_inserter(vaBuffer), fmt, std::make_format_args(args...));
+		std::vformat(fmt, std::make_format_args(args...)).swap(vaBuffer);
 		return vaBuffer.data();
 	}
 

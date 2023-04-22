@@ -1,8 +1,5 @@
 #pragma once
 
-// This enables version filtering
-#define VERSION_FILTER
-
 namespace Components
 {
 	class ServerList : public Component
@@ -17,7 +14,7 @@ namespace Components
 			std::string mapname;
 			std::string gametype;
 			std::string mod;
-			std::string shortversion;
+			std::string version;
 			std::size_t hash;
 			int clients;
 			int bots;

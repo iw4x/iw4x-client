@@ -51,13 +51,9 @@ namespace Utils
 	std::string InfoString::build() const
 	{
 		std::string infoString;
-
-		auto first = true;
 		for (const auto& [key, value] : this->keyValuePairs_)
 		{
-			if (first) first = false;
-			else infoString.append("\\");
-
+			infoString.append("\\");
 			infoString.append(key);
 			infoString.append("\\");
 			infoString.append(value);

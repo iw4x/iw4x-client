@@ -17,19 +17,6 @@ function cstrquote(value)
 	return result
 end
 
--- Converts tags in "vX.X.X" format to an array of numbers {X,X,X}.
--- In the case where the format does not work fall back to old {4,2,REVISION}.
-function vertonumarr(value, vernumber)
-	vernum = {}
-	for num in string.gmatch(value, "%d+") do
-		table.insert(vernum, tonumber(num))
-	end
-	if #vernum < 3 then
-		return {4,2,tonumber(vernumber)}
-	end
-	return vernum
-end
-
 dependencies = {
 	basePath = "./deps"
 }
@@ -108,7 +95,7 @@ newaction {
 
 newaction {
 	trigger = "generate-buildinfo",
-	description = "Sets up build information file like version.h.",
+	description = "Sets up build information file. Output will be stored in version.h.",
 	onWorkspace = function(wks)
 		-- get revision number via git
 		local proc = assert(io.popen("git rev-list --count HEAD", "r"))
@@ -128,6 +115,26 @@ newaction {
 		-- get current tag name
 		proc = assert(io.popen("git describe --tags --abbrev=0"))
 		local tagName = assert(proc:read('*l'))
+
+		-- get current branch name
+		proc = assert(io.popen("git branch --show-current"))
+		local branchName = proc:read('*l')
+
+		-- branch for ci
+		if branchName == nil or branchName == '' then
+			proc = assert(io.popen("git show -s --pretty=%d HEAD"))
+			local branchInfo = proc:read('*l')
+			m = string.match(branchInfo, ".+,.+, ([^)]+)")
+			if m ~= nil then
+				branchName = m
+			end
+		end
+
+		if branchName == nil then
+			branchName = "develop"
+		end
+
+		print("Detected branch: " .. branchName)
 
 		-- get old version number from version.hpp if any
 		local oldVersion = "(none)"
@@ -157,9 +164,16 @@ newaction {
 			versionHeader:write("#define GIT_DESCRIBE " .. gitDescribeOutputQuoted .. "\n")
 			versionHeader:write("#define GIT_DIRTY " .. revDirty .. "\n")
 			versionHeader:write("#define GIT_TAG " .. cstrquote(tagName) .. "\n")
+			versionHeader:write("#define GIT_BRANCH " .. cstrquote(branchName) .. "\n")
 			versionHeader:write("\n")
 			versionHeader:write("// New revision definition. Will be used from now on\n")
 			versionHeader:write("#define REVISION " .. revNumber .. "\n")
+			versionHeader:write("#define REVISION_STR \"r" .. revNumber .. "\"\n")
+
+			if branchName == "develop" then
+				versionHeader:write("#define EXPERIMENTAL_BUILD" .. "\n")
+			end
+
 			versionHeader:write("\n")
 			versionHeader:write("// Alias definitions\n")
 			versionHeader:write("#define VERSION GIT_DESCRIBE\n")

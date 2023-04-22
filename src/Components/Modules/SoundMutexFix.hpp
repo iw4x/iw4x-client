@@ -9,7 +9,7 @@ namespace Components
 		SoundMutexFix();
 		
 	private:
-		static std::mutex SNDMutex;
-		static void _stdcall LockSoundMutex(int unk);
+		static std::mutex CloseStreamMutex;
+		static void WINAPI AIL_close_stream_Stub(int h_stream);
 	};
 }

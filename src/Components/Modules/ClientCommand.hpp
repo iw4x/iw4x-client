@@ -13,6 +13,15 @@ namespace Components
 	private:
 		static std::unordered_map<std::string, std::function<void(Game::gentity_s*, const Command::ServerParams*)>> HandlersSV;
 
+		static bool CheatsEnabled;
+
+		class CheatsScopedLock
+		{
+		public:
+			CheatsScopedLock();
+			~CheatsScopedLock();
+		};
+
 		static void ClientCommandStub(int clientNum);
 		static void AddCheatCommands();
 		static void AddDevelopmentCommands();

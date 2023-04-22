@@ -13,10 +13,10 @@ namespace Components
 {
 	constexpr std::size_t MAX_NAME_LENGTH = 16;
 
-	std::vector<Bots::botData> Bots::BotNames;
-
 	const Game::dvar_t* Bots::sv_randomBotNames;
 	const Game::dvar_t* Bots::sv_replaceBots;
+
+	std::size_t Bots::botDataIndex;
 
 	struct BotMovementInfo
 	{
@@ -54,27 +54,21 @@ namespace Components
 		{ "activate", Game::CMD_BUTTON_ACTIVATE },
 	};
 
-	void Bots::RandomizeBotNames()
+	std::vector<Bots::botData> Bots::LoadBotNames()
 	{
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::ranges::shuffle(BotNames, gen);
-	}
+		std::vector<botData> result;
 
-	void Bots::LoadBotNames()
-	{
 		FileSystem::File bots("bots.txt");
-
 		if (!bots.exists())
 		{
-			return;
+			return result;
 		}
 
 		auto data = Utils::String::Split(bots.getBuffer(), '\n');
 
 		for (auto& entry : data)
 		{
-			// Take into account for CR line endings
+			// Take into account CR line endings
 			Utils::String::Replace(entry, "\r", "");
 			// Remove whitespace
 			Utils::String::Trim(entry);
@@ -100,38 +94,41 @@ namespace Components
 
 			entry = entry.substr(0, MAX_NAME_LENGTH - 1);
 
-			BotNames.emplace_back(entry, clanAbbrev);
+			result.emplace_back(entry, clanAbbrev);
 		}
 
-		if (sv_randomBotNames->current.enabled)
-		{
-			RandomizeBotNames();
-		}
+		return result;
 	}
 
 	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
 	{
-		static std::size_t botId = 0; // Loop over the BotNames vector
-		static bool loadedNames = false; // Load file only once
 		std::string botName;
 		std::string clanName;
 
-		if (!loadedNames)
+		static const auto botNames = []() -> std::vector<botData>
 		{
-			loadedNames = true;
-			LoadBotNames();
-		}
+			auto names = LoadBotNames();
 
-		if (!BotNames.empty())
+			if (sv_randomBotNames->current.enabled)
+			{
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				std::ranges::shuffle(names, gen);
+			}
+
+			return names;
+		}();
+
+		if (!botNames.empty())
 		{
-			botId %= BotNames.size();
-			const auto index = botId++;
-			botName = BotNames[index].first;
-			clanName = BotNames[index].second;
+			botDataIndex %= botNames.size();
+			const auto index = botDataIndex++;
+			botName = botNames[index].first;
+			clanName = botNames[index].second;
 		}
 		else
 		{
-			botName = std::format("bot{}", ++botId);
+			botName = std::format("bot{}", num);
 			clanName = "BOT"s;
 		}
 

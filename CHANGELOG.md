@@ -2,9 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/) and this project adheres to [Semantic Versioning](http://semver.org/).
+The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/).
 
-## r4190 - 2023-04-19
+## r4208 - 2023-04-22
+
+### Changed
+
+- `Noclip` GSC method does not require `sv_cheats` to be set to "1" for it to work (#962)
+- `Ufo` GSC method does not require `sv_cheats` to be set to "1" for it to work (#962)
+
+### Fixed
+
+- Fix `InfoString` output (#961)
+- Fix parsing of the server info (client-side) (#953)
+- Fix bug in the /info TCP endpoint (#955)
+
+### Known issues
+
+- Sound issue fix is experimental as the bug is not fully understood.
+
+## r4193 - 2023-04-19
 
 ### Added
 
@@ -14,11 +31,13 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Changed
 
-- `sv_mapRotationCurrent` supports `exec` directive for executing cfg scripts from the `game_settings` folder
+- `sv_mapRotationCurrent` supports `exec` directive for executing cfg scripts from the `game_settings` folder (#916)
+- `SetPing` GSC method is now deprecated.
 
 ### Fixed
 
 - `sv_privatePassword` will work as intended (#908)
+- Fix crash when loading bots.txt file (#927)
 
 ### Known issues
 

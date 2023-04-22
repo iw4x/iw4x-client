@@ -317,7 +317,7 @@ namespace Components
 
 	void Debug::Com_BugNameInc_f()
 	{
-		char buf[260]{};
+		char buf[512]{};
 
 		if (std::strlen(BugName->current.string) < 4)
 		{
