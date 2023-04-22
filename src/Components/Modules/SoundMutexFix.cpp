@@ -23,18 +23,18 @@ namespace Components
 	//		team switch and intermission.
 	// 
 
-	std::mutex SoundMutexFix::SNDMutex;
+	std::mutex SoundMutexFix::CloseStreamMutex;
 
-	void __stdcall SoundMutexFix::LockSoundMutex(int unk)
+	void WINAPI SoundMutexFix::AIL_close_stream_Stub(int h_stream)
 	{
-		std::lock_guard lock(SNDMutex);
+		std::lock_guard lock(CloseStreamMutex);
 
-		DWORD funcPtr = *reinterpret_cast<DWORD*>(0x6D7554); // AIL_close_stream
-		Utils::Hook::Call<void __stdcall(int)>(funcPtr)(unk);
+		const auto ptr = *reinterpret_cast<DWORD*>(0x6D7554); // AIL_close_stream
+		Utils::Hook::Call<void WINAPI(int)>(ptr)(h_stream);
 	}
 
 	SoundMutexFix::SoundMutexFix()
 	{
-		Utils::Hook(0x689EFE, &LockSoundMutex, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x689EFE, &AIL_close_stream_Stub, HOOK_JUMP).install()->quick();
 	}
 }
