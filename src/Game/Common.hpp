@@ -29,6 +29,9 @@ namespace Game
 	typedef void(*Com_PrintMessage_t)(int channel, const char* msg, int error);
 	extern Com_PrintMessage_t Com_PrintMessage;
 
+	typedef int(*Com_sprintf_t)(char* dest, int size, const char* fmt, ...);
+	extern Com_sprintf_t Com_sprintf;
+
 	typedef void(*Com_EndParseSession_t)();
 	extern Com_EndParseSession_t Com_EndParseSession;
 

@@ -109,6 +109,7 @@ namespace Game
 
 	NET_AdrToString_t NET_AdrToString = NET_AdrToString_t(0x469880);
 	NET_CompareAdr_t NET_CompareAdr = NET_CompareAdr_t(0x4D0AA0);
+	NET_CompareBaseAdr_t NET_CompareBaseAdr = NET_CompareBaseAdr_t(0x455510);
 	NET_DeferPacketToClient_t NET_DeferPacketToClient = NET_DeferPacketToClient_t(0x4C8AA0);
 	NET_ErrorString_t NET_ErrorString = NET_ErrorString_t(0x4E7720);
 	NET_Init_t NET_Init = NET_Init_t(0x491860);

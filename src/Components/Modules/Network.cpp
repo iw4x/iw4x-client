@@ -360,8 +360,12 @@ namespace Components
 		Utils::Hook::Set<std::uint8_t>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
 		Utils::Hook::Set<std::uint8_t>(0x5AA69F, 0xEB); // echo
 		Utils::Hook::Set<std::uint8_t>(0x5AAA82, 0xEB); // SP
+		Utils::Hook::Set<std::uint8_t>(0x5A9F77, 0xEB); // CL_WeNowCantHearSomeone
 		Utils::Hook::Set<std::uint8_t>(0x5A9F18, 0xEB); // CL_VoiceConnectionTestPacket
 		Utils::Hook::Set<std::uint8_t>(0x5A9FF3, 0xEB); // CL_HandleRelayPacket
+
+		// For security reasons check the sender of the 'print' OOB
+		Utils::Hook::Set<std::uint8_t>(0x5AA729, 0xEB);
 
 		// Com_GetProtocol
 		Utils::Hook::Set<std::uint32_t>(0x4FB501, PROTOCOL);
@@ -381,9 +385,24 @@ namespace Components
 		Utils::Hook::Set<std::uint8_t>(0x682170, 0xC3); // Telling LSP that we're playing a private match
 		Utils::Hook::Nop(0x4FD448, 5); // Don't create lsp_socket
 
-		OnClientPacket("resolveAddress", [](const Address& address, [[maybe_unused]] const std::string& data)
+		OnClientPacket("resolveAddress", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
 		{
 			SendRaw(address, address.getString());
+		});
+
+		OnClientPacket("print", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
+		{
+			auto* clc = Game::CL_GetLocalClientConnection(0);
+			if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address.get()))
+			{
+				return;
+			}
+
+			char buffer[2048]{};
+
+			Game::I_strncpyz(clc->serverMessage, data.data(), sizeof(clc->serverMessage));
+			Game::Com_sprintf(buffer, sizeof(buffer), "%s", data.data());
+			Game::Com_PrintMessage(Game::CON_CHANNEL_CLIENT, data.data(), 0);
 		});
 	}
 }
