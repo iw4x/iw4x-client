@@ -402,7 +402,7 @@ namespace Components
 
 			Game::I_strncpyz(clc->serverMessage, data.data(), sizeof(clc->serverMessage));
 			Game::Com_sprintf(buffer, sizeof(buffer), "%s", data.data());
-			Game::Com_PrintMessage(Game::CON_CHANNEL_CLIENT, data.data(), 0);
+			Game::Com_PrintMessage(Game::CON_CHANNEL_CLIENT, buffer, 0);
 		});
 	}
 }
