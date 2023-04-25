@@ -5,6 +5,7 @@ namespace Components
 	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
 	// Packet interception
 	std::unordered_map<std::string, Network::networkCallback> Network::CL_Callbacks;
+	std::unordered_map<std::string, Network::networkRawCallback> Network::CL_RawCallbacks;
 
 	Network::Address::Address()
 	{
@@ -274,14 +275,31 @@ namespace Components
 		CL_Callbacks[Utils::String::ToLower(command)] = callback;
 	}
 
-	bool Network::CL_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message)
+	void Network::OnClientPacketRaw(const std::string& command, const networkRawCallback& callback)
+	{
+		CL_RawCallbacks[Utils::String::ToLower(command)] = callback;
+	}
+
+	bool Network::CL_HandleCommand(Game::netadr_t* address, const char* command, Game::msg_t* message)
 	{
 		const auto command_ = Utils::String::ToLower(command);
-		const auto handler = CL_Callbacks.find(command_);
 
 		const auto offset = command_.size() + 5;
-		if (static_cast<std::size_t>(message->cursize) < offset || handler == CL_Callbacks.end())
+		if (static_cast<std::size_t>(message->cursize) < offset)
 		{
+			return false;
+		}
+
+		if (const auto rawHandler = CL_RawCallbacks.find(command_); rawHandler != CL_RawCallbacks.end())
+		{
+			rawHandler->second(address, message);
+			return true;
+		}
+
+		const auto handler = CL_Callbacks.find(command_);
+		if (handler == CL_Callbacks.end())
+		{
+			// Normal handler was not found, return
 			return false;
 		}
 

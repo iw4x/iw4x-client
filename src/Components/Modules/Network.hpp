@@ -49,6 +49,7 @@ namespace Components
 		typedef void(CallbackRaw)();
 
 		using networkCallback = std::function<void(Address&, const std::string&)>;
+		using networkRawCallback = std::function<void(Game::netadr_t*, Game::msg_t* msg)>;
 
 		Network();
 
@@ -73,17 +74,19 @@ namespace Components
 		static void BroadcastAll(const std::string& data);
 
 		static void OnClientPacket(const std::string& command, const networkCallback& callback);
+		static void OnClientPacketRaw(const std::string& command, const networkRawCallback& callback);
 
 	private:
 		static Utils::Signal<CallbackRaw> StartupSignal;
 		static std::unordered_map<std::string, networkCallback> CL_Callbacks;
+		static std::unordered_map<std::string, networkRawCallback> CL_RawCallbacks;
 
 		static void NetworkStart();
 		static void NetworkStartStub();
 
 		static void PacketErrorCheck();
 
-		static bool CL_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message);
+		static bool CL_HandleCommand(Game::netadr_t* address, const char* command, Game::msg_t* message);
 
 		static void CL_HandleCommandStub();
 	};
