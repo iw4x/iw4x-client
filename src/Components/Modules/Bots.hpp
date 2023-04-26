@@ -15,7 +15,7 @@ namespace Components
 		static const Game::dvar_t* sv_randomBotNames;
 		static const Game::dvar_t* sv_replaceBots;
 
-		static std::size_t botDataIndex;
+		static std::size_t BotDataIndex;
 
 		static std::vector<botData> LoadBotNames();
 		static int BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port);

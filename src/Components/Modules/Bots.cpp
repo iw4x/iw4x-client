@@ -16,7 +16,7 @@ namespace Components
 	const Game::dvar_t* Bots::sv_randomBotNames;
 	const Game::dvar_t* Bots::sv_replaceBots;
 
-	std::size_t Bots::botDataIndex;
+	std::size_t Bots::BotDataIndex;
 
 	struct BotMovementInfo
 	{
@@ -121,8 +121,8 @@ namespace Components
 
 		if (!botNames.empty())
 		{
-			botDataIndex %= botNames.size();
-			const auto index = botDataIndex++;
+			BotDataIndex %= botNames.size();
+			const auto index = BotDataIndex++;
 			botName = botNames[index].first;
 			clanName = botNames[index].second;
 		}
