@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ## r4226 - 2023-04-26
 
+### Changed
+
 - Chat system will go back to using `SV_CMD_CAN_IGNORE` commands (#972)
 
 ### Fixed
