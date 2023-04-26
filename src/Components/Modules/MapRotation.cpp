@@ -162,7 +162,7 @@ namespace Components
 
 	void MapRotation::AddMapRotationCommands()
 	{
-		Command::Add("addMap", [](Command::Params* params)
+		Command::AddSV("addMap", [](Command::Params* params)
 		{
 			if (params->size() < 2)
 			{
@@ -173,7 +173,7 @@ namespace Components
 			DedicatedRotation.addEntry("map", params->get(1));
 		});
 
-		Command::Add("addGametype", [](Command::Params* params)
+		Command::AddSV("addGametype", [](Command::Params* params)
 		{
 			if (params->size() < 2)
 			{
@@ -397,7 +397,7 @@ namespace Components
 
 	MapRotation::MapRotation()
 	{
-		AddMapRotationCommands();
+		Events::OnSVInit(AddMapRotationCommands);
 		Utils::Hook::Set<void(*)()>(0x4152E8, SV_MapRotate_f);
 
 		DedicatedRotation.setHandler("map", ApplyMap);
