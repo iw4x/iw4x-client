@@ -126,7 +126,7 @@ namespace Components
 		return mapRotationJson;
 	}
 
-	void MapRotation::LoadRotation(const std::string& data)
+	void MapRotation::ParseRotation(const std::string& data)
 	{
 		try
 		{
@@ -138,6 +138,19 @@ namespace Components
 		}
 
 		Logger::Debug("DedicatedRotation size after parsing is '{}'", DedicatedRotation.getEntriesSize());
+	}
+
+	void MapRotation::RandomizeMapRotation()
+	{
+		if (SVRandomMapRotation.get<bool>())
+		{
+			Logger::Print(Game::CON_CHANNEL_SERVER, "Randomizing the map rotation\n");
+			DedicatedRotation.randomize();
+		}
+		else
+		{
+			Logger::Debug("Map rotation was not randomized");
+		}
 	}
 
 	void MapRotation::LoadMapRotation()
@@ -156,7 +169,8 @@ namespace Components
 		if (!mapRotation.empty())
 		{
 			Logger::Debug("{} is not empty. Parsing...", (*Game::sv_mapRotation)->name);
-			LoadRotation(mapRotation);
+			ParseRotation(mapRotation);
+			RandomizeMapRotation();
 		}
 	}
 
@@ -341,19 +355,6 @@ namespace Components
 		SVNextMap.set("");
 	}
 
-	void MapRotation::RandomizeMapRotation()
-	{
-		if (SVRandomMapRotation.get<bool>())
-		{
-			Logger::Print(Game::CON_CHANNEL_SERVER, "Randomizing the map rotation\n");
-			DedicatedRotation.randomize();
-		}
-		else
-		{
-			Logger::Debug("Map rotation was not randomized");
-		}
-	}
-
 	void MapRotation::SV_MapRotate_f()
 	{
 		if (!ShouldRotate())
@@ -381,8 +382,6 @@ namespace Components
 			SetNextMap("map_restart");
 			return;
 		}
-
-		RandomizeMapRotation();
 
 		ApplyRotation(DedicatedRotation);
 		SetNextMap(DedicatedRotation);
