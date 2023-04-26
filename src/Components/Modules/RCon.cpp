@@ -110,12 +110,6 @@ namespace Components
 	bool RCon::RateLimitCheck(const Network::Address& address, const int time)
 	{
 		const auto ip = address.getIP();
-
-		if (!RateLimit.contains(ip.full))
-		{
-			RateLimit[ip.full] = 0;
-		}
-
 		const auto lastTime = RateLimit[ip.full];
 
 		if (lastTime && (time - lastTime) < RconTimeout.get<int>())
