@@ -155,7 +155,7 @@ namespace Components
 		// People may have sv_mapRotation empty because they only use 'addMap' or 'addGametype'
 		if (!mapRotation.empty())
 		{
-			Logger::Debug("sv_mapRotation is not empty. Parsing...");
+			Logger::Debug("{} is not empty. Parsing...", (*Game::sv_mapRotation)->name);
 			LoadRotation(mapRotation);
 		}
 	}
