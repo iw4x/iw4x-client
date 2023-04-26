@@ -134,7 +134,7 @@ namespace Components
 		}
 		catch (const std::exception& ex)
 		{
-			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}: {} contains invalid data!\n", ex.what(), (*Game::sv_mapRotation)->name);
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}. {} contains invalid data!\n", ex.what(), (*Game::sv_mapRotation)->name);
 		}
 
 		Logger::Debug("DedicatedRotation size after parsing is '{}'", DedicatedRotation.getEntriesSize());
@@ -286,9 +286,13 @@ namespace Components
 		assert(!data.empty());
 
 		// Ook, ook, eek
-		Logger::Warning(Game::CON_CHANNEL_SERVER, "You are using deprecated {}", (*Game::sv_mapRotationCurrent)->name);
+		Logger::Warning(Game::CON_CHANNEL_SERVER, "You are using deprecated {}\n", (*Game::sv_mapRotationCurrent)->name);
 
 		RotationData rotationCurrent;
+		rotationCurrent.setHandler("map", ApplyMap);
+		rotationCurrent.setHandler("gametype", ApplyGametype);
+		rotationCurrent.setHandler("exec", ApplyExec);
+
 		try
 		{
 			Logger::Debug("Parsing {}", (*Game::sv_mapRotationCurrent)->name);
@@ -296,7 +300,7 @@ namespace Components
 		}
 		catch (const std::exception& ex)
 		{
-			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}: {} contains invalid data!\n", ex.what(), (*Game::sv_mapRotationCurrent)->name);
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}. {} contains invalid data!\n", ex.what(), (*Game::sv_mapRotationCurrent)->name);
 		}
 
 		Game::Dvar_SetString(*Game::sv_mapRotationCurrent, "");
@@ -407,11 +411,16 @@ namespace Components
 	{
 		Logger::Debug("Testing map rotation parsing...");
 
-		const auto* normal = "map mp_highrise map mp_terminal map mp_firingrange map mp_trailerpark gametype dm map mp_shipment_long";
+		const auto* normal = "exec war.cfg map mp_highrise map mp_terminal map mp_firingrange map mp_trailerpark gametype dm map mp_shipment_long";
+
+		RotationData rotation;
+		rotation.setHandler("map", ApplyMap);
+		rotation.setHandler("gametype", ApplyGametype);
+		rotation.setHandler("exec", ApplyExec);
 
 		try
 		{
-			DedicatedRotation.parse(normal);
+			rotation.parse(normal);
 		}
 		catch (const std::exception& ex)
 		{
@@ -419,14 +428,14 @@ namespace Components
 			return false;
 		}
 
-		DedicatedRotation.clear();
+		rotation.clear();
 
 		const auto* mistake = "spdevmap mp_dome";
 		auto success = false;
 
 		try
 		{
-			DedicatedRotation.parse(mistake);
+			rotation.parse(mistake);
 		}
 		catch (const std::exception& ex)
 		{
