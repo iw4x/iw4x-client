@@ -97,9 +97,9 @@ namespace Components
 		else if (IsWindow(GetWindow()) != FALSE)
 		{
 #ifdef EXPERIMENTAL_BUILD
-			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR "-develop : %s", hostname));
+			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR "-develop : {}", hostname));
 #else
-			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR " : %s", hostname));
+			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR " : {}", hostname));
 #endif
 		}
 	}

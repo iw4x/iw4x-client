@@ -12,6 +12,7 @@ namespace Game
 	Com_PrintError_t Com_PrintError = Com_PrintError_t(0x4F8C70);
 	Com_PrintWarning_t Com_PrintWarning = Com_PrintWarning_t(0x4E0200);
 	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4AA830);
+	Com_sprintf_t Com_sprintf = Com_sprintf_t(0x413DE0);
 	Com_EndParseSession_t Com_EndParseSession = Com_EndParseSession_t(0x4B80B0);
 	Com_BeginParseSession_t Com_BeginParseSession = Com_BeginParseSession_t(0x4AAB80);
 	Com_ParseOnLine_t Com_ParseOnLine = Com_ParseOnLine_t(0x4C0350);

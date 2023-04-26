@@ -101,7 +101,7 @@ namespace Components
 		RegisterBrandingDvars();
 
 		// UI version string
-		Utils::Hook::Set<const char*>(0x43F73B, "IW4x - " REVISION_STR);
+		Utils::Hook::Set<const char*>(0x43F73B, "IW4x " REVISION_STR);
 
 		// Short version dvar
 		Utils::Hook::Set<const char*>(0x60BD91, REVISION_STR);

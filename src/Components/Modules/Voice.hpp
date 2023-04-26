@@ -46,7 +46,7 @@ namespace Components
 		static void CL_TogglePlayerMute(int localClientNum, int muteClientIndex);
 
 		static void CL_WriteVoicePacket_Hk(int localClientNum);
-		static void CL_VoicePacket_Hk(int localClientNum, Game::msg_t* msg);
+		static void CL_VoicePacket(Game::netadr_t* address, Game::msg_t* msg);
 
 		static void UI_Mute_player(int clientNum, int localClientNum);
 		static void UI_Mute_Player_Stub();

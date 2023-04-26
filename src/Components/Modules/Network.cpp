@@ -5,6 +5,7 @@ namespace Components
 	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
 	// Packet interception
 	std::unordered_map<std::string, Network::networkCallback> Network::CL_Callbacks;
+	std::unordered_map<std::string, Network::networkRawCallback> Network::CL_RawCallbacks;
 
 	Network::Address::Address()
 	{
@@ -274,14 +275,31 @@ namespace Components
 		CL_Callbacks[Utils::String::ToLower(command)] = callback;
 	}
 
-	bool Network::CL_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message)
+	void Network::OnClientPacketRaw(const std::string& command, const networkRawCallback& callback)
+	{
+		CL_RawCallbacks[Utils::String::ToLower(command)] = callback;
+	}
+
+	bool Network::CL_HandleCommand(Game::netadr_t* address, const char* command, Game::msg_t* message)
 	{
 		const auto command_ = Utils::String::ToLower(command);
-		const auto handler = CL_Callbacks.find(command_);
 
 		const auto offset = command_.size() + 5;
-		if (static_cast<std::size_t>(message->cursize) < offset || handler == CL_Callbacks.end())
+		if (static_cast<std::size_t>(message->cursize) < offset)
 		{
+			return false;
+		}
+
+		if (const auto rawHandler = CL_RawCallbacks.find(command_); rawHandler != CL_RawCallbacks.end())
+		{
+			rawHandler->second(address, message);
+			return true;
+		}
+
+		const auto handler = CL_Callbacks.find(command_);
+		if (handler == CL_Callbacks.end())
+		{
+			// Normal handler was not found, return
 			return false;
 		}
 
@@ -360,8 +378,12 @@ namespace Components
 		Utils::Hook::Set<std::uint8_t>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
 		Utils::Hook::Set<std::uint8_t>(0x5AA69F, 0xEB); // echo
 		Utils::Hook::Set<std::uint8_t>(0x5AAA82, 0xEB); // SP
+		Utils::Hook::Set<std::uint8_t>(0x5A9F77, 0xEB); // CL_WeNowCantHearSomeone
 		Utils::Hook::Set<std::uint8_t>(0x5A9F18, 0xEB); // CL_VoiceConnectionTestPacket
 		Utils::Hook::Set<std::uint8_t>(0x5A9FF3, 0xEB); // CL_HandleRelayPacket
+
+		// For security reasons check the sender of the 'print' OOB
+		Utils::Hook::Set<std::uint8_t>(0x5AA729, 0xEB);
 
 		// Com_GetProtocol
 		Utils::Hook::Set<std::uint32_t>(0x4FB501, PROTOCOL);
@@ -381,9 +403,24 @@ namespace Components
 		Utils::Hook::Set<std::uint8_t>(0x682170, 0xC3); // Telling LSP that we're playing a private match
 		Utils::Hook::Nop(0x4FD448, 5); // Don't create lsp_socket
 
-		OnClientPacket("resolveAddress", [](const Address& address, [[maybe_unused]] const std::string& data)
+		OnClientPacket("resolveAddress", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
 		{
 			SendRaw(address, address.getString());
+		});
+
+		OnClientPacket("print", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
+		{
+			auto* clc = Game::CL_GetLocalClientConnection(0);
+			if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address.get()))
+			{
+				return;
+			}
+
+			char buffer[2048]{};
+
+			Game::I_strncpyz(clc->serverMessage, data.data(), sizeof(clc->serverMessage));
+			Game::Com_sprintf(buffer, sizeof(buffer), "%s", data.data());
+			Game::Com_PrintMessage(Game::CON_CHANNEL_CLIENT, buffer, 0);
 		});
 	}
 }

@@ -84,7 +84,8 @@ namespace Components
 		// Holds the parsed data from sv_mapRotation
 		static RotationData DedicatedRotation;
 
-		static void LoadRotation(const std::string& data);
+		static void RandomizeMapRotation();
+		static void ParseRotation(const std::string& data);
 		static void LoadMapRotation();
 
 		// Use these commands before SV_MapRotate_f is called
@@ -103,7 +104,6 @@ namespace Components
 		static void SetNextMap(RotationData& rotation); // Only call this after ApplyRotation
 		static void SetNextMap(const char* value);
 		static void ClearNextMap();
-		static void RandomizeMapRotation();
 
 		static void SV_MapRotate_f();
 	};

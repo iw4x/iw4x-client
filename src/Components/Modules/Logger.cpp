@@ -22,7 +22,7 @@ namespace Components
 
 	void Logger::Print_Stub(const int channel, const char* message, ...)
 	{
-		char buf[4096] = {0};
+		char buf[4096]{};
 
 		va_list va;
 		va_start(va, message);

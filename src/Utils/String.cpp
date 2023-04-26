@@ -8,7 +8,7 @@ namespace Utils::String
 	const char* VA(const char* fmt, ...)
 	{
 		static VAProvider<4, 256> globalProvider;
-		static thread_local VAProvider<8, 1024> provider;
+		static thread_local VAProvider<8, 256> provider;
 
 		va_list ap;
 		va_start(ap, fmt);

@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/).
 
+## r4226 - 2023-04-26
+
+- Chat system will go back to using `SV_CMD_CAN_IGNORE` commands (#972)
+
+### Fixed
+
+- Fix bug with how `sv_mapRotationCurrent` is parsed (#977)
+
+### Known issues
+
+- Sound issue fix is experimental as the bug is not fully understood.
+
 ## r4208 - 2023-04-22
 
 ### Changed

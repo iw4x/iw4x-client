@@ -269,11 +269,14 @@ namespace Game
 	typedef void(*NetadrToSockadr_t)(netadr_t *a, sockaddr *s);
 	extern NetadrToSockadr_t NetadrToSockadr;
 
-	typedef const char* (*NET_AdrToString_t)(netadr_t adr);
+	typedef const char*(*NET_AdrToString_t)(netadr_t adr);
 	extern NET_AdrToString_t NET_AdrToString;
 
 	typedef bool(*NET_CompareAdr_t)(netadr_t a, netadr_t b);
 	extern NET_CompareAdr_t NET_CompareAdr;
+
+	typedef int(*NET_CompareBaseAdr_t)(netadr_t a, netadr_t b);
+	extern NET_CompareBaseAdr_t NET_CompareBaseAdr;
 
 	typedef void(*NET_DeferPacketToClient_t)(netadr_t*, msg_t*);
 	extern NET_DeferPacketToClient_t NET_DeferPacketToClient;

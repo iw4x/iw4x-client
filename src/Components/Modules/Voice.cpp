@@ -241,7 +241,7 @@ namespace Components
 	void Voice::CL_WriteVoicePacket_Hk(const int localClientNum)
 	{
 		const auto connstate = Game::CL_GetLocalClientConnectionState(localClientNum);
-		const auto clc = Game::CL_GetLocalClientConnection(localClientNum);
+		const auto* clc = Game::CL_GetLocalClientConnection(localClientNum);
 		const auto* vc = Game::CL_GetLocalClientVoiceCommunication(localClientNum);
 		if (clc->demoplaying || (connstate < Game::CA_LOADING))
 		{
@@ -315,8 +315,14 @@ namespace Components
 		}
 	}
 
-	void Voice::CL_VoicePacket_Hk(const int localClientNum, Game::msg_t* msg)
+	void Voice::CL_VoicePacket(Game::netadr_t* address, Game::msg_t* msg)
 	{
+		auto* clc = Game::CL_GetLocalClientConnection(0);
+		if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address))
+		{
+			return;
+		}
+
 		const auto numPackets = Game::MSG_ReadByte(msg);
 		if (numPackets < 0 || numPackets > MAX_SERVER_QUEUED_VOICE_PACKETS)
 		{
@@ -342,7 +348,7 @@ namespace Components
 				return;
 			}
 
-			if (!CL_IsPlayerMuted_Hk(nullptr, localClientNum, voicePacket.talker))
+			if (!CL_IsPlayerMuted_Hk(nullptr, 0, voicePacket.talker))
 			{
 				if ((*Game::cl_voice)->current.enabled)
 				{
@@ -395,7 +401,10 @@ namespace Components
 		// Write voice packets to the server instead of other clients
 		Utils::Hook(0x487935, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5AD945, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5A9E06, CL_VoicePacket_Hk, HOOK_CALL).install()->quick();
+
+		// Disable 'v' OOB handler and use our own
+		Utils::Hook::Set<std::uint8_t>(0x5A9E02, 0xEB);
+		Network::OnClientPacketRaw("v", CL_VoicePacket);
 
 		Utils::Hook(0x4AE740, CL_IsPlayerTalking_Hk, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x4B6250, CL_IsPlayerMuted_Hk, HOOK_JUMP).install()->quick();
