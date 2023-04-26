@@ -424,7 +424,7 @@ namespace Components
 		}
 		catch (const std::exception& ex)
 		{
-			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}: parsing of 'normal' failed\n", ex.what());
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "{}. parsing of 'normal' failed\n", ex.what());
 			return false;
 		}
 
@@ -439,7 +439,7 @@ namespace Components
 		}
 		catch (const std::exception& ex)
 		{
-			Logger::Debug("{}: parsing of 'normal' failed as expected", ex.what());
+			Logger::Debug("{}. parsing of 'normal' failed as expected", ex.what());
 			success = true;
 		}
 
