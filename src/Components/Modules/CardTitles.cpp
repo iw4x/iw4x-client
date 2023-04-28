@@ -137,14 +137,13 @@ namespace Components
 			pop eax
 
 			cmp eax, 0
-			jz OriginalTitle
+			jz originalTitle
 
 			pop ecx
-			mov ecx, DWORD ptr[esi + 4]
+			mov ecx, dword ptr[esi + 4]
 			retn
 
-		OriginalTitle:
-
+		originalTitle:
 			mov eax, [esi + 50h]
 			cmp eax, 3
 
@@ -173,8 +172,7 @@ namespace Components
 			list.append(std::format("\\{}\\{}", i, playerTitle));
 		}
 
-		const auto* command = Utils::String::Format("{:c} customTitles \"{}\"", 21, list);
-		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, command);
+		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} customTitles \"{}\"", 21, list));
 	}
 
 	void CardTitles::ParseCustomTitles(const char* msg)

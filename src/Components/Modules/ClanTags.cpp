@@ -86,7 +86,7 @@ namespace Components
 				auto curChar = CL_FilterChar(static_cast<unsigned char>(currentName[i]));
 				if (curChar > 0)
 				{
-					*saneName++ = (curChar & 0xFF);
+					*saneName++ = curChar & 0xFF;
 				}
 			}
 
