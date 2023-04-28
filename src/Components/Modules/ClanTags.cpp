@@ -233,7 +233,7 @@ namespace Components
 
 	ClanTags::ClanTags()
 	{
-		Events::OnClientInit([]
+		Events::OnDvarInit([]
 		{
 			ClanName = Game::Dvar_RegisterString("clanName", "", Game::DVAR_ARCHIVE, "Your clan abbreviation");
 		});
