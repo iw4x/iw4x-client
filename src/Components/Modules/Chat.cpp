@@ -24,7 +24,7 @@ namespace Components
 	// Have only one instance of IW4x read/write the file
 	std::unique_lock<Utils::NamedMutex> Chat::Lock()
 	{
-		static Utils::NamedMutex mutex{"iw4x-mute-list-lock"};
+		static Utils::NamedMutex mutex{ "iw4x-mute-list-lock" };
 		std::unique_lock lock{mutex};
 		return lock;
 	}
@@ -51,6 +51,7 @@ namespace Components
 		if (text[msgIndex] == '/')
 		{
 			SendChat = false;
+			++msgIndex;
 		}
 
 		if (IsMuted(player))
@@ -65,13 +66,14 @@ namespace Components
 			Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
 		}
 
-		// Message might be empty after the special characters
+		// Message might be empty after the special characters or '/'
 		if (text[msgIndex] == '\0')
 		{
 			SendChat = false;
 			return text;
 		}
 
+		TextRenderer::StripMaterialTextIcons(text, text, std::strlen(text) + 1);
 		Logger::Print("{}: {}\n", Game::svs_clients[player - Game::g_entities].name, (text + msgIndex));
 
 		for (const auto& callback : SayCallbacks)
@@ -81,8 +83,6 @@ namespace Components
 				SendChat = false;
 			}
 		}
-
-		TextRenderer::StripMaterialTextIcons(text, text, std::strlen(text) + 1);
 
 		Game::Scr_AddEntity(player);
 		Game::Scr_AddString(text + msgIndex);
