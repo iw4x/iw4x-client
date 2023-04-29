@@ -175,7 +175,7 @@ namespace Components
 		{
 			if (params->size() < 2)
 			{
-				Logger::PrintError(Game::CON_CHANNEL_SERVER, "statget usage: statget <index>\n");
+				Logger::Print("statget usage: statget <index>\n");
 				return;
 			}
 

@@ -351,7 +351,7 @@ namespace Components
 		}
 		catch (const std::exception& ex)
 		{
-			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "JSON Parse Error: {}\n", ex.what());
 			return;
 		}
 
@@ -386,7 +386,7 @@ namespace Components
 		{
 			if (!Dedicated::IsRunning())
 			{
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
+				Logger::Print("Server is not running.\n");
 				return;
 			}
 
@@ -409,7 +409,7 @@ namespace Components
 		{
 			if (!Dedicated::IsRunning())
 			{
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
+				Logger::Print("Server is not running.\n");
 				return;
 			}
 
@@ -450,7 +450,7 @@ namespace Components
 		{
 			if (!Dedicated::IsRunning())
 			{
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
+				Logger::Print("Server is not running.\n");
 				return;
 			}
 
@@ -462,12 +462,12 @@ namespace Components
 			if (!name.empty())
 			{
 				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name, message));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "{}: {}\n", name, message);
+				Logger::Print("{}: {}\n", name, message);
 			}
 			else
 			{
 				Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Console: {}\n", message);
+				Logger::Print("Console: {}\n", message);
 			}
 		});
 
@@ -475,7 +475,7 @@ namespace Components
 		{
 			if (!Dedicated::IsRunning())
 			{
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
+				Logger::Print("Server is not running.\n");
 				return;
 			}
 
@@ -490,12 +490,12 @@ namespace Components
 			if (!name.empty())
 			{
 				Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name.data(), message));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "{} -> {}: {}\n", name, clientNum, message);
+				Logger::Print("{} -> {}: {}\n", name, clientNum, message);
 			}
 			else
 			{
 				Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Console -> {}: {}\n", clientNum, message);
+				Logger::Print("Console -> {}: {}\n", clientNum, message);
 			}
 		});
 
@@ -503,7 +503,7 @@ namespace Components
 		{
 			if (!Dedicated::IsRunning())
 			{
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
+				Logger::Print("Server is not running.\n");
 				return;
 			}
 
@@ -511,14 +511,14 @@ namespace Components
 
 			const auto message = params->join(1);
 			Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
-			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw: {}\n", message);
+			Logger::Print("Raw: {}\n", message);
 		});
 
 		Command::AddSV("tellraw", [](Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
-				Logger::Print(Game::CON_CHANNEL_SERVER, "Server is not running.\n");
+				Logger::Print("Server is not running.\n");
 				return;
 			}
 
@@ -529,7 +529,7 @@ namespace Components
 
 			const auto message = params->join(2);
 			Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
-			Logger::Print(Game::CON_CHANNEL_SERVER, "Raw -> {}: {}\n", clientNum, message);
+			Logger::Print("Raw -> {}: {}\n", clientNum, message);
 		});
 
 		sv_sayName = Dvar::Register<const char*>("sv_sayName", "^7Console", Game::DVAR_NONE, "The alias of the server when broadcasting a chat message");
