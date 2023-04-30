@@ -19,13 +19,13 @@ namespace Utils
 		std::string Rand::GenerateChallenge()
 		{
 			char buffer[512]{};
-			int buffer_pos = 0;
+			int pos = 0;
 
-			buffer_pos += sprintf_s(&buffer[buffer_pos], sizeof(buffer) - buffer_pos, "%X", GenerateInt());
-			buffer_pos += sprintf_s(&buffer[buffer_pos], sizeof(buffer) - buffer_pos, "%X", ~timeGetTime() ^ GenerateInt());
-			buffer_pos += sprintf_s(&buffer[buffer_pos], sizeof(buffer) - buffer_pos, "%X", GenerateInt());
+			pos += sprintf_s(&buffer[pos], sizeof(buffer) - pos, "%X", GenerateInt());
+			pos += sprintf_s(&buffer[pos], sizeof(buffer) - pos, "%X", ~timeGetTime() ^ GenerateInt());
+			pos += sprintf_s(&buffer[pos], sizeof(buffer) - pos, "%X", GenerateInt());
 
-			return std::string(buffer, static_cast<std::size_t>(buffer_pos));
+			return std::string(buffer, static_cast<std::size_t>(pos));
 		}
 
 		std::uint32_t Rand::GenerateInt()
