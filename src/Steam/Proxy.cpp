@@ -60,7 +60,7 @@ namespace Steam
 
 				if (this->getMethodData(*vftbl, &name, &params) && name == method)
 				{
-					return{ vftbl->data, params };
+					return { vftbl->data, params };
 				}
 
 				++vftbl;
@@ -164,7 +164,7 @@ namespace Steam
 		clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 
 		char ourPath[MAX_PATH]{};
-		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
+		GetModuleFileNameA(GetModuleHandleA(nullptr), ourPath, sizeof(ourPath));
 
 		char ourDirectory[MAX_PATH]{};
 		GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
