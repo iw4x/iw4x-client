@@ -3407,10 +3407,10 @@ namespace Components
 	constexpr auto fileCountMultiplier = 8;
 	constexpr auto maxFileCount = 8191 * fileCountMultiplier;
 
-	int RelocateFileCount(std::uint32_t dwSize, int unk1, int unk2, int unk3)
+	Game::HunkUser* Hunk_UserCreate_Stub(int maxSize, const char* name, bool fixed, int type)
 	{
-		dwSize *= fileCountMultiplier;
-		return Utils::Hook::Call<int(std::uint32_t, int, int, int)>(0x430E90)(dwSize, unk1, unk2, unk3);
+		maxSize *= fileCountMultiplier;
+		return Utils::Hook::Call<Game::HunkUser*(int, const char*, bool, int)>(0x430E90)(maxSize, name, fixed, type);
 	}
 
 	void Zones::LoadMaterialAsset(Game::Material** asset)
@@ -3554,8 +3554,8 @@ namespace Components
 		Utils::Hook::Set<std::uint32_t>(0x64AF78, maxFileCount);
 		Utils::Hook::Set<std::uint32_t>(0x64B04F, maxFileCount);
 		Utils::Hook::Set<std::uint32_t>(0x45A8CE, maxFileCount);
-		Utils::Hook(0x45A806, RelocateFileCount, HOOK_CALL).install()->quick();
-		Utils::Hook(0x45A6A0, RelocateFileCount, HOOK_CALL).install()->quick();
+		Utils::Hook(0x45A806, Hunk_UserCreate_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x45A6A0, Hunk_UserCreate_Stub, HOOK_CALL).install()->quick();
 
 #ifndef DEBUG
 		// Ignore missing soundaliases for now

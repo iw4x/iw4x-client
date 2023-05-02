@@ -1,4 +1,4 @@
-﻿#include <STDInclude.hpp>
+#include <STDInclude.hpp>
 #include "Console.hpp"
 #include "TextRenderer.hpp"
 
@@ -55,6 +55,8 @@ namespace Components
 	std::thread Console::ConsoleThread;
 
 	Game::SafeArea Console::OriginalSafeArea;
+
+	bool Console::isCommand;
 
 	const char** Console::GetAutoCompleteFileList(const char* path, const char* extension, Game::FsListBehavior_e behavior, int* numfiles, int allocTrackType)
 	{
@@ -807,6 +809,20 @@ namespace Components
 		return reinterpret_cast<Game::Dvar_RegisterVec4_t>(0x471500)(dvarName, r, g, b, a, min, max, flags, description);
 	}
 
+	bool Console::Con_IsDvarCommand_Stub(const char* cmd)
+	{
+		isCommand = Game::Con_IsDvarCommand(cmd);
+		return isCommand;
+	}
+
+	void Console::Cmd_ForEach_Stub(void(*callback)(const char* str))
+	{
+		if (!isCommand)
+		{
+			Game::Cmd_ForEach(callback);
+		}
+	}
+
 	void Console::Con_ToggleConsole()
 	{
 		Game::Field_Clear(Game::g_consoleField);
@@ -884,6 +900,10 @@ namespace Components
 
 		// Don't resize the console
 		Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).install()->quick();
+
+		// Con_DrawInput
+		Utils::Hook(0x5A45BD, Con_IsDvarCommand_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A466C, Cmd_ForEach_Stub, HOOK_CALL).install()->quick();
 
 #ifdef _DEBUG
 		AddConsoleCommand();

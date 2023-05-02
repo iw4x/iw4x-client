@@ -71,7 +71,7 @@ namespace Components
 			TokenContainer.cancel = false;
 		}
 	}
-	
+
 	void Auth::SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char* format, int len)
 	{
 		// Ensure our certificate is loaded
@@ -88,7 +88,7 @@ namespace Components
 			Logger::Error(Game::ERR_SERVERDISCONNECT, "Your online profile is invalid. A new key has been generated.");
 			return;
 		}
-		
+
 		std::string connectString(format, len);
 		Game::SV_Cmd_TokenizeString(connectString.data());
 
