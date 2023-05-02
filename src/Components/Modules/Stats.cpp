@@ -65,7 +65,7 @@ namespace Components
 		SendStats();
 	}
 
-	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, size_t length)
+	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, int size)
 	{
 		assert(*Game::fs_gameDirVar);
 
@@ -74,7 +74,7 @@ namespace Components
 			folder = (*Game::fs_gameDirVar)->current.string;
 		}
 
-		return Utils::Hook::Call<int(char*, const char*, const char*, size_t)>(0x426450)(dest, folder, buffer, length);
+		return Utils::Hook::Call<int(char*, const char*, const char*, int)>(0x426450)(dest, folder, buffer, size);
 	}
 
 	void Stats::AddScriptFunctions()
