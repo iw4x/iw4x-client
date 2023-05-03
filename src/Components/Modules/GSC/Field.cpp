@@ -140,6 +140,16 @@ namespace Components::GSC
 				Game::Scr_AddInt(client->ping);
 			}
 		);
+
+		AddClientField("address",
+			[]([[maybe_unused]] Game::client_s* client, [[maybe_unused]] Game::gclient_s* pSelf, [[maybe_unused]] const ClientFields* pField)
+			{
+			},
+			[]([[maybe_unused]] Game::client_s* client, [[maybe_unused]] Game::gclient_s* pSelf, [[maybe_unused]] const ClientFields* pField)
+			{
+				Game::Scr_AddString(Game::NET_AdrToString(client->header.netchan.remoteAddress));
+			}
+		);
 	}
 
 	Field::Field()
