@@ -125,7 +125,7 @@ namespace Game
 	typedef void(*Scr_FreeThread_t)(unsigned __int16 handle);
 	extern Scr_FreeThread_t Scr_FreeThread;
 
-	typedef void(*Scr_Notify_t)(gentity_t* ent, unsigned __int16 stringValue, unsigned int paramcount);
+	typedef void(*Scr_Notify_t)(gentity_s* ent, unsigned __int16 stringValue, unsigned int paramcount);
 	extern Scr_Notify_t Scr_Notify;
 
 	typedef void(*Scr_NotifyLevel_t)(unsigned __int16 stringValue, unsigned int paramcount);

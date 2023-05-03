@@ -9,7 +9,7 @@ namespace Components
 		Chat();
 
 		static bool IsMuted(const Game::gentity_s* ent);
-		static bool IsMuted(const Game::client_t* cl);
+		static bool IsMuted(const Game::client_s* cl);
 
 	private:
 		static Dvar::Var cg_chatWidth;
@@ -27,7 +27,7 @@ namespace Components
 
 		static std::unique_lock<Utils::NamedMutex> Lock();
 
-		static const char* EvaluateSay(char* text, Game::gentity_t* player, int mode);
+		static const char* EvaluateSay(char* text, Game::gentity_s* player, int mode);
 
 		static void PreSayStub();
 		static void PostSayStub();
@@ -36,8 +36,8 @@ namespace Components
 		static void CG_AddToTeamChat(const char* text);
 		static void CG_AddToTeamChat_Stub();
 
-		static void MuteClient(const Game::client_t* client);
-		static void UnmuteClient(const Game::client_t* client);
+		static void MuteClient(const Game::client_s* client);
+		static void UnmuteClient(const Game::client_s* client);
 		static void UnmuteInternal(std::uint64_t id, bool everyone = false);
 		static void SaveMutedList(const muteList& list);
 		static void LoadMutedList();

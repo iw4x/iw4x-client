@@ -19,7 +19,7 @@ namespace Components
 
 		static bool IsBadChar(int c);
 		static bool CopyClientNameCheck(char* dest, const char* source, int size);
-		static void DropClient(Game::client_t* drop);
+		static void DropClient(Game::client_s* drop);
 		static void SV_UserinfoChangedStub();
 	};
 }

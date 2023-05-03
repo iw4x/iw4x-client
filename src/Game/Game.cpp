@@ -16,7 +16,7 @@ namespace Game
 
 	G_DebugLineWithDuration_t G_DebugLineWithDuration = G_DebugLineWithDuration_t(0x4C3280);
 
-	gentity_t* g_entities = reinterpret_cast<gentity_t*>(0x18835D8);
+	gentity_s* g_entities = reinterpret_cast<gentity_s*>(0x18835D8);
 
 	const char* origErrorMsg = reinterpret_cast<const char*>(0x79B124);
 

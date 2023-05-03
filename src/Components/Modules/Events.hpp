@@ -6,7 +6,7 @@ namespace Components
 	{
 	public:
 		typedef void(ClientCallback)(int clientNum);
-		typedef void(ClientConnectCallback)(Game::client_t* cl);
+		typedef void(ClientConnectCallback)(Game::client_s* cl);
 		typedef void(Callback)();
 
 		Events();
@@ -40,7 +40,7 @@ namespace Components
 		static Utils::Signal<Callback> DvarInitSignal;
 
 		static void ClientDisconnect_Hk(int clientNum);
-		static void SV_UserinfoChanged_Hk(Game::client_t* cl);
+		static void SV_UserinfoChanged_Hk(Game::client_s* cl);
 		static void SteamDisconnect_Hk();
 		static void Scr_ShutdownSystem_Hk(unsigned char sys);
 		static void CL_InitOnceForAllClients_HK();

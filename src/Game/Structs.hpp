@@ -7226,7 +7226,7 @@ namespace Game
 		float spectateDefaultAngles[3];
 	};
 
-	typedef struct gclient_s
+	struct gclient_s
 	{
 		playerState_s ps;
 		clientSession_t sess;
@@ -7247,9 +7247,9 @@ namespace Game
 		unsigned __int16 attachShieldTagName;
 		hintType_t hintForcedType;
 		int hintForcedString;
-	} gclient_t;
+	};
 
-	static_assert(sizeof(gclient_t) == 13932);
+	static_assert(sizeof(gclient_s) == 0x366C);
 
 	struct EntHandle
 	{
@@ -7300,11 +7300,11 @@ namespace Game
 		ENT_HANDLER_COUNT
 	};
 
-	typedef struct gentity_s
+	struct gentity_s
 	{
 		entityState_s s;
 		entityShared_t r;
-		gclient_t* client; // 344
+		gclient_s* client; // 344
 		void /*Turret*/* turret;
 		void /*Vehicle*/* vehicle;
 		int physObjId;
@@ -7342,7 +7342,7 @@ namespace Game
 		gentity_s* nextFree;
 		int birthTime;
 		char pad[100];
-	} gentity_t;
+	};
 
 	static_assert(sizeof(gentity_s) == 0x274);
 
@@ -7439,7 +7439,7 @@ namespace Game
 		int baselineSnap;
 	};
 
-	struct client_t
+	struct client_s
 	{
 		clientHeader_t header;
 		const char* dropReason; // 1624
@@ -7454,7 +7454,7 @@ namespace Game
 		usercmd_s lastUsercmd; // 134772
 		int lastClientCommand; // 134812
 		char lastClientCommandString[1024]; // 134816
-		gentity_t* gentity; // 135840
+		gentity_s* gentity; // 135840
 		char name[16]; // 135844
 		int nextReliableTime; // 135860
 		int lastPacketTime; // 135864
@@ -7493,7 +7493,7 @@ namespace Game
 		clientSnapshot_t frames[32];
 	};
 
-	static_assert(sizeof(client_t) == 0xA6790);
+	static_assert(sizeof(client_s) == 0xA6790);
 
 	enum CompassType
 	{

@@ -186,12 +186,12 @@ namespace Components
 		}
 	}
 
-	void Bans::BanClient(Game::client_t* cl, const std::string& reason)
+	void Bans::BanClient(Game::client_s* cl, const std::string& reason)
 	{
 		SteamID guid;
 		guid.bits = cl->steamID;
 
-		InsertBan({guid, cl->header.netchan.remoteAddress.ip});
+		InsertBan({ guid, cl->header.netchan.remoteAddress.ip });
 
 		Game::SV_DropClient(cl, reason.data(), true);
 	}

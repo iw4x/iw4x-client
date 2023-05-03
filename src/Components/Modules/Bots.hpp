@@ -25,7 +25,7 @@ namespace Components
 		static void GScr_isTestClient(Game::scr_entref_t entref);
 		static void AddScriptMethods();
 
-		static void BotAiAction(Game::client_t* cl);
+		static void BotAiAction(Game::client_s* cl);
 		static void SV_BotUserMove_Hk();
 
 		static void G_SelectWeaponIndex(int clientNum, int iWeaponIndex);

@@ -4,11 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/).
 
+## r4251 - 2023-05-03
+
+### Added
+
+- Add GSC client field `ping` as a read-only field (#1002)
+- Add GSC client field `address` as a read-only field (#1003)
+- Add to the iw4x-rawfiles common_scripts\utility GSC script `getIP` function.
+
+### Fixed
+
+- `getPing` function in `common_scripts\utility` now works.
+
+### Known issues
+
+- Sound issue fix is experimental as the bug is not fully understood.
+
 ## r4246 - 2023-05-03
 
 ### Added
 
-- Add to the iw4x-rawfiles common_scripts\utility GSC script `setPing` & `getPing` for backward compatibility.
+- Add to the iw4x-rawfiles `common_scripts\utility` GSC script `setPing` & `getPing` functions for backward compatibility.
 
 ### Fixed
 
@@ -336,6 +352,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Changed
 
 - `sv_mapRotationCurrent` is not being used anymore (#302)
+- `sv_mapRotation` is parsed once on startup (#283)
 
 ### Security
 

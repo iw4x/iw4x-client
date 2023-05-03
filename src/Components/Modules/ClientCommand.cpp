@@ -298,8 +298,7 @@ namespace Components
 			const auto* name = params->get(1);
 
 			ent->client->visionDuration[visMode] = duration;
-			strncpy_s(ent->client->visionName[visMode],
-				sizeof(Game::gclient_t::visionName[0]) / sizeof(char), name, _TRUNCATE);
+			strncpy_s(ent->client->visionName[visMode], sizeof(Game::gclient_s::visionName[0]) / sizeof(char), name, _TRUNCATE);
 
 			Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_RELIABLE, VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
 		});
@@ -325,8 +324,7 @@ namespace Components
 			const auto* name = params->get(1);
 
 			ent->client->visionDuration[visMode] = duration;
-			strncpy_s(ent->client->visionName[visMode],
-				sizeof(Game::gclient_t::visionName[0]) / sizeof(char), name, _TRUNCATE);
+			strncpy_s(ent->client->visionName[visMode], sizeof(Game::gclient_s::visionName[0]) / sizeof(char), name, _TRUNCATE);
 
 			Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_RELIABLE, VA("%c \"%s\" %i", Game::MY_CMDS[visMode], name, duration));
 		});

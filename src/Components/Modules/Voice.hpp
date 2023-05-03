@@ -26,16 +26,16 @@ namespace Components
 		static const Game::dvar_t* sv_voice;
 
 		static void SV_WriteVoiceDataToClient(int clientNum, Game::msg_t* msg);
-		static void SV_SendClientVoiceData(Game::client_t* client);
-		static void SV_SendClientMessages_Stub(Game::client_t* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf);
+		static void SV_SendClientVoiceData(Game::client_s* client);
+		static void SV_SendClientMessages_Stub(Game::client_s* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf);
 
 		static bool SV_ServerHasClientMuted(int talker);
 
 		static bool OnSameTeam(const Game::gentity_s* ent1, const Game::gentity_s* ent2);
 		static void SV_QueueVoicePacket(int talkerNum, int clientNum, const Game::VoicePacket_t* voicePacket);
 		static void G_BroadcastVoice(Game::gentity_s* talker, const Game::VoicePacket_t* voicePacket);
-		static void SV_UserVoice(Game::client_t* cl, Game::msg_t* msg);
-		static void SV_PreGameUserVoice(Game::client_t* cl, Game::msg_t* msg);
+		static void SV_UserVoice(Game::client_s* cl, Game::msg_t* msg);
+		static void SV_PreGameUserVoice(Game::client_s* cl, Game::msg_t* msg);
 		static void SV_VoicePacket(Game::netadr_t from, Game::msg_t* msg);
 
 		static void CL_ClearMutedList();
