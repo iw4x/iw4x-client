@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Add GSC client field `ping` as a read-only field (#1002)
 - Add GSC client field `address` as a read-only field (#1003)
-- Add to the iw4x-rawfiles common_scripts\utility GSC script `getIP` function.
+- Add to the iw4x-rawfiles `common_scripts\utility` GSC script `getIP` function.
 
 ### Fixed
 
