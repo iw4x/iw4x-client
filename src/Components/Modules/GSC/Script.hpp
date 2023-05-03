@@ -14,7 +14,7 @@ namespace Components::GSC
 		static void AddFuncMultiple(Game::BuiltinFunction func, bool type, scriptNames);
 		static void AddMethMultiple(Game::BuiltinMethod func, bool type, scriptNames);
 
-		static Game::client_t* GetClient(const Game::gentity_t* gentity);
+		static Game::client_s* GetClient(const Game::gentity_s* gentity);
 		// Probably a macro 'originally' but this is fine
 		static Game::gentity_s* Scr_GetPlayerEntity(Game::scr_entref_t entref);
 

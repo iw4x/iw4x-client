@@ -29,7 +29,7 @@ namespace Components
 		return lock;
 	}
 
-	const char* Chat::EvaluateSay(char* text, Game::gentity_t* player, int mode)
+	const char* Chat::EvaluateSay(char* text, Game::gentity_s* player, int mode)
 	{
 		SendChat = true;
 
@@ -274,7 +274,7 @@ namespace Components
 		return result;
 	}
 
-	bool Chat::IsMuted(const Game::client_t* cl)
+	bool Chat::IsMuted(const Game::client_s* cl)
 	{
 		const auto clientNum = cl - Game::svs_clients;
 		const auto xuid = Game::svs_clients[clientNum].steamID;
@@ -287,7 +287,7 @@ namespace Components
 		return result;
 	}
 
-	void Chat::MuteClient(const Game::client_t* client)
+	void Chat::MuteClient(const Game::client_s* client)
 	{
 		const auto xuid = client->steamID;
 		MutedList.access([&](muteList& clients)
@@ -300,7 +300,7 @@ namespace Components
 		Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You were muted\"", 0x65));
 	}
 
-	void Chat::UnmuteClient(const Game::client_t* client)
+	void Chat::UnmuteClient(const Game::client_s* client)
 	{
 		UnmuteInternal(client->steamID);
 
@@ -606,7 +606,7 @@ namespace Components
 
 	Chat::Chat()
 	{
-		AssertOffset(Game::client_t, steamID, 0x43F00);
+		AssertOffset(Game::client_s, steamID, 0x43F00);
 
 		cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
 		sv_disableChat = Dvar::Register<bool>("sv_disableChat", false, Game::DVAR_NONE, "Disable chat messages from clients");

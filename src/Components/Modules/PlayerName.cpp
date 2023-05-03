@@ -104,7 +104,7 @@ namespace Components
 		return true;
 	}
 
-	void PlayerName::DropClient(Game::client_t* drop)
+	void PlayerName::DropClient(Game::client_s* drop)
 	{
 		const auto* reason = "Invalid name detected";
 		Network::SendCommand(drop->header.netchan.remoteAddress, "error", reason);

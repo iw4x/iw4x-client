@@ -230,7 +230,7 @@ namespace Components::GSC
 		return Game::Scr_GetNumParam();
 	}
 
-	Game::client_t* Script::GetClient(const Game::gentity_t* ent)
+	Game::client_s* Script::GetClient(const Game::gentity_s* ent)
 	{
 		assert(ent);
 

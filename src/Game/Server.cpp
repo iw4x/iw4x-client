@@ -27,7 +27,7 @@ namespace Game
 	int* sv_timeResidual = reinterpret_cast<int*>(0x2089E14);
 	int* sv_serverId_value = reinterpret_cast<int*>(0x2089DC0);
 	int* svs_clientCount = reinterpret_cast<int*>(0x31D938C);
-	client_t* svs_clients = reinterpret_cast<client_t*>(0x31D9390);
+	client_s* svs_clients = reinterpret_cast<client_s*>(0x31D9390);
 
 	unsigned short* sv_sconfigstrings = reinterpret_cast<unsigned short*>(0x208A632);
 	unsigned short* sv_emptyConfigString = reinterpret_cast<unsigned short*>(0x208A630);
@@ -115,7 +115,7 @@ namespace Game
 		SV_SendServerCommand(&svs_clients[clientNum], SV_CMD_RELIABLE, "%c %i %i", 'M', index, value);
 	}
 
-	void SV_BotUserMove(client_t* client)
+	void SV_BotUserMove(client_s* client)
 	{
 		static DWORD SV_BotUserMove_t = 0x626E50;
 

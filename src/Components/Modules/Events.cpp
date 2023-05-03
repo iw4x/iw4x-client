@@ -56,11 +56,11 @@ namespace Components
 		Utils::Hook::Call<void(int)>(0x4AA430)(clientNum); // ClientDisconnect
 	}
 
-	void Events::SV_UserinfoChanged_Hk(Game::client_t* cl)
+	void Events::SV_UserinfoChanged_Hk(Game::client_s* cl)
 	{
 		ClientConnectSignal(cl);
 
-		Utils::Hook::Call<void(Game::client_t*)>(0x401950)(cl); // SV_UserinfoChanged
+		Utils::Hook::Call<void(Game::client_s*)>(0x401950)(cl); // SV_UserinfoChanged
 	}
 
 	void Events::SteamDisconnect_Hk()

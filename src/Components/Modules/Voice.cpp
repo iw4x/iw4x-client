@@ -36,7 +36,7 @@ namespace Components
 		assert(!msg->overflowed);
 	}
 
-	void Voice::SV_SendClientVoiceData(Game::client_t* client)
+	void Voice::SV_SendClientVoiceData(Game::client_s* client)
 	{
 		Game::msg_t msg{};
 		const auto clientNum = client - Game::svs_clients;
@@ -68,10 +68,10 @@ namespace Components
 		}
 	}
 
-	void Voice::SV_SendClientMessages_Stub(Game::client_t* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf)
+	void Voice::SV_SendClientMessages_Stub(Game::client_s* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf)
 	{
 		// SV_EndClientSnapshot
-		Utils::Hook::Call<void(Game::client_t*, Game::msg_t*, unsigned char*)>(0x4F5300)(client, msg, snapshotMsgBuf);
+		Utils::Hook::Call<void(Game::client_s*, Game::msg_t*, unsigned char*)>(0x4F5300)(client, msg, snapshotMsgBuf);
 
 		SV_SendClientVoiceData(client);
 	}
@@ -148,7 +148,7 @@ namespace Components
 		}
 	}
 
-	void Voice::SV_UserVoice(Game::client_t* cl, Game::msg_t* msg)
+	void Voice::SV_UserVoice(Game::client_s* cl, Game::msg_t* msg)
 	{
 		Game::VoicePacket_t voicePacket{};
 
@@ -179,7 +179,7 @@ namespace Components
 		}
 	}
 
-	void Voice::SV_PreGameUserVoice(Game::client_t* cl, Game::msg_t* msg)
+	void Voice::SV_PreGameUserVoice(Game::client_s* cl, Game::msg_t* msg)
 	{
 		Game::VoicePacket_t voicePacket{};
 
@@ -390,7 +390,7 @@ namespace Components
 
 		Events::OnSteamDisconnect(CL_ClearMutedList);
 		Events::OnClientDisconnect(SV_UnmuteClient);
-		Events::OnClientConnect([](Game::client_t* cl) -> void
+		Events::OnClientConnect([](Game::client_s* cl) -> void
 		{
 			if (Chat::IsMuted(cl))
 			{

@@ -29,7 +29,7 @@ namespace Components
 		return size;
 	}
 
-	int Security::SV_CanReplaceServerCommand_Hk([[maybe_unused]] Game::client_t* client, [[maybe_unused]] const char* cmd)
+	int Security::SV_CanReplaceServerCommand_Hk([[maybe_unused]] Game::client_s* client, [[maybe_unused]] const char* cmd)
 	{
 		// This is a fix copied from V2. As I don't have time to investigate, let's simply trust them
 		return -1;
@@ -121,7 +121,7 @@ namespace Components
 		InterlockedIncrement(&Game::deferredQueue->send);
 	}
 
-	void Security::SV_ExecuteClientMessage_Stub(Game::client_t* client, Game::msg_t* msg)
+	void Security::SV_ExecuteClientMessage_Stub(Game::client_s* client, Game::msg_t* msg)
 	{
 		if ((client->reliableSequence - client->reliableAcknowledge) < 0)
 		{
@@ -132,7 +132,7 @@ namespace Components
 			return;
 		}
 
-		Utils::Hook::Call<void(Game::client_t*, Game::msg_t*)>(0x414D40)(client, msg);
+		Utils::Hook::Call<void(Game::client_s*, Game::msg_t*)>(0x414D40)(client, msg);
 	}
 
 	Security::Security()

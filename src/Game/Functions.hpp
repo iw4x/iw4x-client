@@ -419,7 +419,7 @@ namespace Game
 	typedef void(*Steam_JoinLobby_t)(SteamID, char);
 	extern Steam_JoinLobby_t Steam_JoinLobby;
 
-	typedef void(*TeleportPlayer_t)(gentity_t* entity, float* pos, float* orientation);
+	typedef void(*TeleportPlayer_t)(gentity_s* entity, float* pos, float* orientation);
 	extern TeleportPlayer_t TeleportPlayer;
 
 	typedef void(*UI_AddMenuList_t)(UiContext* dc, MenuList* menuList, int close);

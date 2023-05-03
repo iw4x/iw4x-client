@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 
+#include "Field.hpp"
 #include "Int64.hpp"
 #include "IO.hpp"
 #include "Script.hpp"
@@ -14,6 +15,7 @@ namespace Components::GSC
 {
 	GSC::GSC()
 	{
+		Loader::Register(new Field());
 		Loader::Register(new Int64());
 		Loader::Register(new IO());
 		Loader::Register(new Script());

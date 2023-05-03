@@ -11,7 +11,7 @@ namespace Components
 		static int Msg_ReadBitsCompressCheckCL(const unsigned char* from, unsigned char* to, int size);
 
 	private:
-		static int SV_CanReplaceServerCommand_Hk(Game::client_t* client, const char* cmd);
+		static int SV_CanReplaceServerCommand_Hk(Game::client_s* client, const char* cmd);
 
 		static long AtolAdjustPlayerLimit(const char* string);
 
@@ -23,6 +23,6 @@ namespace Components
 
 		static void NET_DeferPacketToClient_Hk(Game::netadr_t* net_from, Game::msg_t* net_message);
 
-		static void SV_ExecuteClientMessage_Stub(Game::client_t* client, Game::msg_t* msg);
+		static void SV_ExecuteClientMessage_Stub(Game::client_s* client, Game::msg_t* msg);
 	};
 }
