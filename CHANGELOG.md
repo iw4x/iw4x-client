@@ -336,6 +336,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Changed
 
 - `sv_mapRotationCurrent` is not being used anymore (#302)
+- `sv_mapRotation` is parsed once on startup (#283)
 
 ### Security
 
