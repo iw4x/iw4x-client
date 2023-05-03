@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/).
 
+## r4246 - 2023-05-03
+
+### Added
+
+- Add to the iw4x-rawfiles common_scripts\utility GSC script `setPing` & `getPing` for backward compatibility.
+
+### Fixed
+
+- Fix bug with Steam Proxy (#991)
+- Fix bug with the `say` GSC notify in regards to hidden commands (#989)
+
+### Removed
+
+- SetPing GSC method (#998)
+
+### Known issues
+
+- Sound issue fix is experimental as the bug is not fully understood.
+
 ## r4226 - 2023-04-26
 
 ### Changed
@@ -267,12 +286,12 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add `EnableWeaponPickup` GSC method (#329)
 - Add `protect-saved-dvars` command line argument (#335)
 - Add `clanName` dvar. Can be edited in the `barracks` menu (#361)
-- Add DLC9 containing classic maps from CoD4: Backlot, Chinatown, Winter Crash, Pipeline and Downpour
-- Add to the iw4x-rawfiles `common_scripts\iw4x_utility` GSC script, it contains the scripts-based solution for the removed GSC built-in methods
+- Add DLC9 containing classic maps from CoD4: Backlot, Chinatown, Winter Crash, Pipeline and Downpour.
+- Add to the iw4x-rawfiles `common_scripts\iw4x_utility` GSC script, it contains the scripts-based solution for the removed GSC built-in methods.
 
 ### Changed
 
-- `sv_mapRotationCurrent` functionality has been restored for backwards compatibility (#328)
+- `sv_mapRotationCurrent` functionality has been restored for backward compatibility (#328)
 - GSC IO Functions are restricted to the `scriptdata` folder (#322)
 - `scriptablehttp` command line argument is no longer needed (#322)
 

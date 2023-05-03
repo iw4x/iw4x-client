@@ -272,9 +272,6 @@ namespace Components
 			g_botai[entref.entnum].right = static_cast<int8_t>(rightInt);
 			g_botai[entref.entnum].active = true;
 		});
-
-		GSC::Script::AddMethod("SetPing", []([[maybe_unused]] const Game::scr_entref_t entref)
-		{});
 	}
 
 	void Bots::BotAiAction(Game::client_t* cl)
