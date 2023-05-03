@@ -49,6 +49,8 @@ namespace Components
 
 		static Game::SafeArea OriginalSafeArea;
 
+		static bool isCommand;
+
 		static void ShowPrompt();
 		static void RefreshStatus();
 		static void RefreshOutput();
@@ -75,6 +77,9 @@ namespace Components
 		static void AddConsoleCommand();
 
 		static Game::dvar_t* RegisterConColor(const char* dvarName, float r, float g, float b, float a, float min, float max, unsigned __int16 flags, const char* description);
+
+		static bool Con_IsDvarCommand_Stub(const char* cmd);
+		static void Cmd_ForEach_Stub(void(*callback)(const char* str));
 	
 		static LRESULT CALLBACK ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, unsigned int lParam);
 		static ATOM CALLBACK RegisterClassHook(WNDCLASSA* lpWndClass);

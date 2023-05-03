@@ -8,7 +8,7 @@ namespace Components
 	// Have only one instance of IW4x read/write the file
 	std::unique_lock<Utils::NamedMutex> Bans::Lock()
 	{
-		static Utils::NamedMutex mutex{"iw4x-ban-list-lock"};
+		static Utils::NamedMutex mutex{ "iw4x-ban-list-lock" };
 		std::unique_lock lock{mutex};
 		return lock;
 	}

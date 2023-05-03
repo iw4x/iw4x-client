@@ -4,7 +4,6 @@ namespace Main
 {
 	void Initialize()
 	{
-		Utils::SetEnvironment();
 		Utils::Cryptography::Initialize();
 		Components::Loader::Initialize();
 
@@ -70,6 +69,7 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 		}
 #endif
 
+		Utils::SetEnvironment();
 		Steam::Proxy::RunMod();
 		// Install entry point hook
 		Utils::Hook(0x6BAC0F, Main::EntryPoint, HOOK_JUMP).install()->quick();

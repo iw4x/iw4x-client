@@ -260,7 +260,7 @@ namespace Components
 
 		if (svMapname.empty())
 		{
-			Logger::Print(Game::CON_CHANNEL_SERVER, "mapname dvar is empty! Defaulting to mp_afghan\n");
+			Logger::Print(Game::CON_CHANNEL_SERVER, "{} dvar is empty! Defaulting to mp_afghan\n", (*Game::sv_mapname)->name);
 			svMapname = "mp_afghan"s;
 		}
 

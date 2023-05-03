@@ -172,7 +172,7 @@ namespace Components
 
 		Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
 
-		Logger::Print(Game::CON_CHANNEL_SERVER, "Sending heartbeat to master: {}:{}\n", masterServerName, masterPort);
+		Logger::Print("Sending heartbeat to master: {}:{}\n", masterServerName, masterPort);
 		Network::SendCommand(master, "heartbeat", "IW4");
 	}
 

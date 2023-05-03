@@ -60,7 +60,10 @@ namespace Game
 	typedef void(*Cmd_ExecuteSingleCommand_t)(int localClientNum, int controllerIndex, const char* cmd);
 	extern Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand;
 
-	typedef char* (*Con_DrawMiniConsole_t)(int localClientNum, int xPos, int yPos, float alpha);
+	typedef void(*Cmd_ForEach_t)(void(*callback)(const char* str));
+	extern Cmd_ForEach_t Cmd_ForEach;
+
+	typedef char*(*Con_DrawMiniConsole_t)(int localClientNum, int xPos, int yPos, float alpha);
 	extern Con_DrawMiniConsole_t Con_DrawMiniConsole;
 
 	typedef void (*Con_DrawSolidConsole_t)();
@@ -68,6 +71,9 @@ namespace Game
 
 	typedef bool(*Con_CancelAutoComplete_t)();
 	extern Con_CancelAutoComplete_t Con_CancelAutoComplete;
+
+	typedef bool(*Con_IsDvarCommand_t)(const char* cmd);
+	extern Con_IsDvarCommand_t Con_IsDvarCommand;
 
 	typedef bool(*Encode_Init_t)(const char* );
 	extern Encode_Init_t Encode_Init;

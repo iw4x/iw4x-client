@@ -20,8 +20,7 @@ function mongoose.project()
 
 		mongoose.includes()
 
-		files
-		{
+		files {
 			path.join(mongoose.source, "mongoose.c"),
 			path.join(mongoose.source, "mongoose.h"),
 		}

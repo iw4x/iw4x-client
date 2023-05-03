@@ -122,10 +122,12 @@ namespace Components
 		{
 			Game::Com_PrintMessage(Game::CON_CHANNEL_DONT_FILTER, i->data(), 0);
 
+#ifdef _DEBUG
 			if (!IsConsoleReady())
 			{
 				OutputDebugStringA(i->data());
 			}
+#endif
 
 			i = MessageQueue.erase(i);
 		}

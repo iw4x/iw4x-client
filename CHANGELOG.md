@@ -4,7 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/).
 
+## r4246 - 2023-05-03
+
+### Added
+
+- Add to the iw4x-rawfiles common_scripts\utility GSC script `setPing` & `getPing` for backward compatibility.
+
+### Fixed
+
+- Fix bug with Steam Proxy (#991)
+- Fix bug with the `say` GSC notify in regards to hidden commands (#989)
+
+### Removed
+
+- SetPing GSC method (#998)
+
+### Known issues
+
+- Sound issue fix is experimental as the bug is not fully understood.
+
 ## r4226 - 2023-04-26
+
+### Changed
 
 - Chat system will go back to using `SV_CMD_CAN_IGNORE` commands (#972)
 
@@ -44,12 +65,21 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Changed
 
 - `sv_mapRotationCurrent` supports `exec` directive for executing cfg scripts from the `game_settings` folder (#916)
-- `SetPing` GSC method is now deprecated.
+- `SetPing` GSC method is now deprecated (#903)
+
+### Security
+
+- Fix DOS exploit in the network protocol of the game (#942)
 
 ### Fixed
 
 - `sv_privatePassword` will work as intended (#908)
 - Fix crash when loading bots.txt file (#927)
+
+### Removed
+
+- Remove `GetIp` GSC method (#903)
+- Remove `GetPing` GSC method (#903)
 
 ### Known issues
 
@@ -112,7 +142,6 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Servers can no longer modify client Dvars that are saved in the client's config (#694)
 - `banClient` and `muteClient` server commands do not apply to bots anymore (#730)
-- Remove `zb_prefer_disk_assets` Dvar (#772)
 - The max value of `perk_extendedMeleeRange` Dvar was increased (#782)
 - Test Clients will receive names from the Xlabs Patreon website in addition to the names from the bots.txt file (#771)
 
@@ -125,6 +154,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fix bots "user cmd angles" (#707)
 - Fix bug where `FileRead` GSC function could return buffers that are too big (#767)
 - Fix bug where the `OnPlayerSay` GSC function would cause issues (#776)
+
+### Removed
+
+- Remove `zb_prefer_disk_assets` Dvar (#772)
 
 ### Known issues
 
@@ -169,6 +202,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Static models are now lit correctly depending on their position and ground lighting.
 - New map porting utility ports sounds and effects properly.
 
+### Removed
+
+- Remove `HttpGet`& `HttpCancel` (#603)
+
 ### Known issues
 
 - HTTPS is not supported for fast downloads at the moment.
@@ -190,7 +227,6 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Changed
 
-- Remove non-existent menus from code (#483)
 - Change font and colour of the external console (#477)
 
 ### Fixed
@@ -200,6 +236,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fix party server not receiving packets (#500)
 - Fix crash caused by server thread issues (#561)
 - Fix hours spent playing IW4x not counting towards the hours spent playing MW2 on Steam (#573)
+- Remove non-existent menus from code (#483)
 
 ### Known issues
 
@@ -224,8 +261,11 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Changed
 
 - Steam status is no longer set to busy (#417)
-- `HttpGet`& `HttpCancel` are disabled for security reasons (#449)
 - `g_allowVote` is a replicated Dvar (#457)
+
+### Security
+
+- Disable `HttpGet`& `HttpCancel` (#449)
 
 ### Fixed
 
@@ -246,19 +286,14 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add `EnableWeaponPickup` GSC method (#329)
 - Add `protect-saved-dvars` command line argument (#335)
 - Add `clanName` dvar. Can be edited in the `barracks` menu (#361)
-- Add DLC9 containing classic maps from CoD4: Backlot, Chinatown, Winter Crash, Pipeline and Downpour
+- Add DLC9 containing classic maps from CoD4: Backlot, Chinatown, Winter Crash, Pipeline and Downpour.
+- Add to the iw4x-rawfiles `common_scripts\iw4x_utility` GSC script, it contains the scripts-based solution for the removed GSC built-in methods.
 
 ### Changed
 
-- `sv_mapRotationCurrent` functionality has been restored for backwards compatibility (#328)
+- `sv_mapRotationCurrent` functionality has been restored for backward compatibility (#328)
 - GSC IO Functions are restricted to the `scriptdata` folder (#322)
 - `scriptablehttp` command line argument is no longer needed (#322)
-- Removed `noclip` built-in GSC method. Replaced with script-based solution (#387)
-- Removed `ufo` built-in GSC method. Replaced with script-based solution (#387)
-- Removed `god` built-in GSC method. Replaced with script-based  solution (#388)
-- Removed `demiGod` built-in GSC method. Replaced with script-based  solution (#388)
-- Removed `noTarget` built-in GSC method. Replaced with script-based  solution (#388)
-- Added to the iw4x-rawfiles `common_scripts\iw4x_utility` GSC script, it contains the scripts-based solution for the removed GSC built-in methods
 
 ### Fixed
 
@@ -271,6 +306,14 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Server commands are no longer being registered twice (#339)
 - Fixed issue where grenades and projectiles had no bounce sounds (#368)
 - Fixed issue that could cause the game to crash when loading CoD4 maps (#372)
+
+### Removed
+
+- Remove `noclip` built-in GSC method. Replaced with script-based solution (#387)
+- Remove `ufo` built-in GSC method. Replaced with script-based solution (#387)
+- Remove `god` built-in GSC method. Replaced with script-based  solution (#388)
+- Remove `demiGod` built-in GSC method. Replaced with script-based  solution (#388)
+- Remove `noTarget` built-in GSC method. Replaced with script-based  solution (#388)
 
 ### Known issues
 
@@ -292,8 +335,11 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Changed
 
-- `openLink` command was removed for security reasons  (#286)
 - `sv_mapRotationCurrent` is not being used anymore (#302)
+
+### Security
+
+- Remove `openLink` command (#286)
 
 ### Fixed
 
@@ -369,12 +415,12 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
-- Added controller support (#75)
-- Added aim assist for controllers (#75)
+- Add controller support (#75)
+- Add aim assist for controllers (#75)
 - Unlock camera_thirdPersonCrosshairOffset Dvar (#68)
-- Added support for building custom Fonts with Zonebuilder (#88)
-- Added colorblind friendly team colors (#101)
-- Added emojis based on titlecards and emblems to use in the chat and server names Example: `:nuke:` (#130)
+- Add support for building custom Fonts with Zonebuilder (#88)
+- Add colorblind friendly team colors (#101)
+- Add emojis based on titlecards and emblems to use in the chat and server names Example: `:nuke:` (#130)
 - Upon leaving a server 'archive' dvars (saved in the config file) will be reset to the value they had prior to joining the server (#134)
 - Implement muteClient command for the game chat (#159)
 - Implement unmute command for the game chat (#159)
@@ -455,13 +501,12 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add r_specularCustomMaps Dvar (#36)
 - Unlock safeArea_horizontal and safeArea_vertical Dvars (#42)
 - Unlock cg_fovscale Dvar (#47)
-- Added g_antilag Dvar (#61)
+- Add g_antilag Dvar (#61)
 
 ### Changed
 
 - Stats are now separate for each mod (#6). Player stats are copied to `fs_game` folder if no stats exist for this mod yet. Keep in mind this also means that level, XP and classes will not be synchronized with the main stats file after this point.
 - Reduced duration of toasts (#48)
-- Removed old updater functionality (#54)
 - Use old bot names if bots.txt is not found (#46)
 
 ### Fixed
@@ -471,6 +516,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fixed an issue where the game was trying to decrypt gsc files which caused it to crash when loading mods (#35)
 - Fixed an issue causing the game to crash when Steam was running in the background (#56)
 - Fixed slow download speed when using fast download
+
+### Removed
+
+- Removed old updater functionality (#54)
 
 ### Known issues
 
@@ -556,8 +605,6 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Show friend avatars when they play IW4x (request).
 - Rewrite and optimize the entire node system.
-- Remove syncnode command for node system.
-- Remove steam start.
 
 ### Fixed
 
@@ -566,6 +613,11 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Can no longer join a lobby or server with an incorrect password.
 - Fix crashes caused by a bug in file/data compression.
 - Improve overall stability.
+
+### Removed
+
+- Remove syncnode command for node system.
+- Remove steam start.
 
 ## [0.5.0] - 2017-06-04
 
@@ -646,7 +698,6 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Disabled big minidump message box.
 - Limit dedicated servers to 15 instances per IP.
 - Move build number location.
-- Remove news ticker and friends button from theater.
 
 ### Fixed
 
@@ -659,6 +710,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fix vid_restart crash with connect protocol.
 - Fix weapon crash issue.
 - Potentially fix no-ammo bug.
+
+### Removed
+
+- Remove news ticker and friends button from theater.
 
 ## [0.3.2] - 2017-02-12
 
