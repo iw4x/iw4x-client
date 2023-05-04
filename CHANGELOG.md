@@ -114,7 +114,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Test Clients will no longer receive names from the Xlabs Patreon website. The old behaviour was restored (#852)
 - Enabled `OpenFile` GSC function (#862)
 - Enabled `CloseFile` GSC function (#862)
-- Chat system uses "reliable message" to mitigate message duplication (#873)
+- Chat system will now use `SV_CMD_RELIABLE` commands to mitigate message duplication (#873)
 - The built-in GSC compiler no longer throws fatal errors when overriding a built-in function or method (IW3 behaviour) (#880)
 - `CastFloat` GSC function was renamed to `Float` (#880)
 
