@@ -320,6 +320,7 @@ namespace Components
 		auto* clc = Game::CL_GetLocalClientConnection(0);
 		if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address))
 		{
+			Logger::Debug("Ignoring stray 'v' network message from '{}'", Game::NET_AdrToString(*address));
 			return;
 		}
 
