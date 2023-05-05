@@ -193,7 +193,7 @@ namespace Components
 		// EDIT: Most 3rd party tools expect a line break, so let's use that instead!
 		std::string packet;
 		packet.append(command);
-		packet.append("\n", 1);
+		packet.push_back('\n');
 		packet.append(data);
 
 		Send(type, target, packet);
@@ -303,7 +303,7 @@ namespace Components
 			return false;
 		}
 
-		const std::string data(reinterpret_cast<char*>(message->data) + offset, message->cursize - offset);
+		const std::string data{ reinterpret_cast<char*>(message->data) + offset, message->cursize - offset };
 
 		auto target = Address{ address };
 		handler->second(target, data);
