@@ -45,6 +45,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Chat system will go back to using `SV_CMD_CAN_IGNORE` commands (#972)
 
+### Security
+
+- Check the address of the sender for the `print` OOB packet (#969)
+
 ### Fixed
 
 - Fix bug with how `sv_mapRotationCurrent` is parsed (#977)

@@ -93,7 +93,7 @@ namespace Game
 	MSG_ReadLong_t MSG_ReadLong = MSG_ReadLong_t(0x4C9550);
 	MSG_ReadShort_t MSG_ReadShort = MSG_ReadShort_t(0x40BDD0);
 	MSG_ReadInt64_t MSG_ReadInt64 = MSG_ReadInt64_t(0x4F1850);
-	MSG_ReadString_t MSG_ReadString = MSG_ReadString_t(0x60E2B0);
+	MSG_ReadBigString_t  MSG_ReadBigString = MSG_ReadBigString_t(0x60E2B0);
 	MSG_ReadStringLine_t MSG_ReadStringLine = MSG_ReadStringLine_t(0x4FEF30);
 	MSG_WriteByte_t MSG_WriteByte = MSG_WriteByte_t(0x48C520);
 	MSG_WriteData_t MSG_WriteData = MSG_WriteData_t(0x4F4120);

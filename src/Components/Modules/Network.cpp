@@ -408,19 +408,20 @@ namespace Components
 			SendRaw(address, address.getString());
 		});
 
-		OnClientPacket("print", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
+		OnClientPacketRaw("print", [](Game::netadr_t* address, Game::msg_t* msg)
 		{
 			auto* clc = Game::CL_GetLocalClientConnection(0);
-			if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address.get()))
+			if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address))
 			{
 				return;
 			}
 
-			char buffer[2048]{};
+			char printBuf[2048]{};
 
-			Game::I_strncpyz(clc->serverMessage, data.data(), sizeof(clc->serverMessage));
-			Game::Com_sprintf(buffer, sizeof(buffer), "%s", data.data());
-			Game::Com_PrintMessage(Game::CON_CHANNEL_CLIENT, buffer, 0);
+			const auto* s = Game::MSG_ReadBigString(msg);
+			Game::I_strncpyz(clc->serverMessage, s, sizeof(clc->serverMessage));
+			Game::Com_sprintf(printBuf, sizeof(printBuf), "%s", s);
+			Game::Com_PrintMessage(Game::CON_CHANNEL_CLIENT, printBuf, false);
 		});
 	}
 }

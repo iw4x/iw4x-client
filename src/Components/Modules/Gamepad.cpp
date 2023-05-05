@@ -1235,11 +1235,11 @@ namespace Components
 
 		if (Game::Key_IsCatcherActive(localClientNum, Game::KEYCATCH_LOCATION_SELECTION) && pressedOrUpdated)
 		{
-			if (key == Game::K_BUTTON_B || keyState.keys[key].binding && strcmp(keyState.keys[key].binding, "+actionslot 4") == 0)
+			if (key == Game::K_BUTTON_B || keyState.keys[key].binding && std::strcmp(keyState.keys[key].binding, "+actionslot 4") == 0)
 			{
 				keyState.locSelInputState = Game::LOC_SEL_INPUT_CANCEL;
 			}
-			else if (key == Game::K_BUTTON_A || keyState.keys[key].binding && strcmp(keyState.keys[key].binding, "+attack") == 0)
+			else if (key == Game::K_BUTTON_A || keyState.keys[key].binding && std::strcmp(keyState.keys[key].binding, "+attack") == 0)
 			{
 				keyState.locSelInputState = Game::LOC_SEL_INPUT_CONFIRM;
 			}
@@ -1926,7 +1926,7 @@ namespace Components
 					continue;
 				}
 
-				if (Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, gamePadCmd) == 0)
+				if (Game::playerKeys[0].keys[keyNum].binding && std::strcmp(Game::playerKeys[0].keys[keyNum].binding, gamePadCmd) == 0)
 				{
 					(*keys)[keyCount++] = keyNum;
 
@@ -1946,7 +1946,7 @@ namespace Components
 					continue;
 				}
 
-				if (Game::playerKeys[0].keys[keyNum].binding && strcmp(Game::playerKeys[0].keys[keyNum].binding, cmd) == 0)
+				if (Game::playerKeys[0].keys[keyNum].binding && std::strcmp(Game::playerKeys[0].keys[keyNum].binding, cmd) == 0)
 				{
 					(*keys)[keyCount++] = keyNum;
 
