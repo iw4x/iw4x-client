@@ -47,7 +47,7 @@ namespace Components
 
 	std::vector<std::pair<Game::XAssetType, std::string>> AssetHandler::EmptyAssets;
 
-	std::map<std::string, Game::XAssetHeader> AssetHandler::TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
+	std::map<std::string, Game::XAssetHeader> AssetHandler::TemporaryAssets[Game::ASSET_TYPE_COUNT];
 
 	void AssetHandler::RegisterInterface(IAsset* iAsset)
 	{
@@ -73,7 +73,7 @@ namespace Components
 
 	void AssetHandler::ClearTemporaryAssets()
 	{
-		for (int i = 0; i < Game::XAssetType::ASSET_TYPE_COUNT; ++i)
+		for (int i = 0; i < Game::ASSET_TYPE_COUNT; ++i)
 		{
 			AssetHandler::TemporaryAssets[i].clear();
 		}
@@ -108,7 +108,7 @@ namespace Components
 	Game::XAssetHeader AssetHandler::FindTemporaryAsset(Game::XAssetType type, const char* filename)
 	{
 		Game::XAssetHeader header = { nullptr };
-		if (type >= Game::XAssetType::ASSET_TYPE_COUNT) return header;
+		if (type >= Game::ASSET_TYPE_COUNT) return header;
 
 		auto tempPool = &AssetHandler::TemporaryAssets[type];
 		auto entry = tempPool->find(filename);
@@ -224,7 +224,7 @@ namespace Components
 
 	void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name)
 	{
-		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light" || name == "gfx_distortion_heat") && asset.material->info.sortKey >= 43)
+		if (type == Game::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light" || name == "gfx_distortion_heat") && asset.material->info.sortKey >= 43)
 		{
 			if (Zones::Version() >= VERSION_ALPHA2)
 			{
@@ -236,18 +236,18 @@ namespace Components
 			}
 		}
 
-		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL && (name == "wc/codo_ui_viewer_black_decal3" || name == "wc/codo_ui_viewer_black_decal2" || name == "wc/hint_arrows01" || name == "wc/hint_arrows02"))
+		if (type == Game::ASSET_TYPE_MATERIAL && (name == "wc/codo_ui_viewer_black_decal3" || name == "wc/codo_ui_viewer_black_decal2" || name == "wc/hint_arrows01" || name == "wc/hint_arrows02"))
 		{
 			asset.material->info.sortKey = 0xE;
 		}
 
-		if (type == Game::XAssetType::ASSET_TYPE_VEHICLE && Zones::Version() >= VERSION_ALPHA2)
+		if (type == Game::ASSET_TYPE_VEHICLE && Zones::Version() >= VERSION_ALPHA2)
 		{
 			asset.vehDef->turretWeapon = nullptr;
 		}
 
 		// Fix shader const stuff
-		if (type == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET && Zones::Version() >= 359 && Zones::Version() < 448)
+		if (type == Game::ASSET_TYPE_TECHNIQUE_SET && Zones::Version() >= 359 && Zones::Version() < 448)
 		{
 			for (int i = 0; i < 48; ++i)
 			{
@@ -272,7 +272,7 @@ namespace Components
 			}
 		}
 
-		if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD && Zones::Version() >= 316)
+		if (type == Game::ASSET_TYPE_GFXWORLD && Zones::Version() >= 316)
 		{
 			asset.gfxWorld->sortKeyEffectDecal = 39;
 			asset.gfxWorld->sortKeyEffectAuto = 48;
@@ -408,7 +408,7 @@ namespace Components
 		ZoneBuilder::Zone::AssetRecursionMarker _(builder);
 
 		Game::XAssetHeader header = { nullptr };
-		if (type >= Game::XAssetType::ASSET_TYPE_COUNT) return header;
+		if (type >= Game::ASSET_TYPE_COUNT) return header;
 
 		auto tempPool = &AssetHandler::TemporaryAssets[type];
 		auto entry = tempPool->find(filename);
@@ -476,7 +476,7 @@ namespace Components
 
 	void AssetHandler::MissingAssetError(int severity, const char* format, const char* type, const char* name)
 	{
-		if (Dedicated::IsEnabled() && Game::DB_GetXAssetNameType(type) == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET) return;
+		if (Dedicated::IsEnabled() && Game::DB_GetXAssetNameType(type) == Game::ASSET_TYPE_TECHNIQUE_SET) return;
 		Utils::Hook::Call<void(int, const char*, const char*, const char*)>(0x4F8C70)(severity, format, type, name); // Print error
 	}
 
@@ -571,37 +571,37 @@ namespace Components
 
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
 		{
-			if (Dvar::Var("r_noVoid").get<bool>() && type == Game::XAssetType::ASSET_TYPE_XMODEL && name == "void")
+			if (Dvar::Var("r_noVoid").get<bool>() && type == Game::ASSET_TYPE_XMODEL && name == "void")
 			{
 				asset.model->numLods = 0;
 			}
 		});
 
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP, 1);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMAGE, ZoneBuilder::IsEnabled() ? 14336 * 2 : 7168);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOADED_SOUND, 2700 * 2);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FX, 1200 * 2);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XANIMPARTS, 8192 * 2);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL, 5125 * 2);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PHYSPRESET, 128);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_PIXELSHADER, ZoneBuilder::IsEnabled() ? 0x4000 : 10000);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, ZoneBuilder::IsEnabled() ? 0x2000 : 3072);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MATERIAL, 8192 * 2);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_VERTEXDECL, ZoneBuilder::IsEnabled() ? 0x400 : 196);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_WEAPON, WEAPON_LIMIT);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_STRINGTABLE, 800);
-		Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_IMPACT_FX, 8);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_GAMEWORLD_SP, 1);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_IMAGE, ZoneBuilder::IsEnabled() ? 14336 * 2 : 7168);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_LOADED_SOUND, 2700 * 2);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_FX, 1200 * 2);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_XANIMPARTS, 8192 * 2);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_XMODEL, 5125 * 2);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_PHYSPRESET, 128);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_PIXELSHADER, ZoneBuilder::IsEnabled() ? 0x4000 : 10000);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXSHADER, ZoneBuilder::IsEnabled() ? 0x2000 : 3072);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_MATERIAL, 8192 * 2);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXDECL, ZoneBuilder::IsEnabled() ? 0x400 : 196);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_WEAPON, WEAPON_LIMIT);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_STRINGTABLE, 800);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_IMPACT_FX, 8);
 
 		// Register asset interfaces
 		if (ZoneBuilder::IsEnabled())
 		{
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_MAP_ENTS, 10);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, 8192 * 2);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_FONT, 32);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_RAWFILE, 2048);
-			Game::ReallocateAssetPool(Game::XAssetType::ASSET_TYPE_LEADERBOARD, 500);
+			Game::ReallocateAssetPool(Game::ASSET_TYPE_MAP_ENTS, 10);
+			Game::ReallocateAssetPool(Game::ASSET_TYPE_XMODEL_SURFS, 8192 * 2);
+			Game::ReallocateAssetPool(Game::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
+			Game::ReallocateAssetPool(Game::ASSET_TYPE_FONT, 32);
+			Game::ReallocateAssetPool(Game::ASSET_TYPE_RAWFILE, 2048);
+			Game::ReallocateAssetPool(Game::ASSET_TYPE_LEADERBOARD, 500);
 
 			AssetHandler::RegisterInterface(new Assets::IFont_s());
 			AssetHandler::RegisterInterface(new Assets::IWeapon());

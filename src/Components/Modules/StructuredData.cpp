@@ -157,12 +157,14 @@ namespace Components
 
 			// 15 or more custom classes
 			Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
+
+			return;
 		}
 
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& filename, bool* /*restrict*/)
 		{
 			// Only intercept playerdatadef loading
-			if (type != Game::XAssetType::ASSET_TYPE_STRUCTURED_DATA_DEF || filename != "mp/playerdata.def") return;
+			if (type != Game::ASSET_TYPE_STRUCTURED_DATA_DEF || filename != "mp/playerdata.def") return;
 
 			// Store asset
 			Game::StructuredDataDefSet* data = asset.structuredDataDefSet;
