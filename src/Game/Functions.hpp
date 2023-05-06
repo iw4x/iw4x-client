@@ -554,6 +554,9 @@ namespace Game
 	typedef char*(*I_CleanStr_t)(char* string);
 	extern I_CleanStr_t I_CleanStr;
 
+	typedef bool(*I_isdigit_t)(int c);
+	extern I_isdigit_t I_isdigit;
+
 	typedef void(*XNAddrToString_t)(const XNADDR* xnaddr, char* str);
 	extern XNAddrToString_t XNAddrToString;
 
@@ -658,8 +661,6 @@ namespace Game
 	extern visField_t* visionDefFields;
 
 	extern infoParm_t* infoParams;
-
-	extern clientState_t* clcState;
 
 	extern GfxScene* scene;
 

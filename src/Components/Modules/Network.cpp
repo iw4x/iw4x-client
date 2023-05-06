@@ -341,6 +341,33 @@ namespace Components
 		}
 	}
 
+	int Network::Sys_StringToSockaddr_Hk(const char* s, sockaddr* sadr)
+	{
+		hostent* h;
+		ZeroMemory(sadr, sizeof(*sadr));
+
+		((sockaddr_in*)sadr)->sin_family = AF_INET;
+		((sockaddr_in*)sadr)->sin_port = 0;
+
+		if (Game::I_isdigit(*s))
+		{
+			// ReSharper disable once CppDeprecatedEntity
+			*(int*)&((sockaddr_in*)sadr)->sin_addr = static_cast<int>(::inet_addr(s));
+		}
+		else
+		{
+			// ReSharper disable once CppDeprecatedEntity
+			if ((h = ::gethostbyname(s)) == nullptr)
+			{
+				return false;
+			}
+
+			*(int*)&((sockaddr_in*)sadr)->sin_addr = *(int*)h->h_addr_list[0];
+		}
+
+		return true;
+	}
+
 	Network::Network()
 	{
 		AssertSize(Game::netadr_t, 20);
@@ -373,6 +400,10 @@ namespace Components
 		
 		// Handle client packets
 		Utils::Hook(0x5AA703, CL_HandleCommandStub, HOOK_JUMP).install()->quick();
+
+		// Use the version of Sys_StringToSockaddr made by 3arc
+		Utils::Hook(0x44E23C, Sys_StringToSockaddr_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x64D480, Sys_StringToSockaddr_Hk, HOOK_CALL).install()->quick();
 
 		// Disable unused OOB packets handlers just to be sure
 		Utils::Hook::Set<std::uint8_t>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
@@ -413,6 +444,7 @@ namespace Components
 			auto* clc = Game::CL_GetLocalClientConnection(0);
 			if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address))
 			{
+				Logger::Debug("Ignoring stray 'print' network message from '{}'", Game::NET_AdrToString(*address));
 				return;
 			}
 

@@ -36,5 +36,7 @@ namespace Components
 		static bool IsFull();
 
 		static void CleanBotArray();
+
+		static void AddServerCommands();
 	};
 }

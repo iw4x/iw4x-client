@@ -240,7 +240,7 @@ namespace Components
 
 		std::memset(&ClientState, 0, sizeof(char[Game::MAX_CLIENTS][MAX_CLAN_NAME_LENGTH]));
 
-		ServerCommands::OnCommand(22, [](Command::Params* params)
+		ServerCommands::OnCommand(22, [](const Command::Params* params)
 		{
 			if (std::strcmp(params->get(1), "clanNames") == 0)
 			{

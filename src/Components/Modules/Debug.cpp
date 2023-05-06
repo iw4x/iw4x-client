@@ -272,7 +272,7 @@ namespace Components
 		assert(0 && "a");
 	}
 
-	void Debug::Com_Bug_f(Command::Params* params)
+	void Debug::Com_Bug_f(const Command::Params* params)
 	{
 		char newFileName[MAX_PATH]{};
 		char to_ospath[MAX_OSPATH]{};

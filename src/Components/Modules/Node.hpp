@@ -44,7 +44,7 @@ namespace Components
 	private:
 		static std::recursive_mutex Mutex;
 		static std::vector<Entry> Nodes;
-		static bool wasIngame;
+		static bool WasIngame;
 
 		static void HandleResponse(Network::Address address, const std::string& data);
 

@@ -1760,7 +1760,7 @@ namespace Components
 		return Game::GPAD_MAP_NONE;
 	}
 
-	void Gamepad::Axis_Bind_f(Command::Params* params)
+	void Gamepad::Axis_Bind_f(const Command::Params* params)
 	{
 		if (params->size() < 4)
 		{
@@ -1796,7 +1796,7 @@ namespace Components
 		Gamepad_BindAxis(0, physicalAxis, virtualAxis, mapping);
 	}
 
-	void Gamepad::Axis_Unbindall_f(Command::Params*)
+	void Gamepad::Axis_Unbindall_f()
 	{
 		auto& gamePadGlobal = gamePadGlobals[0];
 
@@ -1807,19 +1807,19 @@ namespace Components
 		}
 	}
 
-	void Gamepad::Bind_GP_SticksConfigs_f(Command::Params*)
+	void Gamepad::Bind_GP_SticksConfigs_f()
 	{
 		const auto* stickConfigName = gpad_sticksConfig.get<const char*>();
 		Game::Cbuf_AddText(0, Utils::String::VA("exec %s\n", stickConfigName));
 	}
 
-	void Gamepad::Bind_GP_ButtonsConfigs_f(Command::Params*)
+	void Gamepad::Bind_GP_ButtonsConfigs_f()
 	{
 		const auto* buttonConfigName = gpad_buttonConfig.get<const char*>();
 		Game::Cbuf_AddText(0, Utils::String::VA("exec %s\n", buttonConfigName));
 	}
 
-	void Gamepad::Scores_Toggle_f(Command::Params*)
+	void Gamepad::Scores_Toggle_f()
 	{
 		if (Game::cgArray[0].nextSnap)
 		{

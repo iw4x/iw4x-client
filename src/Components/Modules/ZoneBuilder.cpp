@@ -1211,7 +1211,7 @@ namespace Components
 				}
 			});
 
-			Command::Add("verifyzone", [](Command::Params* params)
+			Command::Add("verifyzone", [](const Command::Params* params)
 			{
 				if (params->size() < 2) return;
 
@@ -1250,7 +1250,7 @@ namespace Components
 				Logger::Print("\n");
 			});
 
-			Command::Add("buildzone", [](Command::Params* params)
+			Command::Add("buildzone", [](const Command::Params* params)
 			{
 				if (params->size() < 2) return;
 
@@ -1260,7 +1260,7 @@ namespace Components
 				Zone(zoneName).build();
 			});
 
-			Command::Add("buildall", []([[maybe_unused]] Command::Params* params)
+			Command::Add("buildall", []()
 			{
 				auto path = std::format("{}\\zone_source", (*Game::fs_basepath)->current.string);
 				auto zoneSources = FileSystem::GetSysFileList(path, "csv", false);
@@ -1327,7 +1327,7 @@ namespace Components
 				}
 			});
 
-			Command::Add("buildtechsets", [](Command::Params*)
+			Command::Add("buildtechsets", [](const Command::Params*)
 			{
 				Utils::IO::CreateDir("zone_source/techsets");
 				Utils::IO::CreateDir("zone/techsets");
@@ -1580,7 +1580,7 @@ namespace Components
 				Zone("techsets/techsets").build();
 			});
 
-			Command::Add("listassets", [](Command::Params* params)
+			Command::Add("listassets", [](const Command::Params* params)
 			{
 				if (params->size() < 2) return;
 				Game::XAssetType type = Game::DB_GetXAssetNameType(params->get(1));
@@ -1595,7 +1595,7 @@ namespace Components
 				}
 			});
 
-			Command::Add("loadtempzone", [](Command::Params* params)
+			Command::Add("loadtempzone", [](const Command::Params* params)
 			{
 				if (params->size() < 2) return;
 
@@ -1609,7 +1609,7 @@ namespace Components
 				}
 			});
 
-			Command::Add("unloadtempzones", [](Command::Params*)
+			Command::Add("unloadtempzones", [](const Command::Params*)
 			{
 				Game::XZoneInfo info;
 				info.name = nullptr;
@@ -1619,7 +1619,7 @@ namespace Components
 				AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
 			});
 
-			Command::Add("materialInfoDump", [](Command::Params*)
+			Command::Add("materialInfoDump", [](const Command::Params*)
 			{
 				Game::DB_EnumXAssets(Game::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void*)
 				{
@@ -1628,7 +1628,7 @@ namespace Components
 				}, nullptr, false);
 			});
 
-			Command::Add("iwiDump", [](Command::Params* params)
+			Command::Add("iwiDump", [](const Command::Params* params)
 			{
 				if (params->size() < 2) return;
 

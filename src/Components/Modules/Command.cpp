@@ -2,8 +2,8 @@
 
 namespace Components
 {
-	std::unordered_map<std::string, std::function<void(Command::Params*)>> Command::FunctionMap;
-	std::unordered_map<std::string, std::function<void(Command::Params*)>> Command::FunctionMapSV;
+	std::unordered_map<std::string, Command::commandCallback> Command::FunctionMap;
+	std::unordered_map<std::string, Command::commandCallback> Command::FunctionMapSV;
 
 	std::string Command::Params::join(const int index) const
 	{
@@ -68,7 +68,7 @@ namespace Components
 		});
 	}
 
-	void Command::Add(const char* name, const std::function<void(Params*)>& callback)
+	void Command::Add(const char* name, const commandCallback& callback)
 	{
 		const auto command = Utils::String::ToLower(name);
 
@@ -80,7 +80,7 @@ namespace Components
 		FunctionMap.insert_or_assign(command, callback);
 	}
 
-	void Command::AddSV(const char* name, const std::function<void(Params*)>& callback)
+	void Command::AddSV(const char* name, const commandCallback& callback)
 	{
 		if (Loader::IsPregame())
 		{

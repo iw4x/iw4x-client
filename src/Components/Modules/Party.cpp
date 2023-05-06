@@ -293,7 +293,7 @@ namespace Components
 		Utils::Hook::Xor<DWORD>(0x4D376D, Game::DVAR_LATCH);
 		Utils::Hook::Xor<DWORD>(0x5E3789, Game::DVAR_LATCH);
 
-		Command::Add("connect", [](Command::Params* params)
+		Command::Add("connect", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
 			{
@@ -311,7 +311,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("reconnect", [](Command::Params*)
+		Command::Add("reconnect", []()
 		{
 			Connect(Container.target);
 		});

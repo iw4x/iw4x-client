@@ -522,7 +522,7 @@ namespace Components
 
 		Command::Add("unlockstats", QuickPatch::UnlockStats);
 
-		Command::Add("dumptechsets", [](Command::Params* param)
+		Command::Add("dumptechsets", [](const Command::Params* param)
 		{
 			if (param->size() != 2)
 			{

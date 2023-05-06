@@ -838,7 +838,7 @@ namespace Components
 		Utils::Hook(0x5A9D51, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5B34DD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 
-		Command::Add("delayReconnect", []([[maybe_unused]] Command::Params* params)
+		Command::Add("delayReconnect", []()
 		{
 			Scheduler::Once([]
 			{
@@ -852,7 +852,7 @@ namespace Components
 			Utils::Hook(0x4A7251, Maps::LoadNewMapCommand, HOOK_CALL).install()->quick();
 		}
 
-		// Download the map before a maprotation if necessary
+		// Download the map before a map rotation if necessary
 		// Conflicts with Theater's SV map rotation check, but this one is safer!
 		Utils::Hook(0x5AA91C, Maps::RotateCheckStub, HOOK_CALL).install()->quick();
 

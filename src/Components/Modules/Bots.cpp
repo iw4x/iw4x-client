@@ -407,37 +407,9 @@ namespace Components
 		}
 	}
 
-	Bots::Bots()
+	void Bots::AddServerCommands()
 	{
-		AssertOffset(Game::client_s, bIsTestClient, 0x41AF0);
-		AssertOffset(Game::client_s, ping, 0x212C8);
-		AssertOffset(Game::client_s, gentity, 0x212A0);
-
-		// Replace connect string
-		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\clanAbbrev\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
-
-		// Intercept sprintf for the connect string
-		Utils::Hook(0x48ADAB, BuildConnectString, HOOK_CALL).install()->quick();
-
-		Utils::Hook(0x627021, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
-		Utils::Hook(0x627241, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
-
-		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
-
-		Utils::Hook(0x459654, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
-
-		sv_randomBotNames = Game::Dvar_RegisterBool("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
-		sv_replaceBots = Game::Dvar_RegisterBool("sv_replaceBots", false, Game::DVAR_NONE, "Test clients will be replaced by connecting players when the server is full.");
-
-		// Reset BotMovementInfo.active when client is dropped
-		Events::OnClientDisconnect([](const int clientNum) -> void
-		{
-			g_botai[clientNum].active = false;
-		});
-
-		CleanBotArray();
-
-		Command::Add("spawnBot", [](Command::Params* params)
+		Command::AddSV("spawnBot", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -467,8 +439,7 @@ namespace Components
 
 					if (input == end)
 					{
-						Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "{} is not a valid input\nUsage: {} optional <number of bots> or optional <\"all\">\n",
-							input, params->get(0));
+						Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "{} is not a valid input\nUsage: {} optional <number of bots> or optional <\"all\">\n", input, params->get(0));
 						return;
 					}
 				}
@@ -480,6 +451,39 @@ namespace Components
 
 			Spawn(count);
 		});
+	}
+
+	Bots::Bots()
+	{
+		AssertOffset(Game::client_s, bIsTestClient, 0x41AF0);
+		AssertOffset(Game::client_s, ping, 0x212C8);
+		AssertOffset(Game::client_s, gentity, 0x212A0);
+
+		// Replace connect string
+		Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\clanAbbrev\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
+
+		// Intercept sprintf for the connect string
+		Utils::Hook(0x48ADAB, BuildConnectString, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x627021, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x627241, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
+
+		Utils::Hook(0x459654, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
+
+		sv_randomBotNames = Game::Dvar_RegisterBool("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
+		sv_replaceBots = Game::Dvar_RegisterBool("sv_replaceBots", false, Game::DVAR_NONE, "Test clients will be replaced by connecting players when the server is full.");
+
+		// Reset BotMovementInfo.active when client is dropped
+		Events::OnClientDisconnect([](const int clientNum) -> void
+		{
+			g_botai[clientNum].active = false;
+		});
+
+		Events::OnSVInit(AddServerCommands);
+
+		CleanBotArray();
 
 		AddScriptMethods();
 

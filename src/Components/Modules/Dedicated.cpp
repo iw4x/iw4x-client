@@ -267,7 +267,6 @@ namespace Components
 						Game::DvarValue value;
 						value.integer = 0;
 						Game::Dvar_SetVariant(const_cast<Game::dvar_t*>(com_dedicated), value, Game::DVAR_SOURCE_INTERNAL);
-
 					}
 				});
 
@@ -291,14 +290,10 @@ namespace Components
 		}
 		else
 		{
-			for (int i = 0; i < ARRAYSIZE(PlayerGuids); ++i)
-			{
-				PlayerGuids[i][0].bits = 0;
-				PlayerGuids[i][1].bits = 0;
-			}
+			ZeroMemory(PlayerGuids, sizeof(PlayerGuids));
 
 			// Intercept server commands
-			ServerCommands::OnCommand(20, [](Command::Params* params)
+			ServerCommands::OnCommand(20, [](const Command::Params* params)
 			{
 				for (int client = 0; client < 18; client++)
 				{

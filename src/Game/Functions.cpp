@@ -238,6 +238,7 @@ namespace Game
 
 	I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
 	I_CleanStr_t I_CleanStr = I_CleanStr_t(0x4AD470);
+	I_isdigit_t I_isdigit = I_isdigit_t(0x4E71E0);
 
 	XNAddrToString_t XNAddrToString = XNAddrToString_t(0x452690);
 
@@ -317,8 +318,6 @@ namespace Game
 	visField_t* visionDefFields = reinterpret_cast<visField_t*>(0x7982F0); // Count 21
 
 	infoParm_t* infoParams = reinterpret_cast<infoParm_t*>(0x79D260); // Count 0x1E
-
-	clientState_t* clcState = reinterpret_cast<clientState_t*>(0xB2C540);
 
 	GfxScene* scene = reinterpret_cast<GfxScene*>(0x6944914);
 

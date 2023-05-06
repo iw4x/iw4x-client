@@ -434,7 +434,7 @@ namespace Components
 
 	MapDump::MapDump()
 	{
-		Command::Add("dumpmap", [](Command::Params*)
+		Command::Add("dumpmap", []()
 		{
 			if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 			{

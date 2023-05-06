@@ -21,7 +21,7 @@ namespace Components
 
 	void RCon::AddCommands()
 	{
-		Command::Add("rcon", [](Command::Params* params)
+		Command::Add("rcon", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
 
@@ -60,7 +60,7 @@ namespace Components
 			Logger::Print("You are connected to an invalid server\n");
 		});
 
-		Command::Add("remoteCommand", [](Command::Params* params)
+		Command::Add("remoteCommand", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
 
@@ -79,7 +79,7 @@ namespace Components
 			}
 		});
 
-		Command::AddSV("RconWhitelistAdd", [](Command::Params* params)
+		Command::AddSV("RconWhitelistAdd", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
 			{

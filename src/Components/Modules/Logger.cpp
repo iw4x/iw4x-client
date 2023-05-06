@@ -274,20 +274,20 @@ namespace Components
 
 	void Logger::AddServerCommands()
 	{
-		Command::AddSV("log_add", [](Command::Params* params)
+		Command::AddSV("log_add", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
 
 			std::unique_lock lock(LoggingMutex);
 
 			Network::Address addr(params->get(1));
-			if (std::find(LoggingAddresses[0].begin(), LoggingAddresses[0].end(), addr) == LoggingAddresses[0].end())
+			if (std::ranges::find(LoggingAddresses[0], addr) == LoggingAddresses[0].end())
 			{
 				LoggingAddresses[0].push_back(addr);
 			}
 		});
 
-		Command::AddSV("log_del", [](Command::Params* params)
+		Command::AddSV("log_del", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
 
@@ -304,8 +304,7 @@ namespace Components
 			{
 				Network::Address addr(params->get(1));
 
-				const auto i = std::find(LoggingAddresses[0].begin(), LoggingAddresses[0].end(), addr);
-				if (i != LoggingAddresses[0].end())
+				if (const auto i = std::ranges::find(LoggingAddresses[0], addr); i != LoggingAddresses[0].end())
 				{
 					LoggingAddresses[0].erase(i);
 					Print("Address {} removed\n", addr.getString());
@@ -317,7 +316,7 @@ namespace Components
 			}
 		});
 
-		Command::AddSV("log_list", []([[maybe_unused]] Command::Params* params)
+		Command::AddSV("log_list", []([[maybe_unused]] const Command::Params* params)
 		{
 			Print("# ID: Address\n");
 			Print("-------------\n");
@@ -330,20 +329,20 @@ namespace Components
 			}
 		});
 
-		Command::AddSV("g_log_add", [](Command::Params* params)
+		Command::AddSV("g_log_add", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
 
 			std::unique_lock lock(LoggingMutex);
 
 			const Network::Address addr(params->get(1));
-			if (std::find(LoggingAddresses[1].begin(), LoggingAddresses[1].end(), addr) == LoggingAddresses[1].end())
+			if (std::ranges::find(LoggingAddresses[1], addr) == LoggingAddresses[1].end())
 			{
 				LoggingAddresses[1].push_back(addr);
 			}
 		});
 
-		Command::AddSV("g_log_del", [](Command::Params* params)
+		Command::AddSV("g_log_del", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
 
@@ -372,7 +371,7 @@ namespace Components
 			}
 		});
 
-		Command::AddSV("g_log_list", [](Command::Params*)
+		Command::AddSV("g_log_list", []([[maybe_unused]] const Command::Params* params)
 		{
 			Print("# ID: Address\n");
 			Print("-------------\n");

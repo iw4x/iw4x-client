@@ -13,7 +13,7 @@ namespace Components
 	std::recursive_mutex Node::Mutex;
 	std::vector<Node::Entry> Node::Nodes;
 
-	bool Node::wasIngame = false;
+	bool Node::WasIngame = false;
 
 	bool Node::Entry::isValid()
 	{
@@ -154,14 +154,14 @@ namespace Components
 		{
 			if (ServerList::UseMasterServer) return; // don't run node frame if master server is active
 
-			if (*Game::clcState > 0)
+			if (Game::CL_GetLocalClientConnectionState(0) != Game::CA_DISCONNECTED)
 			{
-				wasIngame = true;
-				return; // don't run while ingame because it can still cause lag spikes on lower end PCs
+				WasIngame = true;
+				return; // don't run while in-game because it can still cause lag spikes on lower end PCs
 			}
 		}
 
-		if (wasIngame) // our last frame we were ingame and now we aren't so touch all nodes
+		if (WasIngame) // our last frame we were in-game and now we aren't so touch all nodes
 		{
 			for (auto i = Node::Nodes.begin(); i != Node::Nodes.end();++i)
 			{
@@ -170,7 +170,8 @@ namespace Components
 				i->lastRequest.reset();
 				i->lastResponse.reset();
 			}
-			wasIngame = false;
+
+			WasIngame = false;
 		}
 
 		static Utils::Time::Interval frameLimit;
@@ -344,7 +345,7 @@ namespace Components
 
 		Scheduler::OnGameInitialized(loadNodes, Scheduler::Pipeline::MAIN);
 
-		Command::Add("listnodes", [](Command::Params*)
+		Command::Add("listnodes", [](const Command::Params*)
 		{
 			Logger::Print("Nodes: {}\n", Node::Nodes.size());
 
@@ -355,7 +356,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("addnode", [](Command::Params* params)
+		Command::Add("addnode", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
 			Node::Add({ params->get(1) });

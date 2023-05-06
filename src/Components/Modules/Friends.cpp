@@ -461,21 +461,6 @@ namespace Components
 		Friends::CurrentFriend = index;
 	}
 
-	void Friends::AddFriend(SteamID user)
-	{
-		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamFriends)
-		{
-			if (Steam::Proxy::ClientFriends.invoke<bool>("AddFriend", user))
-			{
-				Toast::Show("cardicon_joystick", Steam::Proxy::SteamFriends->GetFriendPersonaName(user), "friend request sent", 3000);
-			}
-			else
-			{
-				Toast::Show("cardicon_stop", Steam::Proxy::SteamFriends->GetFriendPersonaName(user), "unable to send friend request", 3000);
-			}
-		}
-	}
-
 	int Friends::GetGame(SteamID user)
 	{
 		int appId = 0;
@@ -573,20 +558,6 @@ namespace Components
 		Friends::UIStreamFriendly = Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
 		Friends::CLAnonymous = Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");
 		Friends::CLNotifyFriendState = Dvar::Register<bool>("cl_notifyFriendState", true, Game::DVAR_ARCHIVE, "Update friends about current game status");
-
-		Command::Add("addFriend", [](Command::Params* params)
-		{
-			if (params->size() < 2)
-			{
-				Logger::Print("Usage: {} <Steam ID in hexadecimal format>\n", params->get(0));
-				return;
-			}
-
-			SteamID id;
-			id.bits = std::strtoull(params->get(1), nullptr, 16);
-
-			Friends::AddFriend(id);
-		});
 
 		// Hook Live_ShowFriendsList
 		Utils::Hook(0x4D6C70, []()

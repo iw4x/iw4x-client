@@ -380,9 +380,9 @@ namespace Components
 		});
 	}
 
-	void Chat::AddChatCommands()
+	void Chat::AddServerCommands()
 	{
-		Command::AddSV("muteClient", [](Command::Params* params)
+		Command::AddSV("muteClient", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -405,7 +405,7 @@ namespace Components
 			}
 		});
 
-		Command::AddSV("unmute", [](Command::Params* params)
+		Command::AddSV("unmute", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -446,7 +446,7 @@ namespace Components
 			}
 		});
 
-		Command::AddSV("say", [](Command::Params* params)
+		Command::AddSV("say", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -471,7 +471,7 @@ namespace Components
 			}
 		});
 
-		Command::AddSV("tell", [](Command::Params* params)
+		Command::AddSV("tell", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -499,7 +499,7 @@ namespace Components
 			}
 		});
 
-		Command::AddSV("sayraw", [](Command::Params* params)
+		Command::AddSV("sayraw", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -514,7 +514,7 @@ namespace Components
 			Logger::Print("Raw: {}\n", message);
 		});
 
-		Command::AddSV("tellraw", [](Command::Params* params)
+		Command::AddSV("tellraw", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -610,7 +610,7 @@ namespace Components
 
 		cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
 		sv_disableChat = Dvar::Register<bool>("sv_disableChat", false, Game::DVAR_NONE, "Disable chat messages from clients");
-		Events::OnSVInit(AddChatCommands);
+		Events::OnSVInit(AddServerCommands);
 
 		LoadMutedList();
 
@@ -621,6 +621,12 @@ namespace Components
 
 		// Change logic that does word splitting with new lines for chat messages to support fonticons
 		Utils::Hook(0x592E10, CG_AddToTeamChat_Stub, HOOK_JUMP).install()->quick();
+
+		// Add back removed command from CoD4
+		Command::Add("mp_QuickMessage", []() -> void
+		{
+			Command::Execute("openmenu quickmessage");
+		});
 
 		AddScriptFunctions();
 

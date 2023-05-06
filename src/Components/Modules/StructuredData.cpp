@@ -157,20 +157,6 @@ namespace Components
 
 			// 15 or more custom classes
 			Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
-
-#ifdef _DEBUG
-			// Reset empty names
-			Command::Add("checkClasses", [](Command::Params*)
-			{
-				for (int i = 0; i < NUM_CUSTOM_CLASSES; ++i)
-				{
-					// TODO: Correctly lookup using structured data
-					char* className = (reinterpret_cast<char*>(0x1AD3694) - 4 + 3003 + (64 * i) + 0x29);
-					if (!*className) strcpy_s(className, 24, Game::SEH_StringEd_GetString(Utils::String::VA("CLASS_SLOT%i", i + 1)));
-				}
-			});
-#endif
-			return;
 		}
 
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& filename, bool* /*restrict*/)

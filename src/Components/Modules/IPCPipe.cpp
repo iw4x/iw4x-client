@@ -225,7 +225,7 @@ namespace Components
 		});
 
 		// Test pipe functionality by sending pings
-		Command::Add("ipcping", []([[maybe_unused]] Command::Params* params)
+		Command::Add("ipcping", []()
 		{
 			Logger::Print("Sending ping to pipe!\n");
 			Write("ping", {});
