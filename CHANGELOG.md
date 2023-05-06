@@ -29,7 +29,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Fixed
 
 - Fix bug with Steam Proxy (#991)
-- Fix bug with the `say` GSC notify in regards to hidden commands (#989)
+- Fix bug with the `say` GSC notify in regards to hidden chat messages (#989)
 
 ### Removed
 
