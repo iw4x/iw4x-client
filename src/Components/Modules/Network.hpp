@@ -46,16 +46,12 @@ namespace Components
 			Game::netadr_t address;
 		};
 
-		typedef void(CallbackRaw)();
-
 		using networkCallback = std::function<void(Address&, const std::string&)>;
 		using networkRawCallback = std::function<void(Game::netadr_t*, Game::msg_t* msg)>;
 
 		Network();
 
 		static std::uint16_t GetPort();
-
-		static void OnStart(const Utils::Slot<CallbackRaw>& callback);
 		
 		// Send quake-styled binary data
 		static void Send(const Address& target, const std::string& data);
@@ -77,12 +73,8 @@ namespace Components
 		static void OnClientPacketRaw(const std::string& command, const networkRawCallback& callback);
 
 	private:
-		static Utils::Signal<CallbackRaw> StartupSignal;
 		static std::unordered_map<std::string, networkCallback> CL_Callbacks;
 		static std::unordered_map<std::string, networkRawCallback> CL_RawCallbacks;
-
-		static void NetworkStart();
-		static void NetworkStartStub();
 
 		static void PacketErrorCheck();
 

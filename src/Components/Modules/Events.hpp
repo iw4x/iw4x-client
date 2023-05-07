@@ -30,6 +30,8 @@ namespace Components
 		// Client & Server (triggered once)
 		static void OnDvarInit(const Utils::Slot<Callback>& callback);
 
+		static void OnNetworkInit(const Utils::Slot<Callback>& callback);
+
 	private:
 		static Utils::Signal<ClientCallback> ClientDisconnectSignal;
 		static Utils::Signal<ClientConnectCallback> ClientConnectSignal;
@@ -38,6 +40,7 @@ namespace Components
 		static Utils::Signal<Callback> ClientInitSignal;
 		static Utils::Signal<Callback> ServerInitSignal;
 		static Utils::Signal<Callback> DvarInitSignal;
+		static Utils::Signal<Callback> NetworkInitSignal;
 
 		static void ClientDisconnect_Hk(int clientNum);
 		static void SV_UserinfoChanged_Hk(Game::client_s* cl);
@@ -46,5 +49,8 @@ namespace Components
 		static void CL_InitOnceForAllClients_HK();
 		static void SV_Init_Hk();
 		static void Com_InitDvars_Hk();
+
+		static void NetworkStart();
+		static void NET_OpenSocks_Hk();
 	};
 }

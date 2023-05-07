@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
 	// Packet interception
 	std::unordered_map<std::string, Network::networkCallback> Network::CL_Callbacks;
 	std::unordered_map<std::string, Network::networkRawCallback> Network::CL_RawCallbacks;
@@ -152,11 +151,6 @@ namespace Components
 		return (this->getType() != Game::NA_BAD && this->getType() >= Game::NA_BOT && this->getType() <= Game::NA_IP);
 	}
 
-	void Network::OnStart(const Utils::Slot<CallbackRaw>& callback)
-	{
-		StartupSignal.connect(callback);
-	}
-
 	void Network::Send(Game::netsrc_t type, const Address& target, const std::string& data)
 	{
 		// Do not use NET_OutOfBandPrint. It only supports non-binary data!
@@ -228,27 +222,11 @@ namespace Components
 		BroadcastRange(100, 65536, data);
 	}
 
-	void Network::NetworkStart()
-	{
-		StartupSignal();
-		StartupSignal.clear();
-	}
-
 	std::uint16_t Network::GetPort()
 	{
 		assert((*Game::port));
 		assert((*Game::port)->current.unsignedInt <= std::numeric_limits<std::uint16_t>::max());
 		return static_cast<std::uint16_t>((*Game::port)->current.unsignedInt);
-	}
-
-	__declspec(naked) void Network::NetworkStartStub()
-	{
-		__asm
-		{
-			mov eax, 64D900h
-			call eax
-			jmp NetworkStart
-		}
 	}
 
 	__declspec(naked) void Network::PacketErrorCheck()
@@ -391,9 +369,6 @@ namespace Components
 
 		// Parse port as short in Net_AddrToString
 		Utils::Hook::Set<const char*>(0x4698E3, "%u.%u.%u.%u:%hu");
-
-		// Install startup handler
-		Utils::Hook(0x4FD4D4, NetworkStartStub, HOOK_JUMP).install()->quick();
 
 		// Prevent recvfrom error spam
 		Utils::Hook(0x46531A, PacketErrorCheck, HOOK_JUMP).install()->quick();

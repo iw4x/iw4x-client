@@ -697,7 +697,7 @@ namespace Components
 
 				mg_mgr_init(&Mgr);
 
-				Network::OnStart([]
+				Events::OnNetworkInit([]() -> void
 				{
 					const auto* nc = mg_http_listen(&Mgr, Utils::String::VA(":%hu", Network::GetPort()), &EventHandler, &Mgr);
 					if (!nc)
@@ -709,7 +709,7 @@ namespace Components
 
 				ServerRunning = true;
 				Terminate = false;
-				ServerThread = Utils::Thread::CreateNamedThread("Mongoose", []
+				ServerThread = Utils::Thread::CreateNamedThread("Mongoose", []() -> void
 				{
 					Com_InitThreadData();
 
@@ -722,7 +722,7 @@ namespace Components
 		}
 		else
 		{
-			Events::OnDvarInit([]
+			Events::OnDvarInit([]() -> void
 			{
 				UIDlTimeLeft = Dvar::Register<const char*>("ui_dl_timeLeft", "", Game::DVAR_NONE, "");
 				UIDlProgress = Dvar::Register<const char*>("ui_dl_progress", "", Game::DVAR_NONE, "");

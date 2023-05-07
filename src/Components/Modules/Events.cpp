@@ -9,6 +9,7 @@ namespace Components
 	Utils::Signal<Events::Callback> Events::ClientInitSignal;
 	Utils::Signal<Events::Callback> Events::ServerInitSignal;
 	Utils::Signal<Events::Callback> Events::DvarInitSignal;
+	Utils::Signal<Events::Callback> Events::NetworkInitSignal;
 
 	void Events::OnClientDisconnect(const Utils::Slot<ClientCallback>& callback)
 	{
@@ -43,6 +44,11 @@ namespace Components
 	void Events::OnDvarInit(const Utils::Slot<Callback>& callback)
 	{
 		DvarInitSignal.connect(callback);
+	}
+
+	void Events::OnNetworkInit(const Utils::Slot<Callback>& callback)
+	{
+		NetworkInitSignal.connect(callback);
 	}
 
 	/*
@@ -101,6 +107,22 @@ namespace Components
 		Utils::Hook::Call<void()>(0x60AD10)(); // Com_InitDvars
 	}
 
+	void Events::NetworkStart()
+	{
+		NetworkInitSignal();
+		NetworkInitSignal.clear();
+	}
+
+	__declspec(naked) void Events::NET_OpenSocks_Hk()
+	{
+		__asm
+		{
+			mov eax, 64D900h
+			call eax
+			jmp NetworkStart
+		}
+	}
+
 	Events::Events()
 	{
 		Utils::Hook(0x625235, ClientDisconnect_Hk, HOOK_CALL).install()->quick(); // SV_FreeClient
@@ -117,5 +139,7 @@ namespace Components
 		Utils::Hook(0x60BB3A, Com_InitDvars_Hk, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
 		Utils::Hook(0x4D3665, SV_Init_Hk, HOOK_CALL).install()->quick(); // SV_Init
+
+		Utils::Hook(0x4FD4D4, NET_OpenSocks_Hk, HOOK_JUMP).install()->quick(); // NET_OpenIP
 	}
 }
