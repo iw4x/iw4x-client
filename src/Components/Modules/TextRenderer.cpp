@@ -1480,7 +1480,7 @@ namespace Components
 	{
 		char buffer[1000]{}; // Should be more than enough
 		StripAllTextIcons(in.data(), buffer, sizeof(buffer));
-		return {buffer};
+		return std::string{ buffer };
 	}
 
 	int TextRenderer::SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field)
@@ -1558,8 +1558,7 @@ namespace Components
 	{
 		if (r_colorBlind.get<bool>())
 		{
-			const auto str = std::string(name);
-			if (str == "g_TeamColor_EnemyTeam")
+			if (std::strcmp(name, "g_TeamColor_EnemyTeam") == 0)
 			{
 				// Dvar_GetUnpackedColor
 				const auto* colorblindEnemy = g_ColorBlind_EnemyTeam->current.color;
@@ -1570,7 +1569,7 @@ namespace Components
 				return false;
 			}
 
-			if (str == "g_TeamColor_MyTeam")
+			if (std::strcmp(name, "g_TeamColor_MyTeam") == 0)
 			{
 				// Dvar_GetUnpackedColor
 				const auto* colorblindAlly = g_ColorBlind_MyTeam->current.color;
