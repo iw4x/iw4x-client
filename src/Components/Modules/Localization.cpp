@@ -118,6 +118,7 @@ namespace Components
 			"/dev/tty0",
 			"/dev/urandom",
 			"Dss0",
+			"Evan/Eve",
 			"FutureRave",
 			"H3X1C",
 			"Homura",
@@ -137,7 +138,6 @@ namespace Components
 			"Dasfonia",
 			"Deity",
 			"Dizzy",
-			"Evan/Eve"
 			"HardNougat",
 			"INeedGames",
 			"JTAG",
