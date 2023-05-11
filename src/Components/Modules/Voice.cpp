@@ -391,7 +391,7 @@ namespace Components
 
 		Events::OnSteamDisconnect(CL_ClearMutedList);
 		Events::OnClientDisconnect(SV_UnmuteClient);
-		Events::OnClientConnect([](Game::client_s* cl) -> void
+		Events::OnClientConnect([](const Game::client_s* cl) -> void
 		{
 			if (Chat::IsMuted(cl))
 			{
