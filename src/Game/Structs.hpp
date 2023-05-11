@@ -7140,9 +7140,11 @@ namespace Game
 
 	enum
 	{
-		PF_NOCLIP = 1 << 0,
-		PF_UFO = 1 << 1,
-		PF_FROZEN = 1 << 2,
+		CF_BIT_NOCLIP = (1 << 0),
+		CF_BIT_UFO = (1 << 1),
+		CF_BIT_FROZEN = (1 << 2),
+		CF_BIT_DISABLE_USABILITY = (1 << 3),
+		CF_BIT_NO_KNOCKBACK = (1 << 4),
 	};
 
 	enum sessionState_t

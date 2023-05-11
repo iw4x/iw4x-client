@@ -262,7 +262,7 @@ namespace Components::GSC
 		auto* ent = &Game::g_entities[entref.entnum];
 		if (!ent->client)
 		{
-			Game::Scr_ObjectError(Utils::String::VA("entity %i is not a player", entref.entnum));
+			Game::Scr_ObjectError(Utils::String::VA("entity %hu is not a player", entref.entnum));
 			return nullptr;
 		}
 

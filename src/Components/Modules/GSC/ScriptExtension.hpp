@@ -18,6 +18,5 @@ namespace Components::GSC
 		static void VMExecuteInternalStub();
 
 		static void AddFunctions();
-		static void AddMethods();
 	};
 }

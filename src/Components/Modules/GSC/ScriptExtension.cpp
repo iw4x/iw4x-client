@@ -169,20 +169,9 @@ namespace Components::GSC
 		});		
 	}
 
-	void ScriptExtension::AddMethods()
-	{
-		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
-		Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
-		{
-			const auto* ent = Script::Scr_GetPlayerEntity(entref);
-			Game::Scr_AddBool((ent->client->flags & Game::PF_FROZEN) != 0);
-		});
-	}
-
 	ScriptExtension::ScriptExtension()
 	{
 		AddFunctions();
-		AddMethods();
 
 		Utils::Hook(0x61E92E, VMExecuteInternalStub, HOOK_JUMP).install()->quick();
 		Utils::Hook::Nop(0x61E933, 1);

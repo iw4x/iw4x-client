@@ -1156,7 +1156,7 @@ namespace Game
 	int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType)
 	{
 		static DWORD SEH_GetLocalizedTokenReference_t = 0x629BB0;
-		auto answer = 0;
+		auto result = 0;
 
 		__asm
 		{
@@ -1167,11 +1167,11 @@ namespace Game
 			push token
 			call SEH_GetLocalizedTokenReference_t
 			add esp, 0x4
-			mov answer, eax
+			mov result, eax
 			popad
 		}
 
-		return answer;
+		return result;
 	}
 
 	void Player_SwitchToWeapon(gentity_s* player)
