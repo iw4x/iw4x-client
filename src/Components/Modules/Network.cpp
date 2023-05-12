@@ -409,6 +409,14 @@ namespace Components
 		Utils::Hook::Set<std::uint8_t>(0x682170, 0xC3); // Telling LSP that we're playing a private match
 		Utils::Hook::Nop(0x4FD448, 5); // Don't create lsp_socket
 
+		// Do not run UPNP stuff at all
+		Utils::Hook::Set<std::uint8_t>(0x48A135, 0xC3);
+		Utils::Hook::Set<std::uint8_t>(0x48A151, 0xC3);
+		Utils::Hook::Nop(0x684080, 5); // Don't spam the console
+
+		// Disable the IWNet IP detection (default 'got ipdetect' flag to 1)
+		Utils::Hook::Set<std::uint8_t>(0x649D6F0, 1);
+
 		OnClientPacket("resolveAddress", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
 		{
 			SendRaw(address, address.getString());

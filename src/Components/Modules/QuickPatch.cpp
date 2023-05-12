@@ -369,31 +369,6 @@ namespace Components
 		// remove limit on IWD file loading
 		Utils::Hook::Set<BYTE>(0x642BF3, 0xEB);
 
-		// dont run UPNP stuff on main thread
-		Utils::Hook::Set<BYTE>(0x48A135, 0xC3);
-		Utils::Hook::Set<BYTE>(0x48A151, 0xC3);
-		Utils::Hook::Nop(0x684080, 5); // Don't spam the console
-
-		// spawn upnp thread when UPNP_init returns
-		Utils::Hook::Hook(0x47982B, []()
-		{
-			std::thread([]
-			{
-				Com_InitThreadData();
-
-				// check natpmpstate
-				// state 4 is no more devices to query
-				while (Utils::Hook::Get<int>(0x66CE200) < 4)
-				{
-					Utils::Hook::Call<void()>(0x4D7030)();
-					Game::Sys_Sleep(500);
-				}
-			}).detach();
-		}, HOOK_JUMP).install()->quick();
-
-		// disable the IWNet IP detection (default 'got ipdetect' flag to 1)
-		Utils::Hook::Set<BYTE>(0x649D6F0, 1);
-
 		// Fix stats sleeping
 		Utils::Hook::Set<BYTE>(0x6832BA, 0xEB);
 		Utils::Hook::Set<BYTE>(0x4BD190, 0xC3);
