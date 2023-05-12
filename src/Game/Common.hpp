@@ -20,6 +20,9 @@ namespace Game
 	typedef void(*Com_Printf_t)(int channel, const char* fmt, ...);
 	extern Com_Printf_t Com_Printf;
 
+	typedef void(*Com_DPrintf_t)(int channel, const char* fmt, ...);
+	extern Com_DPrintf_t Com_DPrintf;
+
 	typedef void(*Com_PrintError_t)(int channel, const char* fmt, ...);
 	extern Com_PrintError_t Com_PrintError;
 

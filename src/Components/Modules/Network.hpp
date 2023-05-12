@@ -81,8 +81,6 @@ namespace Components
 		static bool CL_HandleCommand(Game::netadr_t* address, const char* command, Game::msg_t* message);
 
 		static void CL_HandleCommandStub();
-
-		static int Sys_StringToSockaddr_Hk(const char* s, sockaddr* sadr);
 	};
 }
 
