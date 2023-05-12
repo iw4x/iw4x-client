@@ -547,7 +547,6 @@ namespace Components
 		TokenContainer.cancel = true;
 		TokenContainer.generating = false;
 
-		// Terminate thread
 		if (TokenContainer.thread.joinable())
 		{
 			TokenContainer.thread.join();
