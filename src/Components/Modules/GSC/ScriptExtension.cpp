@@ -28,9 +28,15 @@ namespace Components::GSC
 
 	void ScriptExtension::GetReplacedPos(const char* pos)
 	{
-		if (ReplacedFunctions.contains(pos))
+		if (!pos)
 		{
-			ReplacedPos = ReplacedFunctions[pos];
+			// This seems to happen often and there should not be pointers to NULL in our map
+			return;
+		}
+
+		if (const auto itr = ReplacedFunctions.find(pos); itr != ReplacedFunctions.end())
+		{
+			ReplacedPos = itr->second;
 		}
 	}
 
