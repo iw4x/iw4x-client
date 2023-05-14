@@ -40,6 +40,24 @@ namespace Assets
 		}
 	}
 
+	void Isnd_alias_list_t::dump(Game::XAssetHeader header)
+	{
+		Components::ZoneBuilder::GetExporter()->write(Game::XAssetType::ASSET_TYPE_SOUND, header.data);
+	}
+
+	Isnd_alias_list_t::Isnd_alias_list_t()
+	{
+		Components::Command::Add("dumpSound", [this](const Components::Command::Params* param)
+		{
+			const auto header = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_SOUND, param->get(1));
+			if (header.data)
+			{
+				Components::ZoneBuilder::RefreshExporterWorkDirectory();
+				this->dump(header);
+			}
+		});
+	}
+
 	void Isnd_alias_list_t::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		AssertSize(Game::snd_alias_list_t, 12);

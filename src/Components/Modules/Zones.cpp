@@ -2947,6 +2947,9 @@ namespace Components
 			iw4Map->mapEnts = &codolMapEnts;
 			memcpy(&iw4Map->smodelNodeCount, &codolMap->smodelNodeCount, 48);
 
+			// unused on IW4
+			iw4Map->numLeafSurfaces = 0;
+
 			AssetHandler::Relocate(&cancerMap->info.numCPlanes, &iw4Map->planeCount, 8);
 			AssetHandler::Relocate(&cancerMap->numStaticModels, &iw4Map->numStaticModels, 8);
 			AssetHandler::Relocate(&cancerMap->info.numMaterials, &iw4Map->numMaterials, 24);

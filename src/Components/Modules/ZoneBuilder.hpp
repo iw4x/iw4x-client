@@ -137,6 +137,9 @@ namespace Components
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
 
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
+		static void RefreshExporterWorkDirectory();
+
+		static iw4of::api* GetExporter();
 
 	private:
 		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
@@ -155,6 +158,8 @@ namespace Components
 		static bool IsThreadMainThreadHook();
 		static Game::Sys_File Sys_CreateFile_Stub(const char* dir, const char* filename);
 
+		static iw4of::params_t GetExporterAPIParams();
+
 		static void Com_Quitf_t();
 
 		static void CommandThreadCallback();
@@ -164,5 +169,7 @@ namespace Components
 
 		static volatile bool CommandThreadTerminate;
 		static std::thread CommandThread;
+		static iw4of::api ExporterAPI;
+		static std::string DumpingZone;
 	};
 }
