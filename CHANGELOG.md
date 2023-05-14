@@ -139,10 +139,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Clients can unprotect "saved" Dvars using the command line argument `-unprotect-dvars` (#694)
 - Clients can protect all Dvars from being modified by the server using the command line argument `-protect-dvars` (#823)
-- Add helpful information to script-related errors (#721)
-- Add command line `-disable-mongoose` to disable IW4x's built-in webserver (#728)
-- Add command line `-disable-rate-limit-check` to disable the rate check on RCon requests (#769)
-- Muted clients GUID is saved to the `muted-users.json` file in the `userraw` folder (#732)
+- Add helpful information to script-related errors. Must set `developer` Dvar to "2" and `developer_script` Dvar to "1" (#721)
+- Add command line `-disable-mongoose` argument to disable IW4x's built-in webserver (#728)
+- Add command line `-disable-rate-limit-check` argument to disable the rate check on RCon requests (#769)
+- GUID of muted clients is saved to the `muted-users.json` file in the `userraw` folder (#732)
 - Add `sv_nextMap` Dvar (#736)
 - Add `elifdef` and `elifndef` directives to the menu preprocessor (#747)
 - Add `r_drawRunners` Dvar (#758)
@@ -171,7 +171,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fix bug where demo playback would stop when opening a laptop based killstreak (#699)
 - Fix bug where mod download speed was inexplicably slow (#707)
 - Fix bug where `g_hardcore` could not be set by servers (#708)
-- Fix bots "user cmd angles" (#707)
+- Fix "user cmd angles" for test clients (#707)
 - Fix bug where `FileRead` GSC function could return buffers that are too big (#767)
 - Fix bug where the `OnPlayerSay` GSC function would cause issues (#776)
 
