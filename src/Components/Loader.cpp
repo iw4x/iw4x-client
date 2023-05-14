@@ -27,7 +27,6 @@
 #include "Modules/Gamepad.hpp"
 #include "Modules/IPCPipe.hpp"
 #include "Modules/Lean.hpp"
-#include "Modules/MapDump.hpp"
 #include "Modules/MapRotation.hpp"
 #include "Modules/Materials.hpp"
 #include "Modules/ModList.hpp"
@@ -136,7 +135,6 @@ namespace Components
 		Register(new Gamepad());
 		Register(new Lean());
 		Register(new Localization());
-		Register(new MapDump());
 		Register(new MapRotation());
 		Register(new Maps());
 		Register(new Materials());
