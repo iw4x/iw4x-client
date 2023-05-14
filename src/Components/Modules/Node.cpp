@@ -15,12 +15,12 @@ namespace Components
 
 	bool Node::WasIngame = false;
 
-	bool Node::Entry::isValid()
+	bool Node::Entry::isValid() const
 	{
 		return (this->lastResponse.has_value() && !this->lastResponse->elapsed(NODE_HALFLIFE * 2));
 	}
 
-	bool Node::Entry::isDead()
+	bool Node::Entry::isDead() const
 	{
 		if (!this->lastResponse.has_value())
 		{
@@ -37,7 +37,7 @@ namespace Components
 		return false;
 	}
 
-	bool Node::Entry::requiresRequest()
+	bool Node::Entry::requiresRequest() const
 	{
 		return (!this->isDead() && (!this->lastRequest.has_value() || this->lastRequest->elapsed(NODE_HALFLIFE)));
 	}
@@ -49,7 +49,9 @@ namespace Components
 
 		Session::Send(this->address, "nodeListRequest");
 		Node::SendList(this->address);
+#ifdef NODE_SYSTEM_DEBUG
 		Logger::Debug("Sent request to {}", this->address.getString());
+#endif
 	}
 
 	void Node::Entry::reset()
@@ -217,7 +219,9 @@ namespace Components
 		Proto::Node::List list;
 		if (!list.ParseFromString(data)) return;
 
+#ifdef NODE_SYSTEM_DEBUG
 		Logger::Debug("Received response from {}", address.getString());
+#endif
 
 		std::lock_guard _(Node::Mutex);
 
@@ -235,12 +239,16 @@ namespace Components
 		{
 			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && !ServerList::UseMasterServer && list.protocol() == PROTOCOL)
 			{
+#ifdef NODE_SYSTEM_DEBUG
 				Logger::Debug("Inserting {} into the serverlist", address.getString());
+#endif
 				ServerList::InsertRequest(address);
 			}
 			else
 			{
+#ifdef NODE_SYSTEM_DEBUG
 				Logger::Debug("Dropping serverlist insertion for {}", address.getString());
+#endif
 			}
 
 			for (auto& node : Node::Nodes)
@@ -304,7 +312,7 @@ namespace Components
 		{
 			Scheduler::Once([=]
 			{
-#ifdef DEBUG_NODE
+#ifdef NODE_SYSTEM_DEBUG
 				Logger::Debug("Sending {} nodeListResponse length to {}\n", nodeListData.length(), address.getCString());
 #endif
 				Session::Send(address, "nodeListResponse", nodeListData);
@@ -359,7 +367,11 @@ namespace Components
 		Command::Add("addnode", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
-			Node::Add({ params->get(1) });
+			auto address = Network::Address{ params->get(1) };
+			if (address.isValid())
+			{
+				Node::Add(address);
+			}
 		});
 	}
 

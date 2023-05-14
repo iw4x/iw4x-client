@@ -24,10 +24,10 @@ namespace Components
 			std::optional<Utils::Time::Point> lastRequest;
 			std::optional<Utils::Time::Point> lastResponse;
 
-			bool isValid();
-			bool isDead();
+			[[nodiscard]] bool isValid() const;
+			[[nodiscard]] bool isDead() const;
 
-			bool requiresRequest();
+			[[nodiscard]] bool requiresRequest() const;
 			void sendRequest();
 
 			void reset();
