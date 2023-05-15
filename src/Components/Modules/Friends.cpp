@@ -5,6 +5,7 @@
 #include <proto/friends.pb.h>
 #pragma warning(pop)
 
+#include "Events.hpp"
 #include "Friends.hpp"
 #include "Materials.hpp"
 #include "Node.hpp"

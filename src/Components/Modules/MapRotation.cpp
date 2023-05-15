@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+
+#include "Events.hpp"
 #include "MapRotation.hpp"
 #include "Party.hpp"
 

@@ -1,5 +1,7 @@
 #include <STDInclude.hpp>
+
 #include "Console.hpp"
+#include "Events.hpp"
 
 namespace Components
 {

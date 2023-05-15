@@ -2,6 +2,7 @@
 #include <Utils/InfoString.hpp>
 
 #include "Discovery.hpp"
+#include "Events.hpp"
 #include "Node.hpp"
 #include "Party.hpp"
 #include "ServerList.hpp"

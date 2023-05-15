@@ -14,10 +14,10 @@ namespace Components::GSC
 
 	private:
 		// Replacement for variables not present in currently available structs
-		static int developer_;
+		static int Developer_;
 
-		static Game::scrParserGlob_t scrParserGlob;
-		static Game::scrParserPub_t scrParserPub;
+		static Game::scrParserGlob_t ScrParserGlob;
+		static Game::scrParserPub_t ScrParserPub;
 
 		static void AddOpcodePos(unsigned int sourcePos, int type);
 		static void RemoveOpcodePos();

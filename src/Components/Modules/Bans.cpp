@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 #include "Bans.hpp"
+#include "Events.hpp"
 
 namespace Components
 {

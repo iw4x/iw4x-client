@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 #include "Chat.hpp"
+#include "Events.hpp"
 #include "PlayerName.hpp"
 #include "TextRenderer.hpp"
 #include "Voice.hpp"

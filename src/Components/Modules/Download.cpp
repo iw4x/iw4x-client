@@ -3,6 +3,7 @@
 #include <Utils/WebIO.hpp>
 
 #include "Download.hpp"
+#include "Events.hpp"
 #include "MapRotation.hpp"
 #include "Party.hpp"
 #include "ServerInfo.hpp"

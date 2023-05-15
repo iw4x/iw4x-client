@@ -1,5 +1,7 @@
 #include <STDInclude.hpp>
+
 #include "ClanTags.hpp"
+#include "Events.hpp"
 #include "PlayerName.hpp"
 #include "ServerCommands.hpp"
 

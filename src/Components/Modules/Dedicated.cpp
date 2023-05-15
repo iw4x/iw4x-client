@@ -3,6 +3,7 @@
 
 #include "CardTitles.hpp"
 #include "ClanTags.hpp"
+#include "Events.hpp"
 #include "Party.hpp"
 #include "ServerCommands.hpp"
 

@@ -1,6 +1,7 @@
 #include <STDInclude.hpp>
 #include <proto/rcon.pb.h>
 
+#include "Events.hpp"
 #include "RCon.hpp"
 #include "Party.hpp"
 

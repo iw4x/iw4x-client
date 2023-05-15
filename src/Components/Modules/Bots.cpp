@@ -2,6 +2,7 @@
 
 #include "Bots.hpp"
 #include "ClanTags.hpp"
+#include "Events.hpp"
 
 #include "GSC/Script.hpp"
 

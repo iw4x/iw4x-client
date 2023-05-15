@@ -21,6 +21,7 @@
 #include "Modules/Discovery.hpp"
 #include "Modules/Download.hpp"
 #include "Modules/Elevators.hpp"
+#include "Modules/Events.hpp"
 #include "Modules/Exception.hpp"
 #include "Modules/FastFiles.hpp"
 #include "Modules/Friends.hpp"

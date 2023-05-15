@@ -1,4 +1,7 @@
 #include <STDInclude.hpp>
+
+#include <Components/Modules/Events.hpp>
+
 #include "ScriptExtension.hpp"
 #include "Script.hpp"
 
