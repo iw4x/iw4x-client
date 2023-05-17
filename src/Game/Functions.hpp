@@ -233,8 +233,8 @@ namespace Game
 	typedef __int64(*MSG_ReadInt64_t)(msg_t* msg);
 	extern MSG_ReadInt64_t MSG_ReadInt64;
 
-	typedef char*(*MSG_ReadString_t)(msg_t* msg, char* string, unsigned int maxChars);
-	extern MSG_ReadString_t MSG_ReadString;
+	typedef char*(*MSG_ReadBigString_t)(msg_t* msg);
+	extern MSG_ReadBigString_t MSG_ReadBigString;
 
 	typedef char*(*MSG_ReadStringLine_t)(msg_t *msg, char *string, unsigned int maxChars);
 	extern MSG_ReadStringLine_t MSG_ReadStringLine;
@@ -554,6 +554,9 @@ namespace Game
 	typedef char*(*I_CleanStr_t)(char* string);
 	extern I_CleanStr_t I_CleanStr;
 
+	typedef bool(*I_isdigit_t)(int c);
+	extern I_isdigit_t I_isdigit;
+
 	typedef void(*XNAddrToString_t)(const XNADDR* xnaddr, char* str);
 	extern XNAddrToString_t XNAddrToString;
 
@@ -658,8 +661,6 @@ namespace Game
 	extern visField_t* visionDefFields;
 
 	extern infoParm_t* infoParams;
-
-	extern clientState_t* clcState;
 
 	extern GfxScene* scene;
 

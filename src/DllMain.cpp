@@ -58,12 +58,12 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 		if (!binary || std::memcmp(binary, BASEGAME_NAME, 14) != 0)
 #endif
 		{
-			MessageBoxA(nullptr, 
-				"Failed to load game binary.\n"
-				"You did not install the iw4x-rawfiles!\n"
-				"Please use the XLabs launcher to run the game. For support, please visit https://xlabs.dev/support_iw4x_client",
-				"ERROR",
-				MB_ICONERROR
+			MessageBoxA(nullptr,
+			            "Failed to load game binary.\n"
+			            "You did not install the iw4x-rawfiles!\n"
+			            "Please use the XLabs launcher to run the game. For support, please visit https://xlabs.dev/support_iw4x_client",
+			            "ERROR",
+			            MB_ICONERROR
 			);
 			return FALSE;
 		}

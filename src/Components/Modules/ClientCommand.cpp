@@ -488,12 +488,12 @@ namespace Components
 		if (!CheatsOk(ent))
 			return;
 
-		ent->client->flags ^= Game::PF_NOCLIP;
+		ent->client->flags ^= Game::CF_BIT_NOCLIP;
 
 		const auto entNum = ent->s.number;
 		Logger::Debug("Noclip toggled for entity {}", entNum);
 
-		Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::PF_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
+		Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::CF_BIT_NOCLIP) ? "GAME_NOCLIPON" : "GAME_NOCLIPOFF"));
 	}
 
 	void ClientCommand::Cmd_UFO_f(Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
@@ -501,12 +501,12 @@ namespace Components
 		if (!CheatsOk(ent))
 			return;
 
-		ent->client->flags ^= Game::PF_UFO;
+		ent->client->flags ^= Game::CF_BIT_UFO;
 
 		const auto entNum = ent->s.number;
 		Logger::Debug("UFO toggled for entity {}", entNum);
 
-		Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::PF_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
+		Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::CF_BIT_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
 	}
 
 	ClientCommand::ClientCommand()

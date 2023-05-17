@@ -9,6 +9,7 @@ namespace Game
 
 	Com_Error_t Com_Error = Com_Error_t(0x4B22D0);
 	Com_Printf_t Com_Printf = Com_Printf_t(0x402500);
+	Com_DPrintf_t Com_DPrintf = Com_DPrintf_t(0x413490);
 	Com_PrintError_t Com_PrintError = Com_PrintError_t(0x4F8C70);
 	Com_PrintWarning_t Com_PrintWarning = Com_PrintWarning_t(0x4E0200);
 	Com_PrintMessage_t Com_PrintMessage = Com_PrintMessage_t(0x4AA830);

@@ -184,11 +184,11 @@ namespace Components
 		static Game::GamepadPhysicalAxis StringToPhysicalAxis(const char* str);
 		static Game::GamepadVirtualAxis StringToVirtualAxis(const char* str);
 		static Game::GamepadMapping StringToGamePadMapping(const char* str);
-		static void Axis_Bind_f(Command::Params* params);
-		static void Axis_Unbindall_f(Command::Params* params);
-		static void Bind_GP_SticksConfigs_f(Command::Params* params);
-		static void Bind_GP_ButtonsConfigs_f(Command::Params* params);
-		static void Scores_Toggle_f(Command::Params* params);
+		static void Axis_Bind_f(const Command::Params* params);
+		static void Axis_Unbindall_f();
+		static void Bind_GP_SticksConfigs_f();
+		static void Bind_GP_ButtonsConfigs_f();
+		static void Scores_Toggle_f();
 
 		static void InitDvars();
 		static void CG_RegisterDvars_Hk();

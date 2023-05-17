@@ -22,7 +22,7 @@ namespace Game
 		assert((size >= 0));
 #pragma warning(push)
 #pragma warning(disable: 6250)
-		[[maybe_unused]] const auto result = VirtualFree(ptr, size, MEM_DECOMMIT);
+		VirtualFree(ptr, size, MEM_DECOMMIT);
 #pragma warning(pop)
 	}
 

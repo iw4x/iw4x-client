@@ -609,7 +609,7 @@ namespace Components
 			}, Scheduler::Pipeline::RENDERER);
 		}
 
-		Command::Add("loadzone", [](Command::Params* params)
+		Command::Add("loadzone", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
 
@@ -621,7 +621,7 @@ namespace Components
 			Game::DB_LoadXAssets(&info, 1, true);
 		});
 
-		Command::Add("awaitDatabase", [](Command::Params*)
+		Command::Add("awaitDatabase", []()
 		{
 			Logger::Print("Waiting for database...\n");
 			while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms);

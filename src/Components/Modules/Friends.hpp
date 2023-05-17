@@ -19,8 +19,6 @@ namespace Components
 		static void RequestPresence(SteamID user);
 		static std::string GetPresence(SteamID user, const std::string& key);
 
-		static void AddFriend(SteamID user);
-
 		static int GetGame(SteamID user);
 
 		static bool IsInvisible();

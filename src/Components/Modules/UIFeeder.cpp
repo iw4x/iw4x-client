@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+
+#include "Events.hpp"
 #include "UIFeeder.hpp"
 
 namespace Components

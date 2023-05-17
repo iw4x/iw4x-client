@@ -1,5 +1,7 @@
 #include <STDInclude.hpp>
+
 #include "Chat.hpp"
+#include "Events.hpp"
 #include "Voice.hpp"
 
 namespace Components
@@ -320,6 +322,7 @@ namespace Components
 		auto* clc = Game::CL_GetLocalClientConnection(0);
 		if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address))
 		{
+			Logger::Debug("Ignoring stray 'v' network message from '{}'", Game::NET_AdrToString(*address));
 			return;
 		}
 
@@ -390,7 +393,7 @@ namespace Components
 
 		Events::OnSteamDisconnect(CL_ClearMutedList);
 		Events::OnClientDisconnect(SV_UnmuteClient);
-		Events::OnClientConnect([](Game::client_s* cl) -> void
+		Events::OnClientConnect([](const Game::client_s* cl) -> void
 		{
 			if (Chat::IsMuted(cl))
 			{

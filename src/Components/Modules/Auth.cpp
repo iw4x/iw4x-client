@@ -511,7 +511,7 @@ namespace Components
 
 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{
-			Command::Add("securityLevel", [](Command::Params* params)
+			Command::Add("securityLevel", [](const Command::Params* params)
 			{
 				if (params->size() < 2)
 				{
@@ -547,7 +547,6 @@ namespace Components
 		TokenContainer.cancel = true;
 		TokenContainer.generating = false;
 
-		// Terminate thread
 		if (TokenContainer.thread.joinable())
 		{
 			TokenContainer.thread.join();

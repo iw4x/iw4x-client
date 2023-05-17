@@ -35,7 +35,8 @@ namespace Components
 
 		static void WeaponEntCanBeGrabbed_Stub();
 
-		static void PlayerCmd_initialWeaponRaise(Game::scr_entref_t entref);
+		static void PlayerCmd_InitialWeaponRaise(Game::scr_entref_t entref);
+		static void PlayerCmd_FreezeControlsAllowLook(Game::scr_entref_t entref);
 
 		static void AddScriptMethods();
 	};

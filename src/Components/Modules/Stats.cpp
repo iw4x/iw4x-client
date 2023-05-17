@@ -162,7 +162,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4CC5F9, 0xEB);
 
 		// 'M' Seems to be used on Xbox only for parsing platform specific ranks
-		ServerCommands::OnCommand('M', [](Command::Params* params)
+		ServerCommands::OnCommand('M', [](const Command::Params* params)
 		{
 			const auto* arg1 = params->get(1);
 			const auto* arg2 = params->get(2);
@@ -171,7 +171,7 @@ namespace Components
 			return true;
 		});
 
-		Command::Add("statGet", []([[maybe_unused]] Command::Params* params)
+		Command::Add("statGet", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
 			{

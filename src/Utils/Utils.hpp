@@ -67,12 +67,6 @@ namespace Utils
 		}
 	}
 
-	template <typename T>
-	bool Contains(const std::vector<T>* haystack, T needle)
-	{
-		return std::ranges::find(*haystack, needle) != haystack->end();
-	}
-
 	template <typename T> using Slot = std::function<T>;
 	template <typename T>
 	class Signal

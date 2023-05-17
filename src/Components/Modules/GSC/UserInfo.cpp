@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include <Utils/InfoString.hpp>
 
+#include <Components/Modules/Events.hpp>
+
 #include "Script.hpp"
 #include "UserInfo.hpp"
 

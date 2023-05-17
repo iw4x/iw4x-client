@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 #include "Bans.hpp"
+#include "Events.hpp"
 
 namespace Components
 {
@@ -232,9 +233,9 @@ namespace Components
 		SaveBans(&list);
 	}
 
-	Bans::Bans()
+	void Bans::AddServerCommands()
 	{
-		Command::Add("banClient", [](Command::Params* params)
+		Command::AddSV("banClient", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -278,11 +279,11 @@ namespace Components
 				return;
 			}
 
-			const std::string reason = params->size() < 3 ? "EXE_ERR_BANNED_PERM" : params->join(2);
+			const auto reason = params->size() < 3 ? "EXE_ERR_BANNED_PERM"s : params->join(2);
 			BanClient(cl, reason);
 		});
 
-		Command::Add("unbanClient", [](Command::Params* params)
+		Command::AddSV("unbanClient", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -316,5 +317,10 @@ namespace Components
 				Logger::Print("Unbanned GUID {}\n", params->get(2));
 			}
 		});
+	}
+
+	Bans::Bans()
+	{
+		Events::OnSVInit(AddServerCommands);
 	}
 }

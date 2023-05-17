@@ -459,6 +459,21 @@ namespace Components
 		// un-cheat jump_slowdownEnable
 		Utils::Hook::Xor<std::uint32_t>(0x4EFABE, Game::DVAR_CHEAT);
 
+		// un-cheat jump_height
+		Utils::Hook::Xor<std::uint32_t>(0x4EFA5C, Game::DVAR_CHEAT);
+
+		// un-cheat player_breath_fire_delay
+		Utils::Hook::Xor<std::uint32_t>(0x448646, Game::DVAR_CHEAT);
+
+		// un-cheat player_breath_gasp_scale
+		Utils::Hook::Xor<std::uint32_t>(0x448678, Game::DVAR_CHEAT);
+
+		// un-cheat player_breath_gasp_lerp
+		Utils::Hook::Xor<std::uint32_t>(0x4486E4, Game::DVAR_CHEAT);
+
+		// un-cheat player_breath_gasp_time
+		Utils::Hook::Xor<std::uint32_t>(0x448612, Game::DVAR_CHEAT);
+
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar_RegisterName, HOOK_CALL).install()->quick();
 

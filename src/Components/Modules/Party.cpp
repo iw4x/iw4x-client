@@ -9,6 +9,7 @@
 #include "Party.hpp"
 #include "ServerList.hpp"
 #include "Stats.hpp"
+#include "TextRenderer.hpp"
 #include "Voice.hpp"
 
 #include <version.hpp>
@@ -293,7 +294,7 @@ namespace Components
 		Utils::Hook::Xor<DWORD>(0x4D376D, Game::DVAR_LATCH);
 		Utils::Hook::Xor<DWORD>(0x5E3789, Game::DVAR_LATCH);
 
-		Command::Add("connect", [](Command::Params* params)
+		Command::Add("connect", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
 			{
@@ -311,7 +312,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("reconnect", [](Command::Params*)
+		Command::Add("reconnect", []()
 		{
 			Connect(Container.target);
 		});
@@ -493,7 +494,7 @@ namespace Components
 					{
 						ConnectError("Invalid map or gametype.");
 					}
-					else if (Container.info.get("isPrivate") == "1"s && !Dvar::Var("password").get<std::string>().length())
+					else if (Container.info.get("isPrivate") == "1"s && Dvar::Var("password").get<std::string>().empty())
 					{
 						ConnectError("A password is required to join this server! Set it at the bottom of the serverlist.");
 					}
@@ -524,7 +525,7 @@ namespace Components
 					{
 						if (!Maps::CheckMapInstalled(Container.info.get("mapname"), true)) return;
 
-						Container.motd = info.get("sv_motd");
+						Container.motd = TextRenderer::StripMaterialTextIcons(info.get("sv_motd"));
 
 						if (Container.matchType == 1) // Party
 						{

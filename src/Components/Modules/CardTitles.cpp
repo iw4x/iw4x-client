@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 #include "CardTitles.hpp"
+#include "Events.hpp"
 #include "ServerCommands.hpp"
 
 namespace Components
@@ -202,7 +203,7 @@ namespace Components
 
 		std::memset(&CustomTitles, 0, sizeof(char[Game::MAX_CLIENTS][18]));
 
-		ServerCommands::OnCommand(21, [](Command::Params* params)
+		ServerCommands::OnCommand(21, [](const Command::Params* params)
 		{
 			if (std::strcmp(params->get(1), "customTitles") == 0)
 			{
@@ -214,7 +215,6 @@ namespace Components
 			}
 
 			return false;
-
 		});
 
 		Utils::Hook(0x62EB26, GetPlayerCardClientInfoStub).install()->quick();

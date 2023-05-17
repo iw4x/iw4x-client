@@ -58,6 +58,7 @@ namespace Game
 
 	connstate_t CL_GetLocalClientConnectionState(const int localClientNum)
 	{
+		AssertOffset(clientUIActive_t, connectionState, 0x9B8);
 		AssertIn(localClientNum, STATIC_MAX_LOCAL_CLIENTS);
 
 		return clientUIActives[localClientNum].connectionState;

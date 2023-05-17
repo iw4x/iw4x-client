@@ -18,6 +18,8 @@ namespace Components
 
 	volatile bool ZoneBuilder::CommandThreadTerminate = false;
 	std::thread ZoneBuilder::CommandThread;
+	iw4of::api ZoneBuilder::ExporterAPI(GetExporterAPIParams());
+	std::string ZoneBuilder::DumpingZone{};
 
 	ZoneBuilder::Zone::Zone(const std::string& name) : indexStart(0), externalSize(0),
 		// Reserve 100MB by default.
@@ -757,6 +759,23 @@ namespace Components
 		return header;
 	}
 
+	void ZoneBuilder::RefreshExporterWorkDirectory()
+	{
+		if (ZoneBuilder::DumpingZone.empty())
+		{
+			ExporterAPI.set_work_path(std::format("userraw/dump/stray"));
+		}
+		else
+		{
+			ExporterAPI.set_work_path(std::format("userraw/dump/{}", ZoneBuilder::DumpingZone));
+		}
+	}
+
+	iw4of::api* ZoneBuilder::GetExporter()
+	{
+		return &ExporterAPI;
+	}
+
 	iw4of::params_t ZoneBuilder::Zone::getIW4OfApiParams()
 	{
 		iw4of::params_t params{};
@@ -815,7 +834,7 @@ namespace Components
 		void* data = Utils::Memory::GetAllocator()->allocate(size);
 		std::memcpy(data, *loadDef, size);
 
-		image->texture.loadDef = reinterpret_cast<Game::GfxImageLoadDef *>(data);
+		image->texture.loadDef = static_cast<Game::GfxImageLoadDef*>(data);
 
 		return 0;
 	}
@@ -857,7 +876,7 @@ namespace Components
 		return GetCurrentThreadId() == Utils::Hook::Get<DWORD>(0x1CDE7FC);
 	}
 
-	static Game::XZoneInfo baseZones_old[] =
+	static Game::XZoneInfo baseZones[] =
 	{
 		{ "code_pre_gfx_mp", Game::DB_ZONE_CODE, 0 },
 		{ "localized_code_pre_gfx_mp", Game::DB_ZONE_CODE_LOC, 0 },
@@ -867,17 +886,6 @@ namespace Components
 		{ "localized_common_mp", Game::DB_ZONE_COMMON_LOC, 0 },
 		{ "ui_mp", Game::DB_ZONE_GAME, 0 },
 		{ "localized_ui_mp", Game::DB_ZONE_GAME, 0 }
-	};
-
-
-	static Game::XZoneInfo baseZones[] =
-	{
-		{ "defaults", Game::DB_ZONE_CODE, 0 },
-		{ "techsets",  Game::DB_ZONE_CODE, 0 },
-		{ "common_mp",  Game::DB_ZONE_COMMON, 0 },
-		{ "localized_common_mp",  Game::DB_ZONE_COMMON_LOC, 0 },
-		{ "ui_mp",  Game::DB_ZONE_GAME, 0 },
-		{ "localized_ui_mp",  Game::DB_ZONE_GAME, 0 }
 	};
 
 	void ZoneBuilder::Com_Quitf_t()
@@ -938,15 +946,7 @@ namespace Components
 		Command::Add("quit", ZoneBuilder::Com_Quitf_t);
 
 		// now load default assets and shaders
-		if (FastFiles::Exists("defaults") && FastFiles::Exists("techsets"))
-		{
-			Game::DB_LoadXAssets(baseZones, ARRAYSIZE(baseZones), 0);
-		}
-		else
-		{
-			Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Missing new init zones (defaults.ff & techsets.ff). You will need to load fastfiles to manually obtain techsets.\n");
-			Game::DB_LoadXAssets(baseZones_old, ARRAYSIZE(baseZones_old), 0);
-		}
+		Game::DB_LoadXAssets(baseZones, ARRAYSIZE(baseZones), 0);
 
 		Logger::Print("Waiting for fastiles to load...\n");
 		while (!Game::Sys_IsDatabaseReady())
@@ -983,6 +983,7 @@ namespace Components
 		Logger::Print("\t-buildzone [zone]: builds a zone from a csv located in zone_source\n");
 		Logger::Print("\t-buildall: builds all zones in zone_source\n");
 		Logger::Print("\t-verifyzone [zone]: loads and verifies the specified zone\n");
+		Logger::Print("\t-dumpzone [zone]: loads and dump the specified zone\n");
 		Logger::Print("\t-listassets [assettype]: lists all loaded assets of the specified type\n");
 		Logger::Print("\t-quit: quits the program\n");
 		Logger::Print(" --------------------------------------------------------------------------------\n");
@@ -1097,6 +1098,55 @@ namespace Components
 		return file;
 	}
 
+	iw4of::params_t ZoneBuilder::GetExporterAPIParams()
+	{
+		iw4of::params_t params{};
+
+		params.write_only_once = true;
+
+		params.find_other_asset = [](int type, const std::string& name) -> void*
+		{
+			if (ZoneBuilder::DumpingZone.empty())
+			{
+				return Game::DB_FindXAssetHeader(static_cast<Game::XAssetType>(type), name.data()).data;
+			}
+
+			// Do not deadlock the DB
+			return nullptr;
+		};
+
+		params.fs_read_file = [](const std::string& filename) -> std::string
+		{
+			auto file = FileSystem::File(filename);
+			if (file.exists())
+			{
+				return file.getBuffer();
+			}
+
+			return {};
+		};
+
+		params.get_from_string_table = [](const unsigned int& id) -> std::string
+		{
+			return Game::SL_ConvertToString(static_cast<Game::scr_string_t>(id));
+		};
+
+		params.print = [](iw4of::params_t::print_type t, const std::string& message) -> void
+		{
+			switch (t)
+			{
+			case iw4of::params_t::P_ERR:
+				Logger::Error(Game::ERR_FATAL, "{}", message);
+				break;
+			case iw4of::params_t::P_WARN:
+				Logger::Print("{}", message);
+				break;
+			}
+		};
+
+		return params;
+	}
+
 	ZoneBuilder::ZoneBuilder()
 	{
 		// ReSharper disable CppStaticAssertFailure
@@ -1200,7 +1250,7 @@ namespace Components
 			// don't remap techsets
 			Utils::Hook::Nop(0x5BC791, 5);
 
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, const std::string& name, bool* /*restrict*/)
+			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
 			{
 				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 				{
@@ -1209,9 +1259,47 @@ namespace Components
 					OutputDebugStringA(Utils::String::Format("%s\n", name));
 #endif
 				}
+
+				if (!ZoneBuilder::DumpingZone.empty())
+				{
+					if (ExporterAPI.is_type_supported(type) && name[0] != ',')
+					{
+						ExporterAPI.write(type, asset.data);
+						Components::Logger::Print(".");
+					}
+				}
 			});
 
-			Command::Add("verifyzone", [](Command::Params* params)
+			Command::Add("dumpzone", [](const Command::Params* params)
+			{
+				if (params->size() < 2) return;
+
+				std::string zone = params->get(1);
+				ZoneBuilder::DumpingZone = zone;
+				ZoneBuilder::RefreshExporterWorkDirectory();
+
+				Game::XZoneInfo info;
+				info.name = zone.data();
+				info.allocFlags = Game::DB_ZONE_MOD;
+				info.freeFlags = 0;
+
+				Logger::Print("Dumping zone '{}'...\n", zone);
+
+				Game::DB_LoadXAssets(&info, 1, true);
+				AssetHandler::FindOriginalAsset(Game::ASSET_TYPE_RAWFILE, zone.data()); // Lock until zone is loaded
+
+				Logger::Print("Unloading zone '{}'...\n", zone);
+				info.freeFlags = Game::DB_ZONE_MOD;
+				info.allocFlags = 0;
+				info.name = nullptr;
+
+				Game::DB_LoadXAssets(&info, 1, true);
+				AssetHandler::FindOriginalAsset(Game::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
+				Logger::Print("Zone '{}' dumped", ZoneBuilder::DumpingZone);
+				ZoneBuilder::DumpingZone = std::string();
+			});
+
+			Command::Add("verifyzone", [](const Command::Params* params)
 			{
 				if (params->size() < 2) return;
 
@@ -1250,7 +1338,7 @@ namespace Components
 				Logger::Print("\n");
 			});
 
-			Command::Add("buildzone", [](Command::Params* params)
+			Command::Add("buildzone", [](const Command::Params* params)
 			{
 				if (params->size() < 2) return;
 
@@ -1260,7 +1348,7 @@ namespace Components
 				Zone(zoneName).build();
 			});
 
-			Command::Add("buildall", []([[maybe_unused]] Command::Params* params)
+			Command::Add("buildall", []()
 			{
 				auto path = std::format("{}\\zone_source", (*Game::fs_basepath)->current.string);
 				auto zoneSources = FileSystem::GetSysFileList(path, "csv", false);
@@ -1327,7 +1415,7 @@ namespace Components
 				}
 			});
 
-			Command::Add("buildtechsets", [](Command::Params*)
+			Command::Add("buildtechsets", [](const Command::Params*)
 			{
 				Utils::IO::CreateDir("zone_source/techsets");
 				Utils::IO::CreateDir("zone/techsets");
@@ -1580,7 +1668,7 @@ namespace Components
 				Zone("techsets/techsets").build();
 			});
 
-			Command::Add("listassets", [](Command::Params* params)
+			Command::Add("listassets", [](const Command::Params* params)
 			{
 				if (params->size() < 2) return;
 				Game::XAssetType type = Game::DB_GetXAssetNameType(params->get(1));
@@ -1595,7 +1683,7 @@ namespace Components
 				}
 			});
 
-			Command::Add("loadtempzone", [](Command::Params* params)
+			Command::Add("loadtempzone", [](const Command::Params* params)
 			{
 				if (params->size() < 2) return;
 
@@ -1609,7 +1697,7 @@ namespace Components
 				}
 			});
 
-			Command::Add("unloadtempzones", [](Command::Params*)
+			Command::Add("unloadtempzones", [](const Command::Params*)
 			{
 				Game::XZoneInfo info;
 				info.name = nullptr;
@@ -1619,38 +1707,13 @@ namespace Components
 				AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
 			});
 
-			Command::Add("materialInfoDump", [](Command::Params*)
+			Command::Add("materialInfoDump", [](const Command::Params*)
 			{
 				Game::DB_EnumXAssets(Game::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void*)
 				{
 					Logger::Print("{}: {:#X} {:#X} {:#X}\n",
 						header.material->info.name, header.material->info.sortKey & 0xFF, header.material->info.gameFlags & 0xFF, header.material->stateFlags & 0xFF);
 				}, nullptr, false);
-			});
-
-			Command::Add("iwiDump", [](Command::Params* params)
-			{
-				if (params->size() < 2) return;
-
-				auto path = std::format("{}\\mods\\{}\\images", (*Game::fs_basepath)->current.string, params->get(1));
-				auto images = FileSystem::GetSysFileList(path, "iwi", false);
-
-				for (auto i = images.begin(); i != images.end();)
-				{
-					*i = std::format("images/{}", *i);
-
-					if (FileSystem::File(*i).exists())
-					{
-						i = images.erase(i);
-						continue;
-					}
-
-					++i;
-				}
-
-				Logger::Print("------------------- BEGIN IWI DUMP -------------------\n");
-				Logger::Print("{}\n", nlohmann::json(images).dump());
-				Logger::Print("------------------- END IWI DUMP -------------------\n");
 			});
 		}
 	}

@@ -7,7 +7,7 @@ namespace Components
 	public:
 		ServerCommands();
 
-		using serverCommandHandler = std::function<bool(Command::Params*)>;
+		using serverCommandHandler = std::function<bool(const Command::Params*)>;
 		static void OnCommand(std::int32_t cmd, const serverCommandHandler& callback);
 
 	private:

@@ -2,7 +2,6 @@
 
 namespace Components
 {
-	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
 	// Packet interception
 	std::unordered_map<std::string, Network::networkCallback> Network::CL_Callbacks;
 	std::unordered_map<std::string, Network::networkRawCallback> Network::CL_RawCallbacks;
@@ -152,11 +151,6 @@ namespace Components
 		return (this->getType() != Game::NA_BAD && this->getType() >= Game::NA_BOT && this->getType() <= Game::NA_IP);
 	}
 
-	void Network::OnStart(const Utils::Slot<CallbackRaw>& callback)
-	{
-		StartupSignal.connect(callback);
-	}
-
 	void Network::Send(Game::netsrc_t type, const Address& target, const std::string& data)
 	{
 		// Do not use NET_OutOfBandPrint. It only supports non-binary data!
@@ -193,7 +187,7 @@ namespace Components
 		// EDIT: Most 3rd party tools expect a line break, so let's use that instead!
 		std::string packet;
 		packet.append(command);
-		packet.append("\n", 1);
+		packet.push_back('\n');
 		packet.append(data);
 
 		Send(type, target, packet);
@@ -228,27 +222,11 @@ namespace Components
 		BroadcastRange(100, 65536, data);
 	}
 
-	void Network::NetworkStart()
-	{
-		StartupSignal();
-		StartupSignal.clear();
-	}
-
 	std::uint16_t Network::GetPort()
 	{
 		assert((*Game::port));
 		assert((*Game::port)->current.unsignedInt <= std::numeric_limits<std::uint16_t>::max());
 		return static_cast<std::uint16_t>((*Game::port)->current.unsignedInt);
-	}
-
-	__declspec(naked) void Network::NetworkStartStub()
-	{
-		__asm
-		{
-			mov eax, 64D900h
-			call eax
-			jmp NetworkStart
-		}
 	}
 
 	__declspec(naked) void Network::PacketErrorCheck()
@@ -303,7 +281,7 @@ namespace Components
 			return false;
 		}
 
-		const std::string data(reinterpret_cast<char*>(message->data) + offset, message->cursize - offset);
+		const std::string data{ reinterpret_cast<char*>(message->data) + offset, message->cursize - offset };
 
 		auto target = Address{ address };
 		handler->second(target, data);
@@ -365,9 +343,6 @@ namespace Components
 		// Parse port as short in Net_AddrToString
 		Utils::Hook::Set<const char*>(0x4698E3, "%u.%u.%u.%u:%hu");
 
-		// Install startup handler
-		Utils::Hook(0x4FD4D4, NetworkStartStub, HOOK_JUMP).install()->quick();
-
 		// Prevent recvfrom error spam
 		Utils::Hook(0x46531A, PacketErrorCheck, HOOK_JUMP).install()->quick();
 		
@@ -403,24 +378,39 @@ namespace Components
 		Utils::Hook::Set<std::uint8_t>(0x682170, 0xC3); // Telling LSP that we're playing a private match
 		Utils::Hook::Nop(0x4FD448, 5); // Don't create lsp_socket
 
+		// Do not run UPNP stuff at all
+		Utils::Hook::Set<std::uint8_t>(0x48A135, 0xC3);
+		Utils::Hook::Nop(0x48A135 + 1, 4);
+
+		Utils::Hook::Set<std::uint8_t>(0x48A151, 0xC3);
+		Utils::Hook::Nop(0x48A151 + 1, 4);
+
+		// Don't spam the console
+		Utils::Hook(0x684080, Game::Com_DPrintf, HOOK_CALL).install()->quick();
+
+		// Disable the IWNet IP detection (default 'got ipdetect' flag to 1)
+		Utils::Hook::Set<std::uint8_t>(0x649D6F0, 1);
+
 		OnClientPacket("resolveAddress", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
 		{
 			SendRaw(address, address.getString());
 		});
 
-		OnClientPacket("print", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
+		OnClientPacketRaw("print", [](Game::netadr_t* address, Game::msg_t* msg)
 		{
 			auto* clc = Game::CL_GetLocalClientConnection(0);
-			if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address.get()))
+			if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address))
 			{
+				Logger::Debug("Ignoring stray 'print' network message from '{}'", Game::NET_AdrToString(*address));
 				return;
 			}
 
-			char buffer[2048]{};
+			char printBuf[2048]{};
 
-			Game::I_strncpyz(clc->serverMessage, data.data(), sizeof(clc->serverMessage));
-			Game::Com_sprintf(buffer, sizeof(buffer), "%s", data.data());
-			Game::Com_PrintMessage(Game::CON_CHANNEL_CLIENT, buffer, 0);
+			const auto* s = Game::MSG_ReadBigString(msg);
+			Game::I_strncpyz(clc->serverMessage, s, sizeof(clc->serverMessage));
+			Game::Com_sprintf(printBuf, sizeof(printBuf), "%s", s);
+			Game::Com_PrintMessage(Game::CON_CHANNEL_CLIENT, printBuf, false);
 		});
 	}
 }

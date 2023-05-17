@@ -21,6 +21,7 @@
 #include "Modules/Discovery.hpp"
 #include "Modules/Download.hpp"
 #include "Modules/Elevators.hpp"
+#include "Modules/Events.hpp"
 #include "Modules/Exception.hpp"
 #include "Modules/FastFiles.hpp"
 #include "Modules/Friends.hpp"
@@ -49,7 +50,6 @@
 #include "Modules/ServerList.hpp"
 #include "Modules/Session.hpp"
 #include "Modules/SlowMotion.hpp"
-#include "Modules/SoundMutexFix.hpp"
 #include "Modules/StartupMessages.hpp"
 #include "Modules/Stats.hpp"
 #include "Modules/StringTable.hpp"
@@ -163,7 +163,6 @@ namespace Components
 		Register(new ServerList());
 		Register(new Session());
 		Register(new SlowMotion());
-		Register(new SoundMutexFix());
 		Register(new StartupMessages());
 		Register(new Stats());
 		Register(new StringTable());

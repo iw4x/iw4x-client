@@ -29,12 +29,6 @@ namespace Components
 		return size;
 	}
 
-	int Security::SV_CanReplaceServerCommand_Hk([[maybe_unused]] Game::client_s* client, [[maybe_unused]] const char* cmd)
-	{
-		// This is a fix copied from V2. As I don't have time to investigate, let's simply trust them
-		return -1;
-	}
-
 	long Security::AtolAdjustPlayerLimit(const char* string)
 	{
 		return std::min<long>(std::atol(string), 18);
@@ -140,7 +134,6 @@ namespace Components
 		// Exploit fixes
 		Utils::Hook(0x414D92, Msg_ReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
 		Utils::Hook(0x4A9F56, Msg_ReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
-		Utils::Hook(0x407376, SV_CanReplaceServerCommand_Hk, HOOK_CALL).install()->quick(); // SV_CanReplaceServerCommand
 
 		Utils::Hook::Set<std::uint8_t>(0x412370, 0xC3); // SV_SteamAuthClient
 		Utils::Hook::Set<std::uint8_t>(0x5A8C70, 0xC3); // CL_HandleRelayPacket

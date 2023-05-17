@@ -93,7 +93,7 @@ namespace Game
 	MSG_ReadLong_t MSG_ReadLong = MSG_ReadLong_t(0x4C9550);
 	MSG_ReadShort_t MSG_ReadShort = MSG_ReadShort_t(0x40BDD0);
 	MSG_ReadInt64_t MSG_ReadInt64 = MSG_ReadInt64_t(0x4F1850);
-	MSG_ReadString_t MSG_ReadString = MSG_ReadString_t(0x60E2B0);
+	MSG_ReadBigString_t  MSG_ReadBigString = MSG_ReadBigString_t(0x60E2B0);
 	MSG_ReadStringLine_t MSG_ReadStringLine = MSG_ReadStringLine_t(0x4FEF30);
 	MSG_WriteByte_t MSG_WriteByte = MSG_WriteByte_t(0x48C520);
 	MSG_WriteData_t MSG_WriteData = MSG_WriteData_t(0x4F4120);
@@ -238,6 +238,7 @@ namespace Game
 
 	I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
 	I_CleanStr_t I_CleanStr = I_CleanStr_t(0x4AD470);
+	I_isdigit_t I_isdigit = I_isdigit_t(0x4E71E0);
 
 	XNAddrToString_t XNAddrToString = XNAddrToString_t(0x452690);
 
@@ -317,8 +318,6 @@ namespace Game
 	visField_t* visionDefFields = reinterpret_cast<visField_t*>(0x7982F0); // Count 21
 
 	infoParm_t* infoParams = reinterpret_cast<infoParm_t*>(0x79D260); // Count 0x1E
-
-	clientState_t* clcState = reinterpret_cast<clientState_t*>(0xB2C540);
 
 	GfxScene* scene = reinterpret_cast<GfxScene*>(0x6944914);
 
@@ -1157,7 +1156,7 @@ namespace Game
 	int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType)
 	{
 		static DWORD SEH_GetLocalizedTokenReference_t = 0x629BB0;
-		auto answer = 0;
+		auto result = 0;
 
 		__asm
 		{
@@ -1168,11 +1167,11 @@ namespace Game
 			push token
 			call SEH_GetLocalizedTokenReference_t
 			add esp, 0x4
-			mov answer, eax
+			mov result, eax
 			popad
 		}
 
-		return answer;
+		return result;
 	}
 
 	void Player_SwitchToWeapon(gentity_s* player)

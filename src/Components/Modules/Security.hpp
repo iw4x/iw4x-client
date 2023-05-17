@@ -11,8 +11,6 @@ namespace Components
 		static int Msg_ReadBitsCompressCheckCL(const unsigned char* from, unsigned char* to, int size);
 
 	private:
-		static int SV_CanReplaceServerCommand_Hk(Game::client_s* client, const char* cmd);
-
 		static long AtolAdjustPlayerLimit(const char* string);
 
 		static void SelectStringTableEntryInDvar_Stub();

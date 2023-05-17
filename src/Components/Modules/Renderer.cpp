@@ -1,5 +1,7 @@
 #include <STDInclude.hpp>
 
+#include "Events.hpp"
+
 namespace Components
 {
 	Utils::Signal<Renderer::BackendCallback> Renderer::BackendFrameSignal;

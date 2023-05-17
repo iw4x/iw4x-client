@@ -2,6 +2,7 @@
 #include <Utils/InfoString.hpp>
 
 #include "Discovery.hpp"
+#include "Events.hpp"
 #include "Node.hpp"
 #include "Party.hpp"
 #include "ServerList.hpp"
@@ -176,13 +177,13 @@ namespace Components
 	{
 		CurrentServer = index;
 
-		auto* info = GetCurrentServer();
+		auto* serverInfo = GetCurrentServer();
 
-		if (info)
+		if (serverInfo)
 		{
 			UIServerSelected.set(true);
-			UIServerSelectedMap.set(info->mapname);
-			Dvar::Var("ui_serverSelectedGametype").set(info->gametype);
+			UIServerSelectedMap.set(serverInfo->mapname);
+			Dvar::Var("ui_serverSelectedGametype").set(serverInfo->gametype);
 		}
 		else
 		{

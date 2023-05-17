@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+
+#include "Events.hpp"
 #include "MapRotation.hpp"
 #include "Party.hpp"
 
@@ -176,7 +178,7 @@ namespace Components
 
 	void MapRotation::AddMapRotationCommands()
 	{
-		Command::AddSV("addMap", [](Command::Params* params)
+		Command::AddSV("addMap", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
 			{
@@ -187,7 +189,7 @@ namespace Components
 			DedicatedRotation.addEntry("map", params->get(1));
 		});
 
-		Command::AddSV("addGametype", [](Command::Params* params)
+		Command::AddSV("addGametype", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
 			{

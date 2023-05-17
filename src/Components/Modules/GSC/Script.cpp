@@ -166,12 +166,12 @@ namespace Components::GSC
 		if (pName != nullptr)
 		{
 			const auto name = Utils::String::ToLower(*pName);
-			for (const auto& func : CustomScrFunctions)
+			for (const auto& funcs : CustomScrFunctions)
 			{
-				if (Utils::Contains(&func.aliases, name))
+				if (std::ranges::find(funcs.aliases, name) != funcs.aliases.end())
 				{
-					*type = func.type;
-					return func.actionFunc;
+					*type = funcs.type;
+					return funcs.actionFunc;
 				}
 			}
 		}
@@ -193,12 +193,12 @@ namespace Components::GSC
 		if (pName != nullptr)
 		{
 			const auto name = Utils::String::ToLower(*pName);
-			for (const auto& meth : CustomScrMethods)
+			for (const auto& meths : CustomScrMethods)
 			{
-				if (Utils::Contains(&meth.aliases, name))
+				if (std::ranges::find(meths.aliases, name) != meths.aliases.end())
 				{
-					*type = meth.type;
-					return meth.actionFunc;
+					*type = meths.type;
+					return meths.actionFunc;
 				}
 			}
 		}
@@ -262,7 +262,7 @@ namespace Components::GSC
 		auto* ent = &Game::g_entities[entref.entnum];
 		if (!ent->client)
 		{
-			Game::Scr_ObjectError(Utils::String::VA("entity %i is not a player", entref.entnum));
+			Game::Scr_ObjectError(Utils::String::VA("entity %hu is not a player", entref.entnum));
 			return nullptr;
 		}
 

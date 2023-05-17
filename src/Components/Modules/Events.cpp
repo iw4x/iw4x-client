@@ -1,48 +1,79 @@
 #include <STDInclude.hpp>
+#include "Events.hpp"
 
 namespace Components
 {
-	Utils::Signal<Events::ClientCallback> Events::ClientDisconnectSignal;
-	Utils::Signal<Events::ClientConnectCallback> Events::ClientConnectSignal;
-	Utils::Signal<Events::Callback> Events::SteamDisconnectSignal;
-	Utils::Signal<Events::Callback> Events::ShutdownSystemSignal;
-	Utils::Signal<Events::Callback> Events::ClientInitSignal;
-	Utils::Signal<Events::Callback> Events::ServerInitSignal;
-	Utils::Signal<Events::Callback> Events::DvarInitSignal;
+	Utils::Concurrency::Container<Events::ClientCallback> Events::ClientDisconnectTasks_;
+	Utils::Concurrency::Container<Events::ClientConnectCallback> Events::ClientConnectTasks_;
+	Utils::Concurrency::Container<Events::Callback> Events::SteamDisconnectTasks_;
+	Utils::Concurrency::Container<Events::Callback> Events::ShutdownSystemTasks_;
+	Utils::Concurrency::Container<Events::Callback> Events::ClientInitTasks_;
+	Utils::Concurrency::Container<Events::Callback> Events::ServerInitTasks_;
+	Utils::Concurrency::Container<Events::Callback> Events::DvarInitTasks_;
+	Utils::Concurrency::Container<Events::Callback> Events::NetworkInitTasks_;
 
-	void Events::OnClientDisconnect(const Utils::Slot<ClientCallback>& callback)
+	void Events::OnClientDisconnect(const std::function<void(int clientNum)>& callback)
 	{
-		ClientDisconnectSignal.connect(callback);
+		ClientDisconnectTasks_.access([&callback](ClientCallback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
 	}
 
-	void Events::OnClientConnect(const Utils::Slot<ClientConnectCallback>& callback)
+	void Events::OnClientConnect(const std::function<void(Game::client_s* cl)>& callback)
 	{
-		ClientConnectSignal.connect(callback);
+		ClientConnectTasks_.access([&callback](ClientConnectCallback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
 	}
 
-	void Events::OnSteamDisconnect(const Utils::Slot<Callback>& callback)
+	void Events::OnSteamDisconnect(const std::function<void()>& callback)
 	{
-		SteamDisconnectSignal.connect(callback);
+		SteamDisconnectTasks_.access([&callback](Callback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
 	}
 
-	void Events::OnVMShutdown(const Utils::Slot<Callback>& callback)
+	void Events::OnVMShutdown(const std::function<void()>& callback)
 	{
-		ShutdownSystemSignal.connect(callback);
+		ShutdownSystemTasks_.access([&callback](Callback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
 	}
 
-	void Events::OnClientInit(const Utils::Slot<Callback>& callback)
+	void Events::OnClientInit(const std::function<void()>& callback)
 	{
-		ClientInitSignal.connect(callback);
+		ClientInitTasks_.access([&callback](Callback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
 	}
 
-	void Events::OnSVInit(const Utils::Slot<Callback>& callback)
+	void Events::OnSVInit(const std::function<void()>& callback)
 	{
-		ServerInitSignal.connect(callback);
+		ServerInitTasks_.access([&callback](Callback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
 	}
 
-	void Events::OnDvarInit(const Utils::Slot<Callback>& callback)
+	void Events::OnDvarInit(const std::function<void()>& callback)
 	{
-		DvarInitSignal.connect(callback);
+		DvarInitTasks_.access([&callback](Callback& tasks)
+		{
+				tasks.emplace_back(callback);
+		});
+	}
+
+	void Events::OnNetworkInit(const std::function<void()>& callback)
+	{
+		NetworkInitTasks_.access([&callback](Callback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
 	}
 
 	/*
@@ -51,54 +82,122 @@ namespace Components
 	 */
 	void Events::ClientDisconnect_Hk(const int clientNum)
 	{
-		ClientDisconnectSignal(clientNum);
+		ClientDisconnectTasks_.access([&clientNum](ClientCallback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func(clientNum);
+			}
+		});
 
 		Utils::Hook::Call<void(int)>(0x4AA430)(clientNum); // ClientDisconnect
 	}
 
 	void Events::SV_UserinfoChanged_Hk(Game::client_s* cl)
 	{
-		ClientConnectSignal(cl);
+		ClientConnectTasks_.access([&cl](ClientConnectCallback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func(cl);
+			}
+		});
 
 		Utils::Hook::Call<void(Game::client_s*)>(0x401950)(cl); // SV_UserinfoChanged
 	}
 
 	void Events::SteamDisconnect_Hk()
 	{
-		SteamDisconnectSignal();
+		SteamDisconnectTasks_.access([](Callback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func();
+			}
+		});
 
 		Utils::Hook::Call<void()>(0x467CC0)(); // LiveSteam_Client_SteamDisconnect
 	}
 
 	void Events::Scr_ShutdownSystem_Hk(unsigned char sys)
 	{
-		ShutdownSystemSignal();
+		ShutdownSystemTasks_.access([](Callback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func();
+			}
+		});
 
 		Utils::Hook::Call<void(unsigned char)>(0x421EE0)(sys); // Scr_ShutdownSystem
 	}
 
 	void Events::CL_InitOnceForAllClients_HK()
 	{
-		ClientInitSignal();
-		ClientInitSignal.clear();
+		ClientInitTasks_.access([](Callback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func();
+			}
+
+			tasks = {}; // Only called once. Clear
+		});
 
 		Utils::Hook::Call<void()>(0x404CA0)(); // CL_InitOnceForAllClients
 	}
 
 	void Events::SV_Init_Hk()
 	{
-		ServerInitSignal();
-		ServerInitSignal.clear();
+		ServerInitTasks_.access([](Callback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func();
+			}
+
+			tasks = {}; // Only called once. Clear
+		});
 
 		Utils::Hook::Call<void()>(0x474320)(); // SV_InitGameMode
 	}
 
 	void Events::Com_InitDvars_Hk()
 	{
-		DvarInitSignal();
-		DvarInitSignal.clear();
+		DvarInitTasks_.access([](Callback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func();
+			}
+
+			tasks = {}; // Only called once. Clear
+		});
 
 		Utils::Hook::Call<void()>(0x60AD10)(); // Com_InitDvars
+	}
+
+	void Events::NetworkStart()
+	{
+		NetworkInitTasks_.access([](Callback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func();
+			}
+
+			tasks = {}; // Only called once. Clear
+		});
+	}
+
+	__declspec(naked) void Events::NET_OpenSocks_Hk()
+	{
+		__asm
+		{
+			mov eax, 64D900h
+			call eax
+			jmp NetworkStart
+		}
 	}
 
 	Events::Events()
@@ -117,5 +216,7 @@ namespace Components
 		Utils::Hook(0x60BB3A, Com_InitDvars_Hk, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
 		Utils::Hook(0x4D3665, SV_Init_Hk, HOOK_CALL).install()->quick(); // SV_Init
+
+		Utils::Hook(0x4FD4D4, NET_OpenSocks_Hk, HOOK_JUMP).install()->quick(); // NET_OpenIP
 	}
 }

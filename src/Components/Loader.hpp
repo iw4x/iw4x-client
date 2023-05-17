@@ -73,7 +73,6 @@ namespace Components
 
 #include "Modules/AssetHandler.hpp"
 #include "Modules/Dedicated.hpp"
-#include "Modules/Events.hpp"
 #include "Modules/FileSystem.hpp"
 #include "Modules/Localization.hpp"
 #include "Modules/Maps.hpp"

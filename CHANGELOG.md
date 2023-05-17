@@ -4,13 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/).
 
+## r4299 - 2023-05-17
+
+### Added
+
+- Add `dumpZone` ZoneBuilder command (#1033)
+- Add `FreezeControlsAllowLook` GSC method (#1026)
+
+### Fixed
+
+- The sound fix was removed as the bug no longer happens (#1007)
+- Fix crash when the opening the "server info" menu on an empty server list (#1041)
+- Fix patch that was causing the game thread to deadlock (#1038)
+
 ## r4251 - 2023-05-03
 
 ### Added
 
 - Add GSC client field `ping` as a read-only field (#1002)
 - Add GSC client field `address` as a read-only field (#1003)
-- Add to the iw4x-rawfiles common_scripts\utility GSC script `getIP` function.
+- Add to the iw4x-rawfiles `common_scripts\utility` GSC script `getIP` function.
 
 ### Fixed
 
@@ -29,7 +42,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Fixed
 
 - Fix bug with Steam Proxy (#991)
-- Fix bug with the `say` GSC notify in regards to hidden commands (#989)
+- Fix bug with the `say` GSC notify in regards to hidden chat messages (#989)
 
 ### Removed
 
@@ -44,6 +57,11 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Changed
 
 - Chat system will go back to using `SV_CMD_CAN_IGNORE` commands (#972)
+
+### Security
+
+- Check the address of the sender for the `print` OOB packet (#969)
+- Check the address of the sender for the `voice` OOB packet (#973)
 
 ### Fixed
 
@@ -114,7 +132,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Test Clients will no longer receive names from the Xlabs Patreon website. The old behaviour was restored (#852)
 - Enabled `OpenFile` GSC function (#862)
 - Enabled `CloseFile` GSC function (#862)
-- Chat system uses "reliable message" to mitigate message duplication (#873)
+- Chat system will now use `SV_CMD_RELIABLE` commands to mitigate message duplication (#873)
 - The built-in GSC compiler no longer throws fatal errors when overriding a built-in function or method (IW3 behaviour) (#880)
 - `CastFloat` GSC function was renamed to `Float` (#880)
 
@@ -135,10 +153,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Clients can unprotect "saved" Dvars using the command line argument `-unprotect-dvars` (#694)
 - Clients can protect all Dvars from being modified by the server using the command line argument `-protect-dvars` (#823)
-- Add helpful information to script-related errors (#721)
-- Add command line `-disable-mongoose` to disable IW4x's built-in webserver (#728)
-- Add command line `-disable-rate-limit-check` to disable the rate check on RCon requests (#769)
-- Muted clients GUID is saved to the `muted-users.json` file in the `userraw` folder (#732)
+- Add helpful information to script-related errors. Must set `developer` Dvar to "2" and `developer_script` Dvar to "1" (#721)
+- Add command line `-disable-mongoose` argument to disable IW4x's built-in webserver (#728)
+- Add command line `-disable-rate-limit-check` argument to disable the rate check on RCon requests (#769)
+- GUID of muted clients is saved to the `muted-users.json` file in the `userraw` folder (#732)
 - Add `sv_nextMap` Dvar (#736)
 - Add `elifdef` and `elifndef` directives to the menu preprocessor (#747)
 - Add `r_drawRunners` Dvar (#758)
@@ -167,7 +185,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fix bug where demo playback would stop when opening a laptop based killstreak (#699)
 - Fix bug where mod download speed was inexplicably slow (#707)
 - Fix bug where `g_hardcore` could not be set by servers (#708)
-- Fix bots "user cmd angles" (#707)
+- Fix "user cmd angles" for test clients (#707)
 - Fix bug where `FileRead` GSC function could return buffers that are too big (#767)
 - Fix bug where the `OnPlayerSay` GSC function would cause issues (#776)
 
@@ -187,7 +205,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add `IsSprinting` GSC method (#587)
 - Add `StorageLoad` GSC function (#595)
 - Add `bg_climbAnything` Dvar (#663)
-- Add ClanTag support for bots (#645)
+- Add "ClanTag" support for bots (#645)
 - Add `sv_randomBotNames` Dvar (#665)
 - Add support for parsing localized strings files (.str & .json) (#621)
 - Add `callvote` menus (#613)
@@ -301,7 +319,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add `DisableWeaponPickup` GSC method (#329)
 - Add `EnableWeaponPickup` GSC method (#329)
 - Add `protect-saved-dvars` command line argument (#335)
-- Add `clanName` dvar. Can be edited in the `barracks` menu (#361)
+- Add `clanName` dvar. Can be edited in the "barracks" menu (#361)
 - Add DLC9 containing classic maps from CoD4: Backlot, Chinatown, Winter Crash, Pipeline and Downpour.
 - Add to the iw4x-rawfiles `common_scripts\iw4x_utility` GSC script, it contains the scripts-based solution for the removed GSC built-in methods.
 
@@ -341,10 +359,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
-- Add SetName GSC method (#288)
-- Add ResetName GSC method (#288)
-- Add OnPlayerSay GSC function (#265)
-- Add Give client command (works with weapons only) (#292)
+- Add `SetName` GSC method (#288)
+- Add `ResetName` GSC method (#288)
+- Add `OnPlayerSay` GSC function (#265)
+- Add `Give` client command (works with weapons only) (#292)
 - Add `sv_disableChat` Dvar (#290)
 - Add `addMap` command (#302)
 - Add `addGametype` command (#302)
@@ -375,7 +393,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
-- Add IsArray GSC function (#248)
+- Add `IsArray` GSC function (#248)
 - Keybind fields in menus work with controller keys (#255)
 
 ### Changed
@@ -398,14 +416,14 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
-- Add ToUpper GSC Function (#216)
-- Add StrICmp GSC Function (#216)
-- Add IsEndStr GSC Function (#216)
-- Add DropAllBots GSC Function (#174)
+- Add `ToUpper` GSC Function (#216)
+- Add `StrICmp` GSC Function (#216)
+- Add `IsEndStr` GSC Function (#216)
+- Add `DropAllBots` GSC Function (#174)
 - Add GSC entity field `entityflags` (#228)
 - Add GSC client field `clientflags` (#228)
-- Add bg_surfacePenetration Dvar (#241)
-- Add bg_bulletRange Dvar (#241)
+- Add `bg_surfacePenetration` Dvar (#241)
+- Add `bg_bulletRange Dvar` (#241)
 
 ### Changed
 
@@ -419,8 +437,8 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Fixed issue with mouse acceleration when polling rate is greater than 125Hz (#230)
 - Fixed issue with player speed caused by sprinting from the prone position (#232)
-- Fixed client crash when cg_chatHeight was set to 0 (#237)
-- Fixed GSC function Scr_TableLookupIStringByRow (#162)
+- Fixed client crash when `cg_chatHeight` was set to 0 (#237)
+- Fixed GSC function `Scr_TableLookupIStringByRow` (#162)
 
 ### Known issues
 
@@ -434,46 +452,46 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Add controller support (#75)
 - Add aim assist for controllers (#75)
-- Unlock camera_thirdPersonCrosshairOffset Dvar (#68)
+- Unlock `camera_thirdPersonCrosshairOffset` Dvar (#68)
 - Add support for building custom Fonts with Zonebuilder (#88)
 - Add colorblind friendly team colors (#101)
-- Add emojis based on titlecards and emblems to use in the chat and server names Example: `:nuke:` (#130)
+- Add emojis based on title cards and emblems to use in the chat and server names Example: `:nuke:` (#130)
 - Upon leaving a server 'archive' dvars (saved in the config file) will be reset to the value they had prior to joining the server (#134)
-- Implement muteClient command for the game chat (#159)
-- Implement unmute command for the game chat (#159)
-- Add sv_allowAimAssist Dvar (#75)
-- Add sv_allowColoredNames (#130)
-- Add sv_randomMapRotation Dvar (#146)
-- Add rcon_log_requests Dvar (#195)
-- Add player_duckedSpeedScale Dvar (#141)
-- Add player_proneSpeedScale Dvar (#141)
-- Add cg_ufo_scaler Dvar (#158)
-- Add cg_noclip_scaler Dvar (#158)
-- Add bg_bouncesAllAngles Dvar (#158)
-- Add bg_rocketJump Dvar (#158)
-- Add bg_elevators Dvar (#156)
-- Implement noclip client command (#152)
-- Implement ufo client command (#152)
-- Implement God client command (#152)
-- Implement demigod client command (#152)
-- Implement notarget client command (#152)
-- Add noclip GSC Function (#152)
-- Add ufo GSC Function (#152)
-- Add God GSC Function (#152)
-- Add demigod GSC Function (#152)
-- Add notarget GSC Function (#152)
-- Add replaceFunc GSC Function (#144)
+- Add `muteClient` command for the game chat (#159)
+- Add `unmute` command for the game chat (#159)
+- Add `sv_allowAimAssist` Dvar (#75)
+- Add `sv_allowColoredNames` (#130)
+- Add `sv_randomMapRotation` Dvar (#146)
+- Add `rcon_log_requests` Dvar (#195)
+- Add `player_duckedSpeedScale` Dvar (#141)
+- Add `player_proneSpeedScale` Dvar (#141)
+- Add `cg_ufo_scaler` Dvar (#158)
+- Add `cg_noclip_scaler` Dvar (#158)
+- Add `bg_bouncesAllAngles` Dvar (#158)
+- Add `bg_rocketJump` Dvar (#158)
+- Add `bg_elevators` Dvar (#156)
+- Add `noclip` client command (#152)
+- Add `ufo` client command (#152)
+- Add `God` client command (#152)
+- Add `demigod` client command (#152)
+- Add `notarget` client command (#152)
+- Add `noclip` GSC Function (#152)
+- Add `ufo` GSC Function (#152)
+- Add `God` GSC Function (#152)
+- Add `demigod` GSC Function (#152)
+- Add `notarget` GSC Function (#152)
+- Add `replaceFunc` GSC Function (#144)
 
 ### Changed
 
-- Renamed sv_enableBounces to bg_bounces (#158)
-- Renamed g_playerCollision to bg_playerEjection (#158)
-- Renamed g_playerEjection to bg_playerCollision (#158)
-- Setviewpos client command works outside private matches (#163)
-- Ufo client command works outside of private matches (#152)
-- Noclip client command works outside of private matches (#152)
+- Renamed `sv_enableBounces` to bg_bounces (#158)
+- Renamed `g_playerCollision` to bg_playerEjection (#158)
+- Renamed `g_playerEjection` to bg_playerCollision (#158)
+- `setviewpos` client command works outside private matches (#163)
+- `ufo` client command works outside of private matches (#152)
+- `noclip` client command works outside of private matches (#152)
 - If a player name is less than 3 characters server will change it to `Unknown Soldier` (#130)
-- scr_player_forceautoassign Dvar is false by default
+- `scr_player_forceautoassign` Dvar is false by default
 
 ### Fixed
 
@@ -481,7 +499,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fixes and improvements to Zonebuilder
 - Fixed issue where the game froze following base game script throwing an error (#74)
 - Fixed RCon on party servers (#91 - #95)
-- Fixed slow motion during final killcams (#111 - #107)
+- Fixed slow motion during final kill cams (#111 - #107)
 - Fixed sound issue that causes the game to freeze (#106)
 - Fixed issue where materials strings found in hostnames, player names, chat etc. caused the game to crash (#113)
 - Fixed issue with servers displaying an invalid player count (#113)
@@ -496,29 +514,29 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
-- Add host information to /info endpoint (request)
-- Add fileWrite GSC Function (#36)
-- Add fileRead GSC Function (#36)
-- Add fileExists GSC Function (#36)
-- Add fileRemove GSC Function (#36)
-- Add botMovement GSC Function (#46)
-- Add botAction GSC Function (#46)
-- Add botWeapon GSC Function (#46)
-- Add botStop GSC Function (#46)
-- Add isBot GSC Function (#46)
-- Add setPing GSC Function (#46)
-- Add GetSystemTime and GetSystemTimeMilliseconds GSC Functions (#46)
-- Add PrintConsole GSC Function (#46)
-- Add Exec GSC Function (#46)
-- Add getIP GSC Method (#36)
-- Add getPing GSC Method (#36)
-- Add scr_intermissionTime GSC Function (#25)
-- Add g_playerCollision Dvar (#36)
-- Add g_playerEjection Dvar (#36)
-- Add r_specularCustomMaps Dvar (#36)
-- Unlock safeArea_horizontal and safeArea_vertical Dvars (#42)
-- Unlock cg_fovscale Dvar (#47)
-- Add g_antilag Dvar (#61)
+- Add host information to `/info` endpoint (request)
+- Add `fileWrite` GSC Function (#36)
+- Add `fileRead` GSC Function (#36)
+- Add `fileExists` GSC Function (#36)
+- Add `fileRemove` GSC Function (#36)
+- Add `botMovement` GSC Function (#46)
+- Add `botAction` GSC Function (#46)
+- Add `botWeapon` GSC Function (#46)
+- Add `botStop` GSC Function (#46)
+- Add `isBot` GSC Function (#46)
+- Add `setPing` GSC Function (#46)
+- Add `GetSystemTime` and `GetSystemTimeMilliseconds` GSC Functions (#46)
+- Add `PrintConsole` GSC Function (#46)
+- Add `Exec` GSC Function (#46)
+- Add `getIP` GSC Method (#36)
+- Add `getPing` GSC Method (#36)
+- Add `scr_intermissionTime` Dvar (#25)
+- Add `g_playerCollision` Dvar (#36)
+- Add `g_playerEjection` Dvar (#36)
+- Add `r_specularCustomMaps` Dvar (#36)
+- Unlock `safeArea_horizontal` and `safeArea_vertical` Dvars (#42)
+- Unlock `cg_fovscale` Dvar (#47)
+- Add `g_antilag` Dvar (#61)
 
 ### Changed
 
@@ -530,7 +548,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 - Fixed a node system related crash (#45)
 - Fixed an issue that made dedicated servers crash when info was requested during map rotation (#43)
-- Fixed an issue where the game was trying to decrypt gsc files which caused it to crash when loading mods (#35)
+- Fixed an issue where the game was trying to decrypt GSC files which caused it to crash when loading mods (#35)
 - Fixed an issue causing the game to crash when Steam was running in the background (#56)
 - Fixed slow download speed when using fast download
 
@@ -546,8 +564,8 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Added
 
-- Implement unbanclient command.
-- Implement /serverlist api endpoint on dedicated servers
+- Add `unbanClient` command.
+- Add `/serverlist` api endpoint on dedicated servers
 - Add dvar to control the server query rate (net_serverQueryLimit & net_serverFrames)
 
 ### Changed
@@ -561,7 +579,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Fix multiple vulnerability's
 - Fix lag spikes on lower end PCs
 - Fix invalid name check
-- Fix openLink command crash issue
+- Fix `openLink` command crash issue
 - Fix lobby server map downloading
 - Fix steam integration
 

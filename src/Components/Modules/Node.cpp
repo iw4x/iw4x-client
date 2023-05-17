@@ -13,14 +13,14 @@ namespace Components
 	std::recursive_mutex Node::Mutex;
 	std::vector<Node::Entry> Node::Nodes;
 
-	bool Node::wasIngame = false;
+	bool Node::WasIngame = false;
 
-	bool Node::Entry::isValid()
+	bool Node::Entry::isValid() const
 	{
 		return (this->lastResponse.has_value() && !this->lastResponse->elapsed(NODE_HALFLIFE * 2));
 	}
 
-	bool Node::Entry::isDead()
+	bool Node::Entry::isDead() const
 	{
 		if (!this->lastResponse.has_value())
 		{
@@ -37,7 +37,7 @@ namespace Components
 		return false;
 	}
 
-	bool Node::Entry::requiresRequest()
+	bool Node::Entry::requiresRequest() const
 	{
 		return (!this->isDead() && (!this->lastRequest.has_value() || this->lastRequest->elapsed(NODE_HALFLIFE)));
 	}
@@ -49,7 +49,9 @@ namespace Components
 
 		Session::Send(this->address, "nodeListRequest");
 		Node::SendList(this->address);
+#ifdef NODE_SYSTEM_DEBUG
 		Logger::Debug("Sent request to {}", this->address.getString());
+#endif
 	}
 
 	void Node::Entry::reset()
@@ -154,14 +156,14 @@ namespace Components
 		{
 			if (ServerList::UseMasterServer) return; // don't run node frame if master server is active
 
-			if (*Game::clcState > 0)
+			if (Game::CL_GetLocalClientConnectionState(0) != Game::CA_DISCONNECTED)
 			{
-				wasIngame = true;
-				return; // don't run while ingame because it can still cause lag spikes on lower end PCs
+				WasIngame = true;
+				return; // don't run while in-game because it can still cause lag spikes on lower end PCs
 			}
 		}
 
-		if (wasIngame) // our last frame we were ingame and now we aren't so touch all nodes
+		if (WasIngame) // our last frame we were in-game and now we aren't so touch all nodes
 		{
 			for (auto i = Node::Nodes.begin(); i != Node::Nodes.end();++i)
 			{
@@ -170,7 +172,8 @@ namespace Components
 				i->lastRequest.reset();
 				i->lastResponse.reset();
 			}
-			wasIngame = false;
+
+			WasIngame = false;
 		}
 
 		static Utils::Time::Interval frameLimit;
@@ -216,7 +219,9 @@ namespace Components
 		Proto::Node::List list;
 		if (!list.ParseFromString(data)) return;
 
+#ifdef NODE_SYSTEM_DEBUG
 		Logger::Debug("Received response from {}", address.getString());
+#endif
 
 		std::lock_guard _(Node::Mutex);
 
@@ -234,12 +239,16 @@ namespace Components
 		{
 			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && !ServerList::UseMasterServer && list.protocol() == PROTOCOL)
 			{
+#ifdef NODE_SYSTEM_DEBUG
 				Logger::Debug("Inserting {} into the serverlist", address.getString());
+#endif
 				ServerList::InsertRequest(address);
 			}
 			else
 			{
+#ifdef NODE_SYSTEM_DEBUG
 				Logger::Debug("Dropping serverlist insertion for {}", address.getString());
+#endif
 			}
 
 			for (auto& node : Node::Nodes)
@@ -303,7 +312,7 @@ namespace Components
 		{
 			Scheduler::Once([=]
 			{
-#ifdef DEBUG_NODE
+#ifdef NODE_SYSTEM_DEBUG
 				Logger::Debug("Sending {} nodeListResponse length to {}\n", nodeListData.length(), address.getCString());
 #endif
 				Session::Send(address, "nodeListResponse", nodeListData);
@@ -344,7 +353,7 @@ namespace Components
 
 		Scheduler::OnGameInitialized(loadNodes, Scheduler::Pipeline::MAIN);
 
-		Command::Add("listnodes", [](Command::Params*)
+		Command::Add("listnodes", [](const Command::Params*)
 		{
 			Logger::Print("Nodes: {}\n", Node::Nodes.size());
 
@@ -355,10 +364,14 @@ namespace Components
 			}
 		});
 
-		Command::Add("addnode", [](Command::Params* params)
+		Command::Add("addnode", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
-			Node::Add({ params->get(1) });
+			auto address = Network::Address{ params->get(1) };
+			if (address.isValid())
+			{
+				Node::Add(address);
+			}
 		});
 	}
 

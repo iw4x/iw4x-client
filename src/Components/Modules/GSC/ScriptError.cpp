@@ -9,10 +9,10 @@ namespace Components::GSC
 {
 	using namespace Utils::String;
 
-	int ScriptError::developer_;
+	int ScriptError::Developer_;
 
-	Game::scrParserGlob_t ScriptError::scrParserGlob;
-	Game::scrParserPub_t ScriptError::scrParserPub;
+	Game::scrParserGlob_t ScriptError::ScrParserGlob;
+	Game::scrParserPub_t ScriptError::ScrParserPub;
 
 	int ScriptError::Scr_IsInOpcodeMemory(const char* pos)
 	{
@@ -27,7 +27,7 @@ namespace Components::GSC
 		Game::OpcodeLookup* opcodeLookup;
 		Game::SourceLookup* sourcePosLookup;
 
-		if (!developer_)
+		if (!Developer_)
 		{
 			return;
 		}
@@ -48,83 +48,83 @@ namespace Components::GSC
 			type &= ~Game::SOURCE_TYPE_BREAKPOINT;
 		}
 
-		assert(scrParserGlob.opcodeLookup);
-		assert(scrParserGlob.sourcePosLookup);
+		assert(ScrParserGlob.opcodeLookup);
+		assert(ScrParserGlob.sourcePosLookup);
 		assert(Game::scrCompilePub->opcodePos);
 
-		auto size = sizeof(Game::OpcodeLookup) * (scrParserGlob.opcodeLookupLen + 1);
-		if (size > scrParserGlob.opcodeLookupMaxSize)
+		auto size = sizeof(Game::OpcodeLookup) * (ScrParserGlob.opcodeLookupLen + 1);
+		if (size > ScrParserGlob.opcodeLookupMaxSize)
 		{
-			if (scrParserGlob.opcodeLookupMaxSize >= Game::MAX_OPCODE_LOOKUP_SIZE)
+			if (ScrParserGlob.opcodeLookupMaxSize >= Game::MAX_OPCODE_LOOKUP_SIZE)
 			{
 				Game::Sys_Error("MAX_OPCODE_LOOKUP_SIZE exceeded");
 			}
 
-			Game::Z_VirtualCommit((char*)scrParserGlob.opcodeLookup + scrParserGlob.opcodeLookupMaxSize, 0x20000);
-			scrParserGlob.opcodeLookupMaxSize += 0x20000;
-			assert(size <= scrParserGlob.opcodeLookupMaxSize);
+			Game::Z_VirtualCommit((char*)ScrParserGlob.opcodeLookup + ScrParserGlob.opcodeLookupMaxSize, 0x20000);
+			ScrParserGlob.opcodeLookupMaxSize += 0x20000;
+			assert(size <= ScrParserGlob.opcodeLookupMaxSize);
 		}
 
-		size = sizeof(Game::SourceLookup) * (scrParserGlob.sourcePosLookupLen + 1);
-		if (size > scrParserGlob.sourcePosLookupMaxSize)
+		size = sizeof(Game::SourceLookup) * (ScrParserGlob.sourcePosLookupLen + 1);
+		if (size > ScrParserGlob.sourcePosLookupMaxSize)
 		{
-			if (scrParserGlob.sourcePosLookupMaxSize >= Game::MAX_SOURCEPOS_LOOKUP_SIZE)
+			if (ScrParserGlob.sourcePosLookupMaxSize >= Game::MAX_SOURCEPOS_LOOKUP_SIZE)
 			{
 				Game::Sys_Error("MAX_SOURCEPOS_LOOKUP_SIZE exceeded");
 			}
 
-			Game::Z_VirtualCommit((char*)scrParserGlob.sourcePosLookup + scrParserGlob.sourcePosLookupMaxSize, 0x20000);
-			scrParserGlob.sourcePosLookupMaxSize += 0x20000;
-			assert(size <= scrParserGlob.sourcePosLookupMaxSize);
+			Game::Z_VirtualCommit((char*)ScrParserGlob.sourcePosLookup + ScrParserGlob.sourcePosLookupMaxSize, 0x20000);
+			ScrParserGlob.sourcePosLookupMaxSize += 0x20000;
+			assert(size <= ScrParserGlob.sourcePosLookupMaxSize);
 		}
 
-		if (scrParserGlob.currentCodePos == Game::scrCompilePub->opcodePos)
+		if (ScrParserGlob.currentCodePos == Game::scrCompilePub->opcodePos)
 		{
-			assert(scrParserGlob.currentSourcePosCount);
-			--scrParserGlob.opcodeLookupLen;
-			opcodeLookup = &scrParserGlob.opcodeLookup[scrParserGlob.opcodeLookupLen];
-			assert(opcodeLookup->sourcePosIndex + scrParserGlob.currentSourcePosCount == scrParserGlob.sourcePosLookupLen);
-			assert(opcodeLookup->codePos == (char*)scrParserGlob.currentCodePos);
+			assert(ScrParserGlob.currentSourcePosCount);
+			--ScrParserGlob.opcodeLookupLen;
+			opcodeLookup = &ScrParserGlob.opcodeLookup[ScrParserGlob.opcodeLookupLen];
+			assert(opcodeLookup->sourcePosIndex + ScrParserGlob.currentSourcePosCount == ScrParserGlob.sourcePosLookupLen);
+			assert(opcodeLookup->codePos == (char*)ScrParserGlob.currentCodePos);
 		}
 		else
 		{
-			scrParserGlob.currentSourcePosCount = 0;
-			scrParserGlob.currentCodePos = Game::scrCompilePub->opcodePos;
-			opcodeLookup = &scrParserGlob.opcodeLookup[scrParserGlob.opcodeLookupLen];
-			opcodeLookup->sourcePosIndex = scrParserGlob.sourcePosLookupLen;
-			opcodeLookup->codePos = scrParserGlob.currentCodePos;
+			ScrParserGlob.currentSourcePosCount = 0;
+			ScrParserGlob.currentCodePos = Game::scrCompilePub->opcodePos;
+			opcodeLookup = &ScrParserGlob.opcodeLookup[ScrParserGlob.opcodeLookupLen];
+			opcodeLookup->sourcePosIndex = ScrParserGlob.sourcePosLookupLen;
+			opcodeLookup->codePos = ScrParserGlob.currentCodePos;
 		}
 
-		auto sourcePosLookupIndex = scrParserGlob.currentSourcePosCount + opcodeLookup->sourcePosIndex;
-		sourcePosLookup = &scrParserGlob.sourcePosLookup[sourcePosLookupIndex];
+		auto sourcePosLookupIndex = ScrParserGlob.currentSourcePosCount + opcodeLookup->sourcePosIndex;
+		sourcePosLookup = &ScrParserGlob.sourcePosLookup[sourcePosLookupIndex];
 		sourcePosLookup->sourcePos = sourcePos;
 
 		if (sourcePos == static_cast<unsigned int>(-1))
 		{
-			assert(scrParserGlob.delayedSourceIndex == -1);
+			assert(ScrParserGlob.delayedSourceIndex == -1);
 			assert(type & Game::SOURCE_TYPE_BREAKPOINT);
-			scrParserGlob.delayedSourceIndex = static_cast<int>(sourcePosLookupIndex);
+			ScrParserGlob.delayedSourceIndex = static_cast<int>(sourcePosLookupIndex);
 		}
 		else if (sourcePos == static_cast<unsigned int>(-2))
 		{
-			scrParserGlob.threadStartSourceIndex = static_cast<int>(sourcePosLookupIndex);
+			ScrParserGlob.threadStartSourceIndex = static_cast<int>(sourcePosLookupIndex);
 		}
-		else if (scrParserGlob.delayedSourceIndex >= 0 && (type & Game::SOURCE_TYPE_BREAKPOINT))
+		else if (ScrParserGlob.delayedSourceIndex >= 0 && (type & Game::SOURCE_TYPE_BREAKPOINT))
 		{
-			scrParserGlob.sourcePosLookup[scrParserGlob.delayedSourceIndex].sourcePos = sourcePos;
-			scrParserGlob.delayedSourceIndex = -1;
+			ScrParserGlob.sourcePosLookup[ScrParserGlob.delayedSourceIndex].sourcePos = sourcePos;
+			ScrParserGlob.delayedSourceIndex = -1;
 		}
 
 		sourcePosLookup->type |= type;
-		++scrParserGlob.currentSourcePosCount;
-		opcodeLookup->sourcePosCount = static_cast<unsigned short>(scrParserGlob.currentSourcePosCount);
-		++scrParserGlob.opcodeLookupLen;
-		++scrParserGlob.sourcePosLookupLen;
+		++ScrParserGlob.currentSourcePosCount;
+		opcodeLookup->sourcePosCount = static_cast<unsigned short>(ScrParserGlob.currentSourcePosCount);
+		++ScrParserGlob.opcodeLookupLen;
+		++ScrParserGlob.sourcePosLookupLen;
 	}
 
 	void ScriptError::RemoveOpcodePos()
 	{
-		if (!developer_)
+		if (!Developer_)
 		{
 			return;
 		}
@@ -135,35 +135,35 @@ namespace Components::GSC
 			return;
 		}
 
-		assert(scrParserGlob.opcodeLookup);
-		assert(scrParserGlob.sourcePosLookup);
+		assert(ScrParserGlob.opcodeLookup);
+		assert(ScrParserGlob.sourcePosLookup);
 		assert(Game::scrCompilePub->opcodePos);
-		assert(scrParserGlob.sourcePosLookupLen);
+		assert(ScrParserGlob.sourcePosLookupLen);
 
-		--scrParserGlob.sourcePosLookupLen;
-		assert(scrParserGlob.opcodeLookupLen);
+		--ScrParserGlob.sourcePosLookupLen;
+		assert(ScrParserGlob.opcodeLookupLen);
 
-		--scrParserGlob.opcodeLookupLen;
-		assert(scrParserGlob.currentSourcePosCount);
-		--scrParserGlob.currentSourcePosCount;
+		--ScrParserGlob.opcodeLookupLen;
+		assert(ScrParserGlob.currentSourcePosCount);
+		--ScrParserGlob.currentSourcePosCount;
 
-		auto* opcodeLookup = &scrParserGlob.opcodeLookup[scrParserGlob.opcodeLookupLen];
+		auto* opcodeLookup = &ScrParserGlob.opcodeLookup[ScrParserGlob.opcodeLookupLen];
 
-		assert(scrParserGlob.currentCodePos == Game::scrCompilePub->opcodePos);
-		assert(opcodeLookup->sourcePosIndex + scrParserGlob.currentSourcePosCount == scrParserGlob.sourcePosLookupLen);
-		assert(opcodeLookup->codePos == (char*)scrParserGlob.currentCodePos);
+		assert(ScrParserGlob.currentCodePos == Game::scrCompilePub->opcodePos);
+		assert(opcodeLookup->sourcePosIndex + ScrParserGlob.currentSourcePosCount == ScrParserGlob.sourcePosLookupLen);
+		assert(opcodeLookup->codePos == (char*)ScrParserGlob.currentCodePos);
 
-		if (!scrParserGlob.currentSourcePosCount)
+		if (!ScrParserGlob.currentSourcePosCount)
 		{
-			scrParserGlob.currentCodePos = nullptr;
+			ScrParserGlob.currentCodePos = nullptr;
 		}
 
-		opcodeLookup->sourcePosCount = static_cast<unsigned short>(scrParserGlob.currentSourcePosCount);
+		opcodeLookup->sourcePosCount = static_cast<unsigned short>(ScrParserGlob.currentSourcePosCount);
 	}
 
 	void ScriptError::AddThreadStartOpcodePos(unsigned int sourcePos)
 	{
-		if (!developer_)
+		if (!Developer_)
 		{
 			return;
 		}
@@ -174,12 +174,12 @@ namespace Components::GSC
 		}
 		else
 		{
-			assert(scrParserGlob.threadStartSourceIndex >= 0);
-			auto* sourcePosLookup = &scrParserGlob.sourcePosLookup[scrParserGlob.threadStartSourceIndex];
+			assert(ScrParserGlob.threadStartSourceIndex >= 0);
+			auto* sourcePosLookup = &ScrParserGlob.sourcePosLookup[ScrParserGlob.threadStartSourceIndex];
 			sourcePosLookup->sourcePos = sourcePos;
 			assert(!sourcePosLookup->type);
 			sourcePosLookup->type = 8;
-			scrParserGlob.threadStartSourceIndex = -1;
+			ScrParserGlob.threadStartSourceIndex = -1;
 		}
 	}
 
@@ -188,35 +188,35 @@ namespace Components::GSC
 		const char* startLine;
 		int col;
 
-		assert(developer_);
-		return Scr_GetLineNumInternal(scrParserPub.sourceBufferLookup[bufferIndex].sourceBuf, sourcePos, &startLine, &col, nullptr);
+		assert(Developer_);
+		return Scr_GetLineNumInternal(ScrParserPub.sourceBufferLookup[bufferIndex].sourceBuf, sourcePos, &startLine, &col, nullptr);
 	}
 
 	unsigned int ScriptError::Scr_GetPrevSourcePos(const char* codePos, unsigned int index)
 	{
-		return scrParserGlob.sourcePosLookup[index + Scr_GetPrevSourcePosOpcodeLookup(codePos)->sourcePosIndex].sourcePos;
+		return ScrParserGlob.sourcePosLookup[index + Scr_GetPrevSourcePosOpcodeLookup(codePos)->sourcePosIndex].sourcePos;
 	}
 
 	Game::OpcodeLookup* ScriptError::Scr_GetPrevSourcePosOpcodeLookup(const char* codePos)
 	{
 		assert(Scr_IsInOpcodeMemory(codePos));
-		assert(scrParserGlob.opcodeLookup);
+		assert(ScrParserGlob.opcodeLookup);
 
 		unsigned int low = 0;
-		unsigned int high = scrParserGlob.opcodeLookupLen - 1;
+		unsigned int high = ScrParserGlob.opcodeLookupLen - 1;
 		while (low <= high)
 		{
 			unsigned int middle = (high + low) >> 1;
-			if (codePos < scrParserGlob.opcodeLookup[middle].codePos)
+			if (codePos < ScrParserGlob.opcodeLookup[middle].codePos)
 			{
 				high = middle - 1;
 			}
 			else
 			{
 				low = middle + 1;
-				if (low == scrParserGlob.opcodeLookupLen || codePos < scrParserGlob.opcodeLookup[low].codePos)
+				if (low == ScrParserGlob.opcodeLookupLen || codePos < ScrParserGlob.opcodeLookup[low].codePos)
 				{
-					return &scrParserGlob.opcodeLookup[middle];
+					return &ScrParserGlob.opcodeLookup[middle];
 				}
 			}
 		}
@@ -279,16 +279,16 @@ namespace Components::GSC
 		unsigned int bufferIndex;
 
 		assert(Scr_IsInOpcodeMemory(codePos));
-		assert(scrParserPub.sourceBufferLookupLen > 0);
+		assert(ScrParserPub.sourceBufferLookupLen > 0);
 
-		for (bufferIndex = scrParserPub.sourceBufferLookupLen - 1; bufferIndex; --bufferIndex)
+		for (bufferIndex = ScrParserPub.sourceBufferLookupLen - 1; bufferIndex; --bufferIndex)
 		{
-			if (!scrParserPub.sourceBufferLookup[bufferIndex].codePos)
+			if (!ScrParserPub.sourceBufferLookup[bufferIndex].codePos)
 			{
 				continue;
 			}
 
-			if (scrParserPub.sourceBufferLookup[bufferIndex].codePos > codePos)
+			if (ScrParserPub.sourceBufferLookup[bufferIndex].codePos > codePos)
 			{
 				continue;
 			}
@@ -313,7 +313,7 @@ namespace Components::GSC
 			return;
 		}
 
-		if (!developer_)
+		if (!Developer_)
 		{
 			if (Scr_IsInOpcodeMemory(codePos - 1))
 			{
@@ -326,7 +326,7 @@ namespace Components::GSC
 			if (Game::scrVarPub->programBuffer && Scr_IsInOpcodeMemory(codePos))
 			{
 				auto bufferIndex = Scr_GetSourceBuffer(codePos - 1);
-				Scr_PrintSourcePos(channel, scrParserPub.sourceBufferLookup[bufferIndex].buf, scrParserPub.sourceBufferLookup[bufferIndex].sourceBuf, Scr_GetPrevSourcePos(codePos - 1, index));
+				Scr_PrintSourcePos(channel, ScrParserPub.sourceBufferLookup[bufferIndex].buf, ScrParserPub.sourceBufferLookup[bufferIndex].sourceBuf, Scr_GetPrevSourcePos(codePos - 1, index));
 				return;
 			}
 		}
@@ -362,7 +362,7 @@ namespace Components::GSC
 		assert(filename);
 		auto lineNum = Scr_GetLineInfo(buf, sourcePos, &col, line, nullptr);
 
-		Game::Com_PrintMessage(channel, VA("(file '%s'%s, line %d)\n", filename, scrParserGlob.saveSourceBufferLookup ? " (savegame)" : "", lineNum + 1), 0);
+		Game::Com_PrintMessage(channel, VA("(file '%s'%s, line %d)\n", filename, ScrParserGlob.saveSourceBufferLookup ? " (savegame)" : "", lineNum + 1), 0);
 		Game::Com_PrintMessage(channel, VA("%s\n", line), 0);
 
 		for (auto i = 0; i < col; ++i)
@@ -400,7 +400,7 @@ namespace Components::GSC
 		bool abort_on_error;
 		const char* dialogMessageSeparator;
 
-		if (!developer_)
+		if (!Developer_)
 		{
 			assert(Scr_IsInOpcodeMemory(codePos));
 			if (!(*Game::com_developer)->current.enabled)
@@ -462,7 +462,7 @@ namespace Components::GSC
 			Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
 			Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
 
-			if (!developer_ || !scrParserPub.sourceBuf)
+			if (!Developer_ || !ScrParserPub.sourceBuf)
 			{
 				Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "%s\n", text);
 				line[0] = '\0';
@@ -472,12 +472,12 @@ namespace Components::GSC
 			}
 			else
 			{
-				assert(scrParserPub.sourceBuf);
+				assert(ScrParserPub.sourceBuf);
 				Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "%s: ", text);
 
-				Scr_PrintSourcePos(Game::CON_CHANNEL_PARSERSCRIPT, scrParserPub.scriptfilename, scrParserPub.sourceBuf, sourcePos);
-				auto lineNumber = Scr_GetLineInfo(scrParserPub.sourceBuf, sourcePos, &col, line, nullptr);
-				Game::Com_Error(Game::ERR_SCRIPT_DROP, "\x15" "script compile error\n%s\n%s(%d):\n %s\n(see console for details)\n", text, scrParserPub.scriptfilename, lineNumber, line);
+				Scr_PrintSourcePos(Game::CON_CHANNEL_PARSERSCRIPT, ScrParserPub.scriptfilename, ScrParserPub.sourceBuf, sourcePos);
+				const auto lineNumber = Scr_GetLineInfo(ScrParserPub.sourceBuf, sourcePos, &col, line, nullptr);
+				Game::Com_Error(Game::ERR_SCRIPT_DROP, "\x15" "script compile error\n%s\n%s(%d):\n %s\n(see console for details)\n", text, ScrParserPub.scriptfilename, lineNumber, line);
 			}
 		}
 	}
@@ -504,7 +504,7 @@ namespace Components::GSC
 
 		Game::Com_Printf(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n");
 
-		Scr_GetTextSourcePos(scrParserPub.sourceBuf, codePos, line);
+		Scr_GetTextSourcePos(ScrParserPub.sourceBuf, codePos, line);
 
 		Game::Com_Error(Game::ERR_SCRIPT_DROP, "\x15" "script compile error\n%s\n%s\n(see console for details)\n", text, line);
 	}
@@ -513,10 +513,10 @@ namespace Components::GSC
 	{
 		int col;
 
-		if (developer_ && codePos && codePos != Game::g_EndPos && Game::scrVarPub->programBuffer && Scr_IsInOpcodeMemory(codePos))
+		if (Developer_ && codePos && codePos != Game::g_EndPos && Game::scrVarPub->programBuffer && Scr_IsInOpcodeMemory(codePos))
 		{
 			auto bufferIndex = Scr_GetSourceBuffer(codePos - 1);
-			Scr_GetLineInfo(scrParserPub.sourceBufferLookup[bufferIndex].sourceBuf, Scr_GetPrevSourcePos(codePos - 1, 0), &col, line, nullptr);
+			Scr_GetLineInfo(ScrParserPub.sourceBufferLookup[bufferIndex].sourceBuf, Scr_GetPrevSourcePos(codePos - 1, 0), &col, line, nullptr);
 		}
 		else
 		{
@@ -526,68 +526,68 @@ namespace Components::GSC
 
 	void ScriptError::Scr_InitOpcodeLookup()
 	{
-		assert(!scrParserGlob.opcodeLookup);
-		assert(!scrParserGlob.sourcePosLookup);
-		assert(!scrParserPub.sourceBufferLookup);
+		assert(!ScrParserGlob.opcodeLookup);
+		assert(!ScrParserGlob.sourcePosLookup);
+		assert(!ScrParserPub.sourceBufferLookup);
 
-		if (!developer_)
+		if (!Developer_)
 		{
 			return;
 		}
 
-		scrParserGlob.delayedSourceIndex = -1;
-		scrParserGlob.opcodeLookupMaxSize = 0;
-		scrParserGlob.opcodeLookupLen = 0;
-		scrParserGlob.opcodeLookup = static_cast<Game::OpcodeLookup*>(Game::Z_VirtualReserve(Game::MAX_OPCODE_LOOKUP_SIZE));
+		ScrParserGlob.delayedSourceIndex = -1;
+		ScrParserGlob.opcodeLookupMaxSize = 0;
+		ScrParserGlob.opcodeLookupLen = 0;
+		ScrParserGlob.opcodeLookup = static_cast<Game::OpcodeLookup*>(Game::Z_VirtualReserve(Game::MAX_OPCODE_LOOKUP_SIZE));
 
-		scrParserGlob.sourcePosLookupMaxSize = 0;
-		scrParserGlob.sourcePosLookupLen = 0;
-		scrParserGlob.sourcePosLookup = static_cast<Game::SourceLookup*>(Game::Z_VirtualReserve(Game::MAX_SOURCEPOS_LOOKUP_SIZE));
-		scrParserGlob.currentCodePos = nullptr;
-		scrParserGlob.currentSourcePosCount = 0;
-		scrParserGlob.sourceBufferLookupMaxSize = 0;
+		ScrParserGlob.sourcePosLookupMaxSize = 0;
+		ScrParserGlob.sourcePosLookupLen = 0;
+		ScrParserGlob.sourcePosLookup = static_cast<Game::SourceLookup*>(Game::Z_VirtualReserve(Game::MAX_SOURCEPOS_LOOKUP_SIZE));
+		ScrParserGlob.currentCodePos = nullptr;
+		ScrParserGlob.currentSourcePosCount = 0;
+		ScrParserGlob.sourceBufferLookupMaxSize = 0;
 
-		scrParserPub.sourceBufferLookupLen = 0;
-		scrParserPub.sourceBufferLookup = static_cast<Game::SourceBufferInfo*>(Game::Z_VirtualReserve(Game::MAX_SOURCEBUF_LOOKUP_SIZE));
+		ScrParserPub.sourceBufferLookupLen = 0;
+		ScrParserPub.sourceBufferLookup = static_cast<Game::SourceBufferInfo*>(Game::Z_VirtualReserve(Game::MAX_SOURCEBUF_LOOKUP_SIZE));
 	}
 
 	void ScriptError::Scr_ShutdownOpcodeLookup()
 	{
-		if (scrParserGlob.opcodeLookup)
+		if (ScrParserGlob.opcodeLookup)
 		{
-			Z_VirtualFree(scrParserGlob.opcodeLookup);
-			scrParserGlob.opcodeLookup = nullptr;
+			Z_VirtualFree(ScrParserGlob.opcodeLookup);
+			ScrParserGlob.opcodeLookup = nullptr;
 		}
 
-		if (scrParserGlob.sourcePosLookup)
+		if (ScrParserGlob.sourcePosLookup)
 		{
-			Z_VirtualFree(scrParserGlob.sourcePosLookup);
-			scrParserGlob.sourcePosLookup = nullptr;
+			Z_VirtualFree(ScrParserGlob.sourcePosLookup);
+			ScrParserGlob.sourcePosLookup = nullptr;
 		}
 
-		if (scrParserPub.sourceBufferLookup)
+		if (ScrParserPub.sourceBufferLookup)
 		{
-			for (unsigned int i = 0; i < scrParserPub.sourceBufferLookupLen; ++i)
+			for (unsigned int i = 0; i < ScrParserPub.sourceBufferLookupLen; ++i)
 			{
-				Game::Engine::Hunk_FreeDebugMem(scrParserPub.sourceBufferLookup[i].buf);
+				Game::Engine::Hunk_FreeDebugMem(ScrParserPub.sourceBufferLookup[i].buf);
 			}
 
-			Z_VirtualFree(scrParserPub.sourceBufferLookup);
-			scrParserPub.sourceBufferLookup = nullptr;
+			Z_VirtualFree(ScrParserPub.sourceBufferLookup);
+			ScrParserPub.sourceBufferLookup = nullptr;
 		}
 
-		if (scrParserGlob.saveSourceBufferLookup)
+		if (ScrParserGlob.saveSourceBufferLookup)
 		{
-			for (unsigned int i = 0; i < scrParserGlob.saveSourceBufferLookupLen; ++i)
+			for (unsigned int i = 0; i < ScrParserGlob.saveSourceBufferLookupLen; ++i)
 			{
-				if (scrParserGlob.saveSourceBufferLookup[i].sourceBuf)
+				if (ScrParserGlob.saveSourceBufferLookup[i].sourceBuf)
 				{
-					Game::Engine::Hunk_FreeDebugMem(scrParserGlob.saveSourceBufferLookup[i].buf);
+					Game::Engine::Hunk_FreeDebugMem(ScrParserGlob.saveSourceBufferLookup[i].buf);
 				}
 			}
 
-			Game::Engine::Hunk_FreeDebugMem(scrParserGlob.saveSourceBufferLookup);
-			scrParserGlob.saveSourceBufferLookup = nullptr;
+			Game::Engine::Hunk_FreeDebugMem(ScrParserGlob.saveSourceBufferLookup);
+			ScrParserGlob.saveSourceBufferLookup = nullptr;
 		}
 	}
 
@@ -612,39 +612,39 @@ namespace Components::GSC
 
 	Game::SourceBufferInfo* ScriptError::Scr_GetNewSourceBuffer()
 	{
-		assert(scrParserPub.sourceBufferLookup);
+		assert(ScrParserPub.sourceBufferLookup);
 
-		auto size = sizeof(Game::SourceBufferInfo) * (scrParserPub.sourceBufferLookupLen + 1);
-		if (size > scrParserGlob.sourceBufferLookupMaxSize)
+		auto size = sizeof(Game::SourceBufferInfo) * (ScrParserPub.sourceBufferLookupLen + 1);
+		if (size > ScrParserGlob.sourceBufferLookupMaxSize)
 		{
-			if (scrParserGlob.sourceBufferLookupMaxSize >= Game::MAX_SOURCEBUF_LOOKUP_SIZE)
+			if (ScrParserGlob.sourceBufferLookupMaxSize >= Game::MAX_SOURCEBUF_LOOKUP_SIZE)
 			{
 				Game::Sys_Error("MAX_SOURCEBUF_LOOKUP_SIZE exceeded");
 			}
 
-			Game::Z_VirtualCommit((char*)scrParserPub.sourceBufferLookup + scrParserGlob.sourceBufferLookupMaxSize, 0x20000);
-			scrParserGlob.sourceBufferLookupMaxSize += 0x20000;
-			assert(size <= scrParserGlob.sourceBufferLookupMaxSize);
+			Game::Z_VirtualCommit((char*)ScrParserPub.sourceBufferLookup + ScrParserGlob.sourceBufferLookupMaxSize, 0x20000);
+			ScrParserGlob.sourceBufferLookupMaxSize += 0x20000;
+			assert(size <= ScrParserGlob.sourceBufferLookupMaxSize);
 		}
 
-		return &scrParserPub.sourceBufferLookup[scrParserPub.sourceBufferLookupLen++];
+		return &ScrParserPub.sourceBufferLookup[ScrParserPub.sourceBufferLookupLen++];
 	}
 
 	void ScriptError::Scr_AddSourceBufferInternal(const char* extFilename, const char* codePos, char* sourceBuf, int len, bool doEolFixup, bool archive)
 	{
 		int i;
 
-		if (!scrParserPub.sourceBufferLookup)
+		if (!ScrParserPub.sourceBufferLookup)
 		{
-			scrParserPub.sourceBuf = nullptr;
+			ScrParserPub.sourceBuf = nullptr;
 			return;
 		}
 
 		assert((len >= -1));
 		assert((len >= 0) || !sourceBuf);
 
-		auto strLen = std::strlen(extFilename) + 1;
-		auto newLen = strLen + len + 2;
+		const auto strLen = std::strlen(extFilename) + 1;
+		const auto newLen = strLen + len + 2;
 		auto* buf = static_cast<char*>(Game::Engine::Hunk_AllocDebugMem(static_cast<int>(newLen))); // Scr_AddSourceBufferInternal
 
 		strcpy(buf, extFilename);
@@ -689,7 +689,7 @@ namespace Components::GSC
 
 		if (sourceBuf2)
 		{
-			scrParserPub.sourceBuf = sourceBuf2;
+			ScrParserPub.sourceBuf = sourceBuf2;
 		}
 	}
 
@@ -749,12 +749,12 @@ namespace Components::GSC
 	{
 		char* sourceBuf;
 
-		if (archive && scrParserGlob.saveSourceBufferLookup)
+		if (archive && ScrParserGlob.saveSourceBufferLookup)
 		{
-			assert(scrParserGlob.saveSourceBufferLookupLen > 0);
-			--scrParserGlob.saveSourceBufferLookupLen;
+			assert(ScrParserGlob.saveSourceBufferLookupLen > 0);
+			--ScrParserGlob.saveSourceBufferLookupLen;
 
-			const auto* saveSourceBuffer = scrParserGlob.saveSourceBufferLookup + scrParserGlob.saveSourceBufferLookupLen;
+			const auto* saveSourceBuffer = ScrParserGlob.saveSourceBufferLookup + ScrParserGlob.saveSourceBufferLookupLen;
 			const auto len = saveSourceBuffer->len;
 			assert(len >= -1);
 
@@ -808,7 +808,7 @@ namespace Components::GSC
 
 		sprintf_s(extFilename, "%s.gsc", Game::SL_ConvertToString(static_cast<unsigned short>(name)));
 
-		const auto* oldSourceBuf = scrParserPub.sourceBuf;
+		const auto* oldSourceBuf = ScrParserPub.sourceBuf;
 		const auto* sourceBuffer = Scr_AddSourceBuffer(Game::SL_ConvertToString(static_cast<unsigned short>(name)), extFilename, Game::TempMalloc(0), true);
 
 		if (!sourceBuffer)
@@ -820,8 +820,8 @@ namespace Components::GSC
 		Game::scrAnimPub->animTreeNames = 0;
 		Game::scrCompilePub->far_function_count = 0;
 
-		const auto* oldFilename = scrParserPub.scriptfilename;
-		scrParserPub.scriptfilename = extFilename;
+		const auto* oldFilename = ScrParserPub.scriptfilename;
+		ScrParserPub.scriptfilename = extFilename;
 
 		Game::scrCompilePub->in_ptr = "+";
 		Game::scrCompilePub->in_ptr_valid = false;
@@ -837,8 +837,8 @@ namespace Components::GSC
 
 		Game::RemoveVariable(Game::scrCompilePub->scriptsCount, name);
 
-		scrParserPub.scriptfilename = oldFilename;
-		scrParserPub.sourceBuf = oldSourceBuf;
+		ScrParserPub.scriptfilename = oldFilename;
+		ScrParserPub.sourceBuf = oldSourceBuf;
 
 		Game::scrAnimPub->animTreeNames = oldAnimTreeNames;
 
@@ -848,7 +848,7 @@ namespace Components::GSC
 	void ScriptError::Scr_Settings_Hk([[maybe_unused]] int developer, int developer_script, int abort_on_error)
 	{
 		assert(!abort_on_error || developer);
-		developer_ = (*Game::com_developer)->current.enabled;
+		Developer_ = (*Game::com_developer)->current.enabled;
 		Game::scrVarPub->developer_script = developer_script != 0;
 		Game::scrVmPub->abort_on_error = abort_on_error != 0;
 	}

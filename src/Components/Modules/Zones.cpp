@@ -1,4 +1,4 @@
-﻿#include <STDInclude.hpp>
+#include <STDInclude.hpp>
 
 #include <zlib.h>
 
@@ -2947,6 +2947,9 @@ namespace Components
 			iw4Map->mapEnts = &codolMapEnts;
 			memcpy(&iw4Map->smodelNodeCount, &codolMap->smodelNodeCount, 48);
 
+			// unused on IW4
+			iw4Map->numLeafSurfaces = 0;
+
 			AssetHandler::Relocate(&cancerMap->info.numCPlanes, &iw4Map->planeCount, 8);
 			AssetHandler::Relocate(&cancerMap->numStaticModels, &iw4Map->numStaticModels, 8);
 			AssetHandler::Relocate(&cancerMap->info.numMaterials, &iw4Map->numMaterials, 24);
@@ -3482,7 +3485,7 @@ namespace Components
 
 		if (ZoneBuilder::IsEnabled())
 		{
-			Command::Add("decryptImages", [](Command::Params*)
+			Command::Add("decryptImages", []()
 			{
 				auto images = FileSystem::GetSysFileList("iw4x/images", "iwi");
 				Logger::Print("decrypting {} images...\n", images.size());
@@ -3516,7 +3519,7 @@ namespace Components
 				Logger::Print("decrypted {} images!\n", images.size());
 			});
 
-			Command::Add("decryptSounds", []([[maybe_unused]] Command::Params* params)
+			Command::Add("decryptSounds", []()
 			{
 				auto sounds = FileSystem::GetSysFileList("iw4x/sound", "iwi");
 				Logger::Print("decrypting {} sounds...\n", sounds.size());
@@ -3653,13 +3656,6 @@ namespace Components
 
 		Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).install()->quick();
 		Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).install()->quick();
-
-#ifdef DEBUG
-		// Easy dirty disk debugging
-		Utils::Hook::Set<WORD>(0x4CF7F0, 0xC3CC);
-		// disable _invoke_watson to allow debugging
-		Utils::Hook::Set<WORD>(0x6B9602, 0xCCCC);
-#endif
 	}
 }
 #pragma optimize( "", on ) 

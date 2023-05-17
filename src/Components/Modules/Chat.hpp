@@ -42,7 +42,7 @@ namespace Components
 		static void SaveMutedList(const muteList& list);
 		static void LoadMutedList();
 
-		static void AddChatCommands();
+		static void AddServerCommands();
 
 		static int GetCallbackReturn();
 		static int ChatCallback(Game::gentity_s* self, const char* codePos, const char* message, int mode);

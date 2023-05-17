@@ -29,5 +29,7 @@ namespace Components
 
 		static void LoadBans(BanList* list);
 		static void SaveBans(const BanList* list);
+
+		static void AddServerCommands();
 	};
 }

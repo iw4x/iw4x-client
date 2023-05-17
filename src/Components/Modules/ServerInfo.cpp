@@ -54,7 +54,7 @@ namespace Components
 
 		auto* serverInfo = ServerList::GetCurrentServer();
 
-		if (info)
+		if (info && serverInfo)
 		{
 			Dvar::Var("uiSi_ServerName").set(serverInfo->hostname);
 			Dvar::Var("uiSi_MaxClients").set(serverInfo->clients);
