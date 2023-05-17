@@ -227,13 +227,13 @@ namespace Components::GSC
 
 	void ScriptError::Scr_CopyFormattedLine(char* line, const char* rawLine)
 	{
-		auto len = static_cast<int>(std::strlen(rawLine));
+		auto len = std::strlen(rawLine);
 		if (len >= 1024)
 		{
 			len = 1024 - 1;
 		}
 
-		for (auto i = 0; i < len; ++i)
+		for (std::size_t i = 0; i < len; ++i)
 		{
 			if (rawLine[i] == '\t')
 			{
