@@ -8,7 +8,7 @@ namespace Components
 		using Callback = std::vector<std::function<void()>>;
 		using ClientConnectCallback = std::vector<std::function<void(Game::client_s* cl)>>;
 		using ClientCallback = std::vector<std::function<void(int clientNum)>>;
-		using ClientCmdButtonsCallback = std::vector<std::function<void(Game::usercmd_s* cmd)>>;
+		using ClientCmdCallback = std::vector<std::function<void(Game::usercmd_s* cmd)>>;
 
 		Events();
 
@@ -49,8 +49,8 @@ namespace Components
 		static Utils::Concurrency::Container<Callback> NetworkInitTasks_;
 
 		// For speed this one does not use concurrency container. Be careful
-		static ClientCmdButtonsCallback ClientCmdButtonsTasks_;
-		static ClientCmdButtonsCallback ClientKeyMoveTasks_;
+		static ClientCmdCallback ClientCmdButtonsTasks_;
+		static ClientCmdCallback ClientKeyMoveTasks_;
 
 		static void ClientDisconnect_Hk(int clientNum);
 		static void SV_UserinfoChanged_Hk(Game::client_s* cl);
