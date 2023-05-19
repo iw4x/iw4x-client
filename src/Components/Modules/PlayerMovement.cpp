@@ -7,11 +7,11 @@
 
 namespace Components
 {
-	Dvar::Var PlayerMovement::BGRocketJump;
-	Dvar::Var PlayerMovement::BGRocketJumpScale;
-	Dvar::Var PlayerMovement::BGPlayerEjection;
-	Dvar::Var PlayerMovement::BGPlayerCollision;
-	Dvar::Var PlayerMovement::BGClimbAnything;
+	const Game::dvar_t* PlayerMovement::BGRocketJump;
+	const Game::dvar_t* PlayerMovement::BGRocketJumpScale;
+	const Game::dvar_t* PlayerMovement::BGPlayerEjection;
+	const Game::dvar_t* PlayerMovement::BGPlayerCollision;
+	const Game::dvar_t* PlayerMovement::BGClimbAnything;
 	const Game::dvar_t* PlayerMovement::CGNoclipScaler;
 	const Game::dvar_t* PlayerMovement::CGUfoScaler;
 	const Game::dvar_t* PlayerMovement::PlayerSpectateSpeedScale;
@@ -26,7 +26,7 @@ namespace Components
 	{
 		Game::PM_playerTrace(pm, results, start, end, bounds, passEntityNum, contentMask);
 
-		if (results && BGClimbAnything.get<bool>())
+		if (results && BGClimbAnything->current.enabled)
 		{
 			results[0].surfaceFlags |= SURF_LADDER;
 		}
@@ -187,10 +187,9 @@ namespace Components
 	{
 		auto* result = Game::Weapon_RocketLauncher_Fire(ent, weaponIndex, spread, wp, gunVel, lockParms, magicBullet);
 
-		if (ent->client != nullptr && BGRocketJump.get<bool>() &&
-			wp->weapDef->inventoryType != Game::WEAPINVENTORY_EXCLUSIVE)
+		if (ent->client && BGRocketJump->current.enabled && wp->weapDef->inventoryType != Game::WEAPINVENTORY_EXCLUSIVE)
 		{
-			const auto scale = BGRocketJumpScale.get<float>();
+			const auto scale = BGRocketJumpScale->current.value;
 			ent->client->ps.velocity[0] += (0.0f - wp->forward[0]) * scale;
 			ent->client->ps.velocity[1] += (0.0f - wp->forward[1]) * scale;
 			ent->client->ps.velocity[2] += (0.0f - wp->forward[2]) * scale;
@@ -201,7 +200,7 @@ namespace Components
 
 	int PlayerMovement::StuckInClient_Hk(Game::gentity_s* self)
 	{
-		if (BGPlayerEjection.get<bool>())
+		if (BGPlayerEjection->current.enabled)
 		{
 			return Utils::Hook::Call<int(Game::gentity_s*)>(0x402D30)(self); // StuckInClient
 		}
@@ -212,7 +211,7 @@ namespace Components
 	void PlayerMovement::CM_TransformedCapsuleTrace_Hk(Game::trace_t* results, const float* start, const float* end,
 		const Game::Bounds* bounds, const Game::Bounds* capsule, int contents, const float* origin, const float* angles)
 	{
-		if (BGPlayerCollision.get<bool>())
+		if (BGPlayerCollision->current.enabled)
 		{
 			Utils::Hook::Call<void(Game::trace_t*, const float*, const float*,
 				const Game::Bounds*, const Game::Bounds*, int, const float*, const float*)>
@@ -299,20 +298,20 @@ namespace Components
 		BGBunnyHopAuto = Game::Dvar_RegisterBool("bg_bunnyHopAuto",
 			false, Game::DVAR_CODINFO, "Constantly jump when holding space");
 
-		BGRocketJump = Dvar::Register<bool>("bg_rocketJump",
+		BGRocketJump = Game::Dvar_RegisterBool("bg_rocketJump",
 			false, Game::DVAR_CODINFO, "Enable CoD4 rocket jumps");
 
-		BGRocketJumpScale = Dvar::Register<float>("bg_rocketJumpScale",
+		BGRocketJumpScale = Game::Dvar_RegisterFloat("bg_rocketJumpScale",
 			64.0f, 1.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO,
 			"The scale applied to the pushback force of a rocket");
 
-		BGPlayerEjection = Dvar::Register<bool>("bg_playerEjection",
+		BGPlayerEjection = Game::Dvar_RegisterBool("bg_playerEjection",
 			true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
 
-		BGPlayerCollision = Dvar::Register<bool>("bg_playerCollision",
+		BGPlayerCollision = Game::Dvar_RegisterBool("bg_playerCollision",
 			true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
 
-		BGClimbAnything = Dvar::Register<bool>("bg_climbAnything",
+		BGClimbAnything = Game::Dvar_RegisterBool("bg_climbAnything",
 			false, Game::DVAR_CODINFO, "Treat any surface as a ladder");
 	}
 

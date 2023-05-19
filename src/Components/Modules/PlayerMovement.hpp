@@ -12,12 +12,11 @@ namespace Components
 
 		static constexpr auto SURF_LADDER = 0x8;
 
-		static Dvar::Var BGRocketJump;
-		static Dvar::Var BGRocketJumpScale;
-		static Dvar::Var BGPlayerEjection;
-		static Dvar::Var BGPlayerCollision;
-		static Dvar::Var BGClimbAnything;
-		// Can't use Var class inside assembly stubs
+		static const Game::dvar_t* BGRocketJump;
+		static const Game::dvar_t* BGRocketJumpScale;
+		static const Game::dvar_t* BGPlayerEjection;
+		static const Game::dvar_t* BGPlayerCollision;
+		static const Game::dvar_t* BGClimbAnything;
 		static const Game::dvar_t* CGNoclipScaler;
 		static const Game::dvar_t* CGUfoScaler;
 		static const Game::dvar_t* PlayerSpectateSpeedScale;
