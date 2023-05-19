@@ -12,8 +12,8 @@ namespace Components
 	Utils::Concurrency::Container<Events::Callback> Events::DvarInitTasks_;
 	Utils::Concurrency::Container<Events::Callback> Events::NetworkInitTasks_;
 
-	Events::ClientCmdButtonsCallback Events::ClientCmdButtonsTasks_;
-	Events::ClientCmdButtonsCallback Events::ClientKeyMoveTasks_;
+	Events::ClientCmdCallback Events::ClientCmdButtonsTasks_;
+	Events::ClientCmdCallback Events::ClientKeyMoveTasks_;
 
 	void Events::OnClientDisconnect(const std::function<void(int clientNum)>& callback)
 	{
