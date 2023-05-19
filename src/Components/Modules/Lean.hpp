@@ -19,8 +19,7 @@ namespace Components
 		static void IN_LeanRight_Up();
 		static void IN_LeanRight_Down();
 
-		static void CL_CmdButtons_Stub();
-		static void SetLeanFlags(Game::usercmd_s* cmd);
+		static void ApplyLeanFlags(Game::usercmd_s* cmd);
 
 		static void PM_UpdateLean_Stub(Game::playerState_s* ps, float msec, Game::usercmd_s* cmd, void(*capsuleTrace)(Game::trace_t*, const float*, const float*, const Game::Bounds*, int, int));
 	};

@@ -12,6 +12,9 @@ namespace Components
 	Utils::Concurrency::Container<Events::Callback> Events::DvarInitTasks_;
 	Utils::Concurrency::Container<Events::Callback> Events::NetworkInitTasks_;
 
+	Events::ClientCmdButtonsCallback Events::ClientCmdButtonsTasks_;
+	Events::ClientCmdButtonsCallback Events::ClientKeyMoveTasks_;
+
 	void Events::OnClientDisconnect(const std::function<void(int clientNum)>& callback)
 	{
 		ClientDisconnectTasks_.access([&callback](ClientCallback& tasks)
@@ -50,6 +53,16 @@ namespace Components
 		{
 			tasks.emplace_back(callback);
 		});
+	}
+
+	void Events::OnClientCmdButtons(const std::function<void(Game::usercmd_s*)>& callback)
+	{
+		ClientCmdButtonsTasks_.emplace_back(callback);
+	}
+
+	void Events::OnClientKeyMove(const std::function<void(Game::usercmd_s*)>& callback)
+	{
+		ClientKeyMoveTasks_.emplace_back(callback);
 	}
 
 	void Events::OnSVInit(const std::function<void()>& callback)
@@ -147,6 +160,60 @@ namespace Components
 		Utils::Hook::Call<void()>(0x404CA0)(); // CL_InitOnceForAllClients
 	}
 
+	void Events::CL_CmdButtons(Game::usercmd_s* cmd)
+	{
+		for (const auto& func : ClientCmdButtonsTasks_)
+		{
+			func(cmd);
+		}
+	}
+
+	void __declspec(naked) Events::CL_CmdButtons_Stub()
+	{
+		static const DWORD CL_CmdButtons_t = 0x5A6510;
+
+		__asm
+		{
+			call CL_CmdButtons_t
+
+			pushad
+
+			push esi
+			call CL_CmdButtons
+			add esp, 0x4
+
+			popad
+			ret
+		}
+	}
+
+	void Events::CL_KeyMove(Game::usercmd_s* cmd)
+	{
+		for (const auto& func : ClientKeyMoveTasks_)
+		{
+			func(cmd);
+		}
+	}
+
+	void __declspec(naked) Events::CL_KeyMove_Stub()
+	{
+		static const DWORD CL_KeyMove_t = 0x5A5F40;
+
+		__asm
+		{
+			call CL_KeyMove_t
+
+			pushad
+
+			push esi
+			call CL_KeyMove
+			add esp, 0x4
+
+			popad
+			ret
+		}
+	}
+
 	void Events::SV_Init_Hk()
 	{
 		ServerInitTasks_.access([](Callback& tasks)
@@ -212,6 +279,10 @@ namespace Components
 		Utils::Hook(0x4D06BA, Scr_ShutdownSystem_Hk, HOOK_CALL).install()->quick(); // G_ShutdownGame
 
 		Utils::Hook(0x60BE5B, CL_InitOnceForAllClients_HK, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
+
+		Utils::Hook(0x5A6D84, CL_CmdButtons_Stub, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x5A6D8B, CL_KeyMove_Stub, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x60BB3A, Com_InitDvars_Hk, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
