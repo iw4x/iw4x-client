@@ -110,7 +110,7 @@ namespace Assets
 		}
 		catch (const nlohmann::json::parse_error& ex)
 		{
-			Components::Logger::Error(Game::ERR_FATAL, "Json Parse Error: {}. Font {} is invalid\n", ex.what(), name);
+			Components::Logger::Error(Game::ERR_FATAL, "JSON Parse Error: {}. Font {} is invalid\n", ex.what(), name);
 			return;
 		}
 

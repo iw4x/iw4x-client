@@ -181,7 +181,7 @@ namespace Components
 
 				if (FileSystem::File file = std::format("localizedstrings/{}.json", filename))
 				{
-					Assets::ILocalizeEntry::ParseLocalizedStringsJson(this, file);
+					Assets::ILocalizeEntry::ParseLocalizedStringsJSON(this, file);
 					continue;
 				}
 			}

@@ -119,13 +119,13 @@ namespace Components
 			}
 		}
 
-		auto mapRotationJson = nlohmann::json
+		auto mapRotationJSON = nlohmann::json
 		{
 			{ "maps", mapVector },
 			{ "gametypes", gametypeVector },
 		};
 
-		return mapRotationJson;
+		return mapRotationJSON;
 	}
 
 	void MapRotation::ParseRotation(const std::string& data)

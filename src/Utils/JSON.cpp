@@ -1,9 +1,9 @@
 #include <STDInclude.hpp>
 #include <bitset>
 
-#include "Json.hpp"
+#include "JSON.hpp"
 
-namespace Utils::Json
+namespace Utils::JSON
 {
 	std::string TypeToString(const nlohmann::json::value_t type)
 	{

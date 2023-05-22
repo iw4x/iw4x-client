@@ -2,7 +2,7 @@
 
 #include <json.hpp>
 
-namespace Utils::Json
+namespace Utils::JSON
 {
 	std::string TypeToString(nlohmann::json::value_t type);
 

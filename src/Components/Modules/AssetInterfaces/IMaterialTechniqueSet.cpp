@@ -1,8 +1,6 @@
 #include <STDInclude.hpp>
 #include "IMaterialTechniqueSet.hpp"
 
-#include <Utils/Json.hpp>
-
 #define IW4X_TECHSET_VERSION 1
 
 namespace Assets

@@ -104,7 +104,7 @@ namespace Components::GSC
 			}
 			catch (const std::exception& ex)
 			{
-				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}. File {} is invalid\n", ex.what(), storageFile.getName());
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "JSON Parse Error: {}. File {} is invalid\n", ex.what(), storageFile.getName());
 			}
 		});
 
