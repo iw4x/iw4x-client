@@ -8,7 +8,8 @@ namespace Components
 	{
 	public:
 		Menus();
-		~Menus();
+
+		void preDestroy() override;
 
 		static void FreeEverything();
 
