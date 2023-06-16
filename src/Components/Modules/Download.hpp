@@ -24,24 +24,24 @@ namespace Components
 		class ClientDownload
 		{
 		public:
-			ClientDownload(bool _isMap = false) : running(false), valid(false), terminateThread(false), isMap(_isMap), totalBytes(0), downBytes(0), lastTimeStamp(0), timeStampBytes(0) {}
+			ClientDownload(bool isMap = false) : running_(false), valid_(false), terminateThread_(false), isMap_(isMap), totalBytes_(0), downBytes_(0), lastTimeStamp_(0), timeStampBytes_(0) {}
 			~ClientDownload() { this->clear(); }
 
-			bool running;
-			bool valid;
-			bool terminateThread;
-			bool isMap;
-			bool isPrivate;
-			Network::Address target;
-			std::string hashedPassword;
-			std::string mod;
-			std::thread thread;
+			bool running_;
+			bool valid_;
+			bool terminateThread_;
+			bool isMap_;
+			bool isPrivate_;
+			Network::Address target_;
+			std::string hashedPassword_;
+			std::string mod_;
+			std::thread thread_;
 
-			std::size_t totalBytes;
-			std::size_t downBytes;
+			std::size_t totalBytes_;
+			std::size_t downBytes_;
 
-			int lastTimeStamp;
-			std::size_t timeStampBytes;
+			int lastTimeStamp_;
+			std::size_t timeStampBytes_;
 
 			class File
 			{
@@ -51,24 +51,24 @@ namespace Components
 				std::size_t size;
 			};
 
-			std::vector<File> files;
+			std::vector<File> files_;
 
 			void clear()
 			{
-				this->terminateThread = true;
+				this->terminateThread_ = true;
 
-				if (this->thread.joinable())
+				if (this->thread_.joinable())
 				{
-					this->thread.join();
+					this->thread_.join();
 				}
 
-				this->running = false;
-				this->mod.clear();
-				this->files.clear();
+				this->running_ = false;
+				this->mod_.clear();
+				this->files_.clear();
 
-				if (this->valid)
+				if (this->valid_)
 				{
-					this->valid = false;
+					this->valid_ = false;
 				}
 			}
 		};

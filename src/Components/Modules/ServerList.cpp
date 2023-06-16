@@ -29,7 +29,7 @@ namespace Components
 	Dvar::Var ServerList::NETServerQueryLimit;
 	Dvar::Var ServerList::NETServerFrames;
 
-	bool ServerList::UseMasterServer = true;
+	bool ServerList::UseMasterServer = false;
 
 	std::vector<ServerList::ServerInfo>* ServerList::GetList()
 	{

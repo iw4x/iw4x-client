@@ -353,18 +353,18 @@ namespace Components
 
 		Scheduler::OnGameInitialized(loadNodes, Scheduler::Pipeline::MAIN);
 
-		Command::Add("listnodes", [](const Command::Params*)
+		Command::Add("listNodes", [](const Command::Params*)
 		{
 			Logger::Print("Nodes: {}\n", Node::Nodes.size());
 
 			std::lock_guard _(Node::Mutex);
-			for (auto& node : Node::Nodes)
+			for (const auto& node : Node::Nodes)
 			{
 				Logger::Print("{}\t({})\n", node.address.getString(), node.isValid() ? "Valid" : "Invalid");
 			}
 		});
 
-		Command::Add("addnode", [](const Command::Params* params)
+		Command::Add("addNode", [](const Command::Params* params)
 		{
 			if (params->size() < 2) return;
 			auto address = Network::Address{ params->get(1) };

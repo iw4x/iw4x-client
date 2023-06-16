@@ -5,6 +5,7 @@
 #include "Download.hpp"
 #include "Events.hpp"
 #include "MapRotation.hpp"
+#include "Node.hpp"
 #include "Party.hpp"
 #include "ServerInfo.hpp"
 
@@ -40,7 +41,7 @@ namespace Components
 
 	void Download::InitiateClientDownload(const std::string& mod, bool needPassword, bool map)
 	{
-		if (CLDownload.running) return;
+		if (CLDownload.running_) return;
 
 		Scheduler::Once([]
 		{
@@ -61,26 +62,26 @@ namespace Components
 				return;
 			}
 
-			CLDownload.hashedPassword = Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(password), "");
+			CLDownload.hashedPassword_ = Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(password), "");
 		}
 
-		CLDownload.running = true;
-		CLDownload.isMap = map;
-		CLDownload.mod = mod;
-		CLDownload.terminateThread = false;
-		CLDownload.totalBytes = 0;
-		CLDownload.lastTimeStamp = 0;
-		CLDownload.downBytes = 0;
-		CLDownload.timeStampBytes = 0;
-		CLDownload.isPrivate = needPassword;
-		CLDownload.target = Party::Target();
-		CLDownload.thread = std::thread(ModDownloader, &CLDownload);
+		CLDownload.running_ = true;
+		CLDownload.isMap_ = map;
+		CLDownload.mod_ = mod;
+		CLDownload.terminateThread_ = false;
+		CLDownload.totalBytes_ = 0;
+		CLDownload.lastTimeStamp_ = 0;
+		CLDownload.downBytes_ = 0;
+		CLDownload.timeStampBytes_ = 0;
+		CLDownload.isPrivate_ = needPassword;
+		CLDownload.target_ = Party::Target();
+		CLDownload.thread_ = std::thread(ModDownloader, &CLDownload);
 	}
 
 	bool Download::ParseModList(ClientDownload* download, const std::string& list)
 	{
 		if (!download) return false;
-		download->files.clear();
+		download->files_.clear();
 
 		nlohmann::json listData;
 		try
@@ -98,7 +99,7 @@ namespace Components
 			return false;
 		}
 
-		download->totalBytes = 0;
+		download->totalBytes_ = 0;
 		const nlohmann::json::array_t listDataArray = listData;
 
 		for (auto& file : listDataArray)
@@ -118,8 +119,8 @@ namespace Components
 
 				if (!fileEntry.name.empty())
 				{
-					download->files.push_back(fileEntry);
-					download->totalBytes += fileEntry.size;
+					download->files_.push_back(fileEntry);
+					download->totalBytes_ += fileEntry.size;
 				}
 			}
 			catch (const nlohmann::json::exception& ex)
@@ -134,12 +135,12 @@ namespace Components
 
 	bool Download::DownloadFile(ClientDownload* download, unsigned int index)
 	{
-		if (!download || download->files.size() <= index) return false;
+		if (!download || download->files_.size() <= index) return false;
 
-		auto file = download->files[index];
+		auto file = download->files_[index];
 
-		auto path = download->mod + "/" + file.name;
-		if (download->isMap)
+		auto path = download->mod_ + "/" + file.name;
+		if (download->isMap_)
 		{
 			path = "usermaps/" + path;
 		}
@@ -149,16 +150,16 @@ namespace Components
 			auto data = Utils::IO::ReadFile(path);
 			if (data.size() == file.size && Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(data), "") == file.hash)
 			{
-				download->totalBytes += file.size;
+				download->totalBytes_ += file.size;
 				return true;
 			}
 		}
 
-		auto host = "http://" + download->target.getString();
+		auto host = "http://" + download->target_.getString();
 		auto fastHost = SV_wwwBaseUrl.get<std::string>();
 		if (Utils::String::StartsWith(fastHost, "https://"))
 		{
-			download->thread.detach();
+			download->thread_.detach();
 			download->clear();
 
 			Scheduler::Once([]
@@ -197,8 +198,8 @@ namespace Components
 		}
 		else
 		{
-			url = host + "/file/" + (download->isMap ? "map/" : "") + file.name
-				+ (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
+			url = host + "/file/" + (download->isMap_ ? "map/" : "") + file.name
+				+ (download->isPrivate_ ? ("?password=" + download->hashedPassword_) : "");
 		}
 
 		Logger::Print("Downloading from url {}\n", url);
@@ -212,14 +213,14 @@ namespace Components
 
 		Utils::String::Replace(url, " ", "%20");
 
-		download->valid = true;
+		download->valid_ = true;
 
 		fDownload.downloading = true;
 
 		Utils::WebIO webIO;
 		webIO.setProgressCallback([&fDownload, &webIO](std::size_t bytes, std::size_t)
 		{
-			if(!fDownload.downloading || fDownload.download->terminateThread)
+			if(!fDownload.downloading || fDownload.download->terminateThread_)
 			{
 				webIO.cancelDownload();
 				return;
@@ -234,14 +235,14 @@ namespace Components
 
 		fDownload.downloading = false;
 
-		download->valid = false;
+		download->valid_ = false;
 
 		if (fDownload.buffer.size() != file.size || Utils::Cryptography::SHA256::Compute(fDownload.buffer, true) != file.hash)
 		{
 			return false;
 		}
 
-		if (download->isMap) Utils::IO::CreateDir("usermaps/" + download->mod);
+		if (download->isMap_) Utils::IO::CreateDir("usermaps/" + download->mod_);
 		Utils::IO::WriteFile(path, fDownload.buffer);
 
 		return true;
@@ -251,16 +252,16 @@ namespace Components
 	{
 		if (!download) download = &CLDownload;
 
-		const auto host = "http://" + download->target.getString();
+		const auto host = "http://" + download->target_.getString();
 
-		const auto listUrl = host + (download->isMap ? "/map" : "/list") + (download->isPrivate ? ("?password=" + download->hashedPassword) : "");
+		const auto listUrl = host + (download->isMap_ ? "/map" : "/list") + (download->isPrivate_ ? ("?password=" + download->hashedPassword_) : "");
 
 		const auto list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->get();
 		if (list.empty())
 		{
-			if (download->terminateThread) return;
+			if (download->terminateThread_) return;
 
-			download->thread.detach();
+			download->thread_.detach();
 			download->clear();
 
 			Scheduler::Once([]
@@ -272,13 +273,13 @@ namespace Components
 			return;
 		}
 
-		if (download->terminateThread) return;
+		if (download->terminateThread_) return;
 
 		if (!ParseModList(download, list))
 		{
-			if (download->terminateThread) return;
+			if (download->terminateThread_) return;
 
-			download->thread.detach();
+			download->thread_.detach();
 			download->clear();
 
 			Scheduler::Once([]
@@ -290,21 +291,21 @@ namespace Components
 			return;
 		}
 
-		if (download->terminateThread) return;
+		if (download->terminateThread_) return;
 
 		static std::string mod;
-		mod = download->mod;
+		mod = download->mod_;
 
-		for (std::size_t i = 0; i < download->files.size(); ++i)
+		for (std::size_t i = 0; i < download->files_.size(); ++i)
 		{
-			if (download->terminateThread) return;
+			if (download->terminateThread_) return;
 
 			if (!DownloadFile(download, i))
 			{
-				if (download->terminateThread) return;
+				if (download->terminateThread_) return;
 
-				mod = std::format("Failed to download file: {}!", download->files[i].name);
-				download->thread.detach();
+				mod = std::format("Failed to download file: {}!", download->files_[i].name);
+				download->thread_.detach();
 				download->clear();
 
 				Scheduler::Once([]
@@ -320,12 +321,12 @@ namespace Components
 			}
 		}
 
-		if (download->terminateThread) return;
+		if (download->terminateThread_) return;
 
-		download->thread.detach();
+		download->thread_.detach();
 		download->clear();
 
-		if (download->isMap)
+		if (download->isMap_)
 		{
 			Scheduler::Once([]
 			{
@@ -357,22 +358,22 @@ namespace Components
 	void Download::DownloadProgress(FileDownload* fDownload, std::size_t bytes)
 	{
 		fDownload->receivedBytes += bytes;
-		fDownload->download->downBytes += bytes;
-		fDownload->download->timeStampBytes += bytes;
+		fDownload->download->downBytes_ += bytes;
+		fDownload->download->timeStampBytes_ += bytes;
 
 		static volatile bool framePushed = false;
 
 		if (!framePushed)
 		{
 			double progress = 0;
-			if (fDownload->download->totalBytes)
+			if (fDownload->download->totalBytes_)
 			{
-				progress = (100.0 / fDownload->download->totalBytes) * fDownload->download->downBytes;
+				progress = (100.0 / fDownload->download->totalBytes_) * fDownload->download->downBytes_;
 			}
 
 			static std::uint32_t dlIndex, dlSize, dlProgress;
 			dlIndex = fDownload->index + 1;
-			dlSize = fDownload->download->files.size();
+			dlSize = fDownload->download->files_.size();
 			dlProgress = static_cast<std::uint32_t>(progress);
 
 			framePushed = true;
@@ -383,18 +384,18 @@ namespace Components
 			}, Scheduler::Pipeline::MAIN);
 		}
 
-		auto delta = Game::Sys_Milliseconds() - fDownload->download->lastTimeStamp;
+		auto delta = Game::Sys_Milliseconds() - fDownload->download->lastTimeStamp_;
 		if (delta > 300)
 		{
-			const auto doFormat = fDownload->download->lastTimeStamp != 0;
-			fDownload->download->lastTimeStamp = Game::Sys_Milliseconds();
+			const auto doFormat = fDownload->download->lastTimeStamp_ != 0;
+			fDownload->download->lastTimeStamp_ = Game::Sys_Milliseconds();
 
-			const auto dataLeft = fDownload->download->totalBytes - fDownload->download->downBytes;
+			const auto dataLeft = fDownload->download->totalBytes_ - fDownload->download->downBytes_;
 
 			int timeLeft = 0;
-			if (fDownload->download->timeStampBytes)
+			if (fDownload->download->timeStampBytes_)
 			{
-				const double timeLeftD = ((1.0 * dataLeft) / fDownload->download->timeStampBytes) * delta;
+				const double timeLeftD = ((1.0 * dataLeft) / fDownload->download->timeStampBytes_) * delta;
 				timeLeft = static_cast<int>(timeLeftD);
 			}
 
@@ -404,7 +405,7 @@ namespace Components
 				static int dlDelta, dlTimeLeft;
 				dlTimeLeft = timeLeft;
 				dlDelta = delta;
-				dlTsBytes = fDownload->download->timeStampBytes;
+				dlTsBytes = fDownload->download->timeStampBytes_;
 
 				Scheduler::Once([]
 				{
@@ -413,7 +414,7 @@ namespace Components
 				}, Scheduler::Pipeline::MAIN);
 			}
 
-			fDownload->download->timeStampBytes = 0;
+			fDownload->download->timeStampBytes_ = 0;
 		}
 	}
 
@@ -434,7 +435,7 @@ namespace Components
 		MongooseLogBuffer.push_back(c);
 	}
 
-	static std::string InfoHandler()
+	static std::optional<std::string> InfoHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
 	{
 		const auto status = ServerInfo::GetInfo();
 		const auto host = ServerInfo::GetHostInfo();
@@ -480,10 +481,12 @@ namespace Components
 		}
 
 		info["players"] = players;
-		return nlohmann::json(info).dump();
+		std::string out = nlohmann::json(info).dump();
+
+		return { out };
 	}
 
-	static std::string ListHandler()
+	static std::optional<std::string> ListHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
 	{
 		static nlohmann::json jsonList;
 		static std::filesystem::path fsGamePre;
@@ -526,10 +529,12 @@ namespace Components
 			jsonList = fileList;
 		}
 
-		return jsonList.dump();
+		std::string out = jsonList.dump();
+
+		return { out };
 	}
 
-	static std::string MapHandler()
+	static std::optional<std::string> MapHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
 	{
 		static std::string mapNamePre;
 		static nlohmann::json jsonList;
@@ -570,10 +575,12 @@ namespace Components
 			jsonList = fileList;
 		}
 
-		return jsonList.dump();
+		std::string out = jsonList.dump();
+
+		return { out };
 	}
 
-	static void FileHandler(mg_connection* c, const mg_http_message* hm)
+	static std::optional<std::string> FileHandler(mg_connection* c, const mg_http_message* hm)
 	{
 		std::string url(hm->uri.ptr, hm->uri.len);
 
@@ -602,7 +609,7 @@ namespace Components
 			if ((!Maps::GetUserMap()->isValid() && !Party::IsInUserMapLobby()) || !isValidFile)
 			{
 				mg_http_reply(c, 403, "Content-Type: text/html\r\n", "%s", "403 - Forbidden");
-				return;
+				return {};
 			}
 
 			url = std::format("usermaps\\{}\\{}", mapName, url);
@@ -612,7 +619,7 @@ namespace Components
 			if ((!url.ends_with(".iwd") && url != "mod.ff") || url.find("_svr_") != std::string::npos)
 			{
 				mg_http_reply(c, 403, "Content-Type: text/html\r\n", "%s", "403 - Forbidden");
-				return;
+				return {};
 			}
 		}
 
@@ -633,10 +640,44 @@ namespace Components
 			mg_printf(c, "%s", "\r\n");
 			mg_send(c, file.data(), file.size());
 		}
+
+		return {};
+	}
+
+	static std::optional<std::string> ServerListHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
+	{
+		std::vector<std::string> servers;
+
+		const auto nodes = Node::GetNodes();
+		for (const auto& node : nodes)
+		{
+			const auto address = node.address.getString();
+			servers.emplace_back(address);
+		}
+
+		nlohmann::json jsonList = servers;
+		std::string out = jsonList.dump();
+
+		return { out };
 	}
 
 	static void EventHandler(mg_connection* c, const int ev, void* ev_data, [[maybe_unused]] void* fn_data)
 	{
+		using callback = std::function<std::optional<std::string>(mg_connection*, const mg_http_message*)>;
+
+		static const auto handlers = []() -> std::unordered_map<std::string, callback>
+		{
+			std::unordered_map<std::string, callback> f;
+
+			f["/file"] = FileHandler;
+			f["/info"] = InfoHandler;
+			f["/list"] = ListHandler;
+			f["/map"] = MapHandler;
+			f["/serverlist"] = ServerListHandler;
+
+			return f;
+		}();
+
 		if (ev != MG_EV_HTTP_MSG)
 		{
 			return;
@@ -645,26 +686,24 @@ namespace Components
 		auto* hm = static_cast<mg_http_message*>(ev_data);
 		const std::string url(hm->uri.ptr, hm->uri.len);
 
-		if (url.starts_with("/info"))
+		auto handled = false;
+		for (auto i = handlers.begin(); i != handlers.end();)
 		{
-			const auto reply = InfoHandler();
-			mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%s", reply.data());
+			if (url.starts_with(i->first))
+			{
+				if (const auto reply = i->second(c, hm))
+				{
+					mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%s", reply.value().data());
+				}
+
+				handled = true;
+				break;
+			}
+
+			++i;
 		}
-		else if (url.starts_with("/list"))
-		{
-			const auto reply = ListHandler();
-			mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%s", reply.data());
-		}
-		else if (url.starts_with("/map"))
-		{
-			const auto reply = MapHandler();
-			mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%s", reply.data());
-		}
-		else if (url.starts_with("/file"))
-		{
-			FileHandler(c, hm);
-		}
-		else
+
+		if (!handled)
 		{
 			mg_http_serve_opts opts = { .root_dir = "iw4x/html" }; // Serve local dir
 			mg_http_serve_dir(c, hm, &opts);
