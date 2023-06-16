@@ -43,4 +43,4 @@
 	url = https://github.com/Tencent/rapidjson.git
 [submodule "deps/iw4-open-formats"]
 	path = deps/iw4-open-formats
-	url = https://github.com/XLabsProject/iw4-open-formats.git
+	url = https://github.com/diamante0018/iw4-open-formats.git
