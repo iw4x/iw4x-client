@@ -34,7 +34,7 @@ namespace Components
 		};
 
 		Node();
-		~Node();
+		void preDestroy() override;
 
 		static void Add(Network::Address address);
 		static std::vector<Entry> GetNodes();
@@ -55,5 +55,7 @@ namespace Components
 		static void StoreNodes(bool force);
 
 		static unsigned short GetPort();
+
+		static void Migrate();
 	};
 }
