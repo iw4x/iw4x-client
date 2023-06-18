@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-_Before opening a new feature request, please see [Issues](https://github.com/XLabsProject/iw4x-client/issues) and check that a similar issue does not already exist.
+_Before opening a new feature request, please see [Issues](https://github.com/diamante0018/iw4x-client/issues) and check that a similar issue does not already exist.
 If this a new request, help us help you by filling in the template below._
 
 **What problem will this solve?**

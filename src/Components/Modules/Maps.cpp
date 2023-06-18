@@ -767,16 +767,7 @@ namespace Components
 
 			UIScript::Add("downloadDLC", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 			{
-				int dlc = token.get<int>();
-
-				for (const auto& pack : Maps::DlcPacks)
-				{
-					if (pack.index == dlc)
-					{
-						ShellExecuteW(0, 0, L"https://xlabs.dev/support_iw4x_client.html", 0, 0, SW_SHOW);
-						return;
-					}
-				}
+				const auto dlc = token.get<int>();
 
 				Game::ShowMessageBox(Utils::String::VA("DLC %d does not exist!", dlc), "ERROR");
 			});

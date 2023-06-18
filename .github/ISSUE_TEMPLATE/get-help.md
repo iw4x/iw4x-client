@@ -8,8 +8,8 @@ assignees: ''
 ---
 
 _Do not open an issue here if you need help with modding or have a problem getting the client to run.
-It is very likely your problem will be resolved by reading the [FAQ](https://xlabs.dev/iw4x_faq) carefully.
-Ask in `iw4x-support` or `iw4x-modding` channels on the [Discord](https://discord.gg/sKeVmR3) server if you still have problems.
+It is very likely your problem will be resolved by reading the [FAQ](https://youtu.be/dQw4w9WgXcQ) carefully.
+Ask in `iw4x-support` or `iw4x-modding` channels on the [Discord](https://alterware.dev/) server if you still have problems.
 If this does not apply, please continue by filling in the template below._
 
 **What are you trying to do?**

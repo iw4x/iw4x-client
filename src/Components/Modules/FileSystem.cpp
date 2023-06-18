@@ -153,7 +153,7 @@ namespace Components
 			CoTaskMemFree(path);
 		});
 
-		return std::filesystem::path(path) / "xlabs";
+		return std::filesystem::path(path);
 	}
 
 	std::vector<std::string> FileSystem::GetFileList(const std::string& path, const std::string& extension)
@@ -376,7 +376,7 @@ namespace Components
 		// Handle IWD freeing
 		Utils::Hook(0x642F60, IwdFreeStub, HOOK_CALL).install()->quick();
 
-		// Set the working dir based on info from the Xlabs launcher
+		// Set the working dir based on info from the AlterWare launcher
 		Utils::Hook(0x4326E0, Sys_DefaultInstallPath_Hk, HOOK_JUMP).install()->quick();
 	}
 

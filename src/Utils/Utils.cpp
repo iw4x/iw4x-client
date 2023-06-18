@@ -112,15 +112,15 @@ namespace Utils
 		auto* exeBaseName = std::wcsrchr(binaryPath, L'\\');
 		exeBaseName[0] = L'\0';
 
-		// Make the game work without the xlabs launcher
+		// Make the game work without the AlterWare launcher
 		SetCurrentDirectoryW(binaryPath);
 	}
 
 	void SetEnvironment()
 	{
-		wchar_t* buffer{};
+		char* buffer{};
 		std::size_t size{};
-		if (_wdupenv_s(&buffer, &size, L"XLABS_MW2_INSTALL") != 0 || buffer == nullptr)
+		if (_dupenv_s(&buffer, &size, "MW2_INSTALL") != 0 || buffer == nullptr)
 		{
 			SetLegacyEnvironment();
 			return;
@@ -128,8 +128,8 @@ namespace Utils
 
 		const auto _0 = gsl::finally([&] { std::free(buffer); });
 
-		SetCurrentDirectoryW(buffer);
-		SetDllDirectoryW(buffer);
+		SetCurrentDirectoryA(buffer);
+		SetDllDirectoryA(buffer);
 	}
 
 	HMODULE GetNTDLL()
