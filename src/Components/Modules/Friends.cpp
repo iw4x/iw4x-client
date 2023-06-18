@@ -554,7 +554,7 @@ namespace Components
 	{
 		Friends::LoggedOn = false;
 
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
+		if (Dedicated::IsEnabled()) return;
 
 		Friends::UIStreamFriendly = Dvar::Register<bool>("ui_streamFriendly", false, Game::DVAR_ARCHIVE, "Stream friendly UI");
 		Friends::CLAnonymous = Dvar::Register<bool>("cl_anonymous", false, Game::DVAR_ARCHIVE, "Enable invisible mode for Steam");
@@ -704,7 +704,7 @@ namespace Components
 
 	Friends::~Friends()
 	{
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
+		if (Dedicated::IsEnabled()) return;
 
 		Friends::StoreFriendsList();
 

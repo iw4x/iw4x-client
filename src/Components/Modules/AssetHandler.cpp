@@ -2,44 +2,10 @@
 #include "FastFiles.hpp"
 #include "Weapon.hpp"
 
-#include "AssetInterfaces/IFont_s.hpp"
-#include "AssetInterfaces/IWeapon.hpp"
-#include "AssetInterfaces/IXModel.hpp"
-#include "AssetInterfaces/IFxWorld.hpp"
-#include "AssetInterfaces/IMapEnts.hpp"
-#include "AssetInterfaces/IRawFile.hpp"
-#include "AssetInterfaces/IComWorld.hpp"
-#include "AssetInterfaces/IGfxImage.hpp"
-#include "AssetInterfaces/IGfxWorld.hpp"
-#include "AssetInterfaces/IMaterial.hpp"
-#include "AssetInterfaces/ISndCurve.hpp"
-#include "AssetInterfaces/IMenuList.hpp"
-#include "AssetInterfaces/IclipMap_t.hpp"
-#include "AssetInterfaces/ImenuDef_t.hpp"
-#include "AssetInterfaces/ITracerDef.hpp"
-#include "AssetInterfaces/IPhysPreset.hpp"
-#include "AssetInterfaces/IXAnimParts.hpp"
-#include "AssetInterfaces/IFxEffectDef.hpp"
-#include "AssetInterfaces/IGameWorldMp.hpp"
-#include "AssetInterfaces/IGameWorldSp.hpp"
-#include "AssetInterfaces/IGfxLightDef.hpp"
-#include "AssetInterfaces/ILoadedSound.hpp"
-#include "AssetInterfaces/IPhysCollmap.hpp"
-#include "AssetInterfaces/IStringTable.hpp"
-#include "AssetInterfaces/IXModelSurfs.hpp"
-#include "AssetInterfaces/ILocalizeEntry.hpp"
-#include "AssetInterfaces/Isnd_alias_list_t.hpp"
-#include "AssetInterfaces/IMaterialPixelShader.hpp"
-#include "AssetInterfaces/IMaterialTechniqueSet.hpp"
-#include "AssetInterfaces/IMaterialVertexShader.hpp"
-#include "AssetInterfaces/IStructuredDataDefSet.hpp"
-#include "AssetInterfaces/IMaterialVertexDeclaration.hpp"
-
 namespace Components
 {
 	thread_local int AssetHandler::BypassState = 0;
 	bool AssetHandler::ShouldSearchTempAssets = false;
-	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
 	std::map<Game::XAssetType, Utils::Slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
 	Utils::Signal<AssetHandler::RestrictCallback> AssetHandler::RestrictSignal;
 
@@ -48,28 +14,6 @@ namespace Components
 	std::vector<std::pair<Game::XAssetType, std::string>> AssetHandler::EmptyAssets;
 
 	std::map<std::string, Game::XAssetHeader> AssetHandler::TemporaryAssets[Game::ASSET_TYPE_COUNT];
-
-	void AssetHandler::RegisterInterface(IAsset* iAsset)
-	{
-		if (!iAsset) return;
-		if (iAsset->getType() == Game::XAssetType::ASSET_TYPE_INVALID)
-		{
-			delete iAsset;
-			return;
-		}
-
-		if (AssetHandler::AssetInterfaces.contains(iAsset->getType()))
-		{
-			Logger::Print("Duplicate asset interface: {}\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
-			delete AssetHandler::AssetInterfaces[iAsset->getType()];
-		}
-		else
-		{
-			Logger::Print("Asset interface registered: {}\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
-		}
-
-		AssetHandler::AssetInterfaces[iAsset->getType()] = iAsset;
-	}
 
 	void AssetHandler::ClearTemporaryAssets()
 	{
@@ -379,68 +323,6 @@ namespace Components
 		offset->pointer = *static_cast<void**>(pointer);
 	}
 
-	void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)
-	{
-		if (AssetHandler::AssetInterfaces.contains(asset.type))
-		{
-			AssetHandler::AssetInterfaces[asset.type]->save(asset.header, builder);
-		}
-		else
-		{
-			Logger::Error(Game::ERR_FATAL, "No interface for type '{}'!", Game::DB_GetXAssetTypeName(asset.type));
-		}
-	}
-
-	void AssetHandler::ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder)
-	{
-		if (AssetHandler::AssetInterfaces.contains(asset.type))
-		{
-			AssetHandler::AssetInterfaces[asset.type]->mark(asset.header, builder);
-		}
-		else
-		{
-			Logger::Error(Game::ERR_FATAL, "No interface for type '{}'!", Game::DB_GetXAssetTypeName(asset.type));
-		}
-	}
-
-	Game::XAssetHeader AssetHandler::FindAssetForZone(Game::XAssetType type, const std::string& filename, ZoneBuilder::Zone* builder, bool isSubAsset)
-	{
-		ZoneBuilder::Zone::AssetRecursionMarker _(builder);
-
-		Game::XAssetHeader header = { nullptr };
-		if (type >= Game::ASSET_TYPE_COUNT) return header;
-
-		auto tempPool = &AssetHandler::TemporaryAssets[type];
-		auto entry = tempPool->find(filename);
-		if (entry != tempPool->end())
-		{
-			return { entry->second };
-		}
-
-		if (AssetHandler::AssetInterfaces.contains(type))
-		{
-			AssetHandler::AssetInterfaces[type]->load(&header, filename, builder);
-
-			if (header.data)
-			{
-				Components::AssetHandler::StoreTemporaryAsset(type, header);
-			}
-		}
-
-		if (!header.data && isSubAsset)
-		{
-			header = ZoneBuilder::GetEmptyAssetIfCommon(type, filename, builder);
-		}
-
-		if (!header.data)
-		{
-			header = Game::DB_FindXAssetHeader(type, filename.data());
-			if (header.data) Components::AssetHandler::StoreTemporaryAsset(type, header); // Might increase efficiency...
-		}
-
-		return header;
-	}
-
 	Game::XAssetHeader AssetHandler::FindOriginalAsset(Game::XAssetType type, const char* filename)
 	{
 		AssetHandler::SetBypassState(true);
@@ -484,7 +366,7 @@ namespace Components
 	{
 		AssertSize(Game::XAssetEntry, 16);
 
-		size_t size = (ZoneBuilder::IsEnabled() ? 1183968 : 789312);
+		constexpr std::size_t size = 789312;
 		Game::XAssetEntry* entryPool = Utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
 
 		// Apply new size
@@ -553,7 +435,7 @@ namespace Components
 		Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).install()->quick();
 
 		// Intercept missing asset messages
-		if (!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB3F2, AssetHandler::MissingAssetError, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5BB3F2, AssetHandler::MissingAssetError, HOOK_CALL).install()->quick();
 
 		// Log missing empty assets
 		Scheduler::Loop([]
@@ -578,77 +460,27 @@ namespace Components
 		});
 
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_GAMEWORLD_SP, 1);
-		Game::ReallocateAssetPool(Game::ASSET_TYPE_IMAGE, ZoneBuilder::IsEnabled() ? 14336 * 2 : 7168);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_IMAGE, 7168);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_LOADED_SOUND, 2700 * 2);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_FX, 1200 * 2);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_XANIMPARTS, 8192 * 2);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_XMODEL, 5125 * 2);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_PHYSPRESET, 128);
-		Game::ReallocateAssetPool(Game::ASSET_TYPE_PIXELSHADER, ZoneBuilder::IsEnabled() ? 0x4000 : 10000);
-		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXSHADER, ZoneBuilder::IsEnabled() ? 0x2000 : 3072);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_PIXELSHADER, 10000);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXSHADER, 3072);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_MATERIAL, 8192 * 2);
-		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXDECL, ZoneBuilder::IsEnabled() ? 0x400 : 196);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXDECL, 196);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_WEAPON, WEAPON_LIMIT);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_STRINGTABLE, 800);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_IMPACT_FX, 8);
-
-		// Register asset interfaces
-		if (ZoneBuilder::IsEnabled())
-		{
-			Game::ReallocateAssetPool(Game::ASSET_TYPE_MAP_ENTS, 10);
-			Game::ReallocateAssetPool(Game::ASSET_TYPE_XMODEL_SURFS, 8192 * 2);
-			Game::ReallocateAssetPool(Game::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
-			Game::ReallocateAssetPool(Game::ASSET_TYPE_FONT, 32);
-			Game::ReallocateAssetPool(Game::ASSET_TYPE_RAWFILE, 2048);
-			Game::ReallocateAssetPool(Game::ASSET_TYPE_LEADERBOARD, 500);
-
-			AssetHandler::RegisterInterface(new Assets::IFont_s());
-			AssetHandler::RegisterInterface(new Assets::IWeapon());
-			AssetHandler::RegisterInterface(new Assets::IXModel());
-			AssetHandler::RegisterInterface(new Assets::IFxWorld());
-			AssetHandler::RegisterInterface(new Assets::IMapEnts());
-			AssetHandler::RegisterInterface(new Assets::IRawFile());
-			AssetHandler::RegisterInterface(new Assets::IComWorld());
-			AssetHandler::RegisterInterface(new Assets::IGfxImage());
-			AssetHandler::RegisterInterface(new Assets::IGfxWorld());
-			AssetHandler::RegisterInterface(new Assets::ISndCurve());
-			AssetHandler::RegisterInterface(new Assets::IMaterial());
-			AssetHandler::RegisterInterface(new Assets::IMenuList());
-			AssetHandler::RegisterInterface(new Assets::IclipMap_t());
-			AssetHandler::RegisterInterface(new Assets::ImenuDef_t());
-			AssetHandler::RegisterInterface(new Assets::ITracerDef());
-			AssetHandler::RegisterInterface(new Assets::IPhysPreset());
-			AssetHandler::RegisterInterface(new Assets::IXAnimParts());
-			AssetHandler::RegisterInterface(new Assets::IFxEffectDef());
-			AssetHandler::RegisterInterface(new Assets::IGameWorldMp());
-			AssetHandler::RegisterInterface(new Assets::IGameWorldSp());
-			AssetHandler::RegisterInterface(new Assets::IGfxLightDef());
-			AssetHandler::RegisterInterface(new Assets::ILoadedSound());
-			AssetHandler::RegisterInterface(new Assets::IPhysCollmap());
-			AssetHandler::RegisterInterface(new Assets::IStringTable());
-			AssetHandler::RegisterInterface(new Assets::IXModelSurfs());
-			AssetHandler::RegisterInterface(new Assets::ILocalizeEntry());
-			AssetHandler::RegisterInterface(new Assets::Isnd_alias_list_t());
-			AssetHandler::RegisterInterface(new Assets::IMaterialPixelShader());
-			AssetHandler::RegisterInterface(new Assets::IMaterialTechniqueSet());
-			AssetHandler::RegisterInterface(new Assets::IMaterialVertexShader());
-			AssetHandler::RegisterInterface(new Assets::IStructuredDataDefSet());
-			AssetHandler::RegisterInterface(new Assets::IMaterialVertexDeclaration());
-		}
 	}
 
 	AssetHandler::~AssetHandler()
 	{
 		AssetHandler::ClearTemporaryAssets();
 
-		for (auto i = AssetHandler::AssetInterfaces.begin(); i != AssetHandler::AssetInterfaces.end(); ++i)
-		{
-			delete i->second;
-		}
-
 		AssetHandler::Relocations.clear();
-		AssetHandler::AssetInterfaces.clear();
 		AssetHandler::RestrictSignal.clear();
 		AssetHandler::TypeCallbacks.clear();
 	}

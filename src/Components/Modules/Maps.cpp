@@ -862,7 +862,7 @@ namespace Components
 		// Allow hiding specific smodels
 		Utils::Hook(0x50E67C, Maps::HideModelStub, HOOK_CALL).install()->quick();
 
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
+		if (Dedicated::IsEnabled())
 		{
 			return;
 		}

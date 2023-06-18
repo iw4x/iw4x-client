@@ -147,7 +147,7 @@ namespace Components
 
 	Toast::Toast()
 	{
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
+		if (Dedicated::IsEnabled())
 		{
 			return;
 		}

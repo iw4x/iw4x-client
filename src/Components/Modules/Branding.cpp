@@ -135,11 +135,7 @@ namespace Components
 		Utils::Hook(0x5AC975, CG_DrawVersion_Hk, HOOK_CALL).install()->quick();
 
 		// Console title
-		if (ZoneBuilder::IsEnabled())
-		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" REVISION_STR "): ZoneBuilder");
-		}
-		else if (Dedicated::IsEnabled())
+		if (Dedicated::IsEnabled())
 		{
 #ifdef EXPERIMENTAL_BUILD
 			Utils::Hook::Set<const char*>(0x4289E8, "IW4x " REVISION_STR "-develop: Dedicated");

@@ -329,7 +329,7 @@ namespace Components
 
 	void Auth::StoreKey()
 	{
-		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && GuidKey.isValid())
+		if (!Dedicated::IsEnabled() && GuidKey.isValid())
 		{
 			Proto::Auth::Certificate cert;
 			cert.set_token(GuidToken.toString());
@@ -350,7 +350,7 @@ namespace Components
 
 	void Auth::LoadKey(bool force)
 	{
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
+		if (Dedicated::IsEnabled()) return;
 		if (!force && GuidKey.isValid()) return;
 
 		Proto::Auth::Certificate cert;
@@ -509,7 +509,7 @@ namespace Components
 			Logger::Print("Your guid: {:#X}\n", Steam::SteamUser()->GetSteamID().bits);
 		});
 
-		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
+		if (!Dedicated::IsEnabled())
 		{
 			Command::Add("securityLevel", [](const Command::Params* params)
 			{

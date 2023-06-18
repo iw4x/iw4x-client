@@ -527,12 +527,9 @@ namespace Components
 		Utils::Hook(Game::DB_ReadXFile, FastFiles::ReadXFileStub, HOOK_JUMP).install()->quick();
 
 		// Allow custom zone loading
-		if (!ZoneBuilder::IsEnabled())
-		{
-			Utils::Hook(0x506BC7, FastFiles::LoadInitialZones, HOOK_CALL).install()->quick();
-			Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).install()->quick();
-			Utils::Hook(0x506B25, FastFiles::LoadGfxZones, HOOK_CALL).install()->quick();
-		}
+		Utils::Hook(0x506BC7, FastFiles::LoadInitialZones, HOOK_CALL).install()->quick();
+		Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).install()->quick();
+		Utils::Hook(0x506B25, FastFiles::LoadGfxZones, HOOK_CALL).install()->quick();
 
 		// basic checks (hash jumps, both normal and playlist)
 		Utils::Hook::Nop(0x5B97A3, 2);
@@ -583,7 +580,7 @@ namespace Components
 		FastFiles::AddZonePath("zone\\patch\\");
 		FastFiles::AddZonePath("zone\\dlc\\");
 
-		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
+		if (!Dedicated::IsEnabled())
 		{
 			Scheduler::Loop([]
 			{

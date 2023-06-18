@@ -29,7 +29,7 @@ namespace Components
 
 		Console::FreeNativeConsole();
 
-		if (Loader::IsPerformingUnitTests() || Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
+		if (Loader::IsPerformingUnitTests() || Dedicated::IsEnabled()) return;
 
 		FirstInstance = (CreateMutexA(nullptr, FALSE, "iw4x_mutex") && GetLastError() != ERROR_ALREADY_EXISTS);
 

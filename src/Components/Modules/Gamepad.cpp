@@ -2082,11 +2082,6 @@ namespace Components
 
 	Gamepad::Gamepad()
 	{
-		if (ZoneBuilder::IsEnabled())
-		{
-			return;
-		}
-
 		// Initialize gamepad environment
 		Utils::Hook(0x4059FE, CG_RegisterDvars_Hk, HOOK_CALL).install()->quick();
 

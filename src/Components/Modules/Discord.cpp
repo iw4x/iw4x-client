@@ -116,7 +116,7 @@ namespace Components
 
 	Discord::Discord()
 	{
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
+		if (Dedicated::IsEnabled())
 		{
 			return;
 		}

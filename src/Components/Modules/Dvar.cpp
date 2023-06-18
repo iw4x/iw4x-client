@@ -207,7 +207,7 @@ namespace Components
 	const Game::dvar_t* Dvar::Dvar_RegisterName(const char* dvarName, const char* /*value*/, std::uint16_t flags, const char* description)
 	{
 		// Name watcher
-		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
+		if (!Dedicated::IsEnabled())
 		{
 			Scheduler::Loop([]
 			{

@@ -317,7 +317,7 @@ namespace Components
 			Connect(Container.target);
 		});
 
-		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
+		if (!Dedicated::IsEnabled())
 		{
 			Scheduler::Loop([]
 			{

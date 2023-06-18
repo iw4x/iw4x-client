@@ -39,7 +39,7 @@ namespace Components
 
 	News::News()
 	{
-		if (ZoneBuilder::IsEnabled() || Dedicated::IsEnabled()) return; // Maybe also dedi?
+		if (Dedicated::IsEnabled()) return;
 
 		Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_ARCHIVE, "");
 

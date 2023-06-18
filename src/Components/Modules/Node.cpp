@@ -395,7 +395,6 @@ namespace Components
 
 	Node::Node()
 	{
-		if (ZoneBuilder::IsEnabled()) return;
 		Dvar::Register<bool>("net_natFix", false, 0, "Fix node registration for certain firewalls/routers");
 
 		Scheduler::Loop([]

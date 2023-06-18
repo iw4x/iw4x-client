@@ -793,11 +793,6 @@ namespace Components
 	{
 		menuParseKeywordHash = reinterpret_cast<Game::KeywordHashEntry<Game::menuDef_t, 128, 3523>**>(0x63AE928);
 
-		if (ZoneBuilder::IsEnabled())
-		{
-			Game::Menu_Setup(Game::uiContext);
-		}
-
 		if (Dedicated::IsEnabled()) return;
 
 		// Intercept asset finding

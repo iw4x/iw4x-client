@@ -58,14 +58,7 @@ namespace Components
 			}
 #endif
 
-			if (ZoneBuilder::IsEnabled())
-			{
-				Logger::Print("Loading model surface {} at path \"{}\" failed!", name, path);
-			}
-			else
-			{
-				Logger::Error(Game::ERR_FATAL, "Loading model {} failed!", name);
-			}
+			Logger::Error(Game::ERR_FATAL, "Loading model {} failed!", name);
 
 			return nullptr;
 		}

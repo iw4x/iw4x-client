@@ -29,9 +29,6 @@ namespace Components
 		static int FxEffectIndex;
 		static char* FxEffectStrings[64];
 
-		static std::unordered_map<int, FileData> fileDataMap;
-		static std::mutex fileDataMutex;
-
 		static bool CheckGameMapSp(int type);
 		static void GameMapSpPatchStub();
 
@@ -83,15 +80,6 @@ namespace Components
 		static int LoadMapEnts(bool atStreamStart, Game::MapEnts* buffer, int size);
 		static void Load_ClipInfo(bool atStreamStart);
 		static int LoadClipMap(bool atStreamStart);
-		static uint32_t HashCRC32StringInt(const std::string& Value, uint32_t Initial);
-		static int FS_FOpenFileReadForThreadOriginal(const char*, int*, int);
-		static int FS_FOpenFileReadForThreadHook(const char* file, int* filePointer, int thread);
-		static int FS_ReadOriginal(void*, size_t, int);
-		static int FS_ReadHook(void* buffer, size_t size, int filePointer);
-		static void FS_FCloseFileOriginal(int);
-		static void FS_FCloseFileHook(int filePointer);
-		static std::uint32_t FS_SeekOriginal(int, int, int);
-		static std::uint32_t FS_SeekHook(int fileHandle, int seekPosition, int seekOrigin);
 		static void LoadMapTriggersModelPointer();
 		static void LoadMapTriggersHullPointer();
 		static void LoadMapTriggersSlabPointer();

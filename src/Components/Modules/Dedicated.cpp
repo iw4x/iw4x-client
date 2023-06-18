@@ -182,7 +182,7 @@ namespace Components
 		COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
 			Game::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
 
-		if (IsEnabled() || ZoneBuilder::IsEnabled())
+		if (IsEnabled())
 		{
 			// Make sure all callbacks are handled
 			Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::SERVER);
@@ -243,9 +243,7 @@ namespace Components
 
 			// Intercept time wrapping
 			Utils::Hook(0x62737D, TimeWrapStub, HOOK_CALL).install()->quick();
-			//Utils::Hook::Set<DWORD>(0x62735C, 50'000); // Time wrap after 50 seconds (for testing - i don't want to wait 3 weeks)
 
-			if (!ZoneBuilder::IsEnabled())
 			{
 				Events::OnDvarInit([]
 				{

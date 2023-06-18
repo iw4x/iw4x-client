@@ -201,7 +201,7 @@ namespace Components
 
 	IPCPipe::IPCPipe()
 	{
-		if (Dedicated::IsEnabled() || Loader::IsPerformingUnitTests() || ZoneBuilder::IsEnabled()) return;
+		if (Dedicated::IsEnabled() || Loader::IsPerformingUnitTests()) return;
 
 		// Server pipe
 		ServerPipe.onConnect(ConnectClient);
