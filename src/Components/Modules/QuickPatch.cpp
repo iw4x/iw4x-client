@@ -339,9 +339,6 @@ namespace Components
 		// fs_basegame
 		Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
 
-		// window title
-		Utils::Hook::Set<const char*>(0x5076A0, "IW4x: Multiplayer");
-
 		// sv_hostname
 		Utils::Hook::Set<const char*>(0x4D378B, "IW4Host");
 

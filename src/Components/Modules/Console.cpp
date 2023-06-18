@@ -99,9 +99,9 @@ namespace Components
 		else if (IsWindow(GetWindow()) != FALSE)
 		{
 #ifdef EXPERIMENTAL_BUILD
-			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR "-develop : {}", hostname));
+			SetWindowTextA(GetWindow(), Utils::String::Format("IW4y " REVISION_STR "-develop : {}", hostname));
 #else
-			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR " : {}", hostname));
+			SetWindowTextA(GetWindow(), Utils::String::Format("IW4y " REVISION_STR " : {}", hostname));
 #endif
 		}
 	}
@@ -862,9 +862,9 @@ namespace Components
 
 		// Console '%s: %s> ' string
 #ifdef EXPERIMENTAL_BUILD
-		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " REVISION_STR "-develop> ");
+		Utils::Hook::Set<const char*>(0x5A44B4, "IW4y MP: " REVISION_STR "-develop> ");
 #else
-		Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " REVISION_STR "> ");
+		Utils::Hook::Set<const char*>(0x5A44B4, "IW4y MP: " REVISION_STR "> ");
 #endif
 
 		// Patch console color

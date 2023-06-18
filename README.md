@@ -32,7 +32,6 @@
 | `-dump`                 | Write info of loaded assets to the raw folder as they are being loaded. |
 | `-nointro`              | Skip game's cinematic intro.                   |
 | `-version`              | Print IW4x build info on startup.              |
-| `-zonebuilder`          | Start the interactive zonebuilder tool console instead of starting the game. |
 | `-nosteam`              | Disable friends feature and do not update Steam about the game's current status just like an invisible mode. |
 | `-unprotect-dvars`      | Allow the server to modify saved/archive dvars. |
 

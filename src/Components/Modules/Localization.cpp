@@ -158,10 +158,11 @@ namespace Components
 		{
 			"NTAuthority",
 			"aerosoul94",
+			"FutureRave",
 			"ReactIW4",
 			"IW4Play",
 			"V2",
-			"luckyy"
+			"luckyy",
 		};
 
 		std::string credits = "^2The IW4x Team:^7\n";

@@ -30,7 +30,6 @@ namespace Utils
 
 							if (!i)
 							{
-								// Prepend here, as /dev/urandom says so ;) https://github.com/IW4x/iw4x-client-node/wikis/technical-information#incrementing-the-token
 								this->tokenString = std::basic_string<std::uint8_t>(reinterpret_cast<std::uint8_t*>(const_cast<char*>("\0")), 1) + this->tokenString;
 								break;
 							}

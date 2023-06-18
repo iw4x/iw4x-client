@@ -10,9 +10,9 @@ namespace Components
 	Dvar::Var Branding::CGDrawVersionY;
 
 #ifdef _DEBUG
-	constexpr auto* BUILD_TYPE = "IW4x_DEV MP";
+	constexpr auto* BUILD_TYPE = "IW4y_DEV MP";
 #else
-	constexpr auto* BUILD_TYPE = "IW4x MP";
+	constexpr auto* BUILD_TYPE = "IW4y MP";
 #endif
 
 	void Branding::CG_DrawVersion()
@@ -101,7 +101,10 @@ namespace Components
 		RegisterBrandingDvars();
 
 		// UI version string
-		Utils::Hook::Set<const char*>(0x43F73B, "IW4x " REVISION_STR);
+		Utils::Hook::Set<const char*>(0x43F73B, "IW4y " REVISION_STR);
+
+		// Window title
+		Utils::Hook::Set<const char*>(0x5076A0, "IW4y: Multiplayer");
 
 		// Short version dvar
 		Utils::Hook::Set<const char*>(0x60BD91, REVISION_STR);
@@ -138,14 +141,14 @@ namespace Components
 		if (Dedicated::IsEnabled())
 		{
 #ifdef EXPERIMENTAL_BUILD
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x " REVISION_STR "-develop: Dedicated");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4y " REVISION_STR "-develop: Dedicated");
 #else
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x " REVISION_STR ": Dedicated");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4y " REVISION_STR ": Dedicated");
 #endif
 		}
 		else
 		{
-			Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" REVISION_STR "): Console");
+			Utils::Hook::Set<const char*>(0x4289E8, "IW4y (" REVISION_STR "): Console");
 		}
 	}
 }
