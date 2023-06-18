@@ -149,7 +149,7 @@ namespace Components
 		Utils::IO::WriteFile("players/nodes.json", out.dump());
 	}
 
-	void Node::Add(Network::Address address)
+	void Node::Add(const Network::Address& address)
 	{
 #ifndef DEBUG
 		if (address.isLocal() || address.isSelf()) return;
@@ -193,24 +193,23 @@ namespace Components
 
 		if (WasIngame) // our last frame we were in-game and now we aren't so touch all nodes
 		{
-			for (auto i = Nodes.begin(); i != Nodes.end();++i)
+			for (auto& entry : Nodes)
 			{
 				// clearing the last request and response times makes the 
 				// dispatcher think its a new node and will force a refresh
-				i->lastRequest.reset();
-				i->lastResponse.reset();
+				entry.lastRequest.reset();
+				entry.lastResponse.reset();
 			}
 
 			WasIngame = false;
 		}
 
 		static Utils::Time::Interval frameLimit;
-		int interval = static_cast<int>(1000.0f / Dvar::Var("net_serverFrames").get<int>());
+		const auto interval = 1000 / ServerList::NETServerFrames.get<int>();
 		if (!frameLimit.elapsed(std::chrono::milliseconds(interval))) return;
 		frameLimit.update();
 
 		std::lock_guard _(Mutex);
-		Dvar::Var queryLimit("net_serverQueryLimit");
 
 		int sentRequests = 0;
 		for (auto i = Nodes.begin(); i != Nodes.end();)
@@ -220,7 +219,8 @@ namespace Components
 				i = Nodes.erase(i);
 				continue;
 			}
-			if (sentRequests < queryLimit.get<int>() && i->requiresRequest())
+
+			if (sentRequests < ServerList::NETServerQueryLimit.get<int>() && i->requiresRequest())
 			{
 				++sentRequests;
 				i->sendRequest();
@@ -241,7 +241,7 @@ namespace Components
 		}
 	}
 
-	void Node::HandleResponse(Network::Address address, const std::string& data)
+	void Node::HandleResponse(const Network::Address& address, const std::string& data)
 	{
 		Proto::Node::List list;
 		if (!list.ParseFromString(data)) return;
@@ -320,11 +320,11 @@ namespace Components
 					break;
 				}
 
-				auto node = Nodes.at(curNode++);
+				auto& node = Nodes.at(curNode++);
 
 				if (node.isValid())
 				{
-					std::string* str = list.add_nodes();
+					auto* str = list.add_nodes();
 
 					sockaddr addr = node.address.getSockAddr();
 					str->append(reinterpret_cast<char*>(&addr), sizeof(addr));
@@ -401,7 +401,7 @@ namespace Components
 		Scheduler::Loop([]
 		{
 			StoreNodes(false);
-		}, Scheduler::Pipeline::ASYNC);
+		}, Scheduler::Pipeline::ASYNC, 5min);
 
 		Scheduler::Loop(RunFrame, Scheduler::Pipeline::MAIN);
 
@@ -411,15 +411,12 @@ namespace Components
 			SendList(address);
 		});
 
-		// Load stored nodes
-		auto loadNodes = []
+		Scheduler::OnGameInitialized([]
 		{
 			Migrate();
 			LoadNodePreset();
 			LoadNodes();
-		};
-
-		Scheduler::OnGameInitialized(loadNodes, Scheduler::Pipeline::MAIN);
+		}, Scheduler::Pipeline::MAIN);
 
 		Command::Add("listNodes", [](const Command::Params*)
 		{

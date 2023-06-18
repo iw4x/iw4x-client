@@ -36,7 +36,7 @@ namespace Components
 		Node();
 		void preDestroy() override;
 
-		static void Add(Network::Address address);
+		static void Add(const Network::Address& address);
 		static std::vector<Entry> GetNodes();
 		static void RunFrame();
 		static void Synchronize();
@@ -46,7 +46,7 @@ namespace Components
 		static std::vector<Entry> Nodes;
 		static bool WasIngame;
 
-		static void HandleResponse(Network::Address address, const std::string& data);
+		static void HandleResponse(const Network::Address& address, const std::string& data);
 
 		static void SendList(const Network::Address& address);
 
