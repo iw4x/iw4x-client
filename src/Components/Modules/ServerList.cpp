@@ -302,8 +302,7 @@ namespace Components
 			Game::netadr_t masterServerAddr;
 			if (!GetMasterServer(masterServerName, masterPort, masterServerAddr))
 			{
-				Logger::Print("Could not resolve address for {}:{}", masterServerName, masterPort);
-				Toast::Show("cardicon_headshot", "^1Error", std::format("Could not resolve address for {}:{}", masterServerName, masterPort), 5000);
+				Logger::Print("Could not resolve address for {}:{}\n", masterServerName, masterPort);
 				UseMasterServer = false;
 				return;
 			}
