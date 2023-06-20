@@ -39,13 +39,13 @@ namespace Components
 				Password.clear();
 				return;
 			}
-				
-			auto* addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
+			
 			if (Password.empty())
 			{
 				Logger::Print("You need to be logged in and connected to a server!\n");
 			}
 
+			auto* addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
 			Network::Address target(addr);
 			if (!target.isValid() || target.getIP().full == 0)
 			{
