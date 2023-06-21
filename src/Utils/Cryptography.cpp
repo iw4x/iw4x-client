@@ -61,14 +61,14 @@ namespace Utils
 		{
 			if (!key.isValid()) return {};
 
-			std::uint8_t buffer[512];
+			std::uint8_t buffer[512]{};
 			unsigned long length = sizeof(buffer);
 
 			ltc_mp = ltm_desc;
 			register_prng(&sprng_desc);
 			ecc_sign_hash(reinterpret_cast<const std::uint8_t*>(message.data()), message.size(), buffer, &length, nullptr, find_prng("sprng"), key.getKeyPtr());
 
-			return  std::string{ reinterpret_cast<char*>(buffer), length };
+			return std::string{ reinterpret_cast<char*>(buffer), length };
 		}
 
 		bool ECC::VerifyMessage(Key key, const std::string& message, const std::string& signature)
@@ -115,7 +115,7 @@ namespace Utils
 
 			rsa_sign_hash(reinterpret_cast<const std::uint8_t*>(message.data()), message.size(), buffer, &length, NULL, find_prng("sprng"), find_hash("sha1"), 0, key.getKeyPtr());
 
-			return  std::string{ reinterpret_cast<char*>(buffer), length };
+			return std::string{ reinterpret_cast<char*>(buffer), length };
 		}
 
 		bool RSA::VerifyMessage(Key key, const std::string& message, const std::string& signature)
@@ -145,9 +145,9 @@ namespace Utils
 			encData.resize(text.size());
 
 			symmetric_CBC cbc;
-			int des3 = find_cipher("3des");
+			const auto des3 = find_cipher("3des");
 
-			cbc_start(des3, reinterpret_cast<const std::uint8_t*>(iv.data()), reinterpret_cast<const std::uint8_t*>(key.data()), key.size(), 0, &cbc);
+			cbc_start(des3, reinterpret_cast<const std::uint8_t*>(iv.data()), reinterpret_cast<const std::uint8_t*>(key.data()), static_cast<int>(key.size()), 0, &cbc);
 			cbc_encrypt(reinterpret_cast<const std::uint8_t*>(text.data()), reinterpret_cast<uint8_t*>(encData.data()), text.size(), &cbc);
 			cbc_done(&cbc);
 
@@ -160,9 +160,9 @@ namespace Utils
 			decData.resize(data.size());
 
 			symmetric_CBC cbc;
-			int des3 = find_cipher("3des");
+			const auto  des3 = find_cipher("3des");
 
-			cbc_start(des3, reinterpret_cast<const std::uint8_t*>(iv.data()), reinterpret_cast<const std::uint8_t*>(key.data()), key.size(), 0, &cbc);
+			cbc_start(des3, reinterpret_cast<const std::uint8_t*>(iv.data()), reinterpret_cast<const std::uint8_t*>(key.data()), static_cast<int>(key.size()), 0, &cbc);
 			cbc_decrypt(reinterpret_cast<const std::uint8_t*>(data.data()), reinterpret_cast<std::uint8_t*>(decData.data()), data.size(), &cbc);
 			cbc_done(&cbc);
 
@@ -269,20 +269,21 @@ namespace Utils
 
 #pragma region JenkinsOneAtATime
 
-		unsigned int JenkinsOneAtATime::Compute(const std::string& data)
+		std::size_t JenkinsOneAtATime::Compute(const std::string& data)
 		{
 			return Compute(data.data(), data.size());
 		}
 
-		unsigned int JenkinsOneAtATime::Compute(const char* key, std::size_t len)
+		std::size_t JenkinsOneAtATime::Compute(const char* key, const std::size_t len)
 		{
-			unsigned int hash, i;
+			std::size_t hash, i;
 			for (hash = i = 0; i < len; ++i)
 			{
 				hash += key[i];
 				hash += (hash << 10);
 				hash ^= (hash >> 6);
 			}
+
 			hash += (hash << 3);
 			hash ^= (hash >> 11);
 			hash += (hash << 15);
