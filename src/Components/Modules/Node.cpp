@@ -15,6 +15,8 @@ namespace Components
 
 	bool Node::WasIngame = false;
 
+	const Game::dvar_t* Node::net_natFix;
+
 	bool Node::Entry::isValid() const
 	{
 		return (this->lastResponse.has_value() && !this->lastResponse->elapsed(NODE_HALFLIFE * 2));
@@ -349,9 +351,9 @@ namespace Components
 		}
 	}
 
-	unsigned short Node::GetPort()
+	std::uint16_t Node::GetPort()
 	{
-		if (Dvar::Var("net_natFix").get<bool>()) return 0;
+		if (net_natFix->current.enabled) return 0;
 		return Network::GetPort();
 	}
 
@@ -395,7 +397,7 @@ namespace Components
 
 	Node::Node()
 	{
-		Dvar::Register<bool>("net_natFix", false, 0, "Fix node registration for certain firewalls/routers");
+		net_natFix = Game::Dvar_RegisterBool("net_natFix", false, 0, "Fix node registration for certain firewalls/routers");
 
 		Scheduler::Loop([]
 		{

@@ -12,7 +12,7 @@ namespace Components
 		class Data
 		{
 		public:
-			uint64_t protocol;
+			std::uint64_t protocol;
 		};
 
 		class Entry
@@ -46,6 +46,8 @@ namespace Components
 		static std::vector<Entry> Nodes;
 		static bool WasIngame;
 
+		static const Game::dvar_t* net_natFix;
+
 		static void HandleResponse(const Network::Address& address, const std::string& data);
 
 		static void SendList(const Network::Address& address);
@@ -54,7 +56,7 @@ namespace Components
 		static void LoadNodes();
 		static void StoreNodes(bool force);
 
-		static unsigned short GetPort();
+		static std::uint16_t GetPort();
 
 		static void Migrate();
 	};

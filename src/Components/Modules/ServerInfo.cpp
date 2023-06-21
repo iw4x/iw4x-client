@@ -127,10 +127,10 @@ namespace Components
 	{
 		Utils::InfoString info;
 
-		info.set("admin", Dvar::Var("_Admin").get<const char*>());
-		info.set("website", Dvar::Var("_Website").get<const char*>());
-		info.set("email", Dvar::Var("_Email").get<const char*>());
-		info.set("location", Dvar::Var("_Location").get<const char*>());
+		info.set("admin", Dvar::Var("_Admin").get<std::string>());
+		info.set("website", Dvar::Var("_Website").get<std::string>());
+		info.set("email", Dvar::Var("_Email").get<std::string>());
+		info.set("location", Dvar::Var("_Location").get<std::string>());
 
 		return info;
 	}

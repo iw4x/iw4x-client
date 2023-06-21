@@ -92,7 +92,6 @@ namespace Utils
 			Key key;
 
 			register_prng(&sprng_desc);
-			register_hash(&sha1_desc);
 
 			ltc_mp = ltm_desc;
 
@@ -105,15 +104,20 @@ namespace Utils
 		{
 			if (!key.isValid()) return {};
 
-			std::uint8_t buffer[512];
+			std::uint8_t buffer[512]{};
 			unsigned long length = sizeof(buffer);
 
+			const auto hash = SHA512::Compute(message);
+
 			register_prng(&sprng_desc);
-			register_hash(&sha1_desc);
+
+			const ltc_hash_descriptor& hash_desc = sha512_desc;
+			const int hash_index = register_hash(&hash_desc);
 
 			ltc_mp = ltm_desc;
 
-			rsa_sign_hash(reinterpret_cast<const std::uint8_t*>(message.data()), message.size(), buffer, &length, NULL, find_prng("sprng"), find_hash("sha1"), 0, key.getKeyPtr());
+			rsa_sign_hash_ex(reinterpret_cast<const std::uint8_t*>(hash.data()), hash.size(),
+			                 buffer, &length, LTC_PKCS_1_V1_5, nullptr, find_prng("sprng"), hash_index, 0, key.getKeyPtr());
 
 			return std::string{ reinterpret_cast<char*>(buffer), length };
 		}
@@ -122,12 +126,17 @@ namespace Utils
 		{
 			if (!key.isValid()) return false;
 
-			register_hash(&sha1_desc);
+			const auto hash = SHA512::Compute(message);
+
+			const ltc_hash_descriptor& hash_desc = sha512_desc;
+			const int hash_index = register_hash(&hash_desc);
 
 			ltc_mp = ltm_desc;
 
-			int result = 0;
-			return (rsa_verify_hash(reinterpret_cast<const std::uint8_t*>(signature.data()), signature.size(), reinterpret_cast<const std::uint8_t*>(message.data()), message.size(), find_hash("sha1"), 0, &result, key.getKeyPtr()) == CRYPT_OK && result != 0);
+			auto result = 0;
+			return (rsa_verify_hash_ex(reinterpret_cast<const std::uint8_t*>(signature.data()), signature.size(),
+			                           reinterpret_cast<const std::uint8_t*>(hash.data()), hash.size(), LTC_PKCS_1_V1_5,
+			                           hash_index, 0, &result, key.getKeyPtr()) == CRYPT_OK && result != 0);
 		}
 
 #pragma endregion

@@ -173,7 +173,7 @@ namespace Utils
 				[[nodiscard]] std::string getPublicKey()
 				{
 					std::uint8_t buffer[512]{};
-					DWORD length = sizeof(buffer);
+					unsigned long length = sizeof(buffer);
 
 					if (ecc_ansi_x963_export(this->getKeyPtr(), buffer, &length) == CRYPT_OK)
 					{
@@ -206,7 +206,7 @@ namespace Utils
 				[[nodiscard]] std::string serialize(int type = PK_PRIVATE)
 				{
 					std::uint8_t buffer[4096]{};
-					DWORD length = sizeof(buffer);
+					unsigned long length = sizeof(buffer);
 
 					if (ecc_export(buffer, &length, type, this->getKeyPtr()) == CRYPT_OK)
 					{
@@ -270,6 +270,42 @@ namespace Utils
 				[[nodiscard]] rsa_key* getKeyPtr()
 				{
 					return this->keyStorage.get();
+				}
+
+				[[nodiscard]] std::string getPublicKey()
+				{
+					std::uint8_t buffer[4096]{};
+					unsigned long length = sizeof(buffer);
+
+					if (rsa_export(buffer, &length, PK_PUBLIC, this->getKeyPtr()) == CRYPT_OK)
+					{
+						return std::string{ reinterpret_cast<char*>(buffer), length };
+					}
+
+					return std::string{};
+				}
+
+				void deserialize(const std::string& pubKeyBuffer)
+				{
+					this->free();
+
+					if (rsa_import(reinterpret_cast<const std::uint8_t*>(pubKeyBuffer.data()), pubKeyBuffer.size(), this->getKeyPtr()) != CRYPT_OK)
+					{
+						ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
+					}
+				}
+
+				[[nodiscard]] std::string serialize(int type = PK_PRIVATE)
+				{
+					std::uint8_t buffer[4096]{};
+					unsigned long length = sizeof(buffer);
+
+					if (rsa_export(buffer, &length, type, this->getKeyPtr()) == CRYPT_OK)
+					{
+						return std::string{ reinterpret_cast<char*>(buffer), length };
+					}
+
+					return std::string{};
 				}
 
 				void free()
