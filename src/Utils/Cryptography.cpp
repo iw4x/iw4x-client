@@ -109,15 +109,13 @@ namespace Utils
 
 			const auto hash = SHA512::Compute(message);
 
-			register_prng(&sprng_desc);
-
 			const ltc_hash_descriptor& hash_desc = sha512_desc;
 			const int hash_index = register_hash(&hash_desc);
 
 			ltc_mp = ltm_desc;
 
 			rsa_sign_hash_ex(reinterpret_cast<const std::uint8_t*>(hash.data()), hash.size(),
-			                 buffer, &length, LTC_PKCS_1_V1_5, nullptr, find_prng("sprng"), hash_index, 0, key.getKeyPtr());
+			                 buffer, &length, LTC_PKCS_1_V1_5, nullptr, 0, hash_index, 0, key.getKeyPtr());
 
 			return std::string{ reinterpret_cast<char*>(buffer), length };
 		}

@@ -285,7 +285,7 @@ namespace Utils
 					return std::string{};
 				}
 
-				void deserialize(const std::string& pubKeyBuffer)
+				void set(const std::string& pubKeyBuffer)
 				{
 					this->free();
 
