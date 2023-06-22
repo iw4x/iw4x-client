@@ -132,7 +132,7 @@ namespace Steam
 
 	void Proxy::RunGame()
 	{
-		if (Steam::Enabled() && !Components::Dedicated::IsEnabled() && !Components::ZoneBuilder::IsEnabled())
+		if (Steam::Enabled() && !Components::Dedicated::IsEnabled())
 		{
 			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", Proxy::AppId));
 			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", Proxy::AppId & 0xFFFFFF));
@@ -146,7 +146,7 @@ namespace Steam
 
 	void Proxy::SetMod(const std::string& mod)
 	{
-		if (!Proxy::ClientUser || !Proxy::SteamApps || !Steam::Enabled() || Components::Dedicated::IsEnabled() || Components::ZoneBuilder::IsEnabled()) return;
+		if (!Proxy::ClientUser || !Proxy::SteamApps || !Steam::Enabled() || Components::Dedicated::IsEnabled()) return;
 
 		if (!Proxy::SteamApps->BIsSubscribedApp(Proxy::AppId))
 		{
@@ -382,7 +382,7 @@ namespace Steam
 
 		SetDllDirectoryA(directoy.data());
 
-		if (!Components::Dedicated::IsEnabled() && !Components::ZoneBuilder::IsEnabled())
+		if (!Components::Dedicated::IsEnabled())
 		{
 			Proxy::LaunchWatchGuard();
 

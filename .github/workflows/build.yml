@@ -24,7 +24,7 @@ jobs:
           - Release
     steps:          
       - name: Check out files
-        uses: actions/checkout@v3.5.2
+        uses: actions/checkout@v3.5.3
         with:
           submodules: true
           fetch-depth: 0
@@ -55,15 +55,11 @@ jobs:
     name: Deploy artifacts
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop')
     steps:
-      - name: Setup main environment
-        if: github.ref == 'refs/heads/master'
-        run: echo "XLABS_MASTER_PATH=${{ secrets.XLABS_MASTER_SSH_PATH }}" >> $GITHUB_ENV
-
       - name: Setup develop environment
         if: github.ref == 'refs/heads/develop'
-        run: echo "XLABS_MASTER_PATH=${{ secrets.XLABS_MASTER_SSH_PATH_DEV }}" >> $GITHUB_ENV
+        run: echo "DIAMANTE_MASTER_PATH=${{ secrets.DIAMANTE_MASTER_SSH_PATH }}" >> $GITHUB_ENV
 
       - name: Download Release binaries
         uses: actions/download-artifact@v3.0.2
@@ -74,20 +70,11 @@ jobs:
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2.5.1
         with:
-          key: ${{ secrets.XLABS_MASTER_SSH_PRIVATE_KEY }}
+          key: ${{ secrets.DIAMANTE_MASTER_SSH_PRIVATE_KEY }}
           known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
 
       - name: Add known hosts
-        run: ssh-keyscan -H ${{ secrets.XLABS_MASTER_SSH_ADDRESS }} >> ~/.ssh/known_hosts
-          
-#      - name: Remove old data files
-#        run: ssh ${{ secrets.XLABS_MASTER_SSH_USER }}@${{ secrets.XLABS_MASTER_SSH_ADDRESS }} rm -rf ${{ env.XLABS_MASTER_PATH }}/iw4x/data/*
+        run: ssh-keyscan -H ${{ secrets.DIAMANTE_MASTER_SSH_ADDRESS }} >> ~/.ssh/known_hosts
 
-      - name: Upload iw4x binary
-        run: rsync -avz iw4x.dll ${{ secrets.XLABS_MASTER_SSH_USER }}@${{ secrets.XLABS_MASTER_SSH_ADDRESS }}:${{ env.XLABS_MASTER_PATH }}/iw4x/
-      
-#      - name: Upload data files
-#        run: rsync -avz ./data/ ${{ secrets.XLABS_MASTER_SSH_USER }}@${{ secrets.XLABS_MASTER_SSH_ADDRESS }}:${{ env.XLABS_MASTER_PATH }}/iw4x/data/
-      
-      - name: Publish changes
-        run: ssh ${{ secrets.XLABS_MASTER_SSH_USER }}@${{ secrets.XLABS_MASTER_SSH_ADDRESS }} ${{ secrets.XLABS_MASTER_SSH_CHANGE_PUBLISH_COMMAND }}
+      - name: Upload iw4x-client binary
+        run: rsync -avz iw4x.dll ${{ secrets.DIAMANTE_MASTER_SSH_USER }}@${{ secrets.DIAMANTE_MASTER_SSH_ADDRESS }}:${{ env.DIAMANTE_MASTER_PATH }}/legacy/

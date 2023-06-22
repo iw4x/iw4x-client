@@ -23,11 +23,7 @@ namespace Steam
 
 		if (!idBits)
 		{
-			if (Components::ZoneBuilder::IsEnabled())
-			{
-				idBits = *reinterpret_cast<unsigned __int64*>(const_cast<char*>("DEDICATE"));
-			}
-			else if (Components::Singleton::IsFirstInstance() && !Components::Dedicated::IsEnabled()) // ECDSA guid
+			if (Components::Singleton::IsFirstInstance() && !Components::Dedicated::IsEnabled()) // ECDSA guid
 			{
 				idBits = Components::Auth::GetKeyHash();
 			}

@@ -1,6 +1,6 @@
 #pragma once
 
-#define NODE_HALFLIFE (3 * 60 * 1000) //3min
+#define NODE_HALFLIFE (3 * 60 * 1000) // 3min
 #define NODE_MAX_NODES_TO_SEND 64
 #define NODE_SEND_RATE 500ms
 
@@ -12,7 +12,7 @@ namespace Components
 		class Data
 		{
 		public:
-			uint64_t protocol;
+			std::uint64_t protocol;
 		};
 
 		class Entry
@@ -34,9 +34,9 @@ namespace Components
 		};
 
 		Node();
-		~Node();
+		void preDestroy() override;
 
-		static void Add(Network::Address address);
+		static void Add(const Network::Address& address);
 		static std::vector<Entry> GetNodes();
 		static void RunFrame();
 		static void Synchronize();
@@ -46,7 +46,9 @@ namespace Components
 		static std::vector<Entry> Nodes;
 		static bool WasIngame;
 
-		static void HandleResponse(Network::Address address, const std::string& data);
+		static const Game::dvar_t* net_natFix;
+
+		static void HandleResponse(const Network::Address& address, const std::string& data);
 
 		static void SendList(const Network::Address& address);
 
@@ -54,6 +56,8 @@ namespace Components
 		static void LoadNodes();
 		static void StoreNodes(bool force);
 
-		static unsigned short GetPort();
+		static std::uint16_t GetPort();
+
+		static void Migrate();
 	};
 }

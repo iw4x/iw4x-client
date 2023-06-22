@@ -54,6 +54,11 @@ namespace Components
 		static bool GetMasterServer(const char* ip, int port, Game::netadr_t& address);
 		static bool UseMasterServer;
 
+		static Dvar::Var UIServerSelected;
+		static Dvar::Var UIServerSelectedMap;
+		static Dvar::Var NETServerQueryLimit;
+		static Dvar::Var NETServerFrames;
+
 	private:
 		enum class Column : int
 		{
@@ -149,11 +154,6 @@ namespace Components
 		static std::vector<ServerInfo> FavouriteList;
 
 		static std::vector<unsigned int> VisibleList;
-
-		static Dvar::Var UIServerSelected;
-		static Dvar::Var UIServerSelectedMap;
-		static Dvar::Var NETServerQueryLimit;
-		static Dvar::Var NETServerFrames;
 
 		static bool IsServerListOpen();
 	};

@@ -371,7 +371,7 @@ namespace Components
 		MutedList.access([&](muteList& clients)
 		{
 			const nlohmann::json::array_t arr = list;
-			for (auto& entry : arr)
+			for (const auto& entry : arr)
 			{
 				if (entry.is_number_unsigned())
 				{

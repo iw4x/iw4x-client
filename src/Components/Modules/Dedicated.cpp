@@ -243,7 +243,6 @@ namespace Components
 
 			// Intercept time wrapping
 			Utils::Hook(0x62737D, TimeWrapStub, HOOK_CALL).install()->quick();
-			//Utils::Hook::Set<DWORD>(0x62735C, 50'000); // Time wrap after 50 seconds (for testing - i don't want to wait 3 weeks)
 
 			if (!ZoneBuilder::IsEnabled())
 			{
