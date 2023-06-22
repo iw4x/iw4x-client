@@ -285,11 +285,11 @@ namespace Utils
 					return std::string{};
 				}
 
-				void set(const std::string& pubKeyBuffer)
+				void set(const std::string& keyBuffer)
 				{
 					this->free();
 
-					if (rsa_import(reinterpret_cast<const std::uint8_t*>(pubKeyBuffer.data()), pubKeyBuffer.size(), this->getKeyPtr()) != CRYPT_OK)
+					if (rsa_import(reinterpret_cast<const std::uint8_t*>(keyBuffer.data()), keyBuffer.size(), this->getKeyPtr()) != CRYPT_OK)
 					{
 						ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
 					}

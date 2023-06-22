@@ -273,8 +273,7 @@ workspace "iw4x"
 		dependencies.imports()
 
 		-- Pre-build
-		prebuildcommands
-		{
+		prebuildcommands {
 			"pushd %{_MAIN_SCRIPT_DIR}",
 			"tools\\premake5 generate-buildinfo",
 			"popd",
