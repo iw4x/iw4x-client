@@ -10,6 +10,8 @@ namespace Game
 	Cbuf_InsertText_t Cbuf_InsertText = Cbuf_InsertText_t(0x4940B0);
 	Cbuf_Execute_t Cbuf_Execute = Cbuf_Execute_t(0x4E2C80);
 
+	CopyStringInternal_t CopyStringInternal = CopyStringInternal_t(0x4F3C80);
+
 	CG_DrawDisconnect_t CG_DrawDisconnect = CG_DrawDisconnect_t(0x454A70);
 	CG_NextWeapon_f_t CG_NextWeapon_f = CG_NextWeapon_f_t(0x449DE0);
 	CG_GetClientNum_t CG_GetClientNum = CG_GetClientNum_t(0x433700);

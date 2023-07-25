@@ -1213,15 +1213,20 @@ namespace Components
 			Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
 
 			// change FS_GameDirDomainFunc
+			// NOTE: THIS IS A VERY BAD HACK ⚠
+			// The domain func of fs_game should NOT be used to set the value itself!
+			// Hook should be moved further!!
 			Utils::Hook::Set<int(*)(Game::dvar_t*, Game::DvarValue)>(0x643203, [](Game::dvar_t* dvar, Game::DvarValue value)
 			{
+				// Call original FS_GameDirDomainFunc
 				int result = Utils::Hook::Call<int(Game::dvar_t*, Game::DvarValue)>(0x642FC0)(dvar, value);
 
 				if (result)
 				{
 					if (std::strcmp(value.string, dvar->current.string) != 0)
 					{
-						dvar->current.string = value.string;
+						// CopyStringInternal
+						dvar->current.string = Game::CopyStringInternal(value.string);
 						Game::FS_Restart(0, 0);
 					}
 				}

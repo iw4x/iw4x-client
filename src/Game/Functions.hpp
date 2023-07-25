@@ -18,6 +18,9 @@ namespace Game
 	typedef void(*Cbuf_Execute_t)(int localClientNum, int controllerIndex);
 	extern Cbuf_Execute_t Cbuf_Execute;
 
+	typedef const char* (*CopyStringInternal_t)(const char* str);
+	extern CopyStringInternal_t CopyStringInternal;
+
 	typedef void(*CG_DrawDisconnect_t)(int localClientNum);
 	extern CG_DrawDisconnect_t CG_DrawDisconnect;
 
