@@ -29,8 +29,6 @@ namespace Components
 	Dvar::Var ServerList::NETServerQueryLimit;
 	Dvar::Var ServerList::NETServerFrames;
 
-	bool ServerList::UseMasterServer = true;
-
 	std::vector<ServerList::ServerInfo>* ServerList::GetList()
 	{
 		if (IsOnlineList())
@@ -293,6 +291,7 @@ namespace Components
 		{
 			Discovery::Perform();
 		}
+#ifdef IW4_USE_MASTER_SERVER
 		else if (IsOnlineList())
 		{
 			const auto masterPort = (*Game::com_masterPort)->current.integer;
@@ -319,6 +318,7 @@ namespace Components
 			Logger::Print("Sending server list request to master\n");
 			Network::SendCommand(RefreshContainer.host, "getservers", std::format("IW4 {} full empty", PROTOCOL));
 		}
+#endif
 		else if (IsFavouriteList())
 		{
 			LoadFavourties();
@@ -730,10 +730,6 @@ namespace Components
 			{
 				RefreshContainer.awatingList = false;
 
-				Logger::Print("We haven't received a response from the master within {} seconds!\n", (Game::Sys_Milliseconds() - RefreshContainer.awaitTime) / 1000);
-				Toast::Show("net_disconnect", "^2Notice", "Master server could not be reached. Switching to decentralized network", 3000);
-
-				UseMasterServer = false;
 				Node::Synchronize();
 			}
 		}
@@ -892,7 +888,7 @@ namespace Components
 		});
 
 		// Set default masterServerName + port and save it 
-		Utils::Hook::Set<const char*>(0x60AD92, "master.xlabs.dev");
+		Utils::Hook::Set<const char*>(0x60AD92, "server.alterware.dev");
 		Utils::Hook::Set<std::uint8_t>(0x60AD90, Game::DVAR_NONE); // masterServerName
 		Utils::Hook::Set<std::uint8_t>(0x60ADC6, Game::DVAR_NONE); // masterPort
 
