@@ -3016,7 +3016,7 @@ namespace Game
 
 	struct FxElemVisualState
 	{
-		char color[4];
+		unsigned char color[4];
 		float rotationDelta;
 		float rotationTotal;
 		float size[2];
@@ -3691,6 +3691,27 @@ namespace Game
 	struct DpvsPlane
 	{
 		float coeffs[4];
+	};
+
+	struct DpvsPlanes
+	{
+		DpvsPlane* planes;
+		int count;
+	};
+
+	struct DpvsClipPlaneSet
+	{
+		DpvsPlane* planes[16];
+		unsigned int count;
+	};
+
+	struct DpvsStaticCellCmd
+	{
+		DpvsPlane* planes;
+		GfxAabbTree* tree;
+		char planeCount;
+		char frustumPlaneCount;
+		unsigned __int16 sceneViewType;
 	};
 
 	struct GfxPortal
