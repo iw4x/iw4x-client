@@ -2766,6 +2766,23 @@ namespace Game
 		int max_stream_channels;
 	};
 
+	struct SndStartAliasInfo
+	{
+		snd_alias_t* alias0;
+		snd_alias_t* alias1;
+		float lerp;
+		SndEntHandle sndEnt;
+		float org[3];
+		float volume;
+		float pitch;
+		int timeshift;
+		float fraction;
+		int startDelay;
+		bool master;
+		float timescaleLerp;
+		snd_alias_system_t system;
+	};
+
 	struct Poly
 	{
 		float(*pts)[3];
@@ -10994,7 +11011,7 @@ namespace Game
 		volatile int firstFreeSparkFountain;
 		volatile int firstFreeSparkFountainCluster;
 		volatile int deferredElemCount;
-		volatile int activeElemCount;
+		int activeElemCount;
 		volatile int activeTrailElemCount;
 		volatile int activeTrailCount;
 		volatile int activeBoltCount;

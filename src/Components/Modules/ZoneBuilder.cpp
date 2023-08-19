@@ -1267,8 +1267,36 @@ namespace Components
 
 				if (!ZoneBuilder::DumpingZone.empty())
 				{
+					Utils::Memory::Allocator assetReallocator{}; // Needed to translate some assets from CODO for instance
+
+					// IW4OF only supports gameworldMP for now, fortunately the types are very similar
+					if (type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP && asset.gameWorldSp)
+					{
+						type = Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP;
+
+						auto* newWorldMp = assetReallocator.allocate<Game::GameWorldMp>();
+						newWorldMp->name = asset.gameWorldSp->name;
+						newWorldMp->g_glassData = asset.gameWorldSp->g_glassData;
+
+						asset.gameWorldMp = newWorldMp;
+					}
+
 					if (ExporterAPI.is_type_supported(type) && name[0] != ',')
 					{
+						if (type == Game::XAssetType::ASSET_TYPE_IMAGE)
+						{
+							if (asset.image->category == Game::ImageCategory::IMG_CATEGORY_UNKNOWN)
+							{
+								asset.image->category = Game::ImageCategory::IMG_CATEGORY_LOAD_FROM_FILE;
+							}
+						}
+
+						if (type == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET && asset.techniqueSet)
+						{
+							// fix for garbage PTRs hanging out in iw4 memory
+							asset.techniqueSet->remappedTechniqueSet = nullptr;
+						}
+
 						ExporterAPI.write(type, asset.data);
 						Components::Logger::Print(".");
 					}
