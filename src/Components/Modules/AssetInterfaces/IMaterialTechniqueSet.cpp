@@ -51,6 +51,28 @@ namespace Assets
 		}
 	}
 
+	IMaterialTechniqueSet::IMaterialTechniqueSet()
+	{
+		Components::Command::Add("dumptechset", [](const Components::Command::Params* params)
+			{
+				if (params->size() < 2) return;
+
+				std::string techset = params->get(1);
+
+				const auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techset.data());
+				if (header.data)
+				{
+					Components::ZoneBuilder::RefreshExporterWorkDirectory();
+					Components::ZoneBuilder::GetExporter()->write(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, header.data);
+				}
+				else
+				{
+					Components::Logger::Print("Could not find techset {}!\n", techset);
+				}
+			}
+		);
+	}
+
 	void IMaterialTechniqueSet::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::MaterialTechniqueSet* asset = header.techniqueSet;
