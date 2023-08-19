@@ -17,6 +17,7 @@ namespace Components
 		static const Game::dvar_t* BGPlayerEjection;
 		static const Game::dvar_t* BGPlayerCollision;
 		static const Game::dvar_t* BGClimbAnything;
+		static const Game::dvar_t* BGRecoilMultiplier;
 		static const Game::dvar_t* CGNoclipScaler;
 		static const Game::dvar_t* CGUfoScaler;
 		static const Game::dvar_t* PlayerSpectateSpeedScale;
@@ -52,6 +53,8 @@ namespace Components
 		static void GScr_IsSprinting(Game::scr_entref_t entref);
 
 		static const Game::dvar_t* Dvar_RegisterSpectateSpeedScale(const char* dvarName, float value, float min, float max, unsigned __int16 flags, const char* description);
+
+		static void BG_WeaponFireRecoil_Stub(void* ps, float* recoilSpeed, float* kickAVel, unsigned int* holdrand, Game::PlayerHandIndex hand);
 
 		static void RegisterMovementDvars();
 	};
