@@ -688,6 +688,14 @@ namespace Game
 	};
 #pragma pack(pop)
 
+	enum PlayerHandIndex
+	{
+		WEAPON_HAND_RIGHT = 0x0,
+		WEAPON_HAND_LEFT = 0x1,
+		NUM_WEAPON_HANDS = 0x2,
+		WEAPON_HAND_DEFAULT = 0x0,
+	};
+
 	enum KeyCatch_t
 	{
 		KEYCATCH_MASK_ANY = -1,
@@ -1065,7 +1073,7 @@ namespace Game
 	union GfxColor
 	{
 		unsigned int packed;
-		char array[4];
+		unsigned char array[4];
 	};
 
 	union PackedTexCoords
@@ -1398,14 +1406,6 @@ namespace Game
 	{
 		int clipIndex;
 		int ammoCount[2];
-	};
-
-	enum PlayerHandIndex
-	{
-		WEAPON_HAND_RIGHT = 0x0,
-		WEAPON_HAND_LEFT = 0x1,
-		NUM_WEAPON_HANDS = 0x2,
-		WEAPON_HAND_DEFAULT = 0x0,
 	};
 
 	struct PlayerWeaponCommonState
@@ -2174,7 +2174,7 @@ namespace Game
 		int flags;
 		int format;
 		int resourceSize;
-		char data[1];
+		unsigned char data[1];
 	};
 
 	union GfxTexture
@@ -3796,7 +3796,7 @@ namespace Game
 
 	struct GfxLightGridColors
 	{
-		char rgb[56][3];
+		unsigned char rgb[56][3];
 	};
 
 	struct GfxLightGrid
