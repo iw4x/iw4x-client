@@ -20,7 +20,9 @@ namespace Components
 	Dvar::Var Renderer::r_forceTechnique;
 	Dvar::Var Renderer::r_listSamplers;
 	Dvar::Var Renderer::r_drawLights;
+	Dvar::Var Renderer::r_drawClipmap;
 
+	float pink[4] = { 1.0f, 0.5f, 0.0f, 1.0f };
 	float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
 	float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	float green[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
@@ -495,6 +497,89 @@ namespace Components
 		}
 	}
 
+	void Renderer::DebugDrawClipmap()
+	{
+		auto val = r_drawClipmap.get<int>();
+
+		Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
+		if (!clipMap) return;
+
+		auto clientNum = Game::CG_GetClientNum();
+		auto* clientEntity = &Game::g_entities[clientNum];
+
+		// Ingame only & player only
+		if (!Game::CL_IsCgameInitialized() || clientEntity->client == nullptr)
+		{
+			return;
+		}
+
+		auto drawDistance = r_playerDrawDebugDistance.get<int>();
+		unsigned int sqrDist = static_cast<unsigned int>(drawDistance * drawDistance);
+		float playerPosition[3]{ clientEntity->r.currentOrigin[0], clientEntity->r.currentOrigin[1], clientEntity->r.currentOrigin[2] };
+
+		if (val)
+		{
+			for (size_t i = 0; i < clipMap->numBrushes; i++)
+			{
+				const auto bounds = &clipMap->brushBounds[i];
+				const auto dist = Utils::Maths::Vec3SqrDistance(playerPosition, bounds->midPoint);
+
+				if (dist * 3 > sqrDist)
+				{
+					continue;
+				}
+
+				Game::R_AddDebugBounds(green, bounds);
+			}
+
+			for (size_t i = 0; i < clipMap->partitionCount; i++)
+			{
+				const auto partition = &clipMap->partitions[i];
+
+				assert(partition->firstVertSegment == 0);
+
+				auto indices = &clipMap->triIndices[3 * partition->firstTri];
+				auto tris = (float(*)[3])clipMap->verts[0];
+
+				bool tooFar = false;
+				if (!tooFar)
+				{
+					for (size_t j = 0; j < partition->triCount; j++)
+					{
+						auto indiceSet = &indices[j * 3];
+
+						for (size_t triPoint = 0; triPoint < 3; triPoint++)
+						{
+							auto point = tris[indiceSet[triPoint]];
+
+							const auto dist = Utils::Maths::Vec3SqrDistance(playerPosition, point);
+
+							if (dist > sqrDist)
+							{
+								tooFar = true;
+								break;
+							}
+						}
+
+						if (tooFar)
+						{
+							continue;
+						}
+
+						auto A = tris[indiceSet[0]];
+						auto B = tris[indiceSet[1]];
+						auto C = tris[indiceSet[2]];
+
+						Game::R_AddDebugLine(pink, A, B);
+						Game::R_AddDebugLine(pink, B, C);
+						Game::R_AddDebugLine(pink, C, A);
+					}
+
+				}
+			}
+		}
+	}
+
 	void Renderer::ForceTechnique()
 	{
 		auto forceTechnique = r_forceTechnique.get<int>();
@@ -645,6 +730,7 @@ namespace Components
 				ForceTechnique();
 				ListSamplers();
 				DrawPrimaryLights();
+				DebugDrawClipmap();
 			}
 		}, Scheduler::Pipeline::RENDERER);
 
@@ -698,6 +784,7 @@ namespace Components
 				nullptr
 			};
 
+			Renderer::r_drawClipmap = Game::Dvar_RegisterInt("r_drawClipmap", 0, 0, 10, Game::DVAR_ARCHIVE, "Draw clipmap collision");
 			Renderer::r_drawModelBoundingBoxes = Game::Dvar_RegisterEnum("r_drawModelBoundingBoxes", values, 0, Game::DVAR_CHEAT, "Draw scene model bounding boxes");
 			Renderer::r_drawSceneModelCollisions = Game::Dvar_RegisterBool("r_drawSceneModelCollisions", false, Game::DVAR_CHEAT, "Draw scene model collisions");
 			Renderer::r_drawTriggers = Game::Dvar_RegisterBool("r_drawTriggers", false, Game::DVAR_CHEAT, "Draw triggers");

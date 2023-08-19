@@ -40,6 +40,7 @@ namespace Components
 		static void DebugDrawModelNames();
 		static void DebugDrawRunners();
 		static void DebugDrawAABBTrees();
+		static void DebugDrawClipmap();
 		static void ForceTechnique();
 		static void ListSamplers();
 		static void DrawPrimaryLights();
@@ -62,5 +63,6 @@ namespace Components
 		static Dvar::Var r_forceTechnique;
 		static Dvar::Var r_listSamplers;
 		static Dvar::Var r_drawLights;
+		static Dvar::Var r_drawClipmap;
 	};
 }
