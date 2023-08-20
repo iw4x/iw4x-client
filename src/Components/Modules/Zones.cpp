@@ -245,6 +245,539 @@ namespace Components
 		return result;
 	}
 
+	struct codo461_WeaponCompleteDef
+	{
+		char* szInternalName; // +0
+		char* szDisplayName;		// +4
+		char* szInternalName2;		// +8
+		char* unkString3;		// +12
+		Game::XModel* unkModels1[2];	// +16
+		Game::XModel* unkModels2[2];	// +24
+		Game::XModel* unkModels_Multiple1[6];			// +32
+		char unkPadding[4];
+		char** unkScriptStrings;		// +60
+		char unkPadding2[60];			// +64
+		char** unkXStringArray1;		// +124
+		char unkPadding3[244];
+		char** unkXStringArray2;		// +372
+		char unkPadding4[244];
+		char** unkXStringArray3;		// +620
+
+		char unkPadding5[404];			// + 624
+
+		Game::FxEffectDef* effects[16]; // +1028
+		char** unkScriptString2; // +1092
+		char unkPadding6[28];
+
+		Game::FxEffectDef* effects2[16]; // +1124
+		char unkPadding7[128]; // + 1188
+
+		Game::FxEffectDef* effects3[16]; // +1316
+		char unkPadding8[64]; // + 1380
+
+		Game::FxEffectDef* viewFlashEffect; // +1444
+		Game::FxEffectDef* worldFlashEffect; // +1448
+		Game::FxEffectDef* unkEffect3; // +1452
+		Game::FxEffectDef* unkEffect4; // +1456
+		Game::FxEffectDef* unkEffect5; // +1460
+
+		char* unkString4;				// +1464
+		int unkPadding9;
+
+		char* unkString5;				// +1472
+		Game::snd_alias_list_t* sounds[58]; // +1476
+		//Game::snd_alias_list_t* sounds2[21]; // +1604
+
+		//Game::snd_alias_list_t** soundsList[5]; // 1688
+		Game::snd_alias_list_t** soundsNames1; // + 1708
+		Game::snd_alias_list_t** soundsNames2; // + 1712
+		Game::FxEffectDef* fx[4];		// 1716
+		Game::Material* material1;		// 1732
+		Game::Material* material2;		// 1736
+		char unkPadding10[212];
+
+		Game::Material* materials[6]; // 1952
+		int unkPadding11;
+
+		Game::Material* material3; // 1980
+		int unkPadding12;
+
+		Game::Material* material4; // 1988
+		char unkPadding13[8];
+
+		Game::Material* overlayMaterial; // 2000
+		Game::Material* overlayMaterialLowRes;
+		Game::Material* overlayMaterialEMP;
+		Game::Material* overlayMaterialEMPLowRes;
+
+		char unkPadding14[8];
+
+		char* unkString6; // 2024
+		int unkPadding15;
+
+		char* unkString7; // 2032
+		char unkPadding16[12];
+
+		char* unkString8; // 2048
+
+		char padFloats[278];
+
+		Game::Material* unkMaterials2[4]; // 2332
+
+		char padFloats2[194];
+
+		Game::PhysCollmap* physCollMap; // 2544;
+
+		char padFloats3[108];
+
+		Game::XModel* projectileModel; // 2656
+		Game::weapProjExposion_t projExplosion; // 2660
+		Game::FxEffectDef* projExplosionEffect; // 2664
+		Game::FxEffectDef* projDudEffect; // 2668
+		Game::snd_alias_list_t* projDudSound; // 2672
+		Game::snd_alias_list_t* unkSound1; // 2676
+
+		char padProj2[272];
+
+		Game::FxEffectDef* unkProjEffect1[3]; // 2952
+
+		char padFX[24];
+
+		Game::snd_alias_list_t* unkSound2; // 2988
+		Game::FxEffectDef* projTrailEffect;  // 2992
+		Game::FxEffectDef* projBeaconEffect; // 2996
+		Game::FxEffectDef* unkProjEffect2[3]; // 3000
+
+		char padProj3[184];
+
+		char* unkString9; // 3196
+		char* unkString10; // 3200
+		 // OUT OF ORDER!
+		uint64_t* unknownAsset1; // 3204
+		uint64_t* unknownAsset2; // 3208
+		char unkPadding16_b[80];
+
+		char* unkString10_b; // 3292
+		char* unkString11; // 3296
+
+		char padStrings[28];	
+
+		char* unkString12; // 3328
+		char* unkString13; // 3332
+		char padStrings2[152];
+
+		char* unkStrings[5]; // 3488-3508
+		char padStrings3[24];
+
+		Game::snd_alias_list_t* unkSound3; // 3532
+		Game::FxEffectDef* unkEffect6; // 3536
+		char* unkString14; // 3540
+
+		char unkPadding17[12];
+
+		Game::snd_alias_list_t* sounds2; // 3556
+		Game::snd_alias_list_t* fourSounds1[4]; // 3560
+		Game::snd_alias_list_t* fourSounds2[4]; // 3576
+		Game::snd_alias_list_t* sounds3[2]; // 3592
+
+		char unkPadding18[64];
+
+		Game::snd_alias_list_t* sounds4[6]; // 3664
+
+		char unkPadding19[26];
+
+		char* unkString15; // 3716
+		char unkPadding20[12];
+
+		char* unkString16; // 3732
+		char* unkString17; // 3736
+		char unkPadding21[4];
+
+		Game::Material* unkMaterials3[4]; // 3744
+		char unkPadding22[24];
+
+		uint64_t* unknownAsset3; // 3784
+		uint64_t* unknownAsset4; // 3788
+		char unkPadding23[88];
+
+		char* unkString18[3]; // 3880
+		char unkPadding24[108];
+
+		char* unkString19; // 4000
+		char unkPadding25[12];
+
+		char* unkString20; // 4016
+
+		char padEnd[104];
+	};
+
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkXStringArray1) == 124);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkXStringArray2) == 372);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkXStringArray3) == 620);
+	static_assert(offsetof(codo461_WeaponCompleteDef, effects) == 1028);
+	static_assert(offsetof(codo461_WeaponCompleteDef, effects2) == 1124);
+	static_assert(offsetof(codo461_WeaponCompleteDef, effects3) == 1316);
+	static_assert(offsetof(codo461_WeaponCompleteDef, viewFlashEffect) == 1444);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkEffect5) == 1460);
+	static_assert(offsetof(codo461_WeaponCompleteDef, sounds) == 1476);
+	static_assert(offsetof(codo461_WeaponCompleteDef, fx) == 1716);
+	static_assert(offsetof(codo461_WeaponCompleteDef, material2) == 1736);
+	static_assert(offsetof(codo461_WeaponCompleteDef, materials) == 1952);
+	static_assert(offsetof(codo461_WeaponCompleteDef, material3) == 1980);
+	static_assert(offsetof(codo461_WeaponCompleteDef, material4) == 1988);
+	static_assert(offsetof(codo461_WeaponCompleteDef, overlayMaterial) == 2000);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString6) == 2024);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString8) == 2048);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkMaterials2) == 2332);
+	static_assert(offsetof(codo461_WeaponCompleteDef, physCollMap) == 2544);
+	static_assert(offsetof(codo461_WeaponCompleteDef, projectileModel) == 2656);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkSound1) == 2676);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkProjEffect1) == 2952);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkProjEffect2) == 3000);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString9) == 3196);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unknownAsset1) == 3204);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString10_b) == 3292);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString11) == 3296);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString12) == 3328);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkStrings) == 3488);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString14) == 3540);
+	static_assert(offsetof(codo461_WeaponCompleteDef, sounds2) == 3556);
+	static_assert(offsetof(codo461_WeaponCompleteDef, fourSounds1) == 3560);
+	static_assert(offsetof(codo461_WeaponCompleteDef, fourSounds2) == 3576);
+	static_assert(offsetof(codo461_WeaponCompleteDef, sounds3) == 3592);
+	static_assert(offsetof(codo461_WeaponCompleteDef, sounds4) == 3664);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString15) == 3716);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString16) == 3732);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkMaterials3) == 3744);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unknownAsset3) == 3784);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unknownAsset4) == 3788);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString18) == 3880);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString19) == 4000);
+	static_assert(offsetof(codo461_WeaponCompleteDef, unkString20) == 4016);
+
+	void Zones::LoadWeaponCompleteDef461()
+	{
+#define LOAD_XSTRING(member)\
+		*Game::varXString = reinterpret_cast<char**>(&member);\
+		Game::Load_XString(false)
+
+#define LOAD_MATERIAL(member)\
+		*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(&member);\
+		Game::Load_MaterialHandle(false)
+
+#define LOAD_XSTRING_ARRAY(member, count)\
+		*Game::varXString = reinterpret_cast<char**>(&member);\
+		Game::Load_XStringArray(false, count)
+
+#define LOAD_FX(member)\
+		*Game::varFxEffectDefHandle = &member;\
+		Game::Load_FxEffectDefHandle(false);
+
+#define LOAD_SOUND(member)\
+		{\
+			*Game::varsnd_alias_list_name = &member;\
+				\
+			if (reinterpret_cast<int>(member) != -1)\
+			{\
+				member = nullptr;\
+			}\
+			else {\
+				Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);\
+			}\
+		}
+
+
+		constexpr auto size = 4124;
+		static_assert(sizeof(codo461_WeaponCompleteDef) >= size, "Invalid size");
+		static_assert(sizeof(codo461_WeaponCompleteDef) <= size, "Invalid size");
+		static_assert(sizeof(codo461_WeaponCompleteDef) == size, "Invalid size");
+
+		codo461_WeaponCompleteDef target;
+
+		Game::Load_Stream(true, reinterpret_cast<void*>(&target), size);
+
+		LOAD_XSTRING(target.szInternalName);
+		LOAD_XSTRING(target.szDisplayName);
+		LOAD_XSTRING(target.szInternalName2);
+		LOAD_XSTRING(target.unkString3);
+
+		for (size_t i = 0; i < ARRAYSIZE(target.unkModels1); i++)
+		{
+			*Game::varXModelPtr = &target.unkModels1[i];
+			Game::Load_XModelPtr(false);
+		}
+
+		for (size_t i = 0; i < ARRAYSIZE(target.unkModels2); i++)
+		{
+			*Game::varXModelPtr = &target.unkModels2[i];
+			Game::Load_XModelPtr(false);
+		}
+
+		for (size_t i = 0; i < ARRAYSIZE(target.unkModels_Multiple1); i++)
+		{
+			*Game::varXModelPtr = &target.unkModels_Multiple1[i];
+			Game::Load_XModelPtr(false);
+		}
+
+		LOAD_XSTRING_ARRAY(target.unkXStringArray1, 62);
+		LOAD_XSTRING_ARRAY(target.unkXStringArray2, 62);
+		LOAD_XSTRING_ARRAY(target.unkXStringArray3, 62);
+
+		for (size_t i = 0; i < 16; i++)
+		{
+			*Game::varFxEffectDefHandle = &target.effects[i];
+			Game::Load_FxEffectDefHandle(false);
+		}
+
+		for (size_t i = 0; i < 16; i++)
+		{
+			*Game::varFxEffectDefHandle = &target.effects2[i];
+			Game::Load_FxEffectDefHandle(false);
+		}
+
+		for (size_t i = 0; i < 16; i++)
+		{
+			*Game::varFxEffectDefHandle = &target.effects3[i];
+			Game::Load_FxEffectDefHandle(false);
+		}
+
+		*Game::varFxEffectDefHandle = &target.viewFlashEffect;
+		Game::Load_FxEffectDefHandle(false);
+
+		*Game::varFxEffectDefHandle = &target.worldFlashEffect;
+		Game::Load_FxEffectDefHandle(false);
+
+		*Game::varFxEffectDefHandle = &target.unkEffect3;
+		Game::Load_FxEffectDefHandle(false);
+
+		*Game::varFxEffectDefHandle = &target.unkEffect4;
+		Game::Load_FxEffectDefHandle(false);
+
+		*Game::varFxEffectDefHandle = &target.unkEffect5;
+		Game::Load_FxEffectDefHandle(false);
+
+		LOAD_XSTRING(target.unkString4);
+		LOAD_XSTRING(target.unkString5);
+
+		for (size_t i = 0; i < ARRAYSIZE(target.sounds); i++)
+		{
+			*Game::varsnd_alias_list_name = &target.sounds[i];
+
+			if (reinterpret_cast<int>(target.sounds[i]) != -1)
+			{
+				target.sounds[i] = nullptr;
+				continue; 
+			}
+
+			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
+		}
+
+		for (size_t i = 0; i < ARRAYSIZE(target.sounds); i++)
+		{
+			auto test = &target.sounds[i];
+
+			if (reinterpret_cast<int>(target.sounds[i]) != -1)
+			{
+				target.sounds[i] = nullptr;
+				continue;
+			}
+
+			Game::Load_SndAliasCustom(test);
+		}
+
+		if (target.soundsNames1)
+		{
+			*Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t***>(&target.soundsNames1);
+			Game::Load_snd_alias_list_nameArray(true, 31);
+		}
+
+		if (target.soundsNames2)
+		{
+			*Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t***>(&target.soundsNames2);
+			Game::Load_snd_alias_list_nameArray(true, 31);
+		}
+
+					
+		for (size_t i = 0; i < ARRAYSIZE(target.fx); i++)
+		{
+			*Game::varFxEffectDefHandle = &target.fx[i];
+			Game::Load_FxEffectDefHandle(false);
+		}
+
+		LOAD_MATERIAL(target.material1);
+		LOAD_MATERIAL(target.material2);
+
+		for (size_t i = 0; i < ARRAYSIZE(target.materials); i++)
+		{
+			*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(&target.materials[i]);
+			Game::Load_MaterialHandle(false);
+		}
+
+		LOAD_MATERIAL(target.material3);
+		LOAD_MATERIAL(target.material4);
+		LOAD_MATERIAL(target.overlayMaterial);
+		LOAD_MATERIAL(target.overlayMaterialLowRes);
+		LOAD_MATERIAL(target.overlayMaterialEMPLowRes);
+
+		LOAD_XSTRING(target.unkString6);
+		LOAD_XSTRING(target.unkString7);
+		LOAD_XSTRING(target.unkString8);
+
+		for (size_t i = 0; i < ARRAYSIZE(target.unkMaterials2); i++)
+		{
+			*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(&target.unkMaterials2[i]);
+			Game::Load_MaterialHandle(false);
+		}
+
+		*Game::varPhysCollmapPtr = reinterpret_cast<Game::PhysCollmap**>(&target.physCollMap);
+		Game::Load_PhysCollmapPtr(false);
+
+		*Game::varXModelPtr = &target.projectileModel;
+		Game::Load_XModelPtr(false);
+
+		*Game::varFxEffectDefHandle = &target.projExplosionEffect;
+		Game::Load_FxEffectDefHandle(false);
+
+		*Game::varFxEffectDefHandle = &target.projDudEffect;
+		Game::Load_FxEffectDefHandle(false);
+
+		{
+			*Game::varsnd_alias_list_name = &target.projDudSound;
+
+			if (reinterpret_cast<int>(target.projDudSound) != -1)
+			{
+				target.projDudSound = nullptr;
+			}
+			else {
+				Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
+			}
+		}
+
+		LOAD_SOUND(target.unkSound1);
+
+		for (size_t i = 0; i < ARRAYSIZE(target.unkProjEffect1); i++)
+		{
+			*Game::varFxEffectDefHandle = &target.unkProjEffect1[i];
+			Game::Load_FxEffectDefHandle(false);
+		}
+
+		{
+			*Game::varsnd_alias_list_name = &target.unkSound2;
+
+			if (reinterpret_cast<int>(target.projDudSound) != -1)
+			{
+				target.projDudSound = nullptr;
+			}
+			else {
+				Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
+			}
+		}
+
+		*Game::varFxEffectDefHandle = &target.projTrailEffect;
+		Game::Load_FxEffectDefHandle(false);
+
+		*Game::varFxEffectDefHandle = &target.projBeaconEffect;
+		Game::Load_FxEffectDefHandle(false);
+
+		for (size_t i = 0; i < ARRAYSIZE(target.unkProjEffect2); i++)
+		{
+			*Game::varFxEffectDefHandle = &target.unkProjEffect2[i];
+			Game::Load_FxEffectDefHandle(false);
+		}
+
+		LOAD_XSTRING(target.unkString9);
+
+		// Mysterious assets ?
+		{
+			if (target.unknownAsset1 == reinterpret_cast<void*>(-1))
+			{
+				*Game::g_streamPos += 8;
+			}
+
+			// Out of order
+			LOAD_XSTRING(target.unkString10);
+
+			if (target.unknownAsset2 == reinterpret_cast<void*>(-1))
+			{
+				*Game::g_streamPos += 8;
+			}
+		}
+
+		LOAD_XSTRING(target.unkString10_b);
+		LOAD_XSTRING(target.unkString11);
+		LOAD_XSTRING(target.unkString12);
+		LOAD_XSTRING(target.unkString13);
+
+		for (size_t i = 0; i < ARRAYSIZE(target.unkStrings); i++)
+		{
+			LOAD_XSTRING(target.unkStrings[i]);
+		}
+
+		LOAD_SOUND(target.unkSound3);
+		LOAD_FX(target.unkEffect6);
+		LOAD_XSTRING(target.unkString14);
+
+		LOAD_SOUND(target.sounds2);
+
+		for (size_t i = 0; i < ARRAYSIZE(target.fourSounds1); i++)
+		{
+			LOAD_SOUND(target.fourSounds1[i]);
+		}
+
+		for (size_t i = 0; i < ARRAYSIZE(target.fourSounds2); i++)
+		{
+			LOAD_SOUND(target.fourSounds2[i]);
+		}
+
+		for (size_t i = 0; i < ARRAYSIZE(target.sounds3); i++)
+		{
+			LOAD_SOUND(target.sounds3[i]);
+		}
+
+		for (size_t i = 0; i < ARRAYSIZE(target.sounds4); i++)
+		{
+			LOAD_SOUND(target.sounds4[i]);
+		}
+
+		LOAD_XSTRING(target.unkString15);
+		LOAD_XSTRING(target.unkString16);
+		LOAD_XSTRING(target.unkString17);
+
+		for (size_t i = 0; i < ARRAYSIZE(target.unkMaterials3); i++)
+		{
+			LOAD_MATERIAL(target.unkMaterials3[i]);
+		}
+
+		// More mystery
+		{
+			if (target.unknownAsset3 == reinterpret_cast<void*>(-1))
+			{
+				*Game::g_streamPos += 8;
+			}
+
+			if (target.unknownAsset4 == reinterpret_cast<void*>(-1))
+			{
+				*Game::g_streamPos += 8;
+			}
+		}
+
+		for (size_t i = 0; i < ARRAYSIZE(target.unkString18); i++)
+		{
+			LOAD_XSTRING(target.unkString18[i]);
+		}
+
+		LOAD_XSTRING(target.unkString19);
+		LOAD_XSTRING(target.unkString20);
+
+
+		printf("");
+
+#undef LOAD_SOUND
+#undef LOAD_XSTRING_ARRAY
+#undef LOAD_XSTRING
+#undef LOAD_MATERIAL
+	}
+
 	void Zones::LoadWeaponCompleteDef()
 	{
 		if (Zones::ZoneVersion < VERSION_ALPHA2)
@@ -254,11 +787,13 @@ namespace Components
 
 		// setup structures we use
 		char* varWeaponCompleteDef = *reinterpret_cast<char**>(0x112A9F4);
-
+		
 		int size = 3112;
 
-		if (Zones::ZoneVersion >= 461)
-			size = 4124;
+		if (Zones::ZoneVersion >= 461) {
+			LoadWeaponCompleteDef461();
+			return;
+		}
 		else if (Zones::ZoneVersion >= 460)
 			size = 4120;
 		else if (Zones::ZoneVersion >= 365)
@@ -1222,7 +1757,7 @@ namespace Components
 		Game::DB_PopStreamPos();
 	}
 
-// Code-analysis has a bug, the first memcpy makes it believe size of tempVar is 44 instead of 84
+	// Code-analysis has a bug, the first memcpy makes it believe size of tempVar is 44 instead of 84
 #pragma warning(push)
 #pragma warning(disable: 6385)
 	bool Zones::LoadGameWorldSp(bool atStreamStart, char* buffer, int size)
@@ -1330,7 +1865,7 @@ namespace Components
 		return result;
 	}
 
-// Code-analysis has a bug, the first memcpy makes it believe size of tempVar is 400 instead of 788
+	// Code-analysis has a bug, the first memcpy makes it believe size of tempVar is 400 instead of 788
 #pragma warning(push)
 #pragma warning(disable: 6385)
 	bool Zones::LoadVehicleDef(bool atStreamStart, char* buffer, int size)
@@ -1385,8 +1920,16 @@ namespace Components
 
 		if (Zones::ZoneVersion >= VERSION_ALPHA2)
 		{
-			std::memmove(buffer + 168, buffer + 172, (Zones::ZoneVersion != 359 ? 232 : 228));
-			AssetHandler::Relocate(buffer + 172, buffer + 168, (Zones::ZoneVersion != 359 ? 232 : 228));
+			if (Zones::ZoneVersion < VERSION_LATEST_CODO)
+			{
+				std::memmove(buffer + 168, buffer + 172, (Zones::ZoneVersion != 359 ? 232 : 228));
+				AssetHandler::Relocate(buffer + 172, buffer + 168, (Zones::ZoneVersion != 359 ? 232 : 228));
+			}
+			else
+			{
+				std::memmove(buffer + 168, buffer + 176, 236);
+				AssetHandler::Relocate(buffer + 168, buffer + 176, 236);
+			}
 
 			reinterpret_cast<Game::menuDef_t*>(buffer)->expressionData = nullptr;
 		}
@@ -1415,17 +1958,28 @@ namespace Components
 			Game::Load_XString(false);
 
 			// load string array
-			if (*reinterpret_cast<int**>(varWeaponAttach + 16) != nullptr)
+			const auto numStringsInArray = *reinterpret_cast<int*>(varWeaponAttach + 12);
+
+			std::string checkNop(varWeaponAttach + 12, 3);
+			if (checkNop == "nop")
 			{
-				if (*reinterpret_cast<int*>(varWeaponAttach + 16) == -1)
+				printf("");
+				Game::DB_PopStreamPos();
+				return true;
+			}
+
+			auto stringArray = reinterpret_cast<int**>(varWeaponAttach + 16);
+			if (*stringArray != nullptr)
+			{
+				if (*reinterpret_cast<int*>(stringArray) == -1)
 				{
 					*reinterpret_cast<void**>(varWeaponAttach + 16) = Game::DB_AllocStreamPos(3);
 					*Game::varXString = reinterpret_cast<char**>(varWeaponAttach + 16);
-					Game::Load_XStringArray(true, *reinterpret_cast<int*>(varWeaponAttach + 12));
+					Game::Load_XStringArray(true, numStringsInArray);
 				}
 				else
 				{
-					Utils::Hook::Call<void(int*)>(0x4A82B0)(reinterpret_cast<int*>(varWeaponAttach + 16));
+					Game::DB_ConvertOffsetToPointer(reinterpret_cast<int*>(varWeaponAttach + 16));
 				}
 			}
 
@@ -1852,6 +2406,15 @@ namespace Components
 			}
 		}
 
+		Game::XAssetList* list = *reinterpret_cast<Game::XAssetList**>(0x112AC7C);
+
+		if (list->assetCount == 8557) {
+			for (size_t i = 0; i < 8557; i++)
+			{
+				Logger::Print("#{}: \t {} ({})\n", i, Game::DB_GetXAssetTypeName(list->assets[i].type), (int)list->assets[i].type);
+			}
+		}
+
 		return result;
 	}
 
@@ -2025,6 +2588,9 @@ namespace Components
 			int sunDiff = 8;	// Stuff that is part of the sunflare we would overwrite
 			std::memmove(buffer + 348 + sunDiff, buffer + 1316 + sunDiff, 280 - sunDiff);
 			AssetHandler::Relocate(buffer + 1316, buffer + 348, 280);
+
+			Game::GfxWorld* world = reinterpret_cast<Game::GfxWorld*>(buffer);
+			world->fogTypesAllowed = 3;
 		}
 
 		return result;
@@ -2144,7 +2710,7 @@ namespace Components
 			call Zones::ImpactFxArrayCount
 			pop edi
 
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 
 			popad
 			pop edi
@@ -2223,10 +2789,10 @@ namespace Components
 			push 4189AEh
 			retn
 
-		returnSafe:
+			returnSafe :
 			popad
-			push 41899Dh
-			retn
+				push 41899Dh
+				retn
 		}
 	}
 
@@ -2249,7 +2815,7 @@ namespace Components
 
 			call Zones::PathDataSize
 
-			add [esp + 20h], eax
+			add[esp + 20h], eax
 
 			popad
 			pop esi
@@ -2338,7 +2904,7 @@ namespace Components
 				gfxSurfaceExtraData.push_back({
 					read_count,
 					read_ptr
-				});
+					});
 
 				// fix structure
 				std::memmove(buffer + (40 * i), buffer + (48 * i), 40);
@@ -3413,7 +3979,7 @@ namespace Components
 	Game::HunkUser* Hunk_UserCreate_Stub(int maxSize, const char* name, bool fixed, int type)
 	{
 		maxSize *= fileCountMultiplier;
-		return Utils::Hook::Call<Game::HunkUser*(int, const char*, bool, int)>(0x430E90)(maxSize, name, fixed, type);
+		return Utils::Hook::Call<Game::HunkUser* (int, const char*, bool, int)>(0x430E90)(maxSize, name, fixed, type);
 	}
 
 	void Zones::LoadMaterialAsset(Game::Material** asset)
@@ -3479,77 +4045,344 @@ namespace Components
 		return token;
 	}
 
+	static auto varMenu = reinterpret_cast<Game::menuDef_t**>(0x112B0EC);
+
+	// 461 Menu work
+	void __cdecl Load_windowDef_t(char a1)
+	{
+		if (Zones::Version() >= VERSION_LATEST_CODO)
+		{
+			printf("");
+		}
+		else {
+			printf("");
+		}
+
+		Utils::Hook::Call<void(char)>(0x4719E0)(a1);
+		return;
+	}
+
+	void __cdecl Load_MenuPtr(char a1)
+	{
+		if (Zones::Version() >= VERSION_LATEST_CODO)
+		{
+			printf("");
+		}
+		else {
+			printf("");
+		}
+
+		Utils::Hook::Call<void(char)>(0x463920)(a1);
+
+		printf("");
+	}
+
+	void __cdecl Load_itemDef_ptrArray(char a1, int count)
+	{
+		if (Zones::Version() >= VERSION_LATEST_CODO)
+		{
+			printf("");
+		}
+		else {
+			printf("");
+		}
+
+		Utils::Hook::Call<void(char, int)>(0x406260)(a1, count);
+		return;
+	}
+
+	void __cdecl Load_itemDef_s(char a1)
+	{
+		if (Zones::Version() >= VERSION_LATEST_CODO)
+		{
+			printf("");
+		}
+		else {
+			printf("");
+		}
+
+		Utils::Hook::Call<void(char)>(0x491980)(a1);
+
+		auto justLoaded = *((Game::itemDef_s***)0x112A74C);
+		if ((*justLoaded)->window.name && (*justLoaded)->window.name == "playermutelist"s)
+		{
+			printf("");
+		}
+
+		return;
+	}
+
+	void __cdecl Load_Stream_itemDef_s(char atStreamStart, Game::itemDef_s* item, size_t size)
+	{
+		if (Zones::Version() >= VERSION_LATEST_CODO)
+		{
+			// 3x4 new structs?
+			size += 12;
+		}
+
+		bool result = Game::Load_Stream(atStreamStart, item, size);
+		auto itemBaseOffset = reinterpret_cast<size_t>(item);
+
+		auto varMenu = *((Game::menuDef_t**)0x112B0EC);
+
+		if (Zones::Version() >= VERSION_LATEST_CODO)
+		{
+			// CODO 461 has one more member with a very early offset
+			{
+				constexpr auto newMemberPosition = offsetof(Game::itemDef_s, type);
+				constexpr auto newMemberSize = sizeof(int);
+				const auto sizeToMove = size - newMemberPosition - newMemberSize;
+				const auto destination = reinterpret_cast<void*>(itemBaseOffset + newMemberPosition);
+				const auto origin = reinterpret_cast<void*>(itemBaseOffset + newMemberPosition + newMemberSize);
+
+				std::memcpy(destination, origin, sizeToMove);
+				AssetHandler::Relocate(destination, origin, sizeToMove);
+			}
+
+			// And two more expressions of 4 bytes each
+			{
+				constexpr auto newExpressionsPosition = offsetof(Game::itemDef_s, glowColor);
+				constexpr auto newExpressionsSize = sizeof(void*) * 2;
+				const auto sizeToMove = size - newExpressionsPosition - newExpressionsSize;
+				const auto destination = reinterpret_cast<void*>(itemBaseOffset + newExpressionsPosition);
+				const auto origin = reinterpret_cast<void*>(itemBaseOffset + newExpressionsPosition + newExpressionsSize);
+
+				// Keeping them on the side because we will need to read them if any
+				void* codoXpressions[2];
+				memcpy(codoXpressions, destination, sizeof(codoXpressions));
+
+				std::memcpy(destination, origin, sizeToMove);
+
+				for (size_t i = 0; i < ARRAYSIZE(codoXpressions); i++)
+				{
+					if (codoXpressions[i] != 0) {
+						// Load the extra expression in an empty expression slot so that it gets loaded by the game, no extra sweat
+						if (!item->materialExp) item->materialExp = reinterpret_cast<Game::Statement_s*>(codoXpressions[i]);
+						else if (!item->textExp) item->textExp = reinterpret_cast<Game::Statement_s*>(codoXpressions[i]);
+						else if (!item->disabledExp) item->disabledExp = reinterpret_cast<Game::Statement_s*>(codoXpressions[i]);
+						else if (!item->visibleExp) item->visibleExp = reinterpret_cast<Game::Statement_s*>(codoXpressions[i]);
+						else {
+							printf(""); // This is gonna be a bigger problem than anticipated
+						}
+					}
+
+				}
+
+				AssetHandler::Relocate(destination, origin, sizeToMove);
+			}
+		}
+
+		return;
+	}
+
+	void Load_UnknownAssetType45()
+	{
+		struct codo461_unknownAssetType45
+		{
+			char* name;
+			void* unk1;
+			int pad1;
+			void* unk2;
+			int countOfUnk2;
+
+			char padEnd[0x30EC - 20];
+		};
+
+		static_assert(offsetof(codo461_unknownAssetType45, countOfUnk2) == 16);
+
+		static_assert(sizeof(codo461_unknownAssetType45) == 0x30EC);
+		static_assert(sizeof(codo461_unknownAssetType45) <= 0x30EC);
+		static_assert(sizeof(codo461_unknownAssetType45) >= 0x30EC);
+
+#define LOAD_XSTRING(member)\
+		*Game::varXString = reinterpret_cast<char**>(&member);\
+		Game::Load_XString(false)
+
+		codo461_unknownAssetType45 target{};
+		const auto streamPosIndex = *Game::g_streamPosIndex;
+
+		Game::DB_ReadXFile(reinterpret_cast<void*>(&target), 0x30EC);
+
+		*Game::g_streamPos += 0x30EC;
+
+		Game::DB_PushStreamPos(3);
+
+		if (target.name)
+		{
+			LOAD_XSTRING(target.name);
+		}
+
+#undef LOAD_XSTRING
+
+		printf("");
+	}
+
+
+	void Load_UnknownAssetType45Ptr(char** varAssetType43Ptr)
+	{
+		Game::DB_PushStreamPos(0);
+		char* varAssetType43 = *varAssetType43Ptr;
+		if (varAssetType43)
+		{
+			if (
+				*varAssetType43 == -1 ||
+				*varAssetType43 == -2
+			)
+			{
+				int newStreamPos = (*Game::g_streamPos + 3) & 0xFFFFFFFC;
+
+				*varAssetType43Ptr = reinterpret_cast<char*>(newStreamPos);
+				*Game::g_streamPos = newStreamPos;
+				varAssetType43 = reinterpret_cast<char*>(*Game::g_streamPos);
+
+				if (varAssetType43 == reinterpret_cast<void*>(-2))
+				{
+					Game::DB_PushStreamPos(3);
+					newStreamPos = ((*Game::g_streamPos + 3) & 0xFFFFFFFC);
+					*Game::g_streamPos = (newStreamPos + 1);
+					Game::DB_PopStreamPos();
+				}
+
+				Load_UnknownAssetType45();
+				//sub_49C4E0();
+			}
+			else
+			{
+				// We don't care
+			}
+		}
+
+		Game::DB_PopStreamPos();
+	}
+
+	void CheckAssetType_Hook(int type)
+	{
+		if (Zones::Version() >= VERSION_LATEST_CODO)
+		{
+			Logger::Print("LOADING INLINE ASSET TYPE {}\n", type);
+
+			//switch (type)
+			//{
+			//	case 0x2C:
+			//		// Unknown CODO type
+			//	{
+			//		int32_t purge;
+			//		Game::Load_Stream(false, &purge, 4);
+			//		Game::DB_PushStreamPos(0);
+			//		Game::DB_PopStreamPos()
+			//	}
+			//	break;
+
+			//}
+		}
+	}
+
+	__declspec(naked) void CheckAssetType_Stub()
+	{
+		__asm
+		{
+			pushad
+			push eax
+			call CheckAssetType_Hook
+			pop eax
+			popad
+
+			// original code
+			cmp eax, 1
+			jz isPhysColMap
+
+			// return
+			push 0x418870
+			ret
+
+		isPhysColMap:
+			// return
+			push 0x418861
+			ret
+		}
+	}
+
+
+
 	Zones::Zones()
 	{
 		Zones::ZoneVersion = 0;
 
+		// 461 Menu work
+		Utils::Hook(0x41A5B8, Load_windowDef_t, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4A3BF8, Load_MenuPtr, HOOK_CALL).install()->quick();
+		Utils::Hook(0x41A85E, Load_itemDef_ptrArray, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4062CB, Load_itemDef_s, HOOK_CALL).install()->quick();
+		Utils::Hook(0x491990, Load_Stream_itemDef_s, HOOK_CALL).install()->quick();
+
+
 		if (ZoneBuilder::IsEnabled())
 		{
 			Command::Add("decryptImages", []()
-			{
-				auto images = FileSystem::GetSysFileList("iw4x/images", "iwi");
-				Logger::Print("decrypting {} images...\n", images.size());
-
-				for (auto& image : images)
 				{
-					char* buffer = nullptr;
-					auto fileLength = Game::FS_ReadFile(Utils::String::Format("images/{}", image), &buffer);
+					auto images = FileSystem::GetSysFileList("iw4x/images", "iwi");
+					Logger::Print("decrypting {} images...\n", images.size());
 
-					if (fileLength && buffer)
+					for (auto& image : images)
 					{
-						if (!std::filesystem::exists("raw/images"))
-						{
-							std::filesystem::create_directories("raw/images");
-						}
+						char* buffer = nullptr;
+						auto fileLength = Game::FS_ReadFile(Utils::String::Format("images/{}", image), &buffer);
 
-						if (!std::filesystem::exists(Utils::String::Format("raw/images/{}", image)))
+						if (fileLength && buffer)
 						{
-							const auto fp = fopen(Utils::String::Format("raw/images/{}", image), "wb");
-							if (fp)
+							if (!std::filesystem::exists("raw/images"))
 							{
-								fwrite(buffer, fileLength, 1, fp);
-								fclose(fp);
+								std::filesystem::create_directories("raw/images");
 							}
+
+							if (!std::filesystem::exists(Utils::String::Format("raw/images/{}", image)))
+							{
+								const auto fp = fopen(Utils::String::Format("raw/images/{}", image), "wb");
+								if (fp)
+								{
+									fwrite(buffer, fileLength, 1, fp);
+									fclose(fp);
+								}
+							}
+
+							Game::FS_FreeFile(buffer);
 						}
-
-						Game::FS_FreeFile(buffer);
 					}
-				}
 
-				Logger::Print("decrypted {} images!\n", images.size());
-			});
+					Logger::Print("decrypted {} images!\n", images.size());
+				});
 
 			Command::Add("decryptSounds", []()
-			{
-				auto sounds = FileSystem::GetSysFileList("iw4x/sound", "iwi");
-				Logger::Print("decrypting {} sounds...\n", sounds.size());
-
-				for (auto& sound : sounds)
 				{
-					char* buffer = nullptr;
-					auto len = Game::FS_ReadFile(Utils::String::Format("sound/{}", sound), &buffer);
+					auto sounds = FileSystem::GetSysFileList("iw4x/sound", "iwi");
+					Logger::Print("decrypting {} sounds...\n", sounds.size());
 
-					if (len && buffer)
+					for (auto& sound : sounds)
 					{
-						auto path = std::filesystem::path(sound.data());
-						std::filesystem::create_directories("raw/sound" / path.parent_path());
+						char* buffer = nullptr;
+						auto len = Game::FS_ReadFile(Utils::String::Format("sound/{}", sound), &buffer);
 
-						if (!std::filesystem::exists(std::format("raw/sound/{}", sound)))
+						if (len && buffer)
 						{
-							FILE* fp;
-							if (!fopen_s(&fp, Utils::String::Format("raw/sound/{}", sound), "wb") && fp)
+							auto path = std::filesystem::path(sound.data());
+							std::filesystem::create_directories("raw/sound" / path.parent_path());
+
+							if (!std::filesystem::exists(std::format("raw/sound/{}", sound)))
 							{
-								fwrite(buffer, len, 1, fp);
-								fclose(fp);
+								FILE* fp;
+								if (!fopen_s(&fp, Utils::String::Format("raw/sound/{}", sound), "wb") && fp)
+								{
+									fwrite(buffer, len, 1, fp);
+									fclose(fp);
+								}
 							}
+
+							Game::FS_FreeFile(buffer);
 						}
-
-						Game::FS_FreeFile(buffer);
 					}
-				}
 
-				Logger::Print("decrypted {} sounds!\n", sounds.size());
-			});
+					Logger::Print("decrypted {} sounds!\n", sounds.size());
+				});
 		}
 
 		// patch max filecount Sys_ListFiles can return
@@ -3570,6 +4403,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4F74B0, 0xC3);
 
 		// addon_map_ents asset type (we reuse it for weaponattach)
+		// We treat the case "asset type 43" as a default case (any type higher or equal than 43 will hit)
 		Utils::Hook::Set<BYTE>(0x418B31, 0x72);
 
 		// encrypted images hooks
@@ -3632,30 +4466,32 @@ namespace Components
 		Utils::Hook(0x418998, Zones::GameMapSpPatchStub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP).install()->quick();
 
+		//Utils::Hook(0x41885C, CheckAssetType_Stub, HOOK_JUMP).install()->quick();
+
 		Utils::Hook(0x4B4EA1, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4B4F0C, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x4F4D3B, []
-		{
-			if (Zones::ZoneVersion >= VERSION_ALPHA3)
 			{
-				ZeroMemory(*Game::varPathData, sizeof(Game::PathData));
-			}
-			else
-			{
-				// Load_PathData
-				Utils::Hook::Call<void(int)>(0x4278A0)(false);
-			}
-		}, HOOK_CALL).install()->quick();
+				if (Zones::ZoneVersion >= VERSION_ALPHA3)
+				{
+					ZeroMemory(*Game::varPathData, sizeof(Game::PathData));
+				}
+				else
+				{
+					// Load_PathData
+					Utils::Hook::Call<void(int)>(0x4278A0)(false);
+				}
+			}, HOOK_CALL).install()->quick();
 
-		// Change stream for images
-		Utils::Hook(0x4D3225, []()
-		{
-			Game::DB_PushStreamPos((Zones::ZoneVersion >= 332) ? 3 : 0);
-		}, HOOK_CALL).install()->quick();
+			// Change stream for images
+			Utils::Hook(0x4D3225, []()
+				{
+					Game::DB_PushStreamPos((Zones::ZoneVersion >= 332) ? 3 : 0);
+				}, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).install()->quick();
-		Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).install()->quick();
+				Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).install()->quick();
+				Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).install()->quick();
 	}
 }
 #pragma optimize( "", on ) 
