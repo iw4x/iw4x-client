@@ -10,12 +10,16 @@ namespace Components
 		static void SV_DirectConnect_Full_Check();
 
 	private:
-		using botData = std::pair< std::string, std::string>;
+		using botData = std::pair<std::string, std::string>;
 
 		static const Game::dvar_t* sv_randomBotNames;
 		static const Game::dvar_t* sv_replaceBots;
 
 		static std::size_t BotDataIndex;
+
+		static std::vector<botData> RemoteBotNames;
+
+		static void UpdateBotNames();
 
 		static std::vector<botData> LoadBotNames();
 		static int BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port);
