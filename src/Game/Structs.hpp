@@ -3220,7 +3220,7 @@ namespace Game
 		unsigned char* triEdgeIsWalkable;
 		unsigned int borderCount;
 		CollisionBorder* borders;
-		int partitionCount;
+		unsigned int partitionCount;
 		CollisionPartition* partitions;
 		unsigned int aabbTreeCount;
 		CollisionAabbTree* aabbTrees;
