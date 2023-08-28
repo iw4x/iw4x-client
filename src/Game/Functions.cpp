@@ -303,6 +303,7 @@ namespace Game
 
 	char*** varXString = reinterpret_cast<char***>(0x112B340);
 	TracerDef*** varTracerDefPtr = reinterpret_cast<TracerDef***>(0x112B3BC);
+	TracerDef** varTracerDef = reinterpret_cast<TracerDef**>(0x112B3C4);
 	XModel*** varXModelPtr = reinterpret_cast<XModel***>(0x112A934);
 	XModel** varXModel = reinterpret_cast<XModel**>(0x112AE14);
 	PathData** varPathData = reinterpret_cast<PathData**>(0x112AD7C);
@@ -313,6 +314,7 @@ namespace Game
 	PhysPreset*** varPhysPresetPtr = reinterpret_cast<PhysPreset***>(0x112B378);
 	MaterialPass** varMaterialPass = reinterpret_cast<MaterialPass**>(0x112A960);
 	snd_alias_list_t*** varsnd_alias_list_name = reinterpret_cast<snd_alias_list_t***>(0x112AF38);
+	snd_alias_list_t*** varsnd_alias_list_ptr = reinterpret_cast<snd_alias_list_t***>(0x112AA60);
 	MaterialVertexShader** varMaterialVertexShader = reinterpret_cast<MaterialVertexShader**>(0x112B338);
 
 	FxElemField* s_elemFields = reinterpret_cast<FxElemField*>(0x73B848);

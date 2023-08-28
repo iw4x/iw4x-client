@@ -224,6 +224,7 @@ namespace Components
 
 	void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name)
 	{
+		Logger::Print("LOADED {}: {}\n", Game::DB_GetXAssetTypeName(type), name);
 		if (type == Game::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light" || name == "gfx_distortion_heat") && asset.material->info.sortKey >= 43)
 		{
 			if (Zones::Version() >= VERSION_ALPHA2)

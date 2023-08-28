@@ -30,6 +30,7 @@ namespace Game
 	XBlock** g_streamBlocks = reinterpret_cast<XBlock**>(0x16E554C);
 	int* g_streamPos = reinterpret_cast<int*>(0x16E5554);
 	int* g_streamPosIndex = reinterpret_cast<int*>(0x16E5578);
+	int* g_streamPosStackIndex = reinterpret_cast<int*>(0x16E5548);
 
 	FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
 

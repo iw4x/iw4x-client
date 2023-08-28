@@ -96,6 +96,7 @@ namespace Game
 	extern XBlock** g_streamBlocks;
 	extern int* g_streamPos;
 	extern int* g_streamPosIndex;
+	extern int* g_streamPosStackIndex;	
 
 	extern FastCriticalSection* db_hashCritSect;
 

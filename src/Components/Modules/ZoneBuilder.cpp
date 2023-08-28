@@ -203,7 +203,12 @@ namespace Components
 				}
 			}
 
-			if (!this->loadAssetByName(this->dataMap.getElementAt(i, 0), this->dataMap.getElementAt(i, 1), false))
+			const auto& type = this->dataMap.getElementAt(i, 0);
+			const auto& assetName = this->dataMap.getElementAt(i, 1);
+
+			Logger::Print("Building asset {} {} (and dependencies)\n", type, assetName);
+
+			if (!this->loadAssetByName(type, assetName, false))
 			{
 				return false;
 			}
@@ -1128,7 +1133,14 @@ namespace Components
 
 		params.get_from_string_table = [](const unsigned int& id) -> std::string
 		{
-			return Game::SL_ConvertToString(static_cast<Game::scr_string_t>(id));
+			if (id == 0)
+			{
+				return std::string();
+			}
+			else
+			{
+				return Game::SL_ConvertToString(static_cast<Game::scr_string_t>(id));
+			}
 		};
 
 		params.print = [](iw4of::params_t::print_type t, const std::string& message) -> void
@@ -1254,6 +1266,11 @@ namespace Components
 
 			// don't remap techsets
 			Utils::Hook::Nop(0x5BC791, 5);
+
+			Utils::Hook::Set(0x5B97B6, 0xE9);
+
+			auto jmp = 0x5B9841 - 0x5B97B6 + 1 + 0xFD + 0x100 - 515;
+			Utils::Hook::Set(0x5B97B6 +1, static_cast<short>(jmp));
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
 			{

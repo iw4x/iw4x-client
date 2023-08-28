@@ -3054,7 +3054,7 @@ namespace Game
 	union FxEffectDefRef
 	{
 		FxEffectDef* handle;
-		const char* name;
+		char* name;
 	};
 
 	union FxElemVisuals
@@ -4934,6 +4934,12 @@ namespace Game
 		MISSILE_GUIDANCE_HELLFIRE = 0x2,
 		MISSILE_GUIDANCE_JAVELIN = 0x3,
 		MISSILE_GUIDANCE_COUNT = 0x4,
+	};
+
+	struct StreamPosInfo
+	{
+		char* pos;
+		unsigned int index;
 	};
 
 	struct TracerDef

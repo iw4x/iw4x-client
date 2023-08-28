@@ -657,6 +657,7 @@ namespace Game
 	extern PhysPreset*** varPhysPresetPtr;
 	extern MaterialPass** varMaterialPass;
 	extern snd_alias_list_t*** varsnd_alias_list_name;
+	extern snd_alias_list_t*** varsnd_alias_list_ptr;
 	extern MaterialVertexShader** varMaterialVertexShader;
 
 	extern FxElemField* s_elemFields;

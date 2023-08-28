@@ -35,8 +35,8 @@ namespace Components
 		static bool CheckGameMapSp(int type);
 		static void GameMapSpPatchStub();
 
-		static void LoadFxElemDefArrayStub(bool atStreamStart);
-		static bool LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size);
+		//static void LoadFxElemDefArrayStub(bool atStreamStart);
+		//static bool LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size);
 
 		static void LoadXModelLodInfo(int i);
 		static void LoadXModelLodInfoStub();
@@ -47,12 +47,13 @@ namespace Components
 		static bool Loadsnd_alias_tArray(bool atStreamStart, char* buffer, int len);
 		static bool LoadLoadedSound(bool atStreamStart, char* buffer, int size);
 		static bool LoadmenuDef_t(bool atStreamStart, char* buffer, int size);
-		static bool LoadFxEffectDef(bool atStreamStart, char* buffer, int size);
+		//static bool LoadFxEffectDef(bool atStreamStart, char* buffer, int size);
 		static bool LoadMaterialShaderArgumentArray(bool atStreamStart, Game::MaterialShaderArgument* argument, int size);
 		static bool LoadStructuredDataStructPropertyArray(bool atStreamStart, char* data, int size);
 		static void LoadPathDataTail();
 		static void LoadWeaponAttach();
 		static void LoadWeaponAttachStuff(DWORD* varWeaponAttachStuff, int count);
+		static void LoadWeaponCompleteDef461();
 		static void LoadWeaponCompleteDef();
 		static bool LoadGfxImage(bool atStreamStart, char* buffer, int size);
 		static bool LoadXAsset(bool atStreamStart, char* buffer, int size);
@@ -98,8 +99,7 @@ namespace Components
 		static void LoadFxWorldAsset(Game::FxWorld** asset);
 		static void LoadXModelAsset(Game::XModel** asset);
 		static void LoadMaterialAsset(Game::Material** asset);
-		static void LoadTracerDef(bool atStreamStart, Game::TracerDef* tracer, int size);
-		static void LoadTracerDefFxEffect();
+		static void LoadTracerDef(bool atStreamStart);
 		static void FixImageCategory(Game::GfxImage* image);
 		static char* ParseShellShock_Stub(const char** data_p);
 	};
