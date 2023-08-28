@@ -19,6 +19,8 @@ namespace Components
 
 	std::size_t Bots::BotDataIndex;
 
+	std::vector<Bots::botData> Bots::RemoteBotNames;
+
 	struct BotMovementInfo
 	{
 		std::int32_t buttons; // Actions
@@ -54,6 +56,17 @@ namespace Components
 		{ "usereload", Game::CMD_BUTTON_USE_RELOAD },
 		{ "activate", Game::CMD_BUTTON_ACTIVATE },
 	};
+
+	void Bots::UpdateBotNames()
+	{
+		const auto masterPort = (*Game::com_masterPort)->current.integer;
+		const auto* masterServerName = (*Game::com_masterServerName)->current.string;
+
+		Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
+
+		Logger::Print("Getting bots...\n");
+		Network::Send(master, "getbots");
+	}
 
 	std::vector<Bots::botData> Bots::LoadBotNames()
 	{
@@ -101,7 +114,7 @@ namespace Components
 		return result;
 	}
 
-	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int statStuff, int port)
+	int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int stats, int port)
 	{
 		std::string botName;
 		std::string clanName;
@@ -109,6 +122,11 @@ namespace Components
 		static const auto botNames = []() -> std::vector<botData>
 		{
 			auto names = LoadBotNames();
+			if (names.empty())
+			{
+				Logger::Print("bots.txt was empty. Using the names from the master server\n");
+				names = RemoteBotNames;
+			}
 
 			if (sv_randomBotNames->current.enabled)
 			{
@@ -133,7 +151,7 @@ namespace Components
 			clanName = "BOT"s;
 		}
 
-		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName.data(), clanName.data(), protocol, checksum, statVer, statStuff, port);
+		return _snprintf_s(buffer, 0x400, _TRUNCATE, connectString, num, botName.data(), clanName.data(), protocol, checksum, statVer, stats, port);
 	}
 
 	void Bots::Spawn(unsigned int count)
@@ -446,9 +464,9 @@ namespace Components
 				}
 			}
 
-			count = std::min(Game::MAX_CLIENTS, count);
+			count = std::clamp<std::size_t>(count, 1, Game::MAX_CLIENTS);
 
-			Logger::Print("Spawning {} {}", count, (count == 1 ? "bot" : "bots"));
+			Logger::Print("Spawning {} {}\n", count, (count == 1 ? "bot" : "bots"));
 
 			Spawn(count);
 		});
@@ -475,6 +493,26 @@ namespace Components
 
 		sv_randomBotNames = Game::Dvar_RegisterBool("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
 		sv_replaceBots = Game::Dvar_RegisterBool("sv_replaceBots", false, Game::DVAR_NONE, "Test clients will be replaced by connecting players when the server is full.");
+
+		Scheduler::OnGameInitialized(UpdateBotNames, Scheduler::Pipeline::MAIN);
+
+		Network::OnClientPacket("getbotsResponse", [](const Network::Address& address, const std::string& data)
+		{
+			const auto masterPort = (*Game::com_masterPort)->current.integer;
+			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
+
+			Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
+			if (master == address)
+			{
+				auto botNames = Utils::String::Split(data, '\n');
+				Logger::Print("Got {} names from the master server\n", botNames.size());
+
+				for (const auto& entry : botNames)
+				{
+					RemoteBotNames.emplace_back(entry, "BOT");
+				}
+			}
+		});
 
 		// Reset BotMovementInfo.active when client is dropped
 		Events::OnClientDisconnect([](const int clientNum) -> void
