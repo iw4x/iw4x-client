@@ -184,6 +184,8 @@ namespace Components
 
 		if (!Dedicated::IsEnabled())
 		{
+			if (ServerList::UseMasterServer) return; // don't run node frame if master server is active
+
 			if (Game::CL_GetLocalClientConnectionState(0) != Game::CA_DISCONNECTED)
 			{
 				WasIngame = true;
@@ -264,7 +266,7 @@ namespace Components
 
 		if (list.isnode() && (!list.port() || list.port() == address.getPort()))
 		{
-			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && list.protocol() == PROTOCOL)
+			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && !ServerList::UseMasterServer && list.protocol() == PROTOCOL)
 			{
 #ifdef NODE_SYSTEM_DEBUG
 				Logger::Debug("Inserting {} into the serverlist", address.getString());

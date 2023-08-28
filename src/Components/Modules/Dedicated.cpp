@@ -168,7 +168,7 @@ namespace Components
 			return;
 		}
 
-		const auto masterPort = (*Game::com_masterPort)->current.integer;
+		const auto masterPort = (*Game::com_masterPort)->current.unsignedInt;
 		const auto* masterServerName = (*Game::com_masterServerName)->current.string;
 
 		Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
