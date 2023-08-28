@@ -83,27 +83,34 @@ namespace Components
 		struct FormatWithLocation
 		{
 			std::string_view format;
+#ifdef LOGGER_TRACE
 			std::source_location location;
-
-			FormatWithLocation(const std::string_view& fmt, std::source_location loc = std::source_location::current())
-				: format(fmt)
-				, location(std::move(loc))
+#endif
+#ifdef LOGGER_TRACE
+			FormatWithLocation(const std::string_view& fmt, std::source_location loc = std::source_location::current()) : format(fmt), location(std::move(loc))
+#else
+			FormatWithLocation(const std::string_view& fmt) : format(fmt)
+#endif
 			{
 			}
-
-			FormatWithLocation(const char* fmt, std::source_location loc = std::source_location::current())
-				: format(fmt)
-				, location(std::move(loc))
+#ifdef LOGGER_TRACE
+			FormatWithLocation(const char* fmt, std::source_location loc = std::source_location::current()) : format(fmt), location(std::move(loc))
+#else
+			FormatWithLocation(const char* fmt) : format(fmt)
+#endif
 			{
 			}
 		};
-
 		template <typename... Args>
 		static void Debug([[maybe_unused]] const FormatWithLocation& f, [[maybe_unused]] const Args&... args)
 		{
 #ifdef _DEBUG
 			(Utils::String::SanitizeFormatArgs(args), ...);
+#ifdef LOGGER_TRACE
 			DebugInternal(f.format, std::make_format_args(args...), f.location);
+#else
+			DebugInternal(f.format, std::make_format_args(args...));
+#endif
 #endif
 		}
 

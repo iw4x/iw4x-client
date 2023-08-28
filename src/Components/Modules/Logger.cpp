@@ -28,23 +28,28 @@ namespace Components
 
 		va_list va;
 		va_start(va, message);
-		vsnprintf_s(buf, _TRUNCATE, message, va);
+		const auto len = vsnprintf_s(buf, _TRUNCATE, message, va);
 		va_end(va);
+
+		if (len < 0)
+		{
+			return;
+		}
 
 		MessagePrint(channel, std::string{ buf });
 	}
 
 	void Logger::MessagePrint(const int channel, const std::string& msg)
 	{
-		static const auto shouldPrint = []() -> bool
+		static const auto print = []() -> bool
 		{
 			return Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests();
 		}();
 
-		if (shouldPrint)
+		if (print)
 		{
-			std::printf("%s", msg.data());
 			std::fflush(stdout);
+			std::fputs(msg.data(), stdout);
 			return;
 		}
 
