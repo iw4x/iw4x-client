@@ -210,7 +210,7 @@ namespace Components
 		RConOutputBuffer.clear();
 
 #ifndef _DEBUG
-		if (RconLogRequests.get<bool>())
+		if (RConLogRequests.get<bool>())
 #endif
 		{
 			Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing RCon request from {}: {}\n", address.getString(), command);
