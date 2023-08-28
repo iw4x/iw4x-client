@@ -3807,7 +3807,7 @@ namespace Components
 	{
 		if (elem->elemType == FxElemType_461::FX_ELEM_TYPE_TRAIL)
 		{
-			if (extended)
+			if (extended->trailDef)
 			{
 				extended->trailDef = reinterpret_cast<Game::FxTrailDef*>(Game::DB_AllocStreamPos(3));
 
@@ -3832,7 +3832,7 @@ namespace Components
 		{
 			static_assert(sizeof(Game::FxSparkFountainDef) == 0x34);
 
-			if (extended)
+			if (extended->sparkFountainDef)
 			{
 				extended->sparkFountainDef = reinterpret_cast<Game::FxSparkFountainDef*>(Game::DB_AllocStreamPos(3));
 				Game::Load_Stream(true, extended->sparkFountainDef, sizeof(Game::FxSparkFountainDef));
@@ -3840,7 +3840,7 @@ namespace Components
 		}
 		else
 		{
-			if (extended)
+			if (extended->unknownDef)
 			{
 				extended->unknownDef = Game::DB_AllocStreamPos(0);
 				Game::Load_Stream(true, extended->unknownDef, 1);
@@ -3850,9 +3850,15 @@ namespace Components
 
 	void Load_FxElemDef_461(FxElemDef_461* def)
 	{
+		const auto fx = **Game::varFxEffectDefHandle;
+		if (fx->name == "impacts/brickimpact_em2"s)
+		{
+			printf("");
+		}
+
 		static auto varFxElemDef = reinterpret_cast<Game::FxElemDef**>(0x0112B018);
 
-		Game::Load_Stream(false, def, sizeof(FxElemDef_461));
+		//Game::Load_Stream(false, def, sizeof(FxElemDef_461));
 
 		static_assert(sizeof(Game::FxElemDef) < sizeof(FxElemDef_461));
 		std::memcpy(*varFxElemDef, def, sizeof(Game::FxElemDef));
@@ -3866,9 +3872,30 @@ namespace Components
 		{
 			static_assert(sizeof(Game::FxElemVelStateSample) == 96);
 
+			const auto intervalCount = iw4_def->velIntervalCount;
+			const auto size = 32 * (3 * intervalCount + 3);
+
 			iw4_def->velSamples = reinterpret_cast<Game::FxElemVelStateSample*>(Game::DB_AllocStreamPos(3));
+
+#if true
+
+			if (size)
+			{
+				if (*Game::g_streamPosIndex == 2)
+				{
+					memset(iw4_def->velSamples, 0, 32 * (3 * intervalCount + 3));
+				}
+				else
+				{
+					Game::DB_ReadXFile(iw4_def->velSamples, 32 * (3 * intervalCount + 3));
+				}
+
+				*Game::g_streamPos += size;
+			}
+#else
 			auto varFxElemVelStateSample = iw4_def->velSamples;
 			Game::Load_Stream(true, varFxElemVelStateSample, sizeof(Game::FxElemVelStateSample) * (iw4_def->velIntervalCount + 1));
+#endif
 		}
 
 		if (iw4_def->visSamples)
@@ -3876,8 +3903,26 @@ namespace Components
 			static_assert(sizeof(Game::FxElemVisStateSample) == 48);
 
 			iw4_def->visSamples = reinterpret_cast<Game::FxElemVisStateSample*>(Game::DB_AllocStreamPos(3));
+
+#if true
+			const auto size = (iw4_def->visStateIntervalCount + 1) << 6;
+			if (size)
+			{
+				if (*Game::g_streamPosIndex == 2)
+				{
+					memset(iw4_def->visSamples, 0, size);
+				}
+				else
+				{
+					Game::DB_ReadXFile(iw4_def->visSamples, size);
+				}
+
+				*Game::g_streamPos += size;
+			}
+#else
 			auto varFxElemVisStateSample = iw4_def->visSamples;
 			Game::Load_Stream(true, varFxElemVisStateSample, sizeof(Game::FxElemVisStateSample) * (iw4_def->visStateIntervalCount + 1));
+#endif
 		}
 
 
@@ -3886,6 +3931,14 @@ namespace Components
 
 		// Load_FxElemDefVisuals
 		Utils::Hook::Call<void(int)>(0x417F90)(0);
+
+		if (fx->name == "impacts/brickimpact"s)
+		{
+			if (iw4_def->visuals.instance.effectDef.handle->name == "impacts/distant_grain"s)
+			{
+				printf("");
+			}
+		}
 
 		static auto varFxEffectDefRef = reinterpret_cast<Game::FxEffectDefRef**>(0x112ABA8);
 
@@ -3902,7 +3955,7 @@ namespace Components
 		Game::Load_XString(false);
 
 
-		static auto varFxElemExtendedDefPtr = reinterpret_cast<Game::FxElemExtendedDefPtr**>(0x45AEDE);
+		static auto varFxElemExtendedDefPtr = reinterpret_cast<Game::FxElemExtendedDefPtr**>(0x112B324);
 		
 		*varFxElemExtendedDefPtr = &iw4_def->extended;
 		Load_FxElemExtendedPtr_461(&def->extended, def);
@@ -3936,7 +3989,6 @@ namespace Components
 		for (int i = 0; i < count; i++)
 		{
 			const auto ptr = static_cast<int>(reinterpret_cast<intptr_t>(elems));
-			AssetHandler::Relocate(reinterpret_cast<void*>(ptr + (260 * i)), reinterpret_cast<void*>(ptr + (252 * i)), 252);
 			Load_FxElemDef_461(&elems[i]);
 		}
 	}
