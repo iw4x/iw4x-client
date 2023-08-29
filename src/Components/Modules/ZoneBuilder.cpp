@@ -266,6 +266,12 @@ namespace Components
 			{
 				assetHeader.gfxWorld->sortKeyDistortion = 43;
 			}
+			//Absolutely necessary patch for later codol maps. prevents player models from glowing ridiculously 
+			if (assetHeader.gfxWorld->heroOnlyLightCount > 0)
+			{
+				Logger::Print("Fixing heroOnlyLightCount...\n");
+				assetHeader.gfxWorld->heroOnlyLightCount = 0;
+			}
 		}
 		//likewise if material's sortKey is 44, it needs to be changed to 43.
 		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL)
