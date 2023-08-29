@@ -361,7 +361,6 @@ namespace Components
 		{
 			Discovery::Perform();
 		}
-#ifdef IW4_USE_MASTER_SERVER
 		else if (IsOnlineList())
 		{
 			const auto masterPort = (*Game::com_masterPort)->current.unsignedInt;
@@ -389,7 +388,6 @@ namespace Components
 			// TODO: Figure out what to do with this. Leave it to avoid breaking other code
 			RefreshContainer.host = Network::Address(std::format("{}:{}", masterServerName, masterPort));
 		}
-#endif
 		else if (IsFavouriteList())
 		{
 			LoadFavourties();
