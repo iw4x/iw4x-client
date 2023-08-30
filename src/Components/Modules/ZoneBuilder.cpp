@@ -259,29 +259,6 @@ namespace Components
 			return false;
 		}
 
-		//patch for codol maps dumped with zonetool, the FF version is changed, so the sortKey hack in AssetHandler::ModifyAsset won't work
-		if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD)
-		{
-			if (assetHeader.gfxWorld->sortKeyDistortion == 44)
-			{
-				assetHeader.gfxWorld->sortKeyDistortion = 43;
-			}
-			//Absolutely necessary patch for later codol maps. prevents player models from glowing ridiculously 
-			if (assetHeader.gfxWorld->heroOnlyLightCount > 0)
-			{
-				Logger::Print("Fixing heroOnlyLightCount...\n");
-				assetHeader.gfxWorld->heroOnlyLightCount = 0;
-			}
-		}
-		//likewise if material's sortKey is 44, it needs to be changed to 43.
-		if (type == Game::XAssetType::ASSET_TYPE_MATERIAL)
-		{
-			if (assetHeader.material->info.sortKey == 44)
-			{
-				assetHeader.material->info.sortKey = 43;
-			}
-		}
-
 		Game::XAsset asset;
 		asset.type = type;
 		asset.header = assetHeader;
