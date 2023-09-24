@@ -145,6 +145,11 @@ namespace Components
 			std::memcpy(&tempSurfaces[i].vertListCount, source + 40, 8);
 			std::memcpy(&tempSurfaces[i].partBits, source + 52, 24);
 			tempSurfaces[i].zoneHandle = -1; // Fake handle for buffer interception
+			//fixes cmodel lod issues
+			if (i > 0)
+			{
+				tempSurfaces[i].baseVertIndex = tempSurfaces[i - 1].vertCount + tempSurfaces[i - 1].baseVertIndex;
+			}
 		}
 
 		std::memcpy(surfaceData, tempSurfaces, 64 * modelSurfs->numsurfs);
