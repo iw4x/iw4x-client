@@ -437,6 +437,12 @@ namespace Components
 
 	static std::optional<std::string> InfoHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
 	{
+		if (!(*Game::com_sv_running)->current.enabled)
+		{
+			// Game is not running ,cannot return info
+			return std::nullopt;
+		}
+
 		const auto status = ServerInfo::GetInfo();
 		const auto host = ServerInfo::GetHostInfo();
 
@@ -585,6 +591,12 @@ namespace Components
 		std::string url(hm->uri.ptr, hm->uri.len);
 
 		Utils::String::Replace(url, "\\", "/");
+
+		if (url.size() <= 5)
+		{
+			mg_http_reply(c, 403, "Content-Type: text/html\r\n", "%s", "400 - Bad requestt");
+			return {};
+		}
 
 		url = url.substr(6); // Strip /file
 		Utils::String::Replace(url, "%20", " ");
