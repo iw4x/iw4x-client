@@ -17,8 +17,8 @@
 
 namespace Components
 {
-	bool ServerList::SortAsc = true;
-	int ServerList::SortKey = static_cast<std::underlying_type_t<Column>>(Column::Ping);
+	bool ServerList::SortAsc = false;
+	int ServerList::SortKey = static_cast<std::underlying_type_t<Column>>(Column::Players);
 
 	unsigned int ServerList::CurrentServer = 0;
 	ServerList::Container ServerList::RefreshContainer;
