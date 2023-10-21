@@ -782,4 +782,26 @@ namespace Assets
 
 		buffer->popBlock();
 	}
+
+	IWeapon::IWeapon()
+	{
+		Components::Command::Add("dumpweapon", [](const Components::Command::Params* params)
+			{
+				if (params->size() < 2) return;
+
+				std::string weapon = params->get(1);
+
+				const auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_WEAPON, weapon.data());
+				if (header.data)
+				{
+					Components::ZoneBuilder::RefreshExporterWorkDirectory();
+					Components::ZoneBuilder::GetExporter()->write(Game::XAssetType::ASSET_TYPE_WEAPON, header.data);
+				}
+				else
+				{
+					Components::Logger::Print("Could not find weapon {}!\n", weapon);
+				}
+			}
+		);
+	}
 }
