@@ -204,8 +204,7 @@ namespace Components
 
 	void Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* restrict)
 	{
-		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end()
-			&& (FastFiles::Current() != "mp_shipment_long" || Maps::CurrentMainZone != "mp_shipment")) // Shipment is a special case
+		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end())
 		{
 			switch (type)
 			{
@@ -319,12 +318,6 @@ namespace Components
 		if (!Utils::String::StartsWith(mapname, "mp_"))
 		{
 			format = "maps/%s.d3dbsp";
-		}
-
-		// TODO: Remove this hack by using CoD4 version of the map
-		if (std::strcmp(mapname, "mp_shipment") == 0)
-		{
-			mapname = "mp_shipment_long";
 		}
 
 		_snprintf_s(buffer, size, _TRUNCATE, format, mapname);
@@ -759,8 +752,8 @@ namespace Components
 
 			Maps::AddDlc({ 1, "Stimulus Pack", {"mp_complex", "mp_compact", "mp_storm", "mp_overgrown", "mp_crash"} });
 			Maps::AddDlc({ 2, "Resurgence Pack", {"mp_abandon", "mp_vacant", "mp_trailerpark", "mp_strike", "mp_fuel2"} });
-			Maps::AddDlc({ 3, "IW4x Classics", {"mp_nuked", "mp_cross_fire", "mp_cargoship", "mp_bloc", "mp_killhouse", "mp_bog_sh", "mp_cargoship_sh", "mp_shipment", "mp_shipment_long", "mp_rust_long", "mp_firingrange", "mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"} });
-			Maps::AddDlc({ 4, "Call Of Duty 4 Pack", {"mp_farm", "mp_backlot", "mp_pipeline", "mp_countdown", "mp_crash_snow", "mp_carentan", "mp_broadcast", "mp_showdown", "mp_convoy", "mp_citystreets"} });
+			Maps::AddDlc({ 3, "IW4x Classics", {"mp_nuked", "mp_cargoship_sh", "mp_shipment_long", "mp_rust_long", "mp_firingrange", "mp_bloc_sh", "mp_crash_tropical", "mp_estate_tropical", "mp_fav_tropical", "mp_storm_spring"} });
+			Maps::AddDlc({ 4, "Call Of Duty 4 Pack", {"mp_farm","mp_crossfire", "mp_cargoship", "mp_bloc", "mp_killhouse", "mp_shipment", "mp_bog", "mp_backlot", "mp_pipeline", "mp_countdown", "mp_crash_snow", "mp_carentan", "mp_broadcast", "mp_showdown", "mp_convoy", "mp_citystreets"} });
 			Maps::AddDlc({ 5, "Modern Warfare 3 Pack", {"mp_dome", "mp_hardhat", "mp_paris", "mp_seatown", "mp_bravo", "mp_underground", "mp_plaza2", "mp_village", "mp_alpha"}});
 
 			Maps::UpdateDlcStatus();

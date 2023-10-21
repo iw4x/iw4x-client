@@ -1267,8 +1267,30 @@ namespace Components
 
 				if (!ZoneBuilder::DumpingZone.empty())
 				{
+					Utils::Memory::Allocator allocator{};
+					if (Zones::Version() >= VERSION_ALPHA2)
+					{
+						if (type == Game::XAssetType::ASSET_TYPE_CLIPMAP_SP)
+						{
+							return;
+						}
+						if (type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP)
+						{
+							return;
+						}
+						else if (type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP)
+						{
+							type = Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP;
+							asset.gameWorldMp->g_glassData = asset.gameWorldSp->g_glassData;
+						}
+					}
+
 					if (ExporterAPI.is_type_supported(type) && name[0] != ',')
 					{
+						
+						std::ofstream csv(std::format("{}.csv", ZoneBuilder::DumpingZone), std::ios::app | std::ios::binary);
+						csv << Game::DB_GetXAssetTypeName(type) << "," << name << "\n";
+
 						ExporterAPI.write(type, asset.data);
 						Components::Logger::Print(".");
 					}
