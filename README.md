@@ -35,6 +35,9 @@
 | `-nosteam`              | Disable friends feature and do not update Steam about the game's current status just like an invisible mode. |
 | `-unprotect-dvars`      | Allow the server to modify saved/archive dvars. |
 | `-zonebuilder`          | Start the interactive zonebuilder tool console instead of starting the game. |
+| `-disable-notifies`     | Disable "Anti-CFG" checks |
+| `-disable-mongoose`     | Disable Mongoose HTTP server |
+| `-disable-rate-limit-check` | Disable RCon rate limit checks |
 
 ## Disclaimer
 
