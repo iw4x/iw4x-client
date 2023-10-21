@@ -208,7 +208,6 @@ namespace Components
 
 	nlohmann::json MapRotation::to_json()
 	{
-		assert(!DedicatedRotation.empty());
 		return DedicatedRotation.to_json();
 	}
 
