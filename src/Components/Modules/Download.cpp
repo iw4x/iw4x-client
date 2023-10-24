@@ -453,13 +453,13 @@ namespace Components
 			break;
 		}
 
-		mg_http_reply(connection, code, "Content-Type: text/plain\r\n", msg.c_str());
+		mg_http_reply(connection, code, "Content-Type: text/plain\r\n", "%s", msg.c_str());
 	}
 
 	void Download::Reply(mg_connection* connection, const std::string& contentType, const std::string& data)
 	{
 		const auto formatted = std::format("Content-Type: {}\r\n", contentType);
-		mg_http_reply(connection, 200, formatted.c_str(), data.c_str());
+		mg_http_reply(connection, 200, formatted.c_str(), "%s", data.c_str());
 	}
 
 	std::optional<std::string> Download::InfoHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
