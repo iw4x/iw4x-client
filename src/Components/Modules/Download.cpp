@@ -435,7 +435,34 @@ namespace Components
 		MongooseLogBuffer.push_back(c);
 	}
 
-	static std::optional<std::string> InfoHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
+	void Download::ReplyError(mg_connection* connection, int code)
+	{
+		std::string msg{};
+		switch(code)
+		{
+		case 400:
+			msg = "Bad request";
+			break;
+
+		case 403:
+			msg = "Forbidden";
+			break;
+
+		case 404:
+			msg = "Not found";
+			break;
+		}
+
+		mg_http_reply(connection, code, "Content-Type: text/plain\r\n", msg.c_str());
+	}
+
+	void Download::Reply(mg_connection* connection, const std::string& contentType, const std::string& data)
+	{
+		const auto formatted = std::format("Content-Type: {}\r\n", contentType);
+		mg_http_reply(connection, 200, formatted.c_str(), data.c_str());
+	}
+
+	std::optional<std::string> Download::InfoHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
 	{
 		if (!(*Game::com_sv_running)->current.enabled)
 		{
@@ -492,7 +519,7 @@ namespace Components
 		return { out };
 	}
 
-	static std::optional<std::string> ListHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
+	std::optional<std::string> Download::ListHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
 	{
 		static nlohmann::json jsonList;
 		static std::filesystem::path fsGamePre;
@@ -540,7 +567,7 @@ namespace Components
 		return { out };
 	}
 
-	static std::optional<std::string> MapHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
+	std::optional<std::string> Download::MapHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
 	{
 		static std::string mapNamePre;
 		static nlohmann::json jsonList;
@@ -586,7 +613,7 @@ namespace Components
 		return { out };
 	}
 
-	static std::optional<std::string> FileHandler(mg_connection* c, const mg_http_message* hm)
+	std::optional<std::string> Download::FileHandler(mg_connection* c, const mg_http_message* hm)
 	{
 		std::string url(hm->uri.ptr, hm->uri.len);
 
@@ -594,7 +621,7 @@ namespace Components
 
 		if (url.size() <= 5)
 		{
-			mg_http_reply(c, 403, "Content-Type: text/html\r\n", "%s", "400 - Bad requestt");
+			ReplyError(c, 400);
 			return {};
 		}
 
@@ -620,7 +647,7 @@ namespace Components
 
 			if ((!Maps::GetUserMap()->isValid() && !Party::IsInUserMapLobby()) || !isValidFile)
 			{
-				mg_http_reply(c, 403, "Content-Type: text/html\r\n", "%s", "403 - Forbidden");
+				ReplyError(c, 403);
 				return {};
 			}
 
@@ -630,7 +657,7 @@ namespace Components
 		{
 			if ((!url.ends_with(".iwd") && url != "mod.ff") || url.find("_svr_") != std::string::npos)
 			{
-				mg_http_reply(c, 403, "Content-Type: text/html\r\n", "%s", "403 - Forbidden");
+				ReplyError(c, 403);
 				return {};
 			}
 		}
@@ -641,7 +668,7 @@ namespace Components
 		std::string file;
 		if ((!isMap && fsGame.empty()) || !Utils::IO::ReadFile(path, &file))
 		{
-			mg_http_reply(c, 404, "Content-Type: text/html\r\n", "404 - Not Found %s", path.data());
+			ReplyError(c, 404);
 		}
 		else
 		{
@@ -656,7 +683,7 @@ namespace Components
 		return {};
 	}
 
-	static std::optional<std::string> ServerListHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
+	std::optional<std::string> Download::ServerListHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
 	{
 		std::vector<std::string> servers;
 
@@ -673,7 +700,7 @@ namespace Components
 		return { out };
 	}
 
-	static void EventHandler(mg_connection* c, const int ev, void* ev_data, [[maybe_unused]] void* fn_data)
+	void Download::EventHandler(mg_connection* c, const int ev, void* ev_data, [[maybe_unused]] void* fn_data)
 	{
 		using callback = std::function<std::optional<std::string>(mg_connection*, const mg_http_message*)>;
 
@@ -705,7 +732,7 @@ namespace Components
 			{
 				if (const auto reply = i->second(c, hm))
 				{
-					mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%s", reply.value().data());
+					Reply(c, "application/json", reply.value());
 				}
 
 				handled = true;
