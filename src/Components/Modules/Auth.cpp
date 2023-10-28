@@ -21,7 +21,8 @@ namespace Components
 	{
 		0xf4d2c30b712ac6e3,
 		0xf7e33c4081337fa3,
-		0x6f5597f103cc50e9
+		0x6f5597f103cc50e9,
+		0xecd542eee54ffccf
 	};
 
 	bool Auth::HasAccessToReservedSlot;
