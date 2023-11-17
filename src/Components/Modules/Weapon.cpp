@@ -6,6 +6,7 @@
 namespace Components
 {
 	const Game::dvar_t* Weapon::BGWeaponOffHandFix;
+	Game::XModel* Weapon::G_ModelIndexReallocated[G_MODELINDEX_LIMIT];
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
@@ -433,6 +434,20 @@ namespace Components
 		Utils::Hook::Set<DWORD>(0x4F76FB, 0x12EC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
 		// Move arg4 pointers
 		Utils::Hook::Set<DWORD>(0x4F7630, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
+
+
+		// Reallocate G_ModelIndex
+		Utils::Hook::Set(0x420654 + 3, G_ModelIndexReallocated);
+		Utils::Hook::Set(0x43BCE4 + 3, G_ModelIndexReallocated);
+		Utils::Hook::Set(0x44F27B + 3, G_ModelIndexReallocated);
+		Utils::Hook::Set(0x479087 + 1, G_ModelIndexReallocated);
+		Utils::Hook::Set(0x48069D + 3, G_ModelIndexReallocated);
+		Utils::Hook::Set(0x48F088 + 3, G_ModelIndexReallocated);
+		Utils::Hook::Set(0x4F457C + 3, G_ModelIndexReallocated);
+		Utils::Hook::Set(0x5FC762 + 3, G_ModelIndexReallocated);
+		Utils::Hook::Set(0x5FC7BE  + 3, G_ModelIndexReallocated);
+		Utils::Hook::Set<DWORD>(0x44F256 + 2, G_MODELINDEX_LIMIT);
+		
 	}
 
 	void* Weapon::LoadNoneWeaponHook()
@@ -635,6 +650,10 @@ namespace Components
 		Utils::Hook::Nop(0x408228, 5); // find asset header
 		Utils::Hook::Nop(0x408230, 5); // is asset default
 		Utils::Hook::Nop(0x40823A, 2); // jump
+
+		// Automatically register weapons, even if the level is not loading
+		Utils::Hook::Nop(0x49E547, 2);
+		Utils::Hook::Set<BYTE>(0x44F240, 0xEB);
 
 		// Skip double loading for fs_game
 		Utils::Hook::Set<BYTE>(0x4081FD, 0xEB);

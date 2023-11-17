@@ -4,6 +4,9 @@
 // Was 1200 before
 #define WEAPON_LIMIT 2400
 #define MAX_CONFIGSTRINGS (4139 - 1200 + WEAPON_LIMIT)
+#define G_MODELINDEX_LIMIT (526 + WEAPON_LIMIT - 1200) 
+
+#define G_MODELINDEX_HAS_BEEN_REALLOCATED
 
 namespace Components
 {
@@ -11,6 +14,7 @@ namespace Components
 	{
 	public:
 		Weapon();
+		static Game::XModel* G_ModelIndexReallocated[G_MODELINDEX_LIMIT];
 
 	private:
 		static const Game::dvar_t* BGWeaponOffHandFix;

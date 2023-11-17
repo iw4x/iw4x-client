@@ -3,8 +3,16 @@
 
 namespace Assets
 {
-	void IWeapon::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
+	void IWeapon::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
+		header->weapon = builder->getIW4OfApi()->read<Game::WeaponCompleteDef>(Game::XAssetType::ASSET_TYPE_WEAPON, name);
+
+		if (header->weapon)
+		{
+			return;
+		}
+
+
 		// Try loading raw weapon
 		if (Components::FileSystem::File(std::format("weapons/mp/{}", name)))
 		{
@@ -193,6 +201,33 @@ namespace Assets
 
 		LoadWeapSound(missileConeSoundAlias);
 		LoadWeapSound(missileConeSoundAliasAtBase);
+
+		for (size_t i = 0; i < 37; i++)
+		{
+			{
+				const auto anim = asset->weapDef->szXAnimsLeftHanded[i];
+				if (anim && strnlen(anim, 1) > 0) {
+					builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_XANIMPARTS, anim, false);
+				}
+			}
+			{
+				const auto anim = asset->weapDef->szXAnimsRightHanded[i];
+				if (anim && strnlen(anim, 1) > 0) {
+					builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_XANIMPARTS, anim, false);
+				}
+			}
+			{
+				const auto anim = asset->szXAnims[i];
+				if (anim && strnlen(anim, 1) > 0) {
+					builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_XANIMPARTS, anim, false);
+				}
+			}
+		}
+
+		if (asset->szAltWeaponName && *asset->szAltWeaponName != 0 && !asset->dpadIcon) // A very bad way to check if this is already an alt
+		{
+			builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_WEAPON, asset->szAltWeaponName, false);
+		}
 	}
 
 	void IWeapon::writeWeaponDef(Game::WeaponDef* def, Components::ZoneBuilder::Zone* builder, Utils::Stream* buffer)
