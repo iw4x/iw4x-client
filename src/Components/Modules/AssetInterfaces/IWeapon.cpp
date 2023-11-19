@@ -129,7 +129,10 @@ namespace Assets
 		if (asset->weapDef->projIgnitionEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->projIgnitionEffect);
 		if (asset->weapDef->turretOverheatEffect) builder->loadAsset(Game::XAssetType::ASSET_TYPE_FX, asset->weapDef->turretOverheatEffect);
 
-#define LoadWeapSound(sound) if (asset->weapDef->##sound##) builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, asset->weapDef->##sound##)
+
+
+		// They are not subassets, because they don't get loaded automatically
+#define LoadWeapSound(sound) if (asset->weapDef->##sound##) builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, asset->weapDef->##sound##, false)
 
 		LoadWeapSound(pickupSound);
 		LoadWeapSound(pickupSoundPlayer);

@@ -12,6 +12,7 @@
 #include "Modules/Changelog.hpp"
 #include "Modules/Chat.hpp"
 #include "Modules/ClanTags.hpp"
+#include "Modules/Weapon.hpp" // Load before for G_ModelIndex
 #include "Modules/ClientCommand.hpp"
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/Console.hpp"
@@ -62,7 +63,6 @@
 #include "Modules/VisionFile.hpp"
 #include "Modules/Voice.hpp"
 #include "Modules/Vote.hpp"
-#include "Modules/Weapon.hpp"
 #include "Modules/Window.hpp"
 
 #include "Modules/BotLib/lPrecomp.hpp"

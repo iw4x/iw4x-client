@@ -7,6 +7,7 @@ namespace Components
 {
 	const Game::dvar_t* Weapon::BGWeaponOffHandFix;
 	Game::XModel* Weapon::G_ModelIndexReallocated[G_MODELINDEX_LIMIT];
+	bool Weapon::GModelIndexHasBeenReallocated;
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
@@ -447,7 +448,8 @@ namespace Components
 		Utils::Hook::Set(0x5FC762 + 3, G_ModelIndexReallocated);
 		Utils::Hook::Set(0x5FC7BE  + 3, G_ModelIndexReallocated);
 		Utils::Hook::Set<DWORD>(0x44F256 + 2, G_MODELINDEX_LIMIT);
-		
+
+		GModelIndexHasBeenReallocated = true;
 	}
 
 	void* Weapon::LoadNoneWeaponHook()
