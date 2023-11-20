@@ -1929,9 +1929,12 @@ namespace Components
 			AssetHandler::Relocate(buffer + 0x20, buffer + 0x18, 0x30);
 			AssetHandler::Relocate(buffer + 0x51, buffer + 0x48, 5);
 			AssetHandler::Relocate(buffer + 0x58, buffer + 0x50, 0x10);
-
+			
+			Game::Material* material = reinterpret_cast<Game::Material*>(buffer);
 			// fix statebit
-			reinterpret_cast<Game::Material*>(buffer)->stateBitsEntry[47] = codol_material[0x50];
+			material->stateBitsEntry[47] = codol_material[0x50];
+			//check to fix distortion
+			if (material->info.sortKey == 44) material->info.sortKey = 43;
 		}
 		else if (Zones::ZoneVersion >= 359)
 		{
@@ -1974,6 +1977,9 @@ namespace Components
 			// Actually, it's not
 			// yes it was lol
 			memcpy(&material->info.drawSurf.packed, material359.drawSurfBegin, 8);
+
+			//adding this here, situation as with later ff versions
+			if (material->info.sortKey == 44) material->info.sortKey = 43;
 
 			memcpy(&material->info.surfaceTypeBits, &material359.drawSurf[0], 6); // copies both surfaceTypeBits and hashIndex
 			//material->drawSurf[8] = material359.drawSurf[0];
@@ -2025,6 +2031,9 @@ namespace Components
 			int sunDiff = 8;	// Stuff that is part of the sunflare we would overwrite
 			std::memmove(buffer + 348 + sunDiff, buffer + 1316 + sunDiff, 280 - sunDiff);
 			AssetHandler::Relocate(buffer + 1316, buffer + 348, 280);
+
+			//all codol zones are like this pretty certain
+			reinterpret_cast<Game::GfxWorld*>(buffer)->sortKeyDistortion = 43;
 		}
 
 		return result;

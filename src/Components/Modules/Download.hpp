@@ -1,5 +1,9 @@
 #pragma once
 
+
+struct mg_connection;
+struct mg_http_message;
+
 namespace Components
 {
 	class Download : public Component
@@ -71,6 +75,7 @@ namespace Components
 					this->valid_ = false;
 				}
 			}
+
 		};
 
 		class FileDownload
@@ -100,5 +105,14 @@ namespace Components
 		static bool DownloadFile(ClientDownload* download, unsigned int index);
 
 		static void LogFn(char c, void* param);
+		static void ReplyError(mg_connection* connection, int code);
+		static void Reply(mg_connection* connection, const std::string& contentType, const std::string& data);
+
+		static std::optional<std::string> FileHandler(mg_connection* c, const mg_http_message* hm);
+		static void EventHandler(mg_connection* c, const int ev, void* ev_data, void* fn_data);
+		static std::optional<std::string> ListHandler(mg_connection* c, const mg_http_message* hm);
+		static std::optional<std::string> InfoHandler(mg_connection* c, const mg_http_message* hm);
+		static std::optional<std::string> ServerListHandler(mg_connection* c, const mg_http_message* hm);
+		static std::optional<std::string> MapHandler(mg_connection* c, const mg_http_message* hm);
 	};
 }
