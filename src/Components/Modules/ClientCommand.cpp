@@ -1,6 +1,8 @@
 #include <STDInclude.hpp>
 #include "ClientCommand.hpp"
 
+#include "Weapon.hpp"
+
 #include "GSC/Script.hpp"
 
 using namespace Utils::String;
@@ -382,7 +384,14 @@ namespace Components
 		Game::XModel* model = nullptr;
 		if (ent->model)
 		{
-			model = Game::G_GetModel(ent->model);
+			if (Components::Weapon::GModelIndexHasBeenReallocated)
+			{
+				model = Components::Weapon::G_ModelIndexReallocated[ent->model];
+			}
+			else
+			{
+				model = Game::G_GetModel(ent->model);
+			}
 		}
 
 		Game::vec3_t point, angles;

@@ -194,7 +194,16 @@ namespace Components::GSC
 
 	unsigned int ScriptError::Scr_GetPrevSourcePos(const char* codePos, unsigned int index)
 	{
-		return ScrParserGlob.sourcePosLookup[index + Scr_GetPrevSourcePosOpcodeLookup(codePos)->sourcePosIndex].sourcePos;
+		const auto prevIndex = Scr_GetPrevSourcePosOpcodeLookup(codePos)->sourcePosIndex;
+		const auto sPos = ScrParserGlob.sourcePosLookup[index + prevIndex].sourcePos;
+
+		// I'm not sure why this is necessary - when given a valid codePos, sometimes
+		// the sourcePos ends up being a negative number (got a case where it was -2)
+		// which will output a giantic unsigned number and crash
+		// So we make sure it's not gonna happen here by clamping the number
+		const auto uPos = static_cast<unsigned int>(std::max(0, static_cast<int>(sPos)));
+
+		return uPos;
 	}
 
 	Game::OpcodeLookup* ScriptError::Scr_GetPrevSourcePosOpcodeLookup(const char* codePos)
@@ -326,7 +335,9 @@ namespace Components::GSC
 			if (Game::scrVarPub->programBuffer && Scr_IsInOpcodeMemory(codePos))
 			{
 				auto bufferIndex = Scr_GetSourceBuffer(codePos - 1);
-				Scr_PrintSourcePos(channel, ScrParserPub.sourceBufferLookup[bufferIndex].buf, ScrParserPub.sourceBufferLookup[bufferIndex].sourceBuf, Scr_GetPrevSourcePos(codePos - 1, index));
+				const auto prevSourcePos = Scr_GetPrevSourcePos(codePos - 1, index);
+
+				Scr_PrintSourcePos(channel, ScrParserPub.sourceBufferLookup[bufferIndex].buf, ScrParserPub.sourceBufferLookup[bufferIndex].sourceBuf, prevSourcePos);
 				return;
 			}
 		}
