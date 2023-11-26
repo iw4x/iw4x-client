@@ -227,7 +227,7 @@ namespace Assets
 			}
 		}
 
-		if (asset->szAltWeaponName && *asset->szAltWeaponName != 0 && !asset->dpadIcon) // A very bad way to check if this is already an alt
+		if (asset->szAltWeaponName && *asset->szAltWeaponName != 0 && asset->weapDef->ammoCounterClip != Game::AMMO_COUNTER_CLIP_ALTWEAPON) // A very bad way to check if this is already an alt
 		{
 			builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_WEAPON, asset->szAltWeaponName, false);
 		}
