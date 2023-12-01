@@ -852,7 +852,12 @@ namespace Components
 		Utils::Hook(0x630A88, Maps::LoadArenaFileStub, HOOK_CALL).install()->quick();
 
 		// Always refresh arena when loading or unloading a zone
-		Utils::Hook::Nop(0x485017, 2); 
+		Utils::Hook::Nop(0x485017, 2);
+		Utils::Hook::Nop(0x4FD8C7, 2); // Gametypes
+		Utils::Hook::Nop(0x4BDFB7, 2); // Unknown
+		Utils::Hook::Nop(0x45ED6F, 2); // loadGameInfo
+		Utils::Hook::Nop(0x4A5888, 2); // UI_InitOnceForAllClients
+		
 
 		// Allow hiding specific smodels
 		Utils::Hook(0x50E67C, Maps::HideModelStub, HOOK_CALL).install()->quick();
