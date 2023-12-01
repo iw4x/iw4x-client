@@ -105,14 +105,15 @@ namespace Components
 	{
 		std::string data = RawFiles::ReadRawFile(name, buffer, size);
 
-		if (Maps::UserMap.isValid())
+ 		if (Maps::UserMap.isValid())
 		{
 			const auto mapname = Maps::UserMap.getName();
 			const auto arena = GetArenaPath(mapname);
 
 			if (Utils::IO::FileExists(arena))
 			{
-				data.append(Utils::IO::ReadFile(arena));
+				// Replace all arenas with just this one
+				data = Utils::IO::ReadFile(arena);
 			}
 		}
 
@@ -849,6 +850,9 @@ namespace Components
 
 		// Load usermap arena file
 		Utils::Hook(0x630A88, Maps::LoadArenaFileStub, HOOK_CALL).install()->quick();
+
+		// Always refresh arena when loading or unloading a zone
+		Utils::Hook::Nop(0x485017, 2); 
 
 		// Allow hiding specific smodels
 		Utils::Hook(0x50E67C, Maps::HideModelStub, HOOK_CALL).install()->quick();
