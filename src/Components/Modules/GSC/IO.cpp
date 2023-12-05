@@ -33,9 +33,9 @@ namespace Components::GSC
 
 		// check if we need to append scriptdata folder, for backwards compat
 		std::string spath = path;
-		if (!spath.starts_with("scriptdata/") && !spath.starts_with("scriptdata\\"))
+		if (!spath.starts_with(Game::SCRIPTDATA_DIR + "/"s) && !spath.starts_with(Game::SCRIPTDATA_DIR + "\\"s))
 		{
-			spath = "scriptdata/" + spath;
+			spath = Game::SCRIPTDATA_DIR + "/"s + spath;
 		}
 
 		if (!fsGame.empty())

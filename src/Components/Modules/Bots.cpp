@@ -301,8 +301,10 @@ namespace Components
 			return;
 		}
 
+		auto clientNum = cl - Game::svs_clients;
+
 		// Keep test client functionality
-		if (!g_botai[cl - Game::svs_clients].active)
+		if (!g_botai[clientNum].active)
 		{
 			Game::SV_BotUserMove(cl);
 			return;
@@ -313,11 +315,11 @@ namespace Components
 
 		userCmd.serverTime = *Game::svs_time;
 
-		userCmd.buttons = g_botai[cl - Game::svs_clients].buttons;
-		userCmd.forwardmove = g_botai[cl - Game::svs_clients].forward;
-		userCmd.rightmove = g_botai[cl - Game::svs_clients].right;
-		userCmd.weapon = g_botai[cl - Game::svs_clients].weapon;
-		userCmd.primaryWeaponForAltMode = g_botai[cl - Game::svs_clients].lastAltWeapon;
+		userCmd.buttons = g_botai[clientNum].buttons;
+		userCmd.forwardmove = g_botai[clientNum].forward;
+		userCmd.rightmove = g_botai[clientNum].right;
+		userCmd.weapon = g_botai[clientNum].weapon;
+		userCmd.primaryWeaponForAltMode = g_botai[clientNum].lastAltWeapon;
 
 		userCmd.angles[0] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[0] - cl->gentity->client->ps.delta_angles[0]));
 		userCmd.angles[1] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[1] - cl->gentity->client->ps.delta_angles[1]));
@@ -350,21 +352,21 @@ namespace Components
 
 			auto* def = Game::BG_GetWeaponCompleteDef(iWeaponIndex);
 
-			if (def->weapDef->inventoryType == Game::WEAPINVENTORY_ALTMODE)
+			if (def && def->weapDef->inventoryType == Game::WEAPINVENTORY_ALTMODE)
 			{
 				auto* ps = &Game::g_entities[clientNum].client->ps;
-				auto num_weaps = Game::BG_GetNumWeapons();
+				auto numWeaps = Game::BG_GetNumWeapons();
 
-				for (auto i = 1u; i < num_weaps; i++)
+				for (auto i = 1u; i < numWeaps; i++)
 				{
 					if (!Game::BG_PlayerHasWeapon(ps, i))
 					{
 						continue;
 					}
 
-					auto* this_def = Game::BG_GetWeaponCompleteDef(i);
+					auto* thisDef = Game::BG_GetWeaponCompleteDef(i);
 
-					if (this_def->altWeaponIndex != iWeaponIndex)
+					if (!thisDef || thisDef->altWeaponIndex != iWeaponIndex)
 					{
 						continue;
 					}
@@ -523,7 +525,7 @@ namespace Components
 
 		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
 
-		// fix bots using objects
+		// fix bots using objects (SV_IsClientBot)
 		Utils::Hook(0x4D79C5, Player_UpdateActivate_stub, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x459654, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
