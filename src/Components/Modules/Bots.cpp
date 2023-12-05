@@ -27,6 +27,7 @@ namespace Components
 		std::int8_t forward;
 		std::int8_t right;
 		std::uint16_t weapon;
+		std::uint16_t lastAltWeapon;
 		bool active;
 	};
 
@@ -316,6 +317,7 @@ namespace Components
 		userCmd.forwardmove = g_botai[cl - Game::svs_clients].forward;
 		userCmd.rightmove = g_botai[cl - Game::svs_clients].right;
 		userCmd.weapon = g_botai[cl - Game::svs_clients].weapon;
+		userCmd.primaryWeaponForAltMode = g_botai[cl - Game::svs_clients].lastAltWeapon;
 
 		userCmd.angles[0] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[0] - cl->gentity->client->ps.delta_angles[0]));
 		userCmd.angles[1] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[1] - cl->gentity->client->ps.delta_angles[1]));
@@ -339,11 +341,38 @@ namespace Components
 		}
 	}
 
-	void Bots::G_SelectWeaponIndex(int clientNum, int iWeaponIndex)
+	void Bots::G_SelectWeaponIndex(int clientNum, unsigned int iWeaponIndex)
 	{
 		if (g_botai[clientNum].active)
 		{
 			g_botai[clientNum].weapon = static_cast<uint16_t>(iWeaponIndex);
+			g_botai[clientNum].lastAltWeapon = 0;
+
+			auto* def = Game::BG_GetWeaponCompleteDef(iWeaponIndex);
+
+			if (def->weapDef->inventoryType == Game::WEAPINVENTORY_ALTMODE)
+			{
+				auto* ps = &Game::g_entities[clientNum].client->ps;
+				auto num_weaps = Game::BG_GetNumWeapons();
+
+				for (auto i = 1u; i < num_weaps; i++)
+				{
+					if (!Game::BG_PlayerHasWeapon(ps, i))
+					{
+						continue;
+					}
+
+					auto* this_def = Game::BG_GetWeaponCompleteDef(i);
+
+					if (this_def->altWeaponIndex != iWeaponIndex)
+					{
+						continue;
+					}
+
+					g_botai[clientNum].lastAltWeapon = static_cast<uint16_t>(i);
+					break;
+				}
+			}
 		}
 	}
 
@@ -472,6 +501,11 @@ namespace Components
 		});
 	}
 
+	bool Bots::Player_UpdateActivate_stub(int)
+	{
+		return false;
+	}
+
 	Bots::Bots()
 	{
 		AssertOffset(Game::client_s, bIsTestClient, 0x41AF0);
@@ -488,6 +522,9 @@ namespace Components
 		Utils::Hook(0x627241, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
+
+		// fix bots using objects
+		Utils::Hook(0x4D79C5, Player_UpdateActivate_stub, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x459654, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
 
