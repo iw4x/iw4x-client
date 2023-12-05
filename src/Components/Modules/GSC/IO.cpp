@@ -93,7 +93,7 @@ namespace Components::GSC
 			return;
 		}
 
-		char line[65536]{};
+		char line[1024]{};
 		if (std::fgets(line, sizeof(line), openScriptIOFileHandle) != nullptr)
 		{
 			Game::Scr_AddString(line);
