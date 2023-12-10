@@ -28,6 +28,8 @@ namespace Components
 		std::int8_t right;
 		std::uint16_t weapon;
 		std::uint16_t lastAltWeapon;
+		std::uint8_t meleeDist;
+		float meleeYaw;
 		bool active;
 	};
 
@@ -292,6 +294,23 @@ namespace Components
 			g_botai[entref.entnum].right = static_cast<int8_t>(rightInt);
 			g_botai[entref.entnum].active = true;
 		});
+
+		GSC::Script::AddMethod("BotMeleeParams", [](const Game::scr_entref_t entref) // Usage: <bot> BotMeleeParams(<float>, <float>);
+		{
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+			if (!Game::SV_IsTestClient(ent->s.number))
+			{
+				Game::Scr_Error("BotMeleeParams: Can only call on a bot!");
+				return;
+			}
+
+			const auto yaw = Game::Scr_GetFloat(0);
+			const auto dist = std::clamp<int>(static_cast<int>(Game::Scr_GetFloat(1)), std::numeric_limits<unsigned char>::min(), std::numeric_limits<unsigned char>::max());
+
+			g_botai[entref.entnum].meleeYaw = yaw;
+			g_botai[entref.entnum].meleeDist = static_cast<int8_t>(dist);
+			g_botai[entref.entnum].active = true;
+		});
 	}
 
 	void Bots::BotAiAction(Game::client_s* cl)
@@ -320,6 +339,8 @@ namespace Components
 		userCmd.rightmove = g_botai[clientNum].right;
 		userCmd.weapon = g_botai[clientNum].weapon;
 		userCmd.primaryWeaponForAltMode = g_botai[clientNum].lastAltWeapon;
+		userCmd.meleeChargeYaw = g_botai[clientNum].meleeYaw;
+		userCmd.meleeChargeDist = g_botai[clientNum].meleeDist;
 
 		userCmd.angles[0] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[0] - cl->gentity->client->ps.delta_angles[0]));
 		userCmd.angles[1] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[1] - cl->gentity->client->ps.delta_angles[1]));
