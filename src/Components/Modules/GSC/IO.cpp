@@ -30,12 +30,20 @@ namespace Components::GSC
 	std::filesystem::path IO::BuildPath(const char* path)
 	{
 		const std::filesystem::path fsGame = (*Game::fs_gameDirVar)->current.string;
-		if (!fsGame.empty())
+
+		// check if we need to append scriptdata folder, for backwards compat
+		std::string spath = path;
+		if (!spath.starts_with(Game::SCRIPTDATA_DIR + "/"s) && !spath.starts_with(Game::SCRIPTDATA_DIR + "\\"s))
 		{
-			return fsGame / "scriptdata"s / path;
+			spath = Game::SCRIPTDATA_DIR + "/"s + spath;
 		}
 
-		return DefaultDestPath / "scriptdata"s / path;
+		if (!fsGame.empty())
+		{
+			return fsGame / spath;
+		}
+
+		return DefaultDestPath / spath;
 	}
 
 	void IO::GScr_OpenFile()
@@ -154,7 +162,7 @@ namespace Components::GSC
 				return;
 			}
 
-			file = file.substr(0, 1024 - 1); // 1024 is the max string size for the SL system
+			file = file.substr(0, (1 << 16) - 1); // 65535 is the max string size for the SL system
 			Game::Scr_AddString(file.data());
 		});
 

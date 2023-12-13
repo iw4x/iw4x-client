@@ -28,4 +28,10 @@ namespace Game
 
 	typedef PlayerEquippedWeaponState*(*BG_GetEquippedWeaponState_t)(playerState_s* ps, unsigned int weaponIndex);
 	extern BG_GetEquippedWeaponState_t BG_GetEquippedWeaponState;
+
+	typedef int*(*BG_PlayerHasWeapon_t)(playerState_s* ps, unsigned int weaponIndex);
+	extern BG_PlayerHasWeapon_t BG_PlayerHasWeapon;
+
+	typedef Game::WeaponCompleteDef*(*BG_GetWeaponCompleteDef_t)(unsigned int weaponIndex);
+	extern BG_GetWeaponCompleteDef_t BG_GetWeaponCompleteDef;
 }

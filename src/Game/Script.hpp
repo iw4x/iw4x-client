@@ -221,6 +221,8 @@ namespace Game
 
 	constexpr auto LOCAL_VAR_STACK_SIZE = 64;
 
+	constexpr auto SCRIPTDATA_DIR = "scriptdata";
+
 	extern void IncInParam();
 
 	extern void Scr_AddBool(int value);
