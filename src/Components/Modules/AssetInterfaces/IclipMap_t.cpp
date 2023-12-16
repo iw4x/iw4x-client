@@ -306,7 +306,7 @@ namespace Assets
 			Game::CollisionPartition* destPartitions = buffer->dest<Game::CollisionPartition>();
 			buffer->saveArray(asset->partitions, asset->partitionCount);
 
-			for (int i = 0; i < asset->partitionCount; ++i)
+			for (size_t i = 0; i < asset->partitionCount; ++i)
 			{
 				Game::CollisionPartition* destPartition = &destPartitions[i];
 				Game::CollisionPartition* partition = &asset->partitions[i];

@@ -1044,8 +1044,8 @@ namespace Game
 		unsigned __int16 randomDataIntCount;
 		unsigned __int16 numframes;
 		char flags;
-		char boneCount[10];
-		char notifyCount;
+		unsigned char boneCount[10];
+		unsigned char notifyCount;
 		char assetType;
 		bool isDefault;
 		unsigned int randomDataShortCount;
@@ -3237,7 +3237,7 @@ namespace Game
 		unsigned char* triEdgeIsWalkable;
 		unsigned int borderCount;
 		CollisionBorder* borders;
-		int partitionCount;
+		unsigned int partitionCount;
 		CollisionPartition* partitions;
 		unsigned int aabbTreeCount;
 		CollisionAabbTree* aabbTrees;

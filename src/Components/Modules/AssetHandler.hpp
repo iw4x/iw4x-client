@@ -23,7 +23,7 @@ namespace Components
 		~AssetHandler();
 
 		static void OnFind(Game::XAssetType type, Utils::Slot<Callback> callback);
-		static void OnLoad(Utils::Slot<RestrictCallback> callback);
+		static std::function<void()> OnLoad(Utils::Slot<RestrictCallback> callback);
 
 		static void ClearRelocations();
 		static void Relocate(void* start, void* to, DWORD size = 4);

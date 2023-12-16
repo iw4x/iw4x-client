@@ -355,9 +355,13 @@ namespace Components
 		AssetHandler::TypeCallbacks[type] = callback;
 	}
 
-	void AssetHandler::OnLoad(Utils::Slot<AssetHandler::RestrictCallback> callback)
+	std::function<void()> AssetHandler::OnLoad(Utils::Slot<AssetHandler::RestrictCallback> callback)
 	{
 		AssetHandler::RestrictSignal.connect(callback);
+
+		return [callback](){
+			AssetHandler::RestrictSignal.disconnect(callback);
+		};
 	}
 
 	void AssetHandler::ClearRelocations()

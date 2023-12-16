@@ -51,6 +51,8 @@ namespace Components
 
 		static void UpdateVisibleInfo();
 
+		static bool UseMasterServer;
+
 		static bool GetMasterServer(const char* ip, int port, Game::netadr_t& address);
 
 		static Dvar::Var UIServerSelected;
@@ -122,6 +124,8 @@ namespace Components
 			std::vector<ServerContainer> servers;
 			std::recursive_mutex mutex;
 		};
+
+		static void ParseNewMasterServerResponse(const std::string& servers);
 
 		static unsigned int GetServerCount();
 		static const char* GetServerText(unsigned int index, int column);

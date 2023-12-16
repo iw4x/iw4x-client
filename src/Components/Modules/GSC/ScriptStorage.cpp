@@ -84,12 +84,12 @@ namespace Components::GSC
 
 			const nlohmann::json json = Data;
 
-			FileSystem::FileWriter("scriptdata/scriptstorage.json").write(json.dump());
+			FileSystem::FileWriter(Game::SCRIPTDATA_DIR + "/scriptstorage.json"s).write(json.dump());
 		});
 
 		Script::AddFunction("StorageLoad", [] // gsc: StorageLoad();
 		{
-			FileSystem::File storageFile("scriptdata/scriptstorage.json");
+			FileSystem::File storageFile(Game::SCRIPTDATA_DIR + "/scriptstorage.json"s);
 			if (!storageFile.exists())
 			{
 				return;
