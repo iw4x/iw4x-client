@@ -6,7 +6,7 @@ namespace Utils
 	const char* Cache::Urls[] =
 	{
 		"https://raw.githubusercontent.com/diamante0018/iw4x-client",
-		"https://alterware.dev",
+		"https://master.alterware.dev",
 	};
 
 	std::string Cache::ValidUrl;
