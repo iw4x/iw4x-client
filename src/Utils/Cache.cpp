@@ -5,7 +5,6 @@ namespace Utils
 {
 	const char* Cache::Urls[] =
 	{
-		"https://raw.githubusercontent.com/diamante0018/iw4x-client",
 		"https://master.alterware.dev",
 	};
 
