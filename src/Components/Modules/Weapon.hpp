@@ -5,12 +5,20 @@
 #define WEAPON_LIMIT 2400
 #define MAX_CONFIGSTRINGS (4139 - 1200 + WEAPON_LIMIT)
 
+// Double the limit to allow loading of some heavy-duty MW3 maps
+#define ADDITIONAL_GMODELS 512
+
+#define G_MODELINDEX_LIMIT (512 + WEAPON_LIMIT - 1200 + ADDITIONAL_GMODELS) 
+
 namespace Components
 {
 	class Weapon : public Component
 	{
 	public:
 		Weapon();
+		static Game::XModel* G_ModelIndexReallocated[G_MODELINDEX_LIMIT];
+
+		static bool GModelIndexHasBeenReallocated;
 
 	private:
 		static const Game::dvar_t* BGWeaponOffHandFix;

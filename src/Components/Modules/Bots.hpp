@@ -32,8 +32,10 @@ namespace Components
 		static void BotAiAction(Game::client_s* cl);
 		static void SV_BotUserMove_Hk();
 
-		static void G_SelectWeaponIndex(int clientNum, int iWeaponIndex);
+		static void G_SelectWeaponIndex(int clientNum, unsigned int iWeaponIndex);
 		static void G_SelectWeaponIndex_Hk();
+
+		static bool Player_UpdateActivate_stub(int);
 
 		static int SV_GetClientPing_Hk(int clientNum);
 
