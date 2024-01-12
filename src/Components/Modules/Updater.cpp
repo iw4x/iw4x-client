@@ -6,8 +6,6 @@
 #include <Utils/WebIO.hpp>
 
 #include <rapidjson/document.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/stringbuffer.h>
 
 namespace Components
 {
@@ -17,18 +15,20 @@ namespace Components
 
 		// If they use the alterware-launcher once to install they will have this file
 		// If they don't, what are they waiting for?
-		constexpr auto* revisionFile = ".iw4xrevision";
+		constexpr auto* REVISION_FILE = ".iw4xrevision";
+		constexpr auto* GITHUB_REMOTE_URL = "https://api.github.com/repos/iw4x/iw4x-client/releases/latest";
+		constexpr auto* INSTALL_GUIDE_REMOTE_URL = "https://forum.alterware.dev/t/how-to-install-the-alterware-launcher/56";
 
 		void CheckForUpdate()
 		{
 			std::string revision;
-			if (!Utils::IO::ReadFile(revisionFile, &revision) || revision.empty())
+			if (!Utils::IO::ReadFile(REVISION_FILE, &revision) || revision.empty())
 			{
-				Logger::Print(".iw4xrevision does not exist. Notifying the user an update is available\n");
+				Logger::Print("{} does not exist. Notifying the user an update is available\n", REVISION_FILE);
 				Game::Dvar_SetBool(cl_updateAvailable, true);
 			}
 
-			const auto result = Utils::WebIO("IW4x", "https://api.github.com/repos/iw4x/iw4x-client/releases/latest").setTimeout(5000)->get();
+			const auto result = Utils::WebIO("IW4x", GITHUB_REMOTE_URL).setTimeout(5000)->get();
 			if (result.empty())
 			{
 				// Nothing to do in this situation. We won't know if we need to update or not
@@ -60,6 +60,7 @@ namespace Components
 			}
 		}
 
+		// Depending on Linux/Windows 32/64 there are a few things we must check
 		std::optional<std::string> GetLauncher()
 		{
 			if (Utils::IO::FileExists("alterware-launcher.exe"))
@@ -100,7 +101,7 @@ namespace Components
 			}
 
 			// No launcher was found on the system, time to tell them to download it from GitHub
-			Utils::OpenUrl("https://forum.alterware.dev/t/how-to-install-the-alterware-launcher/56");
+			Utils::OpenUrl(INSTALL_GUIDE_REMOTE_URL);
 		});
 	}
 }
