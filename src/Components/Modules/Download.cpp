@@ -462,6 +462,40 @@ namespace Components
 		mg_http_reply(connection, 200, formatted.c_str(), "%s", data.c_str());
 	}
 
+	bool VerifyPassword([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
+	{
+		const std::string g_password = *Game::g_password ? (*Game::g_password)->current.string : "";
+		if (g_password.empty()) return true;
+
+		// SHA256 hashes are 64 characters long but we're gonna be safe here
+		char buffer[128]{};
+		const auto len = mg_http_get_var(&hm->query, "password", buffer, sizeof(buffer));
+
+		const auto reply = [&c](const char* s) -> void
+		{
+			mg_printf(c, "%s", "HTTP/1.1 403 Forbidden\r\n");
+			mg_printf(c, "%s", "Content-Type: text/plain\r\n");
+			mg_printf(c, "Connection: close\r\n");
+			mg_printf(c, "%s", "\r\n");
+			mg_printf(c, "%s", s);
+		};
+
+		if (len <= 0)
+		{
+			reply("Password Required");
+			return false;
+		}
+
+		const auto password = std::string(buffer, len);
+		if (password != Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(g_password), ""))
+		{
+			reply("Invalid Password");
+			return false;
+		}
+
+		return true;
+	}
+
 	std::optional<std::string> Download::InfoHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
 	{
 		if (!(*Game::com_sv_running)->current.enabled)
@@ -524,6 +558,12 @@ namespace Components
 		static nlohmann::json jsonList;
 		static std::filesystem::path fsGamePre;
 
+		if (!VerifyPassword(c, hm))
+		{
+			// Custom reply done in VerifyPassword
+			return {};
+		}
+
 		const std::filesystem::path fsGame = (*Game::fs_gameDirVar)->current.string;
 
 		if (!fsGame.empty() && (fsGamePre != fsGame))
@@ -571,6 +611,12 @@ namespace Components
 	{
 		static std::string mapNamePre;
 		static nlohmann::json jsonList;
+
+		if (!VerifyPassword(c, hm))
+		{
+			// Custom reply done in VerifyPassword
+			return {};
+		}
 
 		const std::string mapName = Party::IsInUserMapLobby() ? (*Game::ui_mapname)->current.string : Maps::GetUserMap()->getName();
 		if (!Maps::GetUserMap()->isValid() && !Party::IsInUserMapLobby())
