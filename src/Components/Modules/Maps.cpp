@@ -317,7 +317,7 @@ namespace Components
 	// TODO : Remove hook entirely?
 	void Maps::GetBSPName(char* buffer, size_t size, const char* format, const char* mapname)
 	{
-		if (!Utils::String::StartsWith(mapname, "mp_"))
+		if (!Utils::String::StartsWith(mapname, "mp_") && !Utils::String::StartsWith(mapname, "zm_"))
 		{
 			format = "maps/%s.d3dbsp";
 		}
