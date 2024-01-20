@@ -7,9 +7,12 @@ namespace Components
 	public:
 		Singleton();
 
+		void preDestroy() override;
+
 		static bool IsFirstInstance();
 
 	private:
+		static HANDLE Mutex;
 		static bool FirstInstance;
 	};
 }
