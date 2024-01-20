@@ -455,7 +455,7 @@ namespace Components
 
 		if (!messageOverride.empty())
 		{
-			msg = message;
+			msg = messageOverride;
 		}
 
 		mg_http_reply(connection, code, "Content-Type: text/plain\r\n", "%s", msg.c_str());
@@ -478,14 +478,14 @@ namespace Components
 
 		if (len <= 0)
 		{
-			ReplyError(connection, 403, "Password Required");
+			ReplyError(c, 403, "Password Required");
 			return false;
 		}
 
 		const auto password = std::string(buffer, len);
 		if (password != Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(g_password), ""))
 		{
-			ReplyError(connection, 403, "Invalid Password");
+			ReplyError(c, 403, "Invalid Password");
 			return false;
 		}
 
