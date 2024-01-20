@@ -478,14 +478,14 @@ namespace Components
 
 		if (len <= 0)
 		{
-			ReplyError(c, 403, "Password Required");
+			Download::ReplyError(c, 403, "Password Required");
 			return false;
 		}
 
 		const auto password = std::string(buffer, len);
 		if (password != Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(g_password), ""))
 		{
-			ReplyError(c, 403, "Invalid Password");
+			Download::ReplyError(c, 403, "Invalid Password");
 			return false;
 		}
 
