@@ -224,6 +224,18 @@ namespace Components
 
 	void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name)
 	{
+#ifdef DEBUG
+		if (type == Game::XAssetType::ASSET_TYPE_IMAGE && name[0] != ',')
+		{
+			const auto image = asset.image;
+			const auto cat = static_cast<Game::ImageCategory>(image->category);
+			if (cat == Game::ImageCategory::IMG_CATEGORY_UNKNOWN)
+			{
+				Logger::Warning(Game::CON_CHANNEL_GFX, "Image {} has wrong category IMG_CATEGORY_UNKNOWN, this is an IMPORTANT ISSUE that should be fixed!\n", name);
+			}
+		}
+#endif
+
 		if (type == Game::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light" || name == "gfx_distortion_heat") && asset.material->info.sortKey >= 43)
 		{
 			if (Zones::Version() >= VERSION_ALPHA2)
