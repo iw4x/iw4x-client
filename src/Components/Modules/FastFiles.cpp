@@ -279,6 +279,7 @@ namespace Components
 
 		for (auto& path : paths)
 		{
+			const auto* dir = (*Game::fs_basepath)->current.string;
 			auto absoluteFile = std::format("{}\\{}{}", dir, path, file);
 
 			// No ".ff" appended, append it manually
