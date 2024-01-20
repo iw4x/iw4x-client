@@ -51,30 +51,3 @@ jobs:
             build/bin/Win32/${{matrix.configuration}}/iw4x.dll
             build/bin/Win32/${{matrix.configuration}}/iw4x.pdb
 
-  deploy:
-    name: Deploy artifacts
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop')
-    steps:
-      - name: Setup develop environment
-        if: github.ref == 'refs/heads/develop'
-        run: echo "DIAMANTE_MASTER_PATH=${{ secrets.DIAMANTE_MASTER_SSH_PATH }}" >> $GITHUB_ENV
-
-      - name: Download Release binaries
-        uses: actions/download-artifact@v3.0.2
-        with:
-          name: Release binaries
-
-      # Set up committer info and GPG key
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2.5.1
-        with:
-          key: ${{ secrets.DIAMANTE_MASTER_SSH_PRIVATE_KEY }}
-          known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
-
-      - name: Add known hosts
-        run: ssh-keyscan -H ${{ secrets.DIAMANTE_MASTER_SSH_ADDRESS }} >> ~/.ssh/known_hosts
-
-      - name: Upload iw4x-client binary
-        run: rsync -avz iw4x.dll ${{ secrets.DIAMANTE_MASTER_SSH_USER }}@${{ secrets.DIAMANTE_MASTER_SSH_ADDRESS }}:${{ env.DIAMANTE_MASTER_PATH }}/legacy/
