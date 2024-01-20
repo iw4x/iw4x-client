@@ -524,6 +524,27 @@ namespace Components
 		}
 	}
 
+	bool FastFiles::DB_FileExists_Hk(const char* zoneName, Game::FF_DIR source)
+	{
+		char filename[256]{};
+
+		DB_BuildOSPath_FromSource_Default(zoneName, source, sizeof(filename), filename);
+		if (auto zoneFile = Game::Sys_OpenFileReliable(filename); zoneFile != INVALID_HANDLE_VALUE)
+		{
+			CloseHandle(zoneFile);
+			return true;
+		}
+
+		DB_BuildOSPath_FromSource_Custom(zoneName, source, sizeof(filename), filename);
+		if (auto zoneFile = Game::Sys_OpenFileReliable(filename); zoneFile != INVALID_HANDLE_VALUE)
+		{
+			CloseHandle(zoneFile);
+			return true;
+		}
+
+		return false;
+	}
+
 	Game::Sys_File FastFiles::Sys_CreateFile_Stub(const char* dir, const char* filename)
 	{
 		static_assert(sizeof(Game::Sys_File) == 4);
