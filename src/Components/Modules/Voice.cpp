@@ -168,6 +168,7 @@ namespace Components
 			voicePacket.dataSize = Game::MSG_ReadByte(msg);
 			if (voicePacket.dataSize <= 0 || voicePacket.dataSize > MAX_VOICE_PACKET_DATA)
 			{
+				Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(cl->header.netchan.remoteAddress));
 				Logger::Print(Game::CON_CHANNEL_SERVER, "Received invalid voice packet of size {} from {}\n", voicePacket.dataSize, cl->name);
 				return;
 			}

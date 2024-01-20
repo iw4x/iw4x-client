@@ -144,6 +144,7 @@ namespace Components
 		Proto::Auth::Connect connectData;
 		if (msg->cursize <= 12 || !connectData.ParseFromString(std::string(reinterpret_cast<char*>(&msg->data[12]), msg->cursize - 12)))
 		{
+			Logger::PrintFail2Ban("Failed connect attempt from IP address: {}\n", Network::AdrToString(address));
 			Network::Send(address, "error\nInvalid connect packet!");
 			return;
 		}
@@ -161,6 +162,7 @@ namespace Components
 			}
 			else
 			{
+				Logger::PrintFail2Ban("Failed connect attempt from IP address: {}\n", Network::AdrToString(address));
 				Network::Send(address, "error\nInvalid infostring data!");
 			}
 		}
@@ -170,6 +172,7 @@ namespace Components
 			// Validate proto data
 			if (connectData.signature().empty() || connectData.publickey().empty() || connectData.token().empty() || connectData.infostring().empty())
 			{
+				Logger::PrintFail2Ban("Failed connect attempt from IP address: {}\n", Network::AdrToString(address));
 				Network::Send(address, "error\nInvalid connect data!");
 				return;
 			}
@@ -184,6 +187,7 @@ namespace Components
 			// Ensure there are enough params
 			if (params.size() < 3)
 			{
+				Logger::PrintFail2Ban("Failed connect attempt from IP address: {}\n", Network::AdrToString(address));
 				Network::Send(address, "error\nInvalid connect string!");
 				return;
 			}
@@ -197,6 +201,7 @@ namespace Components
 
 			if (steamId.empty() || challenge.empty())
 			{
+				Logger::PrintFail2Ban("Failed connect attempt from IP address: {}\n", Network::AdrToString(address));
 				Network::Send(address, "error\nInvalid connect data!");
 				return;
 			}

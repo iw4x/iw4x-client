@@ -180,7 +180,8 @@ namespace Components
 		const auto pos = data.find_first_of(' ');
 		if (pos == std::string::npos)
 		{
-			Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon request from {}\n", address.getString());
+			Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
+			Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon request from {}\n", Network::AdrToString(address));
 			return;
 		}
 
@@ -203,7 +204,8 @@ namespace Components
 
 		if (svPassword != password)
 		{
-			Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon password sent from {}\n", address.getString());
+			Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
+			Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon password sent from {}\n", Network::AdrToString(address));
 			return;
 		}
 
@@ -213,7 +215,7 @@ namespace Components
 		if (RConLogRequests.get<bool>())
 #endif
 		{
-			Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing RCon request from {}: {}\n", address.getString(), command);
+			Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing RCon request from {}: {}\n", Network::AdrToString(address), command);
 		}
 
 		Logger::PipeOutput([](const std::string& output)
@@ -318,6 +320,7 @@ namespace Components
 			const auto time = Game::Sys_Milliseconds();
 			if (!IsRateLimitCheckDisabled() && !RateLimitCheck(address, time))
 			{
+				Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
 				return;
 			}
 
@@ -341,6 +344,7 @@ namespace Components
 			const auto time = Game::Sys_Milliseconds();
 			if (!IsRateLimitCheckDisabled() && !RateLimitCheck(address, time))
 			{
+				Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
 				return;
 			}
 
@@ -360,13 +364,15 @@ namespace Components
 			Proto::RCon::Command directive;
 			if (!directive.ParseFromString(data))
 			{
-				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "Unable to parse secure command from {}\n", address.getString());
+				Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
+				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "Unable to parse secure command from {}\n", Network::AdrToString(address));
 				return;
 			}
 
 			if (!Utils::Cryptography::RSA::VerifyMessage(key, directive.command(), directive.signature()))
 			{
-				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "RSA signature verification failed for message from {}\n", address.getString());
+				Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
+				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "RSA signature verification failed for message from {}\n", Network::AdrToString(address));
 				return;
 			}
 
