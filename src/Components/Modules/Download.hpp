@@ -105,7 +105,7 @@ namespace Components
 		static bool DownloadFile(ClientDownload* download, unsigned int index);
 
 		static void LogFn(char c, void* param);
-		static void ReplyError(mg_connection* connection, int code);
+		static void ReplyError(mg_connection* connection, int code, std::string messageOverride = {});
 		static void Reply(mg_connection* connection, const std::string& contentType, const std::string& data);
 
 		static std::optional<std::string> FileHandler(mg_connection* c, const mg_http_message* hm);

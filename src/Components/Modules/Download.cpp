@@ -435,7 +435,7 @@ namespace Components
 		MongooseLogBuffer.push_back(c);
 	}
 
-	void Download::ReplyError(mg_connection* connection, int code)
+	void Download::ReplyError(mg_connection* connection, int code, std::string messageOverride)
 	{
 		std::string msg{};
 		switch(code)
@@ -451,6 +451,11 @@ namespace Components
 		case 404:
 			msg = "Not found";
 			break;
+		}
+
+		if (!messageOverride.empty())
+		{
+			msg = message;
 		}
 
 		mg_http_reply(connection, code, "Content-Type: text/plain\r\n", "%s", msg.c_str());
@@ -471,25 +476,16 @@ namespace Components
 		char buffer[128]{};
 		const auto len = mg_http_get_var(&hm->query, "password", buffer, sizeof(buffer));
 
-		const auto reply = [&c](const char* s) -> void
-		{
-			mg_printf(c, "%s", "HTTP/1.1 403 Forbidden\r\n");
-			mg_printf(c, "%s", "Content-Type: text/plain\r\n");
-			mg_printf(c, "Connection: close\r\n");
-			mg_printf(c, "%s", "\r\n");
-			mg_printf(c, "%s", s);
-		};
-
 		if (len <= 0)
 		{
-			reply("Password Required");
+			ReplyError(connection, 403, "Password Required");
 			return false;
 		}
 
 		const auto password = std::string(buffer, len);
 		if (password != Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(g_password), ""))
 		{
-			reply("Invalid Password");
+			ReplyError(connection, 403, "Invalid Password");
 			return false;
 		}
 
