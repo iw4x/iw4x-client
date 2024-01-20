@@ -13,7 +13,8 @@ namespace Components
 	std::recursive_mutex Logger::LoggingMutex;
 	std::vector<Network::Address> Logger::LoggingAddresses[2];
 
-	Dvar::Var Logger::IW4x_oneLog;
+	Dvar::Var Logger::IW4x_one_log;
+	Dvar::Var Logger::IW4x_fail2ban_location;
 
 	void(*Logger::PipeCallback)(const std::string&) = nullptr;;
 
@@ -43,8 +44,8 @@ namespace Components
 
 		if (shouldPrint)
 		{
-			std::printf("%s", msg.data());
-			std::fflush(stdout);
+			(void)std::fputs(msg.data(), stdout);
+			(void)std::fflush(stdout);
 			return;
 		}
 
@@ -114,6 +115,38 @@ namespace Components
 		const auto msg = "^3" + std::vformat(fmt, args);
 
 		MessagePrint(channel, msg);
+	}
+
+	void Logger::PrintFail2BanInternal(const std::string_view& fmt, std::format_args&& args)
+	{
+		static const auto shouldPrint = []() -> bool
+		{
+			return Flags::HasFlag("fail2ban");
+		}();
+
+		if (!shouldPrint)
+		{
+			return;
+		}
+
+		auto msg = std::vformat(fmt, args);
+
+		static auto log_next_time_stamp = true;
+		if (log_next_time_stamp)
+		{
+			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+			// Convert to local time
+			std::tm timeInfo = *std::localtime(&now);
+
+			std::ostringstream ss;
+			ss << std::put_time(&timeInfo, "%Y-%m-%d %H:%M:%S ");
+
+			msg.insert(0, ss.str());
+		}
+
+		log_next_time_stamp = (msg.find('\n') != std::string::npos);
+
+		Utils::IO::WriteFile(IW4x_fail2ban_location.get<std::string>(), msg, true);
 	}
 
 	void Logger::Frame()
@@ -233,7 +266,7 @@ namespace Components
 		{
 			if (std::strcmp(folder, "userraw") != 0)
 			{
-				if (IW4x_oneLog.get<bool>())
+				if (IW4x_one_log.get<bool>())
 				{
 					strncpy_s(folder, 256, "userraw", _TRUNCATE);
 				}
@@ -388,7 +421,6 @@ namespace Components
 
 	Logger::Logger()
 	{
-		IW4x_oneLog = Dvar::Register<bool>("iw4x_onelog", false, Game::DVAR_LATCH, "Only write the game log to the 'userraw' OS folder");
 		Utils::Hook(0x642139, BuildOSPath_Stub, HOOK_JUMP).install()->quick();
 
 		Scheduler::Loop(Frame, Scheduler::Pipeline::SERVER);
@@ -405,6 +437,11 @@ namespace Components
 		}
 
 		Events::OnSVInit(AddServerCommands);
+		Events::OnDvarInit([]
+		{
+			IW4x_one_log = Dvar::Register<bool>("iw4x_onelog", false, Game::DVAR_LATCH, "Only write the game log to the 'userraw' OS folder");
+			IW4x_fail2ban_location = Dvar::Register<const char*>("iw4x_fail2ban_location", "/var/log/iw4x.log", Game::DVAR_NONE, "Fail2Ban logfile location");
+		});
 	}
 
 	Logger::~Logger()
