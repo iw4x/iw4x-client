@@ -205,8 +205,7 @@ namespace Components
 
 	void Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* restrict)
 	{
-		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end()
-			&& (FastFiles::Current() != "mp_shipment_long" || Maps::CurrentMainZone != "mp_shipment")) // Shipment is a special case
+		if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end()) // Shipment is a special case
 		{
 			switch (type)
 			{
@@ -315,17 +314,12 @@ namespace Components
 		}
 	}
 
+	// TODO : Remove hook entirely?
 	void Maps::GetBSPName(char* buffer, size_t size, const char* format, const char* mapname)
 	{
 		if (!Utils::String::StartsWith(mapname, "mp_"))
 		{
 			format = "maps/%s.d3dbsp";
-		}
-
-		// TODO: Remove this hack by using CoD4 version of the map
-		if (std::strcmp(mapname, "mp_shipment") == 0)
-		{
-			mapname = "mp_shipment_long";
 		}
 
 		_snprintf_s(buffer, size, _TRUNCATE, format, mapname);
