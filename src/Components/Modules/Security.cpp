@@ -119,6 +119,7 @@ namespace Components
 	{
 		if ((client->reliableSequence - client->reliableAcknowledge) < 0)
 		{
+			Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(client->header.netchan.remoteAddress));
 			Logger::Print(Game::CON_CHANNEL_NETWORK, "Negative reliableAcknowledge from {} - cl->reliableSequence is {}, reliableAcknowledge is {}\n",
 				client->name, client->reliableSequence, client->reliableAcknowledge);
 			client->reliableAcknowledge = client->reliableSequence;
