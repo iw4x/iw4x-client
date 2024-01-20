@@ -245,8 +245,6 @@ namespace Components
 
 	const char* FastFiles::GetZoneLocation(const char* file)
 	{
-		const auto* dir = (*Game::fs_basepath)->current.string;
-
 		std::vector<std::string> paths;
 		const std::string fsGame = (*Game::fs_gameDirVar)->current.string;
 
@@ -270,6 +268,7 @@ namespace Components
 				Utils::String::Replace(zone, "_load", "");
 			}
 
+			// Only check for usermaps on our working directory
 			if (Utils::IO::FileExists(std::format("usermaps\\{}\\{}.ff", zone, filename)))
 			{
 				return Utils::String::Format("usermaps\\{}\\", zone);
@@ -506,10 +505,52 @@ namespace Components
 		return Utils::Hook::Call<void(int, int)>(0x004925B0)(atStreamStart, surface->numsurfs);
 	}
 
+	void FastFiles::DB_BuildOSPath_FromSource_Default(const char* zoneName, Game::FF_DIR source, unsigned int size, char* filename)
+	{
+		// TODO: this is where user map and mod.ff check should happen
+		if (source == Game::FFD_DEFAULT)
+		{
+			(void)sprintf_s(filename, size, "%s\\%s%s.ff", FileSystem::Sys_DefaultInstallPath_Hk(), GetZoneLocation(zoneName), zoneName);
+		}
+	}
+
+	void FastFiles::DB_BuildOSPath_FromSource_Custom(const char* zoneName, Game::FF_DIR source, unsigned int size, char* filename)
+	{
+		// TODO: this is where user map and mod.ff check should happen
+		if (source == Game::FFD_DEFAULT)
+		{
+			(void)sprintf_s(filename, size, "%s\\%s%s.ff", FileSystem::Sys_HomePath_Hk(), GetZoneLocation(zoneName), zoneName);
+		}
+	}
+
+	Game::Sys_File FastFiles::Sys_CreateFile_Stub(const char* dir, const char* filename)
+	{
+		static_assert(sizeof(Game::Sys_File) == 4);
+
+		auto file = Game::Sys_CreateFile(dir, filename);
+
+		static const std::filesystem::path home = FileSystem::Sys_HomePath_Hk();
+		if (file.handle == INVALID_HANDLE_VALUE && !home.empty())
+		{
+			file.handle = Game::Sys_OpenFileReliable(Utils::String::VA("%s\\%s%s", FileSystem::Sys_HomePath_Hk(), dir, filename));
+		}
+
+		if (file.handle == INVALID_HANDLE_VALUE && ZoneBuilder::IsEnabled())
+		{
+			file = Game::Sys_CreateFile("zone\\zonebuilder\\", filename);
+		}
+
+		return file;
+	}
+
 	FastFiles::FastFiles()
 	{
 		Dvar::Register<bool>("ui_zoneDebug", false, Game::DVAR_ARCHIVE, "Display current loaded zone.");
 		g_loadingInitialZones = Dvar::Register<bool>("g_loadingInitialZones", true, Game::DVAR_NONE, "Is loading initial zones");
+
+		Utils::Hook(0x5BC832, Sys_CreateFile_Stub, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x4CCDF0, DB_FileExists_Hk, HOOK_JUMP).install()->quick();
 
 		// Fix XSurface assets
 		Utils::Hook(0x0048E8A5, FastFiles::Load_XSurfaceArray, HOOK_CALL).install()->quick();
