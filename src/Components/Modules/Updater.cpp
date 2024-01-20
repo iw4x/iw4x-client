@@ -41,14 +41,14 @@ namespace Components
 			if (!parseResult || !doc.IsObject())
 			{
 				// Nothing to do in this situation. We won't know if we need to update or not
-				Logger::Print("GitHub sent an invalid reply\n");
+				Logger::Print("GitHub sent an invalid reply (malformed JSON)\n");
 				return;
 			}
 
 			if (!doc.HasMember("tag_name") || !doc["tag_name"].IsString())
 			{
 				// Nothing to do in this situation. We won't know if we need to update or not
-				Logger::Print("GitHub sent an invalid reply\n");
+				Logger::Print("GitHub sent an invalid reply (missing 'tag_name' JSON member)\n");
 				return;
 			}
 
