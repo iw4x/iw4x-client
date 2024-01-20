@@ -129,6 +129,7 @@ namespace Components
 #endif
 
 		static bool IsEnabled();
+		static bool IsDumpingZone() { return DumpingZone.length() > 0; };
 
 		static std::string TraceZone;
 		static std::vector<std::pair<Game::XAssetType, std::string>> TraceAssets;
@@ -142,7 +143,7 @@ namespace Components
 		static iw4of::api* GetExporter();
 
 	private:
-		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
+		static int StoreTexture(Game::GfxImageLoadDef** loadDef, Game::GfxImage* image);
 		static void ReleaseTexture(Game::XAssetHeader header);
 
 		static std::string FindMaterialByTechnique(const std::string& name);
