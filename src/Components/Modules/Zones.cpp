@@ -2,6 +2,8 @@
 
 #include <zlib.h>
 
+#include "AssetInterfaces\CODO\IWeaponCompleteDef_461.hpp"
+
 #include "FastFiles.hpp"
 
 #pragma optimize( "", off )
@@ -129,42 +131,42 @@ namespace Components
 		char lightingFrac;
 		char useItemClip;
 		char fadeInfo;
-		char pad[4];
+		int unknown;
 		char* unknownString;
 	};
 
-	//bool Zones::LoadFxEffectDef(bool atStreamStart, char* buffer, int size)
-	//{
-	//	int count = 0;
+	bool Zones::LoadFxEffectDef(bool atStreamStart, char* buffer, int size)
+	{
+		int count = 0;
 
-	//	if (Zones::Version() >= VERSION_ALPHA2)
-	//	{
-	//		size /= 252;
-	//		count = size;
-	//		size *= 260;
-	//	}
+		if (Zones::Version() >= VERSION_ALPHA2)
+		{
+			size /= 252;
+			count = size;
+			size *= 260;
+		}
 
-	//	bool result = Game::Load_Stream(atStreamStart, buffer, size);
+		bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
-	//	Zones::FxEffectIndex = 0;
+		Zones::FxEffectIndex = 0;
 
-	//	if (Zones::Version() >= VERSION_ALPHA2)
-	//	{
-	//		Utils::Memory::Allocator allocator;
-	//		Game::FxElemDef* elems = allocator.allocateArray<Game::FxElemDef>(count);
+		if (Zones::Version() >= VERSION_ALPHA2)
+		{
+			Utils::Memory::Allocator allocator;
+			Game::FxElemDef* elems = allocator.allocateArray<Game::FxElemDef>(count);
 
-	//		for (int i = 0; i < count; ++i)
-	//		{
-	//			AssetHandler::Relocate(buffer + (260 * i), buffer + (252 * i), 252);
-	//			std::memcpy(&elems[i], buffer + (260 * i), 252);
-	//			Zones::FxEffectStrings[i] = *reinterpret_cast<char**>(buffer + (260 * i) + 256);
-	//		}
+			for (int i = 0; i < count; ++i)
+			{
+				AssetHandler::Relocate(buffer + (260 * i), buffer + (252 * i), 252);
+				std::memcpy(&elems[i], buffer + (260 * i), 252);
+				Zones::FxEffectStrings[i] = *reinterpret_cast<char**>(buffer + (260 * i) + 256);
+			}
 
-	//		std::memcpy(buffer, elems, sizeof(Game::FxElemDef) * count);
-	//	}
+			std::memcpy(buffer, elems, sizeof(Game::FxElemDef) * count);
+		}
 
-	//	return result;
-	//}
+		return result;
+	}
 
 	//bool Zones::LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size)
 	//{
@@ -330,810 +332,20 @@ namespace Components
 		return result;
 	}
 
-	struct codo461_WeaponCompleteDef
-	{
-		char* szInternalName; // +0
-		char* szDisplayName;		// +4
-		char* szInternalName2;		// +8
-		char* unkString3;		// +12
-		Game::XModel* unkModels1[2];	// +16
-		Game::XModel* unkModels2[2];	// +24
-		Game::XModel* unkModels_Multiple1[6];			// +32
-		char unkPadding[4];
-		int16_t unkScriptStrings[32];		// +60
-		char** unkXStringArray1;		// +124
-		char unkPadding3[244];
-		char** unkXStringArray2;		// +372
-		char unkPadding4[244];
-		char** unkXStringArray3;		// +620
-
-		char unkPadding5[276];			// + 624
-
-		int16_t unkScriptString; // 900
-		char unkPadding5a[30];
-
-		int16_t unkScriptString2; // 932
-		char unkPadding5b[30];
-
-		int16_t unkScriptString3; // 964
-		char unkPadding5c[30];
-
-		int16_t unkScriptString4; // 996
-		char unkPadding5d[30];
-
-		Game::FxEffectDef* effects[16]; // +1028
-		int16_t* unkScriptString5; // +1092
-		char unkPadding6[28];
-
-		Game::FxEffectDef* effects2[16]; // +1124
-		Game::FxEffectDef* effects2b[16]; // + 1188
-		char unkPadding7[64]; // + 1188
-
-		Game::FxEffectDef* effects3[16]; // +1316
-		char unkPadding8[64]; // + 1380
-
-		Game::FxEffectDef* viewFlashEffect; // +1444
-		Game::FxEffectDef* worldFlashEffect; // +1448
-		Game::FxEffectDef* unkEffect3; // +1452
-		Game::FxEffectDef* unkEffect4; // +1456
-		Game::FxEffectDef* unkEffect5; // +1460
-
-		char* unkString4;				// +1464
-		int unkPadding9;
-
-		char* unkString5;				// +1472
-		Game::snd_alias_list_t* sounds[53]; // +1476
-		Game::snd_alias_list_t* sounds1b[5]; // +1604
-
-		//Game::snd_alias_list_t** soundsList[5]; // 1688
-		Game::snd_alias_list_t** bounceSounds1; // + 1708
-		Game::snd_alias_list_t** bounceSounds2; // + 1712
-		Game::FxEffectDef* viewShellEjectEffect;	// 1716
-		Game::FxEffectDef* worldShellEjectEffect;
-		Game::FxEffectDef* viewLastShotEjectEffect;
-		Game::FxEffectDef* worldLastShotEjectEffect;
-		Game::Material* reticleCenter;		// 1732
-		Game::Material* reticleSide;		// 1736
-		char unkPadding10[212];
-
-		Game::Material* materials[6]; // 1952
-		int unkPadding11;
-
-		Game::Material* material3; // 1980
-		int unkPadding12;
-
-		Game::Material* material4; // 1988
-		char unkPadding13[8];
-
-		Game::Material* overlayMaterial; // 2000
-		Game::Material* overlayMaterialLowRes;
-		Game::Material* overlayMaterialEMP;
-		Game::Material* overlayMaterialEMPLowRes;
-
-		char unkPadding14[8];
-
-		char* unkString6; // 2024
-		int unkPadding15;
-
-		char* unkString7; // 2032
-		char unkPadding16[12];
-
-		char* unkString8; // 2048
-
-		char padFloats[278];
-
-		Game::Material* unkMaterials2[4]; // 2332
-
-		char padFloats2[194];
-
-		Game::PhysCollmap* physCollMap; // 2544;
-
-		Game::PhysPreset* physPreset; // 2548
-
-		char padFloats3[104];
-
-		Game::XModel* projectileModel; // 2656
-		Game::weapProjExposion_t projExplosion; // 2660
-		Game::FxEffectDef* projExplosionEffect; // 2664
-		Game::FxEffectDef* projDudEffect; // 2668
-		Game::snd_alias_list_t* projDudSound; // 2672
-		Game::snd_alias_list_t* unkSound1; // 2676
-
-		char padProj2[272];
-
-		Game::FxEffectDef* unkProjEffects1[2]; // 2952
-
-		char padFX[24];
-
-		Game::FxEffectDef* unkEffect5b;
-
-		Game::snd_alias_list_t* unkSound2; // 2988
-		Game::FxEffectDef* projTrailEffect;  // 2992
-		Game::FxEffectDef* projBeaconEffect; // 2996
-		Game::FxEffectDef* unkProjEffects2[3]; // 3000
-
-		char padProj3[184];
-
-		char* accuracyGraphName1; // 3196
-		char* accuracyGraphName2; // 3200
-		 // OUT OF ORDER!
-		uint64_t* unknownAsset1; // 3204
-		uint64_t* unknownAsset2; // 3208
-		char unkPadding16_b[80];
-
-		char* unkString10_b; // 3292
-		char* unkString11; // 3296
-
-		char padStrings[28];	
-
-		char* unkString12; // 3328
-		char* unkString13; // 3332
-		char padStrings2[152];
-
-		char* unkStrings[2]; // 3488
-
-		Game::TracerDef* tracers[3];
-
-		char padStrings3[24];
-
-		Game::snd_alias_list_t* unkSound3; // 3532
-		Game::FxEffectDef* unkEffect6; // 3536
-		char* unkString14; // 3540
-
-		char unkPadding17[12];
-
-		Game::snd_alias_list_t* sounds2; // 3556
-		Game::snd_alias_list_t* turretBarrelSpinUpSnd[4]; // 3560
-		Game::snd_alias_list_t* turretBarrelSpinDownSnd[4]; // 3576
-		Game::snd_alias_list_t* sounds3[2]; // 3592
-
-		char unkPadding18[64];
-
-		Game::snd_alias_list_t* sounds4[6]; // 3664
-
-		char unkPadding19[26];
-
-		char* unkString15; // 3716
-		char unkPadding20[12];
-
-		char* unkString16; // 3732
-		char* unkString17; // 3736
-		char unkPadding21[4];
-
-		Game::Material* unkMaterials3[4]; // 3744
-		char unkPadding22[20];
-		unsigned short numberOfUnknownAsset1;
-		unsigned short numberOfUnknownAsset2;
-
-		uint64_t* unknownAsset3; // 3784
-		uint64_t* unknownAsset4; // 3788
-		char unkPadding23[88];
-
-		char* unkString18[3]; // 3880
-		char unkPadding24[108];
-
-		char* unkString19; // 4000
-		char unkPadding25[12];
-
-		char* unkString20; // 4016
-
-		char padEnd[104];
-	};
-
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkXStringArray1) == 124);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkXStringArray2) == 372);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkXStringArray3) == 620);
-	static_assert(offsetof(codo461_WeaponCompleteDef, effects) == 1028);
-	static_assert(offsetof(codo461_WeaponCompleteDef, effects2) == 1124);
-	static_assert(offsetof(codo461_WeaponCompleteDef, effects3) == 1316);
-	static_assert(offsetof(codo461_WeaponCompleteDef, viewFlashEffect) == 1444);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkEffect5) == 1460);
-	static_assert(offsetof(codo461_WeaponCompleteDef, sounds) == 1476);
-	static_assert(offsetof(codo461_WeaponCompleteDef, viewShellEjectEffect) == 1716);
-	static_assert(offsetof(codo461_WeaponCompleteDef, reticleSide) == 1736);
-	static_assert(offsetof(codo461_WeaponCompleteDef, materials) == 1952);
-	static_assert(offsetof(codo461_WeaponCompleteDef, material3) == 1980);
-	static_assert(offsetof(codo461_WeaponCompleteDef, material4) == 1988);
-	static_assert(offsetof(codo461_WeaponCompleteDef, overlayMaterial) == 2000);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString6) == 2024);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString8) == 2048);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkMaterials2) == 2332);
-	static_assert(offsetof(codo461_WeaponCompleteDef, physCollMap) == 2544);
-	static_assert(offsetof(codo461_WeaponCompleteDef, projectileModel) == 2656);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkSound1) == 2676);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkProjEffects1) == 2952);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkProjEffects2) == 3000);
-	static_assert(offsetof(codo461_WeaponCompleteDef, accuracyGraphName1) == 3196);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unknownAsset1) == 3204);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString10_b) == 3292);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString11) == 3296);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString12) == 3328);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkStrings) == 3488);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString14) == 3540);
-	static_assert(offsetof(codo461_WeaponCompleteDef, sounds2) == 3556);
-	static_assert(offsetof(codo461_WeaponCompleteDef, turretBarrelSpinUpSnd) == 3560);
-	static_assert(offsetof(codo461_WeaponCompleteDef, turretBarrelSpinDownSnd) == 3576);
-	static_assert(offsetof(codo461_WeaponCompleteDef, sounds3) == 3592);
-	static_assert(offsetof(codo461_WeaponCompleteDef, sounds4) == 3664);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString15) == 3716);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString16) == 3732);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkMaterials3) == 3744);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unknownAsset3) == 3784);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unknownAsset4) == 3788);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString18) == 3880);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString19) == 4000);
-	static_assert(offsetof(codo461_WeaponCompleteDef, unkString20) == 4016);
-
 	void Zones::LoadWeaponCompleteDef()
 	{
 		if (Zones::ZoneVersion < VERSION_ALPHA2)
 		{
 			return Utils::Hook::Call<void(bool)>(0x4AE7B0)(true);
 		}
-
-		// setup structures we use
-		char* varWeaponCompleteDef = *reinterpret_cast<char**>(0x112A9F4);
-
-		int size = 3112;
-
+		
 		if (Zones::ZoneVersion >= 461) {
-			LoadWeaponCompleteDef461();
+			IWeaponCompleteDef_461::LoadWeaponCompleteDef();
 		}
 		else
 		{
 			throw std::exception();
 		}
-	}
-
-	void Zones::LoadWeaponCompleteDef461()
-	{
-#define LOAD_XSTRING(member)\
-		*Game::varXString = reinterpret_cast<char**>(&member);\
-		Game::Load_XString(false)
-
-#define LOAD_MATERIAL(member)\
-		*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(&member);\
-		Game::Load_MaterialHandle(false)
-
-#define LOAD_XSTRING_ARRAY(member, count)\
-		*Game::varXString = reinterpret_cast<char**>(&member);\
-		Game::Load_XStringArray(false, count)
-
-#define LOAD_FX(member)\
-		*Game::varFxEffectDefHandle = &member;\
-		Game::Load_FxEffectDefHandle(false);
-
-#define LOAD_SOUND(member)\
-		{\
-			*Game::varsnd_alias_list_name = &member;\
-			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);\
-		}
-
-
-		constexpr auto size = 4124;
-		static_assert(sizeof(codo461_WeaponCompleteDef) >= size, "Invalid size");
-		static_assert(sizeof(codo461_WeaponCompleteDef) <= size, "Invalid size");
-		static_assert(sizeof(codo461_WeaponCompleteDef) == size, "Invalid size");
-
-		codo461_WeaponCompleteDef target;
-
-		Game::Load_Stream(true, reinterpret_cast<void*>(&target), size);
-		Game::DB_PushStreamPos(3);
-
-		static std::string csvFmt = std::format("weapons.csv", std::chrono::system_clock::now().time_since_epoch().count());
-		static std::ofstream csv(csvFmt);
-		static bool hasWritten = false;
-		int lastPos = *Game::g_streamPos;
-
-#define _LOG_POS()\
-		csv << (*Game::g_streamPos - lastPos) << ",";\
-		lastPos = *Game::g_streamPos; \
-
-		if (!hasWritten)
-		{
-			hasWritten = true;
-			csv
-				<< "name" << ","
-				<< "unkXStringArray" << ","
-				<< "effects1" << ","
-				<< "effects2" << ","
-				<< "effects2b" << ","
-				<< "effects3" << ","
-				<< "viewFlash" << ","
-				<< "worldFlash" << ","
-				<< "unkEffect3" << ","
-				<< "unkEffect4" << ","
-				<< "unkEffect5" << ","
-				<< "unkString45" << ","
-				<< "sounds" << ","
-				<< "sounds1b" << ","
-				<< "bounceSounds1" << ","
-				<< "bounceSounds2" << ","
-				<< "viewShellEjectEffect" << ","
-				<< "worldShellEjectEffect" << ","
-				<< "viewLastShotEjectEffect" << ","
-				<< "worldLastShotEjectEffect" << ","
-				<< "reticleCenter" << ","
-				<< "reticleSide" << ","
-				<< "materials" << ","
-				<< "material3" << ","
-				<< "material4" << ","
-				<< "overlayMaterials" << ","
-				<< "unkStrings678" << ","
-				<< "unkMaterials2" << ","
-				<< "collmap" << ","
-				<< "physPreset" << ","
-				<< "projectileData" << ","
-				<< "unkSound1" << ","
-				<< "unkProjEffects1" << ","
-				<< "unkSound2" << ","
-				<< "trail" << ","
-				<< "beacon" << ","
-				<< "unkProjEffects2" << ","
-				<< "accuracyGraphName1" << ","
-				<< "mysterious1" << ","
-				<< "accuracyGraphName2" << ","
-				<< "mysterious2" << ","
-				<< "unkString10To13" << ","
-				<< "unkStrings" << ","
-				<< "tracers" << ","
-				<< "unkSound3" << ","
-				<< "unkEffects6" << ","
-				<< "unkString14" << ","
-				<< "sound2" << ","
-				<< "sound3" << ","
-				<< "sound4" << ","
-				<< "unkString15" << ","
-				<< "unkString16" << ","
-				<< "unkString17" << ","
-				<< "unkMaterials3" << ","
-				<< "mystery34" << ","
-				<< "unkString18" << ","
-				<< "unkString19" << ","
-				<< "unkString20" << ","
-				<< "finalPosition" << "\n";
-
-		}
-
-		{
-			std::string fmt = std::format("weapon{}.bin", std::chrono::system_clock::now().time_since_epoch().count());
-			std::ofstream out(fmt);
-			out.write(reinterpret_cast<const char*>(&target), size);
-		}
-
-		if (target.szDisplayName == nullptr)
-		{
-			printf("");
-		}
-
-		LOAD_XSTRING(target.szInternalName);
-		LOAD_XSTRING(target.szDisplayName);
-		LOAD_XSTRING(target.szInternalName2);
-		LOAD_XSTRING(target.unkString3);
-
-		if (target.szInternalName == "ak47holiday_mp"s)
-		{
-			printf("");
-		}
-
-
-		csv.flush();
-
-		csv << target.szInternalName << ",";
-
-		for (size_t i = 0; i < ARRAYSIZE(target.unkModels1); i++)
-		{
-			*Game::varXModelPtr = &target.unkModels1[i];
-			Game::Load_XModelPtr(false);
-		}
-
-		for (size_t i = 0; i < ARRAYSIZE(target.unkModels2); i++)
-		{
-			*Game::varXModelPtr = &target.unkModels2[i];
-			Game::Load_XModelPtr(false);
-		}
-
-		for (size_t i = 0; i < ARRAYSIZE(target.unkModels_Multiple1); i++)
-		{
-			*Game::varXModelPtr = &target.unkModels_Multiple1[i];
-			Game::Load_XModelPtr(false);
-		}
-
-		LOAD_XSTRING_ARRAY(target.unkXStringArray1, 62);
-		LOAD_XSTRING_ARRAY(target.unkXStringArray2, 62);
-		LOAD_XSTRING_ARRAY(target.unkXStringArray3, 62);
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < 16; i++)
-		{
-			*Game::varFxEffectDefHandle = &target.effects[i];
-			Game::Load_FxEffectDefHandle(false);
-		}
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < 16; i++)
-		{
-			*Game::varFxEffectDefHandle = &target.effects2[i];
-			Game::Load_FxEffectDefHandle(false);
-		}
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < 16; i++)
-		{
-			*Game::varFxEffectDefHandle = &target.effects2b[i];
-			Game::Load_FxEffectDefHandle(false);
-		}
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < 16; i++)
-		{
-			*Game::varFxEffectDefHandle = &target.effects3[i];
-			Game::Load_FxEffectDefHandle(false);
-		}
-
-		_LOG_POS();
-
-		*Game::varFxEffectDefHandle = &target.viewFlashEffect;
-		Game::Load_FxEffectDefHandle(false);
-
-		_LOG_POS();
-
-		*Game::varFxEffectDefHandle = &target.worldFlashEffect;
-		Game::Load_FxEffectDefHandle(false);
-
-		_LOG_POS();
-
-		*Game::varFxEffectDefHandle = &target.unkEffect3;
-		Game::Load_FxEffectDefHandle(false);
-
-		_LOG_POS();
-
-		*Game::varFxEffectDefHandle = &target.unkEffect4;
-		Game::Load_FxEffectDefHandle(false);
-
-		_LOG_POS();
-
-		*Game::varFxEffectDefHandle = &target.unkEffect5;
-		Game::Load_FxEffectDefHandle(false);
-
-		_LOG_POS();
-
-		LOAD_XSTRING(target.unkString4);
-		LOAD_XSTRING(target.unkString5);
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.sounds); i++)
-		{
-			*Game::varsnd_alias_list_name = &target.sounds[i];
-			Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
-		}
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.sounds1b); i++)
-		{
-			*Game::varsnd_alias_list_ptr = &target.sounds1b[i];
-
-			// Load_snd_alias_list_ptr
-			Utils::Hook::Call<void(bool)>(0x44A870)(false);
-		}
-
-		_LOG_POS();
-
-		if (target.bounceSounds1)
-		{
-			if (target.bounceSounds1 == reinterpret_cast<void*>(-1))
-			{
-				target.bounceSounds1 = reinterpret_cast<Game::snd_alias_list_t**>(Game::DB_AllocStreamPos(3));
-				//target.bounceSounds1 = reinterpret_cast<Game::snd_alias_list_t**>(Game::DB_AllocStreamPos(3));
-				*Game::varsnd_alias_list_name = target.bounceSounds1;
-				Game::Load_snd_alias_list_nameArray(true, 31);
-			}
-			else
-			{
-				Game::DB_ConvertOffsetToPointer(&target.bounceSounds1);
-			}
-		}
-
-		_LOG_POS();
-
-		if (target.bounceSounds2)
-		{
-			target.bounceSounds2 = reinterpret_cast<Game::snd_alias_list_t**>(Game::DB_AllocStreamPos(3));
-			*Game::varsnd_alias_list_name = target.bounceSounds2;
-			Game::Load_snd_alias_list_nameArray(true, 31);
-		}
-
-		_LOG_POS();
-
-		LOAD_FX(target.viewShellEjectEffect);
-
-		_LOG_POS();
-
-		LOAD_FX(target.worldShellEjectEffect);
-
-		_LOG_POS();
-
-		LOAD_FX(target.viewLastShotEjectEffect);
-
-		_LOG_POS();
-
-		LOAD_FX(target.worldLastShotEjectEffect);
-
-		_LOG_POS();
-
-		LOAD_MATERIAL(target.reticleCenter);
-
-		_LOG_POS();
-
-		LOAD_MATERIAL(target.reticleSide);
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.materials); i++)
-		{
-			*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(&target.materials[i]);
-			Game::Load_MaterialHandle(false);
-		}
-
-		_LOG_POS();
-
-		LOAD_MATERIAL(target.material3);
-
-		_LOG_POS();
-
-		LOAD_MATERIAL(target.material4);
-
-		_LOG_POS();
-
-		LOAD_MATERIAL(target.overlayMaterial);
-		LOAD_MATERIAL(target.overlayMaterialLowRes);
-		LOAD_MATERIAL(target.overlayMaterialEMP);
-		LOAD_MATERIAL(target.overlayMaterialEMPLowRes);
-
-		_LOG_POS();
-
-		LOAD_XSTRING(target.unkString6);
-		LOAD_XSTRING(target.unkString7);
-		LOAD_XSTRING(target.unkString8);
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.unkMaterials2); i++)
-		{
-			*Game::varMaterialHandle = reinterpret_cast<Game::Material**>(&target.unkMaterials2[i]);
-			Game::Load_MaterialHandle(false);
-		}
-
-		_LOG_POS();
-
-		*Game::varPhysCollmapPtr = reinterpret_cast<Game::PhysCollmap**>(&target.physCollMap);
-		Game::Load_PhysCollmapPtr(false);
-
-		_LOG_POS();
-
-		*Game::varPhysPresetPtr = reinterpret_cast<Game::PhysPreset**>(&target.physPreset);
-		Game::Load_PhysPresetPtr(false);
-
-		_LOG_POS();
-
-		*Game::varXModelPtr = &target.projectileModel;
-		Game::Load_XModelPtr(false);
-
-		*Game::varFxEffectDefHandle = &target.projExplosionEffect;
-		Game::Load_FxEffectDefHandle(false);
-
-		*Game::varFxEffectDefHandle = &target.projDudEffect;
-		Game::Load_FxEffectDefHandle(false);
-
-		*Game::varsnd_alias_list_name = &target.projDudSound;
-		Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
-
-		_LOG_POS();
-
-		LOAD_SOUND(target.unkSound1);
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.unkProjEffects1); i++)
-		{
-			*Game::varFxEffectDefHandle = &target.unkProjEffects1[i];
-			Game::Load_FxEffectDefHandle(false);
-		}
-
-		_LOG_POS();
-
-		*Game::varsnd_alias_list_name = &target.unkSound2;
-		Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
-
-		_LOG_POS();
-
-		*Game::varFxEffectDefHandle = &target.projTrailEffect;
-		Game::Load_FxEffectDefHandle(false);
-
-		_LOG_POS();
-
-		*Game::varFxEffectDefHandle = &target.projBeaconEffect;
-		Game::Load_FxEffectDefHandle(false);
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.unkProjEffects2); i++)
-		{
-			*Game::varFxEffectDefHandle = &target.unkProjEffects2[i];
-			Game::Load_FxEffectDefHandle(false);
-		}
-
-		_LOG_POS();
-
-		LOAD_XSTRING(target.accuracyGraphName1);
-
-		_LOG_POS();
-
-		// Mysterious assets ?
-		const auto read_mysterious_uint64_asset = [](uint64_t** ptr, unsigned short count)
-		{
-			const auto size = count * 8;
-
-			if (*ptr == reinterpret_cast<uint64_t*>(-1))
-			{
-				*ptr = reinterpret_cast<uint64_t*>(Game::DB_AllocStreamPos(3));
-				if (size)
-				{
-					if (*Game::g_streamPosIndex == 2)
-					{
-						*ptr = nullptr;
-					}
-					else
-					{
-						Game::DB_ReadXFile(*ptr, size);
-					}
-
-					*Game::g_streamPos += size;
-				}
-			}
-			else
-			{
-				*ptr = nullptr;
-			}
-		};
-
-		read_mysterious_uint64_asset(&target.unknownAsset1, target.numberOfUnknownAsset1);
-
-		_LOG_POS();
-
-		// Out of order
-		LOAD_XSTRING(target.accuracyGraphName2);
-
-		_LOG_POS();
-
-		read_mysterious_uint64_asset(&target.unknownAsset2, target.numberOfUnknownAsset2);
-		_LOG_POS();
-
-		LOAD_XSTRING(target.unkString10_b);
-		LOAD_XSTRING(target.unkString11);
-		LOAD_XSTRING(target.unkString12);
-		LOAD_XSTRING(target.unkString13);
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.unkStrings); i++)
-		{
-			LOAD_XSTRING(target.unkStrings[i]);
-		}
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.tracers); i++)
-		{
-			*Game::varTracerDefPtr = &target.tracers[i];
-			Game::Load_TracerDefPtr(false);
-		}
-
-		_LOG_POS();
-
-		LOAD_SOUND(target.unkSound3);
-
-		_LOG_POS();
-
-		LOAD_FX(target.unkEffect6);
-
-		_LOG_POS();
-
-		LOAD_XSTRING(target.unkString14);
-
-		_LOG_POS();
-
-		LOAD_SOUND(target.sounds2);
-
-		_LOG_POS();
-
-		*Game::varsnd_alias_list_ptr = target.turretBarrelSpinUpSnd;
-		Game::Load_snd_alias_list_nameArray(false, 4);
-
-		*Game::varsnd_alias_list_ptr = target.turretBarrelSpinDownSnd;
-		Game::Load_snd_alias_list_nameArray(false, 4);
-
-		for (size_t i = 0; i < ARRAYSIZE(target.sounds3); i++)
-		{
-			LOAD_SOUND(target.sounds3[i]);
-		}
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.sounds4); i++)
-		{
-			LOAD_SOUND(target.sounds4[i]);
-		}
-
-		_LOG_POS();
-
-		LOAD_XSTRING(target.unkString15);
-
-		_LOG_POS();
-
-		LOAD_XSTRING(target.unkString16);
-
-		_LOG_POS();
-
-		LOAD_XSTRING(target.unkString17);
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.unkMaterials3); i++)
-		{
-			LOAD_MATERIAL(target.unkMaterials3[i]);
-		}
-
-		_LOG_POS();
-
-		read_mysterious_uint64_asset(&target.unknownAsset3, target.numberOfUnknownAsset1);
-		read_mysterious_uint64_asset(&target.unknownAsset4, target.numberOfUnknownAsset2);
-
-		_LOG_POS();
-
-		for (size_t i = 0; i < ARRAYSIZE(target.unkString18); i++)
-		{
-			LOAD_XSTRING(target.unkString18[i]);
-		}
-
-		_LOG_POS();
-
-		LOAD_XSTRING(target.unkString19);
-
-		_LOG_POS();
-
-		LOAD_XSTRING(target.unkString20);
-
-		_LOG_POS();
-
-		Components::Logger::Print("===== LOADED WEAPON {} ======\n", target.szInternalName);
-
-		csv << (* Game::g_streamPos - lastPos) << "\n";
-
-
-		csv.flush();
-
-		if (target.szInternalName == "ak47holiday_mp"s)
-		{
-			printf("");
-		}
-
-
-		auto varWeaponCompleteDef = *reinterpret_cast<Game::WeaponCompleteDef**>(0x112A9F4);
-		ZeroMemory(varWeaponCompleteDef, sizeof(Game::WeaponCompleteDef));
-
-		varWeaponCompleteDef->szInternalName = target.szInternalName;
-
-#undef LOAD_SOUND
-#undef LOAD_XSTRING_ARRAY
-#undef LOAD_XSTRING
-#undef LOAD_MATERIAL
 	}
 
 	// Code-analysis has a bug, the first memcpy makes it believe size of tempVar is 44 instead of 84
@@ -1830,6 +1042,7 @@ namespace Components
 
 		if (Zones::ZoneVersion >= 334)
 		{
+			// Cod:OL XAsset struct is 16 bytes big => Load 16 bytes here and resize afterwards
 			size /= 8;
 			count = size;
 			size *= 16;
@@ -1846,28 +1059,38 @@ namespace Components
 
 				if (Zones::Version() >= 423)
 				{
-					// don't read assets that are unused by codol, for some retarded reason their header is written in the FF anyway
-					if (*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_CLIPMAP_SP ||
-						*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP ||
-						*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP)
-					{
-						*reinterpret_cast<int*>(buffer + (i * 8)) = Game::XAssetType::ASSET_TYPE_UI_MAP;
-						*reinterpret_cast<int**>(buffer + (i * 8) + 4) = nullptr;
-					}
+					//// don't read assets that are unused by codol, for some retarded reason their header is written in the FF anyway
+					//if (*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_CLIPMAP_SP ||
+					//	*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP ||
+					//	*reinterpret_cast<int*>(buffer + (i * 8)) == Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP)
+					//{
+					//	*reinterpret_cast<int*>(buffer + (i * 8)) = Game::XAssetType::ASSET_TYPE_UI_MAP;
+					//	*reinterpret_cast<int**>(buffer + (i * 8) + 4) = nullptr;
+					//}
 				}
 
 				AssetHandler::Relocate(buffer + (i * 16), buffer + (i * 8) + 0, 4);
 				AssetHandler::Relocate(buffer + (i * 16) + 8, buffer + (i * 8) + 4, 4);
 			}
-		}
 
-		Game::XAssetList* list = *reinterpret_cast<Game::XAssetList**>(0x112AC7C);
-
-		if (list->assetCount == 8557) {
-			for (size_t i = 0; i < 8557; i++)
+			for (size_t i = 0; i < size; i+= 8)
 			{
-				Logger::Print("#{}: \t {} ({})\n", i, Game::DB_GetXAssetTypeName(list->assets[i].type), (int)list->assets[i].type);
+				const auto a  = reinterpret_cast<Game::XAsset*>(buffer + i);
+				OutputDebugStringA(Utils::String::VA("XASSET %d %i\n", a->type, a->header.data));
 			}
+
+		}
+		
+
+		if (Zones::ZoneVersion >= VERSION_LATEST_CODO)
+		{
+			//const auto length = 110 * 1000 * 1000;
+			//void* buff = malloc(length);
+			//Game::Load_Stream(true, buff, length);
+			//{
+			//	std::ofstream of("raw.bin");
+			//	of.write(reinterpret_cast<char*>(buff), length);
+			//}
 		}
 
 		return result;
@@ -3760,13 +2983,7 @@ namespace Components
 	{
 		if (Zones::Version() >= VERSION_LATEST_CODO)
 		{
-			Logger::Print("LOADING INLINE ASSET TYPE {}\n", static_cast<int>(type));
 			currentAssetType = type;
-
-			if (type == 0x2B)
-			{
-				printf("");
-			}
 
 			//switch (type)
 			//{
@@ -3813,7 +3030,7 @@ namespace Components
 	// But on MW2 v159, it's inlined, so we can reimplement it.
 	void Load_FxElemExtendedPtr_461(Game::FxElemExtendedDefPtr* extended, FxElemDef_461* elem)
 	{
-		if (elem->elemType == FxElemType_461::FX_ELEM_TYPE_TRAIL)
+		if (elem->elemType == Game::FX_ELEM_TYPE_TRAIL)
 		{
 			if (extended->trailDef)
 			{
@@ -3836,7 +3053,7 @@ namespace Components
 				}
 			}
 		}
-		else if (elem->elemType == FxElemType_461::FX_ELEM_TYPE_SPARK_FOUNTAIN)
+		else if (elem->elemType == Game::FX_ELEM_TYPE_SPARK_FOUNTAIN)
 		{
 			static_assert(sizeof(Game::FxSparkFountainDef) == 0x34);
 
@@ -3856,25 +3073,17 @@ namespace Components
 		}
 	}
 
-	void Load_FxElemDef_461(FxElemDef_461* def)
+	void Load_FxElemDef_461(bool atStreamStart, int index)
 	{
 		const auto fx = **Game::varFxEffectDefHandle;
-		if (fx->name == "impacts/brickimpact_em2"s)
-		{
-			printf("");
-		}
 
-		static auto varFxElemDef = reinterpret_cast<Game::FxElemDef**>(0x0112B018);
-
-		//Game::Load_Stream(false, def, sizeof(FxElemDef_461));
-
-		static_assert(sizeof(Game::FxElemDef) < sizeof(FxElemDef_461));
-		std::memcpy(*varFxElemDef, def, sizeof(Game::FxElemDef));
-
-		auto iw4_def = *varFxElemDef;
+		static auto varFxElemDef = reinterpret_cast<FxElemDef_461**>(0x0112B018);
+		Game::Load_Stream(atStreamStart, varFxElemDef, sizeof(Game::FxElemDef));
+		
+		auto iw4_def = reinterpret_cast<Game::FxElemDef*>(*varFxElemDef);
 
 		// Fix type
-		iw4_def->elemType = elemTypeMapCodoToIW4.at(def->elemType);
+		iw4_def->elemType = elemTypeMapCodoToIW4.at((*varFxElemDef)->elemType);
 
 		if (iw4_def->velSamples)
 		{
@@ -3913,6 +3122,7 @@ namespace Components
 			iw4_def->visSamples = reinterpret_cast<Game::FxElemVisStateSample*>(Game::DB_AllocStreamPos(3));
 
 #if true
+			// 461 FxElemVisStateSample is 64 bytes long ( << 6   = times 64)
 			const auto size = (iw4_def->visStateIntervalCount + 1) << 6;
 			if (size)
 			{
@@ -3933,47 +3143,39 @@ namespace Components
 #endif
 		}
 
-
 		static Game::FxElemDefVisuals** varFxElemDefVisuals = reinterpret_cast<Game::FxElemDefVisuals**>(0x112A7B8);
 		*varFxElemDefVisuals = &iw4_def->visuals;
 
 		// Load_FxElemDefVisuals
 		Utils::Hook::Call<void(int)>(0x417F90)(0);
 
-		if (fx->name == "impacts/brickimpact"s)
-		{
-			if (iw4_def->visuals.instance.effectDef.handle->name == "impacts/distant_grain"s)
-			{
-				printf("");
-			}
-		}
-
 		static auto varFxEffectDefRef = reinterpret_cast<Game::FxEffectDefRef**>(0x112ABA8);
 
 		*varFxEffectDefRef = &iw4_def->effectOnImpact;
 		*Game::varXString = &iw4_def->effectOnImpact.name;
 		Game::Load_XString(false);
+		Utils::Hook::Call<void(Game::FxEffectDefRef*)>(0x4F4CD0)(*varFxEffectDefRef); // Load_FxEffectDefFromName
 
 		*varFxEffectDefRef = &iw4_def->effectOnDeath;
 		*Game::varXString = &iw4_def->effectOnDeath.name;
 		Game::Load_XString(false);
+		Utils::Hook::Call<void(Game::FxEffectDefRef*)>(0x4F4CD0)(*varFxEffectDefRef);
 
 		*varFxEffectDefRef = &iw4_def->effectEmitted;
 		*Game::varXString = &iw4_def->effectEmitted.name;
 		Game::Load_XString(false);
+		Utils::Hook::Call<void(Game::FxEffectDefRef*)>(0x4F4CD0)(*varFxEffectDefRef);
 
 
 		static auto varFxElemExtendedDefPtr = reinterpret_cast<Game::FxElemExtendedDefPtr**>(0x112B324);
 		
 		*varFxElemExtendedDefPtr = &iw4_def->extended;
-		Load_FxElemExtendedPtr_461(&def->extended, def);
-		iw4_def->extended = def->extended;
+		Load_FxElemExtendedPtr_461(&(*varFxElemDef)->extended, *varFxElemDef);
+		iw4_def->extended = ( *varFxElemDef)->extended;
 
 		// Additional unknown string
-		*Game::varXString = &def->unknownString;
+		*Game::varXString = &(*varFxElemDef)->unknownString;
 		Game::Load_XString(false);
-
-		printf("");
 	}
 
 	void Load_FxElemDefArray(bool atStreamStart, int count)
@@ -3986,33 +3188,118 @@ namespace Components
 
 		static_assert(sizeof(FxElemDef_461) == 260);
 
-		if (count > 15)
-		{
-			throw std::exception("HORRIBLE!");
-		}
+		static auto varFxElemDef = reinterpret_cast<FxElemDef_461**>(0x0112B018);
 
-		static FxElemDef_461 elems[16]{};
 
-		Game::Load_Stream(atStreamStart, elems, sizeof(FxElemDef_461) * count);
+		Game::Load_Stream(atStreamStart, *varFxElemDef, sizeof(FxElemDef_461) * count);
+
 		for (int i = 0; i < count; i++)
 		{
-			const auto ptr = static_cast<int>(reinterpret_cast<intptr_t>(elems));
-			Load_FxElemDef_461(&elems[i]);
+			Load_FxElemDef_461(false, i);
+			(*varFxElemDef)++;
 		}
+	}
+
+	void InspectFXLoadXString(bool atStreamStart)
+	{
+		const auto streamPos = *Game::g_streamPos;
+
+		Game::Load_XString(atStreamStart);
+		
+		const auto xstr = Game::varXString;
+
+
+		printf("");
+	}
+
+	void InspectAssetType(char atStreamStart, Game::XAsset *ptr, size_t size)
+	{
+		printf("");
+		Game::Load_Stream(atStreamStart, ptr, size);
+		printf("");
+
+		if (Zones::Version() >= VERSION_LATEST_CODO)
+		{
+			if (ptr->type == 0)
+			{
+				printf("");
+			}
+
+			if (Game::g_streamPos[0] == 571784564 && Game::g_streamPos[4] == 597949060)
+			{
+				// what is this asset?
+				printf("");
+			}
+
+			std::string type = std::format("TYPE {}\n", static_cast<int>(ptr->type));	
+			OutputDebugStringA(type.data());
+		}
+	}
+
+	void Inspect_DB_ConvertOffsetToAlias(Game::FxEffectDef** a)
+	{
+		printf("");
+		
+		if (Zones::Version() >= VERSION_LATEST_CODO)
+		{
+			printf("");
+		}
+		/*
+		int offset = reinterpret_cast<int>(a);
+		const auto blockIndex = (offset - 1) >> 27;
+		const auto dataIndex = (offset - 1) & 0x1FFFFFFF;
+		const auto result  = (*Game::g_streamBlocks)[blockIndex];
+		*/
+
+		unsigned int* ref_value = (unsigned int*)a;
+
+		// Extracting the index from the lower bits of the value at ref
+		unsigned int dataIndex = (*ref_value - 1) & 0xFFFFFFF;
+		unsigned int blockIndex = (*ref_value - 1) >> 28;
+
+		// Getting the data from g_streamBlocks using the extracted index
+		unsigned int* data = (unsigned int*)&(*Game::g_streamBlocks)[blockIndex].data[dataIndex];
+
+		// Updating the value at ref with the extracted data
+		Game::FxEffectDef** b = reinterpret_cast<Game::FxEffectDef**>(data);
+
+		if (*b == nullptr)
+		{
+			printf("");
+		}
+
+		Utils::Hook::Call<void(void*)>(0x4FDFA0)(a);
+
+		if (*b != *a)
+		{
+			printf(""); // My code sucks if that happens
+		}
+
+		if (*a == nullptr)
+		{
+			// shoudl never happen, something went wrong
+
+			printf("");
+		}
+
+		printf("");
 	}
 
 	Zones::Zones()
 	{
 		Zones::ZoneVersion = 0;
 
+		Utils::Hook(0x4D9BC3, Inspect_DB_ConvertOffsetToAlias, HOOK_CALL).install()->quick();
+
 		// 461 Menu work
 		Utils::Hook(0x41A5B8, Load_windowDef_t, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4A3BF8, Load_MenuPtr, HOOK_CALL).install()->quick();
 		Utils::Hook(0x41A85E, Load_itemDef_ptrArray, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4062CB, Load_itemDef_s, HOOK_CALL).install()->quick();
 		Utils::Hook(0x491990, Load_Stream_itemDef_s, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x4AF2B4, Load_FxElemDefArray, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4AF277, InspectFXLoadXString, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4EFDDD, InspectAssetType, HOOK_CALL).install()->quick();
 
 
 		if (ZoneBuilder::IsEnabled())

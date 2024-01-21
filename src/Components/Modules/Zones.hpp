@@ -47,13 +47,14 @@ namespace Components
 		static bool Loadsnd_alias_tArray(bool atStreamStart, char* buffer, int len);
 		static bool LoadLoadedSound(bool atStreamStart, char* buffer, int size);
 		static bool LoadmenuDef_t(bool atStreamStart, char* buffer, int size);
-		//static bool LoadFxEffectDef(bool atStreamStart, char* buffer, int size);
+	public:
+		static bool LoadFxEffectDef(bool atStreamStart, char* buffer, int size);
+	private:
 		static bool LoadMaterialShaderArgumentArray(bool atStreamStart, Game::MaterialShaderArgument* argument, int size);
 		static bool LoadStructuredDataStructPropertyArray(bool atStreamStart, char* data, int size);
 		static void LoadPathDataTail();
 		static void LoadWeaponAttach();
 		static void LoadWeaponAttachStuff(DWORD* varWeaponAttachStuff, int count);
-		static void LoadWeaponCompleteDef461();
 		static void LoadWeaponCompleteDef();
 		static bool LoadGfxImage(bool atStreamStart, char* buffer, int size);
 		static bool LoadXAsset(bool atStreamStart, char* buffer, int size);

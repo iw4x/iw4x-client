@@ -794,7 +794,7 @@ namespace Components
 
 		params.request_mark_asset = [this](int type, void* data) -> void
 			{
-				Game::XAsset asset {static_cast<Game::XAssetType>(type), {data}};
+				Game::XAsset asset{ static_cast<Game::XAssetType>(type), {data} };
 
 				AssetHandler::ZoneMark(asset, this);
 				this->addRawAsset(static_cast<Game::XAssetType>(type), data);
@@ -1135,16 +1135,16 @@ namespace Components
 			};
 
 		params.get_from_string_table = [](const unsigned int& id) -> std::string
-		{
-			if (id == 0)
 			{
-				return std::string();
-			}
-			else
-			{
-				return Game::SL_ConvertToString(static_cast<Game::scr_string_t>(id));
-			}
-		};
+				if (id == 0)
+				{
+					return std::string();
+				}
+				else
+				{
+					return Game::SL_ConvertToString(static_cast<Game::scr_string_t>(id));
+				}
+			};
 
 		params.print = [](iw4of::params_t::print_type t, const std::string& message) -> void
 			{
@@ -1273,7 +1273,7 @@ namespace Components
 			Utils::Hook::Set(0x5B97B6, 0xE9);
 
 			auto jmp = 0x5B9841 - 0x5B97B6 + 1 + 0xFD + 0x100 - 515;
-			Utils::Hook::Set(0x5B97B6 +1, static_cast<short>(jmp));
+			Utils::Hook::Set(0x5B97B6 + 1, static_cast<short>(jmp));
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /* asset*/, const std::string& name, bool* /*restrict*/)
 				{
@@ -1290,18 +1290,6 @@ namespace Components
 				{
 					Utils::Memory::Allocator assetReallocator{}; // Needed to translate some assets from CODO for instance
 
-					// IW4OF only supports gameworldMP for now, fortunately the types are very similar
-					if (type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP && asset.gameWorldSp)
-					{
-						type = Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP;
-
-						auto* newWorldMp = assetReallocator.allocate<Game::GameWorldMp>();
-						newWorldMp->name = asset.gameWorldSp->name;
-						newWorldMp->g_glassData = asset.gameWorldSp->g_glassData;
-
-						asset.gameWorldMp = newWorldMp;
-					}
-
 					if (params->size() < 2) return;
 
 					std::string zone = params->get(1);
@@ -1316,19 +1304,6 @@ namespace Components
 					Logger::Print("Loading zone '{}'...\n", zone);
 
 					{
-						if (type == Game::XAssetType::ASSET_TYPE_IMAGE)
-						{
-							if (asset.image->category == Game::ImageCategory::IMG_CATEGORY_UNKNOWN)
-							{
-								asset.image->category = Game::ImageCategory::IMG_CATEGORY_LOAD_FROM_FILE;
-							}
-						}
-
-						if (type == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET && asset.techniqueSet)
-						{
-							// fix for garbage PTRs hanging out in iw4 memory
-							asset.techniqueSet->remappedTechniqueSet = nullptr;
-						}
 
 						struct asset_t
 						{
@@ -1360,11 +1335,66 @@ namespace Components
 
 						Logger::Print("Dumping zone '{}'...\n", zone);
 						handle(); // Release
-						for (const auto& asset : assets)
+						for (auto& asset : assets)
 						{
-							const auto assetHeader = Game::DB_FindXAssetHeader(asset.type, asset.name);
+							bool skip = false;
+
+							switch(asset.type)
+							{
+								case Game::XAssetType::ASSET_TYPE_RAWFILE:
+								case Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET:
+								case Game::XAssetType::ASSET_TYPE_MATERIAL:
+								case Game::XAssetType::ASSET_TYPE_PIXELSHADER:
+								case Game::XAssetType::ASSET_TYPE_VERTEXSHADER:
+								case Game::XAssetType::ASSET_TYPE_VERTEXDECL:
+								case Game::XAssetType::ASSET_TYPE_IMAGE:
+								case Game::XAssetType::ASSET_TYPE_XMODEL:
+								case Game::XAssetType::ASSET_TYPE_XANIMPARTS:
+
+									break;
+
+								default:
+									skip = true;
+									break;
+							}
+							
+								if (skip)
+								{
+									continue;
+								}
+
+						Logger::Print("Dumping asset {} '{}'...\n", (int)asset.type, asset.name);
+							auto assetHeader = Game::DB_FindXAssetHeader(asset.type, asset.name);
 							if (assetHeader.data)
 							{
+								// IW4OF only supports gameworldMP for now, fortunately the types are very similar
+								{
+									if (asset.type == Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP && assetHeader.gameWorldSp)
+									{
+										asset.type = Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP;
+
+										auto* newWorldMp = assetReallocator.allocate<Game::GameWorldMp>();
+										newWorldMp->name = assetHeader.gameWorldSp->name;
+										newWorldMp->g_glassData = assetHeader.gameWorldSp->g_glassData;
+
+										assetHeader.gameWorldMp = newWorldMp;
+									}
+
+									if (asset.type == Game::XAssetType::ASSET_TYPE_IMAGE)
+									{
+										if (assetHeader.image->category == Game::ImageCategory::IMG_CATEGORY_UNKNOWN)
+										{
+											assetHeader.image->category = Game::ImageCategory::IMG_CATEGORY_LOAD_FROM_FILE;
+										}
+									}
+
+									if (asset.type == Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET && assetHeader.techniqueSet)
+									{
+										// fix for garbage PTRs hanging out in iw4 memory
+										assetHeader.techniqueSet->remappedTechniqueSet = nullptr;
+									}
+								}
+
 								ExporterAPI.write(asset.type, assetHeader.data);
 							}
 							else
