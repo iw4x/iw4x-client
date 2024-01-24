@@ -173,7 +173,7 @@ namespace Components
 		Register(new Threading());
 		Register(new Toast());
 		Register(new UIFeeder());
-		Register(new Updater());
+		//Register(new Updater());
 		Register(new VisionFile());
 		Register(new Voice());
 		Register(new Vote());

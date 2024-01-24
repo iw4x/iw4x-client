@@ -1133,6 +1133,12 @@ namespace Game
 		unsigned __int16 triCount;
 		XSurfaceCollisionTree* collisionTree;
 	};
+	
+	struct DObjSkelMat
+	{
+	  float axis[3][4];
+	  float origin[4];
+	};
 
 	struct XSurface
 	{
