@@ -118,7 +118,7 @@ namespace Components
 		}
 
 		return header;
-	}    
+	}
 
 	int AssetHandler::HasThreadBypass()
 	{
@@ -160,7 +160,7 @@ namespace Components
 			// Check if custom handler should be bypassed
 			call AssetHandler::HasThreadBypass
 
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 			popad
 			pop eax
 
@@ -180,45 +180,45 @@ namespace Components
 
 			add esp, 8h
 
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 			popad
 			pop eax
 
 			test eax, eax
 			jnz finishFound
 
-		checkTempAssets:
+			checkTempAssets :
 			mov al, AssetHandler::ShouldSearchTempAssets // check to see if enabled
-			test eax, eax
-			jz finishOriginal
+				test eax, eax
+				jz finishOriginal
 
-			mov ecx, [esp + 18h] // Asset type
-			mov ebx, [esp + 1Ch] // Filename
+				mov ecx, [esp + 18h] // Asset type
+				mov ebx, [esp + 1Ch] // Filename
 
-			push ebx
-			push ecx
+				push ebx
+				push ecx
 
-			call AssetHandler::FindTemporaryAsset
+				call AssetHandler::FindTemporaryAsset
 
-			add esp, 8h
+				add esp, 8h
 
-			test eax, eax
-			jnz finishFound
+				test eax, eax
+				jnz finishFound
 
-		finishOriginal:
+				finishOriginal :
 			// Asset not found using custom handlers or in temp assets or bypasses were enabled
 			// redirect to DB_FindXAssetHeader
-			mov ebx, ds:6D7190h // InterlockedDecrement
-			mov eax, 40793Bh
-			jmp eax
+			mov ebx, ds : 6D7190h // InterlockedDecrement
+				mov eax, 40793Bh
+				jmp eax
 
-		finishFound:
+				finishFound :
 			pop edi
-			pop esi
-			pop ebp
-			pop ebx
-			pop ecx
-			retn
+				pop esi
+				pop ebp
+				pop ebx
+				pop ecx
+				retn
 		}
 	}
 #pragma optimize( "", off )
@@ -236,9 +236,38 @@ namespace Components
 		}
 #endif
 
-		if (name == "body_urban_civ_female_a"s)
-			//if (name == "mp_body_tf141_lmg"s)
+		if (type == Game::XAssetType::ASSET_TYPE_XMODEL)
+		//if (name == "body_urban_civ_female_a"s || name == "mp_body_opforce_arab_assault_a"s)
 		{
+			const auto model = asset.model;
+			if (!model->quats || !model->trans)
+			{
+				return;
+			}
+
+			// Update vertex weights
+			//for (int i = 0; i < model->numLods; i++)
+			//{
+			//	const auto lod = &model->lodInfo[i];
+
+			//	for (int surfIndex = 0; surfIndex < lod->modelSurfs->numsurfs; surfIndex++)
+			//	{
+			//		auto vertsBlendOffset = 0u;
+
+			//		const auto surface = &lod->modelSurfs->surfs[surfIndex];
+			//		surface->partBits[0] = 0x00000000;
+			//		surface->partBits[1] = 0x00000000;
+			//		surface->partBits[2] = 0x00000000;
+			//		surface->partBits[3] = 0x00000000;
+			//		surface->partBits[4] = 0x00000000;
+			//		surface->partBits[5] = 0x00000000;
+			//	}
+			//}
+
+			//return;
+
+
+
 			class QuatInt16
 			{
 			public:
@@ -253,93 +282,30 @@ namespace Components
 				}
 			};
 
-			struct BoneEnsemble
-			{
-				uint16_t name;
-				Game::DObjAnimMat mat;
-				Game::XBoneInfo info;
-				int16_t quat[4];
-				float trans[3];
-
-				BoneEnsemble() {};
-
-				BoneEnsemble(Game::XModel* model, int index)
-				{
-					name = model->boneNames[index];
-					mat = model->baseMat[index];
-					info = model->boneInfo[index];
-
-					std::memcpy(quat, &model->quats[(index - 1) * 4], 4 * sizeof(uint16_t));
-					std::memcpy(trans, &model->trans[(index - 1) * 3], 3 * sizeof(float));
-				}
-			};
-
-			const auto equals = [](const BoneEnsemble& a, const BoneEnsemble& b)
-				{
-					if (a.name == b.name)
-					{
-						if (b.mat.transWeight != a.mat.transWeight)
-						{
-							return false;
-						}
-
-						for (size_t i = 0; i < 4; i++)
-						{
-							if (b.mat.quat[i] != a.mat.quat[i])
-							{
-								return false;
-							}
-
-							if (b.quat[i] != a.quat[i])
-							{
-								return false;
-							}
-						}
-
-						for (size_t i = 0; i < 3; i++)
-						{
-							if (b.mat.trans[i] != a.mat.trans[i])
-							{
-								return false;
-							}
-
-							if (b.trans[i] != a.trans[i])
-							{
-								return false;
-							}
-
-							if (b.info.bounds.halfSize[i] != a.info.bounds.halfSize[i])
-							{
-								return false;
-							}
-
-							if (b.info.bounds.midPoint[i] != a.info.bounds.midPoint[i])
-							{
-								return false;
-							}
-						}
-
-						if (b.info.radiusSquared != a.info.radiusSquared)
-						{
-							return false;
-						}
-
-						return true;
-					}
-
-					return false;
-				};
-
-			const auto model = asset.model;
-
+			//
 			static std::vector<std::string> names{};
+			names.clear();
 
 			for (auto i = 0; i < model->numBones; i++)
 			{
 				const auto bone = model->boneNames[i];
 				const auto name = Game::SL_ConvertToString(bone);
-				names.push_back(name);
+				names.push_back(
+					std::format("{} => q({} {} {} {}) t({} {} {})",
+						name,
+						model->baseMat[i-1].quat[0],
+						model->baseMat[i-1].quat[1],
+						model->baseMat[i-1].quat[2],
+						model->baseMat[i-1].quat[3],
+						model->baseMat[i-1].trans[0],
+						model->baseMat[i-1].trans[1],
+						model->baseMat[i-1].trans[2]
+					)
+				);
 			}
+
+			printf("");
+			//
 
 			const auto getIndexOfBone = [&](std::string name)
 				{
@@ -379,23 +345,73 @@ namespace Components
 					return boneName;
 				};
 
-			const auto insertBone = [&](const std::string& boneName, uint8_t parentIndex)
+			const auto insertBoneInPartbits = [&](int8_t atPosition, int* partBits, bool hasAnyWeight = false)
 				{
+					constexpr auto LENGTH = 6;
+					// Bit masks and bit shifting are a pain honestly
+					std::vector<bool> flags{};
+
+					int check[LENGTH]{};
+					std::memcpy(check, partBits, LENGTH * sizeof(int));
+
+					for (auto i = 0; i < LENGTH; i++)
+					{
+						for (signed int bitPosition = 32 - 1; bitPosition >= 0; bitPosition--)
+						{
+							flags.emplace_back((partBits[i] >> bitPosition) & 0x1);
+						}
+					}
+
+					// copy  parent flag
+					const auto partBitIndex = atPosition / 32;
+					const auto bitPosition = atPosition % 32; // The vector is already reversed so this should be correct
+
+					flags.insert(flags.begin() + (partBitIndex * 32 + bitPosition), hasAnyWeight);
+
+					flags.pop_back();
+
+					// clear it
+					for (auto i = 0; i < LENGTH; i++)
+					{
+						partBits[i] = 0;
+					}
+
+					// Write it
+					for (auto i = 0; i < LENGTH; i++)
+					{
+						partBits[i] = 0;
+						for (int bitPosition = 0; bitPosition < 32; bitPosition++)
+						{
+							const auto value = flags[i * 32 + 31 - bitPosition];
+							partBits[i] |= (value << bitPosition);
+						}
+					}
+
+					flags.clear();
+				};
+
+
+			const auto insertBone = [&](const std::string& boneName, const std::string& parentName)
+				{
+					assert(getIndexOfBone(boneName) == UCHAR_MAX);
+
+					// Start with backing up parent links that we will have to restore
+					// We'll restore them at the end
+					std::map<std::string, std::string> parentsToRestore{};
+					for (int i = model->numRootBones; i < model->numBones; i++)
+					{
+						parentsToRestore[Game::SL_ConvertToString(model->boneNames[i])] = getParentOfBone(i);
+					}
+
+
 					uint8_t newBoneCount = model->numBones + 1;
 					uint8_t newBoneCountMinusRoot = newBoneCount - model->numRootBones;
 
-					int atPosition = model->numBones;
+					const auto parentIndex = getIndexOfBone(parentName);
 
-					// Find best position to insert it
-					for (int index = model->numRootBones; index < model->numBones; index++)
-					{
-						int parent = getParentIndexOfBone(index);
-						if (parent >= parentIndex)
-						{
-							atPosition = index;
-							break;
-						}
-					}
+					assert(parentIndex != UCHAR_MAX);
+
+					int atPosition = parentIndex + 1;
 
 					const auto newBoneIndex = atPosition;
 					const auto newBoneIndexMinusRoot = atPosition - model->numRootBones;
@@ -441,24 +457,18 @@ namespace Components
 
 						Game::DObjAnimMat mat{};
 
+						// It's ABSOLUTE!
 						mat = model->baseMat[parentIndex];
+
 						boneInfo = model->boneInfo[parentIndex];
 
+						// It's RELATIVE !
 						uint16_t quat[4]{};
-						std::memcpy(quat, &model->quats[(parentIndex - model->numRootBones) * sizeof(uint16_t)], ARRAYSIZE(quat) * sizeof(uint16_t));
+						quat[3] = 32767; // 0 0 0 32767
 
 						float trans[3]{};
-						std::memcpy(trans, &model->trans[(parentIndex - model->numRootBones) * sizeof(float)], ARRAYSIZE(trans) * sizeof(float));
 
-						//mat.quat[3] = 1.0f;
-
-						//mat.trans[0] = -3.4;
-						//mat.trans[1] = -6;
-						//mat.trans[2] = 37;
-
-						//mat.transWeight = 2.0f;
-
-						uint8_t part = 5; // Unused ?
+						mat.transWeight = 1.9999f; // Should be 1.9999 like everybody?
 
 						newMats[newBoneIndex] = mat;
 						newBoneInfo[newBoneIndex] = boneInfo;
@@ -492,13 +502,23 @@ namespace Components
 					for (int i = 0; i < model->numLods; i++)
 					{
 						const auto lod = &model->lodInfo[i];
-						size_t weightOffset = 0u;
+						insertBoneInPartbits(atPosition, lod->partBits, false);
+						insertBoneInPartbits(atPosition, lod->modelSurfs->partBits, false);
 
 						for (int surfIndex = 0; surfIndex < lod->modelSurfs->numsurfs; surfIndex++)
 						{
 							auto vertsBlendOffset = 0u;
 
 							const auto surface = &lod->modelSurfs->surfs[surfIndex];
+
+							//surface->partBits[0] = 0b00000000000000000000000000000000;
+							//surface->partBits[1] = 0b01010101010101010101010101010101;
+							//surface->partBits[2] = 0b00110011001100110011001100110011;
+							//surface->partBits[3] = 0b00011100011100011100011100011100;
+							//surface->partBits[4] = 0b00001111000011110000111100001111;
+							//surface->partBits[5] = 0b00000111110000011111000001111100;
+
+							insertBoneInPartbits(atPosition, surface->partBits, false);
 
 							{
 								const auto fixVertexBlendIndex = [&](unsigned int offset) {
@@ -507,14 +527,14 @@ namespace Components
 									{
 										if (index < 0 || index >= model->numBones - 1)
 										{
-											assert(false);
+											//assert(false);
 										}
 
 										index++;
 
 										surface->vertInfo.vertsBlend[offset] = index * sizeof(Game::DObjSkelMat);
 									}
-								};
+									};
 
 								// Fix bone offsets
 								if (surface->vertList)
@@ -525,7 +545,7 @@ namespace Components
 										auto index = vertList->boneOffset / sizeof(Game::DObjSkelMat);
 										if (index < 0 || index >= model->numBones - 1)
 										{
-											assert(false);
+											//assert(false);
 										}
 
 										if (index >= atPosition)
@@ -560,7 +580,6 @@ namespace Components
 									fixVertexBlendIndex(vertsBlendOffset + 1);
 									fixVertexBlendIndex(vertsBlendOffset + 3);
 
-
 									vertsBlendOffset += 5;
 								}
 
@@ -581,136 +600,255 @@ namespace Components
 					// TODO free memory of original lists
 					printf("");
 
+					setParentIndexOfBone(atPosition, parentIndex);
+
+					// Restore parents
+					for (const auto& kv : parentsToRestore)
+					{
+						// Fix parents
+						const auto key = kv.first;
+						const auto beforeVal = kv.second;
+
+						const auto parentIndex = getIndexOfBone(beforeVal);
+						const auto index = getIndexOfBone(key);
+						setParentIndexOfBone(index, parentIndex);
+					}
+
+
+					// check
+					for (const auto& kv : parentsToRestore)
+					{
+						const auto key = kv.first;
+						const auto beforeVal = kv.second;
+
+						const auto index = getIndexOfBone(key);
+						const auto afterVal = getParentOfBone(index);
+
+						if (beforeVal != afterVal)
+						{
+							printf("");
+						}
+					}
+					//
+
 					return atPosition; // Bone index of added bone
+				};
+
+
+			const auto transferWeights = [&](const uint8_t origin, const uint8_t destination)
+				{
+					return;
+
+					const auto originalWeights = model->baseMat[origin].transWeight;
+					model->baseMat[origin].transWeight = model->baseMat[destination].transWeight;
+					model->baseMat[destination].transWeight = originalWeights;
+
+					for (int i = 0; i < model->numLods; i++)
+					{
+						const auto lod = &model->lodInfo[i];
+
+						for (int surfIndex = 0; surfIndex < lod->modelSurfs->numsurfs; surfIndex++)
+						{
+							auto vertsBlendOffset = 0u;
+
+							const auto surface = &lod->modelSurfs->surfs[surfIndex];
+							{
+								const auto transferVertexBlendIndex = [&](unsigned int offset) {
+									int index = static_cast<int>(surface->vertInfo.vertsBlend[offset] / sizeof(Game::DObjSkelMat));
+									if (index == origin)
+									{
+										if (index < 0 || index >= model->numBones - 1)
+										{
+											assert(false);
+										}
+
+										index = destination;
+
+										surface->vertInfo.vertsBlend[offset] = index * sizeof(Game::DObjSkelMat);
+									}
+									};
+
+								// Fix bone offsets
+								if (surface->vertList)
+								{
+									for (auto vertListIndex = 0u; vertListIndex < surface->vertListCount; vertListIndex++)
+									{
+										const auto vertList = &surface->vertList[vertListIndex];
+										auto index = vertList->boneOffset / sizeof(Game::DObjSkelMat);
+										if (index < 0 || index >= model->numBones - 1)
+										{
+											assert(false);
+										}
+
+										if (index == origin)
+										{
+											index = destination;
+											vertList->boneOffset = index * sizeof(Game::DObjSkelMat);
+										}
+									}
+								}
+
+								// 1 bone weight
+								for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[0]; vertIndex++)
+								{
+									transferVertexBlendIndex(vertsBlendOffset + 0);
+
+									vertsBlendOffset += 1;
+								}
+
+								// 2 bone weights
+								for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[1]; vertIndex++)
+								{
+									transferVertexBlendIndex(vertsBlendOffset + 0);
+									transferVertexBlendIndex(vertsBlendOffset + 1);
+
+									vertsBlendOffset += 3;
+								}
+
+								// 3 bone weights
+								for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[2]; vertIndex++)
+								{
+									transferVertexBlendIndex(vertsBlendOffset + 0);
+									transferVertexBlendIndex(vertsBlendOffset + 1);
+									transferVertexBlendIndex(vertsBlendOffset + 3);
+
+
+									vertsBlendOffset += 5;
+								}
+
+								// 4 bone weights
+								for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[3]; vertIndex++)
+								{
+									transferVertexBlendIndex(vertsBlendOffset + 0);
+									transferVertexBlendIndex(vertsBlendOffset + 1);
+									transferVertexBlendIndex(vertsBlendOffset + 3);
+									transferVertexBlendIndex(vertsBlendOffset + 5);
+
+									vertsBlendOffset += 7;
+								}
+							}
+						}
+					}
 				};
 
 			auto indexOfSpine = getIndexOfBone("j_spinelower");
 			if (indexOfSpine < UCHAR_MAX)
 			{
 				const auto nameOfParent = getParentOfBone(indexOfSpine);
-				const auto stabilizer = getIndexOfBone("torso_stabilizer");
-				const auto otherIndex = stabilizer - model->numRootBones;
 
+				if (getIndexOfBone("torso_stabilizer") == UCHAR_MAX)
 				{
+					// No stabilizer - let's do surgery
+					// We're trying to get there:
+					//	tag_origin
+					//		j_main_root
+					//			pelvis
+					//				j_hip_le
+					//				j_hip_ri
+					//				tag_stowed_hip_rear
+					//				torso_stabilizer
+					//					j_spinelower
+					//						back_low
+					//							j_spineupper
+					//								back_mid
+					//									j_spine4
+
+
 					const auto root = getIndexOfBone("j_mainroot");
 					if (root < UCHAR_MAX) {
 
-						//
-						std::map<std::string, std::string> parentsBefore{};
-						std::map<std::string, BoneEnsemble> bonesBefore{};
-						for (int i = model->numRootBones; i < model->numBones; i++)
-						{
-							parentsBefore[Game::SL_ConvertToString(model->boneNames[i])] = getParentOfBone(i);
-							bonesBefore[Game::SL_ConvertToString(model->boneNames[i])] = BoneEnsemble(model, i);
-						}
-						//
-
-#if 0
+#if true
 						// Add pelvis
-						auto indexOfPelvis = getIndexOfBone("pelvis");
-						if (indexOfPelvis == UCHAR_MAX)
-						{
-							indexOfPelvis = insertBone("pelvis", root);
+						const uint8_t indexOfPelvis = insertBone("pelvis", "j_mainroot");
+						transferWeights(root, indexOfPelvis);
 
-							parentsBefore["pelvis"] = "j_mainroot";
-							setParentIndexOfBone(indexOfPelvis, getIndexOfBone("j_mainroot"));
+						setParentIndexOfBone(getIndexOfBone("j_hip_le"), indexOfPelvis);
+						setParentIndexOfBone(getIndexOfBone("j_hip_ri"), indexOfPelvis);
+						setParentIndexOfBone(getIndexOfBone("tag_stowed_hip_rear"), indexOfPelvis);
 
-							assert(root == getIndexOfBone("j_mainroot"));
+						const uint8_t torsoStabilizer = insertBone("torso_stabilizer", "pelvis");
+						setParentIndexOfBone(getIndexOfBone("j_spinelower"), torsoStabilizer);
 
-							parentsBefore["j_hip_le"] = "pelvis";
-							setParentIndexOfBone(getIndexOfBone("j_hip_le"), getIndexOfBone("pelvis"));
+						const uint8_t backLow = insertBone("back_low", "j_spinelower");
+						transferWeights(getIndexOfBone("j_spinelower"), backLow);
+						setParentIndexOfBone(getIndexOfBone("j_spineupper"), backLow);
 
-							parentsBefore["j_hip_ri"] = "pelvis";
-							setParentIndexOfBone(getIndexOfBone("j_hip_ri"), getIndexOfBone("pelvis"));
+						const uint8_t backMid = insertBone("back_mid", "j_spineupper");
+						transferWeights(getIndexOfBone("j_spineupper"), backMid);
+						setParentIndexOfBone(getIndexOfBone("j_spine4"), backMid);
 
-							parentsBefore["tag_stowed_hip_rear"] = "pelvis";
-							setParentIndexOfBone(getIndexOfBone("tag_stowed_hip_rear"), getIndexOfBone("pelvis"));
 
-						}
-
-						uint8_t torsoStabilizer = insertBone("torso_stabilizer", indexOfPelvis);
+						assert(root == getIndexOfBone("j_mainroot"));
 						assert(indexOfPelvis == getIndexOfBone("pelvis"));
+						assert(backLow == getIndexOfBone("back_low"));
+						assert(backMid == getIndexOfBone("back_mid"));
+
+						// Fix up torso stabilizer
+						model->baseMat[torsoStabilizer].quat[0] = 0.F;
+						model->baseMat[torsoStabilizer].quat[1] = 0.F;
+						model->baseMat[torsoStabilizer].quat[2] = 0.F;
+						model->baseMat[torsoStabilizer].quat[3] = 1.F;
+
+						const auto spineLowerM1 = getIndexOfBone("j_spinelower")-1;
+
+						//model->trans[(torsoStabilizer-model->numRootBones) * 3 + 0] = 2.0f;
+						//model->trans[(torsoStabilizer-model->numRootBones) * 3 + 1] = -5.0f;
+						//model->trans[(torsoStabilizer-model->numRootBones) * 3 + 2] = 2.0F;
+
+						model->trans[spineLowerM1 * 3 + 0] = 0.069828756;
+						model->trans[spineLowerM1 * 3 + 1] = -0.0f;
+						model->trans[spineLowerM1 * 3 + 2] = 5.2035017F;
+
+						//// Euler -180.000   88.572  -90.000
+						model->quats[(torsoStabilizer-model->numRootBones) * 4 + 0] = 16179; // 0.4952
+						model->quats[(torsoStabilizer-model->numRootBones) * 4 + 1] = 16586; // 0.5077
+						model->quats[(torsoStabilizer-model->numRootBones) * 4 + 2] = 16586; // 0.5077
+						model->quats[(torsoStabilizer-model->numRootBones) * 4 + 3] = 16178; // 0.4952
 
 #else
-						const auto parentIndex = 30;
-						uint8_t torsoStabilizer = insertBone("torso_stabilizer", parentIndex);
-						//setParentIndexOfBone(torsoStabilizer, parentIndex);
+						const uint8_t torsoStabilizer = insertBone("torso_stabilizer", "j_mainroot");
+						transferWeights(getIndexOfBone("j_mainroot"), getIndexOfBone("torso_stabilizer"));
+						setParentIndexOfBone(getIndexOfBone("j_spinelower"), torsoStabilizer);
 #endif
 
 #if DEBUG
 						const auto newRoot = getIndexOfBone("j_mainroot");
 						assert(root == newRoot);
 #endif
-						//parentsBefore["j_spinelower"] = "torso_stabilizer";
-						//setParentIndexOfBone(getIndexOfBone("j_spinelower"), torsoStabilizer);
 
-						//parentsBefore["torso_stabilizer"] = "pelvis";
-						//setParentIndexOfBone(torsoStabilizer, indexOfPelvis);
-						
-						//
-						std::map<std::string, std::string> parentsAfter{};
-						std::map<std::string, BoneEnsemble> bonesAfter{};
-						for (int i = model->numRootBones; i < model->numBones; i++)
-						{
-							parentsAfter[Game::SL_ConvertToString(model->boneNames[i])] = getParentOfBone(i);
-							bonesAfter[Game::SL_ConvertToString(model->boneNames[i])] = BoneEnsemble(model, i);
-						}
-						//
-
-						for (const auto& kv : parentsBefore)
-						{
-							// Fix parents
-							const auto key = kv.first;
-							const auto beforeVal = kv.second;
-							const auto afterVal = parentsAfter[kv.first];
-							if (beforeVal != afterVal)
-							{
-								const auto parentIndex = getIndexOfBone(beforeVal);
-								const auto index = getIndexOfBone(key);
-								setParentIndexOfBone(index, parentIndex);
-								parentsAfter[Game::SL_ConvertToString(model->boneNames[index])] = getParentOfBone(index);
-							}
-						}
-
-
-						// check
-						for (const auto& kv : parentsBefore)
-						{
-							const auto key = kv.first;
-							const auto beforeVal = kv.second;
-							
-							const auto afterVal = parentsAfter[key];
-
-							if (beforeVal != afterVal)
-							{
-								printf("");
-							}
-						}
-						//
-
-						//
-						for (const auto& kv : bonesBefore)
-						{
-							const auto key = kv.first;
-							const auto beforeVal = kv.second;
-							const auto afterVal = bonesAfter[kv.first];
-							if (equals(beforeVal, afterVal))
-							{
-								// good
-							}
-							else
-							{
-								printf("");
-							}
-						}
-						//
- 						printf("");
+						printf("");
 					}
 				}
 				printf("");
 			}
 
 			printf("");
+
+			//
+			names.clear();
+			for (auto i = 1; i < model->numBones; i++)
+			{
+				const auto bone = model->boneNames[i];
+				const auto name = Game::SL_ConvertToString(bone);
+				const auto m1 = i-1;
+				const auto fmt = std::format("{} => q({} {} {} {}) t({} {} {})",
+						name,
+						model->quats[m1 * 4 + 0],
+						model->quats[m1* 4 + 1],
+						model->quats[m1 * 4 + 2],
+						model->quats[m1 * 4 + 3],
+						model->trans[m1 * 3 + 0],
+						model->trans[m1* 3 +1],
+						model->trans[m1 * 3 +2]
+					);
+				names.push_back(
+					fmt
+				);
+				printf("");
+			}
+
+			printf("");
+			//
 		}
 
 		if (type == Game::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light" || name == "gfx_distortion_heat") && asset.material->info.sortKey >= 43)
@@ -770,7 +908,7 @@ namespace Components
 	}
 #pragma optimize( "", on )
 
-	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader *asset)
+	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset)
 	{
 		const char* name = Game::DB_GetXAssetNameHandlers[type](asset);
 		if (!name) return false;
@@ -811,12 +949,12 @@ namespace Components
 			push eax
 			pushad
 
-			push [esp + 2Ch]
-			push [esp + 2Ch]
+			push[esp + 2Ch]
+			push[esp + 2Ch]
 			call AssetHandler::IsAssetEligible
 			add esp, 8h
 
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 			popad
 			pop eax
 
@@ -828,9 +966,9 @@ namespace Components
 			mov ecx, 5BB657h
 			jmp ecx
 
-		doNotLoad:
+			doNotLoad :
 			mov eax, [esp + 8h]
-			retn
+				retn
 		}
 	}
 
@@ -843,9 +981,9 @@ namespace Components
 	{
 		AssetHandler::RestrictSignal.connect(callback);
 
-		return [callback](){
+		return [callback]() {
 			AssetHandler::RestrictSignal.disconnect(callback);
-		};
+			};
 	}
 
 	void AssetHandler::ClearRelocations()
@@ -1051,25 +1189,25 @@ namespace Components
 
 		// Log missing empty assets
 		Scheduler::Loop([]
-		{
-			if (FastFiles::Ready() && !AssetHandler::EmptyAssets.empty())
 			{
-				for (auto& asset : AssetHandler::EmptyAssets)
+				if (FastFiles::Ready() && !AssetHandler::EmptyAssets.empty())
 				{
-					Logger::Warning(Game::CON_CHANNEL_FILES, "Could not load {} \"{}\".\n", Game::DB_GetXAssetTypeName(asset.first), asset.second);
-				}
+					for (auto& asset : AssetHandler::EmptyAssets)
+					{
+						Logger::Warning(Game::CON_CHANNEL_FILES, "Could not load {} \"{}\".\n", Game::DB_GetXAssetTypeName(asset.first), asset.second);
+					}
 
-				AssetHandler::EmptyAssets.clear();
-			}
-		}, Scheduler::Pipeline::MAIN);
+					AssetHandler::EmptyAssets.clear();
+				}
+			}, Scheduler::Pipeline::MAIN);
 
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
-		{
-			if (Dvar::Var("r_noVoid").get<bool>() && type == Game::ASSET_TYPE_XMODEL && name == "void")
 			{
-				asset.model->numLods = 0;
-			}
-		});
+				if (Dvar::Var("r_noVoid").get<bool>() && type == Game::ASSET_TYPE_XMODEL && name == "void")
+				{
+					asset.model->numLods = 0;
+				}
+			});
 
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_GAMEWORLD_SP, 1);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_IMAGE, ZoneBuilder::IsEnabled() ? 14336 * 2 : 7168);

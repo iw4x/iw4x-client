@@ -8368,8 +8368,22 @@ namespace Game
 	{
 		DSkelPartBits partBits;
 		int timeStamp;
-		/*DObjAnimMat*/void* mat;
+		DObjAnimMat* mat;
 	};
+	
+	struct bitarray
+	{
+	  int array[6];
+	};
+
+	/* 1923 */
+	struct XAnimCalcAnimInfo
+	{
+	  DObjAnimMat rotTransArray[1152];
+	  bitarray animPartBits;
+	  bitarray ignorePartBits;
+	};
+
 
 	struct DObj
 	{
