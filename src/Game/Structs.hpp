@@ -7118,7 +7118,7 @@ namespace Game
 		IMG_FORMAT_COUNT = 0x17,
 	};
 
-	enum $25EF9448C800B18F0C83DB367159AFD6
+	enum XAnimPartType
 	{
 		PART_TYPE_NO_QUAT = 0x0,
 		PART_TYPE_HALF_QUAT = 0x1,

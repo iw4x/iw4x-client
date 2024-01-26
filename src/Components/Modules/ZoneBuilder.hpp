@@ -124,10 +124,6 @@ namespace Components
 		ZoneBuilder();
 		~ZoneBuilder();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		bool unitTest() override;
-#endif
-
 		static bool IsEnabled();
 		static bool IsDumpingZone() { return DumpingZone.length() > 0; };
 
@@ -160,6 +156,8 @@ namespace Components
 		static Game::Sys_File Sys_CreateFile_Stub(const char* dir, const char* filename);
 
 		static iw4of::params_t GetExporterAPIParams();
+
+		static std::function<void()> LoadZoneWithTrace(const std::string& zone, OUT std::vector<std::pair<Game::XAssetType, std::string>> &assets);
 
 		static void Com_Quitf_t();
 
