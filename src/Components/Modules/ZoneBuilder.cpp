@@ -1415,38 +1415,34 @@ namespace Components
 						{
 							bool skip = false;
 
-							switch(asset.first)
+							switch (asset.first)
 							{
-								case Game::XAssetType::ASSET_TYPE_RAWFILE:
-								case Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET:
-								case Game::XAssetType::ASSET_TYPE_MATERIAL:
-								case Game::XAssetType::ASSET_TYPE_PIXELSHADER:
-								case Game::XAssetType::ASSET_TYPE_VERTEXSHADER:
-								case Game::XAssetType::ASSET_TYPE_VERTEXDECL:
-								case Game::XAssetType::ASSET_TYPE_IMAGE:
-								case Game::XAssetType::ASSET_TYPE_XMODEL:
-								case Game::XAssetType::ASSET_TYPE_XANIMPARTS:
+							case Game::XAssetType::ASSET_TYPE_RAWFILE:
+							case Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET:
+							case Game::XAssetType::ASSET_TYPE_MATERIAL:
+							case Game::XAssetType::ASSET_TYPE_PIXELSHADER:
+							case Game::XAssetType::ASSET_TYPE_VERTEXSHADER:
+							case Game::XAssetType::ASSET_TYPE_VERTEXDECL:
+							case Game::XAssetType::ASSET_TYPE_IMAGE:
+							case Game::XAssetType::ASSET_TYPE_XMODEL:
+							case Game::XAssetType::ASSET_TYPE_XANIMPARTS:
 
-									break;
+								break;
 
-								default:
-									skip = true;
-									break;
+							default:
+								skip = true;
+								break;
 							}
-							
-								if (skip)
-								{
-									continue;
-								}
 
-						Logger::Print("Dumping asset {} '{}'...\n", (int)asset.first, asset.second);
-								const auto type = asset.first;
-								const auto name = asset.second;
-								
-							if (ExporterAPI.is_type_supported(type))
+
+							Logger::Print("Dumping asset {} '{}'...\n", (int)asset.first, asset.second);
+							const auto type = asset.first;
+							const auto name = asset.second;
+
+							if (ExporterAPI.is_type_supported(type) && !skip)
 							{
 								const auto assetHeader = Game::DB_FindXAssetHeader(type, name.data());
-								
+
 								if (assetHeader.data)
 								{
 									// IW4OF only supports gameworldMP for now, fortunately the types are very similar
@@ -1479,7 +1475,7 @@ namespace Components
 
 
 									ExporterAPI.write(type, assetHeader.data);
-									const auto typeName = Game::DB_GetXAssetTypeName(type) ;
+									const auto typeName = Game::DB_GetXAssetTypeName(type);
 
 									if (type != lastTypeEncountered)
 									{
@@ -1618,8 +1614,8 @@ namespace Components
 #endif
 							}
 						}
-		}
-	});
+					}
+				});
 
 			Command::Add("listassets", [](const Command::Params* params)
 				{
@@ -1635,7 +1631,7 @@ namespace Components
 							}, &type, false);
 					}
 				});
-}
+		}
 	}
 
 	ZoneBuilder::~ZoneBuilder()
