@@ -71,6 +71,9 @@ namespace Game
 	typedef void(*Sys_OutOfMemErrorInternal_t)(const char* filename, int line);
 	extern Sys_OutOfMemErrorInternal_t Sys_OutOfMemErrorInternal;
 
+	typedef void(*Sys_QuitAndStartProcess_t)(const char*);
+	extern Sys_QuitAndStartProcess_t Sys_QuitAndStartProcess;
+
 	extern char(*sys_exitCmdLine)[1024];
 
 	extern RTL_CRITICAL_SECTION* s_criticalSection;

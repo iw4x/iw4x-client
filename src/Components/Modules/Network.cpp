@@ -39,6 +39,11 @@ namespace Components
 		return ntohs(this->address.port);
 	}
 
+	unsigned short Network::Address::getPortRaw() const
+	{
+		return this->address.port;
+	}
+
 	void Network::Address::setIP(DWORD ip)
 	{
 		this->address.ip.full = ip;
@@ -149,6 +154,31 @@ namespace Components
 	bool Network::Address::isValid() const noexcept
 	{
 		return (this->getType() != Game::NA_BAD && this->getType() >= Game::NA_BOT && this->getType() <= Game::NA_IP);
+	}
+
+	const char* Network::AdrToString(const Address& a, const bool port)
+	{
+		if (a.getType() == Game::netadrtype_t::NA_LOOPBACK)
+		{
+			return "loopback";
+		}
+
+		if (a.getType() == Game::netadrtype_t::NA_BOT)
+		{
+			return "bot";
+		}
+
+		if (a.getType() == Game::netadrtype_t::NA_IP || a.getType() == Game::netadrtype_t::NA_BROADCAST)
+		{
+			if (a.getPort() && port)
+			{
+				return Utils::String::VA("%u.%u.%u.%u:%u", a.getIP().bytes[0], a.getIP().bytes[1], a.getIP().bytes[2], a.getIP().bytes[3], htons(a.getPortRaw()));
+			}
+
+			return Utils::String::VA("%u.%u.%u.%u", a.getIP().bytes[0], a.getIP().bytes[1], a.getIP().bytes[2], a.getIP().bytes[3]);
+		}
+
+		return "bad";
 	}
 
 	void Network::Send(Game::netsrc_t type, const Address& target, const std::string& data)

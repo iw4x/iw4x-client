@@ -396,6 +396,7 @@ namespace Assets
 					continue;
 				}
 
+				buffer->align(Utils::Stream::ALIGN_4);
 				buffer->saveMax(sizeof(Game::snd_alias_list_t*));
 				buffer->saveString(def->bounceSound[i]->aliasName);
 			}
@@ -525,7 +526,7 @@ namespace Assets
 
 		if (def->physCollmap)
 		{
-			dest->physCollmap = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PHYSCOLLMAP, def->overlayMaterialEMPLowRes).physCollmap;
+			dest->physCollmap = builder->saveSubAsset(Game::XAssetType::ASSET_TYPE_PHYSCOLLMAP, def->physCollmap).physCollmap;
 		}
 
 		if (def->projectileModel)

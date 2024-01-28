@@ -276,6 +276,8 @@ namespace Steam
 
 	void Proxy::RunFrame()
 	{
+		return;
+
 		std::lock_guard<std::recursive_mutex> _(Proxy::CallMutex);
 
 		if (Proxy::SteamUtils)

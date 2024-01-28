@@ -32,7 +32,8 @@ namespace Components
 			private:
 				Zone* builder;
 			};
-
+			
+			Zone(const std::string& zoneName, const std::string& sourceName, const std::string& destination);
 			Zone(const std::string& zoneName);
 			~Zone();
 
@@ -100,6 +101,7 @@ namespace Components
 			iw4of::api iw4ofApi;
 
 			std::string zoneName;
+			std::string destination;
 			Utils::CSV dataMap;
 
 			Utils::Memory::Allocator memAllocator;
@@ -124,11 +126,8 @@ namespace Components
 		ZoneBuilder();
 		~ZoneBuilder();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		bool unitTest() override;
-#endif
-
 		static bool IsEnabled();
+		static bool IsDumpingZone() { return DumpingZone.length() > 0; };
 
 		static std::string TraceZone;
 		static std::vector<std::pair<Game::XAssetType, std::string>> TraceAssets;
@@ -137,12 +136,13 @@ namespace Components
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
 
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
+		static std::string GetDumpingZonePath();
 		static void RefreshExporterWorkDirectory();
 
 		static iw4of::api* GetExporter();
 
 	private:
-		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
+		static int StoreTexture(Game::GfxImageLoadDef** loadDef, Game::GfxImage* image);
 		static void ReleaseTexture(Game::XAssetHeader header);
 
 		static std::string FindMaterialByTechnique(const std::string& name);
@@ -159,6 +159,8 @@ namespace Components
 		static Game::Sys_File Sys_CreateFile_Stub(const char* dir, const char* filename);
 
 		static iw4of::params_t GetExporterAPIParams();
+
+		static std::function<void()> LoadZoneWithTrace(const std::string& zone, OUT std::vector<std::pair<Game::XAssetType, std::string>> &assets);
 
 		static void Com_Quitf_t();
 

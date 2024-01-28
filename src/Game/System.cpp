@@ -25,6 +25,7 @@ namespace Game
 	Sys_SetValue_t Sys_SetValue = Sys_SetValue_t(0x4B2F50);
 	Sys_CreateFile_t Sys_CreateFile = Sys_CreateFile_t(0x4B2EF0);
 	Sys_OutOfMemErrorInternal_t Sys_OutOfMemErrorInternal = Sys_OutOfMemErrorInternal_t(0x4B2E60);
+	Sys_QuitAndStartProcess_t Sys_QuitAndStartProcess = Sys_QuitAndStartProcess_t(0x45FCF0);
 
 	char(*sys_exitCmdLine)[1024] = reinterpret_cast<char(*)[1024]>(0x649FB68);
 

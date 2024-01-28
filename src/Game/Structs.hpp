@@ -960,7 +960,7 @@ namespace Game
 
 	union XAnimDynamicFrames
 	{
-		char(*_1)[3];
+		uint8_t(*_1)[3];
 		unsigned __int16(*_2)[3];
 	};
 
@@ -1132,6 +1132,12 @@ namespace Game
 		unsigned __int16 triOffset;
 		unsigned __int16 triCount;
 		XSurfaceCollisionTree* collisionTree;
+	};
+	
+	struct DObjSkelMat
+	{
+	  float axis[3][4];
+	  float origin[4];
 	};
 
 	struct XSurface
@@ -7135,7 +7141,7 @@ namespace Game
 		IMG_FORMAT_COUNT = 0x17,
 	};
 
-	enum $25EF9448C800B18F0C83DB367159AFD6
+	enum XAnimPartType
 	{
 		PART_TYPE_NO_QUAT = 0x0,
 		PART_TYPE_HALF_QUAT = 0x1,
@@ -8385,8 +8391,22 @@ namespace Game
 	{
 		DSkelPartBits partBits;
 		int timeStamp;
-		/*DObjAnimMat*/void* mat;
+		DObjAnimMat* mat;
 	};
+	
+	struct bitarray
+	{
+	  int array[6];
+	};
+
+	/* 1923 */
+	struct XAnimCalcAnimInfo
+	{
+	  DObjAnimMat rotTransArray[1152];
+	  bitarray animPartBits;
+	  bitarray ignorePartBits;
+	};
+
 
 	struct DObj
 	{

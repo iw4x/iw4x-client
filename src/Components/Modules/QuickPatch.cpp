@@ -246,9 +246,10 @@ namespace Components
 
 		auto workingDir = std::filesystem::current_path().string();
 		const std::string binary = *Game::sys_exitCmdLine;
+		const std::string command = binary == "iw4x-sp.exe" ? "iw4x-sp" : "iw4x";
 
 		SetEnvironmentVariableA("MW2_INSTALL", workingDir.data());
-		Utils::Library::LaunchProcess(binary, "-singleplayer", workingDir);
+		Utils::Library::LaunchProcess(binary, std::format("{} --pass \"{}\"", command, GetCommandLineA()), workingDir);
 	}
 
 	__declspec(naked) void QuickPatch::SND_GetAliasOffset_Stub()
@@ -297,8 +298,24 @@ namespace Components
 		return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
 	}
 
+	void  DObjCalcAnim(Game::DObj *a1, int *partBits, Game::XAnimCalcAnimInfo *a3)
+	{
+		printf("");
+
+		if (a1->models[0]->name == "body_urban_civ_female_a"s)
+		{
+			printf("");
+		}
+
+		Utils::Hook::Call<void(Game::DObj*, int*, Game::XAnimCalcAnimInfo*)>(0x49E230)(a1, partBits, a3);
+
+		printf("");
+	}
+
 	QuickPatch::QuickPatch()
 	{
+
+
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
 
@@ -320,7 +337,7 @@ namespace Components
 
 		Utils::Hook::Set<void(*)(Game::XAssetHeader, void*)>(0x51FCDD, QuickPatch::R_AddImageToList_Hk);
 
-		Utils::Hook::Set<const char*>(0x41DB8C, "iw4-sp.exe");
+		Utils::Hook::Set<const char*>(0x41DB8C, "iw4x-sp.exe");
 		Utils::Hook(0x4D6989, QuickPatch::Sys_SpawnQuitProcess_Hk, HOOK_CALL).install()->quick();
 
 		// Fix crash as nullptr goes unchecked
