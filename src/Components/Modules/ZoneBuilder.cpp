@@ -7,6 +7,7 @@
 #include <version.hpp>
 
 #include "AssetInterfaces/ILocalizeEntry.hpp"
+#include "Branding.hpp"
 
 namespace Components
 {
@@ -21,7 +22,8 @@ namespace Components
 	iw4of::api ZoneBuilder::ExporterAPI(GetExporterAPIParams());
 	std::string ZoneBuilder::DumpingZone{};
 
-	ZoneBuilder::Zone::Zone(const std::string& name) : indexStart(0), externalSize(0),
+	ZoneBuilder::Zone::Zone(const std::string& name, const std::string& sourceName, const std::string& destination) :
+		indexStart(0), externalSize(0),
 		// Reserve 100MB by default.
 		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
 		// That way we can be sure it won't need to reallocate memory.
@@ -29,10 +31,16 @@ namespace Components
 		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
 		buffer(0xC800000),
 		zoneName(name),
-		dataMap("zone_source/" + name + ".csv"),
+		destination(destination),
+		dataMap("zone_source/" + sourceName + ".csv"),
 		branding{ nullptr },
 		assetDepth(0),
 		iw4ofApi(getIW4OfApiParams())
+	{
+
+	}
+
+	ZoneBuilder::Zone::Zone(const std::string& name) : ZoneBuilder::Zone::Zone(name, name, std::format("zone/english/{}.ff", name))
 	{
 	}
 
@@ -148,7 +156,7 @@ namespace Components
 				{
 					Game::XZoneInfo info;
 					info.name = fastfile.data();
-					info.allocFlags = 0x20;
+					info.allocFlags = Game::DB_ZONE_LOAD;
 					info.freeFlags = 0;
 
 					Game::DB_LoadXAssets(&info, 1, true);
@@ -449,11 +457,11 @@ namespace Components
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
 		outBuffer.append(zoneBuffer);
 
-		std::string outFile = "zone/" + this->zoneName + ".ff";
-		Utils::IO::WriteFile(outFile, outBuffer);
 
-		Logger::Print("done.\n");
-		Logger::Print("Zone '{}' written with {} assets and {} script strings\n", outFile, (this->aliasList.size() + this->loadedAssets.size()), this->scriptStrings.size());
+		Utils::IO::WriteFile(destination, outBuffer);
+
+		Logger::Print("done writing {}\n", destination);
+		Logger::Print("Zone '{}' written with {} assets and {} script strings\n", destination, (this->aliasList.size() + this->loadedAssets.size()), this->scriptStrings.size());
 	}
 
 	void ZoneBuilder::Zone::saveData()
@@ -759,16 +767,21 @@ namespace Components
 		return header;
 	}
 
-	void ZoneBuilder::RefreshExporterWorkDirectory()
+	std::string ZoneBuilder::GetDumpingZonePath()
 	{
 		if (ZoneBuilder::DumpingZone.empty())
 		{
-			ExporterAPI.set_work_path(std::format("userraw/dump/stray"));
+			return std::format("userraw/dump/stray");
 		}
 		else
 		{
-			ExporterAPI.set_work_path(std::format("userraw/dump/{}", ZoneBuilder::DumpingZone));
+			return std::format("userraw/dump/{}", ZoneBuilder::DumpingZone);
 		}
+	}
+
+	void ZoneBuilder::RefreshExporterWorkDirectory()
+	{
+		ExporterAPI.set_work_path(GetDumpingZonePath());
 	}
 
 	iw4of::api* ZoneBuilder::GetExporter()
@@ -988,10 +1001,10 @@ namespace Components
 		Logger::Print(" --------------------------------------------------------------------------------\n");
 		Logger::Print(" IW4x ZoneBuilder - {}\n", REVISION_STR);
 		Logger::Print(" Commands:\n");
-		Logger::Print("\t-buildzone [zone]: builds a zone from a csv located in zone_source\n");
-		Logger::Print("\t-buildall: builds all zones in zone_source\n");
+		Logger::Print("\t-buildmod [mod name]: Build a mod.ff from the source located in zone_source/mod_name.csv\n");
+		Logger::Print("\t-buildzone [zone]: Builds a zone from a csv located in zone_source\n");
+		Logger::Print("\t-dumpzone [zone]: Loads and dump the specified zone in userraw/dump\n");
 		Logger::Print("\t-verifyzone [zone]: loads and verifies the specified zone\n");
-		Logger::Print("\t-dumpzone [zone]: loads and dump the specified zone\n");
 		Logger::Print("\t-listassets [assettype]: lists all loaded assets of the specified type\n");
 		Logger::Print("\t-quit: quits the program\n");
 		Logger::Print(" --------------------------------------------------------------------------------\n");
@@ -1176,7 +1189,7 @@ namespace Components
 
 			Game::DB_LoadXAssets(&info, 1, true);
 			AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
-		};
+			};
 	}
 
 	ZoneBuilder::ZoneBuilder()
@@ -1288,43 +1301,139 @@ namespace Components
 			Utils::Hook::Nop(0x5BC791, 5);
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /* asset*/, const std::string& name, bool* /*restrict*/)
-			{
-				if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 				{
-					ZoneBuilder::TraceAssets.emplace_back(std::make_pair(type, name));
-				}
-			});
+					if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
+					{
+						ZoneBuilder::TraceAssets.emplace_back(std::make_pair(type, name));
+					}
+				});
 
 			Command::Add("dumpzone", [](const Command::Params* params)
 				{
 					if (params->size() < 2) return;
-					
+
 					std::string zone = params->get(1);
 
 					ZoneBuilder::DumpingZone = zone;
 					ZoneBuilder::RefreshExporterWorkDirectory();
 
 					std::vector<std::pair<Game::XAssetType, std::string>> assets{};
-					const auto unload = ZoneBuilder::LoadZoneWithTrace(zone,  assets);
+					const auto unload = ZoneBuilder::LoadZoneWithTrace(zone, assets);
 
 					Logger::Print("Dumping zone '{}'...\n", zone);
 
-					for (const auto& asset : assets)
 					{
-						const auto type = asset.first;
-						const auto name = asset.second;
-						if (ExporterAPI.is_type_supported(type) && name[0] != ',')
+						Utils::IO::CreateDir(GetDumpingZonePath());
+						std::ofstream csv(std::filesystem::path(GetDumpingZonePath()) / std::format("{}.csv", zone));
+						csv
+							<< std::format("### Zone '{}' dumped with Zonebuilder {}", zone, Components::Branding::GetVersionString())
+							<< "\n\n";
+
+						constexpr Game::XAssetType typeOrder[] = {
+							Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP,
+							Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP,
+							Game::XAssetType::ASSET_TYPE_GFXWORLD,
+							Game::XAssetType::ASSET_TYPE_COMWORLD,
+							Game::XAssetType::ASSET_TYPE_FXWORLD,
+							Game::XAssetType::ASSET_TYPE_CLIPMAP_MP,
+							Game::XAssetType::ASSET_TYPE_CLIPMAP_SP,
+							Game::XAssetType::ASSET_TYPE_RAWFILE,
+							Game::XAssetType::ASSET_TYPE_VEHICLE,
+							Game::XAssetType::ASSET_TYPE_WEAPON,
+							Game::XAssetType::ASSET_TYPE_FX,
+							Game::XAssetType::ASSET_TYPE_TRACER,
+							Game::XAssetType::ASSET_TYPE_XMODEL,
+							Game::XAssetType::ASSET_TYPE_MATERIAL,
+							Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET,
+							Game::XAssetType::ASSET_TYPE_PIXELSHADER,
+							Game::XAssetType::ASSET_TYPE_VERTEXSHADER,
+							Game::XAssetType::ASSET_TYPE_VERTEXDECL,
+							Game::XAssetType::ASSET_TYPE_IMAGE,
+							Game::XAssetType::ASSET_TYPE_SOUND,
+							Game::XAssetType::ASSET_TYPE_LOADED_SOUND,
+							Game::XAssetType::ASSET_TYPE_SOUND_CURVE,
+							Game::XAssetType::ASSET_TYPE_PHYSPRESET,
+						};
+
+						std::unordered_map<Game::XAssetType, int> typePriority{};
+						for (auto i = 0; i < ARRAYSIZE(typeOrder); i++)
 						{
-							const auto assetHeader = Game::DB_FindXAssetHeader(type, name.data());
-							if (assetHeader.data)
+							const auto type = typeOrder[i];
+							typePriority.emplace(type, 1 + ARRAYSIZE(typeOrder) - i);
+						}
+
+						std::map<std::string, std::vector<std::string>> invalidAssets{};
+
+						std::sort(assets.begin(), assets.end(), [&](
+							const std::pair<Game::XAssetType, std::string>& a,
+							const std::pair<Game::XAssetType, std::string>& b
+							) {
+								if (a.first == b.first)
+								{
+
+									return a.second.compare(b.second) < 0;
+								}
+								else
+								{
+									const auto priorityA = typePriority[a.first];
+									const auto priorityB = typePriority[b.first];
+
+									if (priorityA == priorityB)
+									{
+										return a.second.compare(b.second) < 0;
+									}
+									else
+									{
+										return priorityB < priorityA;
+									}
+								}
+							});
+
+						// Used to format the CSV
+						Game::XAssetType lastTypeEncountered{};
+
+						for (const auto& asset : assets)
+						{
+							const auto type = asset.first;
+							const auto name = asset.second;
+							if (ExporterAPI.is_type_supported(type) && name[0] != ',')
 							{
-								ExporterAPI.write(type, assetHeader.data);
+								const auto assetHeader = Game::DB_FindXAssetHeader(type, name.data());
+								if (assetHeader.data)
+								{
+									ExporterAPI.write(type, assetHeader.data);
+									const auto typeName = Game::DB_GetXAssetTypeName(type) ;
+
+									if (type != lastTypeEncountered)
+									{
+										csv << "\n### " << typeName << "\n";
+										lastTypeEncountered = type;
+									}
+
+									csv << typeName << "," << name << "\n";
+								}
+								else
+								{
+									Logger::Warning(Game::conChannel_t::CON_CHANNEL_ERROR, "Asset {} has disappeared while dumping!\n", name);
+									invalidAssets["The following assets disappeared while dumping"].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(type), name));
+								}
 							}
 							else
 							{
-								Logger::Warning(Game::conChannel_t::CON_CHANNEL_ERROR, "Asset {} has disappeared while dumping!\n", name);
+								invalidAssets["The following assets are unsupported or not dumped as individual assets, but still present in the zone"].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(type), name));
 							}
 						}
+
+						for (const auto& kv : invalidAssets)
+						{
+							csv << "\n### " << kv.first << "\n";
+							for (const auto& line : kv.second)
+							{
+								csv << "#" << line << "\n";
+							}
+						}
+
+						csv << std::format("\n### {} assets", assets.size()) << "\n";
 					}
 
 					unload();
@@ -1339,7 +1448,7 @@ namespace Components
 
 					std::string zone = params->get(1);
 					std::vector<std::pair<Game::XAssetType, std::string>> assets{};
-					const auto unload = ZoneBuilder::LoadZoneWithTrace(zone,  assets);
+					const auto unload = ZoneBuilder::LoadZoneWithTrace(zone, assets);
 
 					int count = 0;
 					for (auto i = assets.begin(); i != assets.end(); ++i, ++count)
@@ -1359,6 +1468,24 @@ namespace Components
 					Logger::Print("Building zone '{}'...\n", zoneName);
 
 					Zone(zoneName).build();
+				});
+
+			Command::Add("buildmod", [](const Command::Params* params)
+				{
+					if (params->size() < 2) return;
+
+					std::string modName = params->get(1);
+					Logger::Print("Building zone for mod '{}'...\n", modName);
+
+					const std::string previousFsGame = Dvar::Var("fs_game").get<std::string>();
+					const std::string dir = "mods/" + modName;
+					Utils::IO::CreateDir(dir);
+
+					Dvar::Var("fs_game").set(dir);
+
+					Zone("mod", modName, dir + "/mod.ff").build();
+
+					Dvar::Var("fs_game").set(previousFsGame);
 				});
 
 			Command::Add("buildall", []()
@@ -1414,8 +1541,8 @@ namespace Components
 #endif
 							}
 						}
-					}
-				});
+		}
+	});
 
 			Command::Add("listassets", [](const Command::Params* params)
 				{
@@ -1431,7 +1558,7 @@ namespace Components
 							}, &type, false);
 					}
 				});
-		}
+}
 	}
 
 	ZoneBuilder::~ZoneBuilder()

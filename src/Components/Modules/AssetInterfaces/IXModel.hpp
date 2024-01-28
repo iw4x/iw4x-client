@@ -22,5 +22,8 @@ namespace Assets
 		static void RebuildPartBits(Game::XModel* model);
 		static uint8_t InsertBone(Game::XModel* model, const std::string& boneName, const std::string& parentName,  Utils::Memory::Allocator& allocator);
 		static void TransferWeights(Game::XModel* model, const uint8_t origin, const uint8_t destination);
+
+		static void SetBoneTrans(Game::XModel* model, uint8_t boneIndex, bool baseMat, float x, float y, float z);
+		static void SetBoneQuaternion(Game::XModel* model, uint8_t boneIndex, bool baseMat, float x, float y, float z, float w);
 	};
 }

@@ -314,9 +314,6 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
-		// Do not call DObjCalcAnim
-		Utils::Hook(0x6508C4, DObjCalcAnim, HOOK_CALL).install()->quick();
-		Utils::Hook(0x06508F6, DObjCalcAnim, HOOK_CALL).install()->quick();
 
 
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning

@@ -296,6 +296,7 @@ namespace Assets
 
 	std::string IXModel::GetParentOfBone(Game::XModel* model, uint8_t index)
 	{
+		assert(index > 0);
 		const auto parentIndex = GetParentIndexOfBone(model, index);
 		const auto boneName = Game::SL_ConvertToString(model->boneNames[parentIndex]);
 		return boneName;
@@ -313,17 +314,17 @@ namespace Assets
 
 				auto vertsBlendOffset = 0;
 
-				int rebuiltPartBits[6]{};
+				int rebuiltPartBits[LENGTH]{};
 				std::unordered_set<uint8_t> affectingBones{};
 
 				const auto registerBoneAffectingSurface = [&](unsigned int offset) {
 					uint8_t index = static_cast<uint8_t>(surface->vertInfo.vertsBlend[offset] / sizeof(Game::DObjSkelMat));
 					highestBoneIndex = std::max(highestBoneIndex, index);
-				};
+					};
 
 
 				// 1 bone weight
-				for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[0]; vertIndex++)
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[0]; vertIndex++)
 				{
 					registerBoneAffectingSurface(vertsBlendOffset + 0);
 
@@ -331,7 +332,7 @@ namespace Assets
 				}
 
 				// 2 bone weights
-				for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[1]; vertIndex++)
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[1]; vertIndex++)
 				{
 					registerBoneAffectingSurface(vertsBlendOffset + 0);
 					registerBoneAffectingSurface(vertsBlendOffset + 1);
@@ -340,7 +341,7 @@ namespace Assets
 				}
 
 				// 3 bone weights
-				for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[2]; vertIndex++)
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[2]; vertIndex++)
 				{
 					registerBoneAffectingSurface(vertsBlendOffset + 0);
 					registerBoneAffectingSurface(vertsBlendOffset + 1);
@@ -350,7 +351,7 @@ namespace Assets
 				}
 
 				// 4 bone weights
-				for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[3]; vertIndex++)
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[3]; vertIndex++)
 				{
 					registerBoneAffectingSurface(vertsBlendOffset + 0);
 					registerBoneAffectingSurface(vertsBlendOffset + 1);
@@ -360,7 +361,7 @@ namespace Assets
 					vertsBlendOffset += 7;
 				}
 
-				for (auto vertListIndex = 0; vertListIndex < surface->vertListCount; vertListIndex++)
+				for (unsigned int vertListIndex = 0; vertListIndex < surface->vertListCount; vertListIndex++)
 				{
 					highestBoneIndex = std::max(highestBoneIndex, static_cast<uint8_t>(surface->vertList[vertListIndex].boneOffset / sizeof(Game::DObjSkelMat)));
 				}
@@ -395,7 +396,7 @@ namespace Assets
 					assert(index < model->numBones);
 
 					affectingBones.emplace(index);
-				};
+					};
 
 
 				// 1 bone weight
@@ -438,7 +439,7 @@ namespace Assets
 
 				for (auto vertListIndex = 0; vertListIndex < surface->vertListCount; vertListIndex++)
 				{
-					affectingBones.emplace(surface->vertList[vertListIndex].boneOffset / sizeof(Game::DObjSkelMat));
+					affectingBones.emplace(static_cast<uint8_t>(surface->vertList[vertListIndex].boneOffset / sizeof(Game::DObjSkelMat)));
 				}
 
 				// Actually rebuilding
@@ -497,7 +498,7 @@ namespace Assets
 		const uint8_t newBoneIndex = atPosition;
 		const uint8_t newBoneIndexMinusRoot = atPosition - model->numRootBones;
 
-		Components::Logger::Print("Inserting bone {} at position {} (between {} and {})\n", boneName, atPosition, Game::SL_ConvertToString(model->boneNames[atPosition-1]), Game::SL_ConvertToString(model->boneNames[atPosition+1]));
+		Components::Logger::Print("Inserting bone {} at position {} (between {} and {})\n", boneName, atPosition, Game::SL_ConvertToString(model->boneNames[atPosition - 1]), Game::SL_ConvertToString(model->boneNames[atPosition + 1]));
 
 		// Reallocate
 		const auto newBoneNames = allocator.allocateArray<uint16_t>(newBoneCount);
@@ -549,7 +550,7 @@ namespace Assets
 
 			// It's RELATIVE !
 			uint16_t quat[4]{};
-			quat[3] = 32767; // 0 0 0 32767
+			quat[3] = SHRT_MAX; // 0 0 0 1
 
 			float trans[3]{};
 
@@ -570,7 +571,7 @@ namespace Assets
 		{
 			std::memcpy(&newBoneNames[atPosition + 1], &model->boneNames[atPosition], sizeof(uint16_t) * lengthOfSecondPart);
 			std::memcpy(&newMats[atPosition + 1], &model->baseMat[atPosition], sizeof(Game::DObjAnimMat) * lengthOfSecondPart);
-			std::memcpy(&newPartsClassification[atPosition+1], &model->partClassification[atPosition], lengthOfSecondPart);
+			std::memcpy(&newPartsClassification[atPosition + 1], &model->partClassification[atPosition], lengthOfSecondPart);
 			std::memcpy(&newBoneInfo[atPosition + 1], &model->boneInfo[atPosition], sizeof(Game::XBoneInfo) * lengthOfSecondPart);
 			std::memcpy(&newQuats[(atPositionM1 + 1) * 4], &model->quats[atPositionM1 * 4], sizeof(uint16_t) * 4 * lengthOfSecondPartM1);
 			std::memcpy(&newTrans[(atPositionM1 + 1) * 3], &model->trans[atPositionM1 * 3], sizeof(float) * 3 * lengthOfSecondPartM1);
@@ -635,7 +636,7 @@ namespace Assets
 
 							surface->vertInfo.vertsBlend[offset] = static_cast<unsigned short>(index * sizeof(Game::DObjSkelMat));
 						}
-					};
+						};
 
 					//  Fix bone offsets
 					if (surface->vertList)
@@ -739,8 +740,9 @@ namespace Assets
 
 	void IXModel::TransferWeights(Game::XModel* model, const uint8_t origin, const uint8_t destination)
 	{
-		// Does not work
-		return;
+		const auto from = Game::SL_ConvertToString(model->boneNames[origin]);
+		const auto to = Game::SL_ConvertToString(model->boneNames[destination]);
+		Components::Logger::Print("Transferring bone weights from {} to {}\n", from, to);
 
 		const auto originalWeights = model->baseMat[origin].transWeight;
 		model->baseMat[origin].transWeight = model->baseMat[destination].transWeight;
@@ -749,6 +751,12 @@ namespace Assets
 		for (int i = 0; i < model->numLods; i++)
 		{
 			const auto lod = &model->lodInfo[i];
+
+			if ((lod->partBits[5] & 0x1) == 0x1)
+			{
+				// surface lod already converted (more efficient)
+				continue;
+			}
 
 			for (int surfIndex = 0; surfIndex < lod->modelSurfs->numsurfs; surfIndex++)
 			{
@@ -760,12 +768,13 @@ namespace Assets
 						int index = static_cast<int>(surface->vertInfo.vertsBlend[offset] / sizeof(Game::DObjSkelMat));
 						if (index == origin)
 						{
-							if (index < 0 || index >= model->numBones - 1)
+							index = destination;
+
+							if (index < 0 || index >= model->numBones)
 							{
 								assert(false);
 							}
 
-							index = destination;
 
 							surface->vertInfo.vertsBlend[offset] = static_cast<unsigned short>(index * sizeof(Game::DObjSkelMat));
 						}
@@ -778,13 +787,14 @@ namespace Assets
 						{
 							const auto vertList = &surface->vertList[vertListIndex];
 							auto index = vertList->boneOffset / sizeof(Game::DObjSkelMat);
-							if (index < 0 || index >= model->numBones - 1)
-							{
-								assert(false);
-							}
 
 							if (index == origin)
 							{
+								if (index < 0 || index >= model->numBones)
+								{
+									assert(false);
+								}
+
 								index = destination;
 								vertList->boneOffset = static_cast<unsigned short>(index * sizeof(Game::DObjSkelMat));
 							}
@@ -834,6 +844,46 @@ namespace Assets
 		}
 	};
 
+	void IXModel::SetBoneTrans(Game::XModel* model, uint8_t boneIndex, bool baseMat, float x, float y, float z)
+	{
+		if (baseMat)
+		{
+			model->baseMat[boneIndex].trans[0] = x;
+			model->baseMat[boneIndex].trans[1] = y;
+			model->baseMat[boneIndex].trans[2] = z;
+		}
+		else
+		{
+			const auto index = boneIndex - model->numRootBones;
+			assert(index >= 0);
+
+			model->trans[index * 3 + 0] = x;
+			model->trans[index * 3 + 1] = y;
+			model->trans[index * 3 + 2] = z;
+		}
+	}
+
+	void IXModel::SetBoneQuaternion(Game::XModel* model, uint8_t boneIndex, bool baseMat, float x, float y, float z, float w)
+	{
+		if (baseMat)
+		{
+			model->baseMat[boneIndex].quat[0] = x;
+			model->baseMat[boneIndex].quat[1] = y;
+			model->baseMat[boneIndex].quat[2] = z;
+			model->baseMat[boneIndex].quat[3] = w;
+		}
+		else
+		{
+			const auto index = boneIndex - model->numRootBones;
+			assert(index >= 0);
+
+			model->quats[index * 4 + 0] = static_cast<uint16_t>(x * SHRT_MAX);
+			model->quats[index * 4 + 1] = static_cast<uint16_t>(y * SHRT_MAX);
+			model->quats[index * 4 + 2] = static_cast<uint16_t>(z * SHRT_MAX);
+			model->quats[index * 4 + 3] = static_cast<uint16_t>(w * SHRT_MAX);
+		}
+	}
+
 
 	void IXModel::ConvertPlayerModelFromSingleplayerToMultiplayer(Game::XModel* model, Utils::Memory::Allocator& allocator)
 	{
@@ -866,24 +916,14 @@ namespace Assets
 				const auto root = GetIndexOfBone(model, "j_mainroot");
 				if (root < UCHAR_MAX) {
 
-#if true
-					//// Works
-					//InsertBone(model, "offsetron_the_great_offsetter_of_bones", "j_mainroot", allocator);
-
-					//// Breaks the model
-					//InsertBone(model, "offsetron2_the_greater_offsetter_of_bones", "j_mainroot", allocator);
-
-					//for (auto lodIndex = 0; lodIndex < model->numLods; lodIndex++)
-					//{
-					//	convertedSurfs.emplace(model->lodInfo[lodIndex].modelSurfs);
-					//}
-
-					//RebuildPartBits(model);
-
-					//return;
-
 					// Add pelvis
+#if false
+					const uint8_t backLow = InsertBone(model, "back_low", "j_spinelower", allocator);
+					TransferWeights(model, GetIndexOfBone(model, "j_spinelower"), backLow);
+					SetParentIndexOfBone(model, GetIndexOfBone(model, "j_spineupper"), backLow);
+#else
 					const uint8_t indexOfPelvis = InsertBone(model, "pelvis", "j_mainroot", allocator);
+					SetBoneQuaternion(model, indexOfPelvis, true, -0.494f, -0.506f, -0.506f, 0.494);
 
 					TransferWeights(model, root, indexOfPelvis);
 
@@ -891,11 +931,23 @@ namespace Assets
 					SetParentIndexOfBone(model, GetIndexOfBone(model, "j_hip_ri"), indexOfPelvis);
 					SetParentIndexOfBone(model, GetIndexOfBone(model, "tag_stowed_hip_rear"), indexOfPelvis);
 
+					// These two are optional
+					if (GetIndexOfBone(model, "j_coatfront_le") == UCHAR_MAX)
+					{
+						InsertBone(model, "j_coatfront_le", "pelvis", allocator);
+					}
+
+					if (GetIndexOfBone(model, "j_coatfront_ri") == UCHAR_MAX)
+					{
+						InsertBone(model, "j_coatfront_ri", "pelvis", allocator);
+					}
+
 					const uint8_t torsoStabilizer = InsertBone(model, "torso_stabilizer", "pelvis", allocator);
-					SetParentIndexOfBone(model, GetIndexOfBone(model, "j_spinelower"), torsoStabilizer);
+					const uint8_t lowerSpine = GetIndexOfBone(model, "j_spinelower");
+					SetParentIndexOfBone(model, lowerSpine, torsoStabilizer);
 
 					const uint8_t backLow = InsertBone(model, "back_low", "j_spinelower", allocator);
-					TransferWeights(model, GetIndexOfBone(model, "j_spinelower"), backLow);
+					TransferWeights(model, lowerSpine, backLow);
 					SetParentIndexOfBone(model, GetIndexOfBone(model, "j_spineupper"), backLow);
 
 					const uint8_t backMid = InsertBone(model, "back_mid", "j_spineupper", allocator);
@@ -908,29 +960,34 @@ namespace Assets
 					assert(backLow == GetIndexOfBone(model, "back_low"));
 					assert(backMid == GetIndexOfBone(model, "back_mid"));
 
-					// Fix up torso stabilizer
-					model->baseMat[torsoStabilizer].quat[0] = 0.F;
-					model->baseMat[torsoStabilizer].quat[1] = 0.F;
-					model->baseMat[torsoStabilizer].quat[2] = 0.F;
-					model->baseMat[torsoStabilizer].quat[3] = 1.F;
+					// Twister bone
+					SetBoneQuaternion(model, lowerSpine, false, -0.492f, -0.507f, -0.507f, 0.492f);
+					SetBoneQuaternion(model, torsoStabilizer, false, 0.494f, 0.506f, 0.506f, 0.494f);
 
-					const auto spineLowerM1 = GetIndexOfBone(model, "j_spinelower") - model->numRootBones;
 
 					// This doesn't feel like it should be necessary
-					model->trans[spineLowerM1 * 3 + 0] = 0.069828756;
-					model->trans[spineLowerM1 * 3 + 1] = -0.0f;
-					model->trans[spineLowerM1 * 3 + 2] = 5.2035017F;
+					// It is, on singleplayer models unfortunately. Could we add an extra bone to compensate this?
+					// Or compensate it another way?
+					SetBoneTrans(model, GetIndexOfBone(model, "j_spinelower"), false, 0.07, 0.0f, 5.2f);
 
-					//// Euler -180.000   88.572  -90.000
-					model->quats[(torsoStabilizer - model->numRootBones) * 4 + 0] = 16179; // 0.4952
-					model->quats[(torsoStabilizer - model->numRootBones) * 4 + 1] = 16586; // 0.5077
-					model->quats[(torsoStabilizer - model->numRootBones) * 4 + 2] = 16586; // 0.5077
-					model->quats[(torsoStabilizer - model->numRootBones) * 4 + 3] = 16178; // 0.4952
+					// These are often messed up on civilian models, but there is no obvious way to tell from code
+					const auto stowedBack = GetIndexOfBone(model, "tag_stowed_back");
+					if (stowedBack != UCHAR_MAX)
+					{
+						SetBoneTrans(model, stowedBack, false, -0.32f, -6.27f, -2.65F);
+						SetBoneQuaternion(model, stowedBack, false, -0.044, 0.088, -0.995, 0.025);
+						SetBoneTrans(model, stowedBack, true, -9.571f, -2.654f, 51.738f);
+						SetBoneQuaternion(model, stowedBack, true, -0.071f, 0.0f, -0.997f, 0.0f);
+					}
 
-#else
-					const uint8_t torsoStabilizer = insertBone("torso_stabilizer", "j_mainroot");
-					transferWeights(getIndexOfBone("j_mainroot"), getIndexOfBone("torso_stabilizer"));
-					setParentIndexOfBone(getIndexOfBone("j_spinelower"), torsoStabilizer);
+					if (stowedBack != UCHAR_MAX)
+					{
+						const auto stowedRear = GetIndexOfBone(model, "tag_stowed_hip_rear");
+						SetBoneTrans(model, stowedRear, false, -0.75f, -6.45f, -4.99f);
+						SetBoneQuaternion(model, stowedRear, false, -0.553f, -0.062f, -0.049f, 0.830f);
+						SetBoneTrans(model, stowedBack, true, -9.866f, -4.989f, 36.315f);
+						SetBoneQuaternion(model, stowedRear, true, -0.054, -0.025f, -0.975f, 0.214f);
+					}
 #endif
 
 					RebuildPartBits(model);

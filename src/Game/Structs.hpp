@@ -960,7 +960,7 @@ namespace Game
 
 	union XAnimDynamicFrames
 	{
-		char(*_1)[3];
+		uint8_t(*_1)[3];
 		unsigned __int16(*_2)[3];
 	};
 

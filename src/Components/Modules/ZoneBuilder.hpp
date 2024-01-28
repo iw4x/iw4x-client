@@ -32,7 +32,8 @@ namespace Components
 			private:
 				Zone* builder;
 			};
-
+			
+			Zone(const std::string& zoneName, const std::string& sourceName, const std::string& destination);
 			Zone(const std::string& zoneName);
 			~Zone();
 
@@ -100,6 +101,7 @@ namespace Components
 			iw4of::api iw4ofApi;
 
 			std::string zoneName;
+			std::string destination;
 			Utils::CSV dataMap;
 
 			Utils::Memory::Allocator memAllocator;
@@ -134,6 +136,7 @@ namespace Components
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
 
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
+		static std::string GetDumpingZonePath();
 		static void RefreshExporterWorkDirectory();
 
 		static iw4of::api* GetExporter();

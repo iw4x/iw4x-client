@@ -242,54 +242,14 @@ namespace Components
 			{
 				auto str = Game::SL_FindString("j_spinelower");
 				int interestingPart = 0;
-				for (size_t i = 0; i < anim->boneCount[Game::XAnimPartType::PART_TYPE_ALL]; i++)
 				{
 					if (anim->names[i] == str)
 					{
 						interestingPart = i;
-						//anim->names[i] = Game::SL_FindString("torso_stabilizer");
 					}
 				}
 
 				// Something interesting to do there
-				//for (size_t frameIndex = 0; frameIndex < anim->numframes; frameIndex++)
-				//{
-				//	const auto delta = &anim->deltaPart[frameIndex];
-
-				//	const auto frameCount = anim->numframes;
-
-				//	if (delta->trans->size)
-				//	{
-				//		const auto test = delta->trans->u.frames;
-
-				//		if (frameCount > 0xFF)
-				//		{
-				//			delta->trans->u.frames.indices._1
-				//			buffer->saveArray(delta->trans->u.frames.indices._2, delta->trans->size + 1);
-				//		}
-				//		else
-				//		{
-				//			buffer->saveArray(delta->trans->u.frames.indices._1, delta->trans->size + 1);
-				//		}
-
-				//		if (delta->trans->u.frames.frames._1)
-				//		{
-				//			if (delta->trans->smallTrans)
-				//			{
-				//				buffer->save(delta->trans->u.frames.frames._1, 3, delta->trans->size + 1);
-				//			}
-				//			else
-				//			{
-				//				buffer->align(Utils::Stream::ALIGN_4);
-				//				buffer->save(delta->trans->u.frames.frames._1, 6, delta->trans->size + 1);
-				//			}
-				//		}
-				//	}
-				//	else
-				//	{
-				//		buffer->save(delta->trans->u.frame0, 12);
-				//	}
-				//}
 			}
 		}
 
@@ -323,65 +283,14 @@ namespace Components
 				// Unlikely candidate
 				return;
 			}
-
-			//
-			static std::vector<std::string> names{};
-			names.clear();
-
 			static  Utils::Memory::Allocator allocator{};
-			for (auto i = 0; i < model->numBones; i++)
-			{
-				const auto bone = model->boneNames[i];
-				const auto boneName = Game::SL_ConvertToString(bone);
-				const auto str = std::format("{} => q({} {} {} {}) t({} {} {})",
-					boneName,
-					model->baseMat[i - 1].quat[0],
-					model->baseMat[i - 1].quat[1],
-					model->baseMat[i - 1].quat[2],
-					model->baseMat[i - 1].quat[3],
-					model->baseMat[i - 1].trans[0],
-					model->baseMat[i - 1].trans[1],
-					model->baseMat[i - 1].trans[2]
-				);
-
-				const auto duplicated = allocator.duplicateString(str);
-				names.push_back(
-					duplicated
-				);
-			}
 
 			//
-
-			Assets::IXModel::ConvertPlayerModelFromSingleplayerToMultiplayer(model, allocator);
-			printf("");
-
-
-			//
-			names.clear();
-			for (auto i = 1; i < model->numBones; i++)
+			//if (name == "body_urban_civ_female_a"s)
 			{
-				const auto bone = model->boneNames[i];
-				const auto boneName = Game::SL_ConvertToString(bone);
-				const auto m1 = i - 1;
-				const auto fmt = std::format("{} => q({} {} {} {}) t({} {} {})",
-					boneName,
-					model->quats[m1 * 4 + 0],
-					model->quats[m1 * 4 + 1],
-					model->quats[m1 * 4 + 2],
-					model->quats[m1 * 4 + 3],
-					model->trans[m1 * 3 + 0],
-					model->trans[m1 * 3 + 1],
-					model->trans[m1 * 3 + 2]
-				);
-				names.push_back(
-					fmt
-				);
-
+				Assets::IXModel::ConvertPlayerModelFromSingleplayerToMultiplayer(model, allocator);
 				printf("");
 			}
-
-			printf("");
-			//
 		}
 
 		if (type == Game::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light" || name == "gfx_distortion_heat") && asset.material->info.sortKey >= 43)
