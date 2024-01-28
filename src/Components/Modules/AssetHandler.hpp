@@ -42,6 +42,13 @@ namespace Components
 		static void ExposeTemporaryAssets(bool expose);
 
 		static void OffsetToAlias(Utils::Stream::Offset* offset);
+
+		static Game::XAssetEntry* GetEntryPool() {
+			return g_entryPool == nullptr ?
+				// Game's g_entryPool
+				reinterpret_cast<Game::XAssetEntry*>(0x134CAD8) :
+				g_entryPool;
+		}; 
 		
 	private:
 		static thread_local int BypassState;
@@ -52,6 +59,8 @@ namespace Components
 		static std::map<Game::XAssetType, IAsset*> AssetInterfaces;
 		static std::map<Game::XAssetType, Utils::Slot<Callback>> TypeCallbacks;
 		static Utils::Signal<RestrictCallback> RestrictSignal;
+
+		static Game::XAssetEntry* g_entryPool;
 
 		static std::map<void*, void*> Relocations;
 

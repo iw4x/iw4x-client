@@ -42,6 +42,8 @@ namespace Components
 	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
 	std::map<Game::XAssetType, Utils::Slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
 	Utils::Signal<AssetHandler::RestrictCallback> AssetHandler::RestrictSignal;
+	
+	Game::XAssetEntry* AssetHandler::g_entryPool;
 
 	std::map<void*, void*> AssetHandler::Relocations;
 
@@ -518,7 +520,7 @@ namespace Components
 			ZONEBUILDER_XASSET_ENTRY_POOL_SIZE :
 			789312
 			);
-		Game::XAssetEntry* entryPool = Utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
+		g_entryPool = Utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
 
 		// Apply new size
 		Utils::Hook::Set<DWORD>(0x5BAEB0, size);
@@ -553,11 +555,11 @@ namespace Components
 
 		for (int i = 0; i < ARRAYSIZE(patches); ++i)
 		{
-			Utils::Hook::Set<Game::XAssetEntry*>(patches[i], entryPool);
+			Utils::Hook::Set<Game::XAssetEntry*>(patches[i], g_entryPool);
 		}
 
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAE91, entryPool + 1);
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, entryPool + 1);
+		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAE91, g_entryPool + 1);
+		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, g_entryPool + 1);
 	}
 
 	void AssetHandler::ExposeTemporaryAssets(bool expose)
