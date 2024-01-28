@@ -11,8 +11,19 @@ namespace Assets
 	{
 		header->model = builder->getIW4OfApi()->read<Game::XModel>(Game::XAssetType::ASSET_TYPE_XMODEL, name);
 
+		if (!header->model)
+		{
+			// In that case if we want to convert it later potentially we have to grab it now:
+			header->model = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, name.data()).model;
+		}
+
 		if (header->model)
 		{
+			if (Components::ZoneBuilder::zb_sp_to_mp.get<bool>())
+			{
+				Assets::IXModel::ConvertPlayerModelFromSingleplayerToMultiplayer(header->model, *builder->getAllocator());
+			}
+
 			// ???
 			if (header->model->physCollmap)
 			{
@@ -305,16 +316,13 @@ namespace Assets
 	uint8_t IXModel::GetHighestAffectingBoneIndex(const Game::XModelLodInfo* lod)
 	{
 		uint8_t highestBoneIndex = 0;
-		constexpr auto LENGTH = 6;
 
 		{
 			for (auto surfIndex = 0; surfIndex < lod->numsurfs; surfIndex++)
 			{
 				const auto surface = &lod->surfs[surfIndex];
-
 				auto vertsBlendOffset = 0;
 
-				int rebuiltPartBits[LENGTH]{};
 				std::unordered_set<uint8_t> affectingBones{};
 
 				const auto registerBoneAffectingSurface = [&](unsigned int offset) {
@@ -380,7 +388,7 @@ namespace Assets
 			const auto lod = &model->lodInfo[i];
 			int lodPartBits[6]{};
 
-			for (auto surfIndex = 0; surfIndex < lod->numsurfs; surfIndex++)
+			for (unsigned short surfIndex = 0; surfIndex < lod->numsurfs; surfIndex++)
 			{
 				const auto surface = &lod->surfs[surfIndex];
 
@@ -400,7 +408,7 @@ namespace Assets
 
 
 				// 1 bone weight
-				for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[0]; vertIndex++)
+				for (unsigned int  vertIndex = 0; vertIndex < surface->vertInfo.vertCount[0]; vertIndex++)
 				{
 					registerBoneAffectingSurface(vertsBlendOffset + 0);
 
@@ -408,7 +416,7 @@ namespace Assets
 				}
 
 				// 2 bone weights
-				for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[1]; vertIndex++)
+				for (unsigned int  vertIndex = 0; vertIndex < surface->vertInfo.vertCount[1]; vertIndex++)
 				{
 					registerBoneAffectingSurface(vertsBlendOffset + 0);
 					registerBoneAffectingSurface(vertsBlendOffset + 1);
@@ -417,7 +425,7 @@ namespace Assets
 				}
 
 				// 3 bone weights
-				for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[2]; vertIndex++)
+				for (unsigned int  vertIndex = 0; vertIndex < surface->vertInfo.vertCount[2]; vertIndex++)
 				{
 					registerBoneAffectingSurface(vertsBlendOffset + 0);
 					registerBoneAffectingSurface(vertsBlendOffset + 1);
@@ -427,7 +435,7 @@ namespace Assets
 				}
 
 				// 4 bone weights
-				for (auto vertIndex = 0; vertIndex < surface->vertInfo.vertCount[3]; vertIndex++)
+				for (unsigned int vertIndex = 0; vertIndex < surface->vertInfo.vertCount[3]; vertIndex++)
 				{
 					registerBoneAffectingSurface(vertsBlendOffset + 0);
 					registerBoneAffectingSurface(vertsBlendOffset + 1);
@@ -437,7 +445,7 @@ namespace Assets
 					vertsBlendOffset += 7;
 				}
 
-				for (auto vertListIndex = 0; vertListIndex < surface->vertListCount; vertListIndex++)
+				for (unsigned int vertListIndex = 0; vertListIndex < surface->vertListCount; vertListIndex++)
 				{
 					affectingBones.emplace(static_cast<uint8_t>(surface->vertList[vertListIndex].boneOffset / sizeof(Game::DObjSkelMat)));
 				}
@@ -481,7 +489,7 @@ namespace Assets
 		// Start with backing up parent links that we will have to restore
 		// We'll restore them at the end
 		std::map<std::string, std::string> parentsToRestore{};
-		for (int i = model->numRootBones; i < model->numBones; i++)
+		for (uint8_t i = model->numRootBones; i < model->numBones; i++)
 		{
 			parentsToRestore[Game::SL_ConvertToString(model->boneNames[i])] = GetParentOfBone(model, i);
 		}
@@ -497,8 +505,6 @@ namespace Assets
 
 		const uint8_t newBoneIndex = atPosition;
 		const uint8_t newBoneIndexMinusRoot = atPosition - model->numRootBones;
-
-		Components::Logger::Print("Inserting bone {} at position {} (between {} and {})\n", boneName, atPosition, Game::SL_ConvertToString(model->boneNames[atPosition - 1]), Game::SL_ConvertToString(model->boneNames[atPosition + 1]));
 
 		// Reallocate
 		const auto newBoneNames = allocator.allocateArray<uint16_t>(newBoneCount);
@@ -518,8 +524,8 @@ namespace Assets
 		const uint8_t atPositionM1 = atPosition - model->numRootBones;
 
 		// should be equal to model->numBones
-		int total = lengthOfFirstPart + lengthOfSecondPart;
-		assert(total = model->numBones);
+		unsigned int total = lengthOfFirstPart + lengthOfSecondPart;
+		assert(total == model->numBones);
 
 		// should be equal to model->numBones - model->numRootBones
 		int totalM1 = lengthOfFirstPartM1 + lengthOfSecondPartM1;
@@ -599,9 +605,10 @@ namespace Assets
 		{
 			const auto lod = &model->lodInfo[lodIndex];
 
-			if ((lod->partBits[5] & 0x1) == 0x1)
+			if ((lod->modelSurfs->partBits[5] & 0x1) == 0x1)
 			{
 				// surface lod already converted (more efficient)
+				std::memcpy(lod->partBits, lod->modelSurfs->partBits, 6 * sizeof(uint32_t));
 				continue;
 			}
 
@@ -630,7 +637,7 @@ namespace Assets
 
 							if (index < 0 || index >= model->numBones)
 							{
-								Components::Logger::Print("Unexpected 'bone index' {} out of {} bones while working vertex blend of model {} lod {} surf {}\n", index, model->numBones, model->name, lodIndex, surfIndex);
+								Components::Logger::Print("Unexpected 'bone index' {} out of {} bones while working vertex blend of: xmodel {} lod {} xmodelsurf {} surf #{}", index, model->numBones, model->name, lodIndex, lod->modelSurfs->name, lodIndex, surfIndex);
 								assert(false);
 							}
 
@@ -652,7 +659,7 @@ namespace Assets
 
 								if (index < 0 || index >= model->numBones)
 								{
-									Components::Logger::Print("Unexpected 'bone index' {} out of {} bones while working list blend of model {} lod {} surf {}\n", index, model->numBones, model->name, lodIndex, surfIndex);
+									Components::Logger::Print("Unexpected 'bone index' {} out of {} bones while working vertex list of: xmodel {} lod {} xmodelsurf {} surf #{}\n", index, model->numBones, model->name, lodIndex, lod->modelSurfs->name, surfIndex);
 									assert(false);
 								}
 
@@ -711,28 +718,10 @@ namespace Assets
 			const auto key = kv.first;
 			const auto beforeVal = kv.second;
 
-			const auto parentIndex = GetIndexOfBone(model, beforeVal);
+			const auto p = GetIndexOfBone(model, beforeVal);
 			const auto index = GetIndexOfBone(model, key);
-			SetParentIndexOfBone(model, index, parentIndex);
+			SetParentIndexOfBone(model, index, p);
 		}
-
-#if DEBUG
-		// check
-		for (const auto& kv : parentsToRestore)
-		{
-			const auto key = kv.first;
-			const auto beforeVal = kv.second;
-
-			const auto index = GetIndexOfBone(model, key);
-			const auto afterVal = GetParentOfBone(model, index);
-
-			if (beforeVal != afterVal)
-			{
-				printf("");
-			}
-		}
-		//
-#endif
 
 		return atPosition; // Bone index of added bone
 	};
@@ -740,10 +729,6 @@ namespace Assets
 
 	void IXModel::TransferWeights(Game::XModel* model, const uint8_t origin, const uint8_t destination)
 	{
-		const auto from = Game::SL_ConvertToString(model->boneNames[origin]);
-		const auto to = Game::SL_ConvertToString(model->boneNames[destination]);
-		Components::Logger::Print("Transferring bone weights from {} to {}\n", from, to);
-
 		const auto originalWeights = model->baseMat[origin].transWeight;
 		model->baseMat[origin].transWeight = model->baseMat[destination].transWeight;
 		model->baseMat[destination].transWeight = originalWeights;
@@ -887,113 +872,129 @@ namespace Assets
 
 	void IXModel::ConvertPlayerModelFromSingleplayerToMultiplayer(Game::XModel* model, Utils::Memory::Allocator& allocator)
 	{
-		auto indexOfSpine = GetIndexOfBone(model, "j_spinelower");
-		if (indexOfSpine < UCHAR_MAX) // It has a spine so it must be some sort of humanoid
+		if (model->name == "body_airport_com_a"s)
 		{
-			const auto nameOfParent = GetParentOfBone(model, indexOfSpine);
-
-			if (GetIndexOfBone(model, "torso_stabilizer") == UCHAR_MAX) // Singleplayer model is likely
-			{
-
-				Components::Logger::Print("Converting {}\n", model->name);
-
-				// No stabilizer - let's do surgery
-				// We're trying to get there:
-				//	tag_origin
-				//		j_main_root
-				//			pelvis
-				//				j_hip_le
-				//				j_hip_ri
-				//				tag_stowed_hip_rear
-				//				torso_stabilizer
-				//					j_spinelower
-				//						back_low
-				//							j_spineupper
-				//								back_mid
-				//									j_spine4
-
-
-				const auto root = GetIndexOfBone(model, "j_mainroot");
-				if (root < UCHAR_MAX) {
-
-					// Add pelvis
-#if false
-					const uint8_t backLow = InsertBone(model, "back_low", "j_spinelower", allocator);
-					TransferWeights(model, GetIndexOfBone(model, "j_spinelower"), backLow);
-					SetParentIndexOfBone(model, GetIndexOfBone(model, "j_spineupper"), backLow);
-#else
-					const uint8_t indexOfPelvis = InsertBone(model, "pelvis", "j_mainroot", allocator);
-					SetBoneQuaternion(model, indexOfPelvis, true, -0.494f, -0.506f, -0.506f, 0.494);
-
-					TransferWeights(model, root, indexOfPelvis);
-
-					SetParentIndexOfBone(model, GetIndexOfBone(model, "j_hip_le"), indexOfPelvis);
-					SetParentIndexOfBone(model, GetIndexOfBone(model, "j_hip_ri"), indexOfPelvis);
-					SetParentIndexOfBone(model, GetIndexOfBone(model, "tag_stowed_hip_rear"), indexOfPelvis);
-
-					// These two are optional
-					if (GetIndexOfBone(model, "j_coatfront_le") == UCHAR_MAX)
-					{
-						InsertBone(model, "j_coatfront_le", "pelvis", allocator);
-					}
-
-					if (GetIndexOfBone(model, "j_coatfront_ri") == UCHAR_MAX)
-					{
-						InsertBone(model, "j_coatfront_ri", "pelvis", allocator);
-					}
-
-					const uint8_t torsoStabilizer = InsertBone(model, "torso_stabilizer", "pelvis", allocator);
-					const uint8_t lowerSpine = GetIndexOfBone(model, "j_spinelower");
-					SetParentIndexOfBone(model, lowerSpine, torsoStabilizer);
-
-					const uint8_t backLow = InsertBone(model, "back_low", "j_spinelower", allocator);
-					TransferWeights(model, lowerSpine, backLow);
-					SetParentIndexOfBone(model, GetIndexOfBone(model, "j_spineupper"), backLow);
-
-					const uint8_t backMid = InsertBone(model, "back_mid", "j_spineupper", allocator);
-					TransferWeights(model, GetIndexOfBone(model, "j_spineupper"), backMid);
-					SetParentIndexOfBone(model, GetIndexOfBone(model, "j_spine4"), backMid);
-
-
-					assert(root == GetIndexOfBone(model, "j_mainroot"));
-					assert(indexOfPelvis == GetIndexOfBone(model, "pelvis"));
-					assert(backLow == GetIndexOfBone(model, "back_low"));
-					assert(backMid == GetIndexOfBone(model, "back_mid"));
-
-					// Twister bone
-					SetBoneQuaternion(model, lowerSpine, false, -0.492f, -0.507f, -0.507f, 0.492f);
-					SetBoneQuaternion(model, torsoStabilizer, false, 0.494f, 0.506f, 0.506f, 0.494f);
-
-
-					// This doesn't feel like it should be necessary
-					// It is, on singleplayer models unfortunately. Could we add an extra bone to compensate this?
-					// Or compensate it another way?
-					SetBoneTrans(model, GetIndexOfBone(model, "j_spinelower"), false, 0.07, 0.0f, 5.2f);
-
-					// These are often messed up on civilian models, but there is no obvious way to tell from code
-					const auto stowedBack = GetIndexOfBone(model, "tag_stowed_back");
-					if (stowedBack != UCHAR_MAX)
-					{
-						SetBoneTrans(model, stowedBack, false, -0.32f, -6.27f, -2.65F);
-						SetBoneQuaternion(model, stowedBack, false, -0.044, 0.088, -0.995, 0.025);
-						SetBoneTrans(model, stowedBack, true, -9.571f, -2.654f, 51.738f);
-						SetBoneQuaternion(model, stowedBack, true, -0.071f, 0.0f, -0.997f, 0.0f);
-					}
-
-					if (stowedBack != UCHAR_MAX)
-					{
-						const auto stowedRear = GetIndexOfBone(model, "tag_stowed_hip_rear");
-						SetBoneTrans(model, stowedRear, false, -0.75f, -6.45f, -4.99f);
-						SetBoneQuaternion(model, stowedRear, false, -0.553f, -0.062f, -0.049f, 0.830f);
-						SetBoneTrans(model, stowedBack, true, -9.866f, -4.989f, 36.315f);
-						SetBoneQuaternion(model, stowedRear, true, -0.054, -0.025f, -0.975f, 0.214f);
-					}
-#endif
-
-					RebuildPartBits(model);
-				}
-			}
 			printf("");
+		}
+
+		std::string requiredBonesForHumanoid[] = {
+			"j_spinelower",
+			"j_spineupper",
+			"j_spine4",
+			"j_mainroot"
+		};
+
+		for (const auto& required : requiredBonesForHumanoid)
+		{
+			if (GetIndexOfBone(model, required) == UCHAR_MAX)
+			{
+				// Not humanoid - nothing to do
+				return;
+			}
+		}
+
+		auto indexOfSpine = GetIndexOfBone(model, "j_spinelower");
+		const auto nameOfParent = GetParentOfBone(model, indexOfSpine);
+
+		if (GetIndexOfBone(model, "torso_stabilizer") == UCHAR_MAX) // Singleplayer model is likely
+		{
+
+			Components::Logger::Print("Converting {} skeleton from SP to MP...\n", model->name);
+
+			// No stabilizer - let's do surgery
+			// We're trying to get there:
+			//	tag_origin
+			//		j_main_root
+			//			pelvis
+			//				j_hip_le
+			//				j_hip_ri
+			//				tag_stowed_hip_rear
+			//				torso_stabilizer
+			//					j_spinelower
+			//						back_low
+			//							j_spineupper
+			//								back_mid
+			//									j_spine4
+
+
+			const auto root = GetIndexOfBone(model, "j_mainroot");
+			if (root < UCHAR_MAX) {
+
+				// Add pelvis
+				const uint8_t indexOfPelvis = InsertBone(model, "pelvis", "j_mainroot", allocator);
+				SetBoneQuaternion(model, indexOfPelvis, true, -0.494f, -0.506f, -0.506f, 0.494f);
+
+				TransferWeights(model, root, indexOfPelvis);
+
+				SetParentIndexOfBone(model, GetIndexOfBone(model, "j_hip_le"), indexOfPelvis);
+				SetParentIndexOfBone(model, GetIndexOfBone(model, "j_hip_ri"), indexOfPelvis);
+				SetParentIndexOfBone(model, GetIndexOfBone(model, "tag_stowed_hip_rear"), indexOfPelvis);
+
+				// These two are optional
+				if (GetIndexOfBone(model, "j_coatfront_le") == UCHAR_MAX)
+				{
+					InsertBone(model, "j_coatfront_le", "pelvis", allocator);
+				}
+
+				if (GetIndexOfBone(model, "j_coatfront_ri") == UCHAR_MAX)
+				{
+					InsertBone(model, "j_coatfront_ri", "pelvis", allocator);
+				}
+
+				const uint8_t torsoStabilizer = InsertBone(model, "torso_stabilizer", "pelvis", allocator);
+				const uint8_t lowerSpine = GetIndexOfBone(model, "j_spinelower");
+				SetParentIndexOfBone(model, lowerSpine, torsoStabilizer);
+
+				const uint8_t backLow = InsertBone(model, "back_low", "j_spinelower", allocator);
+				TransferWeights(model, lowerSpine, backLow);
+				SetParentIndexOfBone(model, GetIndexOfBone(model, "j_spineupper"), backLow);
+
+				const uint8_t backMid = InsertBone(model, "back_mid", "j_spineupper", allocator);
+				TransferWeights(model, GetIndexOfBone(model, "j_spineupper"), backMid);
+				SetParentIndexOfBone(model, GetIndexOfBone(model, "j_spine4"), backMid);
+
+
+				assert(root == GetIndexOfBone(model, "j_mainroot"));
+				assert(indexOfPelvis == GetIndexOfBone(model, "pelvis"));
+				assert(backLow == GetIndexOfBone(model, "back_low"));
+				assert(backMid == GetIndexOfBone(model, "back_mid"));
+
+				// Twister bone
+				SetBoneQuaternion(model, lowerSpine, false, -0.492f, -0.507f, -0.507f, 0.492f);
+				SetBoneQuaternion(model, torsoStabilizer, false, 0.494f, 0.506f, 0.506f, 0.494f);
+
+
+				// This doesn't feel like it should be necessary
+				// It is, on singleplayer models unfortunately. Could we add an extra bone to compensate this?
+				// Or compensate it another way?
+				SetBoneTrans(model, GetIndexOfBone(model, "j_spinelower"), false, 0.07f, 0.0f, 5.2f);
+
+				// These are often messed up on civilian models, but there is no obvious way to tell from code
+				auto stowedBack = GetIndexOfBone(model, "tag_stowed_back");
+				if (stowedBack == UCHAR_MAX)
+				{
+					stowedBack = InsertBone(model, "tag_stowed_back", "j_spine4", allocator);
+				}
+
+				SetBoneTrans(model, stowedBack, false, -0.32f, -6.27f, -2.65F);
+				SetBoneQuaternion(model, stowedBack, false, -0.044f, 0.088f, -0.995f, 0.025f);
+				SetBoneTrans(model, stowedBack, true, -9.571f, -2.654f, 51.738f);
+				SetBoneQuaternion(model, stowedBack, true, -0.071f, 0.0f, -0.997f, 0.0f);
+
+				auto stowedRear = GetIndexOfBone(model, "tag_stowed_hip_rear");
+				if (stowedRear == UCHAR_MAX)
+				{
+					stowedBack = InsertBone(model, "tag_stowed_hip_rear", "pelvis", allocator);
+				}
+
+				SetBoneTrans(model, stowedRear, false, -0.75f, -6.45f, -4.99f);
+				SetBoneQuaternion(model, stowedRear, false, -0.553f, -0.062f, -0.049f, 0.830f);
+				SetBoneTrans(model, stowedBack, true, -9.866f, -4.989f, 36.315f);
+				SetBoneQuaternion(model, stowedRear, true, -0.054f, -0.025f, -0.975f, 0.214f);
+
+
+				RebuildPartBits(model);
+			}
 		}
 	}
 

@@ -1066,7 +1066,7 @@ namespace Game
 
 	struct XSurfaceVertexInfo
 	{
-		__int16 vertCount[4];
+		unsigned __int16 vertCount[4];
 		unsigned __int16* vertsBlend;
 	};
 

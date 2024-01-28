@@ -314,8 +314,6 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
-
-
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
 

@@ -221,7 +221,7 @@ namespace Components
 				retn
 		}
 	}
-#pragma optimize( "", off )
+
 	void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name)
 	{
 #ifdef DEBUG
@@ -235,63 +235,6 @@ namespace Components
 			}
 		}
 #endif
-		if (type == Game::XAssetType::ASSET_TYPE_XANIMPARTS)
-		{
-			auto anim = asset.parts;
-			if (anim->name == "unarmed_cowerstand_idle"s || anim->name == "civilian_walk_cool"s || anim->name == "civilian_run_upright"s)
-			{
-				auto str = Game::SL_FindString("j_spinelower");
-				int interestingPart = 0;
-				{
-					if (anim->names[i] == str)
-					{
-						interestingPart = i;
-					}
-				}
-
-				// Something interesting to do there
-			}
-		}
-
-
-		if (type == Game::XAssetType::ASSET_TYPE_XMODEL)
-			//if (name == "body_urban_civ_female_a"s || name == "mp_body_opforce_arab_assault_a"s)
-		{
-
-			if (name == "body_urban_civ_male_aa"s)
-			{
-				printf("");
-			}
-
-			const auto model = asset.model;
-
-			int total =
-				model->noScalePartBits[0] |
-				model->noScalePartBits[1] |
-				model->noScalePartBits[2] |
-				model->noScalePartBits[3] |
-				model->noScalePartBits[4] |
-				model->noScalePartBits[5];
-
-			if (total != 0)
-			{
-				printf("");
-			}
-
-			if (!model->quats || !model->trans || model->numBones < 10)
-			{
-				// Unlikely candidate
-				return;
-			}
-			static  Utils::Memory::Allocator allocator{};
-
-			//
-			//if (name == "body_urban_civ_female_a"s)
-			{
-				Assets::IXModel::ConvertPlayerModelFromSingleplayerToMultiplayer(model, allocator);
-				printf("");
-			}
-		}
 
 		if (type == Game::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light" || name == "gfx_distortion_heat") && asset.material->info.sortKey >= 43)
 		{
@@ -348,7 +291,6 @@ namespace Components
 			asset.gfxWorld->sortKeyDistortion = 43;
 		}
 	}
-#pragma optimize( "", on )
 
 	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset)
 	{

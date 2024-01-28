@@ -135,6 +135,8 @@ namespace Components
 		static void BeginAssetTrace(const std::string& zone);
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
 
+		static Dvar::Var zb_sp_to_mp;
+
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
 		static std::string GetDumpingZonePath();
 		static void RefreshExporterWorkDirectory();

@@ -7,6 +7,8 @@
 #include <version.hpp>
 
 #include "AssetInterfaces/ILocalizeEntry.hpp"
+
+#include "Events.hpp"
 #include "Branding.hpp"
 
 namespace Components
@@ -21,6 +23,8 @@ namespace Components
 	std::thread ZoneBuilder::CommandThread;
 	iw4of::api ZoneBuilder::ExporterAPI(GetExporterAPIParams());
 	std::string ZoneBuilder::DumpingZone{};
+
+	Dvar::Var ZoneBuilder::zb_sp_to_mp{};
 
 	ZoneBuilder::Zone::Zone(const std::string& name, const std::string& sourceName, const std::string& destination) :
 		indexStart(0), externalSize(0),
@@ -115,7 +119,7 @@ namespace Components
 		return &iw4ofApi;
 	}
 
-	void ZoneBuilder::Zone::Zone::build()
+	void ZoneBuilder::Zone::build()
 	{
 		if (!this->dataMap.isValid())
 		{
@@ -1189,7 +1193,7 @@ namespace Components
 
 			Game::DB_LoadXAssets(&info, 1, true);
 			AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
-			};
+		};
 	}
 
 	ZoneBuilder::ZoneBuilder()
@@ -1300,6 +1304,8 @@ namespace Components
 			// don't remap techsets
 			Utils::Hook::Nop(0x5BC791, 5);
 
+			ZoneBuilder::zb_sp_to_mp = Game::Dvar_RegisterBool("zb_sp_to_mp", false, Game::DVAR_ARCHIVE, "Attempt to convert singleplayer assets to multiplayer format whenever possible");
+
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /* asset*/, const std::string& name, bool* /*restrict*/)
 				{
 					if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
@@ -1402,7 +1408,7 @@ namespace Components
 								if (assetHeader.data)
 								{
 									ExporterAPI.write(type, assetHeader.data);
-									const auto typeName = Game::DB_GetXAssetTypeName(type) ;
+									const auto typeName = Game::DB_GetXAssetTypeName(type);
 
 									if (type != lastTypeEncountered)
 									{
@@ -1541,8 +1547,8 @@ namespace Components
 #endif
 							}
 						}
-		}
-	});
+					}
+				});
 
 			Command::Add("listassets", [](const Command::Params* params)
 				{
@@ -1558,7 +1564,7 @@ namespace Components
 							}, &type, false);
 					}
 				});
-}
+		}
 	}
 
 	ZoneBuilder::~ZoneBuilder()
