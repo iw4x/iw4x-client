@@ -214,6 +214,7 @@ namespace Components
 
 			if (Bans::IsBanned({guid, address.getIP()}))
 			{
+				Logger::PrintFail2Ban("Failed connect attempt from IP address: {}\n", Network::AdrToString(address));
 				Network::Send(address, "error\nEXE_ERR_BANNED_PERM");
 				return;
 			}
@@ -313,6 +314,12 @@ namespace Components
 			push 0x460FB3
 			ret
 		}
+	}
+
+	void ClientConnectFailedStub(Game::netsrc_t sock, Game::netadr_t adr, const char* data)
+	{
+		Logger::PrintFail2Ban("Failed connect attempt from IP address: {}\n", Network::AdrToString(adr));
+		Game::NET_OutOfBandPrint(sock, adr, data);
 	}
 
 	unsigned __int64 Auth::GetKeyHash(const std::string& key)
@@ -501,6 +508,9 @@ namespace Components
 		Utils::Hook::Nop(0x460FAD + 5, 1);
 
 		Utils::Hook(0x41D3E3, SendConnectDataStub, HOOK_CALL).install()->quick();
+
+		// Hook for Fail2Ban (Hook near client connect to detect password brute forcing)
+		Utils::Hook(0x4611CA, ClientConnectFailedStub, HOOK_CALL).install()->quick(); // NET_OutOfBandPrint (Grab IP super easy)
 
 		// SteamIDs can only contain 31 bits of actual 'id' data.
 		// The other 33 bits are steam internal data like universe and so on.
