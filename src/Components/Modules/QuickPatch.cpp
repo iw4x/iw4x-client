@@ -298,20 +298,6 @@ namespace Components
 		return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
 	}
 
-	void  DObjCalcAnim(Game::DObj *a1, int *partBits, Game::XAnimCalcAnimInfo *a3)
-	{
-		printf("");
-
-		if (a1->models[0]->name == "body_urban_civ_female_a"s)
-		{
-			printf("");
-		}
-
-		Utils::Hook::Call<void(Game::DObj*, int*, Game::XAnimCalcAnimInfo*)>(0x49E230)(a1, partBits, a3);
-
-		printf("");
-	}
-
 	QuickPatch::QuickPatch()
 	{
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning

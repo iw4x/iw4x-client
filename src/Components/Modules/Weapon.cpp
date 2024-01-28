@@ -6,8 +6,17 @@
 namespace Components
 {
 	const Game::dvar_t* Weapon::BGWeaponOffHandFix;
-	Game::XModel* Weapon::G_ModelIndexReallocated[G_MODELINDEX_LIMIT];
+	Game::XModel* Weapon::cached_models_reallocated[G_MODELINDEX_LIMIT];
 	bool Weapon::GModelIndexHasBeenReallocated;
+
+	// Config strings mapping
+	// 0-1067 unknown
+	// 1125-1580 cached models (512 long range)
+	// 1581-1637 also reserved for models?
+	// 1637-4082 unknown
+	// 4082-above = bad index?
+	// 4137 : timescale
+	// 4138-above = reserved for weapons?
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
@@ -22,7 +31,7 @@ namespace Components
 
 	const char* Weapon::GetWeaponConfigString(int index)
 	{
-		if (index >= (1200 + 2804)) index += (2939 - 2804);
+		if (index >= (BASEGAME_WEAPON_LIMIT + 2804)) index += (2939 - 2804);
 		return Game::CL_GetConfigString(index);
 	}
 
@@ -34,7 +43,7 @@ namespace Components
 		{
 			for (unsigned int i = 1; i < Game::BG_GetNumWeapons(); ++i)
 			{
-				Game::SV_SetConfigstring(i + (i >= 1200 ? 2939 : 2804), Game::BG_GetWeaponName(i));
+				Game::SV_SetConfigstring(i + (i >= BASEGAME_WEAPON_LIMIT ? 2939 : 2804), Game::BG_GetWeaponName(i));
 			}
 		}
 	}
@@ -57,12 +66,14 @@ namespace Components
 			return 0;
 		}
 
-		if (index >= 4139)
+		if (index >= BASEGAME_MAX_CONFIGSTRINGS)
 		{
+			// if above 4139, remap to 1200<>?
 			index -= 2939;
 		}
-		else if (index > 2804 && index <= 2804 + 1200)
+		else if (index > 2804 && index <= 2804 + BASEGAME_WEAPON_LIMIT)
 		{
+			// from 2804 to 4004, remap to 0<>1200
 			index -= 2804;
 		}
 		else
@@ -283,8 +294,8 @@ namespace Components
 		// And http://reverseengineering.stackexchange.com/questions/1397/how-can-i-reverse-optimized-integer-division-modulo-by-constant-operations
 		// The game's magic number is computed using this formula: (1 / 1200) * (2 ^ (32 + 7)
 		// I'm too lazy to generate the new magic number, so we can make use of the fact that using powers of 2 as scales allows to change the compensating shift
-		static_assert(((WEAPON_LIMIT / 1200) * 1200) == WEAPON_LIMIT && (WEAPON_LIMIT / 1200) != 0 && !((WEAPON_LIMIT / 1200) & ((WEAPON_LIMIT / 1200) - 1)), "WEAPON_LIMIT / 1200 is not a power of 2!");
-		const unsigned char compensation = 7 + static_cast<unsigned char>(log2(WEAPON_LIMIT / 1200)); // 7 is the compensation the game uses
+		static_assert(((WEAPON_LIMIT / BASEGAME_WEAPON_LIMIT) * BASEGAME_WEAPON_LIMIT) == WEAPON_LIMIT && (WEAPON_LIMIT / BASEGAME_WEAPON_LIMIT) != 0 && !((WEAPON_LIMIT / BASEGAME_WEAPON_LIMIT) & ((WEAPON_LIMIT / BASEGAME_WEAPON_LIMIT) - 1)), "WEAPON_LIMIT / 1200 is not a power of 2!");
+		const unsigned char compensation = 7 + static_cast<unsigned char>(log2(WEAPON_LIMIT / BASEGAME_WEAPON_LIMIT)); // 7 is the compensation the game uses
 		Utils::Hook::Set<BYTE>(0x49263D, compensation);
 		Utils::Hook::Set<BYTE>(0x5E250C, compensation);
 		Utils::Hook::Set<BYTE>(0x5E2B43, compensation);
@@ -407,46 +418,46 @@ namespace Components
 		// Patch bg_weaponDefs on the stack
 		Utils::Hook::Set<DWORD>(0x40C31D, sizeof(bg_weaponDefs));
 		Utils::Hook::Set<DWORD>(0x40C32F, sizeof(bg_weaponDefs));
-		Utils::Hook::Set<DWORD>(0x40C311, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C45F, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C478, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C434, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C434, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C311, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C45F, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C478, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C434, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C434, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
 		// Move second buffer pointers
-		Utils::Hook::Set<DWORD>(0x40C336, 0x12E4 + ((sizeof(bg_weaponDefs)) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x40C3C6, 0x12DC + ((sizeof(bg_weaponDefs)) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x40C3CE, 0x12DC + ((sizeof(bg_weaponDefs)) - (1200 * 4)));
+		Utils::Hook::Set<DWORD>(0x40C336, 0x12E4 + ((sizeof(bg_weaponDefs)) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x40C3C6, 0x12DC + ((sizeof(bg_weaponDefs)) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x40C3CE, 0x12DC + ((sizeof(bg_weaponDefs)) - (BASEGAME_WEAPON_LIMIT * 4)));
 		// Move arg0 pointers
-		Utils::Hook::Set<DWORD>(0x40C365, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C44E, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C467, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C365, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C44E, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C467, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
 		// Move arg4 pointers
-		Utils::Hook::Set<DWORD>(0x40C344, 0x25B4 + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C344, 0x25B4 + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
 
 		// Patch bg_sharedAmmoCaps on the stack
 		Utils::Hook::Set<DWORD>(0x4F76E6, sizeof(bg_sharedAmmoCaps));
-		Utils::Hook::Set<DWORD>(0x4F7621, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x4F76AF, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x4F76DA, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x4F77C5, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
+		Utils::Hook::Set<DWORD>(0x4F7621, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x4F76AF, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x4F76DA, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x4F77C5, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
 		// Move arg0 pointers
-		Utils::Hook::Set<DWORD>(0x4F766D, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x4F76B7, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x4F76FB, 0x12EC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
+		Utils::Hook::Set<DWORD>(0x4F766D, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x4F76B7, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x4F76FB, 0x12EC + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
 		// Move arg4 pointers
-		Utils::Hook::Set<DWORD>(0x4F7630, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
+		Utils::Hook::Set<DWORD>(0x4F7630, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
 
 
 		// Reallocate G_ModelIndex
-		Utils::Hook::Set(0x420654 + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x43BCE4 + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x44F27B + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x479087 + 1, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x48069D + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x48F088 + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x4F457C + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x5FC762 + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x5FC7BE  + 3, G_ModelIndexReallocated);
+		Utils::Hook::Set(0x420654 + 3, cached_models_reallocated);
+		Utils::Hook::Set(0x43BCE4 + 3, cached_models_reallocated);
+		Utils::Hook::Set(0x44F27B + 3, cached_models_reallocated);
+		Utils::Hook::Set(0x479087 + 1, cached_models_reallocated);
+		Utils::Hook::Set(0x48069D + 3, cached_models_reallocated);
+		Utils::Hook::Set(0x48F088 + 3, cached_models_reallocated);
+		Utils::Hook::Set(0x4F457C + 3, cached_models_reallocated);
+		Utils::Hook::Set(0x5FC762 + 3, cached_models_reallocated);
+		Utils::Hook::Set(0x5FC7BE  + 3, cached_models_reallocated);
 		Utils::Hook::Set<DWORD>(0x44F256 + 2, G_MODELINDEX_LIMIT);
 
 		GModelIndexHasBeenReallocated = true;
