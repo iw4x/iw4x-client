@@ -1,7 +1,5 @@
 #include <STDInclude.hpp>
 
-#include <stdint.h>
-
 #include "IXModel.hpp"
 
 namespace Assets

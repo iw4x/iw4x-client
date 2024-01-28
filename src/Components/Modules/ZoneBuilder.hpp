@@ -162,6 +162,8 @@ namespace Components
 
 		static iw4of::params_t GetExporterAPIParams();
 
+		static void DumpZone(const std::string& zone);
+
 		static std::function<void()> LoadZoneWithTrace(const std::string& zone, OUT std::vector<std::pair<Game::XAssetType, std::string>> &assets);
 
 		static void Com_Quitf_t();
