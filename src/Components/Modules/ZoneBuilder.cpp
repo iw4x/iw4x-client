@@ -8,6 +8,9 @@
 
 #include "AssetInterfaces/ILocalizeEntry.hpp"
 
+#include "Events.hpp"
+#include "Branding.hpp"
+
 namespace Components
 {
 	std::string ZoneBuilder::TraceZone;
@@ -21,7 +24,10 @@ namespace Components
 	iw4of::api ZoneBuilder::ExporterAPI(GetExporterAPIParams());
 	std::string ZoneBuilder::DumpingZone{};
 
-	ZoneBuilder::Zone::Zone(const std::string& name) : indexStart(0), externalSize(0),
+	Dvar::Var ZoneBuilder::zb_sp_to_mp{};
+
+	ZoneBuilder::Zone::Zone(const std::string& name, const std::string& sourceName, const std::string& destination) :
+		indexStart(0), externalSize(0),
 		// Reserve 100MB by default.
 		// That's totally fine, as the dedi doesn't load images and therefore doesn't need much memory.
 		// That way we can be sure it won't need to reallocate memory.
@@ -29,10 +35,16 @@ namespace Components
 		// Well, decompressed maps can get way larger than 100MB, so let's increase that.
 		buffer(0xC800000),
 		zoneName(name),
-		dataMap("zone_source/" + name + ".csv"),
+		destination(destination),
+		dataMap("zone_source/" + sourceName + ".csv"),
 		branding{ nullptr },
 		assetDepth(0),
 		iw4ofApi(getIW4OfApiParams())
+	{
+
+	}
+
+	ZoneBuilder::Zone::Zone(const std::string& name) : ZoneBuilder::Zone::Zone(name, name, std::format("zone/english/{}.ff", name))
 	{
 	}
 
@@ -107,7 +119,7 @@ namespace Components
 		return &iw4ofApi;
 	}
 
-	void ZoneBuilder::Zone::Zone::build()
+	void ZoneBuilder::Zone::build()
 	{
 		if (!this->dataMap.isValid())
 		{
@@ -148,7 +160,7 @@ namespace Components
 				{
 					Game::XZoneInfo info;
 					info.name = fastfile.data();
-					info.allocFlags = 0x20;
+					info.allocFlags = Game::DB_ZONE_LOAD;
 					info.freeFlags = 0;
 
 					Game::DB_LoadXAssets(&info, 1, true);
@@ -449,11 +461,11 @@ namespace Components
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
 		outBuffer.append(zoneBuffer);
 
-		std::string outFile = "zone/" + this->zoneName + ".ff";
-		Utils::IO::WriteFile(outFile, outBuffer);
 
-		Logger::Print("done.\n");
-		Logger::Print("Zone '{}' written with {} assets and {} script strings\n", outFile, (this->aliasList.size() + this->loadedAssets.size()), this->scriptStrings.size());
+		Utils::IO::WriteFile(destination, outBuffer);
+
+		Logger::Print("done writing {}\n", destination);
+		Logger::Print("Zone '{}' written with {} assets and {} script strings\n", destination, (this->aliasList.size() + this->loadedAssets.size()), this->scriptStrings.size());
 	}
 
 	void ZoneBuilder::Zone::saveData()
@@ -759,16 +771,21 @@ namespace Components
 		return header;
 	}
 
-	void ZoneBuilder::RefreshExporterWorkDirectory()
+	std::string ZoneBuilder::GetDumpingZonePath()
 	{
 		if (ZoneBuilder::DumpingZone.empty())
 		{
-			ExporterAPI.set_work_path(std::format("userraw/dump/stray"));
+			return std::format("userraw/dump/stray");
 		}
 		else
 		{
-			ExporterAPI.set_work_path(std::format("userraw/dump/{}", ZoneBuilder::DumpingZone));
+			return std::format("userraw/dump/{}", ZoneBuilder::DumpingZone);
 		}
+	}
+
+	void ZoneBuilder::RefreshExporterWorkDirectory()
+	{
+		ExporterAPI.set_work_path(GetDumpingZonePath());
 	}
 
 	iw4of::api* ZoneBuilder::GetExporter()
@@ -789,7 +806,7 @@ namespace Components
 
 		params.request_mark_asset = [this](int type, void* data) -> void
 			{
-				Game::XAsset asset {static_cast<Game::XAssetType>(type), {data}};
+				Game::XAsset asset{ static_cast<Game::XAssetType>(type), {data} };
 
 				AssetHandler::ZoneMark(asset, this);
 				this->addRawAsset(static_cast<Game::XAssetType>(type), data);
@@ -988,10 +1005,10 @@ namespace Components
 		Logger::Print(" --------------------------------------------------------------------------------\n");
 		Logger::Print(" IW4x ZoneBuilder - {}\n", REVISION_STR);
 		Logger::Print(" Commands:\n");
-		Logger::Print("\t-buildzone [zone]: builds a zone from a csv located in zone_source\n");
-		Logger::Print("\t-buildall: builds all zones in zone_source\n");
+		Logger::Print("\t-buildmod [mod name]: Build a mod.ff from the source located in zone_source/mod_name.csv\n");
+		Logger::Print("\t-buildzone [zone]: Builds a zone from a csv located in zone_source\n");
+		Logger::Print("\t-dumpzone [zone]: Loads and dump the specified zone in userraw/dump\n");
 		Logger::Print("\t-verifyzone [zone]: loads and verifies the specified zone\n");
-		Logger::Print("\t-dumpzone [zone]: loads and dump the specified zone\n");
 		Logger::Print("\t-listassets [assettype]: lists all loaded assets of the specified type\n");
 		Logger::Print("\t-quit: quits the program\n");
 		Logger::Print(" --------------------------------------------------------------------------------\n");
@@ -1150,6 +1167,168 @@ namespace Components
 		return params;
 	}
 
+	void ZoneBuilder::DumpZone(const std::string& zone)
+	{
+		ZoneBuilder::DumpingZone = zone;
+		ZoneBuilder::RefreshExporterWorkDirectory();
+
+		std::vector<std::pair<Game::XAssetType, std::string>> assets{};
+		const auto unload = ZoneBuilder::LoadZoneWithTrace(zone, assets);
+
+		Logger::Print("Dumping zone '{}'...\n", zone);
+
+		{
+			Utils::IO::CreateDir(GetDumpingZonePath());
+			std::ofstream csv(std::filesystem::path(GetDumpingZonePath()) / std::format("{}.csv", zone));
+			csv
+				<< std::format("### Zone '{}' dumped with Zonebuilder {}", zone, Components::Branding::GetVersionString())
+				<< "\n\n";
+
+			// Order the CSV around
+			// TODO: Trim asset list using IW4OF dependencies
+			constexpr Game::XAssetType typeOrder[] = {
+				Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP,
+				Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP,
+				Game::XAssetType::ASSET_TYPE_GFXWORLD,
+				Game::XAssetType::ASSET_TYPE_COMWORLD,
+				Game::XAssetType::ASSET_TYPE_FXWORLD,
+				Game::XAssetType::ASSET_TYPE_CLIPMAP_MP,
+				Game::XAssetType::ASSET_TYPE_CLIPMAP_SP,
+				Game::XAssetType::ASSET_TYPE_RAWFILE,
+				Game::XAssetType::ASSET_TYPE_VEHICLE,
+				Game::XAssetType::ASSET_TYPE_WEAPON,
+				Game::XAssetType::ASSET_TYPE_FX,
+				Game::XAssetType::ASSET_TYPE_TRACER,
+				Game::XAssetType::ASSET_TYPE_XMODEL,
+				Game::XAssetType::ASSET_TYPE_MATERIAL,
+				Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET,
+				Game::XAssetType::ASSET_TYPE_PIXELSHADER,
+				Game::XAssetType::ASSET_TYPE_VERTEXSHADER,
+				Game::XAssetType::ASSET_TYPE_VERTEXDECL,
+				Game::XAssetType::ASSET_TYPE_IMAGE,
+				Game::XAssetType::ASSET_TYPE_SOUND,
+				Game::XAssetType::ASSET_TYPE_LOADED_SOUND,
+				Game::XAssetType::ASSET_TYPE_SOUND_CURVE,
+				Game::XAssetType::ASSET_TYPE_PHYSPRESET,
+			};
+
+			std::unordered_map<Game::XAssetType, int> typePriority{};
+			for (auto i = 0; i < ARRAYSIZE(typeOrder); i++)
+			{
+				const auto type = typeOrder[i];
+				typePriority.emplace(type, 1 + ARRAYSIZE(typeOrder) - i);
+			}
+
+			std::map<std::string, std::vector<std::string>> invalidAssets{};
+
+			std::sort(assets.begin(), assets.end(), [&](
+				const std::pair<Game::XAssetType, std::string>& a,
+				const std::pair<Game::XAssetType, std::string>& b
+				) {
+					if (a.first == b.first)
+					{
+
+						return a.second.compare(b.second) < 0;
+					}
+					else
+					{
+						const auto priorityA = typePriority[a.first];
+						const auto priorityB = typePriority[b.first];
+
+						if (priorityA == priorityB)
+						{
+							return a.second.compare(b.second) < 0;
+						}
+						else
+						{
+							return priorityB < priorityA;
+						}
+					}
+				});
+
+			// Used to format the CSV
+			Game::XAssetType lastTypeEncountered{};
+
+			for (const auto& asset : assets)
+			{
+				const auto type = asset.first;
+				const auto name = asset.second;
+				if (ExporterAPI.is_type_supported(type) && name[0] != ',')
+				{
+					const auto assetHeader = Game::DB_FindXAssetHeader(type, name.data());
+					if (assetHeader.data)
+					{
+						ExporterAPI.write(type, assetHeader.data);
+						const auto typeName = Game::DB_GetXAssetTypeName(type);
+
+						if (type != lastTypeEncountered)
+						{
+							csv << "\n### " << typeName << "\n";
+							lastTypeEncountered = type;
+						}
+
+						csv << typeName << "," << name << "\n";
+					}
+					else
+					{
+						Logger::Warning(Game::conChannel_t::CON_CHANNEL_ERROR, "Asset {} has disappeared while dumping!\n", name);
+						invalidAssets["The following assets disappeared while dumping"].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(type), name));
+					}
+				}
+				else
+				{
+					invalidAssets["The following assets are unsupported or not dumped as individual assets, but still present in the zone"].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(type), name));
+				}
+			}
+
+			for (const auto& kv : invalidAssets)
+			{
+				csv << "\n### " << kv.first << "\n";
+				for (const auto& line : kv.second)
+				{
+					csv << "#" << line << "\n";
+				}
+			}
+
+			csv << std::format("\n### {} assets", assets.size()) << "\n";
+		}
+
+		unload();
+
+		Logger::Print("Zone '{}' dumped", ZoneBuilder::DumpingZone);
+		ZoneBuilder::DumpingZone = std::string();
+	}
+
+
+	std::function<void()> ZoneBuilder::LoadZoneWithTrace(const std::string& zone, OUT std::vector<std::pair<Game::XAssetType, std::string>>& assets)
+	{
+		ZoneBuilder::BeginAssetTrace(zone);
+
+		Game::XZoneInfo info{};
+		info.name = zone.data();
+		info.allocFlags = Game::DB_ZONE_MOD;
+		info.freeFlags = 0;
+
+		Logger::Print("Loading zone '{}'...\n", zone);
+
+		Game::DB_LoadXAssets(&info, 1, true);
+		AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, zone.data()); // Lock until zone is loaded
+
+		assets = ZoneBuilder::EndAssetTrace();
+
+		return [zone]() {
+			Logger::Print("Unloading zone '{}'...\n", zone);
+
+			Game::XZoneInfo info{};
+			info.freeFlags = Game::DB_ZONE_MOD;
+			info.allocFlags = 0;
+			info.name = nullptr;
+
+			Game::DB_LoadXAssets(&info, 1, true);
+			AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
+			};
+	}
+
 	ZoneBuilder::ZoneBuilder()
 	{
 		// ReSharper disable CppStaticAssertFailure
@@ -1258,14 +1437,13 @@ namespace Components
 			// don't remap techsets
 			Utils::Hook::Nop(0x5BC791, 5);
 
+			ZoneBuilder::zb_sp_to_mp = Game::Dvar_RegisterBool("zb_sp_to_mp", false, Game::DVAR_ARCHIVE, "Attempt to convert singleplayer assets to multiplayer format whenever possible");
+
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /* asset*/, const std::string& name, bool* /*restrict*/)
 				{
 					if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 					{
 						ZoneBuilder::TraceAssets.emplace_back(std::make_pair(type, name));
-#ifdef _DEBUG
-						OutputDebugStringA(Utils::String::Format("%s\n", name));
-#endif
 					}
 				});
 
@@ -1274,70 +1452,8 @@ namespace Components
 					if (params->size() < 2) return;
 
 					std::string zone = params->get(1);
-					ZoneBuilder::DumpingZone = zone;
-					ZoneBuilder::RefreshExporterWorkDirectory();
 
-					Game::XZoneInfo info;
-					info.name = zone.data();
-					info.allocFlags = Game::DB_ZONE_MOD;
-					info.freeFlags = 0;
-
-					Logger::Print("Loading zone '{}'...\n", zone);
-
-					{
-						struct asset_t
-						{
-							Game::XAssetType type;
-							char name[128];
-						};
-
-						std::vector<asset_t> assets{};
-						const auto handle = AssetHandler::OnLoad([&](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
-							{
-								if (ExporterAPI.is_type_supported(type) && name[0] != ',')
-								{
-									Game::XAsset xasset = { type, asset };
-									asset_t assetIdentifier{};
-
-									// Fetch name
-									const auto assetName = Game::DB_GetXAssetName(&xasset);
-									std::memcpy(assetIdentifier.name, assetName, strnlen(assetName, ARRAYSIZE(assetIdentifier.name) - 1));
-									assetIdentifier.name[ARRAYSIZE(assetIdentifier.name) - 1] = '\x00';
-
-									assetIdentifier.type = type;
-
-									assets.push_back(assetIdentifier);
-								}
-							});
-
-						Game::DB_LoadXAssets(&info, 1, true);
-						AssetHandler::FindOriginalAsset(Game::ASSET_TYPE_RAWFILE, zone.data()); // Lock until zone is loaded
-
-						Logger::Print("Dumping zone '{}'...\n", zone);
-						handle(); // Release
-						for (const auto& asset : assets)
-						{
-							const auto assetHeader = Game::DB_FindXAssetHeader(asset.type, asset.name);
-							if (assetHeader.data)
-							{
-								ExporterAPI.write(asset.type, assetHeader.data);
-							}
-							else
-							{
-								Logger::Warning(Game::conChannel_t::CON_CHANNEL_ERROR, "Asset {} has disappeared while dumping!", asset.name);
-							}
-						}
-					}
-
-					Logger::Print("Unloading zone '{}'...\n", zone);
-					info.freeFlags = Game::DB_ZONE_MOD;
-					info.allocFlags = 0;
-					info.name = nullptr;
-
-					Game::DB_LoadXAssets(&info, 1, true);
-					AssetHandler::FindOriginalAsset(Game::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
-					Logger::Print("Zone '{}' dumped", ZoneBuilder::DumpingZone);
-					ZoneBuilder::DumpingZone = std::string();
+					ZoneBuilder::DumpZone(zone);
 				});
 
 			Command::Add("verifyzone", [](const Command::Params* params)
@@ -1345,30 +1461,8 @@ namespace Components
 					if (params->size() < 2) return;
 
 					std::string zone = params->get(1);
-
-					ZoneBuilder::BeginAssetTrace(zone);
-
-					Game::XZoneInfo info;
-					info.name = zone.data();
-					info.allocFlags = Game::DB_ZONE_MOD;
-					info.freeFlags = 0;
-
-					Logger::Print("Loading zone '{}'...\n", zone);
-
-					Game::DB_LoadXAssets(&info, 1, true);
-					AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, zone.data()); // Lock until zone is loaded
-
-					auto assets = ZoneBuilder::EndAssetTrace();
-
-					Logger::Print("Unloading zone '{}'...\n", zone);
-					info.freeFlags = Game::DB_ZONE_MOD;
-					info.allocFlags = 0;
-					info.name = nullptr;
-
-					Game::DB_LoadXAssets(&info, 1, true);
-					AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
-
-					Logger::Print("Zone '{}' loaded with {} assets:\n", zone, assets.size());
+					std::vector<std::pair<Game::XAssetType, std::string>> assets{};
+					const auto unload = ZoneBuilder::LoadZoneWithTrace(zone, assets);
 
 					int count = 0;
 					for (auto i = assets.begin(); i != assets.end(); ++i, ++count)
@@ -1377,6 +1471,7 @@ namespace Components
 					}
 
 					Logger::Print("\n");
+					unload();
 				});
 
 			Command::Add("buildzone", [](const Command::Params* params)
@@ -1387,6 +1482,26 @@ namespace Components
 					Logger::Print("Building zone '{}'...\n", zoneName);
 
 					Zone(zoneName).build();
+				});
+
+			Command::Add("buildmod", [](const Command::Params* params)
+				{
+					if (params->size() < 2) return;
+
+					Dvar::Var fs_game("fs_game");
+
+					std::string modName = params->get(1);
+					Logger::Print("Building zone for mod '{}'...\n", modName);
+
+					const std::string previousFsGame = fs_game.get<std::string>();
+					const std::string dir = "mods/" + modName;
+					Utils::IO::CreateDir(dir);
+
+					fs_game.set(dir);
+
+					Zone("mod", modName, dir + "/mod.ff").build();
+
+					fs_game.set(previousFsGame);
 				});
 
 			Command::Add("buildall", []()
@@ -1404,23 +1519,6 @@ namespace Components
 						Command::Execute(std::format("buildzone {}", source), true);
 					}
 				});
-
-			static std::set<std::string> curTechsets_list;
-			static std::set<std::string> techsets_list;
-
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader, const std::string& name, bool*)
-				{
-					if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
-					{
-						if (name[0] == ',') return; // skip techsets from common_mp
-						if (techsets_list.find(name) == techsets_list.end())
-						{
-							curTechsets_list.emplace(name);
-							techsets_list.emplace(name);
-						}
-					}
-				});
-
 
 			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, [[maybe_unused]] const std::string& name, [[maybe_unused]] bool* restrict)
 				{
@@ -1441,6 +1539,11 @@ namespace Components
 							{
 								// ouch
 								// This should never happen and will cause a memory leak
+#if DEBUG
+								// TODO: Crash the game proper when this happen, and do it in ModifyAsset maybe?
+								__debugbreak();
+								assert(false);
+#else
 								// Let's change it to a streamed sound instead
 								thisSound.soundFile->type = Game::SAT_STREAMED;
 
@@ -1451,262 +1554,10 @@ namespace Components
 								auto dir = virtualPath.remove_filename().string();
 								dir = dir.substr(0, dir.size() - 1); // remove /
 								thisSound.soundFile->u.streamSnd.filename.info.raw.dir = Utils::Memory::DuplicateString(dir);
+#endif
 							}
 						}
 					}
-				});
-
-			Command::Add("buildtechsets", [](const Command::Params*)
-				{
-					Utils::IO::CreateDir("zone_source/techsets");
-					Utils::IO::CreateDir("zone/techsets");
-
-					std::string csvStr;
-
-					const auto dir = std::format("zone/{}", Game::Win_GetLanguage());
-					auto fileList = Utils::IO::ListFiles(dir, false);
-					for (const auto& entry : fileList)
-					{
-						auto zone = entry.path().string();
-						Utils::String::Replace(zone, Utils::String::VA("zone/%s/", Game::Win_GetLanguage()), "");
-						Utils::String::Replace(zone, ".ff", "");
-
-						if (Utils::IO::FileExists("zone/techsets/" + zone + "_techsets.ff"))
-						{
-							Logger::Print("Skipping previously generated zone {}\n", zone);
-							continue;
-						}
-
-						if (zone.find("_load") != std::string::npos)
-						{
-							Logger::Print("Skipping loadscreen zone {}\n", zone);
-							continue;
-						}
-
-						if (Game::DB_IsZoneLoaded(zone.c_str()) || !FastFiles::Exists(zone))
-						{
-							continue;
-						}
-
-						if (zone[0] == '.') continue; // fucking mac dotfiles
-
-						curTechsets_list.clear(); // clear from last run
-
-						// load the zone
-						Game::XZoneInfo info;
-						info.name = zone.c_str();
-						info.allocFlags = Game::DB_ZONE_MOD;
-						info.freeFlags = 0x0;
-						Game::DB_LoadXAssets(&info, 1, 0);
-
-						while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms); // wait till its fully loaded
-
-						if (curTechsets_list.empty())
-						{
-							Logger::Print("Skipping empty zone {}\n", zone);
-							// unload zone
-							info.name = nullptr;
-							info.allocFlags = 0x0;
-							info.freeFlags = Game::DB_ZONE_MOD;
-							Game::DB_LoadXAssets(&info, 1, true);
-							continue;
-						}
-
-						// ok so we're just gonna use the materials because they will use the techsets
-						csvStr.clear();
-						for (auto tech : curTechsets_list)
-						{
-							std::string mat = ZoneBuilder::FindMaterialByTechnique(tech);
-							if (mat.length() == 0)
-							{
-								csvStr.append("techset," + tech + "\n");
-							}
-							else
-							{
-								csvStr.append("material," + mat + "\n");
-							}
-						}
-
-						// save csv
-						Utils::IO::WriteFile("zone_source/techsets/" + zone + "_techsets.csv", csvStr);
-
-						// build the techset zone
-						std::string zoneName = "techsets/" + zone + "_techsets";
-						Logger::Print("Building zone '{}'...\n", zoneName);
-						Zone(zoneName).build();
-
-						// unload original zone
-						info.name = nullptr;
-						info.allocFlags = 0x0;
-						info.freeFlags = Game::DB_ZONE_MOD;
-						Game::DB_LoadXAssets(&info, 1, true);
-
-						while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(10ms); // wait till its fully loaded
-					}
-
-					curTechsets_list.clear();
-					techsets_list.clear();
-
-					Game::DB_EnumXAssets(Game::ASSET_TYPE_TECHNIQUE_SET, [](Game::XAssetHeader header, void*)
-						{
-							curTechsets_list.emplace(header.techniqueSet->name);
-							techsets_list.emplace(header.techniqueSet->name);
-						}, nullptr, false);
-
-					// HACK: set language to 'techsets' to load from that dir
-					const char* language = Utils::Hook::Get<const char*>(0x649E740);
-					Utils::Hook::Set<const char*>(0x649E740, "techsets");
-
-					// load generated techset fastfiles
-					auto list = Utils::IO::ListFiles("zone/techsets", false);
-					int i = 0;
-					int subCount = 0;
-					for (const auto& entry : list)
-					{
-						auto it = entry.path().string();
-
-						Utils::String::Replace(it, "zone/techsets/", "");
-						Utils::String::Replace(it, ".ff", "");
-
-						if (it.find("_techsets") == std::string::npos) continue; // skip files we didn't generate for this
-
-						if (!Game::DB_IsZoneLoaded(it.data()))
-						{
-							Game::XZoneInfo info;
-							info.name = it.data();
-							info.allocFlags = Game::DB_ZONE_MOD;
-							info.freeFlags = 0;
-
-							Game::DB_LoadXAssets(&info, 1, 0);
-							while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(10ms); // wait till its fully loaded
-						}
-						else
-						{
-							Logger::Print("Zone '{}' already loaded\n", it);
-						}
-
-						if (i == 20) // cap at 20 just to be safe
-						{
-							// create csv with the techsets in it
-							csvStr.clear();
-							for (auto tech : curTechsets_list)
-							{
-								std::string mat = ZoneBuilder::FindMaterialByTechnique(tech);
-								if (mat.length() == 0)
-								{
-									csvStr.append("techset," + tech + "\n");
-								}
-								else
-								{
-									csvStr.append("material," + mat + "\n");
-								}
-							}
-
-							std::string tempZoneFile = Utils::String::VA("zone_source/techsets/techsets%d.csv", subCount);
-							std::string tempZone = Utils::String::VA("techsets/techsets%d", subCount);
-
-							Utils::IO::WriteFile(tempZoneFile, csvStr);
-
-							Logger::Print("Building zone '{}'...\n", tempZone);
-							Zone(tempZone).build();
-
-							// unload all zones
-							Game::XZoneInfo info;
-							info.name = nullptr;
-							info.allocFlags = 0x0;
-							info.freeFlags = Game::DB_ZONE_MOD;
-							Game::DB_LoadXAssets(&info, 1, true);
-
-							Utils::Hook::Set<const char*>(0x649E740, "techsets");
-
-							i = 0;
-							subCount++;
-							curTechsets_list.clear();
-							techsets_list.clear();
-						}
-
-						i++;
-					}
-
-					// last iteration
-					if (i != 0)
-					{
-						// create csv with the techsets in it
-						csvStr.clear();
-						for (auto tech : curTechsets_list)
-						{
-							std::string mat = ZoneBuilder::FindMaterialByTechnique(tech);
-							if (mat.length() == 0)
-							{
-								Logger::Print("Couldn't find a material for techset {}. Sort Keys will be incorrect.\n", tech);
-								csvStr.append("techset," + tech + "\n");
-							}
-							else
-							{
-								csvStr.append("material," + mat + "\n");
-							}
-						}
-
-						std::string tempZoneFile = Utils::String::VA("zone_source/techsets/techsets%d.csv", subCount);
-						std::string tempZone = Utils::String::VA("techsets/techsets%d", subCount);
-
-						Utils::IO::WriteFile(tempZoneFile, csvStr);
-
-						Logger::Print("Building zone '{}'...\n", tempZone);
-						Zone(tempZone).build();
-
-						// unload all zones
-						Game::XZoneInfo info;
-						info.name = nullptr;
-						info.allocFlags = 0x0;
-						info.freeFlags = Game::DB_ZONE_MOD;
-						Game::DB_LoadXAssets(&info, 1, true);
-
-						subCount++;
-					}
-
-					// build final techsets fastfile
-					if (subCount > 24)
-					{
-						Logger::Error(Game::ERR_DROP, "How did you have 576 fastfiles?\n");
-					}
-
-					curTechsets_list.clear();
-					techsets_list.clear();
-
-					for (int j = 0; j < subCount; ++j)
-					{
-						Game::XZoneInfo info;
-						info.name = Utils::String::VA("techsets%d", j);
-						info.allocFlags = Game::DB_ZONE_MOD;
-						info.freeFlags = 0;
-
-						Game::DB_LoadXAssets(&info, 1, 0);
-						while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(10ms); // wait till its fully loaded
-					}
-
-					// create csv with the techsets in it
-					csvStr.clear();
-					for (const auto& tech : curTechsets_list)
-					{
-						auto mat = ZoneBuilder::FindMaterialByTechnique(tech);
-						if (mat.length() == 0)
-						{
-							csvStr.append("techset," + tech + "\n");
-						}
-						else
-						{
-							csvStr.append("material," + mat + "\n");
-						}
-					}
-
-					Utils::IO::WriteFile("zone_source/techsets/techsets.csv", csvStr);
-
-					// set language back
-					Utils::Hook::Set<const char*>(0x649E740, language);
-
-					Logger::Print("Building zone 'techsets/techsets'...\n");
-					Zone("techsets/techsets").build();
 				});
 
 			Command::Add("listassets", [](const Command::Params* params)
@@ -1723,39 +1574,6 @@ namespace Components
 							}, &type, false);
 					}
 				});
-
-			Command::Add("loadtempzone", [](const Command::Params* params)
-				{
-					if (params->size() < 2) return;
-
-					if (FastFiles::Exists(params->get(1)))
-					{
-						Game::XZoneInfo info;
-						info.name = params->get(1);
-						info.allocFlags = 0x80;
-						info.freeFlags = 0x0;
-						Game::DB_LoadXAssets(&info, 1, 0);
-					}
-				});
-
-			Command::Add("unloadtempzones", [](const Command::Params*)
-				{
-					Game::XZoneInfo info;
-					info.name = nullptr;
-					info.allocFlags = 0x0;
-					info.freeFlags = 0x80;
-					Game::DB_LoadXAssets(&info, 1, true);
-					AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_RAWFILE, "default"); // Lock until zone is unloaded
-				});
-
-			Command::Add("materialInfoDump", [](const Command::Params*)
-				{
-					Game::DB_EnumXAssets(Game::ASSET_TYPE_MATERIAL, [](Game::XAssetHeader header, void*)
-						{
-							Logger::Print("{}: {:#X} {:#X} {:#X}\n",
-							header.material->info.name, header.material->info.sortKey & 0xFF, header.material->info.gameFlags & 0xFF, header.material->stateFlags & 0xFF);
-						}, nullptr, false);
-				});
 		}
 	}
 
@@ -1767,37 +1585,4 @@ namespace Components
 			ZoneBuilder::CommandThread.join();
 		}
 	}
-
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-	bool ZoneBuilder::unitTest()
-	{
-		printf("Testing circular bit shifting (left)...");
-
-		unsigned int integer = 0x80000000;
-		Utils::RotLeft(integer, 1);
-
-		if (integer != 1)
-		{
-			printf("Error\n");
-			printf("Bit shifting failed: %X\n", integer);
-			return false;
-		}
-
-		printf("Success\n");
-		printf("Testing circular bit shifting (right)...");
-
-		unsigned char byte = 0b00000011;
-		Utils::RotRight(byte, 2);
-
-		if (byte != 0b11000000)
-		{
-			printf("Error\n");
-			printf("Bit shifting failed %X\n", byte & 0xFF);
-			return false;
-		}
-
-		printf("Success\n");
-		return true;
-	}
-#endif
 }
