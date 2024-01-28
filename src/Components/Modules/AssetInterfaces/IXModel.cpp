@@ -482,9 +482,10 @@ namespace Assets
 	{
 		assert(GetIndexOfBone(model, boneName) == UCHAR_MAX);
 
+#if DEBUG
 		constexpr auto MAX_BONES = 192;
-
 		assert(model->numBones < MAX_BONES);
+#endif
 
 		// Start with backing up parent links that we will have to restore
 		// We'll restore them at the end
@@ -523,6 +524,7 @@ namespace Assets
 
 		const uint8_t atPositionM1 = atPosition - model->numRootBones;
 
+#if DEBUG
 		// should be equal to model->numBones
 		unsigned int total = lengthOfFirstPart + lengthOfSecondPart;
 		assert(total == model->numBones);
@@ -530,6 +532,7 @@ namespace Assets
 		// should be equal to model->numBones - model->numRootBones
 		int totalM1 = lengthOfFirstPartM1 + lengthOfSecondPartM1;
 		assert(totalM1 == model->numBones - model->numRootBones);
+#endif
 
 		// Copy before
 		if (lengthOfFirstPart > 0)
