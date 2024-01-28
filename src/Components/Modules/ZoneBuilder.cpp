@@ -44,7 +44,7 @@ namespace Components
 
 	}
 
-	ZoneBuilder::Zone::Zone(const std::string& name) : ZoneBuilder::Zone::Zone(name, name, std::format("zone/english/{}.ff", name))
+	ZoneBuilder::Zone::Zone(const std::string& name) : ZoneBuilder::Zone::Zone(name, name, std::format("zonebuilder_out/{}.ff", name))
 	{
 	}
 
@@ -461,6 +461,10 @@ namespace Components
 		zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
 		outBuffer.append(zoneBuffer);
 
+
+		// Make sure directory exists
+		const auto directoryName = std::filesystem::path(destination).parent_path();
+		Utils::IO::CreateDir(directoryName.string());
 
 		Utils::IO::WriteFile(destination, outBuffer);
 
