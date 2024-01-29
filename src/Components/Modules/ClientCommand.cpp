@@ -386,7 +386,7 @@ namespace Components
 		{
 			if (Components::Weapon::GModelIndexHasBeenReallocated)
 			{
-				model = Components::Weapon::G_ModelIndexReallocated[ent->model];
+				model = Components::Weapon::cached_models_reallocated[ent->model];
 			}
 			else
 			{

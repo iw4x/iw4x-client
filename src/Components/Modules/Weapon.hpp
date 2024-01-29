@@ -1,14 +1,16 @@
 #pragma once
 
+#define BASEGAME_WEAPON_LIMIT 1200
+#define BASEGAME_MAX_CONFIGSTRINGS 4139
+
 // Increase the weapon limit
-// Was 1200 before
 #define WEAPON_LIMIT 2400
-#define MAX_CONFIGSTRINGS (4139 - 1200 + WEAPON_LIMIT)
+#define MAX_CONFIGSTRINGS (BASEGAME_MAX_CONFIGSTRINGS - BASEGAME_WEAPON_LIMIT + WEAPON_LIMIT)
 
 // Double the limit to allow loading of some heavy-duty MW3 maps
 #define ADDITIONAL_GMODELS 512
 
-#define G_MODELINDEX_LIMIT (512 + WEAPON_LIMIT - 1200 + ADDITIONAL_GMODELS) 
+#define G_MODELINDEX_LIMIT (512 + WEAPON_LIMIT - BASEGAME_WEAPON_LIMIT + ADDITIONAL_GMODELS) 
 
 namespace Components
 {
@@ -16,7 +18,7 @@ namespace Components
 	{
 	public:
 		Weapon();
-		static Game::XModel* G_ModelIndexReallocated[G_MODELINDEX_LIMIT];
+		static Game::XModel* cached_models_reallocated[G_MODELINDEX_LIMIT];
 
 		static bool GModelIndexHasBeenReallocated;
 

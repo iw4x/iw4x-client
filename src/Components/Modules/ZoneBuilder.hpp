@@ -32,7 +32,8 @@ namespace Components
 			private:
 				Zone* builder;
 			};
-
+			
+			Zone(const std::string& zoneName, const std::string& sourceName, const std::string& destination);
 			Zone(const std::string& zoneName);
 			~Zone();
 
@@ -100,6 +101,7 @@ namespace Components
 			iw4of::api iw4ofApi;
 
 			std::string zoneName;
+			std::string destination;
 			Utils::CSV dataMap;
 
 			Utils::Memory::Allocator memAllocator;
@@ -124,10 +126,6 @@ namespace Components
 		ZoneBuilder();
 		~ZoneBuilder();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		bool unitTest() override;
-#endif
-
 		static bool IsEnabled();
 		static bool IsDumpingZone() { return DumpingZone.length() > 0; };
 
@@ -137,7 +135,10 @@ namespace Components
 		static void BeginAssetTrace(const std::string& zone);
 		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
 
+		static Dvar::Var zb_sp_to_mp;
+
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
+		static std::string GetDumpingZonePath();
 		static void RefreshExporterWorkDirectory();
 
 		static iw4of::api* GetExporter();
@@ -160,6 +161,10 @@ namespace Components
 		static Game::Sys_File Sys_CreateFile_Stub(const char* dir, const char* filename);
 
 		static iw4of::params_t GetExporterAPIParams();
+
+		static void DumpZone(const std::string& zone);
+
+		static std::function<void()> LoadZoneWithTrace(const std::string& zone, OUT std::vector<std::pair<Game::XAssetType, std::string>> &assets);
 
 		static void Com_Quitf_t();
 
