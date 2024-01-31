@@ -131,9 +131,10 @@ namespace Utils
 			return;
 		}
 
+		const auto _0 = gsl::finally([&] { std::free(buffer); });
+
 		SetCurrentDirectoryA(buffer);
 		SetDllDirectoryA(buffer);
-		std::free(buffer);
 	}
 
 	/**
@@ -148,16 +149,16 @@ namespace Utils
 			return {};
 		}
 
+		const auto _0 = gsl::finally([&] { std::free(buffer); });
+
 		try
 		{
 			std::filesystem::path result = buffer;
-			std::free(buffer);
 			return result;
 		}
 		catch (const std::exception& ex)
 		{
 			printf("Failed to convert '%s' to native file system path. Got error '%s'\n", buffer, ex.what());
-			std::free(buffer);
 			return {};
 		}
 	}
