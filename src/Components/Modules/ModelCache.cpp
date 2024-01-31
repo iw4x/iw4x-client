@@ -63,7 +63,7 @@ namespace Components
 
 				if (fieldsToUpdate.contains(field->name))
 				{
-					assert(field->bits == oldBitLength);
+					assert(static_cast<size_t>(field->bits) == oldBitLength);
 
 					Utils::Hook::Set(&field->bits, newBitLength);
 					currentBitOffset++;
