@@ -99,6 +99,16 @@ namespace Components
 		static std::vector<std::string> GetSysFileList(const std::string& path, const std::string& extension, bool folders = false);
 		static bool _DeleteFile(const std::string& folder, const std::string& file);
 
+		/**
+		 * The game will check in FS_Startup if homepath != default(base) path
+		 * If they differ which will happen when IW4x is containerized it will register two brand new search paths:
+		 * one for the container and one where the game files are. Pretty cool! 
+		*/
+		static const char* Sys_DefaultInstallPath_Hk();
+		static const char* Sys_DefaultCDPath_Hk();
+		static const char* Sys_HomePath_Hk();
+		static const char* Sys_Cwd_Hk();
+
 	private:
 		static std::mutex Mutex;
 		static std::recursive_mutex FSMutex;
@@ -122,6 +132,6 @@ namespace Components
 
 		static void IwdFreeStub(Game::iwd_t* iwd);
 
-		static const char* Sys_DefaultInstallPath_Hk();
+		static FILE* FS_FileOpenReadText_Hk(const char* file);
 	};
 }

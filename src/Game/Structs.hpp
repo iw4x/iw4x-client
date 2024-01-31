@@ -11093,6 +11093,13 @@ namespace Game
 		huff_t compressDecompress;
 	};
 
+	enum FF_DIR
+	{
+		FFD_DEFAULT = 0x0,
+		FFD_MOD_DIR = 0x1,
+		FFD_USER_MAP = 0x2,
+	};
+
 #pragma endregion
 
 #ifndef IDA

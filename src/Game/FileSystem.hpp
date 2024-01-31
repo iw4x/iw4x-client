@@ -26,6 +26,9 @@ namespace Game
 	typedef int(*FS_FOpenFileRead_t)(const char* filename, int* file);
 	extern FS_FOpenFileRead_t FS_FOpenFileRead;
 
+	typedef FILE*(*FS_FileOpenReadText_t)(const char* filename);
+	extern FS_FileOpenReadText_t FS_FileOpenReadText;
+
 	typedef int(*FS_FOpenFileReadDatabase_t)(const char* filename, int* file);
 	extern FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase;
 
