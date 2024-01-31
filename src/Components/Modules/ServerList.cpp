@@ -322,6 +322,19 @@ namespace Components
 				continue;
 			}
 
+			if (!entry.HasMember("ip") || !entry["protocol"].IsInt())
+			{
+				continue;
+			}
+
+			const auto protocol = entry["protocol"].GetInt();
+
+			if (protocol != PROTOCOL)
+			{
+				// We can't connect to it anyway
+				continue;
+			}
+
 			// Using VA because it's faster
 			Network::Address server(Utils::String::VA("%s:%u", entry["ip"].GetString(), entry["port"].GetInt()));
 			server.setType(Game::NA_IP); // Just making sure...
@@ -371,7 +384,7 @@ namespace Components
 
 			Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
 
-			const auto* url = "http://iw4x.plutools.pw/v1/servers/iw4x";
+			const auto url = std::format("http://iw4x.plutools.pw/v1/servers/iw4x?protocol={}", PROTOCOL);
 			const auto reply = Utils::WebIO("IW4x", url).setTimeout(5000)->get();
 			if (reply.empty())
 			{

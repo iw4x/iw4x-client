@@ -342,12 +342,12 @@ namespace Components
 		for (const auto& nodeListData : nodeListReponseMessages)
 		{
 			Scheduler::Once([=]
-			{
+				{
 #ifdef NODE_SYSTEM_DEBUG
-				Logger::Debug("Sending {} nodeListResponse length to {}\n", nodeListData.length(), address.getCString());
+					Logger::Debug("Sending {} nodeListResponse length to {}\n", nodeListData.length(), address.getCString());
 #endif
-				Session::Send(address, "nodeListResponse", nodeListData);
-			}, Scheduler::Pipeline::MAIN, NODE_SEND_RATE * i++);
+					Session::Send(address, "nodeListResponse", nodeListData);
+				}, Scheduler::Pipeline::MAIN, NODE_SEND_RATE * i++);
 		}
 	}
 
@@ -397,48 +397,54 @@ namespace Components
 
 	Node::Node()
 	{
+		if (ZoneBuilder::IsEnabled())
+		{
+			return;
+		}
+
 		net_natFix = Game::Dvar_RegisterBool("net_natFix", false, 0, "Fix node registration for certain firewalls/routers");
 
 		Scheduler::Loop([]
-		{
-			StoreNodes(false);
-		}, Scheduler::Pipeline::ASYNC, 5min);
+			{
+				StoreNodes(false);
+			}, Scheduler::Pipeline::ASYNC, 5min);
 
 		Scheduler::Loop(RunFrame, Scheduler::Pipeline::MAIN);
 
-		Session::Handle("nodeListResponse", HandleResponse);
-		Session::Handle("nodeListRequest", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
-		{
-			SendList(address);
-		});
-
 		Scheduler::OnGameInitialized([]
-		{
-			Migrate();
-			LoadNodePreset();
-			LoadNodes();
-		}, Scheduler::Pipeline::MAIN);
+			{
+
+				Session::Handle("nodeListResponse", HandleResponse);
+				Session::Handle("nodeListRequest", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
+					{
+						SendList(address);
+					});
+
+				Migrate();
+				LoadNodePreset();
+				LoadNodes();
+			}, Scheduler::Pipeline::MAIN);
 
 		Command::Add("listNodes", [](const Command::Params*)
-		{
-			Logger::Print("Nodes: {}\n", Nodes.size());
-
-			std::lock_guard _(Mutex);
-			for (const auto& node : Nodes)
 			{
-				Logger::Print("{}\t({})\n", node.address.getString(), node.isValid() ? "Valid" : "Invalid");
-			}
-		});
+				Logger::Print("Nodes: {}\n", Nodes.size());
+
+				std::lock_guard _(Mutex);
+				for (const auto& node : Nodes)
+				{
+					Logger::Print("{}\t({})\n", node.address.getString(), node.isValid() ? "Valid" : "Invalid");
+				}
+			});
 
 		Command::Add("addNode", [](const Command::Params* params)
-		{
-			if (params->size() < 2) return;
-			auto address = Network::Address{ params->get(1) };
-			if (address.isValid())
 			{
-				Add(address);
-			}
-		});
+				if (params->size() < 2) return;
+				auto address = Network::Address{ params->get(1) };
+				if (address.isValid())
+				{
+					Add(address);
+				}
+			});
 	}
 
 	void Node::preDestroy()
