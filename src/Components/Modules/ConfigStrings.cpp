@@ -249,9 +249,6 @@ namespace Components
 				const auto R_RegisterModel = 0x50FA00;
 
 				index = index - EXTRA_MODELCACHE_FIRST + ModelCache::BASE_GMODEL_COUNT;
-
-				const auto test = ModelCache::gameModels_reallocated[index];
-
 				ModelCache::gameModels_reallocated[index] = Utils::Hook::Call<Game::XModel*(const char*)>(R_RegisterModel)(name);
 			}
 			else
