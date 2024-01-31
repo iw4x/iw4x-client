@@ -54,8 +54,8 @@ namespace Game
 	extern gentity_s* g_entities;
 
 	// This does not belong anywhere else
-	NetField* clientStateFields = reinterpret_cast<Game::NetField*>(0x741E40);
-	size_t clientStateFieldsCount = Utils::Hook::Get<size_t>(0x7433C8);
+	extern NetField* clientStateFields;
+	extern size_t clientStateFieldsCount;
 
 	extern const char* origErrorMsg;
 
