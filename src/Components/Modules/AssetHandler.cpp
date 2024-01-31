@@ -606,7 +606,7 @@ namespace Components
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXSHADER, ZoneBuilder::IsEnabled() ? 0x2000 : 3072);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_MATERIAL, 8192 * 2);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXDECL, ZoneBuilder::IsEnabled() ? 0x400 : 196);
-		Game::ReallocateAssetPool(Game::ASSET_TYPE_WEAPON, WEAPON_LIMIT);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_WEAPON, Weapon::WEAPON_LIMIT);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_STRINGTABLE, 800);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_IMPACT_FX, 8);
 

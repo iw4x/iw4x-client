@@ -1,6 +1,6 @@
 #pragma once
 
-#define PROTOCOL 0x96
+#define PROTOCOL 0x97
 #define NUM_CUSTOM_CLASSES 15
 #define FX_ELEM_FIELD_COUNT 90
 
@@ -527,8 +527,14 @@ namespace Game
 		CS_VOTE_NO = 0x14,
 		CS_VOTE_MAPNAME = 0x15,
 		CS_VOTE_GAMETYPE = 0x16,
+		CS_MODELS = 0x465,	// Models (confirmed) 1125
+		// 1580<>1637 models not cached (something's going on, not sure what)
+		CS_MODELS_LAST = 0x664,	// End of models
 		CS_SHELLSHOCKS = 0x985,
-		CS_ITEMS = 0x102A,
+		CS_WEAPONFILES = 0xAF5, // 2805 Confirmed
+		CS_WEAPONFILES_LAST = 0xFA3, // Confirmed too // 4003
+		CS_ITEMS = 4138, // Correct! CS_ITEMS is actually an item **COUNT**
+		MAX_CONFIGSTRINGS = 4139
 	}; // Incomplete
 
 	enum conChannel_t
@@ -1904,6 +1910,26 @@ namespace Game
 		TEAM_ALLIES = 0x2,
 		TEAM_SPECTATOR = 0x3,
 		TEAM_NUM_TEAMS = 0x4,
+	};
+
+	struct clientState_s_borked
+	{
+		team_t team;
+		int modelindex;
+		int dualWielding;
+		int riotShieldNext;
+		int attachModelIndex[6];
+		int attachTagIndex[6];
+		char name[16];
+		float maxSprintTimeMultiplier;
+		int rank;
+		int prestige;
+		unsigned int perks[2];
+		int diveState;
+		int voiceConnectivityBits;
+		unsigned int playerCardIcon;
+		unsigned int playerCardTitle;
+		unsigned int playerCardNameplate;
 	};
 
 	struct clientState_s
@@ -4936,6 +4962,14 @@ namespace Game
 		float screwRadius;
 		float screwDist;
 		float colors[5][4];
+	};
+
+	struct NetField
+	{
+		char* name;
+		int offset;
+		int bits;
+		char changeHints;
 	};
 
 	struct __declspec(align(4)) WeaponDef
@@ -8718,7 +8752,7 @@ namespace Game
 		char* skelMemoryStart;
 		bool allowedAllocSkel;
 		int serverId;
-		gameState_t gameState;
+		gameState_t cl_gameState;
 		clSnapshot_t noDeltaSnapshot;
 		int nextNoDeltaEntity;
 		entityState_s noDeltaEntities[1024];

@@ -53,6 +53,10 @@ namespace Game
 	constexpr std::size_t ENTITYNUM_NONE = MAX_GENTITIES - 1;
 	extern gentity_s* g_entities;
 
+	// This does not belong anywhere else
+	NetField* clientStateFields = reinterpret_cast<Game::NetField*>(0x741E40);
+	size_t clientStateFieldsCount = Utils::Hook::Get<size_t>(0x7433C8);
+
 	extern const char* origErrorMsg;
 
 	extern XModel* G_GetModel(int index);
