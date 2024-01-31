@@ -1912,26 +1912,6 @@ namespace Game
 		TEAM_NUM_TEAMS = 0x4,
 	};
 
-	struct clientState_s_borked
-	{
-		team_t team;
-		int modelindex;
-		int dualWielding;
-		int riotShieldNext;
-		int attachModelIndex[6];
-		int attachTagIndex[6];
-		char name[16];
-		float maxSprintTimeMultiplier;
-		int rank;
-		int prestige;
-		unsigned int perks[2];
-		int diveState;
-		int voiceConnectivityBits;
-		unsigned int playerCardIcon;
-		unsigned int playerCardTitle;
-		unsigned int playerCardNameplate;
-	};
-
 	struct clientState_s
 	{
 		int clientIndex;
