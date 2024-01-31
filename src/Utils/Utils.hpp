@@ -20,6 +20,7 @@ namespace Utils
 	HMODULE GetNTDLL();
 
 	void SetEnvironment();
+	std::filesystem::path GetBaseFilesLocation();
 
 	void OpenUrl(const std::string& url);
 

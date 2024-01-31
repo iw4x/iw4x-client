@@ -84,6 +84,8 @@ namespace Game
 
 	extern bool Sys_TryEnterCriticalSection(CriticalSection critSect);
 
+	extern HANDLE Sys_OpenFileReliable(const char* filename);
+
 	class Sys
 	{
 	public:
