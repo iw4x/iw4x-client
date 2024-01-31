@@ -18,6 +18,9 @@ namespace Game
 
 	gentity_s* g_entities = reinterpret_cast<gentity_s*>(0x18835D8);
 
+	NetField* clientStateFields = reinterpret_cast<Game::NetField*>(0x741E40);
+	size_t clientStateFieldsCount = Utils::Hook::Get<size_t>(0x7433C8);
+
 	const char* origErrorMsg = reinterpret_cast<const char*>(0x79B124);
 
 	XModel* G_GetModel(const int index)
