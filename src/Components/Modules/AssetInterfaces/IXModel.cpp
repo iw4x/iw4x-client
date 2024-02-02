@@ -873,11 +873,6 @@ namespace Assets
 
 	void IXModel::ConvertPlayerModelFromSingleplayerToMultiplayer(Game::XModel* model, Utils::Memory::Allocator& allocator)
 	{
-		if (model->name == "body_airport_com_a"s)
-		{
-			printf("");
-		}
-
 		std::string requiredBonesForHumanoid[] = {
 			"j_spinelower",
 			"j_spineupper",

@@ -8,8 +8,78 @@ namespace Utils
 	{
 		void Initialize()
 		{
-			DES3::Initialize();
 			Rand::Initialize();
+		}
+
+		std::string GetEntropy()
+		{
+			DWORD volumeID;
+			if (GetVolumeInformationA("C:\\",
+				NULL,
+				NULL,
+				&volumeID,
+				NULL,
+				NULL,
+				NULL,
+				NULL
+			))
+			{
+				// Drive info
+				return std::to_string(volumeID);
+			}
+			else
+			{
+				// Resort to mac address
+				unsigned long outBufLen = 0;
+				DWORD dwResult = GetAdaptersInfo(NULL, &outBufLen);
+				if (dwResult == ERROR_BUFFER_OVERFLOW)  // This is what we're expecting
+				{
+					// Now allocate a structure of the required size.
+					PIP_ADAPTER_INFO pIpAdapterInfo = reinterpret_cast<PIP_ADAPTER_INFO>(malloc(outBufLen));
+					dwResult = GetAdaptersInfo(pIpAdapterInfo, &outBufLen);
+					if (dwResult == ERROR_SUCCESS)
+					{
+						while (pIpAdapterInfo)
+						{
+							switch (pIpAdapterInfo->Type)
+							{
+							default:
+								pIpAdapterInfo = pIpAdapterInfo->Next;
+								continue;
+
+							case IF_TYPE_IEEE80211:
+							case MIB_IF_TYPE_ETHERNET:
+							{
+
+								std::string macAddress{};
+								for (size_t i = 0; i < ARRAYSIZE(pIpAdapterInfo->Address); i++)
+								{
+									macAddress += std::to_string(pIpAdapterInfo->Address[i]);
+								}
+
+								free(pIpAdapterInfo);
+								return macAddress;
+							}
+							}
+						}
+					}
+					else
+					{
+						// :(
+						// Continue to fallback
+					}
+
+					// Free before going next because clearly this is not working
+					free(pIpAdapterInfo);
+				}
+				else
+				{
+					// No MAC, no C: drive? Come on
+				}
+
+				// ultimate fallback
+				return std::to_string(Rand::GenerateInt());
+			}
 		}
 
 #pragma region Rand
@@ -51,8 +121,29 @@ namespace Utils
 			Key key;
 
 			ltc_mp = ltm_desc;
-			register_prng(&sprng_desc);
-			ecc_make_key(nullptr, find_prng("sprng"), bits / 8, key.getKeyPtr());
+			int descriptorIndex = register_prng(&chacha20_prng_desc);
+
+			// allocate state
+			{
+				prng_state* state = new prng_state();
+
+				chacha20_prng_start(state);
+
+				const auto entropy = Cryptography::GetEntropy();
+				chacha20_prng_add_entropy(reinterpret_cast<const unsigned char*>(entropy.data()), entropy.size(), state);
+
+				chacha20_prng_ready(state);
+
+				const auto result = ecc_make_key(state, descriptorIndex, bits / 8, key.getKeyPtr());
+
+				if (result != CRYPT_OK)
+				{
+					Components::Logger::PrintError(Game::conChannel_t::CON_CHANNEL_ERROR, "There was an issue generating your unique player ID! Please contact support");
+				}
+
+				// Deallocate state
+				delete state;
+			}
 
 			return key;
 		}
@@ -79,8 +170,8 @@ namespace Utils
 
 			int result = 0;
 			return (ecc_verify_hash(reinterpret_cast<const std::uint8_t*>(signature.data()), signature.size(),
-			                        reinterpret_cast<const std::uint8_t*>(message.data()), message.size(),
-			                        &result, key.getKeyPtr()) == CRYPT_OK && result != 0);
+				reinterpret_cast<const std::uint8_t*>(message.data()), message.size(),
+				&result, key.getKeyPtr()) == CRYPT_OK && result != 0);
 		}
 
 #pragma endregion
@@ -115,7 +206,7 @@ namespace Utils
 			ltc_mp = ltm_desc;
 
 			rsa_sign_hash_ex(reinterpret_cast<const std::uint8_t*>(hash.data()), hash.size(),
-			                 buffer, &length, LTC_PKCS_1_V1_5, nullptr, 0, hash_index, 0, key.getKeyPtr());
+				buffer, &length, LTC_PKCS_1_V1_5, nullptr, 0, hash_index, 0, key.getKeyPtr());
 
 			return std::string{ reinterpret_cast<char*>(buffer), length };
 		}
@@ -133,47 +224,8 @@ namespace Utils
 
 			auto result = 0;
 			return (rsa_verify_hash_ex(reinterpret_cast<const std::uint8_t*>(signature.data()), signature.size(),
-			                           reinterpret_cast<const std::uint8_t*>(hash.data()), hash.size(), LTC_PKCS_1_V1_5,
-			                           hash_index, 0, &result, key.getKeyPtr()) == CRYPT_OK && result != 0);
-		}
-
-#pragma endregion
-
-#pragma region DES3
-
-		void DES3::Initialize()
-		{
-			register_cipher(&des3_desc);
-		}
-
-		std::string DES3::Encrypt(const std::string& text, const std::string& iv, const std::string& key)
-		{
-			std::string encData;
-			encData.resize(text.size());
-
-			symmetric_CBC cbc;
-			const auto des3 = find_cipher("3des");
-
-			cbc_start(des3, reinterpret_cast<const std::uint8_t*>(iv.data()), reinterpret_cast<const std::uint8_t*>(key.data()), static_cast<int>(key.size()), 0, &cbc);
-			cbc_encrypt(reinterpret_cast<const std::uint8_t*>(text.data()), reinterpret_cast<uint8_t*>(encData.data()), text.size(), &cbc);
-			cbc_done(&cbc);
-
-			return encData;
-		}
-
-		std::string DES3::Decrpyt(const std::string& data, const std::string& iv, const std::string& key)
-		{
-			std::string decData;
-			decData.resize(data.size());
-
-			symmetric_CBC cbc;
-			const auto  des3 = find_cipher("3des");
-
-			cbc_start(des3, reinterpret_cast<const std::uint8_t*>(iv.data()), reinterpret_cast<const std::uint8_t*>(key.data()), static_cast<int>(key.size()), 0, &cbc);
-			cbc_decrypt(reinterpret_cast<const std::uint8_t*>(data.data()), reinterpret_cast<std::uint8_t*>(decData.data()), data.size(), &cbc);
-			cbc_done(&cbc);
-
-			return decData;
+				reinterpret_cast<const std::uint8_t*>(hash.data()), hash.size(), LTC_PKCS_1_V1_5,
+				hash_index, 0, &result, key.getKeyPtr()) == CRYPT_OK && result != 0);
 		}
 
 #pragma endregion
