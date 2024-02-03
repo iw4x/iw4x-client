@@ -632,8 +632,8 @@ namespace Components
 			server.hostname = server.hostname.substr(0, MAX_SERVER_NAME_LENGTH);
 
 #endif
-
-			if (server.hostname.empty() || TextRenderer::StripMaterialTextIcons(server.hostname).empty())
+			const auto strippedHostName = TextRenderer::StripMaterialTextIcons(server.hostname);
+			if (server.hostname.empty() || strippedHostName.empty() || std::all_of(strippedHostName.begin(), strippedHostName.end(), isspace))
 			{
 				// Invalid server name containing only emojis
 				return;
