@@ -128,6 +128,13 @@ namespace Components
 
 		Game::SV_Cmd_EndTokenizedString();
 
+		if (GuidToken.toString().empty())
+		{
+			Game::SV_Cmd_EndTokenizedString();
+			Logger::Error(Game::ERR_SERVERDISCONNECT, "Connecting failed: Empty GUID token!");
+			return;
+		}
+
 		Proto::Auth::Connect connectData;
 		connectData.set_token(GuidToken.toString());
 		connectData.set_publickey(GuidKey.getPublicKey());
@@ -343,8 +350,6 @@ namespace Components
 
 	void Auth::StoreKey()
 	{
-		// We write the key as a decoy I suppose - it's really no longer needed
-		// TODO Remove this part
 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && GuidKey.isValid())
 		{
 			Proto::Auth::Certificate cert;
@@ -377,7 +382,6 @@ namespace Components
 		//		so for now we're doing something else: the key is generated uniquely from the machine's characteristics
 		//	It is not (necessarily) stored and therefore, not loaded, so it could make it harder to evade bans without
 		//		using a custom client that would need regeneration at each update.
-#if false
 		Proto::Auth::Certificate cert;
 		if (cert.ParseFromString(::Utils::IO::ReadFile("players/guid.dat")))
 		{
@@ -390,14 +394,28 @@ namespace Components
 			GuidKey.free();
 		}
 
-		if (!GuidKey.isValid())
-#endif
+		if (GuidKey.isValid())
+		{
+			auto machineKey = Utils::Cryptography::ECC::GenerateKey(512);
+			if (GetKeyHash(machineKey.getPublicKey()) == GetKeyHash())
+			{
+				//All good, nothing to do
+			}
+			else
+			{
+				// kill! The user has changed machine or copied files from another
+				Auth::GenerateKey();
+			}
+		}
+		else
+		{
 			Auth::GenerateKey();
-}
+		}
+	}
 
 	uint32_t Auth::GetSecurityLevel()
 	{
-		return GetZeroBits(GuidToken, GuidKey.getPublicKey());
+		return GuidToken.toString().empty() ? 0 : GetZeroBits(GuidToken, GuidKey.getPublicKey());
 	}
 
 	void Auth::IncreaseSecurityLevel(uint32_t level, const std::string& command)
@@ -470,7 +488,7 @@ namespace Components
 		}
 
 		// Check if we already have the desired security level
-		uint32_t lastLevel = GetZeroBits(token, publicKey);
+		uint32_t lastLevel = token.toString().empty() ? 0 : GetZeroBits(token, publicKey);
 		uint32_t level = lastLevel;
 		if (level >= zeroBits) return;
 
