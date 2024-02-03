@@ -689,17 +689,5 @@ namespace Components
 			Logger::Print("Waiting for database...\n");
 			while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms);
 		});
-
-#ifdef _DEBUG
-		// ZoneBuilder debugging
-		Utils::IO::WriteFile("userraw/logs/iw4_reads.log", "", false);
-		Utils::Hook(0x4A8FA0, FastFiles::LogStreamRead, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x4BCB62, []
-		{
-			FastFiles::StreamRead = true;
-			Utils::Hook::Call<void(bool)>(0x4B8DB0)(true); // currently set to Load_GfxWorld
-			FastFiles::StreamRead = false;
-		}, HOOK_CALL).install()/*->quick()*/;
-#endif
 	}
 }
