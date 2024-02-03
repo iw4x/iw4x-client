@@ -128,7 +128,7 @@ namespace Components
 
 		Game::SV_Cmd_EndTokenizedString();
 
-		if (GuidToken.toString().empty())
+		if (GuidToken.toString().empty() && adr.type != Game::NA_LOOPBACK)
 		{
 			Game::SV_Cmd_EndTokenizedString();
 			Logger::Error(Game::ERR_SERVERDISCONNECT, "Connecting failed: Empty GUID token!");
