@@ -14,7 +14,7 @@
 namespace Components
 {
 	std::string ZoneBuilder::TraceZone;
-	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::TraceAssets;
+	std::vector<ZoneBuilder::NamedAsset> ZoneBuilder::TraceAssets;
 
 	bool ZoneBuilder::MainThreadInterrupted;
 	DWORD ZoneBuilder::InterruptingThreadId;
@@ -733,11 +733,11 @@ namespace Components
 		ZoneBuilder::TraceZone = zone;
 	}
 
-	std::vector<std::pair<Game::XAssetType, std::string>> ZoneBuilder::EndAssetTrace()
+	std::vector<ZoneBuilder::NamedAsset> ZoneBuilder::EndAssetTrace()
 	{
 		ZoneBuilder::TraceZone.clear();
 
-		std::vector<std::pair<Game::XAssetType, std::string>> AssetTrace;
+		std::vector<NamedAsset> AssetTrace;
 		Utils::Merge(&AssetTrace, ZoneBuilder::TraceAssets);
 
 		ZoneBuilder::TraceAssets.clear();
@@ -1164,20 +1164,15 @@ namespace Components
 		ZoneBuilder::DumpingZone = zone;
 		ZoneBuilder::RefreshExporterWorkDirectory();
 
-		std::vector<std::pair<Game::XAssetType, std::string>> assets{};
+		std::vector<NamedAsset> assets{};
 		const auto unload = ZoneBuilder::LoadZoneWithTrace(zone, assets);
 
 		Logger::Print("Dumping zone '{}'...\n", zone);
 
 		{
 			Utils::IO::CreateDir(GetDumpingZonePath());
-			std::ofstream csv(std::filesystem::path(GetDumpingZonePath()) / std::format("{}.csv", zone));
-			csv
-				<< std::format("### Zone '{}' dumped with Zonebuilder {}", zone, Components::Branding::GetVersionString())
-				<< "\n\n";
 
 			// Order the CSV around
-			// TODO: Trim asset list using IW4OF dependencies
 			constexpr Game::XAssetType typeOrder[] = {
 				Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP,
 				Game::XAssetType::ASSET_TYPE_GAMEWORLD_SP,
@@ -1197,11 +1192,13 @@ namespace Components
 				Game::XAssetType::ASSET_TYPE_PIXELSHADER,
 				Game::XAssetType::ASSET_TYPE_VERTEXSHADER,
 				Game::XAssetType::ASSET_TYPE_VERTEXDECL,
+				Game::XAssetType::ASSET_TYPE_LIGHT_DEF,
 				Game::XAssetType::ASSET_TYPE_IMAGE,
 				Game::XAssetType::ASSET_TYPE_SOUND,
 				Game::XAssetType::ASSET_TYPE_LOADED_SOUND,
 				Game::XAssetType::ASSET_TYPE_SOUND_CURVE,
 				Game::XAssetType::ASSET_TYPE_PHYSPRESET,
+				Game::XAssetType::ASSET_TYPE_LOCALIZE_ENTRY,
 			};
 
 			std::unordered_map<Game::XAssetType, int> typePriority{};
@@ -1211,25 +1208,35 @@ namespace Components
 				typePriority.emplace(type, 1 + ARRAYSIZE(typeOrder) - i);
 			}
 
-			std::map<std::string, std::vector<std::string>> invalidAssets{};
+			enum AssetCategory
+			{
+				EXPLICIT,
+				IMPLICIT,
+				NOT_SUPPORTED,
+				DISAPPEARED,
+
+				COUNT
+			};
+
+			std::vector<std::string> assetsToList[AssetCategory::COUNT]{};
 
 			std::sort(assets.begin(), assets.end(), [&](
-				const std::pair<Game::XAssetType, std::string>& a,
-				const std::pair<Game::XAssetType, std::string>& b
+				const NamedAsset& a,
+				const NamedAsset& b
 				) {
-					if (a.first == b.first)
+					if (a.type == b.type)
 					{
 
-						return a.second.compare(b.second) < 0;
+						return a.name.compare(b.name) < 0;
 					}
 					else
 					{
-						const auto priorityA = typePriority[a.first];
-						const auto priorityB = typePriority[b.first];
+						const auto priorityA = typePriority[a.type];
+						const auto priorityB = typePriority[b.type];
 
 						if (priorityA == priorityB)
 						{
-							return a.second.compare(b.second) < 0;
+							return a.name.compare(b.name) < 0;
 						}
 						else
 						{
@@ -1238,47 +1245,112 @@ namespace Components
 					}
 				});
 
-			// Used to format the CSV
-			Game::XAssetType lastTypeEncountered{};
+			std::unordered_set<NamedAsset, NamedAsset::Hash> assetsToSkip{};
+			const std::function<void(std::unordered_set<iw4of::iw4_native_asset, iw4of::iw4_native_asset::hash>)> recursivelyAddChildren =
+				[&](std::unordered_set<iw4of::iw4_native_asset, iw4of::iw4_native_asset::hash> children)
+				{
+					for (const auto& k : children)
+					{
+						const auto type = static_cast<Game::XAssetType>(k.type);
+						Game::XAsset asset = { type, {k.data} };
+						const auto insertionInfo = assetsToSkip.insert({ type, Game::DB_GetXAssetName(&asset) });
 
+						if (insertionInfo.second)
+						{
+							// True means it was inserted, so we might need to check children aswell
+							if (ExporterAPI.is_type_supported(k.type))
+							{
+								const auto deps = ExporterAPI.get_children(k.type, k.data);
+								recursivelyAddChildren(deps);
+							}
+						}
+					}
+				};
+
+			Logger::Print("Filtering asset list for '{}.csv'...\n", zone);
+			std::vector<Game::XAsset> explicitAssetsToFilter{};
+
+			// Filter implicit and assets that don't need dumping
 			for (const auto& asset : assets)
 			{
-				const auto type = asset.first;
-				const auto name = asset.second;
+				const auto type = asset.type;
+				const auto& name = asset.name;
+
+				if (assetsToSkip.contains({ type, name.data() }))
+				{
+					assetsToList[AssetCategory::IMPLICIT].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(type), name));
+					continue;
+				}
+
 				if (ExporterAPI.is_type_supported(type) && name[0] != ',')
 				{
 					const auto assetHeader = Game::DB_FindXAssetHeader(type, name.data());
 					if (assetHeader.data)
 					{
-						ExporterAPI.write(type, assetHeader.data);
-						const auto typeName = Game::DB_GetXAssetTypeName(type);
+						const auto children = ExporterAPI.get_children(type, assetHeader.data);
 
-						if (type != lastTypeEncountered)
-						{
-							csv << "\n### " << typeName << "\n";
-							lastTypeEncountered = type;
-						}
-
-						csv << typeName << "," << name << "\n";
+						recursivelyAddChildren(children);
+						explicitAssetsToFilter.push_back({ type, assetHeader });
 					}
 					else
 					{
 						Logger::Warning(Game::conChannel_t::CON_CHANNEL_ERROR, "Asset {} has disappeared while dumping!\n", name);
-						invalidAssets["The following assets disappeared while dumping"].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(type), name));
+						assetsToList[AssetCategory::DISAPPEARED].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(type), name));
 					}
 				}
 				else
 				{
-					invalidAssets["The following assets are unsupported or not dumped as individual assets, but still present in the zone"].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(type), name));
+					assetsToList[AssetCategory::NOT_SUPPORTED].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(type), name));
 				}
 			}
 
-			for (const auto& kv : invalidAssets)
+			// Write explicit assets
+			Logger::Print("Dumping remaining assets...\n");
+			for (auto& asset : explicitAssetsToFilter)
 			{
-				csv << "\n### " << kv.first << "\n";
-				for (const auto& line : kv.second)
+				const auto& name = Game::DB_GetXAssetName(&asset);
+				if (!assetsToSkip.contains({ asset.type, name }))
 				{
-					csv << "#" << line << "\n";
+					ExporterAPI.write(asset.type, asset.header.data);
+					Logger::Print(".");
+					assetsToList[AssetCategory::EXPLICIT].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(asset.type), name));
+				}
+			}
+
+			Logger::Print("\n");
+
+			// Write zone source
+			Logger::Print("Writing zone source...\n");
+			std::ofstream csv(std::filesystem::path(GetDumpingZonePath()) / std::format("{}.csv", zone));
+			csv
+				<< std::format("### Zone '{}' dumped with Zonebuilder {}", zone, Components::Branding::GetVersionString())
+				<< "\n\n";
+
+			for (size_t i = 0; i < AssetCategory::COUNT; i++)
+			{
+				if (assetsToList[i].size() == 0)
+				{
+					continue;
+				}
+
+				switch (static_cast<AssetCategory>(i))
+				{
+					case AssetCategory::EXPLICIT:
+						break;
+					case AssetCategory::IMPLICIT:
+						csv << "\n### The following assets are implicitly built with previous assets:\n";
+						break;
+					case AssetCategory::NOT_SUPPORTED:
+						csv << "\n### The following assets are not supported for dumping:\n";
+						break;
+					case AssetCategory::DISAPPEARED:
+						csv << "\n### The following assets disappeared while dumping but are mentioned in the zone:\n";
+						break;
+				}
+
+				for (const auto& asset : assetsToList[i])
+				{
+					csv << (i == AssetCategory::EXPLICIT ? "" : "#") << asset << "\n";
 				}
 			}
 
@@ -1292,7 +1364,7 @@ namespace Components
 	}
 
 
-	std::function<void()> ZoneBuilder::LoadZoneWithTrace(const std::string& zone, OUT std::vector<std::pair<Game::XAssetType, std::string>>& assets)
+	std::function<void()> ZoneBuilder::LoadZoneWithTrace(const std::string& zone, OUT std::vector<NamedAsset>& assets)
 	{
 		ZoneBuilder::BeginAssetTrace(zone);
 
@@ -1433,7 +1505,7 @@ namespace Components
 				{
 					if (!ZoneBuilder::TraceZone.empty() && ZoneBuilder::TraceZone == FastFiles::Current())
 					{
-						ZoneBuilder::TraceAssets.emplace_back(std::make_pair(type, name));
+						ZoneBuilder::TraceAssets.push_back({ type, name });
 					}
 				});
 
@@ -1451,13 +1523,13 @@ namespace Components
 					if (params->size() < 2) return;
 
 					std::string zone = params->get(1);
-					std::vector<std::pair<Game::XAssetType, std::string>> assets{};
+					std::vector<NamedAsset> assets{};
 					const auto unload = ZoneBuilder::LoadZoneWithTrace(zone, assets);
 
 					int count = 0;
 					for (auto i = assets.begin(); i != assets.end(); ++i, ++count)
 					{
-						Logger::Print(" {}: {}: {}\n", count, Game::DB_GetXAssetTypeName(i->first), i->second);
+						Logger::Print(" {}: {}: {}\n", count, Game::DB_GetXAssetTypeName(i->type), i->name);
 					}
 
 					Logger::Print("\n");
@@ -1547,8 +1619,8 @@ namespace Components
 #endif
 							}
 						}
-					}
-				});
+				}
+		});
 
 			Command::Add("listassets", [](const Command::Params* params)
 				{
@@ -1564,8 +1636,8 @@ namespace Components
 							}, &type, false);
 					}
 				});
-		}
 	}
+}
 
 	ZoneBuilder::~ZoneBuilder()
 	{

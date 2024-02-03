@@ -32,7 +32,7 @@ namespace Components
 			private:
 				Zone* builder;
 			};
-			
+
 			Zone(const std::string& zoneName, const std::string& sourceName, const std::string& destination);
 			Zone(const std::string& zoneName);
 			~Zone();
@@ -123,6 +123,22 @@ namespace Components
 			size_t assetDepth;
 		};
 
+		struct NamedAsset
+		{
+			Game::XAssetType type;
+			std::string name;
+
+			bool operator==(const NamedAsset& other) const {
+				return type == other.type && name == other.name;
+			};
+
+			struct Hash {
+				size_t operator()(const NamedAsset& k) const {
+					return static_cast<size_t>(k.type) ^ std::hash<std::string>{}(k.name);
+				}
+			};
+		};
+
 		ZoneBuilder();
 		~ZoneBuilder();
 
@@ -130,10 +146,10 @@ namespace Components
 		static bool IsDumpingZone() { return DumpingZone.length() > 0; };
 
 		static std::string TraceZone;
-		static std::vector<std::pair<Game::XAssetType, std::string>> TraceAssets;
+		static std::vector<NamedAsset> TraceAssets;
 
 		static void BeginAssetTrace(const std::string& zone);
-		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
+		static std::vector<NamedAsset> EndAssetTrace();
 
 		static Dvar::Var zb_sp_to_mp;
 
@@ -164,7 +180,7 @@ namespace Components
 
 		static void DumpZone(const std::string& zone);
 
-		static std::function<void()> LoadZoneWithTrace(const std::string& zone, OUT std::vector<std::pair<Game::XAssetType, std::string>> &assets);
+		static std::function<void()> LoadZoneWithTrace(const std::string& zone, OUT std::vector<NamedAsset>& assets);
 
 		static void Com_Quitf_t();
 
