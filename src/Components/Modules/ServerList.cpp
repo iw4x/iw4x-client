@@ -623,7 +623,22 @@ namespace Components
 			std::hash<ServerInfo> hashFn;
 			server.hash = hashFn(server);
 
+#if false
+			// more secure
 			server.hostname = TextRenderer::StripMaterialTextIcons(server.hostname);
+#else
+			// more fun !
+			constexpr auto MAX_SERVER_NAME_LENGTH = 48;
+			server.hostname = server.hostname.substr(0, MAX_SERVER_NAME_LENGTH);
+
+#endif
+
+			if (server.hostname.empty() || TextRenderer::StripMaterialTextIcons(server.hostname).empty())
+			{
+				// Invalid server name containing only emojis
+				return;
+			}
+
 			server.mapname = TextRenderer::StripMaterialTextIcons(server.mapname);
 			server.gametype = TextRenderer::StripMaterialTextIcons(server.gametype);
 			server.mod = TextRenderer::StripMaterialTextIcons(server.mod);
