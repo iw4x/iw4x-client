@@ -11,77 +11,6 @@ namespace Utils
 			Rand::Initialize();
 		}
 
-		std::string GetEntropy()
-		{
-			DWORD volumeID;
-			if (GetVolumeInformationA("C:\\",
-				NULL,
-				NULL,
-				&volumeID,
-				NULL,
-				NULL,
-				NULL,
-				NULL
-			))
-			{
-				// Drive info
-				return std::to_string(volumeID);
-			}
-			else
-			{
-				// Resort to mac address
-				unsigned long outBufLen = 0;
-				DWORD dwResult = GetAdaptersInfo(NULL, &outBufLen);
-				if (dwResult == ERROR_BUFFER_OVERFLOW)  // This is what we're expecting
-				{
-					// Now allocate a structure of the required size.
-					PIP_ADAPTER_INFO pIpAdapterInfo = reinterpret_cast<PIP_ADAPTER_INFO>(malloc(outBufLen));
-					dwResult = GetAdaptersInfo(pIpAdapterInfo, &outBufLen);
-					if (dwResult == ERROR_SUCCESS)
-					{
-						while (pIpAdapterInfo)
-						{
-							switch (pIpAdapterInfo->Type)
-							{
-							default:
-								pIpAdapterInfo = pIpAdapterInfo->Next;
-								continue;
-
-							case IF_TYPE_IEEE80211:
-							case MIB_IF_TYPE_ETHERNET:
-							{
-
-								std::string macAddress{};
-								for (size_t i = 0; i < ARRAYSIZE(pIpAdapterInfo->Address); i++)
-								{
-									macAddress += std::to_string(pIpAdapterInfo->Address[i]);
-								}
-
-								free(pIpAdapterInfo);
-								return macAddress;
-							}
-							}
-						}
-					}
-					else
-					{
-						// :(
-						// Continue to fallback
-					}
-
-					// Free before going next because clearly this is not working
-					free(pIpAdapterInfo);
-				}
-				else
-				{
-					// No MAC, no C: drive? Come on
-				}
-
-				// ultimate fallback
-				return std::to_string(Rand::GenerateInt());
-			}
-		}
-
 #pragma region Rand
 
 		prng_state Rand::State;
@@ -96,6 +25,13 @@ namespace Utils
 			pos += sprintf_s(&buffer[pos], sizeof(buffer) - pos, "%X", GenerateInt());
 
 			return std::string{ buffer, static_cast<std::size_t>(pos) };
+		}
+
+		std::uint64_t Rand::GenerateLong()
+		{
+			std::uint64_t number = 0;
+			fortuna_read(reinterpret_cast<std::uint8_t*>(&number), sizeof(number), &Rand::State);
+			return number;
 		}
 
 		std::uint32_t Rand::GenerateInt()
@@ -116,20 +52,30 @@ namespace Utils
 
 #pragma region ECC
 
-		ECC::Key ECC::GenerateKey(int bits)
+		ECC::Key ECC::GenerateKey(int bits, const std::string& entropy)
 		{
 			Key key;
 
 			ltc_mp = ltm_desc;
-			int descriptorIndex = register_prng(&chacha20_prng_desc);
 
-			// allocate state
+			if (entropy.empty())
 			{
+				register_prng(&sprng_desc);
+				const auto result = ecc_make_key(nullptr, find_prng("sprng"), bits / 8, key.getKeyPtr());
+				if (result != CRYPT_OK)
+				{
+					Components::Logger::PrintError(Game::conChannel_t::CON_CHANNEL_ERROR, "There was an issue generating a secured random key! Please contact support");
+				}
+			}
+			else
+			{
+				int descriptorIndex = register_prng(&chacha20_prng_desc);
+
+				// allocate state
 				prng_state* state = new prng_state();
 
 				chacha20_prng_start(state);
 
-				const auto entropy = Cryptography::GetEntropy();
 				chacha20_prng_add_entropy(reinterpret_cast<const unsigned char*>(entropy.data()), entropy.size(), state);
 
 				chacha20_prng_ready(state);

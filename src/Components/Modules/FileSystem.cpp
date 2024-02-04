@@ -153,7 +153,7 @@ namespace Components
 			CoTaskMemFree(path);
 		});
 
-		return std::filesystem::path(path) / "xlabs";
+		return std::filesystem::path(path) / "iw4x";
 	}
 
 	std::vector<std::string> FileSystem::GetFileList(const std::string& path, const std::string& extension)

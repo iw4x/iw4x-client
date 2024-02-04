@@ -20,10 +20,12 @@ namespace Components
 	std::vector<std::uint64_t> Auth::BannedUids =
 	{
 		// No longer necessary
-	/*	0xf4d2c30b712ac6e3,
+		0xf4d2c30b712ac6e3,
 		0xf7e33c4081337fa3,
 		0x6f5597f103cc50e9,
-		0xecd542eee54ffccf,*/
+		0xecd542eee54ffccf,
+		0xA46B84C54694FD5B,
+		0xECD542EEE54FFCCF,
 	};
 
 	bool Auth::HasAccessToReservedSlot;
@@ -365,7 +367,7 @@ namespace Components
 	{
 		GuidToken.clear();
 		ComputeToken.clear();
-		GuidKey = Utils::Cryptography::ECC::GenerateKey(512);
+		GuidKey = Utils::Cryptography::ECC::GenerateKey(512, GetMachineEntropy());
 		StoreKey();
 	}
 
@@ -374,21 +376,32 @@ namespace Components
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
 		if (!force && GuidKey.isValid()) return;
 
-		//	We no longer read the key from disk
-		//	While having obvious advantages to palliate the fact that some users are not playing on Steam,
-		//		it is creating a lot of issues because GUID files get packaged with the game when people share it
-		//		and it makes it harder for server owners to identify players uniquely
-		//	Note that we could store it in Appdata, but then it would be dissociated from the rest of player files,
-		//		so for now we're doing something else: the key is generated uniquely from the machine's characteristics
-		//	It is not (necessarily) stored and therefore, not loaded, so it could make it harder to evade bans without
-		//		using a custom client that would need regeneration at each update.
+		const auto appdata = Components::FileSystem::GetAppdataPath();
+		Utils::IO::CreateDir(appdata.string());
+
+		const auto guidPath = appdata / "guid.dat";
+
+#ifndef REGENERATE_INVALID_KEY
+		// Migrate old file
+		const auto oldGuidPath = "players/guid.dat";
+		if (Utils::IO::FileExists(oldGuidPath))
+		{
+			if (MoveFileA(oldGuidPath, guidPath.string().data()))
+			{
+				Utils::IO::RemoveFile(oldGuidPath);
+			}
+		}
+#endif
+
+		const auto guidFile = Utils::IO::ReadFile(guidPath.string());
+
 		Proto::Auth::Certificate cert;
-		if (cert.ParseFromString(::Utils::IO::ReadFile("players/guid.dat")))
+		if (cert.ParseFromString(guidFile))
 		{
 			GuidKey.deserialize(cert.privatekey());
 			GuidToken = cert.token();
 			ComputeToken = cert.ctoken();
-	}
+		}
 		else
 		{
 			GuidKey.free();
@@ -396,16 +409,15 @@ namespace Components
 
 		if (GuidKey.isValid())
 		{
-			auto machineKey = Utils::Cryptography::ECC::GenerateKey(512);
-			if (GetKeyHash(machineKey.getPublicKey()) == GetKeyHash())
+#ifdef REGENERATE_INVALID_KEY
+			auto machineKey = Utils::Cryptography::ECC::GenerateKey(512, GetMachineEntropy());
+			if (GetKeyHash(machineKey.getPublicKey()) != GetKeyHash())
 			{
-				//All good, nothing to do
+			// kill! The user has changed machine or copied files from another
+			Auth::GenerateKey();
 			}
-			else
-			{
-				// kill! The user has changed machine or copied files from another
-				Auth::GenerateKey();
-			}
+#endif
+			//All good, nothing to do
 		}
 		else
 		{
@@ -510,6 +522,77 @@ namespace Components
 		} while (level < zeroBits);
 
 		token = computeToken;
+	}
+
+	// A somewhat hardware tied 48 bit value
+	std::string Auth::GetMachineEntropy()
+	{
+		std::string entropy{};
+		DWORD volumeID;
+		if (GetVolumeInformationA("C:\\",
+			NULL,
+			NULL,
+			&volumeID,
+			NULL,
+			NULL,
+			NULL,
+			NULL
+		))
+		{
+			// Drive info
+			entropy += std::to_string(volumeID);
+		}
+
+		// MAC Address
+		{
+			unsigned long outBufLen = 0;
+			DWORD dwResult = GetAdaptersInfo(NULL, &outBufLen);
+			if (dwResult == ERROR_BUFFER_OVERFLOW)  // This is what we're expecting
+			{
+				// Now allocate a structure of the required size.
+				PIP_ADAPTER_INFO pIpAdapterInfo = reinterpret_cast<PIP_ADAPTER_INFO>(malloc(outBufLen));
+				dwResult = GetAdaptersInfo(pIpAdapterInfo, &outBufLen);
+				if (dwResult == ERROR_SUCCESS)
+				{
+					while (pIpAdapterInfo)
+					{
+						switch (pIpAdapterInfo->Type)
+						{
+						default:
+							pIpAdapterInfo = pIpAdapterInfo->Next;
+							continue;
+
+						case IF_TYPE_IEEE80211:
+						case MIB_IF_TYPE_ETHERNET:
+						{
+
+							std::string macAddress{};
+							for (size_t i = 0; i < ARRAYSIZE(pIpAdapterInfo->Address); i++)
+							{
+								entropy += std::to_string(pIpAdapterInfo->Address[i]);
+							}
+
+							break;
+						}
+						}
+					}
+				}
+
+				// Free before going next because clearly this is not working
+				free(pIpAdapterInfo);
+			}
+
+		}
+
+		if (entropy.empty())
+		{
+			// ultimate fallback
+			return std::to_string(Utils::Cryptography::Rand::GenerateLong());
+		}
+		else
+		{
+			return entropy;
+		}
 	}
 
 	Auth::Auth()

@@ -24,6 +24,8 @@ namespace Components
 		static uint32_t GetZeroBits(Utils::Cryptography::Token token, const std::string& publicKey);
 		static void IncrementToken(Utils::Cryptography::Token& token, Utils::Cryptography::Token& computeToken, const std::string& publicKey, uint32_t zeroBits, bool* cancel = nullptr, uint64_t* count = nullptr);
 
+		static std::string GetMachineEntropy();
+
 	private:
 
 		class TokenIncrementing
