@@ -55,6 +55,8 @@ namespace Components
 		static char* Info_ValueForKeyStub(const char* s, const char* key);
 		static void DirectConnectPrivateClientStub();
 
+		static std::string GetGUIDFilePath();
+
 		static void Frame();
 	};
 }

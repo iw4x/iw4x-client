@@ -326,6 +326,16 @@ namespace Components
 		}
 	}
 
+	std::string Auth::GetGUIDFilePath()
+	{
+		const auto appdata = Components::FileSystem::GetAppdataPath();
+		Utils::IO::CreateDir(appdata.string());
+
+		const auto guidPath = appdata / "guid.dat";
+		
+		return guidPath.string();
+	}
+
 	void ClientConnectFailedStub(Game::netsrc_t sock, Game::netadr_t adr, const char* data)
 	{
 		Logger::PrintFail2Ban("Failed connect attempt from IP address: {}\n", Network::AdrToString(adr));
@@ -358,8 +368,9 @@ namespace Components
 			cert.set_token(GuidToken.toString());
 			cert.set_ctoken(ComputeToken.toString());
 			cert.set_privatekey(GuidKey.serialize(PK_PRIVATE));
-
-			Utils::IO::WriteFile("players/guid.dat", cert.SerializeAsString());
+			
+			const auto guidPath = GetGUIDFilePath();
+			Utils::IO::WriteFile(guidPath, cert.SerializeAsString());
 		}
 	}
 
@@ -376,24 +387,21 @@ namespace Components
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
 		if (!force && GuidKey.isValid()) return;
 
-		const auto appdata = Components::FileSystem::GetAppdataPath();
-		Utils::IO::CreateDir(appdata.string());
-
-		const auto guidPath = appdata / "guid.dat";
+		const auto guidPath = GetGUIDFilePath();
 
 #ifndef REGENERATE_INVALID_KEY
 		// Migrate old file
 		const auto oldGuidPath = "players/guid.dat";
 		if (Utils::IO::FileExists(oldGuidPath))
 		{
-			if (MoveFileA(oldGuidPath, guidPath.string().data()))
+			if (MoveFileA(oldGuidPath, guidPath.data()))
 			{
 				Utils::IO::RemoveFile(oldGuidPath);
 			}
 		}
 #endif
 
-		const auto guidFile = Utils::IO::ReadFile(guidPath.string());
+		const auto guidFile = Utils::IO::ReadFile(guidPath);
 
 		Proto::Auth::Certificate cert;
 		if (cert.ParseFromString(guidFile))
