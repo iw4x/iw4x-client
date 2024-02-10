@@ -193,6 +193,11 @@ namespace Components
 
 	Party::Party()
 	{
+		if (ZoneBuilder::IsEnabled())
+		{
+			return;
+		}
+
 		PartyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::DVAR_NONE, "Enable party system");
 		Dvar::Register<bool>("xblive_privatematch", true, Game::DVAR_INIT, "");
 
