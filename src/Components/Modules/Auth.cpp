@@ -566,23 +566,21 @@ namespace Components
 					{
 						switch (pIpAdapterInfo->Type)
 						{
-						default:
-							pIpAdapterInfo = pIpAdapterInfo->Next;
-							continue;
-
-						case IF_TYPE_IEEE80211:
-						case MIB_IF_TYPE_ETHERNET:
-						{
-
-							std::string macAddress{};
-							for (size_t i = 0; i < ARRAYSIZE(pIpAdapterInfo->Address); i++)
+							case IF_TYPE_IEEE80211:
+							case MIB_IF_TYPE_ETHERNET:
 							{
-								entropy += std::to_string(pIpAdapterInfo->Address[i]);
-							}
 
-							break;
+								std::string macAddress{};
+								for (size_t i = 0; i < ARRAYSIZE(pIpAdapterInfo->Address); i++)
+								{
+									entropy += std::to_string(pIpAdapterInfo->Address[i]);
+								}
+
+								break;
+							}
 						}
-						}
+
+						pIpAdapterInfo = pIpAdapterInfo->Next;
 					}
 				}
 
