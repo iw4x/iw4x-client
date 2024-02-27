@@ -397,10 +397,11 @@ namespace Components
 
 	Node::Node()
 	{
-		if (ZoneBuilder::IsEnabled())
-		{
-			return;
-		}
+		if (ZoneBuilder::IsEnabled()) return;
+
+		if (!Dedicated::IsEnabled() && Flags::HasFlag("lan")) return;
+
+		if (Dedicated::IsEnabled() && Dedicated::SVLanOnly.get<bool>()) return;
 
 		net_natFix = Game::Dvar_RegisterBool("net_natFix", false, 0, "Fix node registration for certain firewalls/routers");
 
