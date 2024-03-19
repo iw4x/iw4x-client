@@ -33,11 +33,12 @@
 | `-nointro`              | Skip game's cinematic intro.                   |
 | `-version`              | Print IW4x build info on startup.              |
 | `-nosteam`              | Disable friends feature and do not update Steam about the game's current status just like an invisible mode. |
+| `-lan`                  | Disable node system for the client/server and disable sending heartbeats to the master server. |
 | `-unprotect-dvars`      | Allow the server to modify saved/archive dvars. |
 | `-zonebuilder`          | Start the interactive zonebuilder tool console instead of starting the game. |
-| `-disable-notifies`     | Disable "Anti-CFG" checks |
-| `-disable-mongoose`     | Disable Mongoose HTTP server |
-| `-disable-rate-limit-check` | Disable RCon rate limit checks |
+| `-disable-notifies`     | Disable "Anti-CFG" checks. |
+| `-disable-mongoose`     | Disable Mongoose HTTP server. |
+| `-disable-rate-limit-check` | Disable RCon rate limit checks. |
 
 ## Disclaimer
 

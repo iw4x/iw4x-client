@@ -399,7 +399,7 @@ namespace Components
 	{
 		if (ZoneBuilder::IsEnabled()) return;
 
-		if (!Dedicated::IsEnabled() && Flags::HasFlag("lan")) return;
+		if (Flags::HasFlag("lan")) return;
 
 		if (Dedicated::IsEnabled() && Dedicated::SVLanOnly.get<bool>()) return;
 
