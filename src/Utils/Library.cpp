@@ -102,22 +102,22 @@ namespace Utils
 		this->module_ = nullptr;
 	}
 
-	void Library::LaunchProcess(const std::string& process, const std::string& commandLine, const std::string& currentDir)
+	void Library::LaunchProcess(const std::wstring& process, const std::wstring& commandLine, const std::filesystem::path& currentDir)
 	{
-		STARTUPINFOA startupInfo;
-		PROCESS_INFORMATION processInfo;
+		STARTUPINFOW startup_info;
+		PROCESS_INFORMATION process_info;
 
-		ZeroMemory(&startupInfo, sizeof(startupInfo));
-		ZeroMemory(&processInfo, sizeof(processInfo));
-		startupInfo.cb = sizeof(startupInfo);
+		ZeroMemory(&startup_info, sizeof(startup_info));
+		ZeroMemory(&process_info, sizeof(process_info));
+		startup_info.cb = sizeof(startup_info);
 
-		CreateProcessA(process.data(), const_cast<char*>(commandLine.data()), nullptr,
-			nullptr, false, NULL, nullptr, currentDir.data(),
-			&startupInfo, &processInfo);
+		CreateProcessW(process.data(), const_cast<wchar_t*>(commandLine.data()), nullptr,
+			nullptr, false, NULL, nullptr, currentDir.wstring().data(),
+			&startup_info, &process_info);
 
-		if (processInfo.hThread && processInfo.hThread != INVALID_HANDLE_VALUE)
-			CloseHandle(processInfo.hThread);
-		if (processInfo.hProcess && processInfo.hProcess != INVALID_HANDLE_VALUE)
-			CloseHandle(processInfo.hProcess);
+		if (process_info.hThread && process_info.hThread != INVALID_HANDLE_VALUE)
+			CloseHandle(process_info.hThread);
+		if (process_info.hProcess && process_info.hProcess != INVALID_HANDLE_VALUE)
+			CloseHandle(process_info.hProcess);
 	}
 }

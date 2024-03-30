@@ -249,7 +249,7 @@ namespace Components
 		const std::string command = binary == "iw4x-sp.exe" ? "iw4x-sp" : "iw4x";
 
 		SetEnvironmentVariableA("MW2_INSTALL", workingDir.data());
-		Utils::Library::LaunchProcess(binary, std::format("{} --pass \"{}\"", command, GetCommandLineA()), workingDir);
+		Utils::Library::LaunchProcess(Utils::String::Convert(binary), std::format(L"{} --pass \"{}\"", Utils::String::Convert(command), Utils::GetLaunchParameters()), workingDir);
 	}
 
 	__declspec(naked) void QuickPatch::SND_GetAliasOffset_Stub()
