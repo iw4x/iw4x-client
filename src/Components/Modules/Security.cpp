@@ -8,7 +8,7 @@ namespace Components
 		static unsigned char buffer[0x8000];
 
 		if (size > 0x800) return 0;
-		size = Game::MSG_ReadBitsCompress(from, buffer, size);
+		size = Utils::Huffman::Decompress(from, buffer, size, sizeof(buffer));
 
 		if (size > 0x800) return 0;
 		std::memcpy(to, buffer, size);
@@ -21,7 +21,7 @@ namespace Components
 		static unsigned char buffer[0x100000];
 
 		if (size > 0x20000) return 0;
-		size = Game::MSG_ReadBitsCompress(from, buffer, size);
+		size = Utils::Huffman::Decompress(from, buffer, size, sizeof(buffer));
 
 		if (size > 0x20000) return 0;
 		std::memcpy(to, buffer, size);
