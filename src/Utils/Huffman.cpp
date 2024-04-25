@@ -9,9 +9,9 @@ namespace Utils::Huffman
 	{
 		const std::span input(from, fromSize);
 		const std::span output(to, toSize);
-		int outputByteCount = 0;
+		std::size_t outputByteCount = 0;
 
-		for (std::size_t inputBitCount = 0; inputBitCount < input.size() * 8 && outputByteCount < std::ssize(output); ++outputByteCount)
+		for (std::size_t inputBitCount = 0; inputBitCount < input.size() * 8 && outputByteCount < output.size(); ++outputByteCount)
 		{
 			[[maybe_unused]] const std::size_t orgInputBitCount = inputBitCount;
 			std::size_t nodeIndex = decompressionData.size() - 1;
@@ -29,14 +29,14 @@ namespace Utils::Huffman
 			output[outputByteCount] = static_cast<std::uint8_t>(nodeIndex);
 		}
 
-		return outputByteCount;
+		return static_cast<int>(outputByteCount);
 	}
 
 	int Compress(const unsigned char* from, unsigned char* to, int fromSize, int toSize)
 	{
 		const std::span input(from, fromSize);
 		const std::span output(to, toSize);
-		int outputBitCount = 0;
+		std::size_t outputBitCount = 0;
 
 		for (const auto byte : input)
 		{
@@ -57,6 +57,6 @@ namespace Utils::Huffman
 			}
 		};
 
-		return (outputBitCount + 7) / 8;
+		return static_cast<int>((outputBitCount + 7) / 8);
 	}
 }
