@@ -268,7 +268,7 @@ namespace Utils::Huffman::Tree
 		HuffmanDecompressionNode{ 509, 510 }
 	};
 
-	struct HuffmanCompressionNode // compression
+	struct HuffmanCompressionNode
 	{
 		std::array<std::uint8_t, 12> nodeData{};
 	};
