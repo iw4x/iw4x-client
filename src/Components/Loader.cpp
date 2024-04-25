@@ -27,6 +27,7 @@
 #include "Modules/FastFiles.hpp"
 #include "Modules/Friends.hpp"
 #include "Modules/Gamepad.hpp"
+#include "Modules/Huffman.hpp"
 #include "Modules/IPCPipe.hpp"
 #include "Modules/Lean.hpp"
 #include "Modules/MapDump.hpp"
