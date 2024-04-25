@@ -13,6 +13,7 @@ namespace Utils::Huffman
 
 		for (std::size_t inputBitCount = 0; inputBitCount < input.size() * 8 && outputByteCount < std::ssize(output); ++outputByteCount)
 		{
+			[[maybe_unused]] const std::size_t orgInputBitCount = inputBitCount;
 			std::size_t nodeIndex = decompressionData.size() - 1;
 
 			do
@@ -20,12 +21,12 @@ namespace Utils::Huffman
 				const bool rightNode = (input[inputBitCount / 8] >> (inputBitCount % 8)) & 1;
 				++inputBitCount;
 
-				nodeIndex = (rightNode) ? decompressionData[nodeIndex].right : decompressionData[nodeIndex].left;
+				assert((inputBitCount - orgInputBitCount < 12 && "No symbol should take more than 11 bits to decompress!"));
+				nodeIndex = (rightNode) ? decompressionData[nodeIndex % 256].right : decompressionData[nodeIndex % 256].left;
 			}
-			while (decompressionData[nodeIndex].symbol == invalidNode);
+			while (nodeIndex >= 256);
 
-			assert(("Node index must be equal to symbol value!" && nodeIndex == decompressionData[nodeIndex].symbol));
-			output[outputByteCount] = static_cast<std::uint8_t>(decompressionData[nodeIndex].symbol);
+			output[outputByteCount] = static_cast<std::uint8_t>(nodeIndex);
 		}
 
 		return outputByteCount;
