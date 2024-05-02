@@ -30,6 +30,8 @@ namespace Components
 		std::uint16_t lastAltWeapon;
 		std::uint8_t meleeDist;
 		float meleeYaw;
+		std::int8_t remoteAngles[2];
+		float angles[3];
 		bool active;
 	};
 
@@ -54,10 +56,11 @@ namespace Components
 		{ "sprint", Game::CMD_BUTTON_SPRINT },
 		{ "leanleft", Game::CMD_BUTTON_LEAN_LEFT },
 		{ "leanright", Game::CMD_BUTTON_LEAN_RIGHT },
-		{ "ads", Game::CMD_BUTTON_ADS },
+		{ "ads", Game::CMD_BUTTON_ADS | Game::CMD_BUTTON_THROW },
 		{ "holdbreath", Game::CMD_BUTTON_BREATH },
 		{ "usereload", Game::CMD_BUTTON_USE_RELOAD },
 		{ "activate", Game::CMD_BUTTON_ACTIVATE },
+		{ "remote", Game::CMD_BUTTON_REMOTE },
 	};
 
 	void Bots::UpdateBotNames()
@@ -214,7 +217,10 @@ namespace Components
 			}
 
 			ZeroMemory(&g_botai[entref.entnum], sizeof(BotMovementInfo));
-			g_botai[entref.entnum].weapon = 1;
+			g_botai[entref.entnum].weapon = ent->client->ps.weapCommon.weapon;
+			g_botai[entref.entnum].angles[0] = ent->client->ps.viewangles[0];
+			g_botai[entref.entnum].angles[1] = ent->client->ps.viewangles[1];
+			g_botai[entref.entnum].angles[2] = ent->client->ps.viewangles[2];
 			g_botai[entref.entnum].active = true;
 		});
 
@@ -311,6 +317,43 @@ namespace Components
 			g_botai[entref.entnum].meleeDist = static_cast<int8_t>(dist);
 			g_botai[entref.entnum].active = true;
 		});
+
+		GSC::Script::AddMethod("BotRemoteAngles", [](const Game::scr_entref_t entref) // Usage: <bot> BotRemoteAngles(<int>, <int>);
+		{
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+			if (!Game::SV_IsTestClient(ent->s.number))
+			{
+				Game::Scr_Error("BotRemoteAngles: Can only call on a bot!");
+				return;
+			}
+
+			const auto pitch = std::clamp<int>(Game::Scr_GetInt(0), std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
+			const auto yaw = std::clamp<int>(Game::Scr_GetInt(1), std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
+
+			g_botai[entref.entnum].remoteAngles[0] = static_cast<int8_t>(pitch);
+			g_botai[entref.entnum].remoteAngles[1] = static_cast<int8_t>(yaw);
+			g_botai[entref.entnum].active = true;
+		});
+
+		GSC::Script::AddMethod("BotAngles", [](const Game::scr_entref_t entref) // Usage: <bot> BotAngles(<float>, <float>, <float>);
+		{
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+			if (!Game::SV_IsTestClient(ent->s.number))
+			{
+				Game::Scr_Error("BotAngles: Can only call on a bot!");
+				return;
+			}
+
+			const auto pitch = Game::Scr_GetFloat(0);
+			const auto yaw = Game::Scr_GetFloat(1);
+			const auto roll = Game::Scr_GetFloat(2);
+
+			g_botai[entref.entnum].angles[0] = pitch;
+			g_botai[entref.entnum].angles[1] = yaw;
+			g_botai[entref.entnum].angles[2] = roll;
+
+			g_botai[entref.entnum].active = true;
+		});
 	}
 
 	void Bots::BotAiAction(Game::client_s* cl)
@@ -341,10 +384,12 @@ namespace Components
 		userCmd.primaryWeaponForAltMode = g_botai[clientNum].lastAltWeapon;
 		userCmd.meleeChargeYaw = g_botai[clientNum].meleeYaw;
 		userCmd.meleeChargeDist = g_botai[clientNum].meleeDist;
+		userCmd.remoteControlAngles[0] = g_botai[clientNum].remoteAngles[0];
+		userCmd.remoteControlAngles[1] = g_botai[clientNum].remoteAngles[1];
 
-		userCmd.angles[0] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[0] - cl->gentity->client->ps.delta_angles[0]));
-		userCmd.angles[1] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[1] - cl->gentity->client->ps.delta_angles[1]));
-		userCmd.angles[2] = ANGLE2SHORT((cl->gentity->client->ps.viewangles[2] - cl->gentity->client->ps.delta_angles[2]));
+		userCmd.angles[0] = ANGLE2SHORT(g_botai[clientNum].angles[0] - cl->gentity->client->ps.delta_angles[0]);
+		userCmd.angles[1] = ANGLE2SHORT(g_botai[clientNum].angles[1] - cl->gentity->client->ps.delta_angles[1]);
+		userCmd.angles[2] = ANGLE2SHORT(g_botai[clientNum].angles[2] - cl->gentity->client->ps.delta_angles[2]);
 
 		Game::SV_ClientThink(cl, &userCmd);
 	}
