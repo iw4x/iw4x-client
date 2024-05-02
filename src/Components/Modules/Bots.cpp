@@ -217,7 +217,7 @@ namespace Components
 			}
 
 			ZeroMemory(&g_botai[entref.entnum], sizeof(BotMovementInfo));
-			g_botai[entref.entnum].weapon = ent->client->ps.weapCommon.weapon;
+			g_botai[entref.entnum].weapon = static_cast<std::uint16_t>(ent->client->ps.weapCommon.weapon);
 			g_botai[entref.entnum].angles[0] = ent->client->ps.viewangles[0];
 			g_botai[entref.entnum].angles[1] = ent->client->ps.viewangles[1];
 			g_botai[entref.entnum].angles[2] = ent->client->ps.viewangles[2];
