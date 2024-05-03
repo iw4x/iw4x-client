@@ -163,6 +163,28 @@ namespace Utils
 		}
 	}
 
+	std::wstring GetLaunchParameters()
+	{
+		std::wstring args;
+
+		int numArgs;
+		auto* const argv = CommandLineToArgvW(GetCommandLineW(), &numArgs);
+
+		if (argv)
+		{
+			for (auto i = 1; i < numArgs; ++i)
+			{
+				std::wstring arg(argv[i]);
+				args.append(arg);
+				args.append(L" ");
+			}
+
+			LocalFree(argv);
+		}
+
+		return args;
+	}
+
 	HMODULE GetNTDLL()
 	{
 		return GetModuleHandleA("ntdll.dll");
