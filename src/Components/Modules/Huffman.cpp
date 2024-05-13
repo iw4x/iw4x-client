@@ -1,28 +1,12 @@
 #include <STDInclude.hpp>
 #include "Huffman.hpp"
-#include "Utils/Huffman.hpp"
 
 namespace Components
 {
-	__declspec(naked) int Huffman::MSG_ReadBitsCompressStub()
 	{
-		static constexpr auto fn = &Utils::Huffman::Compress;
-
-		__asm
-		{
-			jmp fn
-		}
 	}
 
-	__declspec(naked) int Huffman::MSG_WriteBitsCompressStub()
 	{
-		static constexpr auto fn = &Utils::Huffman::Decompress;
-
-		__asm
-		{
-			jmp fn
-		}
-	}
 
 	Huffman::Huffman()
 	{
