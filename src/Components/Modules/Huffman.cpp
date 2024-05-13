@@ -116,6 +116,24 @@ namespace Components
 		return true;
 	}
 
+	static void unitTest3() // check 'special' oob behavior - max 2 bytes oob read in decompression and max 2 bytes oob write in compression
+	{
+		{
+			const std::array<std::uint8_t, 2> compressed{ 0b11111111 };
+			std::array<std::uint8_t, compressed.size() * 4> decompressed{};
+
+			// this should trigger a debug statement about OOB detection
+			static_cast<void>(Utils::Huffman::Decompress(compressed.data(), decompressed.data(), 1, std::ssize(decompressed)));
+		}
+		{
+			const std::array<std::uint8_t, 1> uncompressed{ 183 };
+			std::array<std::uint8_t, uncompressed.size() * 4> compressed{};
+
+			// this should trigger a debug statement about OOB detection
+			static_cast<void>(Utils::Huffman::Compress(uncompressed.data(), compressed.data(), std::ssize(uncompressed), 1));
+		}
+	}
+
 	bool Huffman::unitTest()
 	{
 		if (!unitTest1())
@@ -129,6 +147,8 @@ namespace Components
 			Logger::Print("Failed huffman unit test 2\n");
 			return false;
 		}
+
+		unitTest3();
 
 		return true;
 	}
