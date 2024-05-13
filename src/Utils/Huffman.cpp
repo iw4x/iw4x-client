@@ -7,6 +7,8 @@ namespace Utils::Huffman
 
 	int Decompress(const unsigned char* from, unsigned char* to, int fromSize, int toSize)
 	{
+		assert(fromSize > 0 && toSize > 0);
+
 		const std::span input(from, fromSize);
 		const std::span output(to, toSize);
 		std::size_t outputByteCount = 0;
@@ -34,6 +36,8 @@ namespace Utils::Huffman
 
 	int Compress(const unsigned char* from, unsigned char* to, int fromSize, int toSize)
 	{
+		assert(fromSize > 0 && toSize > 0);
+
 		const std::span input(from, fromSize);
 		const std::span output(to, toSize);
 		std::size_t outputBitCount = 0;
