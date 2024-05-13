@@ -21,7 +21,8 @@ namespace Utils::Huffman
 			do
 			{
 				const bool rightNode = (input[inputBitCount / 8] >> (inputBitCount % 8)) & 1;
-				if (++inputBitCount >= input.size() * 8) {
+				if (++inputBitCount >= input.size() * 8)
+				{
 					// some symbols take more than 8 bits to (de)compress, so the check in the outer loop isn't adequate to prevent OOB in the inner loop
 					Components::Logger::Debug("Huffman decompression out-of-bounds read detected!");
 					break;
@@ -62,7 +63,8 @@ namespace Utils::Huffman
 					output[outputBitCount / 8] |= static_cast<std::uint8_t>(compressionData[byte].nodeData[nodeIndex] << (outputBitCount % 8));
 				}
 
-				if (++outputBitCount >= output.size() * 8) {
+				if (++outputBitCount >= output.size() * 8)
+				{
 					// some symbols take more than 8 bits to (de)compress, so the check in the outer loop isn't adequate to prevent OOB in the inner loop
 					Components::Logger::Debug("Huffman compression out-of-bounds write detected!");
 					break;

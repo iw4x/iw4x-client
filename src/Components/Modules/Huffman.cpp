@@ -25,7 +25,8 @@ namespace Components
 		std::array<std::uint8_t, 1024> uncompressed{};
 		std::iota(uncompressed.begin(), uncompressed.begin() + 256, 0);
 
-		for (std::size_t i = 256; i < uncompressed.size(); ++i) {
+		for (std::size_t i = 256; i < uncompressed.size(); ++i)
+		{
 			uncompressed[i] = static_cast<std::uint8_t>(rand());
 		}
 
