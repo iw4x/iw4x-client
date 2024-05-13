@@ -42,8 +42,9 @@ namespace Utils::Huffman
 		const std::span output(to, toSize);
 		std::size_t outputBitCount = 0;
 
-		for (const auto byte : input)
+		for (std::size_t inputByteCount = 0; inputByteCount < input.size() && outputBitCount < output.size() * 8; ++inputByteCount)
 		{
+			const std::uint8_t byte = input[inputByteCount];
 			const std::size_t nodeCount = compressionData[byte].nodeData.front(); // get bit count
 
 			for (std::size_t nodeIndex = 1; nodeIndex < nodeCount + 1; ++nodeIndex)
