@@ -18,16 +18,19 @@ namespace Components
 			{ return Utils::Huffman::Compress(from, to, fromSize, 0x20000); }, HOOK_CALL).install()->quick();
 	}
 
+	static bool unitTest1() // check internal consistency between compression and decompression, and consistency between the game's huffman code and our own
 	{
+		std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
+		std::array<std::uint8_t, 1024> uncompressed{};
+		std::iota(uncompressed.begin(), uncompressed.begin() + 256, 0);
 
-	static bool unitTest1() // check internal consistency between compression and decompression
-	{
-		std::vector<std::uint8_t> uncompressed(256);
-		std::iota(uncompressed.begin(), uncompressed.end(), 0);
+		for (std::size_t i = 256; i < uncompressed.size(); ++i) {
+			uncompressed[i] = static_cast<std::uint8_t>(rand());
+		}
 
-		std::vector<std::uint8_t> compressed(1024);
-		std::vector<std::uint8_t> decompressed(1024);
+		std::array<std::uint8_t, uncompressed.size() * 4> compressed{};
+		std::array<std::uint8_t, uncompressed.size() * 4> decompressed{};
 
 		const auto compressedSize = Utils::Huffman::Compress(uncompressed.data(), compressed.data(), std::ssize(uncompressed), std::ssize(compressed));
 		if (compressedSize <= 0 || compressedSize >= std::ssize(decompressed))
@@ -49,39 +52,81 @@ namespace Components
 			return false;
 		}
 
+		std::array<std::uint8_t, uncompressed.size() * 4> compressedGame{};
+		std::array<std::uint8_t, uncompressed.size() * 4> decompressedGame{};
+
+		const auto compressedSizeGame = Game::MSG_ReadBitsCompress(uncompressed.data(), compressedGame.data(), std::ssize(uncompressed));
+		if (compressedSizeGame <= 0 || compressedSizeGame >= std::ssize(decompressedGame))
+		{
+			Logger::Print("Invalid compressed size {}\n", compressedSizeGame);
+			return false;
+		}
+
+		const auto decompressedSizeGame = Game::MSG_WriteBitsCompress(false, compressedGame.data(), decompressedGame.data(), compressedSizeGame);
+		if (decompressedSizeGame != std::ssize(uncompressed))
+		{
+			Logger::Print("Invalid decompressed size {}\n", compressedSizeGame);
+			return false;
+		}
+
+		if (!std::equal(uncompressed.begin(), uncompressed.end(), decompressedGame.begin()))
+		{
+			Logger::Print("Compressing and then decompressing bytes did not yield the original input\n");
+			return false;
+		}
+
+		if (std::abs(compressedSizeGame - compressedSize) > 1)
+		{
+			Logger::Print("Compressed sizes differ too much\n");
+			return false;
+		}
+		if (std::abs(decompressedSizeGame - decompressedSize) > 1)
+		{
+			Logger::Print("Decompressed sizes differ too much\n");
+			return false;
+		}
+		if (std::memcmp(decompressed.data(), decompressedGame.data(), std::min<std::size_t>(decompressedSize, decompressedSizeGame)))
+		{
+			Logger::Print("The decompressed output from the game's huffman code is different from our own\n");
+			return false;
+		}
+
 		return true;
 	}
 
-	static bool unitTest2() // check consistency between the game's huffman code and our own
+	static bool unitTest2() // check oob behavior
 	{
-		return true;
-	}
+		const std::array<std::uint8_t, 256> uncompressed{};
+		std::array<std::uint8_t, uncompressed.size() / 4> compressed{};
+		std::array<std::uint8_t, compressed.size()> decompressed{};
 
-	static bool unitTest3() // check oob behavior
-	{
+		const auto compressedSize = Utils::Huffman::Compress(uncompressed.data(), compressed.data(), std::ssize(uncompressed), std::ssize(compressed));
+		if (compressedSize != std::ssize(compressed))
+		{
+			Logger::Print("Invalid compressed size {}, shouldn't write out of bounds\n", compressedSize);
+			return false;
+		}
+
+		const auto decompressedSize = Utils::Huffman::Compress(compressed.data(), decompressed.data(), compressedSize, std::ssize(decompressed));
+		if (decompressedSize != std::ssize(decompressed)) {
+			Logger::Print("Invalid decompressed size {}, shouldn't write out of bounds\n\n", compressedSize);
+			return false;
+		}
+
 		return true;
 	}
 
 	bool Huffman::unitTest()
 	{
-		const bool resultTest1 = unitTest1();
-		if (!resultTest1)
+		if (!unitTest1())
 		{
 			Logger::Print("Failed huffman unit test 1\n");
 			return false;
 		}
 
-		const bool resultTest2 = unitTest2();
-		if (!resultTest2)
+		if (!unitTest2())
 		{
 			Logger::Print("Failed huffman unit test 2\n");
-			return false;
-		}
-
-		const bool resultTest3 = unitTest3();
-		if (!resultTest3)
-		{
-			Logger::Print("Failed huffman unit test 3\n");
 			return false;
 		}
 
