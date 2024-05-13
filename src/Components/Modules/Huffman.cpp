@@ -40,7 +40,7 @@ namespace Components
 			return false;
 		}
 
-		const auto decompressedSize = Utils::Huffman::Compress(compressed.data(), decompressed.data(), compressedSize, std::ssize(decompressed));
+		const auto decompressedSize = Utils::Huffman::Decompress(compressed.data(), decompressed.data(), compressedSize, std::ssize(decompressed));
 		if (decompressedSize != std::ssize(uncompressed))
 		{
 			Logger::Print("Invalid decompressed size {}\n", compressedSize);
@@ -99,7 +99,7 @@ namespace Components
 	{
 		const std::array<std::uint8_t, 256> uncompressed{};
 		std::array<std::uint8_t, uncompressed.size() / 4> compressed{};
-		std::array<std::uint8_t, compressed.size()> decompressed{};
+		std::array<std::uint8_t, compressed.size() / 2> decompressed{};
 
 		const auto compressedSize = Utils::Huffman::Compress(uncompressed.data(), compressed.data(), std::ssize(uncompressed), std::ssize(compressed));
 		if (compressedSize != std::ssize(compressed))
@@ -110,7 +110,7 @@ namespace Components
 
 		const auto decompressedSize = Utils::Huffman::Compress(compressed.data(), decompressed.data(), compressedSize, std::ssize(decompressed));
 		if (decompressedSize != std::ssize(decompressed)) {
-			Logger::Print("Invalid decompressed size {}, shouldn't write out of bounds\n\n", compressedSize);
+			Logger::Print("Invalid decompressed size {}, shouldn't write out of bounds\n", compressedSize);
 			return false;
 		}
 
