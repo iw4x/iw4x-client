@@ -3,16 +3,23 @@
 
 namespace Components
 {
-	{
-	}
-
-	{
-
 	Huffman::Huffman()
 	{
-		Utils::Hook(0x4DCC30, Huffman::MSG_ReadBitsCompressStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x4319D0, Huffman::MSG_WriteBitsCompressStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x414D92, +[](const unsigned char* from, unsigned char* to, int fromSize) // SV_ExecuteClientMessage
+			{ return Utils::Huffman::Decompress(from, to, fromSize, 0x800); }, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4A9F56, +[](const unsigned char* from, unsigned char* to, int fromSize) // CL_ParseServerMessage
+			{ return Utils::Huffman::Decompress(from, to, fromSize, 0x20000); }, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x411C16, +[](bool, const unsigned char* from, unsigned char* to, int fromSize) // CL_WritePacket
+			{ return Utils::Huffman::Compress(from, to, fromSize, 0x800); }, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A85A1, +[](bool, const unsigned char* from, unsigned char* to, int fromSize) // CL_Record_f
+			{ return Utils::Huffman::Compress(from, to, fromSize, 0x20000); }, HOOK_CALL).install()->quick();
+		Utils::Hook(0x48FEDD, +[](bool, const unsigned char* from, unsigned char* to, int fromSize) // SV_SendMessageToClient
+			{ return Utils::Huffman::Compress(from, to, fromSize, 0x20000); }, HOOK_CALL).install()->quick();
 	}
+
+	{
+
 
 	static bool unitTest1() // check internal consistency between compression and decompression
 	{
