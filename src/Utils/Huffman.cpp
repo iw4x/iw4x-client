@@ -25,7 +25,7 @@ namespace Utils::Huffman
 				{
 					// some symbols take more than 8 bits to (de)compress, so the check in the outer loop isn't adequate to prevent OOB in the inner loop
 					Components::Logger::Debug("Huffman decompression out-of-bounds read detected!");
-					break;
+					return static_cast<int>(outputByteCount);
 				}
 
 				assert((inputBitCount - orgInputBitCount < 12 && "No symbol should take more than 11 bits to decompress!"));
@@ -67,7 +67,7 @@ namespace Utils::Huffman
 				{
 					// some symbols take more than 8 bits to (de)compress, so the check in the outer loop isn't adequate to prevent OOB in the inner loop
 					Components::Logger::Debug("Huffman compression out-of-bounds write detected!");
-					break;
+					return static_cast<int>((outputBitCount + 7) / 8);
 				}
 			}
 		};
