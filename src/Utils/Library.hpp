@@ -65,7 +65,7 @@ namespace Utils
 			return T();
 		}
 
-		static void LaunchProcess(const std::string& process, const std::string& commandLine, const std::string& currentDir);
+		static void LaunchProcess(const std::wstring& process, const std::wstring& commandLine, const std::filesystem::path& currentDir);
 
 	private:
 		HMODULE module_;
