@@ -8,5 +8,7 @@ namespace Components
 		Huffman();
 
 		bool unitTest() override;
+
+		static inline bool isInitialized;
 	};
 }

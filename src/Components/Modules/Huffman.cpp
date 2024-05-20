@@ -16,6 +16,8 @@ namespace Components
 			{ return Utils::Huffman::Compress(from, to, fromSize, 0x20000); }, HOOK_CALL).install()->quick();
 		Utils::Hook(0x48FEDD, [](bool, const unsigned char* from, unsigned char* to, int fromSize) // SV_SendMessageToClient
 			{ return Utils::Huffman::Compress(from, to, fromSize, 0x20000); }, HOOK_CALL).install()->quick();
+
+		isInitialized = true;
 	}
 
 	static bool unitTest1() // check internal consistency between compression and decompression, and consistency between the game's huffman code and our own
