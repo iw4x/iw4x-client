@@ -102,17 +102,17 @@ namespace Utils
 		this->module_ = nullptr;
 	}
 
-	void Library::LaunchProcess(const std::string& process, const std::string& commandLine, const std::string& currentDir)
+	void Library::LaunchProcess(const std::wstring& process, const std::wstring& commandLine, const std::filesystem::path& currentDir)
 	{
-		STARTUPINFOA startupInfo;
+		STARTUPINFOW startupInfo;
 		PROCESS_INFORMATION processInfo;
 
 		ZeroMemory(&startupInfo, sizeof(startupInfo));
 		ZeroMemory(&processInfo, sizeof(processInfo));
 		startupInfo.cb = sizeof(startupInfo);
 
-		CreateProcessA(process.data(), const_cast<char*>(commandLine.data()), nullptr,
-			nullptr, false, NULL, nullptr, currentDir.data(),
+		CreateProcessW(process.data(), const_cast<wchar_t*>(commandLine.data()), nullptr,
+			nullptr, false, NULL, nullptr, currentDir.wstring().data(),
 			&startupInfo, &processInfo);
 
 		if (processInfo.hThread && processInfo.hThread != INVALID_HANDLE_VALUE)

@@ -1978,6 +1978,7 @@ namespace Game
 		CMD_BUTTON_FRAG = 1 << 14,
 		CMD_BUTTON_OFFHAND_SECONDARY = 1 << 15,
 		CMD_BUTTON_THROW = 1 << 19,
+		CMD_BUTTON_REMOTE = 1 << 20,
 	};
 
 	struct usercmd_s
