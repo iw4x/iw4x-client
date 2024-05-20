@@ -7,7 +7,16 @@ namespace Utils::Huffman
 
 	int Decompress(const unsigned char* from, unsigned char* to, int fromSize, int toSize)
 	{
-		assert(fromSize > 0 && toSize > 0);
+		if (fromSize <= 0)
+		{
+			Components::Logger::Print("Huffman decompression expects an input buffer size bigger than {}\n", fromSize);
+			return 0;
+		}
+		if (toSize <= 0)
+		{
+			Components::Logger::Print("Huffman decompression expects an output buffer size bigger than {}\n", toSize);
+			return 0;
+		}
 
 		const std::span input(from, fromSize);
 		const std::span output(to, toSize);
@@ -41,7 +50,16 @@ namespace Utils::Huffman
 
 	int Compress(const unsigned char* from, unsigned char* to, int fromSize, int toSize)
 	{
-		assert(fromSize > 0 && toSize > 0);
+		if (fromSize <= 0)
+		{
+			Components::Logger::Print("Huffman compression expects an input buffer size bigger than {}\n", fromSize);
+			return 0;
+		}
+		if (toSize <= 0)
+		{
+			Components::Logger::Print("Huffman compression expects an output buffer size bigger than {}\n", toSize);
+			return 0;
+		}
 
 		const std::span input(from, fromSize);
 		const std::span output(to, toSize);
