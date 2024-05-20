@@ -3,6 +3,32 @@
 
 namespace Components
 {
+	int Security::Msg_ReadBitsCompressCheckSV(const unsigned char* from, unsigned char* to, int size)
+	{
+		static unsigned char buffer[0x8000];
+
+		if (size > 0x800) return 0;
+		size = Utils::Huffman::Decompress(from, buffer, size, sizeof(buffer));
+
+		if (size > 0x800) return 0;
+		std::memcpy(to, buffer, size);
+
+		return size;
+	}
+
+	int Security::Msg_ReadBitsCompressCheckCL(const unsigned char* from, unsigned char* to, int size)
+	{
+		static unsigned char buffer[0x100000];
+
+		if (size > 0x20000) return 0;
+		size = Utils::Huffman::Decompress(from, buffer, size, sizeof(buffer));
+
+		if (size > 0x20000) return 0;
+		std::memcpy(to, buffer, size);
+
+		return size;
+	}
+
 	long Security::AtolAdjustPlayerLimit(const char* string)
 	{
 		return std::min<long>(std::atol(string), 18);
@@ -107,6 +133,9 @@ namespace Components
 	Security::Security()
 	{
 		// Exploit fixes
+		Utils::Hook(0x414D92, Msg_ReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
+		Utils::Hook(0x4A9F56, Msg_ReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
+
 		Utils::Hook::Set<std::uint8_t>(0x412370, 0xC3); // SV_SteamAuthClient
 		Utils::Hook::Set<std::uint8_t>(0x5A8C70, 0xC3); // CL_HandleRelayPacket
 
