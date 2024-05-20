@@ -135,7 +135,7 @@ namespace Components
 	Security::Security()
 	{
 		// Exploit fixes
-		// Fallback option when we don't use our own huffman implementation
+		// Fallback option for when we don't use our own huffman implementation
 		if (!Huffman::isInitialized)
 		{
 			Utils::Hook(0x414D92, Msg_ReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
