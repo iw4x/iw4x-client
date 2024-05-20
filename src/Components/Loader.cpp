@@ -141,6 +141,7 @@ namespace Components
 		Register(new FileSystem());
 		Register(new Friends());
 		Register(new Gamepad());
+		Register(new Huffman());
 		Register(new Lean());
 		Register(new Localization());
 		Register(new MapDump());
