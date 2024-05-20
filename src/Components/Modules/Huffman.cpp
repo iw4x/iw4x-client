@@ -34,7 +34,7 @@ namespace Components
 		std::array<std::uint8_t, uncompressed.size() * 4> decompressed{};
 
 		const auto compressedSize = Utils::Huffman::Compress(uncompressed.data(), compressed.data(), std::ssize(uncompressed), std::ssize(compressed));
-		if (compressedSize <= 0 || compressedSize >= std::ssize(decompressed))
+		if (compressedSize <= 0 || compressedSize >= std::ssize(compressed))
 		{
 			Logger::Print("Invalid compressed size {}\n", compressedSize);
 			return false;
@@ -43,7 +43,7 @@ namespace Components
 		const auto decompressedSize = Utils::Huffman::Decompress(compressed.data(), decompressed.data(), compressedSize, std::ssize(decompressed));
 		if (decompressedSize != std::ssize(uncompressed))
 		{
-			Logger::Print("Invalid decompressed size {}\n", compressedSize);
+			Logger::Print("Invalid decompressed size {}\n", decompressedSize);
 			return false;
 		}
 
@@ -56,17 +56,17 @@ namespace Components
 		std::array<std::uint8_t, uncompressed.size() * 4> compressedGame{};
 		std::array<std::uint8_t, uncompressed.size() * 4> decompressedGame{};
 
-		const auto compressedSizeGame = Game::MSG_ReadBitsCompress(uncompressed.data(), compressedGame.data(), std::ssize(uncompressed));
-		if (compressedSizeGame <= 0 || compressedSizeGame >= std::ssize(decompressedGame))
+		const auto compressedSizeGame = Game::MSG_WriteBitsCompress(false, uncompressed.data(), compressedGame.data(), std::ssize(uncompressed));
+		if (compressedSizeGame <= 0 || compressedSizeGame >= std::ssize(compressedGame))
 		{
 			Logger::Print("Invalid compressed size {}\n", compressedSizeGame);
 			return false;
 		}
 
-		const auto decompressedSizeGame = Game::MSG_WriteBitsCompress(false, compressedGame.data(), decompressedGame.data(), compressedSizeGame);
+		const auto decompressedSizeGame = Game::MSG_ReadBitsCompress(compressedGame.data(), decompressedGame.data(), compressedSizeGame);
 		if (decompressedSizeGame != std::ssize(uncompressed))
 		{
-			Logger::Print("Invalid decompressed size {}\n", compressedSizeGame);
+			Logger::Print("Invalid decompressed size {}\n", decompressedSizeGame);
 			return false;
 		}
 
@@ -108,17 +108,28 @@ namespace Components
 			return false;
 		}
 
-		const auto decompressedSize = Utils::Huffman::Compress(compressed.data(), decompressed.data(), compressedSize, std::ssize(decompressed));
-		if (decompressedSize != std::ssize(decompressed)) {
-			Logger::Print("Invalid decompressed size {}, shouldn't write out of bounds\n", compressedSize);
+		const auto decompressedSize = Utils::Huffman::Decompress(compressed.data(), decompressed.data(), compressedSize, std::ssize(decompressed));
+		if (decompressedSize != std::ssize(decompressed))
+		{
+			Logger::Print("Invalid decompressed size {}, shouldn't write out of bounds\n", decompressedSize);
 			return false;
 		}
 
 		return true;
 	}
 
-	static void unitTest3() // check 'special' oob behavior - max 2 bytes oob read in decompression and max 2 bytes oob write in compression
+	static bool unitTest3() // check 'special' oob behavior - max 2 bytes oob read in decompression and max 2 bytes oob write in compression
 	{
+		{
+			const std::array<std::uint8_t, 1> uncompressed{ 183 };
+			std::array<std::uint8_t, uncompressed.size() * 4> compressed{};
+
+			// this should trigger a debug statement about OOB detection
+			if (Utils::Huffman::Compress(uncompressed.data(), compressed.data(), std::ssize(uncompressed), 1) != 1)
+			{
+				return false;
+			}
+		}
 		{
 			const std::array<std::uint8_t, 2> compressed{ 0b11111111 };
 			std::array<std::uint8_t, compressed.size() * 4> decompressed{};
@@ -126,13 +137,8 @@ namespace Components
 			// this should trigger a debug statement about OOB detection
 			static_cast<void>(Utils::Huffman::Decompress(compressed.data(), decompressed.data(), 1, std::ssize(decompressed)));
 		}
-		{
-			const std::array<std::uint8_t, 1> uncompressed{ 183 };
-			std::array<std::uint8_t, uncompressed.size() * 4> compressed{};
 
-			// this should trigger a debug statement about OOB detection
-			static_cast<void>(Utils::Huffman::Compress(uncompressed.data(), compressed.data(), std::ssize(uncompressed), 1));
-		}
+		return true;
 	}
 
 	bool Huffman::unitTest()
@@ -149,7 +155,11 @@ namespace Components
 			return false;
 		}
 
-		unitTest3();
+		if (!unitTest3())
+		{
+			Logger::Print("Failed huffman unit test 3\n");
+			return false;
+		}
 
 		return true;
 	}
