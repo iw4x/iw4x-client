@@ -335,9 +335,8 @@ namespace Components
 		// Replicate g_allowVote
 		Utils::Hook::Set<std::uint32_t>(0x5E3A4F, Game::DVAR_INTERNAL | Game::DVAR_CODINFO);
 
-		Events::OnDvarInit([]()
-			{
-			Vote::SV_VotesRequired = Game::Dvar_RegisterInt("sv_votesRequired", 0, 0, 18, Game::DVAR_NONE, "");
+		Events::OnDvarInit([]{
+			Vote::SV_VotesRequired = Game::Dvar_RegisterInt("sv_votesRequired", 0, 0, 18, Game::DVAR_NONE, "Set the amount of votes required for a vote to pass.\n0 = (players / 2) + 1");
 		});
 
 		ClientCommand::Add("callvote", Cmd_CallVote_f);
