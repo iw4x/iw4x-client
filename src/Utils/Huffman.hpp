@@ -2,6 +2,6 @@
 
 namespace Utils::Huffman
 {
-	[[nodiscard]] int Compress(const unsigned char* from, unsigned char* to, int fromSize, int toSize);
-	[[nodiscard]] int Decompress(const unsigned char* from, unsigned char* to, int fromSize, int toSize);
+	[[nodiscard]] int Compress(const unsigned char* input, unsigned char* output, int inputSize, int outputSize);
+	[[nodiscard]] int Decompress(const unsigned char* input, unsigned char* output, int inputSize, int outputSize);
 }
