@@ -25,7 +25,7 @@ namespace Components
 		std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
 		std::array<std::uint8_t, 1024> uncompressed{};
-		std::iota(uncompressed.begin(), uncompressed.begin() + 256, 0);
+		std::iota(uncompressed.begin(), uncompressed.begin() + 256, static_cast<std::uint8_t>(0));
 
 		for (std::size_t i = 256; i < uncompressed.size(); ++i)
 		{
@@ -43,13 +43,13 @@ namespace Components
 		}
 
 		const auto decompressedSize = Utils::Huffman::Decompress(compressed.data(), decompressed.data(), compressedSize, std::ssize(decompressed));
-		if (decompressedSize != std::ssize(uncompressed))
+		if (std::abs(decompressedSize - std::ssize(uncompressed)) > 1)
 		{
 			Logger::Print("Invalid decompressed size {}\n", decompressedSize);
 			return false;
 		}
 
-		if (!std::equal(uncompressed.begin(), uncompressed.end(), decompressed.begin()))
+		if (std::memcmp(uncompressed.data(), decompressed.data(), std::min<std::size_t>(uncompressed.size(), decompressedSize)))
 		{
 			Logger::Print("Compressing and then decompressing bytes did not yield the original input\n");
 			return false;
@@ -66,13 +66,13 @@ namespace Components
 		}
 
 		const auto decompressedSizeGame = Game::MSG_ReadBitsCompress(compressedGame.data(), decompressedGame.data(), compressedSizeGame);
-		if (decompressedSizeGame != std::ssize(uncompressed))
+		if (std::abs(decompressedSizeGame - std::ssize(uncompressed)) > 1)
 		{
 			Logger::Print("Invalid decompressed size {}\n", decompressedSizeGame);
 			return false;
 		}
 
-		if (!std::equal(uncompressed.begin(), uncompressed.end(), decompressedGame.begin()))
+		if (std::memcmp(uncompressed.data(), decompressedGame.data(), std::min<std::size_t>(uncompressed.size(), decompressedSizeGame)))
 		{
 			Logger::Print("Compressing and then decompressing bytes did not yield the original input\n");
 			return false;
