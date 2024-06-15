@@ -83,7 +83,7 @@ namespace Components
 
 		static void PrintFail2Ban(const std::string_view& fmt)
 		{
-			PrintFail2BanInternal(fmt, std::make_format_args(0));
+			PrintFail2BanInternal(fmt, std::make_format_args());
 		}
 
 		template <typename... Args>

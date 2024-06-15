@@ -329,7 +329,7 @@ namespace Components
 		else
 		{
 			// Dangerous!!
-			assert(false, "Arenas refreshed from wrong thread??");
+			assert(false && "Arenas refreshed from wrong thread??");
 			Logger::Print("Tried to refresh arenas from a thread that is NOT the main thread!! This could have lead to a crash. Please report this bug and how you got it!");
 		}
 	}
