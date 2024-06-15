@@ -3,6 +3,8 @@
 
 namespace Components
 {
+	constexpr auto BASE_PLAYERSTATS_VERSION = 155;
+
 	Utils::Memory::Allocator StructuredData::MemAllocator;
 
 	const char* StructuredData::EnumTranslation[COUNT] =
@@ -25,6 +27,11 @@ namespace Components
 	void StructuredData::PatchPlayerDataEnum(Game::StructuredDataDef* data, StructuredData::PlayerDataType type, std::vector<std::string>& entries)
 	{
 		if (!data || type >= StructuredData::PlayerDataType::COUNT) return;
+
+		// Reallocate them before patching
+		Game::StructuredDataEnum* newEnums = MemAllocator.allocateArray<Game::StructuredDataEnum>(data->enumCount);
+		std::memcpy(newEnums, data->enums, sizeof(Game::StructuredDataEnum) * data->enumCount);
+		data->enums = newEnums;
 
 		Game::StructuredDataEnum* dataEnum = &data->enums[type];
 
@@ -87,23 +94,52 @@ namespace Components
 
 	void StructuredData::PatchCustomClassLimit(Game::StructuredDataDef* data, int count)
 	{
-		const int customClassSize = 64;
+		constexpr auto CLASS_ARRAY = 5;
+		const auto originalClassCount = data->indexedArrays[CLASS_ARRAY].arraySize;
 
-		for (int i = 0; i < data->structs[0].propertyCount; ++i)
+		if (count != originalClassCount)
 		{
-			// 3003 is the offset of the customClasses structure
-			if (data->structs[0].properties[i].offset >= 3643)
+			const int customClassSize = 64;
+
+			// We need to recreate the struct list cause it's used in order definitions
+			auto newStructs = StructuredData::MemAllocator.allocateArray<Game::StructuredDataStruct>(data->structCount);
+			std::memcpy(newStructs, data->structs, data->structCount * sizeof(Game::StructuredDataStruct));
+			data->structs = newStructs;
+
+			constexpr auto structIndex = 0;
 			{
-				// -10 because 10 is the default amount of custom classes.
-				data->structs[0].properties[i].offset += ((count - 10) * customClassSize);
+				auto strct = &data->structs[structIndex];
+				
+				auto newProperties = StructuredData::MemAllocator.allocateArray<Game::StructuredDataStructProperty>(strct->propertyCount);
+				std::memcpy(newProperties, strct->properties, strct->propertyCount * sizeof(Game::StructuredDataStructProperty));
+				strct->properties = newProperties;
+
+				for (int propertyIndex = 0; propertyIndex < strct->propertyCount; ++propertyIndex)
+				{
+					// 3643 is the offset of the customClasses structure
+					if (strct->properties[propertyIndex].offset >= 3643)
+					{
+						// -10 because 10 is the default amount of custom classes.
+						strct->properties[propertyIndex].offset += ((count - originalClassCount) * customClassSize);
+					}
+				}
+			}
+
+			// update structure size
+			data->size += ((count - originalClassCount) * customClassSize);
+
+			// Update amount of custom classes
+			if (data->indexedArrays[CLASS_ARRAY].arraySize != count)
+			{
+				// We need to recreate the whole array - this reference could be reused accross definitions
+				auto newIndexedArray = StructuredData::MemAllocator.allocateArray<Game::StructuredDataIndexedArray>(data->indexedArrayCount);
+				std::memcpy(newIndexedArray, data->indexedArrays, data->indexedArrayCount * sizeof(Game::StructuredDataIndexedArray));
+				data->indexedArrays = newIndexedArray;
+
+				// Add classes
+				data->indexedArrays[CLASS_ARRAY].arraySize = count;
 			}
 		}
-
-		// update structure size
-		data->size += ((count - 10) * customClassSize);
-
-		// Update amount of custom classes
-		data->indexedArrays[5].arraySize = count;
 	}
 
 	void StructuredData::PatchAdditionalData(Game::StructuredDataDef* data, std::unordered_map<std::string, std::string>& patches)
@@ -119,26 +155,44 @@ namespace Components
 
 	bool StructuredData::UpdateVersionOffsets(Game::StructuredDataDefSet* set, Game::StructuredDataBuffer* buffer, Game::StructuredDataDef* whatever)
 	{
-		Game::StructuredDataDef* newDef = &set->defs[0];
-		Game::StructuredDataDef* oldDef = &set->defs[0];
-
-		for (unsigned int i = 0; i < set->defCount; ++i)
+		if (set->defCount > 1)
 		{
-			if (newDef->version < set->defs[i].version)
+			int bufferVersion = *reinterpret_cast<int*>(buffer->data);
+
+			for (size_t i = 0; i < set->defCount; i++)
 			{
-				newDef = &set->defs[i];
+				if (set->defs[i].version == bufferVersion)
+				{
+					if (i == 0)
+					{
+						// No update to conduct
+					}
+					else
+					{
+						Game::StructuredDataDef* newDef = &set->defs[i - 1];
+						Game::StructuredDataDef* oldDef = &set->defs[i];
+
+						if (newDef->version == 159 && oldDef->version <= 158)
+						{
+							// this should move the data 320 bytes infront
+							std::memmove(&buffer->data[3963], &buffer->data[3643], oldDef->size - 3643);
+						}
+						else if (newDef->version > 159 && false)
+						{
+							// 159 cannot be translated upwards and it's hard to say why
+							// Reading it fails in various ways
+							// might be the funky class bump...?
+
+							Command::Execute("setPlayerData prestige 10");
+							Command::Execute("setPlayerData experience 2516000");
+						}
+
+						return Utils::Hook::Call<bool(void*, void*, void*)>(0x456830)(set, buffer, whatever);
+					}
+				}
 			}
 
-			if (set->defs[i].version == *reinterpret_cast<int*>(buffer->data))
-			{
-				oldDef = &set->defs[i];
-			}
-		}
-
-		if (newDef->version >= 159 && oldDef->version <= 158)
-		{
-			// this should move the data 320 bytes infront
-			std::memmove(&buffer->data[3963], &buffer->data[3643], oldDef->size - 3643);
+			return Utils::Hook::Call<bool(void*, void*, void*)>(0x456830)(set, buffer, whatever);
 		}
 
 		// StructuredData_UpdateVersion
@@ -182,7 +236,7 @@ namespace Components
 					return;
 				}
 
-				if (data->defs[0].version != 155)
+				if (data->defs[0].version != BASE_PLAYERSTATS_VERSION)
 				{
 					Logger::Error(Game::ERR_FATAL, "Initial PlayerDataDef is not version 155, patching not possible!");
 					return;
@@ -262,16 +316,10 @@ namespace Components
 				auto* newData = StructuredData::MemAllocator.allocateArray<Game::StructuredDataDef>(data->defCount + patchDefinitions.size());
 				std::memcpy(&newData[patchDefinitions.size()], data->defs, sizeof Game::StructuredDataDef * data->defCount);
 
-				// Prepare the buffers
+				// Set the versions
 				for (unsigned int i = 0; i < patchDefinitions.size(); ++i)
 				{
-					std::memcpy(&newData[i], data->defs, sizeof Game::StructuredDataDef);
-					newData[i].version = (patchDefinitions.size() - i) + 155;
-
-					// Reallocate the enum array
-					auto* newEnums = StructuredData::MemAllocator.allocateArray<Game::StructuredDataEnum>(data->defs->enumCount);
-					std::memcpy(newEnums, data->defs->enums, sizeof Game::StructuredDataEnum * data->defs->enumCount);
-					newData[i].enums = newEnums;
+					newData[i].version = (patchDefinitions.size() - i) + BASE_PLAYERSTATS_VERSION;
 				}
 
 				// Apply new data
@@ -279,10 +327,18 @@ namespace Components
 				data->defCount += patchDefinitions.size();
 
 				// Patch the definition
-				for (unsigned int i = 0; i < data->defCount; ++i)
+				for (int i = data->defCount - 1; i >= 0; --i)
 				{
 					// No need to patch version 155
-					if (newData[i].version == 155) continue;
+					if (newData[i].version == BASE_PLAYERSTATS_VERSION)
+					{
+						continue;
+					}
+
+					// We start from the previous one
+					const auto version = newData[i].version;
+					data->defs[i] = data->defs[i + 1];
+					newData[i].version = version;
 
 					if (patchDefinitions.contains(newData[i].version))
 					{
