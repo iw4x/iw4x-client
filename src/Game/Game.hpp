@@ -56,6 +56,8 @@ namespace Game
 	// This does not belong anywhere else
 	extern NetField* clientStateFields;
 	extern size_t clientStateFieldsCount;
+	extern MssLocal* milesGlobal;
+
 
 	extern const char* origErrorMsg;
 

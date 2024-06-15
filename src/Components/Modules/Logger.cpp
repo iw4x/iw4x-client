@@ -419,8 +419,31 @@ namespace Components
 		});
 	}
 
+	void PrintAliasError(Game::conChannel_t channel, const char * originalMsg, const char* soundName, const char* lastErrorStr)
+	{
+		// We add a bit more info and we clear the sound stream when it happens
+		// to avoid spamming the error
+		const auto newMsg = std::format("{}Make sure you have the 'miles' folder in your game directory! Otherwise MP3 and other codecs will be unavailable.\n", originalMsg);
+		Game::Com_PrintError(channel, newMsg.c_str(), soundName, lastErrorStr);
+
+		for (size_t i = 0; i < ARRAYSIZE(Game::milesGlobal->streamReadInfo); i++)
+		{
+			if (0 == std::strncmp(Game::milesGlobal->streamReadInfo[i].path, soundName, ARRAYSIZE(Game::milesGlobal->streamReadInfo[i].path)))
+			{
+				Game::milesGlobal->streamReadInfo[i].path[0] = '\x00'; // This kills it and make sure it doesn't get played again for now
+				break;
+			}
+		}
+	}
+
 	Logger::Logger()
 	{
+		// Print sound aliases errors
+		if (!Dedicated::IsEnabled())
+		{
+			Utils::Hook(0x64BA67, PrintAliasError, HOOK_CALL).install()->quick();
+		}
+
 		Utils::Hook(0x642139, BuildOSPath_Stub, HOOK_JUMP).install()->quick();
 
 		Scheduler::Loop(Frame, Scheduler::Pipeline::SERVER);
