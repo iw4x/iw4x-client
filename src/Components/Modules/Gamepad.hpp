@@ -39,6 +39,8 @@ namespace Components
 		};
 
 	public:
+		static const int RUMBLE_CONFIGSTRINGS_COUNT = 31;
+
 		Gamepad();
 
 		static void OnMouseMove(int x, int y, int dx, int dy);

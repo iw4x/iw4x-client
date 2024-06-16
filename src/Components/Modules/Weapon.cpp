@@ -6,8 +6,6 @@
 namespace Components
 {
 	const Game::dvar_t* Weapon::BGWeaponOffHandFix;
-	Game::XModel* Weapon::G_ModelIndexReallocated[G_MODELINDEX_LIMIT];
-	bool Weapon::GModelIndexHasBeenReallocated;
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
@@ -20,12 +18,6 @@ namespace Components
 		return Game::DB_IsXAssetDefault(Game::ASSET_TYPE_WEAPON, name) ? nullptr : zoneWeaponFile;
 	}
 
-	const char* Weapon::GetWeaponConfigString(int index)
-	{
-		if (index >= (1200 + 2804)) index += (2939 - 2804);
-		return Game::CL_GetConfigString(index);
-	}
-
 	void Weapon::SaveRegisteredWeapons()
 	{
 		*reinterpret_cast<DWORD*>(0x1A86098) = 0;
@@ -34,217 +26,10 @@ namespace Components
 		{
 			for (unsigned int i = 1; i < Game::BG_GetNumWeapons(); ++i)
 			{
-				Game::SV_SetConfigstring(i + (i >= 1200 ? 2939 : 2804), Game::BG_GetWeaponName(i));
+				Game::SV_SetConfigstring(i + (i >= BASEGAME_WEAPON_LIMIT ? 2939 : 2804), Game::BG_GetWeaponName(i));
 			}
 		}
 	}
-
-	int Weapon::ParseWeaponConfigStrings()
-	{
-		Command::ClientParams params;
-
-		if (params.size() <= 1)
-			return 0;
-
-		char* end;
-		const auto* input = params.get(1);
-		auto index = std::strtol(input, &end, 10);
-
-		if (input == end)
-		{
-			Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "{} is not a valid input\nUsage: {} <weapon index>\n",
-				input, params.get(0));
-			return 0;
-		}
-
-		if (index >= 4139)
-		{
-			index -= 2939;
-		}
-		else if (index > 2804 && index <= 2804 + 1200)
-		{
-			index -= 2804;
-		}
-		else
-		{
-			return 0;
-		}
-
-		Game::CG_SetupWeaponDef(0, index);
-		return 1;
-	}
-
-	__declspec(naked) void Weapon::ParseConfigStrings()
-	{
-		__asm
-		{
-			push eax
-			pushad
-
-			push edi
-			call Weapon::ParseWeaponConfigStrings
-			pop edi
-
-			mov [esp + 20h], eax
-			popad
-			pop eax
-
-			test eax, eax
-			jz continueParsing
-
-			retn
-
-		continueParsing:
-			push 592960h
-			retn
-		}
-	}
-
-	int Weapon::ClearConfigStrings(void* dest, int value, int size)
-	{
-		memset(Utils::Hook::Get<void*>(0x405B72), value, MAX_CONFIGSTRINGS * 2);
-		return Utils::Hook::Call<int(void*, int, int)>(0x4C98D0)(dest, value, size); // Com_Memset
-	}
-
-	void Weapon::PatchConfigStrings()
-	{
-		Utils::Hook::Set<DWORD>(0x4347A7, MAX_CONFIGSTRINGS);
-		Utils::Hook::Set<DWORD>(0x4982F4, MAX_CONFIGSTRINGS);
-		Utils::Hook::Set<DWORD>(0x4F88B6, MAX_CONFIGSTRINGS); // Save file
-		Utils::Hook::Set<DWORD>(0x5A1FA7, MAX_CONFIGSTRINGS);
-		Utils::Hook::Set<DWORD>(0x5A210D, MAX_CONFIGSTRINGS); // Game state
-		Utils::Hook::Set<DWORD>(0x5A840E, MAX_CONFIGSTRINGS);
-		Utils::Hook::Set<DWORD>(0x5A853C, MAX_CONFIGSTRINGS);
-		Utils::Hook::Set<DWORD>(0x5AC392, MAX_CONFIGSTRINGS);
-		Utils::Hook::Set<DWORD>(0x5AC3F5, MAX_CONFIGSTRINGS);
-		Utils::Hook::Set<DWORD>(0x5AC542, MAX_CONFIGSTRINGS); // Game state
-		Utils::Hook::Set<DWORD>(0x5EADF0, MAX_CONFIGSTRINGS);
-		Utils::Hook::Set<DWORD>(0x625388, MAX_CONFIGSTRINGS);
-		Utils::Hook::Set<DWORD>(0x625516, MAX_CONFIGSTRINGS);
-
-		// Adjust weapon count index
-		// Actually this has to stay the way it is!
-		//Utils::Hook::Set<DWORD>(0x4EB7B3, MAX_CONFIGSTRINGS - 1);
-		//Utils::Hook::Set<DWORD>(0x5929BA, MAX_CONFIGSTRINGS - 1);
-		//Utils::Hook::Set<DWORD>(0x5E2FAA, MAX_CONFIGSTRINGS - 1);
-
-		static short configStrings[MAX_CONFIGSTRINGS];
-		ZeroMemory(&configStrings, sizeof(configStrings));
-
-		Utils::Hook::Set(0x405B72, configStrings);
-		Utils::Hook::Set(0x468508, configStrings);
-		Utils::Hook::Set(0x47FD7C, configStrings);
-		Utils::Hook::Set(0x49830E, configStrings);
-		Utils::Hook::Set(0x498371, configStrings);
-		Utils::Hook::Set(0x4983D5, configStrings);
-		Utils::Hook::Set(0x4A74AD, configStrings);
-		Utils::Hook::Set(0x4BAE7C, configStrings);
-		Utils::Hook::Set(0x4BAEC3, configStrings);
-		Utils::Hook::Set(0x6252F5, configStrings);
-		Utils::Hook::Set(0x625372, configStrings);
-		Utils::Hook::Set(0x6253D3, configStrings);
-		Utils::Hook::Set(0x625480, configStrings);
-		Utils::Hook::Set(0x6254CB, configStrings);
-
-		// This has nothing to do with configstrings
-		//Utils::Hook::Set(0x608095, configStrings[4139 - 0x16]);
-		//Utils::Hook::Set(0x6080BC, configStrings[4139 - 0x16]);
-		//Utils::Hook::Set(0x6082AC, configStrings[4139 - 0x16]);
-		//Utils::Hook::Set(0x6082B3, configStrings[4139 - 0x16]);
-
-		//Utils::Hook::Set(0x608856, configStrings[4139 - 0x14]);
-
-		// TODO: Check if all of these actually mark the end of the array
-		// Only 2 actually mark the end, the rest is header data or so
-		Utils::Hook::Set(0x405B8F, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x459121, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x45A476, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x49FD56, &configStrings[ARRAYSIZE(configStrings)]);
-		Utils::Hook::Set(0x4A74C9, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x4C8196, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x4EBCE6, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x4F36D6, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x60807C, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x6080A9, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x6080D0, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x6081C4, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x608211, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x608274, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x6083D6, &configStrings[ARRAYSIZE(configStrings)]);
-		//Utils::Hook::Set(0x60848E, &configStrings[ARRAYSIZE(configStrings)]);
-
-		Utils::Hook(0x405BBE, Weapon::ClearConfigStrings, HOOK_CALL).install()->quick();
-		Utils::Hook(0x593CA4, Weapon::ParseConfigStrings, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4BD52D, Weapon::GetWeaponConfigString, HOOK_CALL).install()->quick();
-		Utils::Hook(0x45D170, Weapon::SaveRegisteredWeapons, HOOK_JUMP).install()->quick();
-
-		// Patch game state
-		// The structure below is our own implementation of the gameState_t structure
-		static struct newGameState_t
-		{
-			int stringOffsets[MAX_CONFIGSTRINGS];
-			char stringData[131072]; // MAX_GAMESTATE_CHARS
-			int dataCount;
-		} gameState;
-
-		ZeroMemory(&gameState, sizeof(gameState));
-
-		Utils::Hook::Set<DWORD>(0x44A333, sizeof(gameState));
-		Utils::Hook::Set<DWORD>(0x5A1F56, sizeof(gameState));
-		Utils::Hook::Set<DWORD>(0x5A2043, sizeof(gameState));
-
-		Utils::Hook::Set<DWORD>(0x5A2053, sizeof(gameState.stringOffsets));
-		Utils::Hook::Set<DWORD>(0x5A2098, sizeof(gameState.stringOffsets));
-		Utils::Hook::Set<DWORD>(0x5AC32C, sizeof(gameState.stringOffsets));
-
-		Utils::Hook::Set(0x4235AC, &gameState.stringOffsets);
-		Utils::Hook::Set(0x434783, &gameState.stringOffsets);
-		Utils::Hook::Set(0x44A339, &gameState.stringOffsets);
-		Utils::Hook::Set(0x44ADB7, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5A1FE6, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5A2048, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5A205A, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5A2077, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5A2091, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5A20D7, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5A83FF, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5A84B0, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5A84E5, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5AC333, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5AC44A, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5AC4F3, &gameState.stringOffsets);
-		Utils::Hook::Set(0x5AC57A, &gameState.stringOffsets);
-
-		Utils::Hook::Set(0x4235B7, &gameState.stringData);
-		Utils::Hook::Set(0x43478D, &gameState.stringData);
-		Utils::Hook::Set(0x44ADBC, &gameState.stringData);
-		Utils::Hook::Set(0x5A1FEF, &gameState.stringData);
-		Utils::Hook::Set(0x5A20E6, &gameState.stringData);
-		Utils::Hook::Set(0x5AC457, &gameState.stringData);
-		Utils::Hook::Set(0x5AC502, &gameState.stringData);
-		Utils::Hook::Set(0x5AC586, &gameState.stringData);
-
-		Utils::Hook::Set(0x5A2071, &gameState.dataCount);
-		Utils::Hook::Set(0x5A20CD, &gameState.dataCount);
-		Utils::Hook::Set(0x5A20DC, &gameState.dataCount);
-		Utils::Hook::Set(0x5A20F3, &gameState.dataCount);
-		Utils::Hook::Set(0x5A2104, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC33F, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC43B, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC450, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC463, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC471, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC4C3, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC4E8, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC4F8, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC50F, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC528, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC56F, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC580, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC592, &gameState.dataCount);
-		Utils::Hook::Set(0x5AC59F, &gameState.dataCount);
-	}
-
 	void Weapon::PatchLimit()
 	{
 		Utils::Hook::Set<DWORD>(0x403783, WEAPON_LIMIT);
@@ -283,8 +68,8 @@ namespace Components
 		// And http://reverseengineering.stackexchange.com/questions/1397/how-can-i-reverse-optimized-integer-division-modulo-by-constant-operations
 		// The game's magic number is computed using this formula: (1 / 1200) * (2 ^ (32 + 7)
 		// I'm too lazy to generate the new magic number, so we can make use of the fact that using powers of 2 as scales allows to change the compensating shift
-		static_assert(((WEAPON_LIMIT / 1200) * 1200) == WEAPON_LIMIT && (WEAPON_LIMIT / 1200) != 0 && !((WEAPON_LIMIT / 1200) & ((WEAPON_LIMIT / 1200) - 1)), "WEAPON_LIMIT / 1200 is not a power of 2!");
-		const unsigned char compensation = 7 + static_cast<unsigned char>(log2(WEAPON_LIMIT / 1200)); // 7 is the compensation the game uses
+		static_assert(((WEAPON_LIMIT / BASEGAME_WEAPON_LIMIT) * BASEGAME_WEAPON_LIMIT) == WEAPON_LIMIT && (WEAPON_LIMIT / BASEGAME_WEAPON_LIMIT) != 0 && !((WEAPON_LIMIT / BASEGAME_WEAPON_LIMIT) & ((WEAPON_LIMIT / BASEGAME_WEAPON_LIMIT) - 1)), "WEAPON_LIMIT / 1200 is not a power of 2!");
+		const unsigned char compensation = 7 + static_cast<unsigned char>(log2(WEAPON_LIMIT / BASEGAME_WEAPON_LIMIT)); // 7 is the compensation the game uses
 		Utils::Hook::Set<BYTE>(0x49263D, compensation);
 		Utils::Hook::Set<BYTE>(0x5E250C, compensation);
 		Utils::Hook::Set<BYTE>(0x5E2B43, compensation);
@@ -407,49 +192,34 @@ namespace Components
 		// Patch bg_weaponDefs on the stack
 		Utils::Hook::Set<DWORD>(0x40C31D, sizeof(bg_weaponDefs));
 		Utils::Hook::Set<DWORD>(0x40C32F, sizeof(bg_weaponDefs));
-		Utils::Hook::Set<DWORD>(0x40C311, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C45F, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C478, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C434, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C434, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C311, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C45F, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C478, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C434, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C434, 0x258C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
 		// Move second buffer pointers
-		Utils::Hook::Set<DWORD>(0x40C336, 0x12E4 + ((sizeof(bg_weaponDefs)) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x40C3C6, 0x12DC + ((sizeof(bg_weaponDefs)) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x40C3CE, 0x12DC + ((sizeof(bg_weaponDefs)) - (1200 * 4)));
+		Utils::Hook::Set<DWORD>(0x40C336, 0x12E4 + ((sizeof(bg_weaponDefs)) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x40C3C6, 0x12DC + ((sizeof(bg_weaponDefs)) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x40C3CE, 0x12DC + ((sizeof(bg_weaponDefs)) - (BASEGAME_WEAPON_LIMIT * 4)));
 		// Move arg0 pointers
-		Utils::Hook::Set<DWORD>(0x40C365, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C44E, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
-		Utils::Hook::Set<DWORD>(0x40C467, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C365, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C44E, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C467, 0x259C + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
 		// Move arg4 pointers
-		Utils::Hook::Set<DWORD>(0x40C344, 0x25B4 + ((sizeof(bg_weaponDefs) * 2) - (1200 * 4 * 2)));
+		Utils::Hook::Set<DWORD>(0x40C344, 0x25B4 + ((sizeof(bg_weaponDefs) * 2) - (BASEGAME_WEAPON_LIMIT * 4 * 2)));
 
 		// Patch bg_sharedAmmoCaps on the stack
 		Utils::Hook::Set<DWORD>(0x4F76E6, sizeof(bg_sharedAmmoCaps));
-		Utils::Hook::Set<DWORD>(0x4F7621, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x4F76AF, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x4F76DA, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x4F77C5, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
+		Utils::Hook::Set<DWORD>(0x4F7621, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x4F76AF, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x4F76DA, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x4F77C5, 0x12C8 + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
 		// Move arg0 pointers
-		Utils::Hook::Set<DWORD>(0x4F766D, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x4F76B7, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-		Utils::Hook::Set<DWORD>(0x4F76FB, 0x12EC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
+		Utils::Hook::Set<DWORD>(0x4F766D, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x4F76B7, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
+		Utils::Hook::Set<DWORD>(0x4F76FB, 0x12EC + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
 		// Move arg4 pointers
-		Utils::Hook::Set<DWORD>(0x4F7630, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (1200 * 4)));
-
-
-		// Reallocate G_ModelIndex
-		Utils::Hook::Set(0x420654 + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x43BCE4 + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x44F27B + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x479087 + 1, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x48069D + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x48F088 + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x4F457C + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x5FC762 + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set(0x5FC7BE  + 3, G_ModelIndexReallocated);
-		Utils::Hook::Set<DWORD>(0x44F256 + 2, G_MODELINDEX_LIMIT);
-
-		GModelIndexHasBeenReallocated = true;
+		Utils::Hook::Set<DWORD>(0x4F7630, 0x12DC + (sizeof(bg_sharedAmmoCaps) - (BASEGAME_WEAPON_LIMIT * 4)));
 	}
 
 	void* Weapon::LoadNoneWeaponHook()
@@ -641,7 +411,6 @@ namespace Components
 	Weapon::Weapon()
 	{
 		PatchLimit();
-		PatchConfigStrings();
 
 		// BG_LoadWEaponCompleteDef_FastFile
 		Utils::Hook(0x57B650, LoadWeaponCompleteDef, HOOK_JUMP).install()->quick();

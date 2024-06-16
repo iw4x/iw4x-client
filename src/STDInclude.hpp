@@ -56,6 +56,9 @@
 #include <dwmapi.h>
 #pragma comment (lib, "dwmapi.lib")
 
+#include <iphlpapi.h>
+#pragma comment (lib, "iphlpapi.lib")
+
 // Ignore the warnings
 #pragma warning(push)
 #pragma warning(disable: 4100)

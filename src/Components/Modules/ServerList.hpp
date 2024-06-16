@@ -23,6 +23,7 @@ namespace Components
 			int ping;
 			int matchType;
 			int securityLevel;
+			int protocol;
 			bool hardcore;
 			bool svRunning;
 			bool aimassist;

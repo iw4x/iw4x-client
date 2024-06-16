@@ -5,6 +5,7 @@ namespace Utils
 	namespace Cryptography
 	{
 		void Initialize();
+		std::string GetEntropy();
 
 		class Token
 		{
@@ -131,6 +132,7 @@ namespace Utils
 		{
 		public:
 			static std::string GenerateChallenge();
+			static std::uint64_t GenerateLong();
 			static std::uint32_t GenerateInt();
 			static void Initialize();
 
@@ -235,7 +237,7 @@ namespace Utils
 				std::shared_ptr<ecc_key> keyStorage;
 			};
 
-			static Key GenerateKey(int bits);
+			static Key GenerateKey(int bits, const std::string& entropy = {});
 			static std::string SignMessage(Key key, const std::string& message);
 			static bool VerifyMessage(Key key, const std::string& message, const std::string& signature);
 		};
@@ -325,14 +327,6 @@ namespace Utils
 			static Key GenerateKey(int bits);
 			static std::string SignMessage(Key key, const std::string& message);
 			static bool VerifyMessage(Key key, const std::string& message, const std::string& signature);
-		};
-
-		class DES3
-		{
-		public:
-			static void Initialize();
-			static std::string Encrypt(const std::string& text, const std::string& iv, const std::string& key);
-			static std::string Decrpyt(const std::string& text, const std::string& iv, const std::string& key);
 		};
 
 		class Tiger

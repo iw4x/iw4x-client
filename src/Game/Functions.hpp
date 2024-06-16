@@ -51,8 +51,8 @@ namespace Game
 	typedef const char*(*CG_GetTeamName_t)(team_t team);
 	extern CG_GetTeamName_t CG_GetTeamName;
 
-	typedef void(*CG_SetupWeaponDef_t)(int localClientNum, unsigned int weapIndex);
-	extern CG_SetupWeaponDef_t CG_SetupWeaponDef;
+	typedef void(*CG_SetupWeaponConfigString_t)(int localClientNum, unsigned int weapIndex);
+	extern CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString;
 
 	typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_s* allocedCmd, int isKey);
 	extern Cmd_AddCommand_t Cmd_AddCommand;

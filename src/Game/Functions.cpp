@@ -22,7 +22,7 @@ namespace Game
 	CG_ScrollScoreboardUp_t CG_ScrollScoreboardUp = CG_ScrollScoreboardUp_t(0x47A5C0);
 	CG_ScrollScoreboardDown_t CG_ScrollScoreboardDown = CG_ScrollScoreboardDown_t(0x493B50);
 	CG_GetTeamName_t CG_GetTeamName = CG_GetTeamName_t(0x4B6210);
-	CG_SetupWeaponDef_t CG_SetupWeaponDef = CG_SetupWeaponDef_t(0x4BD520);
+	CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString = CG_SetupWeaponConfigString_t(0x4BD520);
 
 	Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = Cmd_AddServerCommand_t(0x4DCE00);

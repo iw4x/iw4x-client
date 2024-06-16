@@ -463,7 +463,7 @@ namespace Components
 
 	void Download::Reply(mg_connection* connection, const std::string& contentType, const std::string& data)
 	{
-		const auto formatted = std::format("Content-Type: {}\r\n", contentType);
+		const auto formatted = std::format("Content-Type: {}\r\nAccess-Control-Allow-Origin: *\r\n", contentType);
 		mg_http_reply(connection, 200, formatted.c_str(), "%s", data.c_str());
 	}
 

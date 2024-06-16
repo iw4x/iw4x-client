@@ -713,32 +713,6 @@ namespace Components
 		return result;
 	}
 
-	void DebugTest()
-	{
-		//auto clientNum = Game::CG_GetClientNum();
-		//auto* clientEntity = &Game::g_entities[clientNum];
-
-		//// Ingame only & player only
-		//if (!Game::CL_IsCgameInitialized() || clientEntity->client == nullptr)
-		//{
-		//	return;
-		//}
-
-
-		//static std::string str = "";
-
-		//str += std::format("\n{} => {} {} {} {} {} {}", "s.partBits", clientEntity->s.partBits[0], clientEntity->s.partBits[1], clientEntity->s.partBits[2], clientEntity->s.partBits[3], clientEntity->s.partBits[4], clientEntity->s.partBits[5]); 
-		//
-
-		//const auto clientNumber = clientEntity->r.ownerNum.number;
-		//Game::scene->sceneDObj[clientNumber].obj->hidePartBits;
-
-		//str += std::format("\n{} => {} {} {} {} {} {}", "DOBJ hidePartBits", clientEntity->s.partBits[0], clientEntity->s.partBits[1], clientEntity->s.partBits[2], clientEntity->s.partBits[3], clientEntity->s.partBits[4], clientEntity->s.partBits[5]); 
-
-		//Game::R_AddCmdDrawText();
-
-	}
-
 	Renderer::Renderer()
 	{
 		if (Dedicated::IsEnabled()) return;
@@ -757,7 +731,6 @@ namespace Components
 				ListSamplers();
 				DrawPrimaryLights();
 				DebugDrawClipmap();
-				DebugTest();
 			}
 		}, Scheduler::Pipeline::RENDERER);
 

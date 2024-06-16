@@ -244,12 +244,12 @@ namespace Components
 			return;
 		}
 
-		auto workingDir = std::filesystem::current_path().string();
-		const std::string binary = *Game::sys_exitCmdLine;
-		const std::string command = binary == "iw4x-sp.exe" ? "iw4x-sp" : "iw4x";
+		const std::filesystem::path workingDir = std::filesystem::current_path();
+		const std::wstring binary = Utils::String::Convert(*Game::sys_exitCmdLine);
+		const std::wstring commandLine = std::format(L"\"{}\" iw4x --pass \"{}\"", (workingDir / binary).wstring(), Utils::GetLaunchParameters());
 
-		SetEnvironmentVariableA("MW2_INSTALL", workingDir.data());
-		Utils::Library::LaunchProcess(binary, std::format("{} --pass \"{}\"", command, GetCommandLineA()), workingDir);
+		SetEnvironmentVariableA("MW2_INSTALL", workingDir.string().data());
+		Utils::Library::LaunchProcess(binary, commandLine, workingDir);
 	}
 
 	__declspec(naked) void QuickPatch::SND_GetAliasOffset_Stub()
@@ -298,24 +298,8 @@ namespace Components
 		return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
 	}
 
-	void  DObjCalcAnim(Game::DObj *a1, int *partBits, Game::XAnimCalcAnimInfo *a3)
-	{
-		printf("");
-
-		if (a1->models[0]->name == "body_urban_civ_female_a"s)
-		{
-			printf("");
-		}
-
-		Utils::Hook::Call<void(Game::DObj*, int*, Game::XAnimCalcAnimInfo*)>(0x49E230)(a1, partBits, a3);
-
-		printf("");
-	}
-
 	QuickPatch::QuickPatch()
 	{
-
-
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
 
