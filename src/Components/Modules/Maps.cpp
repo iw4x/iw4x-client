@@ -322,6 +322,12 @@ namespace Components
 	{
 		if (Game::Sys_IsMainThread())
 		{
+			if (*Game::g_quitRequested)
+			{
+				// No need to refresh if we're exiting the game
+				return;
+			}
+
 			Game::sharedUiInfo_t* uiInfo = reinterpret_cast<Game::sharedUiInfo_t*>(0x62E4B78);
 			uiInfo->updateArenas = 1;
 			Game::UI_UpdateArenas();

@@ -52,6 +52,7 @@ namespace Game
 	constexpr std::size_t MAX_GENTITIES = 2048;
 	constexpr std::size_t ENTITYNUM_NONE = MAX_GENTITIES - 1;
 	extern gentity_s* g_entities;
+	extern bool* g_quitRequested;
 
 	// This does not belong anywhere else
 	extern NetField* clientStateFields;
