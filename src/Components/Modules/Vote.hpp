@@ -11,11 +11,14 @@ namespace Components
 		using CommandHandler = std::function<bool(const Game::gentity_s* ent, const Command::ServerParams* params)>;
 		static std::unordered_map<std::string, CommandHandler> VoteCommands;
 
+		static Dvar::Var SV_VotesRequired;
+
 		static constexpr auto* CallVoteDesc = "%c \"GAME_VOTECOMMANDSARE\x15 map_restart, map_rotate, map <mapname>, g_gametype <typename>, typemap <typename> <mapname>, "
 			"kick <player>, tempBanUser <player>\"";
 
 		static void DisplayVote(const Game::gentity_s* ent);
 		static bool IsInvalidVoteString(const std::string& input);
+		static int VotesRequired();
 
 		static bool HandleMapRestart(const Game::gentity_s* ent, const Command::ServerParams* params);
 		static bool HandleMapRotate(const Game::gentity_s* ent, const Command::ServerParams* params);
