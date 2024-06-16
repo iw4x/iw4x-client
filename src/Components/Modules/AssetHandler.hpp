@@ -2,6 +2,7 @@
 
 namespace Components
 {
+#define HASHTABLE_MAX USHRT_MAX
 	class AssetHandler : public Component
 	{
 	public:
@@ -43,16 +44,27 @@ namespace Components
 
 		static void OffsetToAlias(Utils::Stream::Offset* offset);
 
-		static Game::XAssetEntry* GetEntryPool() {
+		static Game::XAssetEntryPoolEntry* GetEntryPool() {
 			return g_entryPool == nullptr ?
 				// Game's g_entryPool
-				reinterpret_cast<Game::XAssetEntry*>(0x134CAD8) :
+				reinterpret_cast<Game::XAssetEntryPoolEntry*>(0x134CAD8) :
 				g_entryPool;
-		}; 
-		
+		};
+
+		static unsigned short GetHashTableSize() {
+			return RelocatedHashTable ? HASHTABLE_MAX : 37000;
+		}
+
+		static unsigned short* GetHashTable() {
+			return RelocatedHashTable ?
+				db_hashTable :
+				Game::db_hashTable;
+		};
+
 	private:
 		static thread_local int BypassState;
 		static bool ShouldSearchTempAssets;
+		static bool RelocatedHashTable;
 
 		static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 
@@ -60,7 +72,8 @@ namespace Components
 		static std::map<Game::XAssetType, Utils::Slot<Callback>> TypeCallbacks;
 		static Utils::Signal<RestrictCallback> RestrictSignal;
 
-		static Game::XAssetEntry* g_entryPool;
+		static Game::XAssetEntryPoolEntry* g_entryPool;
+		static unsigned short db_hashTable[USHRT_MAX];
 
 		static std::map<void*, void*> Relocations;
 
@@ -84,6 +97,7 @@ namespace Components
 
 		static void MissingAssetError(int severity, const char* format, const char* type, const char* name);
 
-		void reallocateEntryPool();
+		static void ReallocateHashTable();
+		static void ReallocateEntryPool();
 	};
 }

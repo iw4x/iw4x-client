@@ -61,25 +61,25 @@ namespace Components
 		{
 			// check g_antilag dvar value
 			mov eax, g_antilag;
-			cmp byte ptr [eax + 16], 1;
+			cmp byte ptr[eax + 16], 1;
 
 			// do antilag if 1
 			je fireWeapon
 
-			// do not do antilag if 0
-			mov eax, 0x1A83554 // level.time
-			mov ecx, [eax]
+				// do not do antilag if 0
+				mov eax, 0x1A83554 // level.time
+				mov ecx, [eax]
 
-		fireWeapon:
+				fireWeapon:
 			push edx
-			push ecx
-			push edi
-			mov eax, 0x4A4D50 // FireWeapon
-			call eax
-			add esp, 0Ch
-			pop edi
-			pop ecx
-			retn
+				push ecx
+				push edi
+				mov eax, 0x4A4D50 // FireWeapon
+				call eax
+				add esp, 0Ch
+				pop edi
+				pop ecx
+				retn
 		}
 	}
 
@@ -89,24 +89,24 @@ namespace Components
 		{
 			// check g_antilag dvar value
 			mov eax, g_antilag;
-			cmp byte ptr [eax + 16], 1;
+			cmp byte ptr[eax + 16], 1;
 
 			// do antilag if 1
 			je fireWeaponMelee
 
-			// do not do antilag if 0
-			mov eax, 0x1A83554 // level.time
-			mov edx, [eax]
+				// do not do antilag if 0
+				mov eax, 0x1A83554 // level.time
+				mov edx, [eax]
 
-		fireWeaponMelee:
+				fireWeaponMelee:
 			push edx
-			push edi
-			mov eax, 0x4F2470 // FireWeaponMelee
-			call eax
-			add esp, 8
-			pop edi
-			pop ecx
-			retn
+				push edi
+				mov eax, 0x4F2470 // FireWeaponMelee
+				call eax
+				add esp, 8
+				pop edi
+				pop ecx
+				retn
 		}
 	}
 
@@ -171,7 +171,7 @@ namespace Components
 	BOOL QuickPatch::IsDynClassname_Stub(const char* classname)
 	{
 		const auto version = Zones::Version();
-		
+
 		if (version >= VERSION_LATEST_CODO)
 		{
 			for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
@@ -267,24 +267,24 @@ namespace Components
 
 			// Game code hook skipped
 			mov ecx, eax
-			mov edx, dword ptr [ecx + 0x4]
+			mov edx, dword ptr[ecx + 0x4]
 
 			// Resume function
 			push 0x437CB2
 			ret
 
-		error:
+			error :
 			add esp, 0x4 // Com_FindSoundAlias_FastFile takes one argument
 
-			push [esi] // alias->aliasName
-			push msg
-			push ERR_DROP
-			call Com_Error // Going to longjmp back to safety
-			add esp, 0xC
+				push[esi] // alias->aliasName
+				push msg
+				push ERR_DROP
+				call Com_Error // Going to longjmp back to safety
+				add esp, 0xC
 
-			xor eax, eax
-			pop esi
-			ret
+				xor eax, eax
+				pop esi
+				ret
 		}
 	}
 
@@ -298,8 +298,29 @@ namespace Components
 		return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
 	}
 
+	Game::XAssetEntry* DefaultAssetFailed(int a, int b, Game::XAssetType type, int c)
+	{
+		Game::XAssetEntry* result = nullptr;
+
+		Game::DB_EnumXAssetEntries(type, [&](Game::XAssetEntry* entry) {
+			if (result == nullptr)
+			{
+				if (entry->asset.type == type && entry->asset.header.data)
+				{
+					result = entry;
+				}
+			}
+		}, false);
+
+		return result;
+	}
+
 	QuickPatch::QuickPatch()
 	{
+		// dirtiest patch ever: ignore missing default assets and skip the rest when it occurs
+		Utils::Hook::Hook(0x5BB2A5, DefaultAssetFailed, HOOK_CALL).install()->quick();
+		Utils::Hook::Set<uint8_t>(0x5BB2A5 + 5, 0xC3); // Return after that
+
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
 
@@ -478,197 +499,197 @@ namespace Components
 		// Fix mouse lag
 		Utils::Hook::Nop(0x4731F5, 8);
 		Scheduler::Loop([]
-		{
-			SetThreadExecutionState(ES_DISPLAY_REQUIRED);
-		}, Scheduler::Pipeline::RENDERER);
+			{
+				SetThreadExecutionState(ES_DISPLAY_REQUIRED);
+			}, Scheduler::Pipeline::RENDERER);
 
 		// Fix mouse pitch adjustments
 		UIMousePitch = Dvar::Register<bool>("ui_mousePitch", false, Game::DVAR_ARCHIVE, "");
 		UIScript::Add("updateui_mousePitch", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
-		{
-			if (UIMousePitch.get<bool>())
 			{
-				Game::Dvar_SetFloatByName("m_pitch", -0.022f);
-			}
-			else
-			{
-				Game::Dvar_SetFloatByName("m_pitch", 0.022f);
-			}
-		});
+				if (UIMousePitch.get<bool>())
+				{
+					Game::Dvar_SetFloatByName("m_pitch", -0.022f);
+				}
+				else
+				{
+					Game::Dvar_SetFloatByName("m_pitch", 0.022f);
+				}
+			});
 
 		Command::Add("unlockstats", QuickPatch::UnlockStats);
 
 		Command::Add("dumptechsets", [](const Command::Params* param)
-		{
-			if (param->size() != 2)
 			{
-				Logger::Print("usage: dumptechsets <fastfile> | all\n");
-				return;
-			}
-
-			std::vector<std::string> fastFiles;
-			if (std::strcmp(param->get(1), "all") == 0)
-			{
-				for (const auto& entry : Utils::IO::ListFiles("zone/english", false))
+				if (param->size() != 2)
 				{
-					const auto& f = entry.path().string();
-					fastFiles.emplace_back(f.substr(7, f.length() - 10));
+					Logger::Print("usage: dumptechsets <fastfile> | all\n");
+					return;
 				}
 
-				for (const auto& entry : Utils::IO::ListFiles("zone/dlc", false))
+				std::vector<std::string> fastFiles;
+				if (std::strcmp(param->get(1), "all") == 0)
 				{
-					const auto& f = entry.path().string();
-					fastFiles.emplace_back(f.substr(3, f.length() - 6));
+					for (const auto& entry : Utils::IO::ListFiles("zone/english", false))
+					{
+						const auto& f = entry.path().string();
+						fastFiles.emplace_back(f.substr(7, f.length() - 10));
+					}
+
+					for (const auto& entry : Utils::IO::ListFiles("zone/dlc", false))
+					{
+						const auto& f = entry.path().string();
+						fastFiles.emplace_back(f.substr(3, f.length() - 6));
+					}
+
+					for (const auto& entry : Utils::IO::ListFiles("zone/patch", false))
+					{
+						const auto& f = entry.path().string();
+						fastFiles.emplace_back(f.substr(5, f.length() - 8));
+					}
+				}
+				else
+				{
+					fastFiles.emplace_back(param->get(1));
 				}
 
-				for (const auto& entry : Utils::IO::ListFiles("zone/patch", false))
-				{
-					const auto& f = entry.path().string();
-					fastFiles.emplace_back(f.substr(5, f.length() - 8));
-				}
-			}
-			else
-			{
-				fastFiles.emplace_back(param->get(1));
-			}
+				auto count = 0;
 
-			auto count = 0;
-
-			AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
-			{
-				// they're basically the same right?
-				if (type == Game::ASSET_TYPE_PIXELSHADER || type == Game::ASSET_TYPE_VERTEXSHADER)
-				{
-					Utils::IO::CreateDir("userraw/shader_bin");
-
-					const char* formatString;
-					if (type == Game::ASSET_TYPE_PIXELSHADER)
+				AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
 					{
-						formatString = "userraw/shader_bin/%.ps";
-					}
-					else
-					{
-						formatString = "userraw/shader_bin/%.vs";
-					}
-
-					const auto path = std::format("{}{}", formatString, name);
-					if (Utils::IO::FileExists(path)) return;
-
-					Utils::Stream buffer(0x1000);
-					auto* dest = buffer.dest<Game::MaterialPixelShader>();
-					buffer.save(asset.pixelShader);
-
-					if (asset.pixelShader->prog.loadDef.program)
-					{
-						buffer.saveArray(asset.pixelShader->prog.loadDef.program, asset.pixelShader->prog.loadDef.programSize);
-						Utils::Stream::ClearPointer(&dest->prog.loadDef.program);
-					}
-
-					Utils::IO::WriteFile(path, buffer.toBuffer());
-				}
-
-				if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
-				{
-					Utils::IO::CreateDir("userraw/techsets");
-					Utils::Stream buffer(0x1000);
-					auto* dest = buffer.dest<Game::MaterialTechniqueSet>();
-					buffer.save(asset.techniqueSet);
-
-					if (asset.techniqueSet->name)
-					{
-						buffer.saveString(asset.techniqueSet->name);
-						Utils::Stream::ClearPointer(&dest->name);
-					}
-
-					for (int i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
-					{
-						auto* technique = asset.techniqueSet->techniques[i];
-
-						if (technique)
+						// they're basically the same right?
+						if (type == Game::ASSET_TYPE_PIXELSHADER || type == Game::ASSET_TYPE_VERTEXSHADER)
 						{
-							// Size-check is obsolete, as the structure is dynamic
-							buffer.align(Utils::Stream::ALIGN_4);
+							Utils::IO::CreateDir("userraw/shader_bin");
 
-							auto* destTechnique = buffer.dest<Game::MaterialTechnique>();
-							buffer.save(technique, 8);
-
-							// Save_MaterialPassArray
-							auto* destPasses = buffer.dest<Game::MaterialPass>();
-							buffer.saveArray(technique->passArray, technique->passCount);
-
-							for (std::uint16_t j = 0; j < technique->passCount; ++j)
+							const char* formatString;
+							if (type == Game::ASSET_TYPE_PIXELSHADER)
 							{
-								AssertSize(Game::MaterialPass, 20);
-
-								Game::MaterialPass* destPass = &destPasses[j];
-								Game::MaterialPass* pass = &technique->passArray[j];
-
-								if (pass->vertexDecl)
-								{
-
-								}
-
-								if (pass->args)
-								{
-									buffer.align(Utils::Stream::ALIGN_4);
-									buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
-									Utils::Stream::ClearPointer(&destPass->args);
-								}
+								formatString = "userraw/shader_bin/%.ps";
+							}
+							else
+							{
+								formatString = "userraw/shader_bin/%.vs";
 							}
 
-							if (technique->name)
+							const auto path = std::format("{}{}", formatString, name);
+							if (Utils::IO::FileExists(path)) return;
+
+							Utils::Stream buffer(0x1000);
+							auto* dest = buffer.dest<Game::MaterialPixelShader>();
+							buffer.save(asset.pixelShader);
+
+							if (asset.pixelShader->prog.loadDef.program)
 							{
-								buffer.saveString(technique->name);
-								Utils::Stream::ClearPointer(&destTechnique->name);
+								buffer.saveArray(asset.pixelShader->prog.loadDef.program, asset.pixelShader->prog.loadDef.programSize);
+								Utils::Stream::ClearPointer(&dest->prog.loadDef.program);
 							}
 
-							Utils::Stream::ClearPointer(&dest->techniques[i]);
+							Utils::IO::WriteFile(path, buffer.toBuffer());
 						}
+
+						if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
+						{
+							Utils::IO::CreateDir("userraw/techsets");
+							Utils::Stream buffer(0x1000);
+							auto* dest = buffer.dest<Game::MaterialTechniqueSet>();
+							buffer.save(asset.techniqueSet);
+
+							if (asset.techniqueSet->name)
+							{
+								buffer.saveString(asset.techniqueSet->name);
+								Utils::Stream::ClearPointer(&dest->name);
+							}
+
+							for (int i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
+							{
+								auto* technique = asset.techniqueSet->techniques[i];
+
+								if (technique)
+								{
+									// Size-check is obsolete, as the structure is dynamic
+									buffer.align(Utils::Stream::ALIGN_4);
+
+									auto* destTechnique = buffer.dest<Game::MaterialTechnique>();
+									buffer.save(technique, 8);
+
+									// Save_MaterialPassArray
+									auto* destPasses = buffer.dest<Game::MaterialPass>();
+									buffer.saveArray(technique->passArray, technique->passCount);
+
+									for (std::uint16_t j = 0; j < technique->passCount; ++j)
+									{
+										AssertSize(Game::MaterialPass, 20);
+
+										Game::MaterialPass* destPass = &destPasses[j];
+										Game::MaterialPass* pass = &technique->passArray[j];
+
+										if (pass->vertexDecl)
+										{
+
+										}
+
+										if (pass->args)
+										{
+											buffer.align(Utils::Stream::ALIGN_4);
+											buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+											Utils::Stream::ClearPointer(&destPass->args);
+										}
+									}
+
+									if (technique->name)
+									{
+										buffer.saveString(technique->name);
+										Utils::Stream::ClearPointer(&destTechnique->name);
+									}
+
+									Utils::Stream::ClearPointer(&dest->techniques[i]);
+								}
+							}
+						}
+					});
+
+				for (const auto& fastFile : fastFiles)
+				{
+					if (!Game::DB_IsZoneLoaded(fastFile.data()))
+					{
+						Game::XZoneInfo info;
+						info.name = fastFile.data();
+						info.allocFlags = 0x20;
+						info.freeFlags = 0;
+
+						Game::DB_LoadXAssets(&info, 1, true);
 					}
+
+					// unload the fastfiles so we don't run out of memory or asset pools
+					if (count % 5)
+					{
+						Game::XZoneInfo info;
+						info.name = nullptr;
+						info.allocFlags = 0x0;
+						info.freeFlags = 0x20;
+						Game::DB_LoadXAssets(&info, 1, true);
+					}
+
+					count++;
 				}
 			});
 
-			for (const auto& fastFile : fastFiles)
-			{
-				if (!Game::DB_IsZoneLoaded(fastFile.data()))
-				{
-					Game::XZoneInfo info;
-					info.name = fastFile.data();
-					info.allocFlags = 0x20;
-					info.freeFlags = 0;
-
-					Game::DB_LoadXAssets(&info, 1, true);
-				}
-
-				// unload the fastfiles so we don't run out of memory or asset pools
-				if (count % 5)
-				{
-					Game::XZoneInfo info;
-					info.name = nullptr;
-					info.allocFlags = 0x0;
-					info.freeFlags = 0x20;
-					Game::DB_LoadXAssets(&info, 1, true);
-				}
-				
-				count++;
-			}
-		});
-
 #ifdef DEBUG_MAT_LOG
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& /*name*/, bool* /*restrict*/)
-		{
-			if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD)
 			{
-				std::string buffer;
-
-				for (unsigned int i = 0; i < asset.gfxWorld->dpvs.staticSurfaceCount; ++i)
+				if (type == Game::XAssetType::ASSET_TYPE_GFXWORLD)
 				{
-					buffer.append(Utils::String::VA("%s\n", asset.gfxWorld->dpvs.surfaces[asset.gfxWorld->dpvs.sortedSurfIndex[i]].material->info.name));
-				}
+					std::string buffer;
 
-				Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer);
-			}
-		});
+					for (unsigned int i = 0; i < asset.gfxWorld->dpvs.staticSurfaceCount; ++i)
+					{
+						buffer.append(Utils::String::VA("%s\n", asset.gfxWorld->dpvs.surfaces[asset.gfxWorld->dpvs.sortedSurfIndex[i]].material->info.name));
+					}
+
+					Utils::IO::WriteFile("userraw/logs/matlog.txt", buffer);
+				}
+	});
 #endif
 
 		// Debug patches
@@ -698,7 +719,7 @@ namespace Components
 		{
 			Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
 		}
-	}
+}
 
 	bool QuickPatch::unitTest()
 	{

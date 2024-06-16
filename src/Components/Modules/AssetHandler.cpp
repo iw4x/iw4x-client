@@ -39,11 +39,13 @@ namespace Components
 {
 	thread_local int AssetHandler::BypassState = 0;
 	bool AssetHandler::ShouldSearchTempAssets = false;
+	bool AssetHandler::RelocatedHashTable = false;
 	std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
 	std::map<Game::XAssetType, Utils::Slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
 	Utils::Signal<AssetHandler::RestrictCallback> AssetHandler::RestrictSignal;
-	
-	Game::XAssetEntry* AssetHandler::g_entryPool;
+
+	Game::XAssetEntryPoolEntry* AssetHandler::g_entryPool;
+	unsigned short AssetHandler::db_hashTable[USHRT_MAX];
 
 	std::map<void*, void*> AssetHandler::Relocations;
 
@@ -517,20 +519,15 @@ namespace Components
 		Utils::Hook::Call<void(int, const char*, const char*, const char*)>(0x4F8C70)(severity, format, type, name); // Print error
 	}
 
-	void AssetHandler::reallocateEntryPool()
+	void AssetHandler::ReallocateEntryPool()
 	{
-		AssertSize(Game::XAssetEntry, 16);
+		AssertSize(Game::XAssetEntryPoolEntry, 16);
 
-		constexpr int ZONEBUILDER_XASSET_ENTRY_POOL_SIZE = 2000000;
-
-		size_t size = (ZoneBuilder::IsEnabled() ?
-			ZONEBUILDER_XASSET_ENTRY_POOL_SIZE :
-			789312
-			);
-		g_entryPool = Utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
+		const size_t size = HASHTABLE_MAX;
+		g_entryPool = Utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntryPoolEntry>(size);
 
 		// Apply new size
-		Utils::Hook::Set<DWORD>(0x5BAEB0, size);
+		Utils::Hook::Set<DWORD>(0x5BAEB0, (size - 1) * sizeof(Game::XAssetEntry));
 
 		// Apply new pool
 		DWORD patches[] =
@@ -562,11 +559,14 @@ namespace Components
 
 		for (int i = 0; i < ARRAYSIZE(patches); ++i)
 		{
-			Utils::Hook::Set<Game::XAssetEntry*>(patches[i], g_entryPool);
+			Utils::Hook::Set<Game::XAssetEntryPoolEntry*>(patches[i], g_entryPool);
 		}
 
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAE91, g_entryPool + 1);
-		Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, g_entryPool + 1);
+		Utils::Hook::Set<Game::XAssetEntryPoolEntry*>(0x5BAE91, g_entryPool + 1);
+		Utils::Hook::Set<Game::XAssetEntryPoolEntry*>(0x5BAEA2, g_entryPool + 1);
+
+		// Very important - otherwise the game doesn't know when it runs out of entries
+		g_entryPool[size-1].next = nullptr;
 	}
 
 	void AssetHandler::ExposeTemporaryAssets(bool expose)
@@ -574,9 +574,65 @@ namespace Components
 		AssetHandler::ShouldSearchTempAssets = expose;
 	}
 
+	void __declspec(naked) HashForNameStub()
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			push ecx
+			push eax
+			call Game::DB_HashForName;
+			add esp, 8
+
+			mov[esp + 0x20], eax
+			popad
+			pop eax
+
+			retn;
+		}
+	}
+
+	void AssetHandler::ReallocateHashTable()
+	{
+		const DWORD patches[] =
+		{
+			0x48E6E4 + 4,
+			0x4C67D0 + 3,
+			0x4C8570 + 3,
+			0x5BB0B3 + 3,
+			0x5BB1BF + 4,
+			0x5BB222 + 4,
+			0x5BB340 + 4,
+			0x5BB35A + 4,
+			0x5BB46C + 4,
+			0x5BB69C + 4,
+			0x5BB830 + 4,
+			0x5BB84B + 4,
+			0x5BBA56 + 4,
+			0x5BBB56 + 1,
+			0x5BBE35 + 3,
+			0x5BBE81 + 3,
+			0x5BBF00 + 3,
+			0x5BBF40 + 3,
+			0x5BBF8F + 1
+		};
+
+		for (int i = 0; i < ARRAYSIZE(patches); ++i)
+		{
+			Utils::Hook::Set<unsigned short*>(patches[i], db_hashTable);
+		}
+
+		Utils::Hook(0x5BAF30, HashForNameStub, HOOK_JUMP).install()->quick();
+
+		RelocatedHashTable = true;
+	}
+
 	AssetHandler::AssetHandler()
 	{
-		this->reallocateEntryPool();
+		ReallocateEntryPool();
+		ReallocateHashTable();
 
 		Dvar::Register<bool>("r_noVoid", false, Game::DVAR_ARCHIVE, "Disable void model (red fx)");
 

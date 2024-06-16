@@ -5925,6 +5925,12 @@ namespace Game
 		unsigned __int16 nextOverride;
 	};
 
+	union XAssetEntryPoolEntry
+	{
+		XAssetEntryPoolEntry* next;
+		XAssetEntry entry;
+	};
+
 	enum XFileLanguage : unsigned char
 	{
 		XLANG_NONE = 0x00,

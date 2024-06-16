@@ -2653,7 +2653,7 @@ namespace Components
 				if ((*asset)->lodInfo[i].surfs == nullptr && Zones::Version() >= 446)
 				{
 					const auto name = (*asset)->name;
-					const auto fx_model = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, "void").model;
+					static const auto fx_model = Game::DB_FindXAssetDefaultHeaderInternal(Game::ASSET_TYPE_XMODEL).model;
 					memcpy(*asset, fx_model, sizeof Game::XModel);
 					(*asset)->name = name;
 					break;
@@ -2692,6 +2692,11 @@ namespace Components
 				memcpy(*asset, default_material, sizeof Game::Material);
 				(*asset)->info.name = name;
 			}
+		}
+
+		if ((*asset)->info.name[0] != ',' && (*asset)->techniqueSet == nullptr)
+		{
+			printf("");
 		}
 
 		return Utils::Hook::Call<void(Game::Material**)>(0x476750)(asset);
@@ -3336,6 +3341,38 @@ namespace Components
 					}
 
 					Logger::Print("decrypted {} images!\n", images.size());
+				});
+			
+			Command::Add("decryptModels", []()
+				{
+					auto models = FileSystem::GetSysFileList("iw4x/models", "");
+					Logger::Print("decrypting {} models...\n", models.size());
+
+					for (auto& sound : models)
+					{
+						char* buffer = nullptr;
+						auto len = Game::FS_ReadFile(Utils::String::Format("models/{}", sound), &buffer);
+
+						if (len && buffer)
+						{
+							auto path = std::filesystem::path(sound.data());
+							std::filesystem::create_directories("raw/models" / path.parent_path());
+
+							if (!std::filesystem::exists(std::format("raw/models/{}", sound)))
+							{
+								FILE* fp;
+								if (!fopen_s(&fp, Utils::String::Format("raw/models/{}", sound), "wb") && fp)
+								{
+									fwrite(buffer, len, 1, fp);
+									fclose(fp);
+								}
+							}
+
+							Game::FS_FreeFile(buffer);
+						}
+					}
+
+					Logger::Print("decrypted {} models!\n", models.size());
 				});
 
 			Command::Add("decryptSounds", []()

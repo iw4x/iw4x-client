@@ -105,6 +105,7 @@ namespace Game
 
 	extern XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 
+	extern unsigned short DB_HashForName(XAssetType type, const char* name);
 	extern const char* DB_GetXAssetName(XAsset* asset);
 	extern XAssetType DB_GetXAssetNameType(const char* name);
 	extern int DB_GetZoneIndex(const std::string& name);

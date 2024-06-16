@@ -40,10 +40,33 @@ namespace Game
 	XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
 	{
 		const auto size = DB_GetXAssetSizeHandlers[type]();
-		XAssetHeader poolEntry = {Utils::Memory::GetAllocator()->allocate(newSize * size)};
+		XAssetHeader poolEntry = { Utils::Memory::GetAllocator()->allocate(newSize * size) };
 		DB_XAssetPool[type] = poolEntry;
 		g_poolSize[type] = newSize;
 		return poolEntry;
+	}
+
+	unsigned short DB_HashForName(XAssetType type, const char* name)
+	{
+		int chr;
+		int result = static_cast<int>(type);
+
+		while (1)
+		{
+			while (1)
+			{
+				chr = tolower(*name);
+				if (chr != '\\')
+					break;
+				result = 31 * result + '/';
+				++name;
+			}
+			if (!chr)
+				break;
+			result = chr + 31 * result;
+			++name;
+		}
+		return result % Components::AssetHandler::GetHashTableSize();
 	}
 
 	const char* DB_GetXAssetName(XAsset* asset)
@@ -112,9 +135,9 @@ namespace Game
 		Sys_LockRead(db_hashCritSect);
 
 		const auto pool = Components::Maps::GetAssetEntryPool();
-		for (auto hash = 0; hash < 37000; hash++)
+		for (auto hash = 0; hash < Components::AssetHandler::GetHashTableSize(); hash++)
 		{
-			auto hashIndex = db_hashTable[hash];
+			auto hashIndex = Components::AssetHandler::GetHashTable()[hash];
 			while (hashIndex)
 			{
 				auto* assetEntry = &pool[hashIndex];
@@ -152,7 +175,7 @@ namespace Game
 			mov edi, [esp + 28h]
 			call eax
 
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 			popad
 			pop eax
 
@@ -177,7 +200,7 @@ namespace Game
 
 			add esp, 4h
 
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 			popad
 			pop eax
 
