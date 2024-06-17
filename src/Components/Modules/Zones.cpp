@@ -1076,7 +1076,7 @@ namespace Components
 			for (size_t i = 0; i < size; i+= 8)
 			{
 				const auto a  = reinterpret_cast<Game::XAsset*>(buffer + i);
-				OutputDebugStringA(Utils::String::VA("XASSET %d %i\n", a->type, a->header.data));
+				//OutputDebugStringA(Utils::String::VA("XASSET %d %i\n", a->type, a->header.data));
 			}
 
 		}
@@ -2308,19 +2308,25 @@ namespace Components
 		if (file != nullptr && filePointer != nullptr && strlen(file) >= 4 && retval > 0)
 		{
 			std::string fileBuffer;
+			std::string fileName(file);
+
 			fileBuffer.resize(retval);
 			auto readSize = Game::FS_Read(&fileBuffer[0], retval, *filePointer);
 
 			// check if file should be skipped
-			auto skipFile = false;
+			auto skipFile = true;
 
-			if (std::strlen(file) > 5 && ((std::strncmp(&file[strlen(file) - 4], ".iwi", 4) != 0)))
+			if (fileName.ends_with(".iwi") && !fileBuffer.starts_with("IWi"))
 			{
-				skipFile = true;
+				skipFile = false;
 			}
-			else if (readSize >= 3 && (std::memcmp(&fileBuffer[0], "IWi", 3) == 0))
+			else if (fileName.contains("models") && readSize >=4 && *reinterpret_cast<int*>(fileBuffer.data()) != 0x00000001)
 			{
-				skipFile = true;
+				skipFile = false;
+			}
+			else if (fileName.ends_with(".mp3") || fileName.ends_with(".wav") && !fileBuffer.starts_with("RIFF") && !fileBuffer.starts_with("ID3"))
+			{
+				skipFile = false; 
 			}
 
 			// if the header seems encrypted...
@@ -2644,6 +2650,7 @@ namespace Components
 		}
 	}
 
+	// Not necessary if we have the model rawfiles around! And we do!+
 	void Zones::LoadXModelAsset(Game::XModel** asset)
 	{
 		if (Zones::Version() >= 446)
@@ -3236,8 +3243,8 @@ namespace Components
 				printf("");
 			}
 
-			std::string type = std::format("TYPE {}\n", static_cast<int>(ptr->type));	
-			OutputDebugStringA(type.data());
+			//std::string type = std::format("TYPE {}\n", static_cast<int>(ptr->type));	
+			//OutputDebugStringA(type.data());
 		}
 	}
 
@@ -3441,7 +3448,7 @@ namespace Components
 		// asset hooks
 		Utils::Hook(0x493102, Zones::LoadTracerDef, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4039DE, Zones::LoadMaterialAsset, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4FCAEE, Zones::LoadXModelAsset, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x4FCAEE, Zones::LoadXModelAsset, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5BA01E, Zones::LoadFxWorldAsset, HOOK_CALL).install()->quick();
 		Utils::Hook(0x43CBBB, Zones::LoadMapTriggersModelPointer, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x43CBF8, Zones::LoadMapTriggersHullPointer, HOOK_JUMP).install()->quick();
