@@ -51,6 +51,16 @@ namespace Game
 		int chr;
 		int result = static_cast<int>(type);
 
+		if (name == "fja_ctupperbody_sc_m"s)
+		{
+			printf("");
+		}
+		
+		if (name == ",fja_ctupperbody_sc_m"s)
+		{
+			printf("");
+		}
+
 		while (1)
 		{
 			while (1)

@@ -11,6 +11,8 @@ namespace Assets
 		void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
 
+		IXModel();
+
 		static void ConvertPlayerModelFromSingleplayerToMultiplayer(Game::XModel* model,  Utils::Memory::Allocator& allocator);
 
 	private:

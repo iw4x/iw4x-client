@@ -869,7 +869,29 @@ namespace Assets
 			model->quats[index * 4 + 3] = static_cast<uint16_t>(w * SHRT_MAX);
 		}
 	}
+	
 
+	IXModel::IXModel()
+	{
+		Components::Command::Add("dumpXmodel", [](const Components::Command::Params* params)
+			{
+				if (params->size() < 2) return;
+
+				std::string techset = params->get(1);
+
+				const auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, techset.data());
+				if (header.data)
+				{
+					Components::ZoneBuilder::RefreshExporterWorkDirectory();
+					Components::ZoneBuilder::GetExporter()->write(Game::XAssetType::ASSET_TYPE_XMODEL, header.data);
+				}
+				else
+				{
+					Components::Logger::Print("Could not find xmodel {}!\n", techset);
+				}
+			}
+		);
+	}
 
 	void IXModel::ConvertPlayerModelFromSingleplayerToMultiplayer(Game::XModel* model, Utils::Memory::Allocator& allocator)
 	{

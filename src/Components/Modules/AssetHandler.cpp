@@ -304,11 +304,16 @@ namespace Components
 		}
 
 		const char* name = Game::DB_GetXAssetNameHandlers[type](asset);
+		
+		if (name == "fja_ctupperbody_sc_m"s)
+		{
+			printf("");
+		}
 
 		if (Zones::Version() == 461)
 		{
-			OutputDebugStringA(Utils::String::VA("%s: [%s:%d] %s\n", FastFiles::Current().data(), Game::DB_GetXAssetTypeName(type), type, name));
-			OutputDebugStringA(Utils::String::VA("JUST READ %s:\nXFILE_BLOCK_TEMP:     %i\nXFILE_BLOCK_PHYSICAL: %i\nXFILE_BLOCK_RUNTIME:  %i\nXFILE_BLOCK_VIRTUAL:  %i\nXFILE_BLOCK_INDEX:    %i\n+++++++++++++++\n", name, Game::g_streamPos[0], Game::g_streamPos[1], Game::g_streamPos[2], Game::g_streamPos[3], Game::g_streamPos[7]));
+		//	OutputDebugStringA(Utils::String::VA("%s: [%s:%d] %s\n", FastFiles::Current().data(), Game::DB_GetXAssetTypeName(type), type, name));
+		//	OutputDebugStringA(Utils::String::VA("JUST READ %s:\nXFILE_BLOCK_TEMP:     %i\nXFILE_BLOCK_PHYSICAL: %i\nXFILE_BLOCK_RUNTIME:  %i\nXFILE_BLOCK_VIRTUAL:  %i\nXFILE_BLOCK_INDEX:    %i\n+++++++++++++++\n", name, Game::g_streamPos[0], Game::g_streamPos[1], Game::g_streamPos[2], Game::g_streamPos[3], Game::g_streamPos[7]));
 		}
 
 		if (!name) return false;
@@ -484,12 +489,7 @@ namespace Components
 
 	void AssetHandler::StoreEmptyAsset(Game::XAssetType type, const char* name)
 	{
-		OutputDebugStringA(Utils::String::VA("%s\n", name));
-		if (name == "zfeather_dfog_dtex.hlsl"s)
-		{
-			printf("");
-		}
-
+		OutputDebugStringA(Utils::String::VA("EMPTY ASSET: %s\n", name));
 
 		AssetHandler::EmptyAssets.push_back({ type, name });
 	}
@@ -681,7 +681,7 @@ namespace Components
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_FX, 1200 * 2);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_XANIMPARTS, 8192 * 2);
-		Game::ReallocateAssetPool(Game::ASSET_TYPE_XMODEL, 5125 * 2);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_XMODEL, ZoneBuilder::IsEnabled() ? 11000 : 5125 * 2);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_PHYSPRESET, 128);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_PIXELSHADER, ZoneBuilder::IsEnabled() ? 0x4000 : 10000);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXSHADER, ZoneBuilder::IsEnabled() ? 0x2000 : 3072);

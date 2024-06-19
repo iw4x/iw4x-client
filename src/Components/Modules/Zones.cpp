@@ -244,6 +244,11 @@ namespace Components
 	{
 		if (Zones::Version() >= VERSION_ALPHA2)
 		{
+			if ((*Game::varXModel)->name == "fja_ctupperbody_sc_m"s)
+			{
+				printf("");
+			}
+
 			int elSize = (Zones::ZoneVersion == VERSION_ALPHA2) ? 364 : 360;
 			*Game::varXString = reinterpret_cast<char**>(reinterpret_cast<char*>(*Game::varXModel) + (elSize - 4) - (4 * (4 - i)));
 			Game::Load_XString(false);

@@ -913,13 +913,14 @@ namespace Components
 	static Game::XZoneInfo baseZones[] =
 	{
 		{ "code_pre_gfx_mp", Game::DB_ZONE_CODE, 0 },
-		{ "localized_code_pre_gfx_mp", Game::DB_ZONE_CODE_LOC, 0 },
+		//{ "localized_code_pre_gfx_mp", Game::DB_ZONE_CODE_LOC, 0 },
 		{ "code_post_gfx_mp", Game::DB_ZONE_CODE, 0 },
-		{ "localized_code_post_gfx_mp", Game::DB_ZONE_CODE_LOC, 0 },
-		{ "common_mp", Game::DB_ZONE_COMMON, 0 },
-		{ "localized_common_mp", Game::DB_ZONE_COMMON_LOC, 0 },
-		{ "ui_mp", Game::DB_ZONE_GAME, 0 },
-		{ "localized_ui_mp", Game::DB_ZONE_GAME, 0 }
+		//{ "localized_code_post_gfx_mp", Game::DB_ZONE_CODE_LOC, 0 },
+		 //{ "common_mp", Game::DB_ZONE_COMMON, 0 },
+		//{ "localized_common_mp", Game::DB_ZONE_COMMON_LOC, 0 },
+		//{ "ui_mp", Game::DB_ZONE_GAME, 0 },
+		//{ "localized_ui_mp", Game::DB_ZONE_GAME, 0 },
+		{ "common_mp_lite", Game::DB_ZONE_COMMON, 0 },
 	};
 
 	void ZoneBuilder::Com_Quitf_t()
@@ -1294,8 +1295,25 @@ namespace Components
 					continue;
 				}
 
-				if (ExporterAPI.is_type_supported(type) && name[0] != ',')
+				if (
+					name.contains("vmchar") ||
+					name.ends_with("assassin_tf_f") ||
+					name.ends_with("ninja_sc_m") ||
+					name.contains("snibasea_tf") ||
+					name.contains("sniveterana") ||
+					name.contains("han_eve") ||
+					name.starts_with("han_") ||
+					name.starts_with("sto_default_") ||
+					name.starts_with("ves_assassin_")
+				)
 				{
+					printf("");
+					continue;
+				}
+
+				if (type != Game::XAssetType::ASSET_TYPE_FX && ExporterAPI.is_type_supported(type) && name[0] != ',')
+				{
+					Logger::Print("Grabbing data for {} {}...\n", Game::DB_GetXAssetTypeName(type), name);
 					const auto assetHeader = Game::DB_FindXAssetHeader(type, name.data());
 					if (assetHeader.data)
 					{
@@ -1323,6 +1341,16 @@ namespace Components
 				const auto& name = Game::DB_GetXAssetName(&asset);
 				if (!assetsToSkip.contains({ asset.type, name }))
 				{
+					if (asset.type == Game::ASSET_TYPE_XMODEL)
+					{
+						const auto model = asset.header.model;
+
+						if (!std::string(model->name).starts_with("fja"))
+						{
+							continue;
+						}
+					}
+
 					ExporterAPI.write(asset.type, asset.header.data);
 					Logger::Print(".");
 					assetsToList[AssetCategory::EXPLICIT].push_back(std::format("{},{}", Game::DB_GetXAssetTypeName(asset.type), name));

@@ -60,11 +60,11 @@ namespace Components
 
 			if (ZoneBuilder::IsEnabled())
 			{
-				Logger::Print("Loading model surface {} at path \"{}\" failed!", name, path);
+				Logger::Print("Loading model surface {} at path \"{}\" failed!\n", name, path);
 			}
 			else
 			{
-				Logger::Error(Game::ERR_FATAL, "Loading model {} failed!", name);
+				Logger::Error(Game::ERR_FATAL, "Loading model {} failed!\n", name);
 			}
 
 			return nullptr;
@@ -73,7 +73,7 @@ namespace Components
 		Game::CModelHeader header;
 		if (!model.read(&header, sizeof header))
 		{
-			Logger::Error(Game::ERR_FATAL, "Reading header for model {} failed!", name);
+			Logger::Error(Game::ERR_FATAL, "Reading header for model {} failed!\n", name);
 		}
 
 		if (header.version != 1)
@@ -165,6 +165,11 @@ namespace Components
 		{
 			Game::XModelSurfs* surfs = model->lodInfo[i].modelSurfs;
 
+			if (model->name == "fpa_civicivilian_sc_f"s)
+			{
+				printf("");
+			}
+			
 			if (!surfs->surfs)
 			{
 				AssertOffset(Game::XModelLodInfo, partBits, 12);
@@ -247,9 +252,9 @@ namespace Components
 	void ModelSurfs::EndRecover()
 	{
 		Game::DB_EnumXAssets_Internal(Game::XAssetType::ASSET_TYPE_XMODEL_SURFS, [](Game::XAssetHeader header, void* /*userdata*/)
-		{
-			ModelSurfs::CreateBuffers(header.modelSurfs);
-		}, nullptr, false);
+			{
+				ModelSurfs::CreateBuffers(header.modelSurfs);
+			}, nullptr, false);
 	}
 
 	void ModelSurfs::XModelSurfsFixup(Game::XModel* model)
@@ -271,10 +276,10 @@ namespace Components
 
 			jmp ModelSurfs::SetBuffer
 
-		returnSafe:
+			returnSafe :
 			movzx eax, [esp + 4h]
-			mov edx, 4B4DE5h
-			jmp edx
+				mov edx, 4B4DE5h
+				jmp edx
 		}
 	}
 
@@ -293,9 +298,9 @@ namespace Components
 			add esp, 4h
 			retn
 
-		returnSafe:
+			returnSafe :
 			mov eax, 4FDC20h
-			jmp eax
+				jmp eax
 		}
 	}
 
@@ -311,9 +316,9 @@ namespace Components
 			xor eax, eax
 			retn
 
-		returnSafe:
+			returnSafe :
 			mov eax, 48C5F0h
-			jmp eax
+				jmp eax
 		}
 	}
 
@@ -328,10 +333,10 @@ namespace Components
 
 			jmp ModelSurfs::SetBuffer
 
-		returnSafe:
+			returnSafe :
 			movzx eax, [esp + 4h]
-			mov edx, 5BC055h
-			jmp edx
+				mov edx, 5BC055h
+				jmp edx
 		}
 	}
 
