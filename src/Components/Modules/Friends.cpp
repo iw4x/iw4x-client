@@ -315,7 +315,10 @@ namespace Components
 		Friends::LoggedOn = (Steam::Proxy::SteamUser_ && Steam::Proxy::SteamUser_->LoggedOn());
 		if (!Steam::Proxy::SteamFriends) return;
 
-		Game::UI_UpdateArenas();
+		if (Game::Sys_IsMainThread())
+		{
+			Game::UI_UpdateArenas();
+		}
 
 		int count = Steam::Proxy::SteamFriends->GetFriendCount(4);
 

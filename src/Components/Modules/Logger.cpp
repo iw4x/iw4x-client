@@ -38,32 +38,32 @@ namespace Components
 	void Logger::MessagePrint(const int channel, const std::string& msg)
 	{
 		static const auto shouldPrint = []() -> bool
-		{
-			return Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests();
-		}();
+			{
+				return Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests();
+			}();
 
-		if (shouldPrint)
-		{
-			(void)std::fputs(msg.data(), stdout);
-			(void)std::fflush(stdout);
-			return;
-		}
+			if (shouldPrint)
+			{
+				(void)std::fputs(msg.data(), stdout);
+				(void)std::fflush(stdout);
+				return;
+			}
 
 #ifdef _DEBUG
-		if (!IsConsoleReady())
-		{
-			OutputDebugStringA(msg.data());
-		}
+			if (!IsConsoleReady())
+			{
+				OutputDebugStringA(msg.data());
+			}
 #endif
 
-		if (!Game::Sys_IsMainThread())
-		{
-			EnqueueMessage(msg);
-		}
-		else
-		{
-			Game::Com_PrintMessage(channel, msg.data(), 0);
-		}
+			if (!Game::Sys_IsMainThread())
+			{
+				EnqueueMessage(msg);
+			}
+			else
+			{
+				Game::Com_PrintMessage(channel, msg.data(), 0);
+			}
 	}
 
 	void Logger::DebugInternal(const std::string_view& fmt, std::format_args&& args, [[maybe_unused]] const std::source_location& loc)
@@ -120,33 +120,33 @@ namespace Components
 	void Logger::PrintFail2BanInternal(const std::string_view& fmt, std::format_args&& args)
 	{
 		static const auto shouldPrint = []() -> bool
-		{
-			return Flags::HasFlag("fail2ban");
-		}();
+			{
+				return Flags::HasFlag("fail2ban");
+			}();
 
-		if (!shouldPrint)
-		{
-			return;
-		}
+			if (!shouldPrint)
+			{
+				return;
+			}
 
-		auto msg = std::vformat(fmt, args);
+			auto msg = std::vformat(fmt, args);
 
-		static auto log_next_time_stamp = true;
-		if (log_next_time_stamp)
-		{
-			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-			// Convert to local time
-			std::tm timeInfo = *std::localtime(&now);
+			static auto log_next_time_stamp = true;
+			if (log_next_time_stamp)
+			{
+				auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+				// Convert to local time
+				std::tm timeInfo = *std::localtime(&now);
 
-			std::ostringstream ss;
-			ss << std::put_time(&timeInfo, "%Y-%m-%d %H:%M:%S ");
+				std::ostringstream ss;
+				ss << std::put_time(&timeInfo, "%Y-%m-%d %H:%M:%S ");
 
-			msg.insert(0, ss.str());
-		}
+				msg.insert(0, ss.str());
+			}
 
-		log_next_time_stamp = (msg.find('\n') != std::string::npos);
+			log_next_time_stamp = (msg.find('\n') != std::string::npos);
 
-		Utils::IO::WriteFile(IW4x_fail2ban_location.get<std::string>(), msg, true);
+			Utils::IO::WriteFile(IW4x_fail2ban_location.get<std::string>(), msg, true);
 	}
 
 	void Logger::Frame()
@@ -227,28 +227,28 @@ namespace Components
 
 			pushad
 
-			push [esp + 28h]
+			push[esp + 28h]
 			call PrintMessagePipe
 			add esp, 4h
 
 			popad
 			ret
 
-		returnPrint:
+			returnPrint :
 			pushad
 
-			push 0 // gLog
-			push [esp + 2Ch] // data
-			call NetworkLog
-			add esp, 8h
+				push 0 // gLog
+				push[esp + 2Ch] // data
+				call NetworkLog
+				add esp, 8h
 
-			popad
+				popad
 
-			push esi
-			mov esi, [esp + 0Ch]
+				push esi
+				mov esi, [esp + 0Ch]
 
-			push 4AA835h
-			ret
+				push 4AA835h
+				ret
 		}
 	}
 
@@ -262,13 +262,16 @@ namespace Components
 	{
 		const auto* g_log = (*Game::g_log) ? (*Game::g_log)->current.string : "";
 
-		if (std::strcmp(g_log, file) == 0)
+		if (g_log) // This can be null - has happened before
 		{
-			if (std::strcmp(folder, "userraw") != 0)
+			if (std::strcmp(g_log, file) == 0)
 			{
-				if (IW4x_one_log.get<bool>())
+				if (std::strcmp(folder, "userraw") != 0)
 				{
-					strncpy_s(folder, 256, "userraw", _TRUNCATE);
+					if (IW4x_one_log.get<bool>())
+					{
+						strncpy_s(folder, 256, "userraw", _TRUNCATE);
+					}
 				}
 			}
 		}
@@ -280,8 +283,8 @@ namespace Components
 		{
 			pushad
 
-			push [esp + 20h + 8h]
-			push [esp + 20h + 10h]
+			push[esp + 20h + 8h]
+			push[esp + 20h + 10h]
 			call RedirectOSPath
 			add esp, 8h
 
@@ -310,117 +313,140 @@ namespace Components
 	void Logger::AddServerCommands()
 	{
 		Command::AddSV("log_add", [](const Command::Params* params)
-		{
-			if (params->size() < 2) return;
-
-			std::unique_lock lock(LoggingMutex);
-
-			Network::Address addr(params->get(1));
-			if (std::ranges::find(LoggingAddresses[0], addr) == LoggingAddresses[0].end())
 			{
-				LoggingAddresses[0].push_back(addr);
-			}
-		});
+				if (params->size() < 2) return;
+
+				std::unique_lock lock(LoggingMutex);
+
+				Network::Address addr(params->get(1));
+				if (std::ranges::find(LoggingAddresses[0], addr) == LoggingAddresses[0].end())
+				{
+					LoggingAddresses[0].push_back(addr);
+				}
+			});
 
 		Command::AddSV("log_del", [](const Command::Params* params)
-		{
-			if (params->size() < 2) return;
-
-			std::unique_lock lock(LoggingMutex);
-
-			const auto num = std::atoi(params->get(1));
-			if (!std::strcmp(VA("%i", num), params->get(1)) && static_cast<unsigned int>(num) < LoggingAddresses[0].size())
 			{
-				auto addr = Logger::LoggingAddresses[0].begin() + num;
-				Print("Address {} removed\n", addr->getString());
-				LoggingAddresses[0].erase(addr);
-			}
-			else
-			{
-				Network::Address addr(params->get(1));
+				if (params->size() < 2) return;
 
-				if (const auto i = std::ranges::find(LoggingAddresses[0], addr); i != LoggingAddresses[0].end())
+				std::unique_lock lock(LoggingMutex);
+
+				const auto num = std::atoi(params->get(1));
+				if (!std::strcmp(VA("%i", num), params->get(1)) && static_cast<unsigned int>(num) < LoggingAddresses[0].size())
 				{
-					LoggingAddresses[0].erase(i);
-					Print("Address {} removed\n", addr.getString());
+					auto addr = Logger::LoggingAddresses[0].begin() + num;
+					Print("Address {} removed\n", addr->getString());
+					LoggingAddresses[0].erase(addr);
 				}
 				else
 				{
-					Print("Address {} not found!\n", addr.getString());
+					Network::Address addr(params->get(1));
+
+					if (const auto i = std::ranges::find(LoggingAddresses[0], addr); i != LoggingAddresses[0].end())
+					{
+						LoggingAddresses[0].erase(i);
+						Print("Address {} removed\n", addr.getString());
+					}
+					else
+					{
+						Print("Address {} not found!\n", addr.getString());
+					}
 				}
-			}
-		});
+			});
 
 		Command::AddSV("log_list", []([[maybe_unused]] const Command::Params* params)
-		{
-			Print("# ID: Address\n");
-			Print("-------------\n");
-
-			std::unique_lock lock(LoggingMutex);
-
-			for (unsigned int i = 0; i < LoggingAddresses[0].size(); ++i)
 			{
-				Print("#{:03d}: {}\n", i, LoggingAddresses[0][i].getString());
-			}
-		});
+				Print("# ID: Address\n");
+				Print("-------------\n");
+
+				std::unique_lock lock(LoggingMutex);
+
+				for (unsigned int i = 0; i < LoggingAddresses[0].size(); ++i)
+				{
+					Print("#{:03d}: {}\n", i, LoggingAddresses[0][i].getString());
+				}
+			});
 
 		Command::AddSV("g_log_add", [](const Command::Params* params)
-		{
-			if (params->size() < 2) return;
-
-			std::unique_lock lock(LoggingMutex);
-
-			const Network::Address addr(params->get(1));
-			if (std::ranges::find(LoggingAddresses[1], addr) == LoggingAddresses[1].end())
 			{
-				LoggingAddresses[1].push_back(addr);
-			}
-		});
+				if (params->size() < 2) return;
+
+				std::unique_lock lock(LoggingMutex);
+
+				const Network::Address addr(params->get(1));
+				if (std::ranges::find(LoggingAddresses[1], addr) == LoggingAddresses[1].end())
+				{
+					LoggingAddresses[1].push_back(addr);
+				}
+			});
 
 		Command::AddSV("g_log_del", [](const Command::Params* params)
-		{
-			if (params->size() < 2) return;
-
-			std::unique_lock lock(LoggingMutex);
-
-			const auto num = std::atoi(params->get(1));
-			if (!std::strcmp(VA("%i", num), params->get(1)) && static_cast<unsigned int>(num) < LoggingAddresses[1].size())
 			{
-				const auto addr = LoggingAddresses[1].begin() + num;
-				Print("Address {} removed\n", addr->getString());
-				LoggingAddresses[1].erase(addr);
-			}
-			else
-			{
-				const Network::Address addr(params->get(1));
-				const auto i = std::ranges::find(LoggingAddresses[1].begin(), LoggingAddresses[1].end(), addr);
-				if (i != LoggingAddresses[1].end())
+				if (params->size() < 2) return;
+
+				std::unique_lock lock(LoggingMutex);
+
+				const auto num = std::atoi(params->get(1));
+				if (!std::strcmp(VA("%i", num), params->get(1)) && static_cast<unsigned int>(num) < LoggingAddresses[1].size())
 				{
-					LoggingAddresses[1].erase(i);
-					Print("Address {} removed\n", addr.getString());
+					const auto addr = LoggingAddresses[1].begin() + num;
+					Print("Address {} removed\n", addr->getString());
+					LoggingAddresses[1].erase(addr);
 				}
 				else
 				{
-					Print("Address {} not found!\n", addr.getString());
+					const Network::Address addr(params->get(1));
+					const auto i = std::ranges::find(LoggingAddresses[1].begin(), LoggingAddresses[1].end(), addr);
+					if (i != LoggingAddresses[1].end())
+					{
+						LoggingAddresses[1].erase(i);
+						Print("Address {} removed\n", addr.getString());
+					}
+					else
+					{
+						Print("Address {} not found!\n", addr.getString());
+					}
 				}
-			}
-		});
+			});
 
 		Command::AddSV("g_log_list", []([[maybe_unused]] const Command::Params* params)
-		{
-			Print("# ID: Address\n");
-			Print("-------------\n");
-
-			std::unique_lock lock(LoggingMutex);
-			for (std::size_t i = 0; i < LoggingAddresses[1].size(); ++i)
 			{
-				Print("#{:03d}: {}\n", i, LoggingAddresses[1][i].getString());
+				Print("# ID: Address\n");
+				Print("-------------\n");
+
+				std::unique_lock lock(LoggingMutex);
+				for (std::size_t i = 0; i < LoggingAddresses[1].size(); ++i)
+				{
+					Print("#{:03d}: {}\n", i, LoggingAddresses[1][i].getString());
+				}
+			});
+	}
+
+	void PrintAliasError(Game::conChannel_t channel, const char* originalMsg, const char* soundName, const char* lastErrorStr)
+	{
+		// We add a bit more info and we clear the sound stream when it happens
+		// to avoid spamming the error
+		const auto newMsg = std::format("{}Make sure you have the 'miles' folder in your game directory! Otherwise MP3 and other codecs will be unavailable.\n", originalMsg);
+		Game::Com_PrintError(channel, newMsg.c_str(), soundName, lastErrorStr);
+
+		for (size_t i = 0; i < ARRAYSIZE(Game::milesGlobal->streamReadInfo); i++)
+		{
+			if (0 == std::strncmp(Game::milesGlobal->streamReadInfo[i].path, soundName, ARRAYSIZE(Game::milesGlobal->streamReadInfo[i].path)))
+			{
+				Game::milesGlobal->streamReadInfo[i].path[0] = '\x00'; // This kills it and make sure it doesn't get played again for now
+				break;
 			}
-		});
+		}
 	}
 
 	Logger::Logger()
 	{
+		// Print sound aliases errors
+		if (!Dedicated::IsEnabled())
+		{
+			Utils::Hook(0x64BA67, PrintAliasError, HOOK_CALL).install()->quick();
+		}
+
 		Utils::Hook(0x642139, BuildOSPath_Stub, HOOK_JUMP).install()->quick();
 
 		Scheduler::Loop(Frame, Scheduler::Pipeline::SERVER);
@@ -438,10 +464,10 @@ namespace Components
 
 		Events::OnSVInit(AddServerCommands);
 		Events::OnDvarInit([]
-		{
-			IW4x_one_log = Dvar::Register<bool>("iw4x_onelog", false, Game::DVAR_LATCH, "Only write the game log to the 'userraw' OS folder");
-			IW4x_fail2ban_location = Dvar::Register<const char*>("iw4x_fail2ban_location", "/var/log/iw4x.log", Game::DVAR_NONE, "Fail2Ban logfile location");
-		});
+			{
+				IW4x_one_log = Dvar::Register<bool>("iw4x_onelog", false, Game::DVAR_LATCH, "Only write the game log to the 'userraw' OS folder");
+				IW4x_fail2ban_location = Dvar::Register<const char*>("iw4x_fail2ban_location", "/var/log/iw4x.log", Game::DVAR_NONE, "Fail2Ban logfile location");
+			});
 	}
 
 	Logger::~Logger()
