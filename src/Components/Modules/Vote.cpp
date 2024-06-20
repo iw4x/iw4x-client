@@ -2,11 +2,14 @@
 #include "ClientCommand.hpp"
 #include "MapRotation.hpp"
 #include "Vote.hpp"
+#include "Events.hpp"
 
 using namespace Utils::String;
 
 namespace Components
 {
+	Dvar::Var Vote::SV_VotesRequired;
+
 	std::unordered_map<std::string, Vote::CommandHandler> Vote::VoteCommands =
 	{
 		{"map_restart", HandleMapRestart},
@@ -35,6 +38,17 @@ namespace Components
 		Game::SV_SetConfigstring(Game::CS_VOTE_STRING, Game::level->voteDisplayString);
 		Game::SV_SetConfigstring(Game::CS_VOTE_YES, VA("%i", Game::level->voteYes));
 		Game::SV_SetConfigstring(Game::CS_VOTE_NO, VA("%i", Game::level->voteNo));
+	}
+
+	int Vote::VotesRequired()
+	{
+		auto votesRequired = Vote::SV_VotesRequired.get<int>();
+		
+		if (votesRequired > 0)
+		{
+			return votesRequired;
+		}
+		return Game::level->numConnectedClients / 2 + 1;
 	}
 
 	bool Vote::IsInvalidVoteString(const std::string& input)
@@ -204,7 +218,7 @@ namespace Components
 			return;
 		}
 
-		if (Game::level->numConnectedClients < 2)
+		if (Game::level->numConnectedClients < VotesRequired())
 		{
 			Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_VOTINGNOTENOUGHPLAYERS\"", 0x65));
 			return;
@@ -218,7 +232,7 @@ namespace Components
 				return;
 			}
 
-			if (ent->client->sess.voteCount >= 3)
+			if (ent->client->sess.voteCount >= VotesRequired())
 			{
 				Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_MAXVOTESCALLED\"", 0x65));
 				return;
@@ -320,6 +334,10 @@ namespace Components
 	{
 		// Replicate g_allowVote
 		Utils::Hook::Set<std::uint32_t>(0x5E3A4F, Game::DVAR_INTERNAL | Game::DVAR_CODINFO);
+
+		Events::OnDvarInit([]{
+			Vote::SV_VotesRequired = Game::Dvar_RegisterInt("sv_votesRequired", 0, 0, 18, Game::DVAR_NONE, "Set the amount of votes required for a vote to pass.\n0 = (players / 2) + 1");
+		});
 
 		ClientCommand::Add("callvote", Cmd_CallVote_f);
 		ClientCommand::Add("vote", Cmd_Vote_f);

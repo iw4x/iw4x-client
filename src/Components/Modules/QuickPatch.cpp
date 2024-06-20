@@ -244,11 +244,12 @@ namespace Components
 			return;
 		}
 
-		auto workingDir = std::filesystem::current_path().string();
-		const std::string binary = *Game::sys_exitCmdLine;
+		const std::filesystem::path workingDir = std::filesystem::current_path();
+		const std::wstring binary = Utils::String::Convert(*Game::sys_exitCmdLine);
+		const std::wstring commandLine = std::format(L"\"{}\" iw4x --pass \"{}\"", (workingDir / binary).wstring(), Utils::GetLaunchParameters());
 
-		SetEnvironmentVariableA("MW2_INSTALL", workingDir.data());
-		Utils::Library::LaunchProcess(binary, "-singleplayer", workingDir);
+		SetEnvironmentVariableA("MW2_INSTALL", workingDir.string().data());
+		Utils::Library::LaunchProcess(binary, commandLine, workingDir);
 	}
 
 	__declspec(naked) void QuickPatch::SND_GetAliasOffset_Stub()
@@ -320,7 +321,7 @@ namespace Components
 
 		Utils::Hook::Set<void(*)(Game::XAssetHeader, void*)>(0x51FCDD, QuickPatch::R_AddImageToList_Hk);
 
-		Utils::Hook::Set<const char*>(0x41DB8C, "iw4-sp.exe");
+		Utils::Hook::Set<const char*>(0x41DB8C, "iw4x-sp.exe");
 		Utils::Hook(0x4D6989, QuickPatch::Sys_SpawnQuitProcess_Hk, HOOK_CALL).install()->quick();
 
 		// Fix crash as nullptr goes unchecked

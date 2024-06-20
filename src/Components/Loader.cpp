@@ -15,6 +15,7 @@
 #include "Modules/ClientCommand.hpp"
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/Console.hpp"
+#include "Modules/ConfigStrings.hpp"
 #include "Modules/D3D9Ex.hpp"
 #include "Modules/Debug.hpp"
 #include "Modules/Discord.hpp"
@@ -32,6 +33,7 @@
 #include "Modules/MapRotation.hpp"
 #include "Modules/Materials.hpp"
 #include "Modules/ModList.hpp"
+#include "Modules/ModelCache.hpp"
 #include "Modules/ModelSurfs.hpp"
 #include "Modules/NetworkDebug.hpp"
 #include "Modules/News.hpp"
@@ -59,6 +61,7 @@
 #include "Modules/Threading.hpp"
 #include "Modules/Toast.hpp"
 #include "Modules/UIFeeder.hpp"
+#include "Modules/Updater.hpp"
 #include "Modules/VisionFile.hpp"
 #include "Modules/Voice.hpp"
 #include "Modules/Vote.hpp"
@@ -109,6 +112,8 @@ namespace Components
 		Register(new UIScript());
 		Register(new ZoneBuilder());
 
+		Register(new ConfigStrings()); // Needs to be there early !! Before modelcache & weapons
+
 		Register(new ArenaLength());
 		Register(new AssetHandler());
 		Register(new Bans());
@@ -143,6 +148,7 @@ namespace Components
 		Register(new Materials());
 		Register(new Menus());
 		Register(new ModList());
+		Register(new ModelCache());
 		Register(new ModelSurfs());
 		Register(new NetworkDebug());
 		Register(new News());
@@ -172,6 +178,7 @@ namespace Components
 		Register(new Threading());
 		Register(new Toast());
 		Register(new UIFeeder());
+		Register(new Updater());
 		Register(new VisionFile());
 		Register(new Voice());
 		Register(new Vote());

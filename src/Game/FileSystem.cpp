@@ -10,6 +10,7 @@ namespace Game
 	FS_FOpenFileAppend_t FS_FOpenFileAppend = FS_FOpenFileAppend_t(0x410BB0);
 	FS_FOpenFileWrite_t FS_FOpenFileWrite = FS_FOpenFileWrite_t(0x4BA530);
 	FS_FOpenTextFileWrite_t FS_FOpenTextFileWrite = FS_FOpenTextFileWrite_t(0x43FD90);
+	FS_FileOpenReadText_t FS_FileOpenReadText = FS_FileOpenReadText_t(0x446B60);
 	FS_FOpenFileRead_t FS_FOpenFileRead = FS_FOpenFileRead_t(0x46CBF0);
 	FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase = FS_FOpenFileReadDatabase_t(0x42ECA0);
 	FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread = FS_FOpenFileReadForThread_t(0x643270);

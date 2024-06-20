@@ -20,8 +20,11 @@ namespace Utils
 	HMODULE GetNTDLL();
 
 	void SetEnvironment();
+	std::filesystem::path GetBaseFilesLocation();
 
 	void OpenUrl(const std::string& url);
+
+	std::wstring GetLaunchParameters();
 
 	bool HasIntersection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
 

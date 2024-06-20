@@ -11,9 +11,6 @@ namespace Components
 
 	std::vector<std::size_t> RCon::RConAddresses;
 
-	RCon::Container RCon::RConContainer;
-	Utils::Cryptography::ECC::Key RCon::RConKey;
-
 	std::string RCon::Password;
 
 	Dvar::Var RCon::RConPassword;
@@ -96,25 +93,6 @@ namespace Components
 			Network::SendCommand(target, "rconSafe", directive.SerializeAsString());
 		});
 
-		Command::Add("remoteCommand", [](const Command::Params* params)
-		{
-			if (params->size() < 2) return;
-
-			RConContainer.command = params->get(1);
-
-			auto* addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
-			Network::Address target(addr);
-			if (!target.isValid() || target.getIP().full == 0)
-			{
-				target = Party::Target();
-			}
-
-			if (target.isValid())
-			{
-				Network::SendCommand(target, "rconRequest");
-			}
-		});
-
 		Command::AddSV("RconWhitelistAdd", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
@@ -180,7 +158,8 @@ namespace Components
 		const auto pos = data.find_first_of(' ');
 		if (pos == std::string::npos)
 		{
-			Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon request from {}\n", address.getString());
+			Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
+			Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon request from {}\n", Network::AdrToString(address));
 			return;
 		}
 
@@ -203,7 +182,8 @@ namespace Components
 
 		if (svPassword != password)
 		{
-			Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon password sent from {}\n", address.getString());
+			Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
+			Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon password sent from {}\n", Network::AdrToString(address));
 			return;
 		}
 
@@ -213,7 +193,7 @@ namespace Components
 		if (RConLogRequests.get<bool>())
 #endif
 		{
-			Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing RCon request from {}: {}\n", address.getString(), command);
+			Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing RCon request from {}: {}\n", Network::AdrToString(address), command);
 		}
 
 		Logger::PipeOutput([](const std::string& output)
@@ -259,46 +239,8 @@ namespace Components
 
 		if (!Dedicated::IsEnabled())
 		{
-			Network::OnClientPacket("rconAuthorization", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
-			{
-				if (RConContainer.command.empty())
-				{
-					return;
-				}
-
-				const auto& key = CryptoKeyECC::Get();
-				const auto signedMsg = Utils::Cryptography::ECC::SignMessage(key, data);
-
-				Proto::RCon::Command rconExec;
-				rconExec.set_command(RConContainer.command);
-				rconExec.set_signature(signedMsg);
-
-				Network::SendCommand(address, "rconExecute", rconExec.SerializeAsString());
-			});
-
 			return;
 		}
-
-		// Load public key
-		static std::uint8_t publicKey[] =
-		{
-			0x04, 0x01, 0x9D, 0x18, 0x7F, 0x57, 0xD8, 0x95, 0x4C, 0xEE, 0xD0, 0x21,
-			0xB5, 0x00, 0x53, 0xEC, 0xEB, 0x54, 0x7C, 0x4C, 0x37, 0x18, 0x53, 0x89,
-			0x40, 0x12, 0xF7, 0x08, 0x8D, 0x9A, 0x8D, 0x99, 0x9C, 0x79, 0x79, 0x59,
-			0x6E, 0x32, 0x06, 0xEB, 0x49, 0x1E, 0x00, 0x99, 0x71, 0xCB, 0x4A, 0xE1,
-			0x90, 0xF1, 0x7C, 0xB7, 0x4D, 0x60, 0x88, 0x0A, 0xB7, 0xF3, 0xD7, 0x0D,
-			0x4F, 0x08, 0x13, 0x7C, 0xEB, 0x01, 0xFF, 0x00, 0x32, 0xEE, 0xE6, 0x23,
-			0x07, 0xB1, 0xC2, 0x9E, 0x45, 0xD6, 0xD7, 0xBD, 0xED, 0x05, 0x23, 0xB5,
-			0xE7, 0x83, 0xEF, 0xD7, 0x8E, 0x36, 0xDC, 0x16, 0x79, 0x74, 0xD1, 0xD5,
-			0xBA, 0x2C, 0x4C, 0x28, 0x61, 0x29, 0x5C, 0x49, 0x7D, 0xD4, 0xB6, 0x56,
-			0x17, 0x75, 0xF5, 0x2B, 0x58, 0xCD, 0x0D, 0x76, 0x65, 0x10, 0xF7, 0x51,
-			0x69, 0x1D, 0xB9, 0x0F, 0x38, 0xF6, 0x53, 0x3B, 0xF7, 0xCE, 0x76, 0x4F,
-			0x08
-		};
-
-		RConKey.set(std::string(reinterpret_cast<char*>(publicKey), sizeof(publicKey)));
-
-		RConContainer.timestamp = 0;
 
 		Events::OnDvarInit([]
 		{
@@ -318,6 +260,7 @@ namespace Components
 			const auto time = Game::Sys_Milliseconds();
 			if (!IsRateLimitCheckDisabled() && !RateLimitCheck(address, time))
 			{
+				Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
 				return;
 			}
 
@@ -341,6 +284,7 @@ namespace Components
 			const auto time = Game::Sys_Milliseconds();
 			if (!IsRateLimitCheckDisabled() && !RateLimitCheck(address, time))
 			{
+				Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
 				return;
 			}
 
@@ -355,18 +299,21 @@ namespace Components
 			if (!key.isValid())
 			{
 				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "RSA public key is invalid\n");
+				return;
 			}
 
 			Proto::RCon::Command directive;
 			if (!directive.ParseFromString(data))
 			{
-				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "Unable to parse secure command from {}\n", address.getString());
+				Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
+				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "Unable to parse secure command from {}\n", Network::AdrToString(address));
 				return;
 			}
 
 			if (!Utils::Cryptography::RSA::VerifyMessage(key, directive.command(), directive.signature()))
 			{
-				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "RSA signature verification failed for message from {}\n", address.getString());
+				Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
+				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "RSA signature verification failed for message from {}\n", Network::AdrToString(address));
 				return;
 			}
 
@@ -376,96 +323,6 @@ namespace Components
 				RConSafeExecutor(address, s);
 			}, Scheduler::Pipeline::MAIN);
 		});
-
-		Network::OnClientPacket("rconRequest", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
-		{
-			RConContainer.address = address;
-			RConContainer.challenge = Utils::Cryptography::Rand::GenerateChallenge();
-			RConContainer.timestamp = Game::Sys_Milliseconds();
-
-			Network::SendCommand(address, "rconAuthorization", RConContainer.challenge);
-		});
-
-		Network::OnClientPacket("rconExecute", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
-		{
-			if (address != RConContainer.address) return; // Invalid IP
-			if (!RConContainer.timestamp || (Game::Sys_Milliseconds() - RConContainer.timestamp) > (1000 * 10)) return; // Timeout
-
-			RConContainer.timestamp = 0;
-
-			Proto::RCon::Command rconExec;
-			rconExec.ParseFromString(data);
-
-			if (!Utils::Cryptography::ECC::VerifyMessage(RConKey, RConContainer.challenge, rconExec.signature()))
-			{
-				return;
-			}
-
-			RConContainer.output.clear();
-			Logger::PipeOutput([](const std::string& output)
-			{
-				RConContainer.output.append(output);
-			});
-
-			Command::Execute(rconExec.command(), true);
-
-			Logger::PipeOutput(nullptr);
-
-			Network::SendCommand(address, "print", RConContainer.output);
-			RConContainer.output.clear();
-		});
-	}
-
-	bool RCon::CryptoKeyECC::LoadKey(Utils::Cryptography::ECC::Key& key)
-	{
-		std::string data;
-		if (!Utils::IO::ReadFile("./private.key", &data))
-		{
-			return false;
-		}
-
-		key.deserialize(data);
-		return key.isValid();
-	}
-
-	Utils::Cryptography::ECC::Key RCon::CryptoKeyECC::GenerateKey()
-	{
-		auto key = Utils::Cryptography::ECC::GenerateKey(512);
-		if (!key.isValid())
-		{
-			throw std::runtime_error("Failed to generate server key!");
-		}
-
-		if (!Utils::IO::WriteFile("./private.key", key.serialize()))
-		{
-			throw std::runtime_error("Failed to write server key!");
-		}
-
-		return key;
-	}
-
-	Utils::Cryptography::ECC::Key RCon::CryptoKeyECC::LoadOrGenerateKey()
-	{
-		Utils::Cryptography::ECC::Key key;
-		if (LoadKey(key))
-		{
-			return key;
-		}
-
-		return GenerateKey();
-	}
-
-	Utils::Cryptography::ECC::Key RCon::CryptoKeyECC::GetKeyInternal()
-	{
-		auto key = LoadOrGenerateKey();
-		Utils::IO::WriteFile("./public.key", key.getPublicKey());
-		return key;
-	}
-
-	Utils::Cryptography::ECC::Key& RCon::CryptoKeyECC::Get()
-	{
-		static auto key = GetKeyInternal();
-		return key;
 	}
 
 	Utils::Cryptography::RSA::Key RCon::CryptoKeyRSA::LoadPublicKey()

@@ -6,11 +6,21 @@
 
 namespace Components
 {
+	HANDLE Singleton::Mutex;
+
 	bool Singleton::FirstInstance = true;
 
 	bool Singleton::IsFirstInstance()
 	{
 		return FirstInstance;
+	}
+
+	void Singleton::preDestroy()
+	{
+		if (INVALID_HANDLE_VALUE != Mutex)
+		{
+			CloseHandle(Mutex);
+		}
 	}
 
 	Singleton::Singleton()
@@ -31,7 +41,8 @@ namespace Components
 
 		if (Loader::IsPerformingUnitTests() || Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
 
-		FirstInstance = (CreateMutexA(nullptr, FALSE, "iw4x_mutex") && GetLastError() != ERROR_ALREADY_EXISTS);
+		Mutex = CreateMutexA(nullptr, FALSE, "iw4x_mutex");
+		FirstInstance = ((INVALID_HANDLE_VALUE != Mutex) && GetLastError() != ERROR_ALREADY_EXISTS);
 
 		if (!FirstInstance && !ConnectProtocol::Used() && MessageBoxA(nullptr, "Do you want to start another instance?\nNot all features will be available!", "Game already running", MB_ICONEXCLAMATION | MB_YESNO) == IDNO)
 		{

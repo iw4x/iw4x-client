@@ -270,7 +270,7 @@ namespace Components
 			if ((ui_browserMod == 0 && static_cast<int>(serverInfo->mod.size())) || (ui_browserMod == 1 && serverInfo->mod.empty())) continue;
 
 			// Filter by gametype
-			if (ui_joinGametype > 0 && (ui_joinGametype - 1) < *Game::gameTypeCount  && Game::gameTypes[(ui_joinGametype - 1)].gameType != serverInfo->gametype) continue;
+			if (ui_joinGametype > 0 && (ui_joinGametype - 1) < *Game::gameTypeCount && Game::gameTypes[(ui_joinGametype - 1)].gameType != serverInfo->gametype) continue;
 
 			VisibleList.push_back(i);
 		}
@@ -319,6 +319,19 @@ namespace Components
 
 			if (!entry["ip"].IsString() || !entry["port"].IsInt())
 			{
+				continue;
+			}
+
+			if (!entry.HasMember("ip") || !entry["protocol"].IsInt())
+			{
+				continue;
+			}
+
+			const auto protocol = entry["protocol"].GetInt();
+
+			if (protocol != PROTOCOL)
+			{
+				// We can't connect to it anyway
 				continue;
 			}
 
@@ -371,7 +384,7 @@ namespace Components
 
 			Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
 
-			const auto* url = "http://iw4x.plutools.pw/v1/servers/iw4x";
+			const auto url = std::format("http://iw4x.getserve.rs/v1/servers/iw4x?protocol={}", PROTOCOL);
 			const auto reply = Utils::WebIO("IW4x", url).setTimeout(5000)->get();
 			if (reply.empty())
 			{
@@ -397,7 +410,7 @@ namespace Components
 	void ServerList::StoreFavourite(const std::string& server)
 	{
 		std::vector<std::string> servers;
-		
+
 		const auto parseData = Utils::IO::ReadFile(FavouriteFile);
 		if (!parseData.empty())
 		{
@@ -480,7 +493,7 @@ namespace Components
 
 		auto* list = GetList();
 		if (list) list->clear();
-		
+
 		RefreshVisibleListInternal(UIScript::Token(), nullptr);
 	}
 
@@ -535,7 +548,7 @@ namespace Components
 		container.target = address;
 
 		auto alreadyInserted = false;
-		for (auto &server : RefreshContainer.servers)
+		for (auto& server : RefreshContainer.servers)
 		{
 			if (server.target == container.target)
 			{
@@ -610,7 +623,15 @@ namespace Components
 			std::hash<ServerInfo> hashFn;
 			server.hash = hashFn(server);
 
+			// more secure
 			server.hostname = TextRenderer::StripMaterialTextIcons(server.hostname);
+
+			if (server.hostname.empty() || std::all_of(server.hostname.begin(), server.hostname.end(), isspace))
+			{
+				// Invalid server name containing only emojis
+				return;
+			}
+
 			server.mapname = TextRenderer::StripMaterialTextIcons(server.mapname);
 			server.gametype = TextRenderer::StripMaterialTextIcons(server.gametype);
 			server.mod = TextRenderer::StripMaterialTextIcons(server.mod);
@@ -722,36 +743,36 @@ namespace Components
 		if (!IsServerListOpen()) return;
 
 		std::ranges::stable_sort(VisibleList, [](const unsigned int& server1, const unsigned int& server2) -> bool
-		{
-			ServerInfo* info1 = nullptr;
-			ServerInfo* info2 = nullptr;
-
-			auto* list = GetList();
-			if (!list) return false;
-
-			if (list->size() > server1) info1 = &(*list)[server1];
-			if (list->size() > server2) info2 = &(*list)[server2];
-
-			if (!info1) return false;
-			if (!info2) return false;
-
-			// Numerical comparisons
-			if (SortKey == static_cast<std::underlying_type_t<Column>>(Column::Ping))
 			{
-				return info1->ping < info2->ping;
-			}
+				ServerInfo* info1 = nullptr;
+				ServerInfo* info2 = nullptr;
 
-			if (SortKey == static_cast<std::underlying_type_t<Column>>(Column::Players))
-			{
-				return info1->clients < info2->clients;
-			}
+				auto* list = GetList();
+				if (!list) return false;
 
-			auto text1 = Utils::String::ToLower(TextRenderer::StripColors(GetServerInfoText(info1, SortKey, true)));
-			auto text2 = Utils::String::ToLower(TextRenderer::StripColors(GetServerInfoText(info2, SortKey, true)));
+				if (list->size() > server1) info1 = &(*list)[server1];
+				if (list->size() > server2) info2 = &(*list)[server2];
 
-			// ASCII-based comparison
-			return text1.compare(text2) < 0;
-		});
+				if (!info1) return false;
+				if (!info2) return false;
+
+				// Numerical comparisons
+				if (SortKey == static_cast<std::underlying_type_t<Column>>(Column::Ping))
+				{
+					return info1->ping < info2->ping;
+				}
+
+				if (SortKey == static_cast<std::underlying_type_t<Column>>(Column::Players))
+				{
+					return info1->clients < info2->clients;
+				}
+
+				auto text1 = Utils::String::ToLower(TextRenderer::StripColors(GetServerInfoText(info1, SortKey, true)));
+				auto text2 = Utils::String::ToLower(TextRenderer::StripColors(GetServerInfoText(info2, SortKey, true)));
+
+				// ASCII-based comparison
+				return text1.compare(text2) < 0;
+			});
 
 		if (!SortAsc) std::ranges::reverse(VisibleList);
 	}
@@ -910,17 +931,17 @@ namespace Components
 		VisibleList.clear();
 
 		Events::OnDvarInit([]
-		{
-			UIServerSelected = Dvar::Register<bool>("ui_serverSelected", false,
+			{
+				UIServerSelected = Dvar::Register<bool>("ui_serverSelected", false,
 				Game::DVAR_NONE, "Whether a server has been selected in the serverlist");
-			UIServerSelectedMap = Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan",
-				Game::DVAR_NONE, "Map of the selected server");
+		UIServerSelectedMap = Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan",
+			Game::DVAR_NONE, "Map of the selected server");
 
-			NETServerQueryLimit = Dvar::Register<int>("net_serverQueryLimit", 1,
-				1, 10, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server queries per frame");
-			NETServerFrames = Dvar::Register<int>("net_serverFrames", 30,
-				1, 60, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server query frames per second");
-		});
+		NETServerQueryLimit = Dvar::Register<int>("net_serverQueryLimit", 1,
+			1, 10, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server queries per frame");
+		NETServerFrames = Dvar::Register<int>("net_serverFrames", 30,
+			1, 60, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server query frames per second");
+			});
 
 		// Fix ui_netsource dvar
 		Utils::Hook::Nop(0x4CDEEC, 5); // Don't reset the netsource when gametypes aren't loaded
@@ -928,35 +949,35 @@ namespace Components
 		Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0 (0)");
 
 		Network::OnClientPacket("getServersResponse", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
-		{
-			if (RefreshContainer.host != address) return; // Only parse from host we sent to
-
-			RefreshContainer.awatingList = false;
-
-			std::lock_guard _(RefreshContainer.mutex);
-
-			auto offset = 0;
-			const auto count = RefreshContainer.servers.size();
-			MasterEntry* entry;
-
-			// Find first entry
-			do
 			{
-				entry = reinterpret_cast<MasterEntry*>(const_cast<char*>(data.data()) + offset++);
-			} while (!entry->HasSeparator() && !entry->IsEndToken());
+				if (RefreshContainer.host != address) return; // Only parse from host we sent to
 
-			for (int i = 0; !entry[i].IsEndToken() && entry[i].HasSeparator(); ++i)
-			{
-				Network::Address serverAddr = address;
-				serverAddr.setIP(entry[i].ip);
-				serverAddr.setPort(ntohs(entry[i].port));
-				serverAddr.setType(Game::NA_IP);
+				RefreshContainer.awatingList = false;
 
-				InsertRequest(serverAddr);
-			}
+				std::lock_guard _(RefreshContainer.mutex);
 
-			Logger::Print("Parsed {} servers from master\n", RefreshContainer.servers.size() - count);
-		});
+				auto offset = 0;
+				const auto count = RefreshContainer.servers.size();
+				MasterEntry* entry;
+
+				// Find first entry
+				do
+				{
+					entry = reinterpret_cast<MasterEntry*>(const_cast<char*>(data.data()) + offset++);
+				} while (!entry->HasSeparator() && !entry->IsEndToken());
+
+				for (int i = 0; !entry[i].IsEndToken() && entry[i].HasSeparator(); ++i)
+				{
+					Network::Address serverAddr = address;
+					serverAddr.setIP(entry[i].ip);
+					serverAddr.setPort(ntohs(entry[i].port));
+					serverAddr.setType(Game::NA_IP);
+
+					InsertRequest(serverAddr);
+				}
+
+				Logger::Print("Parsed {} servers from master\n", RefreshContainer.servers.size() - count);
+			});
 
 		// Set default masterServerName + port and save it 
 		Utils::Hook::Set<const char*>(0x60AD92, "server.alterware.dev");
@@ -973,69 +994,69 @@ namespace Components
 		UIScript::Add("RefreshServers", Refresh);
 
 		UIScript::Add("JoinServer", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
-		{
-			auto* serverInfo = GetServer(CurrentServer);
-			if (serverInfo)
 			{
-				Party::Connect(serverInfo->addr);
-			}
-		});
+				auto* serverInfo = GetServer(CurrentServer);
+				if (serverInfo)
+				{
+					Party::Connect(serverInfo->addr);
+				}
+			});
 
 		UIScript::Add("ServerSort", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
-		{
-			const auto key = token.get<int>();
-			if (SortKey == key)
 			{
-				SortAsc = !SortAsc;
-			}
-			else
-			{
-				SortKey = key;
-				SortAsc = true;
-			}
+				const auto key = token.get<int>();
+				if (SortKey == key)
+				{
+					SortAsc = !SortAsc;
+				}
+				else
+				{
+					SortKey = key;
+					SortAsc = true;
+				}
 
-			Logger::Print("Sorting server list by token: {}\n", SortKey);
-			SortList();
-		});
+				Logger::Print("Sorting server list by token: {}\n", SortKey);
+				SortList();
+			});
 
 		UIScript::Add("CreateListFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
-		{
-			auto* serverInfo = GetCurrentServer();
-			if (info && serverInfo && serverInfo->addr.isValid())
 			{
-				StoreFavourite(serverInfo->addr.getString());
-			}
-		});
+				auto* serverInfo = GetCurrentServer();
+				if (info && serverInfo && serverInfo->addr.isValid())
+				{
+					StoreFavourite(serverInfo->addr.getString());
+				}
+			});
 
 		UIScript::Add("CreateFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
-		{
-			const auto value = Dvar::Var("ui_favoriteAddress").get<std::string>();
-			if (!value.empty())
 			{
-				StoreFavourite(value);
-			}
-		});
+				const auto value = Dvar::Var("ui_favoriteAddress").get<std::string>();
+				if (!value.empty())
+				{
+					StoreFavourite(value);
+				}
+			});
 
 		UIScript::Add("CreateCurrentServerFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
-		{
-			if (Game::CL_IsCgameInitialized())
 			{
-				const auto addressText = Network::Address(*Game::connectedHost).getString();
-				if (addressText != "0.0.0.0:0"s && addressText != "loopback"s)
+				if (Game::CL_IsCgameInitialized())
 				{
-					StoreFavourite(addressText);
+					const auto addressText = Network::Address(*Game::connectedHost).getString();
+					if (addressText != "0.0.0.0:0"s && addressText != "loopback"s)
+					{
+						StoreFavourite(addressText);
+					}
 				}
-			}
-		});
+			});
 
 		UIScript::Add("DeleteFavorite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
-		{
-			auto* serverInfo = GetCurrentServer();
-			if (serverInfo)
 			{
-				RemoveFavourite(serverInfo->addr.getString());
-			}
-		});
+				auto* serverInfo = GetCurrentServer();
+				if (serverInfo)
+				{
+					RemoveFavourite(serverInfo->addr.getString());
+				}
+			});
 
 		// Add required ownerDraws
 		UIScript::AddOwnerDraw(220, UpdateSource);

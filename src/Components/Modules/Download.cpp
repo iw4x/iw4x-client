@@ -435,7 +435,7 @@ namespace Components
 		MongooseLogBuffer.push_back(c);
 	}
 
-	void Download::ReplyError(mg_connection* connection, int code)
+	void Download::ReplyError(mg_connection* connection, int code, std::string messageOverride)
 	{
 		std::string msg{};
 		switch(code)
@@ -453,13 +453,43 @@ namespace Components
 			break;
 		}
 
+		if (!messageOverride.empty())
+		{
+			msg = messageOverride;
+		}
+
 		mg_http_reply(connection, code, "Content-Type: text/plain\r\n", "%s", msg.c_str());
 	}
 
 	void Download::Reply(mg_connection* connection, const std::string& contentType, const std::string& data)
 	{
-		const auto formatted = std::format("Content-Type: {}\r\n", contentType);
+		const auto formatted = std::format("Content-Type: {}\r\nAccess-Control-Allow-Origin: *\r\n", contentType);
 		mg_http_reply(connection, 200, formatted.c_str(), "%s", data.c_str());
+	}
+
+	bool VerifyPassword([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
+	{
+		const std::string g_password = *Game::g_password ? (*Game::g_password)->current.string : "";
+		if (g_password.empty()) return true;
+
+		// SHA256 hashes are 64 characters long but we're gonna be safe here
+		char buffer[128]{};
+		const auto len = mg_http_get_var(&hm->query, "password", buffer, sizeof(buffer));
+
+		if (len <= 0)
+		{
+			Download::ReplyError(c, 403, "Password Required");
+			return false;
+		}
+
+		const auto password = std::string(buffer, len);
+		if (password != Utils::String::DumpHex(Utils::Cryptography::SHA256::Compute(g_password), ""))
+		{
+			Download::ReplyError(c, 403, "Invalid Password");
+			return false;
+		}
+
+		return true;
 	}
 
 	std::optional<std::string> Download::InfoHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
@@ -524,6 +554,12 @@ namespace Components
 		static nlohmann::json jsonList;
 		static std::filesystem::path fsGamePre;
 
+		if (!VerifyPassword(c, hm))
+		{
+			// Custom reply done in VerifyPassword
+			return {};
+		}
+
 		const std::filesystem::path fsGame = (*Game::fs_gameDirVar)->current.string;
 
 		if (!fsGame.empty() && (fsGamePre != fsGame))
@@ -571,6 +607,12 @@ namespace Components
 	{
 		static std::string mapNamePre;
 		static nlohmann::json jsonList;
+
+		if (!VerifyPassword(c, hm))
+		{
+			// Custom reply done in VerifyPassword
+			return {};
+		}
 
 		const std::string mapName = Party::IsInUserMapLobby() ? (*Game::ui_mapname)->current.string : Maps::GetUserMap()->getName();
 		if (!Maps::GetUserMap()->isValid() && !Party::IsInUserMapLobby())
