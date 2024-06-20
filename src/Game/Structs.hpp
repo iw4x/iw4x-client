@@ -1,6 +1,6 @@
 #pragma once
 
-#define PROTOCOL 0x96
+#define PROTOCOL 0x97
 #define NUM_CUSTOM_CLASSES 15
 #define FX_ELEM_FIELD_COUNT 90
 
@@ -527,8 +527,14 @@ namespace Game
 		CS_VOTE_NO = 0x14,
 		CS_VOTE_MAPNAME = 0x15,
 		CS_VOTE_GAMETYPE = 0x16,
+		CS_MODELS = 0x465,	// Models (confirmed) 1125
+		// 1580<>1637 models not cached (something's going on, not sure what)
+		CS_MODELS_LAST = 0x664,	// End of models
 		CS_SHELLSHOCKS = 0x985,
-		CS_ITEMS = 0x102A,
+		CS_WEAPONFILES = 0xAF5, // 2805 Confirmed
+		CS_WEAPONFILES_LAST = 0xFA3, // Confirmed too // 4003
+		CS_ITEMS = 4138, // Correct! CS_ITEMS is actually an item **COUNT**
+		MAX_CONFIGSTRINGS = 4139
 	}; // Incomplete
 
 	enum conChannel_t
@@ -960,7 +966,7 @@ namespace Game
 
 	union XAnimDynamicFrames
 	{
-		char(*_1)[3];
+		uint8_t(*_1)[3];
 		unsigned __int16(*_2)[3];
 	};
 
@@ -1066,7 +1072,7 @@ namespace Game
 
 	struct XSurfaceVertexInfo
 	{
-		__int16 vertCount[4];
+		unsigned __int16 vertCount[4];
 		unsigned __int16* vertsBlend;
 	};
 
@@ -1132,6 +1138,12 @@ namespace Game
 		unsigned __int16 triOffset;
 		unsigned __int16 triCount;
 		XSurfaceCollisionTree* collisionTree;
+	};
+
+	struct DObjSkelMat
+	{
+		float axis[3][4];
+		float origin[4];
 	};
 
 	struct XSurface
@@ -1966,6 +1978,7 @@ namespace Game
 		CMD_BUTTON_FRAG = 1 << 14,
 		CMD_BUTTON_OFFHAND_SECONDARY = 1 << 15,
 		CMD_BUTTON_THROW = 1 << 19,
+		CMD_BUTTON_REMOTE = 1 << 20,
 	};
 
 	struct usercmd_s
@@ -2413,7 +2426,7 @@ namespace Game
 		float scale;
 		unsigned int noScalePartBits[6];
 		unsigned __int16* boneNames;
-		unsigned char *parentList;
+		unsigned char* parentList;
 		short* quats;
 		float* trans;
 		unsigned char* partClassification;
@@ -4008,7 +4021,7 @@ namespace Game
 		GfxSurfaceBounds* surfacesBounds;
 		GfxStaticModelDrawInst* smodelDrawInsts;
 		GfxDrawSurf* surfaceMaterials;
-		unsigned int*  surfaceCastsSunShadow;
+		unsigned int* surfaceCastsSunShadow;
 		volatile int usageCount;
 	};
 
@@ -4019,7 +4032,7 @@ namespace Game
 		unsigned __int16 materialSortedIndex : 12;
 		unsigned __int16 visDataRefCountLessOne : 4;
 	};
-	
+
 	union GfxSModelSurfHeader
 	{
 		GfxSModelSurfHeaderFields fields;
@@ -4932,6 +4945,14 @@ namespace Game
 		float colors[5][4];
 	};
 
+	struct NetField
+	{
+		char* name;
+		int offset;
+		int bits;
+		char changeHints;
+	};
+
 	struct __declspec(align(4)) WeaponDef
 	{
 		const char* szOverlayName;
@@ -5498,6 +5519,32 @@ namespace Game
 		StructuredDataEnumEntry* entries;
 	};
 
+	enum LookupResultDataType
+	{
+		LOOKUP_RESULT_INT = 0x0,
+		LOOKUP_RESULT_BOOL = 0x1,
+		LOOKUP_RESULT_STRING = 0x2,
+		LOOKUP_RESULT_FLOAT = 0x3,
+		LOOKUP_RESULT_SHORT = 0x4,
+	};
+
+	enum LookupState
+	{
+		LOOKUP_IN_PROGRESS = 0x0,
+		LOOKUP_FINISHED = 0x1,
+		LOOKUP_ERROR = 0x2,
+	};
+
+	enum LookupError
+	{
+		LOOKUP_ERROR_NONE = 0x0,
+		LOOKUP_ERROR_WRONG_DATA_TYPE = 0x1,
+		LOOKUP_ERROR_INDEX_OUTSIDE_BOUNDS = 0x2,
+		LOOKUP_ERROR_INVALID_STRUCT_PROPERTY = 0x3,
+		LOOKUP_ERROR_INVALID_ENUM_VALUE = 0x4,
+		LOOKUP_ERROR_COUNT = 0x5,
+	};
+
 	enum StructuredDataTypeCategory
 	{
 		DATA_INT = 0x0,
@@ -5571,6 +5618,15 @@ namespace Game
 		StructuredDataEnumedArray* enumedArrays;
 		StructuredDataType rootType;
 		unsigned int size;
+	};
+
+
+	struct StructuredDataLookup
+	{
+		StructuredDataDef* def;
+		StructuredDataType* type;
+		unsigned int offset;
+		LookupError error;
 	};
 
 	struct StructuredDataDefSet
@@ -7112,7 +7168,7 @@ namespace Game
 		IMG_FORMAT_COUNT = 0x17,
 	};
 
-	enum $25EF9448C800B18F0C83DB367159AFD6
+	enum XAnimPartType
 	{
 		PART_TYPE_NO_QUAT = 0x0,
 		PART_TYPE_HALF_QUAT = 0x1,
@@ -7911,8 +7967,8 @@ namespace Game
 
 	struct GfxCmdBufContext
 	{
-		GfxCmdBufSourceState *source;
-		GfxCmdBufState *state;
+		GfxCmdBufSourceState* source;
+		GfxCmdBufState* state;
 	};
 
 	struct GfxDrawGroupSetupFields
@@ -8362,8 +8418,22 @@ namespace Game
 	{
 		DSkelPartBits partBits;
 		int timeStamp;
-		/*DObjAnimMat*/void* mat;
+		DObjAnimMat* mat;
 	};
+
+	struct bitarray
+	{
+		int array[6];
+	};
+
+	/* 1923 */
+	struct XAnimCalcAnimInfo
+	{
+		DObjAnimMat rotTransArray[1152];
+		bitarray animPartBits;
+		bitarray ignorePartBits;
+	};
+
 
 	struct DObj
 	{
@@ -8698,7 +8768,7 @@ namespace Game
 		char* skelMemoryStart;
 		bool allowedAllocSkel;
 		int serverId;
-		gameState_t gameState;
+		gameState_t cl_gameState;
 		clSnapshot_t noDeltaSnapshot;
 		int nextNoDeltaEntity;
 		entityState_s noDeltaEntities[1024];
@@ -11058,6 +11128,166 @@ namespace Game
 	{
 		huff_t compressDecompress;
 	};
+
+	enum FF_DIR
+	{
+		FFD_DEFAULT = 0x0,
+		FFD_MOD_DIR = 0x1,
+		FFD_USER_MAP = 0x2,
+	};
+
+	struct ASISTAGE
+	{
+		int(__stdcall* ASI_stream_open)(unsigned int, int(__stdcall*)(unsigned int, void*, int, int), unsigned int);
+		int(__stdcall* ASI_stream_process)(int, void*, int);
+		int(__stdcall* ASI_stream_seek)(int, int);
+		int(__stdcall* ASI_stream_close)(int);
+		int(__stdcall* ASI_stream_property)(int, unsigned int, void*, const void*, void*);
+		unsigned int INPUT_BIT_RATE;
+		unsigned int INPUT_SAMPLE_RATE;
+		unsigned int INPUT_BITS;
+		unsigned int INPUT_CHANNELS;
+		unsigned int OUTPUT_BIT_RATE;
+		unsigned int OUTPUT_SAMPLE_RATE;
+		unsigned int OUTPUT_BITS;
+		unsigned int OUTPUT_CHANNELS;
+		unsigned int OUTPUT_RESERVOIR;
+		unsigned int POSITION;
+		unsigned int PERCENT_DONE;
+		unsigned int MIN_INPUT_BLOCK_SIZE;
+		unsigned int RAW_RATE;
+		unsigned int RAW_BITS;
+		unsigned int RAW_CHANNELS;
+		unsigned int REQUESTED_RATE;
+		unsigned int REQUESTED_BITS;
+		unsigned int REQUESTED_CHANS;
+		unsigned int STREAM_SEEK_POS;
+		unsigned int DATA_START_OFFSET;
+		unsigned int DATA_LEN;
+		int stream;
+	};
+
+	struct _STREAM
+	{
+		int block_oriented;
+		int using_ASI;
+		ASISTAGE* ASI;
+		void* samp;
+		unsigned int fileh;
+		char* bufs[3];
+		unsigned int bufsizes[3];
+		int reset_ASI[3];
+		int reset_seek_pos[3];
+		int bufstart[3];
+		void* asyncs[3];
+		int loadedbufstart[2];
+		int loadedorder[2];
+		int loadorder;
+		int bufsize;
+		int readsize;
+		unsigned int buf1;
+		int size1;
+		unsigned int buf2;
+		int size2;
+		unsigned int buf3;
+		int size3;
+		unsigned int datarate;
+		int filerate;
+		int filetype;
+		unsigned int fileflags;
+		int totallen;
+		int substart;
+		int sublen;
+		int subpadding;
+		unsigned int blocksize;
+		int padding;
+		int padded;
+		int loadedsome;
+		unsigned int startpos;
+		unsigned int totalread;
+		unsigned int loopsleft;
+		unsigned int error;
+		int preload;
+		unsigned int preloadpos;
+		int noback;
+		int alldone;
+		int primeamount;
+		int readatleast;
+		int playcontrol;
+		void(__stdcall* callback)(_STREAM*);
+		int user_data[8];
+		void* next;
+		int autostreaming;
+		int docallback;
+	};
+
+	enum SND_EQTYPE
+	{
+		SND_EQTYPE_FIRST = 0x0,
+		SND_EQTYPE_LOWPASS = 0x0,
+		SND_EQTYPE_HIGHPASS = 0x1,
+		SND_EQTYPE_LOWSHELF = 0x2,
+		SND_EQTYPE_HIGHSHELF = 0x3,
+		SND_EQTYPE_BELL = 0x4,
+		SND_EQTYPE_LAST = 0x4,
+		SND_EQTYPE_COUNT = 0x5,
+		SND_EQTYPE_INVALID = 0x5,
+	};
+
+	struct __declspec(align(4)) SndEqParams
+	{
+		SND_EQTYPE type;
+		float gain;
+		float freq;
+		float q;
+		bool enabled;
+	};
+
+	struct MssEqInfo
+	{
+		SndEqParams params[3][64];
+	};
+
+	struct MssFileHandle
+	{
+		unsigned int id;
+		MssFileHandle* next;
+		int handle;
+		char fileName[128];
+		unsigned int hashCode;
+		int offset;
+		int fileOffset;
+		int fileLength;
+	};
+
+	struct __declspec(align(4)) MssStreamReadInfo
+	{
+		char path[256];
+		int timeshift;
+		float fraction;
+		int startDelay;
+		_STREAM* handle;
+		bool readError;
+	};
+
+	struct MssLocal
+	{
+		struct _DIG_DRIVER* driver;
+		struct _SAMPLE* handle_sample[40];
+		_STREAM* handle_stream[12];
+		bool voiceEqDisabled[52];
+		MssEqInfo eq[2];
+		float eqLerp;
+		unsigned int eqFilter;
+		int currentRoomtype;
+		MssFileHandle fileHandle[12];
+		MssFileHandle* freeFileHandle;
+		bool isMultiChannel;
+		float realVolume[12];
+		int playbackRate[52];
+		MssStreamReadInfo streamReadInfo[12];
+	};
+
 
 #pragma endregion
 

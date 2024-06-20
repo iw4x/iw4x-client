@@ -1,7 +1,7 @@
 #include <STDInclude.hpp>
 #include "ClientCommand.hpp"
 
-#include "Weapon.hpp"
+#include "ModelCache.hpp"
 
 #include "GSC/Script.hpp"
 
@@ -384,9 +384,9 @@ namespace Components
 		Game::XModel* model = nullptr;
 		if (ent->model)
 		{
-			if (Components::Weapon::GModelIndexHasBeenReallocated)
+			if (Components::ModelCache::modelsHaveBeenReallocated)
 			{
-				model = Components::Weapon::G_ModelIndexReallocated[ent->model];
+				model = Components::ModelCache::cached_models_reallocated[ent->model];
 			}
 			else
 			{

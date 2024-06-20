@@ -1414,7 +1414,7 @@ namespace Components
 	std::string TextRenderer::StripMaterialTextIcons(const std::string& in)
 	{
 		char buffer[1000]{}; // Should be more than enough
-		StripAllTextIcons(in.data(), buffer, sizeof(buffer));
+		StripMaterialTextIcons(in.data(), buffer, sizeof(buffer));
 		return std::string{ buffer };
 	}
 

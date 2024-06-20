@@ -33,6 +33,7 @@ namespace Components
 				Zone* builder;
 			};
 
+			Zone(const std::string& zoneName, const std::string& sourceName, const std::string& destination);
 			Zone(const std::string& zoneName);
 			~Zone();
 
@@ -100,6 +101,7 @@ namespace Components
 			iw4of::api iw4ofApi;
 
 			std::string zoneName;
+			std::string destination;
 			Utils::CSV dataMap;
 
 			Utils::Memory::Allocator memAllocator;
@@ -121,28 +123,44 @@ namespace Components
 			size_t assetDepth;
 		};
 
+		struct NamedAsset
+		{
+			Game::XAssetType type;
+			std::string name;
+
+			bool operator==(const NamedAsset& other) const {
+				return type == other.type && name == other.name;
+			};
+
+			struct Hash {
+				size_t operator()(const NamedAsset& k) const {
+					return static_cast<size_t>(k.type) ^ std::hash<std::string>{}(k.name);
+				}
+			};
+		};
+
 		ZoneBuilder();
 		~ZoneBuilder();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		bool unitTest() override;
-#endif
-
 		static bool IsEnabled();
+		static bool IsDumpingZone() { return DumpingZone.length() > 0; };
 
 		static std::string TraceZone;
-		static std::vector<std::pair<Game::XAssetType, std::string>> TraceAssets;
+		static std::vector<NamedAsset> TraceAssets;
 
 		static void BeginAssetTrace(const std::string& zone);
-		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
+		static std::vector<NamedAsset> EndAssetTrace();
+
+		static Dvar::Var zb_sp_to_mp;
 
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
+		static std::string GetDumpingZonePath();
 		static void RefreshExporterWorkDirectory();
 
 		static iw4of::api* GetExporter();
 
 	private:
-		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
+		static int StoreTexture(Game::GfxImageLoadDef** loadDef, Game::GfxImage* image);
 		static void ReleaseTexture(Game::XAssetHeader header);
 
 		static std::string FindMaterialByTechnique(const std::string& name);
@@ -159,6 +177,10 @@ namespace Components
 		static Game::Sys_File Sys_CreateFile_Stub(const char* dir, const char* filename);
 
 		static iw4of::params_t GetExporterAPIParams();
+
+		static void DumpZone(const std::string& zone);
+
+		static std::function<void()> LoadZoneWithTrace(const std::string& zone, OUT std::vector<NamedAsset>& assets);
 
 		static void Com_Quitf_t();
 

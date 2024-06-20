@@ -153,7 +153,7 @@ namespace Components
 			CoTaskMemFree(path);
 		});
 
-		return std::filesystem::path(path) / "xlabs";
+		return std::filesystem::path(path) / "iw4x";
 	}
 
 	std::vector<std::string> FileSystem::GetFileList(const std::string& path, const std::string& extension)
@@ -281,7 +281,7 @@ namespace Components
 	int FileSystem::Cmd_Exec_f_Stub(const char* s0, [[maybe_unused]] const char* s1)
 	{
 		int f;
-		auto len = Game::FS_FOpenFileByMode(s0, &f, Game::FS_READ);
+		const auto len = Game::FS_FOpenFileByMode(s0, &f, Game::FS_READ);
 		if (len < 0)
 		{
 			return 1; // Not found
@@ -336,6 +336,39 @@ namespace Components
 		return current_path.data();
 	}
 
+	FILE* FileSystem::FS_FileOpenReadText_Hk(const char* file)
+	{
+		const auto path = Utils::GetBaseFilesLocation();
+		if (!path.empty() && Utils::IO::FileExists((path / file).string()))
+		{
+			return Game::FS_FileOpenReadText((path / file).string().data());
+		}
+
+		return Game::FS_FileOpenReadText(file);
+	}
+
+	const char* FileSystem::Sys_DefaultCDPath_Hk()
+	{
+		return Sys_DefaultInstallPath_Hk();
+	}
+
+	const char* FileSystem::Sys_HomePath_Hk()
+	{
+		const auto path = Utils::GetBaseFilesLocation();
+		if (!path.empty())
+		{
+			static auto current_path = path.string();
+			return current_path.data();
+		}
+
+		return "";
+	}
+
+	const char* FileSystem::Sys_Cwd_Hk()
+	{
+		return Sys_DefaultInstallPath_Hk();
+	}
+
 	FileSystem::FileSystem()
 	{
 		// Thread safe file system interaction
@@ -383,6 +416,21 @@ namespace Components
 
 		// Set the working dir based on info from the Xlabs launcher
 		Utils::Hook(0x4326E0, Sys_DefaultInstallPath_Hk, HOOK_JUMP).install()->quick();
+
+		// Make the exe run from a folder other than the game folder 
+		Utils::Hook(0x406D26, FS_FileOpenReadText_Hk, HOOK_CALL).install()->quick();
+
+		// Make the exe run from a folder other than the game folder 
+		Utils::Hook::Nop(0x4290D8, 5); // FS_IsBasePathValid
+		Utils::Hook::Set<uint8_t>(0x4290DF, 0xEB);
+		// ^^ This check by the game above is super redundant, IW4x has other checks in place to make sure we
+		// are running from a properly installed directory. This only breaks the containerized patch and we don't need it
+
+		// Patch FS dvar values
+		Utils::Hook(0x643194, Sys_DefaultCDPath_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x643232, Sys_HomePath_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6431B6, Sys_Cwd_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x51C29A, Sys_Cwd_Hk, HOOK_CALL).install()->quick();
 	}
 
 	FileSystem::~FileSystem()

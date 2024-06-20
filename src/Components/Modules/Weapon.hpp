@@ -1,14 +1,6 @@
 #pragma once
 
-// Increase the weapon limit
-// Was 1200 before
-#define WEAPON_LIMIT 2400
-#define MAX_CONFIGSTRINGS (4139 - 1200 + WEAPON_LIMIT)
 
-// Double the limit to allow loading of some heavy-duty MW3 maps
-#define ADDITIONAL_GMODELS 512
-
-#define G_MODELINDEX_LIMIT (512 + WEAPON_LIMIT - 1200 + ADDITIONAL_GMODELS) 
 
 namespace Components
 {
@@ -16,9 +8,12 @@ namespace Components
 	{
 	public:
 		Weapon();
-		static Game::XModel* G_ModelIndexReallocated[G_MODELINDEX_LIMIT];
+		static const int BASEGAME_WEAPON_LIMIT = 1200;
 
-		static bool GModelIndexHasBeenReallocated;
+		// Increase the weapon limit
+		static const int WEAPON_LIMIT = 2400;
+
+		static const int ADDED_WEAPONS = WEAPON_LIMIT - BASEGAME_WEAPON_LIMIT;
 
 	private:
 		static const Game::dvar_t* BGWeaponOffHandFix;
@@ -27,14 +22,8 @@ namespace Components
 		static void PatchLimit();
 		static void* LoadNoneWeaponHook();
 		static void LoadNoneWeaponHookStub();
-		static void PatchConfigStrings();
 
-		static const char* GetWeaponConfigString(int index);
 		static void SaveRegisteredWeapons();
-
-		static void ParseConfigStrings();
-		static int ParseWeaponConfigStrings();
-		static int ClearConfigStrings(void* dest, int value, int size);
 
 		static void CG_UpdatePrimaryForAltModeWeapon_Stub();
 		static void CG_SelectWeaponIndex_Stub();

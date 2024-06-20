@@ -22,6 +22,7 @@ namespace Components
 
 			void setPort(unsigned short port);
 			[[nodiscard]] unsigned short getPort() const;
+			[[nodiscard]] unsigned short getPortRaw() const;
 
 			void setIP(DWORD ip);
 			void setIP(Game::netIP_t ip);
@@ -50,6 +51,8 @@ namespace Components
 		using networkRawCallback = std::function<void(Game::netadr_t*, Game::msg_t* msg)>;
 
 		Network();
+
+		static const char* AdrToString(const Address& a, bool port = false);
 
 		static std::uint16_t GetPort();
 		

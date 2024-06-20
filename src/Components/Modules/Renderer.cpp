@@ -382,7 +382,7 @@ namespace Components
 		auto world = gfxAsset->asset.header.gfxWorld;
 
 		auto drawDistance = r_playerDrawDebugDistance.get<int>();
-		auto sqrDist = drawDistance * drawDistance;
+		auto sqrDist = drawDistance * static_cast<float>(drawDistance);
 
 		switch (val)
 		{

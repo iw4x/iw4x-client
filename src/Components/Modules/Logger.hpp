@@ -18,16 +18,17 @@ namespace Components
 		static void ErrorInternal(Game::errorParm_t error, const std::string_view& fmt, std::format_args&& args);
 		static void PrintErrorInternal(Game::conChannel_t channel, const std::string_view& fmt, std::format_args&& args);
 		static void WarningInternal(Game::conChannel_t channel, const std::string_view& fmt, std::format_args&& args);
+		static void PrintFail2BanInternal(const std::string_view& fmt, std::format_args&& args);
 		static void DebugInternal(const std::string_view& fmt, std::format_args&& args, const std::source_location& loc);
 
 		static void Print(const std::string_view& fmt)
 		{
-			PrintInternal(Game::CON_CHANNEL_DONT_FILTER, fmt, std::make_format_args(0));
+			PrintInternal(Game::CON_CHANNEL_DONT_FILTER, fmt, std::make_format_args());
 		}
 
 		static void Print(Game::conChannel_t channel, const std::string_view& fmt)
 		{
-			PrintInternal(channel, fmt, std::make_format_args(0));
+			PrintInternal(channel, fmt, std::make_format_args());
 		}
 
 		template <typename... Args>
@@ -46,7 +47,7 @@ namespace Components
 
 		static void Error(Game::errorParm_t error, const std::string_view& fmt)
 		{
-			ErrorInternal(error, fmt, std::make_format_args(0));
+			ErrorInternal(error, fmt, std::make_format_args());
 		}
 
 		template <typename... Args>
@@ -58,7 +59,7 @@ namespace Components
 
 		static void Warning(Game::conChannel_t channel, const std::string_view& fmt)
 		{
-			WarningInternal(channel, fmt, std::make_format_args(0));
+			WarningInternal(channel, fmt, std::make_format_args());
 		}
 
 		template <typename... Args>
@@ -70,7 +71,7 @@ namespace Components
 
 		static void PrintError(Game::conChannel_t channel, const std::string_view& fmt)
 		{
-			PrintErrorInternal(channel, fmt, std::make_format_args(0));
+			PrintErrorInternal(channel, fmt, std::make_format_args());
 		}
 
 		template <typename... Args>
@@ -78,6 +79,18 @@ namespace Components
 		{
 			(Utils::String::SanitizeFormatArgs(args), ...);
 			PrintErrorInternal(channel, fmt, std::make_format_args(args...));
+		}
+
+		static void PrintFail2Ban(const std::string_view& fmt)
+		{
+			PrintFail2BanInternal(fmt, std::make_format_args());
+		}
+
+		template <typename... Args>
+		static void PrintFail2Ban(const std::string_view& fmt, Args&&... args)
+		{
+			(Utils::String::SanitizeFormatArgs(args), ...);
+			PrintFail2BanInternal(fmt, std::make_format_args(args...));
 		}
 
 		struct FormatWithLocation
@@ -114,7 +127,8 @@ namespace Components
 		static std::recursive_mutex LoggingMutex;
 		static std::vector<Network::Address> LoggingAddresses[2];
 
-		static Dvar::Var IW4x_oneLog;
+		static Dvar::Var IW4x_one_log;
+		static Dvar::Var IW4x_fail2ban_location;
 
 		static void(*PipeCallback)(const std::string&);
 

@@ -248,9 +248,10 @@ namespace Components
 		return Name.get<Game::dvar_t*>();
 	}
 
-	const Game::dvar_t* Dvar::Dvar_RegisterSVNetworkFps(const char* dvarName, int /*value*/, int min, int /*max*/, std::uint16_t /*flags*/, const char* description)
+	const Game::dvar_t* Dvar::Dvar_RegisterSVNetworkFps(const char* dvarName, int value, int min, int /*max*/, std::uint16_t /*flags*/, const char* description)
 	{
-		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::DVAR_NONE, description);
+		// bump limit up to 1000
+		return Game::Dvar_RegisterInt(dvarName, value, min, 1000, Game::DVAR_NONE, description);
 	}
 
 	const Game::dvar_t* Dvar::Dvar_RegisterPerkExtendedMeleeRange(const char* dvarName, float value, float min, float /*max*/, std::uint16_t flags, const char* description)

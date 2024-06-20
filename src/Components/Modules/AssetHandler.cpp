@@ -118,7 +118,7 @@ namespace Components
 		}
 
 		return header;
-	}    
+	}
 
 	int AssetHandler::HasThreadBypass()
 	{
@@ -160,7 +160,7 @@ namespace Components
 			// Check if custom handler should be bypassed
 			call AssetHandler::HasThreadBypass
 
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 			popad
 			pop eax
 
@@ -180,50 +180,62 @@ namespace Components
 
 			add esp, 8h
 
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 			popad
 			pop eax
 
 			test eax, eax
 			jnz finishFound
 
-		checkTempAssets:
+			checkTempAssets :
 			mov al, AssetHandler::ShouldSearchTempAssets // check to see if enabled
-			test eax, eax
-			jz finishOriginal
+				test eax, eax
+				jz finishOriginal
 
-			mov ecx, [esp + 18h] // Asset type
-			mov ebx, [esp + 1Ch] // Filename
+				mov ecx, [esp + 18h] // Asset type
+				mov ebx, [esp + 1Ch] // Filename
 
-			push ebx
-			push ecx
+				push ebx
+				push ecx
 
-			call AssetHandler::FindTemporaryAsset
+				call AssetHandler::FindTemporaryAsset
 
-			add esp, 8h
+				add esp, 8h
 
-			test eax, eax
-			jnz finishFound
+				test eax, eax
+				jnz finishFound
 
-		finishOriginal:
+				finishOriginal :
 			// Asset not found using custom handlers or in temp assets or bypasses were enabled
 			// redirect to DB_FindXAssetHeader
-			mov ebx, ds:6D7190h // InterlockedDecrement
-			mov eax, 40793Bh
-			jmp eax
+			mov ebx, ds : 6D7190h // InterlockedDecrement
+				mov eax, 40793Bh
+				jmp eax
 
-		finishFound:
+				finishFound :
 			pop edi
-			pop esi
-			pop ebp
-			pop ebx
-			pop ecx
-			retn
+				pop esi
+				pop ebp
+				pop ebx
+				pop ecx
+				retn
 		}
 	}
 
 	void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name)
 	{
+#ifdef DEBUG
+		if (type == Game::XAssetType::ASSET_TYPE_IMAGE && name[0] != ',')
+		{
+			const auto image = asset.image;
+			const auto cat = static_cast<Game::ImageCategory>(image->category);
+			if (cat == Game::ImageCategory::IMG_CATEGORY_UNKNOWN)
+			{
+				Logger::Warning(Game::CON_CHANNEL_GFX, "Image {} has wrong category IMG_CATEGORY_UNKNOWN, this is an IMPORTANT ISSUE that should be fixed!\n", name);
+			}
+		}
+#endif
+
 		if (type == Game::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light" || name == "gfx_distortion_heat") && asset.material->info.sortKey >= 43)
 		{
 			if (Zones::Version() >= VERSION_ALPHA2)
@@ -280,9 +292,10 @@ namespace Components
 		}
 	}
 
-	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader *asset)
+	bool AssetHandler::IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset)
 	{
 		const char* name = Game::DB_GetXAssetNameHandlers[type](asset);
+
 		if (!name) return false;
 
 		for (auto i = AssetHandler::EmptyAssets.begin(); i != AssetHandler::EmptyAssets.end();)
@@ -321,12 +334,12 @@ namespace Components
 			push eax
 			pushad
 
-			push [esp + 2Ch]
-			push [esp + 2Ch]
+			push[esp + 2Ch]
+			push[esp + 2Ch]
 			call AssetHandler::IsAssetEligible
 			add esp, 8h
 
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 			popad
 			pop eax
 
@@ -338,9 +351,9 @@ namespace Components
 			mov ecx, 5BB657h
 			jmp ecx
 
-		doNotLoad:
+			doNotLoad :
 			mov eax, [esp + 8h]
-			retn
+				retn
 		}
 	}
 
@@ -353,9 +366,9 @@ namespace Components
 	{
 		AssetHandler::RestrictSignal.connect(callback);
 
-		return [callback](){
+		return [callback]() {
 			AssetHandler::RestrictSignal.disconnect(callback);
-		};
+			};
 	}
 
 	void AssetHandler::ClearRelocations()
@@ -561,25 +574,25 @@ namespace Components
 
 		// Log missing empty assets
 		Scheduler::Loop([]
-		{
-			if (FastFiles::Ready() && !AssetHandler::EmptyAssets.empty())
 			{
-				for (auto& asset : AssetHandler::EmptyAssets)
+				if (FastFiles::Ready() && !AssetHandler::EmptyAssets.empty())
 				{
-					Logger::Warning(Game::CON_CHANNEL_FILES, "Could not load {} \"{}\".\n", Game::DB_GetXAssetTypeName(asset.first), asset.second);
-				}
+					for (auto& asset : AssetHandler::EmptyAssets)
+					{
+						Logger::Warning(Game::CON_CHANNEL_FILES, "Could not load {} \"{}\".\n", Game::DB_GetXAssetTypeName(asset.first), asset.second);
+					}
 
-				AssetHandler::EmptyAssets.clear();
-			}
-		}, Scheduler::Pipeline::MAIN);
+					AssetHandler::EmptyAssets.clear();
+				}
+			}, Scheduler::Pipeline::MAIN);
 
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
-		{
-			if (Dvar::Var("r_noVoid").get<bool>() && type == Game::ASSET_TYPE_XMODEL && name == "void")
 			{
-				asset.model->numLods = 0;
-			}
-		});
+				if (Dvar::Var("r_noVoid").get<bool>() && type == Game::ASSET_TYPE_XMODEL && name == "void")
+				{
+					asset.model->numLods = 0;
+				}
+			});
 
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_GAMEWORLD_SP, 1);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_IMAGE, ZoneBuilder::IsEnabled() ? 14336 * 2 : 7168);
@@ -593,7 +606,7 @@ namespace Components
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXSHADER, ZoneBuilder::IsEnabled() ? 0x2000 : 3072);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_MATERIAL, 8192 * 2);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXDECL, ZoneBuilder::IsEnabled() ? 0x400 : 196);
-		Game::ReallocateAssetPool(Game::ASSET_TYPE_WEAPON, WEAPON_LIMIT);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_WEAPON, Weapon::WEAPON_LIMIT);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_STRINGTABLE, 800);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_IMPACT_FX, 8);
 
