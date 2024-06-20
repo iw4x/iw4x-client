@@ -244,12 +244,12 @@ namespace Components
 			return;
 		}
 
-		auto workingDir = std::filesystem::current_path().string();
-		const std::string binary = *Game::sys_exitCmdLine;
-		const std::string command = binary == "iw4x-sp.exe" ? "iw4x-sp" : "iw4x";
+		const std::filesystem::path workingDir = std::filesystem::current_path();
+		const std::wstring binary = Utils::String::Convert(*Game::sys_exitCmdLine);
+		const std::wstring commandLine = std::format(L"\"{}\" iw4x --pass \"{}\"", (workingDir / binary).wstring(), Utils::GetLaunchParameters());
 
-		SetEnvironmentVariableA("MW2_INSTALL", workingDir.data());
-		Utils::Library::LaunchProcess(binary, std::format("{} --pass \"{}\"", command, GetCommandLineA()), workingDir);
+		SetEnvironmentVariableA("MW2_INSTALL", workingDir.string().data());
+		Utils::Library::LaunchProcess(binary, commandLine, workingDir);
 	}
 
 	__declspec(naked) void QuickPatch::SND_GetAliasOffset_Stub()
