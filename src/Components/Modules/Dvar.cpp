@@ -251,7 +251,7 @@ namespace Components
 	const Game::dvar_t* Dvar::Dvar_RegisterSVNetworkFps(const char* dvarName, int value, int min, int /*max*/, std::uint16_t /*flags*/, const char* description)
 	{
 		// bump limit up to 1000
-		return Game::Dvar_RegisterInt(dvarName, value, min, 1000, Game::DVAR_NONE, description);
+		return Game::Dvar_RegisterInt(dvarName, Dedicated::IsEnabled() ? 1000 : value, min, 1000, Game::DVAR_NONE, description);
 	}
 
 	const Game::dvar_t* Dvar::Dvar_RegisterPerkExtendedMeleeRange(const char* dvarName, float value, float min, float /*max*/, std::uint16_t flags, const char* description)

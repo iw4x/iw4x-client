@@ -1,6 +1,6 @@
 #pragma once
 
-#define PROTOCOL 0x97
+#define PROTOCOL 0x98
 #define NUM_CUSTOM_CLASSES 15
 #define FX_ELEM_FIELD_COUNT 90
 
