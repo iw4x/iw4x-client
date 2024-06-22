@@ -320,6 +320,12 @@ namespace Components
 
 	void Maps::ForceRefreshArenas()
 	{
+		if (!FastFiles::Ready())
+		{
+			Logger::Print("Not refreshing arenas (fastfiles are not ready yet)\n");
+			return;
+		}
+
 		if (Game::Sys_IsMainThread())
 		{
 			if (*Game::g_quitRequested)
