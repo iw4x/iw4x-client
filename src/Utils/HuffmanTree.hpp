@@ -265,7 +265,7 @@ namespace Utils::Huffman::Tree
 		HuffmanDecompressionNode{ 504, 0 },   // 508
 		HuffmanDecompressionNode{ 505, 506 }, // 509
 		HuffmanDecompressionNode{ 507, 508 }, // 510
-		HuffmanDecompressionNode{ 509, 510 }, // 511
+		HuffmanDecompressionNode{ 509, 510 }  // 511
 	};
 
 	struct HuffmanCompressionNode
