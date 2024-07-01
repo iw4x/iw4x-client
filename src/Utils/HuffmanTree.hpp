@@ -24,7 +24,7 @@ namespace Utils::Huffman::Tree
 		HuffmanDecompressionNode{ 206, 209 }, // 267
 		HuffmanDecompressionNode{ 217, 243 }, // 268
 		HuffmanDecompressionNode{ 238, 230 }, // 269
-		HuffmanDecompressionNode{ 214, 237 }, // 270
+		HuffmanDecompressionNode{ 237, 214 }, // 270
 		HuffmanDecompressionNode{ 107, 141 }, // 271
 		HuffmanDecompressionNode{ 154, 163 }, // 272
 		HuffmanDecompressionNode{ 169, 59 },  // 273
@@ -39,16 +39,16 @@ namespace Utils::Huffman::Tree
 		HuffmanDecompressionNode{ 202, 190 }, // 282
 		HuffmanDecompressionNode{ 242, 171 }, // 283
 		HuffmanDecompressionNode{ 188, 167 }, // 284
-		HuffmanDecompressionNode{ 91, 247 },  // 285
-		HuffmanDecompressionNode{ 249, 156 }, // 286
+		HuffmanDecompressionNode{ 91, 249 },  // 285
+		HuffmanDecompressionNode{ 247, 156 }, // 286
 		HuffmanDecompressionNode{ 151, 245 }, // 287
 		HuffmanDecompressionNode{ 161, 239 }, // 288
 		HuffmanDecompressionNode{ 241, 231 }, // 289
 		HuffmanDecompressionNode{ 111, 150 }, // 290
 		HuffmanDecompressionNode{ 121, 142 }, // 291
 		HuffmanDecompressionNode{ 126, 235 }, // 292
-		HuffmanDecompressionNode{ 103, 35 },  // 293
-		HuffmanDecompressionNode{ 162, 125 }, // 294
+		HuffmanDecompressionNode{ 103, 162 }, // 293
+		HuffmanDecompressionNode{ 35, 125 },  // 294
 		HuffmanDecompressionNode{ 106, 210 }, // 295
 		HuffmanDecompressionNode{ 139, 118 }, // 296
 		HuffmanDecompressionNode{ 87, 70 },   // 297
@@ -265,7 +265,7 @@ namespace Utils::Huffman::Tree
 		HuffmanDecompressionNode{ 504, 0 },   // 508
 		HuffmanDecompressionNode{ 505, 506 }, // 509
 		HuffmanDecompressionNode{ 507, 508 }, // 510
-		HuffmanDecompressionNode{ 509, 510 }  // 511
+		HuffmanDecompressionNode{ 509, 510 }, // 511
 	};
 
 	struct HuffmanCompressionNode
@@ -310,7 +310,7 @@ namespace Utils::Huffman::Tree
 		HuffmanCompressionNode{ 6, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },  // 32 
 		HuffmanCompressionNode{ 8, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0 },  // 33 
 		HuffmanCompressionNode{ 8, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0 },  // 34 
-		HuffmanCompressionNode{ 9, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0 },  // 35 
+		HuffmanCompressionNode{ 9, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0 },  // 35 
 		HuffmanCompressionNode{ 8, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0 },  // 36 
 		HuffmanCompressionNode{ 9, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0 },  // 37 
 		HuffmanCompressionNode{ 9, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0 },  // 38 
@@ -354,7 +354,7 @@ namespace Utils::Huffman::Tree
 		HuffmanCompressionNode{ 8, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },  // 76 
 		HuffmanCompressionNode{ 9, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0 },  // 77 
 		HuffmanCompressionNode{ 9, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0 },  // 78 
-		HuffmanCompressionNode{ 9, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0 },  // 79 
+		HuffmanCompressionNode{ 9, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0 },  // 79
 		HuffmanCompressionNode{ 8, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0 },  // 80 
 		HuffmanCompressionNode{ 9, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0 },  // 81 
 		HuffmanCompressionNode{ 8, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0 },  // 82 
@@ -437,7 +437,7 @@ namespace Utils::Huffman::Tree
 		HuffmanCompressionNode{ 9, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0 },  // 159
 		HuffmanCompressionNode{ 7, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0 },  // 160
 		HuffmanCompressionNode{ 9, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0 },  // 161
-		HuffmanCompressionNode{ 9, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0 },  // 162
+		HuffmanCompressionNode{ 9, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0 },  // 162
 		HuffmanCompressionNode{ 9, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0 },  // 163
 		HuffmanCompressionNode{ 9, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0 },  // 164
 		HuffmanCompressionNode{ 9, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0 },  // 165
@@ -489,7 +489,7 @@ namespace Utils::Huffman::Tree
 		HuffmanCompressionNode{ 9, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0 },  // 211
 		HuffmanCompressionNode{ 9, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0 },  // 212
 		HuffmanCompressionNode{ 9, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0 },  // 213
-		HuffmanCompressionNode{ 9, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0 },  // 214
+		HuffmanCompressionNode{ 9, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0 },  // 214
 		HuffmanCompressionNode{ 10, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0 }, // 215
 		HuffmanCompressionNode{ 8, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0 },  // 216
 		HuffmanCompressionNode{ 9, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },  // 217
@@ -512,7 +512,7 @@ namespace Utils::Huffman::Tree
 		HuffmanCompressionNode{ 9, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0 },  // 234
 		HuffmanCompressionNode{ 9, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0 },  // 235
 		HuffmanCompressionNode{ 9, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0 },  // 236
-		HuffmanCompressionNode{ 9, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0 },  // 237
+		HuffmanCompressionNode{ 9, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0 },  // 237
 		HuffmanCompressionNode{ 9, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0 },  // 238
 		HuffmanCompressionNode{ 9, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0 },  // 239
 		HuffmanCompressionNode{ 8, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0 },  // 240
@@ -522,9 +522,9 @@ namespace Utils::Huffman::Tree
 		HuffmanCompressionNode{ 9, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0 },  // 244
 		HuffmanCompressionNode{ 9, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0 },  // 245
 		HuffmanCompressionNode{ 9, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0 },  // 246
-		HuffmanCompressionNode{ 9, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0 },  // 247
+		HuffmanCompressionNode{ 9, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0 },  // 247
 		HuffmanCompressionNode{ 8, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0 },  // 248
-		HuffmanCompressionNode{ 9, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0 },  // 249
+		HuffmanCompressionNode{ 9, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0 },  // 249
 		HuffmanCompressionNode{ 9, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0 },  // 250
 		HuffmanCompressionNode{ 9, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0 },  // 251
 		HuffmanCompressionNode{ 8, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0 },  // 252
