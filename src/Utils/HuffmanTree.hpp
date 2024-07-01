@@ -354,7 +354,7 @@ namespace Utils::Huffman::Tree
 		HuffmanCompressionNode{ 8, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },  // 76 
 		HuffmanCompressionNode{ 9, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0 },  // 77 
 		HuffmanCompressionNode{ 9, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0 },  // 78 
-		HuffmanCompressionNode{ 9, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0 },  // 79
+		HuffmanCompressionNode{ 9, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0 },  // 79 
 		HuffmanCompressionNode{ 8, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0 },  // 80 
 		HuffmanCompressionNode{ 9, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0 },  // 81 
 		HuffmanCompressionNode{ 8, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0 },  // 82 
