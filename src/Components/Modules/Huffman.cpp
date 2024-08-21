@@ -17,6 +17,22 @@ namespace Components
 		Utils::Hook(0x48FEDD, [](bool, const unsigned char* from, unsigned char* to, int fromSize) // SV_SendMessageToClient
 			{ return Utils::Huffman::Compress(from, to, fromSize, 0x20000); }, HOOK_CALL).install()->quick();
 
+		// Disable the original (de)compression functions
+		// Cannot disable when performing unit tests because they call the original functions
+		if (!Components::Loader::IsPerformingUnitTests())
+		{
+			Utils::Hook(Game::MSG_ReadBitsCompress, [](const unsigned char*, unsigned char*, int) // MSG_ReadBitsCompress
+			{
+				Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Cannot use the original MSG_ReadBitsCompress function!\n");
+				return 0;
+			}, HOOK_CALL).install()->quick();
+			Utils::Hook(Game::MSG_WriteBitsCompress, [](bool, const unsigned char*, unsigned char*, int) // MSG_WriteBitsCompress
+			{
+				Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Cannot use the original MSG_WriteBitsCompress function!\n");
+				return 0;
+			}, HOOK_CALL).install()->quick();
+		}
+
 		isInitialized = true;
 	}
 
