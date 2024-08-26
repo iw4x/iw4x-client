@@ -22,6 +22,9 @@ namespace Assets
 			header->data = Game::BG_LoadWeaponDef_LoadObj(name.data());
 			Components::AssetHandler::ExposeTemporaryAssets(false);
 		}
+
+		// Fallback on original
+		header->weapon = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).weapon;
 	}
 
 	void IWeapon::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
