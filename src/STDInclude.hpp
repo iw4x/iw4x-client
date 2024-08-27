@@ -106,6 +106,7 @@ using namespace std::literals;
 #include "Utils/CSV.hpp"
 #include "Utils/Entities.hpp"
 #include "Utils/Hooking.hpp"
+#include "Utils/Huffman.hpp"
 #include "Utils/IO.hpp"
 #include "Utils/Library.hpp"
 #include "Utils/Maths.hpp"

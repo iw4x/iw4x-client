@@ -74,7 +74,7 @@ namespace Components
 		Game::MSG_WriteData(&buf, &BaselineSnapshot[BaselineSnapshotMsgOff], BaselineSnapshotMsgLen - BaselineSnapshotMsgOff);
 		Game::MSG_WriteByte(&buf, 6);
 
-		const auto compressedSize = Game::MSG_WriteBitsCompress(false, buf.data, cmpData, buf.cursize);
+		const auto compressedSize = Utils::Huffman::Compress(buf.data, cmpData, buf.cursize, sizeof(cmpData));
 		const auto fileCompressedSize = compressedSize + 4;
 
 		int byte8 = 8;

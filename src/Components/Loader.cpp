@@ -27,6 +27,7 @@
 #include "Modules/FastFiles.hpp"
 #include "Modules/Friends.hpp"
 #include "Modules/Gamepad.hpp"
+#include "Modules/Huffman.hpp"
 #include "Modules/IPCPipe.hpp"
 #include "Modules/Lean.hpp"
 #include "Modules/MapDump.hpp"
@@ -140,6 +141,7 @@ namespace Components
 		Register(new FileSystem());
 		Register(new Friends());
 		Register(new Gamepad());
+		Register(new Huffman());
 		Register(new Lean());
 		Register(new Localization());
 		Register(new MapDump());
