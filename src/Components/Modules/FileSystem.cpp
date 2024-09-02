@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "StringTable.hpp"
 
 namespace Components
 {
@@ -309,6 +310,7 @@ namespace Components
 	{
 		std::lock_guard _(FSMutex);
 		Maps::GetUserMap()->freeIwd();
+		StringTable::FreeNotFoundCache();
 		Utils::Hook::Call<void(int)>(0x4A46C0)(closemfp); // FS_Shutdown
 	}
 

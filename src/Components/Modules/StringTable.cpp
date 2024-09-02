@@ -57,6 +57,21 @@ namespace Components
 		return table;
 	}
 
+	void StringTable::FreeNotFoundCache()
+	{
+		for (auto i = StringTableMap.begin(); i != StringTableMap.end();)
+		{
+			if (i->second == nullptr)
+			{
+				i = StringTableMap.erase(i);
+			}
+			else
+			{
+				++i;
+			}
+		}
+	}
+
 	StringTable::StringTable()
 	{
 		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [](Game::XAssetType, const std::string& _filename)
