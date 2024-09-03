@@ -4,6 +4,8 @@
 #include "MapRotation.hpp"
 #include "Party.hpp"
 
+#define OLD_MAP_ROTATION_BEHAVIOUR
+
 namespace Components
 {
 	Dvar::Var MapRotation::SVRandomMapRotation;
@@ -328,6 +330,10 @@ namespace Components
 		}
 
 		ApplyRotation(rotationCurrent);
+#ifdef OLD_MAP_ROTATION_BEHAVIOUR
+		// We used to allow mods to completely control the rotation through sv_mapRotationCurrent
+		DedicatedRotation = rotationCurrent;
+#endif
 	}
 
 	void MapRotation::SetNextMap(RotationData& rotation)
@@ -371,7 +377,11 @@ namespace Components
 		{
 			Logger::Debug("Applying {}", (*Game::sv_mapRotationCurrent)->name);
 			ApplyMapRotationCurrent(mapRotationCurrent);
+#ifdef OLD_MAP_ROTATION_BEHAVIOUR
+			SetNextMap(DedicatedRotation);
+#else
 			ClearNextMap();
+ #endif
 			return;
 		}
 
