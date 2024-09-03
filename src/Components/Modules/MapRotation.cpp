@@ -174,6 +174,11 @@ namespace Components
 			ParseRotation(mapRotation);
 			RandomizeMapRotation();
 		}
+		else if (!DedicatedRotation.empty())
+		{
+			// They added maps or game modes using 'addMap' or 'addGametype'
+			RandomizeMapRotation();
+		}
 	}
 
 	void MapRotation::AddMapRotationCommands()
