@@ -59,9 +59,9 @@ namespace Components
 
 	void StringTable::FreeNotFoundCache()
 	{
-		std::erase_if(StringTableMap, [](const auto& [name, pointer])
+		std::erase_if(StringTableMap, [](const auto& table)
 		{
-			return pointer == nullptr;
+			return table.second == nullptr;
 		});
 	}
 
