@@ -25,12 +25,12 @@ namespace Components
 			{
 				Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Cannot use the original MSG_ReadBitsCompress function!\n");
 				return 0;
-			}, HOOK_CALL).install()->quick();
+			}, HOOK_JUMP).install()->quick();
 			Utils::Hook(Game::MSG_WriteBitsCompress, [](bool, const unsigned char*, unsigned char*, int) // MSG_WriteBitsCompress
 			{
 				Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Cannot use the original MSG_WriteBitsCompress function!\n");
 				return 0;
-			}, HOOK_CALL).install()->quick();
+			}, HOOK_JUMP).install()->quick();
 		}
 
 		isInitialized = true;
