@@ -287,8 +287,8 @@ namespace Components
 
 		auto world = gfxAsset->asset.header.gfxWorld;
 
-		auto drawDistance = r_playerDrawDebugDistance.get<int>();
-		auto sqrDist = drawDistance * drawDistance;
+		auto drawDistance = static_cast<float>(r_playerDrawDebugDistance.get<int>());
+		float sqrDist = drawDistance * static_cast<float>(drawDistance);
 
 		switch (val) 
 		{
@@ -381,7 +381,7 @@ namespace Components
 
 		auto world = gfxAsset->asset.header.gfxWorld;
 
-		auto drawDistance = r_playerDrawDebugDistance.get<int>();
+		auto drawDistance = static_cast<float>(r_playerDrawDebugDistance.get<int>());
 		auto sqrDist = drawDistance * static_cast<float>(drawDistance);
 
 		switch (val)
