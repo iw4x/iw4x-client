@@ -448,7 +448,7 @@ namespace Components
 		}
 
 		// set logfile to 1 by default (logs enabled)
-		Utils::Hook::Set<uint8_t>(0x60AE61, 1);
+		Utils::Hook::Set<uint8_t>(0x60AE61 + 1, 1);
 
 		Utils::Hook(0x642139, BuildOSPath_Stub, HOOK_JUMP).install()->quick();
 
