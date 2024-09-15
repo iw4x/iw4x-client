@@ -7,6 +7,8 @@ namespace Components
 	public:
 		StringTable();
 
+		static void FreeNotFoundCache();
+
 	private:
 		static std::unordered_map<std::string, Game::StringTable*> StringTableMap;
 
