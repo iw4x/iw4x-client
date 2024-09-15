@@ -12,6 +12,8 @@ namespace Game
 
 	CopyStringInternal_t CopyStringInternal = CopyStringInternal_t(0x4F3C80);
 
+	CG_LocationalTrace_t CG_LocationalTrace = CG_LocationalTrace_t(0x48B1D0);
+	CG_WorldTrace_t CG_WorldTrace = CG_WorldTrace_t(0x501F00);
 	CG_DrawDisconnect_t CG_DrawDisconnect = CG_DrawDisconnect_t(0x454A70);
 	CG_NextWeapon_f_t CG_NextWeapon_f = CG_NextWeapon_f_t(0x449DE0);
 	CG_GetClientNum_t CG_GetClientNum = CG_GetClientNum_t(0x433700);

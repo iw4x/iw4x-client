@@ -230,7 +230,7 @@ namespace Assets
 						{
 							buffer->align(Utils::Stream::ALIGN_2);
 
-							for (short j = 0; j < node[i].leafBrushCount; ++j)
+							for (unsigned short j = 0; j < node[i].leafBrushCount; ++j)
 							{
 								builder->storePointer(&node[i].data.leaf.brushes[j]);
 								buffer->save(&node[i].data.leaf.brushes[j]);
@@ -364,7 +364,7 @@ namespace Assets
 			Game::cbrush_t* destBrushes = buffer->dest<Game::cbrush_t>();
 			buffer->saveArray(asset->brushes, asset->numBrushes);
 
-			for (short i = 0; i < asset->numBrushes; ++i)
+			for (unsigned short i = 0; i < asset->numBrushes; ++i)
 			{
 				Game::cbrush_t* destBrush = &destBrushes[i];
 				Game::cbrush_t* brush = &asset->brushes[i];

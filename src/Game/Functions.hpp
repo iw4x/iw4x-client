@@ -24,6 +24,12 @@ namespace Game
 	typedef void(*CG_DrawDisconnect_t)(int localClientNum);
 	extern CG_DrawDisconnect_t CG_DrawDisconnect;
 
+	typedef void(*CG_LocationalTrace_t)(trace_t *results, const float *start, const float *end, int passEntityNum, int contentMask);
+	extern  CG_LocationalTrace_t CG_LocationalTrace;
+
+	typedef void(*CG_WorldTrace_t)(trace_t *results, const float *start, const float *end, Bounds *bounds, int brushmask);
+	extern  CG_WorldTrace_t CG_WorldTrace;
+
 	typedef void(*CG_NextWeapon_f_t)();
 	extern CG_NextWeapon_f_t CG_NextWeapon_f;
 

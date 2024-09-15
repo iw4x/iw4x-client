@@ -1814,7 +1814,7 @@ namespace Game
 		int stunTime;
 	};
 
-	static_assert(sizeof(playerState_s) == 0x311C);
+	static_assert(sizeof(playerState_s) == 0x311C); // Confirmed
 
 	enum LocSelInputState
 	{
@@ -1932,6 +1932,8 @@ namespace Game
 		unsigned int playerCardTitle;
 		unsigned int playerCardNameplate;
 	};
+
+	static_assert(sizeof(clientState_s) == 0x7C);
 
 	enum PlayerCardClientLookupType
 	{
@@ -9072,6 +9074,14 @@ namespace Game
 		CEntFx fx;
 	};
 
+	struct GfxSkinCacheEntry
+	{
+		unsigned int frameCount;
+		int skinnedCachedOffset;
+		unsigned __int16 numSkinnedVerts;
+		unsigned __int16 ageCount;
+	};
+
 	struct cpose_t
 	{
 		unsigned __int16 lightingHandle;
@@ -9084,10 +9094,11 @@ namespace Game
 		int physObjId;
 		float origin[3];
 		float angles[3];
+		Game::GfxSkinCacheEntry skinCacheEntry;
 		$79C409BC84BCEABA56F6D25E37F2711D ___u10;
 	};
 
-	static_assert(sizeof(cpose_t) == 0x60);
+	static_assert(sizeof(cpose_t) == 0x6C); // Why was this 0x60? This is not Xbox! On computer, we have a model cache, so this is 6C
 
 	struct centity_s
 	{
@@ -9104,7 +9115,8 @@ namespace Game
 		centity_s* updateDelayedNext;
 	};
 
-	static_assert(sizeof(centity_s) == 0x1F4);
+	static_assert(sizeof(entityState_s) == 0x100);
+	static_assert(sizeof(centity_s) == 0x200);
 
 	struct playerEntity_t
 	{
@@ -9148,6 +9160,42 @@ namespace Game
 		int serverCommandSequence;
 	};
 
+	static_assert(sizeof(snapshot_s) == 0x339EC);
+
+	struct RefdefView
+	{
+		float tanHalfFovX;
+		float tanHalfFovY;
+		float org[3];
+		float axis[3][3];
+		float zNear;
+	};
+
+	struct refdef_t
+	{
+		unsigned int x;
+		unsigned int y;
+		unsigned int width;
+		unsigned int height;
+		RefdefView view;
+		float viewOffset[3];
+		int time;
+		float blurRadius;
+		GfxDepthOfField dof;
+		GfxFilm film;
+		GfxGlow glow;
+		GfxLightScale charPrimaryLightScale;
+		GfxCompositeFx waterSheetingFx;
+		GfxLight primaryLights[248];
+		GfxViewport scissorViewport;
+		bool useScissorViewport;
+		bool viewModelHasDistortion;
+		char forceSunShadowsGenerate;
+		bool halfResParticles;
+		bool playerTeleported;
+		int localClientNum;
+	};
+
 	struct cg_s
 	{
 		playerState_s predictedPlayerState;
@@ -9163,7 +9211,7 @@ namespace Game
 		int renderScreen;
 		int latestSnapshotNum;
 		int latestSnapshotTime;
-		char pad0[16];
+		char pad0[4];
 		snapshot_s* snap;
 		snapshot_s* nextSnap;
 		snapshot_s activeSnapshots[2];
@@ -9172,7 +9220,26 @@ namespace Game
 		int time;
 		int oldTime;
 		int physicalsTime;
-		char _pad2[0x9600]; // + 0x6A758
+		int mapRestart;
+		int renderingThirdPerson;
+		float landChange;
+		int landTime;
+		float heightToCeiling;
+		refdef_t refdef;
+		float refdefViewAngles[3];
+		float baseGunAngles[3];
+		float aimAssistEyeOrigin[3];
+		float aimAssistViewOrigin[3];
+		float aimAssistViewAngles[3];
+		float thirdPersonGunPitch;
+		float thirdPersonGunYaw;
+		float thirdPersonAdsLerp;
+		float swayViewAngles[3];
+		float swayAngles[3];
+		float swayOffset[3];
+		float recoilAngles[3];
+		float recoilSpeed[3];
+		char _pad2[22024];; // + 0x6A758
 		float compassMapWorldSize[2]; // + 0x73D64
 		char _pad3[0x74]; // + 0x73D6C
 		float selectedLocation[2]; // + 0x73DE0
@@ -9184,7 +9251,14 @@ namespace Game
 	};
 
 	static_assert(sizeof(cg_s) == 0xFD540);
-	static_assert(offsetof(cg_s, frametime) == 0x6A754);
+	static_assert(offsetof(cg_s, predictedPlayerEntity) == 0x311C);
+	static_assert(offsetof(cg_s, playerEntity) == 0x331C);
+	static_assert(offsetof(cg_s, cubemapShot) == 0x3358);
+	static_assert(offsetof(cg_s, nextSnap) == 0x3374); // CONFIRMED CORRECT
+	static_assert(offsetof(cg_s, frameInterpolation) == 0x6A750);
+	static_assert(offsetof(cg_s, refdef) == 0x6A778); // CONFIRMED CORRECT
+	static_assert(offsetof(cg_s, refdefViewAngles) == 0x6E6D8);
+	static_assert(offsetof(cg_s, compassMapWorldSize) == 0x73D64);
 	static_assert(offsetof(cg_s, selectedLocation) == 0x73DE0);
 
 	static constexpr auto MAX_GPAD_COUNT = 1;
@@ -10835,12 +10909,41 @@ namespace Game
 		GfxParticleCloud cloud;
 	};
 
+	struct SkyOverride
+	{
+		int isActive;
+		float refPos[3];
+		float ambientColor[3];
+	};
+
+	union PackedLightingCoords
+	{
+		unsigned int packed;
+		char array[4];
+	};
+
+	struct GfxSModelCachedVertex
+	{
+		float xyz[3];
+		GfxColor color;
+		PackedTexCoords texCoord;
+		PackedUnitVec normal;
+		PackedUnitVec tangent;
+		PackedLightingCoords baseLighting;
+	};
+
 	struct GfxBackEndData
 	{
 		char sceneLightTechType[13][256];
 		GfxSparkSurf sparkSurfs[64];
 		GfxViewParms viewParms[4];
 		GfxMeshData mesh[5];
+		GfxSModelCachedVertex smcPatchVerts[8192];
+		unsigned __int16 smcPatchList[256];
+		unsigned int smcPatchCount;
+		unsigned int smcPatchVertsUsed;
+		volatile int modelLightingPatchCount;
+		SkyOverride skyOverride;
 		int localClientNum;
 		GfxBackEndPrimitiveData prim;
 		volatile int bspSurfDataUsed;
@@ -10897,6 +11000,76 @@ namespace Game
 		GfxParticleCloud cloudData[256];
 		GfxDrawSurf drawSurfs[16384];
 		GfxLight sceneLights[253];
+	};
+
+	struct GfxSModelCachePageUsage
+	{
+		unsigned int pageCount;
+		unsigned int leftOverVerts;
+	};
+
+	struct GfxSModelCacheRowUsage
+	{
+		unsigned int bucketsUsed[6][25];
+		GfxSModelCachePageUsage pageUsage[6];
+	};
+
+	struct SModelCacheLeafList
+	{
+		unsigned __int16 nextIndex;
+		unsigned __int16 prevIndex;
+	};
+
+	struct SModelCachePageList
+	{
+		SModelCachePageList* next;
+		SModelCachePageList* prev;
+	};
+
+	struct SModelCachePage
+	{
+		SModelCachePageList mru;
+		unsigned int rootDivisor;
+		unsigned int activeSurfCount;
+		unsigned int usedFrameCount;
+	};
+
+	struct SModelCacheBucketStats
+	{
+		unsigned __int16 lodCount;
+		unsigned __int16 surfCount;
+	};
+
+	struct $A998929642405B21ECC27F960A6EC9DC
+	{
+		unsigned __int16 smodelIndex;
+		char lodIndex;
+		char bucketIndex;
+	};
+
+	union GfxCachedSModelSurfId
+	{
+		$A998929642405B21ECC27F960A6EC9DC fields;
+		unsigned int packed;
+	};
+
+	struct GfxCachedSModelSurf
+	{
+		GfxCachedSModelSurfId id;
+		unsigned int baseVertIndex;
+	};
+
+	struct SModelCacheGlobals
+	{
+		GfxCachedSModelSurf cachedSurfs[24576];
+		unsigned int lastUsedFrame[24576];
+		SModelCacheLeafList leafList[24876];
+		SModelCachePage pages[192];
+		SModelCachePageList mruList[6];
+		unsigned int ranGarbageCollectorFrame[6][25];
+		unsigned int bucketLimit[6][25];
+		int isTooFull[6];
+		SModelCacheBucketStats bucketStats[6][25];
 	};
 
 	enum
