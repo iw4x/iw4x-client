@@ -50,54 +50,27 @@ namespace Utils
 		return models;
 	}
 
-	void Entities::deleteTriggers()
+	std::vector<std::string> Entities::getWeapons()
 	{
-		for (auto i = this->entities.begin(); i != this->entities.end();)
-		{
-			if (i->find("classname") != i->end())
-			{
-				std::string classname = (*i)["classname"];
-				if (String::StartsWith(classname, "trigger_"))
-				{
-					i = this->entities.erase(i);
-					continue;
-				}
-			}
+		std::vector<std::string> weapons;
 
-			++i;
-		}
-	}
-
-	void Entities::convertTurrets()
-	{
 		for (auto& entity : this->entities)
 		{
-			if (entity.contains("classname"))
+			if (const auto itr = entity.find("weaponinfo"); itr != entity.end())
 			{
-				if (entity["classname"] == "misc_turret"s)
+				const auto& weapon = itr->second;
+
+				if (!weapon.empty())
 				{
-					entity["weaponinfo"] = "turret_minigun_mp";
-					entity["model"] = "weapon_minigun";
+					if (std::find(weapons.begin(), weapons.end(), weapon) == weapons.end())
+					{
+						weapons.push_back(weapon);
+					}
 				}
 			}
 		}
-	}
 
-	void Entities::deleteWeapons(bool keepTurrets)
-	{
-		for (auto i = this->entities.begin(); i != this->entities.end();)
-		{
-			if (i->find("weaponinfo") != i->end() || (i->find("targetname") != i->end() && (*i)["targetname"] == "oldschool_pickup"s))
-			{
-				if (!keepTurrets || i->find("classname") == i->end() || (*i)["classname"] != "misc_turret"s)
-				{
-					i = this->entities.erase(i);
-					continue;
-				}
-			}
-
-			++i;
-		}
+		return weapons;
 	}
 
 	void Entities::parse(const std::string& buffer)

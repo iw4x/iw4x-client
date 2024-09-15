@@ -15,6 +15,11 @@ namespace Assets
 		{
 			builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_XMODEL, model, false);
 		}
+
+		for (auto& weapon : memEnts.getWeapons())
+		{
+			builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_WEAPON, weapon, false);
+		}
 	}
 
 	void IMapEnts::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
