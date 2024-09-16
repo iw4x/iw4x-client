@@ -676,9 +676,6 @@ namespace Components
 		// ui_debugMode 1
 		//Utils::Hook::Set<bool>(0x6312E0, true);
 
-		// fs_debug 1
-		Utils::Hook::Set<bool>(0x643172, true);
-
 		// developer 2
 		Utils::Hook::Set<BYTE>(0x4FA425, 2);
 		Utils::Hook::Set<BYTE>(0x51B087, 2);
