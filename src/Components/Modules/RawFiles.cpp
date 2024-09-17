@@ -122,7 +122,7 @@ namespace Components
 
 		Utils::Hook(0x4DA0D0, ReadRawFile, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x631640, GetMenuBuffer, HOOK_JUMP).install()->quick();
-		//Utils::Hook(0x463500, Com_LoadInfoString_Hk, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x463500, Com_LoadInfoString_Hk, HOOK_JUMP).install()->quick();
 
 		Command::Add("dumpraw", [](const Command::Params* params)
 		{
