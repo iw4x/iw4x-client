@@ -19,6 +19,8 @@ namespace Components
 		static std::unordered_map<std::string, Game::menuDef_t*> MenusFromDisk;
 		static std::unordered_map<std::string, Game::MenuList*> MenuListsFromDisk;
 
+		static Dvar::Var PrintMenuDebug;
+
 		// Those two point to the ORIGINAL reference of the menu or menu list that was overriden
 		static std::unordered_map<std::string, Game::menuDef_t*> OverridenMenus;
 
@@ -29,12 +31,18 @@ namespace Components
 		static void PrepareToUnloadMenu(Game::menuDef_t * menu);
 		static void AfterLoadedMenuFromDisk(Game::menuDef_t * menu);
 
-		static Game::Statement_s* ReallocateExpressionLocally(Game::Statement_s* statement, bool andFree);
+		static Game::Statement_s* ReallocateExpressionLocally(Game::Statement_s* statement, bool andFree = false);
+		static Game::StaticDvar* ReallocateStaticDvarLocally(Game::StaticDvar* dvar);
+		static Game::ExpressionSupportingData * ReallocateSupportingDataLocally(const Game::ExpressionSupportingData * original, bool andFree= false);
+		static Game::itemDef_s* ReallocateItemLocally(Game::itemDef_s* item, bool andFree = false);
+		static Game::MenuEventHandlerSet* ReallocateEventHandlerSetLocally(const Game::MenuEventHandlerSet* handlerSet, bool andFree= false);
 
 		static void FreeMenuListOnly(Game::MenuList* menuList);
 		static void FreeMenuOnly(Game::menuDef_t * menu);
 		static void FreeExpression(Game::Statement_s* statement);
 		static void FreeItem(Game::itemDef_s* item);
+		static void FreeEventHandlerSet(Game::MenuEventHandlerSet* handlerSet);;
+		static void FreeExpressionSupportingData(Game::ExpressionSupportingData * data);
 
 		static void UnloadMenuFromDisk(const std::string & menuName);
 
@@ -55,5 +63,23 @@ namespace Components
 
 		static void FreeScript(Game::script_s* script);
 		static void FreeMenuSource(int handle);
+
+
+		static void ReloadDiskMenus_OnCGameStart();
+		static void ReloadDiskMenus_OnUIInitialization();
+
+		static void CheckMenus();
+
+		template <typename... Args>
+		static void DebugPrint(const std::string_view& fmt, Args&&... args)
+		{
+			if (PrintMenuDebug.get<bool>())
+			{
+				const std::string msg = std::vformat(fmt, std::make_format_args(args...));
+				const std::string preformatted = std::format("[MENUS] {:X} {}\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), msg);	
+				Logger::Print(preformatted);
+			}
+		}
+
 	};
 }

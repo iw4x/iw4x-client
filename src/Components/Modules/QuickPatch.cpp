@@ -298,8 +298,32 @@ namespace Components
 		return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
 	}
 
+	const char* SL_ConvertToStringHk(int a1)
+	{
+		if (a1)
+		{
+			Game::scrMemTreePub_t* tree = reinterpret_cast<Game::scrMemTreePub_t*>(0x1DC2200);
+			const auto string = &tree->mt_buffer[a1 * 12 + 4];
+
+			if (IsBadReadPtr(string, 4) || (unsigned int)string == 0xDDDDDDDD)
+			{
+				__debugbreak();
+				throw "BAD!!!";
+			}
+
+			return string;
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
 	QuickPatch::QuickPatch()
 	{
+		Utils::Hook(0x4EC1D0, SL_ConvertToStringHk, HOOK_JUMP).install()->quick();
+
+
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
 

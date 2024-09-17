@@ -4560,6 +4560,18 @@ namespace Game
 		Operand lastResult;
 	};
 
+	enum EventType
+	{
+		EVENT_UNCONDITIONAL = 0x0,
+		EVENT_IF = 0x1,
+		EVENT_ELSE = 0x2,
+		EVENT_SET_LOCAL_VAR_BOOL = 0x3,
+		EVENT_SET_LOCAL_VAR_INT = 0x4,
+		EVENT_SET_LOCAL_VAR_FLOAT = 0x5,
+		EVENT_SET_LOCAL_VAR_STRING = 0x6,
+		EVENT_COUNT = 0x7,
+	};
+
 	struct ConditionalScript
 	{
 		MenuEventHandlerSet* eventHandlerSet;
@@ -4576,7 +4588,7 @@ namespace Game
 	{
 		const char* unconditionalScript;
 		ConditionalScript* conditionalScript;
-		MenuEventHandlerSet* elseScript;
+		struct MenuEventHandlerSet* elseScript;
 		SetLocalVarData* setLocalVarData;
 	};
 
@@ -6517,10 +6529,10 @@ namespace Game
 	{
 		XAnim_s* anims;
 	};
-	
+
 	struct scrMemTreePub_t
 	{
-	  char *mt_buffer;
+		char* mt_buffer;
 	};
 
 	struct scrAnimPub_t

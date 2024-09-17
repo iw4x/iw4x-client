@@ -8,8 +8,13 @@
 namespace Components
 {
 
+#define DUPLICATE_STRING_IF_EXISTS(obj, x) if (##obj->##x) ##obj->##x = Allocator.duplicateString(##obj->##x)
+#define FREE_STRING_IF_EXISTS(obj, x) if (##obj->##x) Allocator.free(##obj->##x)
+
 	/// This variable dispenses us from the horror of having a text file in IWD containing the menus we want to load
 	std::vector<std::string> Menus::CustomIW4xMenus;
+	
+	Dvar::Var Menus::PrintMenuDebug;
 
 	std::unordered_map<std::string, Game::menuDef_t*> Menus::MenusFromDisk;
 	std::unordered_map<std::string, Game::MenuList*> Menus::MenuListsFromDisk;
@@ -207,38 +212,20 @@ namespace Components
 
 		// Reallocate Menu with our allocator because these data will get freed when LargeLocal::Reset gets called!
 		{
-			Components::Logger::Print("[MENUS] {:X} Reallocating menu {} ({:X})...\n",
-				std::hash<std::thread::id>{}(std::this_thread::get_id()),
-				menu->window.name,
-				(unsigned int)(menu)
-			);
+			DebugPrint("Reallocating menu {} ({:X})...", menu->window.name,(unsigned int)(menu));
+
 
 			menu->window.name = Allocator.duplicateString(menu->window.name);
 
 			for (int i = 0; i < menu->itemCount; i++)
 			{
-				const auto item = menu->items[i];
-				const auto reallocatedItem = Allocator.allocate<Game::itemDef_s>();
-				std::memcpy(reallocatedItem, item, sizeof(Game::itemDef_s));
-
-				reallocatedItem->floatExpressions = Allocator.allocateArray<Game::ItemFloatExpression>(item->floatExpressionCount);
-
-				if (item->floatExpressionCount)
-				{
-					std::memcpy(reallocatedItem->floatExpressions, item->floatExpressions, sizeof(Game::ItemFloatExpression) * item->floatExpressionCount);
-
-					for (auto j = 0; j < item->floatExpressionCount; ++j)
-					{
-						const auto previousExpression = item->floatExpressions[j].expression;
-						reallocatedItem->floatExpressions[j].expression = ReallocateExpressionLocally(previousExpression, false);
-					}
-				}
-
-				// What about item expressions? We don't free these?
-				// Apparently not, the game doesn't free them
-				Game::Menu_FreeItem(item);
-				menu->items[i] = reallocatedItem;
+				menu->items[i] = ReallocateItemLocally(menu->items[i]);
 			}
+
+			menu->onOpen = ReallocateEventHandlerSetLocally(menu->onOpen, true);
+			menu->onCloseRequest = ReallocateEventHandlerSetLocally(menu->onCloseRequest, true);
+			menu->onClose = ReallocateEventHandlerSetLocally(menu->onClose, true);
+			menu->onESC = ReallocateEventHandlerSetLocally(menu->onESC, true);
 
 			menu->visibleExp = ReallocateExpressionLocally(menu->visibleExp, true);
 			menu->rectXExp = ReallocateExpressionLocally(menu->rectXExp, true);
@@ -248,6 +235,9 @@ namespace Components
 			menu->openSoundExp = ReallocateExpressionLocally(menu->openSoundExp, true);
 			menu->closeSoundExp = ReallocateExpressionLocally(menu->closeSoundExp, true);
 
+			DUPLICATE_STRING_IF_EXISTS(menu, font);
+			DUPLICATE_STRING_IF_EXISTS(menu, allowedBinding);
+			DUPLICATE_STRING_IF_EXISTS(menu, soundName);
 		}
 
 		return menu;
@@ -388,8 +378,7 @@ namespace Components
 				FreeMenuListOnly(MenuListsFromDisk[menuListName]);
 			}
 
-			Components::Logger::Print("[MENUS] {:X} Loaded menuList {} at {:X} from disk\n",
-				std::hash<std::thread::id>{}(std::this_thread::get_id()),
+			DebugPrint("Loaded menuList {} at {:X} from disk",
 				newList->name,
 				(unsigned int)newList
 			);
@@ -464,6 +453,21 @@ namespace Components
 			FreeExpression(item->floatExpressions[i].expression);
 		}
 
+		FreeEventHandlerSet(item->accept);
+		FreeEventHandlerSet(item->action);
+		FreeEventHandlerSet(item->leaveFocus);
+		FreeEventHandlerSet(item->mouseEnter);
+		FreeEventHandlerSet(item->mouseEnterText);
+		FreeEventHandlerSet(item->mouseExit);
+		FreeEventHandlerSet(item->mouseExitText);
+		FreeEventHandlerSet(item->onFocus);
+
+		FREE_STRING_IF_EXISTS(item, dvar);
+		FREE_STRING_IF_EXISTS(item, dvarTest);
+		FREE_STRING_IF_EXISTS(item, localVar);
+		FREE_STRING_IF_EXISTS(item, enableDvar);
+		FREE_STRING_IF_EXISTS(item, text);
+
 		Allocator.free(item->floatExpressions);
 
 		item->floatExpressionCount = 0;
@@ -484,8 +488,7 @@ namespace Components
 				if (Game::uiContext->menuStack[i] &&
 					Game::uiContext->menuStack[i]->window.name == name)
 				{
-					Components::Logger::Print("[MENUS] {:X} In stack - Restored menu {} ({:X} => {:X})\n",
-						std::hash<std::thread::id>{}(std::this_thread::get_id()),
+					DebugPrint("In stack - Restored menu {} ({:X} => {:X})",
 						name,
 						(unsigned int)Game::uiContext->Menus[i],
 						(unsigned int)replacement
@@ -504,6 +507,8 @@ namespace Components
 
 							Game::uiContext->openMenuCount--;
 							assert(Game::uiContext->openMenuCount >= 0);
+
+							i--;
 						}
 						else
 						{
@@ -518,13 +523,12 @@ namespace Components
 				}
 			}
 
-			for (size_t i = 0; i < ARRAYSIZE(Game::uiContext->Menus); i++)
+			for (int i = 0; i < Game::uiContext->menuCount; i++)
 			{
 				if (Game::uiContext->Menus[i] &&
 					Game::uiContext->Menus[i]->window.name == name)
 				{
-					Components::Logger::Print("[MENUS] {:X} In context - Restored menu {} ({:X} => {:X})\n",
-						std::hash<std::thread::id>{}(std::this_thread::get_id()),
+					DebugPrint("In context - Restored menu {} ({:X} => {:X})",
 						name,
 						(unsigned int)Game::uiContext->Menus[i],
 						(unsigned int)replacement
@@ -542,6 +546,9 @@ namespace Components
 							}
 
 							Game::uiContext->menuCount--;
+
+							i--;
+
 							assert(Game::uiContext->menuCount >= 0);
 						}
 						else
@@ -567,9 +574,8 @@ namespace Components
 	void Menus::AfterLoadedMenuFromDisk(Game::menuDef_t* menu)
 	{
 		const std::string name = menu->window.name;
-
-		Components::Logger::Print("[MENUS] {:X} Loaded menu {} at {:X} from disk\n",
-			std::hash<std::thread::id>{}(std::this_thread::get_id()),
+		
+			DebugPrint("Loaded menu {} at {:X} from disk",
 			name,
 			(unsigned int)menu
 		);
@@ -593,9 +599,8 @@ namespace Components
 					}
 
 					Game::uiContext->menuStack[i] = MenusFromDisk[name];
-
-					Components::Logger::Print("[MENUS] {:X} In stack - Overrode menu {} ({:X} => {:X})\n",
-						std::hash<std::thread::id>{}(std::this_thread::get_id()),
+					
+					DebugPrint("In stack - Overrode menu {} ({:X} => {:X})",
 						name,
 						(unsigned int)OverridenMenus[name],
 						(unsigned int)MenusFromDisk[name]
@@ -603,7 +608,7 @@ namespace Components
 				}
 			}
 
-			for (size_t i = 0; i < ARRAYSIZE(Game::uiContext->Menus); i++)
+			for (int i = 0; i < Game::uiContext->menuCount; i++)
 			{
 				if (Game::uiContext->Menus[i] &&
 					Game::uiContext->Menus[i]->window.name == name)
@@ -618,9 +623,8 @@ namespace Components
 					}
 
 					Game::uiContext->Menus[i] = MenusFromDisk[name];
-
-					Components::Logger::Print("[MENUS] {:X} In context - Overrode menu {} ({:X} => {:X})\n",
-						std::hash<std::thread::id>{}(std::this_thread::get_id()),
+					
+					DebugPrint("In context - Overrode menu {} ({:X} => {:X})",
 						name,
 						(unsigned int)OverridenMenus[name],
 						(unsigned int)MenusFromDisk[name]
@@ -645,6 +649,111 @@ namespace Components
 		CustomIW4xMenus.push_back(menu);
 	}
 
+
+	Game::StaticDvar* Menus::ReallocateStaticDvarLocally(Game::StaticDvar* sdvar)
+	{
+		Game::StaticDvar* reallocated = nullptr;
+
+		if (sdvar)
+		{
+			reallocated = Allocator.allocate<Game::StaticDvar>();
+			std::memcpy(reallocated, sdvar, sizeof(Game::StaticDvar));
+
+			DUPLICATE_STRING_IF_EXISTS(reallocated, dvarName);
+
+			// this one is fetched at runtime, on-demand, so we can tolerate to put it to NULLPTR !
+			reallocated->dvar = nullptr;
+		}
+
+		return reallocated;
+	}
+
+	Game::ExpressionSupportingData* Menus::ReallocateSupportingDataLocally(const Game::ExpressionSupportingData* original, bool andFree)
+	{
+		Game::ExpressionSupportingData* supportingData = nullptr;
+
+		if (original)
+		{
+			supportingData = Allocator.allocate<Game::ExpressionSupportingData>();
+			std::memcpy(supportingData, original, sizeof(Game::ExpressionSupportingData));
+
+			supportingData->uifunctions.functions = Allocator.allocateArray<Game::Statement_s*>(original->uifunctions.totalFunctions);
+			std::memcpy(supportingData->uifunctions.functions, original->uifunctions.functions, sizeof(Game::Statement_s*) * original->uifunctions.totalFunctions);
+			for (auto i = 0; i < original->uifunctions.totalFunctions; ++i) {
+				auto* function = original->uifunctions.functions[i];
+				supportingData->uifunctions.functions[i] = ReallocateExpressionLocally(function, andFree);
+			}
+
+			supportingData->staticDvarList.staticDvars = Allocator.allocateArray<Game::StaticDvar*>(original->staticDvarList.numStaticDvars);
+			std::memcpy(supportingData->staticDvarList.staticDvars, original->staticDvarList.staticDvars, sizeof(Game::StaticDvar*) * original->staticDvarList.numStaticDvars);
+			for (auto i = 0; i < original->staticDvarList.numStaticDvars; ++i) {
+				auto* dvar = original->staticDvarList.staticDvars[i];
+				supportingData->staticDvarList.staticDvars[i] = ReallocateStaticDvarLocally(dvar);
+			}
+
+			supportingData->uiStrings.strings = Allocator.allocateArray<const char*>(original->uiStrings.totalStrings);
+			std::memcpy(supportingData->uiStrings.strings, original->uiStrings.strings, sizeof(const char*) * original->uiStrings.totalStrings);
+			for (auto i = 0; i < original->uiStrings.totalStrings; ++i) {
+				auto string = original->uiStrings.strings[i];
+				supportingData->uiStrings.strings[i] = Allocator.duplicateString(string);
+			}
+		}
+
+		return supportingData;
+	}
+
+	Game::itemDef_s* Menus::ReallocateItemLocally(Game::itemDef_s* item, bool andFree)
+	{
+		Game::itemDef_s* reallocatedItem = nullptr;
+
+		if (item)
+		{
+			reallocatedItem = Allocator.allocate<Game::itemDef_s>();
+			std::memcpy(reallocatedItem, item, sizeof(Game::itemDef_s));
+
+			reallocatedItem->floatExpressions = Allocator.allocateArray<Game::ItemFloatExpression>(item->floatExpressionCount);
+
+			if (item->floatExpressionCount)
+			{
+				std::memcpy(reallocatedItem->floatExpressions, item->floatExpressions, sizeof(Game::ItemFloatExpression) * item->floatExpressionCount);
+
+				for (auto j = 0; j < item->floatExpressionCount; ++j)
+				{
+					const auto previousExpression = item->floatExpressions[j].expression;
+					reallocatedItem->floatExpressions[j].expression = ReallocateExpressionLocally(previousExpression, false);
+				}
+			}
+
+			reallocatedItem->accept = ReallocateEventHandlerSetLocally(item->accept, andFree);
+			reallocatedItem->action = ReallocateEventHandlerSetLocally(item->action, andFree);
+			reallocatedItem->leaveFocus = ReallocateEventHandlerSetLocally(item->leaveFocus, andFree);
+			reallocatedItem->mouseEnter = ReallocateEventHandlerSetLocally(item->mouseEnter, andFree);
+			reallocatedItem->mouseEnterText = ReallocateEventHandlerSetLocally(item->mouseEnterText, andFree);
+			reallocatedItem->mouseExit = ReallocateEventHandlerSetLocally(item->mouseExit, andFree);
+			reallocatedItem->mouseExitText = ReallocateEventHandlerSetLocally(item->mouseExitText, andFree);
+			reallocatedItem->onFocus = ReallocateEventHandlerSetLocally(item->onFocus, andFree);
+
+			DUPLICATE_STRING_IF_EXISTS(reallocatedItem, dvar);
+			DUPLICATE_STRING_IF_EXISTS(reallocatedItem, dvarTest);
+			DUPLICATE_STRING_IF_EXISTS(reallocatedItem, localVar);
+			DUPLICATE_STRING_IF_EXISTS(reallocatedItem, enableDvar);
+			DUPLICATE_STRING_IF_EXISTS(reallocatedItem, text);
+
+			// What about item expressions? We don't free these?
+			// Apparently not, the game doesn't free them
+			// They're freed in bulk!
+			if (andFree)
+			{
+				Game::Menu_FreeItem(item);
+			}
+
+
+		}
+
+		return reallocatedItem;
+
+	}
+
 	Game::Statement_s* Menus::ReallocateExpressionLocally(Game::Statement_s* statement, bool andFree)
 	{
 		Game::Statement_s* reallocated = nullptr;
@@ -656,14 +765,27 @@ namespace Components
 
 			if (statement->entries)
 			{
-				assert(reallocated->numEntries);
-				reallocated->entries = Allocator.allocateArray<Game::expressionEntry>(reallocated->numEntries);
-				std::memcpy(reallocated->entries, statement->entries, sizeof(Game::expressionEntry) * reallocated->numEntries);
+				if (reallocated->numEntries == 0)
+				{
+					// happens! In the vanilla game. I don't know why.
+					reallocated->entries = Allocator.allocate<Game::expressionEntry>();
+				}
+				else
+				{
+					reallocated->entries = Allocator.allocateArray<Game::expressionEntry>(reallocated->numEntries);
+					std::memcpy(reallocated->entries, statement->entries, sizeof(Game::expressionEntry) * reallocated->numEntries);
+				}
+			}
+
+			// Reallocate all the supporting data
+			if (statement->supportingData)
+			{
+				reallocated->supportingData = ReallocateSupportingDataLocally(statement->supportingData);
 			}
 
 			if (andFree)
 			{
-				Game::free_expression(statement);
+				Game::free_expression(statement); // this is not really necessary anyway - the game allocates and frees menu memory in bulk (using HunkUser)
 			}
 		}
 
@@ -672,8 +794,7 @@ namespace Components
 
 	void Menus::FreeMenuListOnly(Game::MenuList* menuList)
 	{
-		Components::Logger::Print("[MENUS] {:X} Freeing only menuList {} at {:X}\n",
-			std::hash<std::thread::id>{}(std::this_thread::get_id()),
+		DebugPrint("Freeing only menuList {} at {:X}",
 			menuList->name,
 			(unsigned int)menuList
 		);
@@ -685,8 +806,7 @@ namespace Components
 
 	void Menus::FreeMenuOnly(Game::menuDef_t* menu)
 	{
-		Components::Logger::Print("[MENUS] {:X} Freeing only menu {} at {:X}\n",
-			std::hash<std::thread::id>{}(std::this_thread::get_id()),
+		DebugPrint("Freeing only menu {} at {:X}",
 			menu->window.name,
 			(unsigned int)menu
 		);
@@ -701,6 +821,12 @@ namespace Components
 			Allocator.free(menu->items);
 		}
 
+
+		FreeEventHandlerSet(menu->onOpen);
+		FreeEventHandlerSet(menu->onCloseRequest);
+		FreeEventHandlerSet(menu->onClose);
+		FreeEventHandlerSet(menu->onESC);
+
 		FreeExpression(menu->visibleExp);
 		FreeExpression(menu->rectXExp);
 		FreeExpression(menu->rectYExp);
@@ -709,9 +835,185 @@ namespace Components
 		FreeExpression(menu->openSoundExp);
 		FreeExpression(menu->closeSoundExp);
 
+
+		FREE_STRING_IF_EXISTS(menu, font);
+		FREE_STRING_IF_EXISTS(menu, allowedBinding);
+		FREE_STRING_IF_EXISTS(menu, soundName);
+
 		Allocator.free(menu->window.name);
 
 		Allocator.free(menu);
+	}
+
+	void Menus::FreeExpressionSupportingData(Game::ExpressionSupportingData* data) {
+
+		for (auto i = 0; i < data->uifunctions.totalFunctions; ++i) {
+			auto* function = data->uifunctions.functions[i];
+			FreeExpression(function);
+		}
+
+		for (auto i = 0; i < data->staticDvarList.numStaticDvars; i++)
+		{
+			FREE_STRING_IF_EXISTS(data, staticDvarList.staticDvars[i]->dvarName);
+			Allocator.free(data->staticDvarList.staticDvars[i]);
+		}
+
+		for (auto i = 0; i < data->uiStrings.totalStrings; i++)
+		{
+			FREE_STRING_IF_EXISTS(data, uiStrings.strings[i]);
+		}
+
+		Allocator.free(data->uifunctions.functions);
+		Allocator.free(data->staticDvarList.staticDvars);
+		Allocator.free(data->uiStrings.strings);
+
+		data->staticDvarList.numStaticDvars = 0;
+		data->uiStrings.totalStrings = 0;
+		data->uifunctions.totalFunctions = 0;
+
+		Allocator.free(data);
+	}
+
+	Game::MenuEventHandlerSet* Menus::ReallocateEventHandlerSetLocally(const Game::MenuEventHandlerSet* handlerSet, bool andFree)
+	{
+		Game::MenuEventHandlerSet* reallocated = nullptr;
+
+		if (handlerSet)
+		{
+			reallocated = Allocator.allocate<Game::MenuEventHandlerSet>();
+			std::memcpy(reallocated, handlerSet, sizeof(Game::MenuEventHandlerSet));
+
+			reallocated->eventHandlers = Allocator.allocateArray<Game::MenuEventHandler*>(handlerSet->eventHandlerCount);
+
+			for (auto i = 0; i < handlerSet->eventHandlerCount; ++i) {
+				auto event = Allocator.allocate<Game::MenuEventHandler>();
+				std::memcpy(event, handlerSet->eventHandlers[i], sizeof(Game::MenuEventHandler));
+
+				reallocated->eventHandlers[i] = event;
+
+				Game::ConditionalScript* conditionalScript;
+				Game::SetLocalVarData* localVar;
+
+				switch (event->eventType) {
+				case Game::EVENT_IF:
+ 					conditionalScript = Allocator.allocate<Game::ConditionalScript>();
+					std::memcpy(conditionalScript, event->eventData.conditionalScript, sizeof(Game::ConditionalScript));
+
+					if (conditionalScript->eventHandlerSet)
+					{
+						conditionalScript->eventHandlerSet = ReallocateEventHandlerSetLocally(conditionalScript->eventHandlerSet, andFree);
+					}
+
+					if (conditionalScript->eventExpression)
+					{
+						conditionalScript->eventExpression = ReallocateExpressionLocally(conditionalScript->eventExpression, andFree);
+					}
+
+					event->eventData.conditionalScript = conditionalScript;
+
+					break;
+
+				case Game::EVENT_ELSE:
+					if (event->eventData.elseScript)
+					{
+						event->eventData.elseScript = ReallocateEventHandlerSetLocally(event->eventData.elseScript, andFree);
+					}
+
+					break;
+
+				case Game::EVENT_SET_LOCAL_VAR_BOOL:
+				case Game::EVENT_SET_LOCAL_VAR_INT:
+				case Game::EVENT_SET_LOCAL_VAR_FLOAT:
+				case Game::EVENT_SET_LOCAL_VAR_STRING:
+					localVar = Allocator.allocate<Game::SetLocalVarData>();
+					std::memcpy(localVar,  event->eventData.setLocalVarData, sizeof(Game::SetLocalVarData));
+
+					if (localVar->expression)
+					{
+						localVar->expression = ReallocateExpressionLocally(localVar->expression, andFree);
+					}
+					
+					event->eventData.setLocalVarData = localVar;
+
+					break;
+
+				default:
+					break;
+				}
+			}
+		}
+
+		return reallocated;
+	}
+
+	void Menus::FreeEventHandlerSet(Game::MenuEventHandlerSet* handlerSet)
+	{
+		if (handlerSet)
+		{
+
+			for (auto i = 0; i < handlerSet->eventHandlerCount; ++i) {
+				auto event = handlerSet->eventHandlers[i];
+
+				Game::ConditionalScript* conditionalScript;
+				Game::MenuEventHandlerSet* elseScript;
+				Game::SetLocalVarData* localVar;
+
+				switch (event->eventType) {
+				case Game::EVENT_IF:
+					conditionalScript = event->eventData.conditionalScript;
+
+					if (conditionalScript->eventHandlerSet)
+					{
+						FreeEventHandlerSet(conditionalScript->eventHandlerSet);
+					}
+
+					if (conditionalScript->eventExpression)
+					{
+						FreeExpression(conditionalScript->eventExpression);
+					}
+					
+					Allocator.free(conditionalScript);
+
+					break;
+
+				case Game::EVENT_ELSE:
+					elseScript = event->eventData.elseScript;
+
+					if (elseScript)
+					{
+						FreeEventHandlerSet(elseScript);
+					}
+
+					Allocator.free(elseScript);
+
+					break;
+
+				case Game::EVENT_SET_LOCAL_VAR_BOOL:
+				case Game::EVENT_SET_LOCAL_VAR_INT:
+				case Game::EVENT_SET_LOCAL_VAR_FLOAT:
+				case Game::EVENT_SET_LOCAL_VAR_STRING:
+					localVar = event->eventData.setLocalVarData;
+
+					if (localVar->expression)
+					{
+						FreeExpression(localVar->expression);
+					}
+					
+					Allocator.free(localVar);
+
+					break;
+
+				default:
+					break;
+				}
+
+				Allocator.free(event);
+			}
+
+			handlerSet->eventHandlerCount = 0;
+			Allocator.free(handlerSet->eventHandlers);
+			Allocator.free(handlerSet);
+		}
 	}
 
 	void Menus::FreeExpression(Game::Statement_s* statement)
@@ -721,6 +1023,13 @@ namespace Components
 			if (statement->entries)
 			{
 				Allocator.free(statement->entries);
+				statement->entries = nullptr;
+			}
+
+			if (statement->supportingData)
+			{
+				FreeExpressionSupportingData(statement->supportingData);
+				statement->supportingData = nullptr;
 			}
 
 			Allocator.free(statement);
@@ -735,6 +1044,27 @@ namespace Components
 		MenusFromDisk.erase(menuName);
 	}
 
+	// This is fired up on Vid_restart / filesystem restart, like changing mod
+	void Menus::ReloadDiskMenus_OnUIInitialization()
+	{
+		// At this point, this contains garbage data only!
+		// This is because UI_Init does a MemSet on sharedUIInfo
+		//	which contains the whole UIContext, and that destroys all pointers there
+		// The game doesn't care about memory because it uses LargeLocalReset to free it all.. from what i've seen
+		OverridenMenus.clear();
+
+		// And so this will only free our stuff anyway
+		ReloadDiskMenus();
+	}
+
+
+	// This is fired up _right before the game starts_, we need to do it once again to load "ingame" menus that we might have skipped prior
+	void Menus::ReloadDiskMenus_OnCGameStart()
+	{
+		ReloadDiskMenus();
+	}
+
+
 	void Menus::ReloadDiskMenus()
 	{
 		const auto connectionState = *reinterpret_cast<Game::connstate_t*>(0xB2C540);
@@ -743,9 +1073,8 @@ namespace Components
 		// Otherwise we load a ton of ingame-only menus that are glitched on main_text
 		const bool allowStrayMenus = connectionState > Game::connstate_t::CA_DISCONNECTED
 			&& Game::CL_IsCgameInitialized();
-
-		Components::Logger::Print("[MENUS] {:X} Reloading disk menus...\n",
-			std::hash<std::thread::id>{}(std::this_thread::get_id()));
+		
+		DebugPrint("Reloading disk menus...");
 
 		// Step 1: unload everything
 		const auto listsFromDisk = MenuListsFromDisk;
@@ -789,7 +1118,6 @@ namespace Components
 			for (const auto& filename : menus)
 			{
 				const std::string fullPath = std::format("ui_mp\\{}", filename);
-
 				LoadScriptMenu(fullPath.c_str(), allowStrayMenus);
 			}
 
@@ -823,6 +1151,52 @@ namespace Components
 				LoadScriptMenu(menuName.c_str(), true);
 			}
 		}
+
+		// Debug-only check
+		CheckMenus();
+	}
+
+	void Menus::CheckMenus()
+	{
+#if DEBUG
+		// Give a hand to the poor programmer there
+
+		{
+			// Uniqueness check - each unique menu should have a unique name for this whole circus to run
+			std::unordered_map<std::string, void*> names{};
+
+			if (Game::uiContext)
+			{
+				for (size_t i = 0; i < ARRAYSIZE(Game::uiContext->Menus); i++)
+				{
+					if (Game::uiContext->Menus[i])
+					{
+						const auto name = Game::uiContext->Menus[i]->window.name;
+
+						if (names.contains(name))
+						{
+							if (names[name] != Game::uiContext->Menus[i])
+							{
+								assert(false && "Two menus were loaded with the same name!");
+							}
+							else
+							{
+								// This behaviour is actually normal in the basegame
+							}
+						}
+						else
+						{
+							names[name] = Game::uiContext->Menus[i];
+						}
+					}
+					else
+					{
+						assert(static_cast<int>(i) >= Game::uiContext->menuCount && "Unexpected NULL data where the game expects a menu!");
+					}
+				}
+			}
+		}
+#endif
 	}
 
 	Menus::Menus()
@@ -836,8 +1210,12 @@ namespace Components
 
 		if (Dedicated::IsEnabled()) return;
 
-		Components::Events::OnCGameInit(ReloadDiskMenus);
-		Components::Events::AfterUIInit(ReloadDiskMenus);
+		Components::Events::OnCGameInit(ReloadDiskMenus_OnCGameStart);
+		Components::Events::AfterUIInit(ReloadDiskMenus_OnUIInitialization);
+
+		Components::Scheduler::Once([](){
+			PrintMenuDebug = Dvar::Register<bool>("g_log_menu_allocations", false, Game::DVAR_SAVED, "Prints all menu allocations and swapping in the console");
+		}, Components::Scheduler::Pipeline::MAIN);
 
 
 		// Don't open connect menu twice - it gets stuck!
@@ -862,23 +1240,23 @@ namespace Components
 		Utils::Hook::SetString(0x6FC790, "main_text");
 
 		Command::Add("openmenu", [](const Command::Params* params)
-		{
-			if (params->size() != 2)
 			{
-				Logger::Print("USAGE: openmenu <menu name>\n");
-				return;
-			}
+				if (params->size() != 2)
+				{
+					Logger::Print("USAGE: openmenu <menu name>\n");
+					return;
+				}
 
-			// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
-			if ((*Game::cl_ingame)->current.enabled)
-			{
-				Game::Key_SetCatcher(0, Game::KEYCATCH_UI);
-			}
+				// Not quite sure if we want to do this if we're not ingame, but it's only needed for ingame menus.
+				if ((*Game::cl_ingame)->current.enabled)
+				{
+					Game::Key_SetCatcher(0, Game::KEYCATCH_UI);
+				}
 
-			const char* menuName = params->get(1);
+				const char* menuName = params->get(1);
 
-			Game::Menus_OpenByName(Game::uiContext, menuName);
-		});
+				Game::Menus_OpenByName(Game::uiContext, menuName);
+			});
 
 		// Define custom menus here
 		Add("ui_mp/changelog.menu");
