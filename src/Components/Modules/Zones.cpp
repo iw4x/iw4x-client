@@ -3415,15 +3415,6 @@ namespace Components
 		return Utils::Hook::Call<void(Game::XModel**)>(0x47A690)(asset);
 	}
 
-	// patch max file amount returned by Sys_ListFiles
-	constexpr auto fileCountMultiplier = 8;
-	constexpr auto maxFileCount = 8191 * fileCountMultiplier;
-
-	Game::HunkUser* Hunk_UserCreate_Stub(int maxSize, const char* name, bool fixed, int type)
-	{
-		maxSize *= fileCountMultiplier;
-		return Utils::Hook::Call<Game::HunkUser*(int, const char*, bool, int)>(0x430E90)(maxSize, name, fixed, type);
-	}
 
 	void Zones::LoadMaterialAsset(Game::Material** asset)
 	{
@@ -3560,14 +3551,6 @@ namespace Components
 				Logger::Print("decrypted {} sounds!\n", sounds.size());
 			});
 		}
-
-		// patch max filecount Sys_ListFiles can return
-		Utils::Hook::Set<std::uint32_t>(0x45A66B, (maxFileCount + fileCountMultiplier) * 4);
-		Utils::Hook::Set<std::uint32_t>(0x64AF78, maxFileCount);
-		Utils::Hook::Set<std::uint32_t>(0x64B04F, maxFileCount);
-		Utils::Hook::Set<std::uint32_t>(0x45A8CE, maxFileCount);
-		Utils::Hook(0x45A806, Hunk_UserCreate_Stub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x45A6A0, Hunk_UserCreate_Stub, HOOK_CALL).install()->quick();
 
 #ifndef DEBUG
 		// Ignore missing soundaliases for now

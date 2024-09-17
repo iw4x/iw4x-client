@@ -1,14 +1,23 @@
 #include <STDInclude.hpp>
 #include "Party.hpp"
+#include "Events.hpp"
 
 #define MAX_SOURCEFILES	64
 #define DEFINEHASHSIZE 1024
 
 namespace Components
 {
-	std::vector<std::string> Menus::CustomMenus;
-	std::unordered_map<std::string, Game::menuDef_t*> Menus::MenuList;
-	std::unordered_map<std::string, Game::MenuList*> Menus::MenuListList;
+
+	/// This variable dispenses us from the horror of having a text file in IWD containing the menus we want to load
+	std::vector<std::string> Menus::CustomIW4xMenus;
+
+	std::unordered_map<std::string, Game::menuDef_t*> Menus::MenusFromDisk;
+	std::unordered_map<std::string, Game::MenuList*> Menus::MenuListsFromDisk;
+
+	std::unordered_map<std::string, Game::menuDef_t*> Menus::OverridenMenus;
+
+
+	Utils::Memory::Allocator Menus::Allocator;
 
 	Game::KeywordHashEntry<Game::menuDef_t, 128, 3523>** menuParseKeywordHash;
 
@@ -125,22 +134,27 @@ namespace Components
 
 	Game::menuDef_t* Menus::ParseMenu(int handle)
 	{
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-		auto* menu = allocator->allocate<Game::menuDef_t>();
-		if (!menu) return nullptr;
+		auto* menu = Allocator.allocate<Game::menuDef_t>();
+		if (!menu)
+		{
+			Components::Logger::PrintError(Game::CON_CHANNEL_UI, "No more memory to allocate menu\n");
+			return nullptr;
+		}
 
-		menu->items = allocator->allocateArray<Game::itemDef_s*>(512);
+		menu->items = Allocator.allocateArray<Game::itemDef_s*>(512);
 		if (!menu->items)
 		{
-			allocator->free(menu);
+			Components::Logger::PrintError(Game::CON_CHANNEL_UI, "No more memory to allocate menu items\n");
+			Allocator.free(menu);
 			return nullptr;
 		}
 
 		Game::pc_token_s token;
 		if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] != '{')
 		{
-			allocator->free(menu->items);
-			allocator->free(menu);
+			Components::Logger::PrintError(Game::CON_CHANNEL_UI, "Invalid or unexpected syntax on menu\n");
+			Allocator.free(menu->items);
+			Allocator.free(menu);
 			return nullptr;
 		}
 
@@ -176,85 +190,72 @@ namespace Components
 		if (!menu->window.name)
 		{
 			Game::PC_SourceError(handle, "menu has no name");
-			allocator->free(menu->items);
-			allocator->free(menu);
+			Allocator.free(menu->items);
+			Allocator.free(menu);
 			return nullptr;
 		}
 
-		OverrideMenu(menu);
-		RemoveMenu(menu->window.name);
-		MenuList[menu->window.name] = menu;
+		// Shrink item size now that we're done parsing
+		{
+			const auto newItemArray = Allocator.allocateArray<Game::itemDef_s*>(menu->itemCount);
+			std::memcpy(newItemArray, menu->items, menu->itemCount * sizeof(Game::itemDef_s*));
+
+			Allocator.free(menu->items);
+
+			menu->items = newItemArray;
+		}
+
+		// Reallocate Menu with our allocator because these data will get freed when LargeLocal::Reset gets called!
+		{
+			Components::Logger::Print("[MENUS] {:X} Reallocating menu {} ({:X})...\n",
+				std::hash<std::thread::id>{}(std::this_thread::get_id()),
+				menu->window.name,
+				(unsigned int)(menu)
+			);
+
+			menu->window.name = Allocator.duplicateString(menu->window.name);
+
+			for (int i = 0; i < menu->itemCount; i++)
+			{
+				const auto item = menu->items[i];
+				const auto reallocatedItem = Allocator.allocate<Game::itemDef_s>();
+				std::memcpy(reallocatedItem, item, sizeof(Game::itemDef_s));
+
+				reallocatedItem->floatExpressions = Allocator.allocateArray<Game::ItemFloatExpression>(item->floatExpressionCount);
+
+				if (item->floatExpressionCount)
+				{
+					std::memcpy(reallocatedItem->floatExpressions, item->floatExpressions, sizeof(Game::ItemFloatExpression) * item->floatExpressionCount);
+
+					for (auto j = 0; j < item->floatExpressionCount; ++j)
+					{
+						const auto previousExpression = item->floatExpressions[j].expression;
+						reallocatedItem->floatExpressions[j].expression = ReallocateExpressionLocally(previousExpression, false);
+					}
+				}
+
+				// What about item expressions? We don't free these?
+				// Apparently not, the game doesn't free them
+				Game::Menu_FreeItem(item);
+				menu->items[i] = reallocatedItem;
+			}
+
+			menu->visibleExp = ReallocateExpressionLocally(menu->visibleExp, true);
+			menu->rectXExp = ReallocateExpressionLocally(menu->rectXExp, true);
+			menu->rectYExp = ReallocateExpressionLocally(menu->rectYExp, true);
+			menu->rectWExp = ReallocateExpressionLocally(menu->rectWExp, true);
+			menu->rectHExp = ReallocateExpressionLocally(menu->rectHExp, true);
+			menu->openSoundExp = ReallocateExpressionLocally(menu->openSoundExp, true);
+			menu->closeSoundExp = ReallocateExpressionLocally(menu->closeSoundExp, true);
+
+		}
 
 		return menu;
 	}
 
-	Game::MenuList* Menus::LoadCustomMenuList(const std::string& menu, Utils::Memory::Allocator* allocator)
+	std::vector<Game::menuDef_t*> Menus::LoadMenuByName_Recursive(const std::string& menu)
 	{
-		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
-		FileSystem::File menuFile(menu);
-
-		if (!menuFile.exists()) return nullptr;
-
-		Game::pc_token_s token;
-		const auto handle = LoadMenuSource(menu, menuFile.getBuffer());
-
-		if (IsValidSourceHandle(handle))
-		{
-			while (true)
-			{
-				ZeroMemory(&token, sizeof(token));
-
-				if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] == '}')
-				{
-					break;
-				}
-
-				if (!_stricmp(token.string, "loadmenu"))
-				{
-					Game::PC_ReadTokenHandle(handle, &token);
-
-					auto* filename = Utils::String::VA("ui_mp\\%s.menu", token.string);
-					Utils::Merge(&menus, LoadMenu(filename));
-				}
-
-				if (!_stricmp(token.string, "menudef"))
-				{
-					auto* menudef = ParseMenu(handle);
-					if (menudef) menus.emplace_back(std::make_pair(true, menudef)); // Custom menu
-				}
-			}
-
-			FreeMenuSource(handle);
-		}
-
-		if (menus.empty()) return nullptr;
-
-		// Allocate new menu list
-		auto* list = allocator->allocate<Game::MenuList>();
-		if (!list) return nullptr;
-
-		list->menus = allocator->allocateArray<Game::menuDef_t*>(menus.size());
-		if (!list->menus)
-		{
-			allocator->free(list);
-			return nullptr;
-		}
-
-		list->name = allocator->duplicateString(menu);
-		list->menuCount = static_cast<int>(menus.size());
-
-		// Copy new menus
-		for (std::size_t i = 0; i < menus.size(); ++i)
-		{
-			list->menus[i] = menus[i].second;
-		}
-
-		return list;
-	}
-
-	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(const std::string& menu)
-	{
-		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
+		std::vector<Game::menuDef_t*> menus;
 		FileSystem::File menuFile(menu);
 
 		if (menuFile.exists())
@@ -277,13 +278,20 @@ namespace Components
 					{
 						Game::PC_ReadTokenHandle(handle, &token);
 
-						Utils::Merge(&menus, LoadMenu(Utils::String::VA("ui_mp\\%s.menu", token.string)));
-					}
+						const auto loadedMenu = LoadMenuByName_Recursive(Utils::String::VA("ui_mp\\%s.menu", token.string));
 
-					if (!_stricmp(token.string, "menudef"))
+						for (const auto& loaded : loadedMenu)
+						{
+							menus.emplace_back(loaded);
+						}
+					}
+					else if (!_stricmp(token.string, "menudef"))
 					{
-						auto* menudef = ParseMenu(handle);
-						if (menudef) menus.emplace_back(std::make_pair(true, menudef)); // Custom menu
+						auto* menuDef = ParseMenu(handle);
+						if (menuDef)
+						{
+							menus.emplace_back(menuDef);
+						}
 					}
 				}
 
@@ -294,158 +302,100 @@ namespace Components
 		return menus;
 	}
 
-	std::vector<std::pair<bool, Game::menuDef_t*>> Menus::LoadMenu(Game::menuDef_t* menudef)
+	void Menus::LoadScriptMenu(const char* menu, bool allowNewMenus)
 	{
-		assert(menudef->window.name);
-
-		std::vector<std::pair<bool, Game::menuDef_t*>> menus = LoadMenu(Utils::String::VA("ui_mp\\%s.menu", menudef->window.name));
+		auto menus = LoadMenuByName_Recursive(menu);
 
 		if (menus.empty())
 		{
-			menus.emplace_back(std::make_pair(false, menudef)); // Native menu
+			Components::Logger::PrintError(Game::CON_CHANNEL_UI, "Could not load menu {}\n", menu);
+			return;
 		}
 
-		return menus;
-	}
+		if (!allowNewMenus)
+		{
+			// We remove every menu we loaded that is not going to override something
+			for (int i = 0; i < static_cast<int>(menus.size()); i++)
+			{
+				const auto menuName = menus[i]->window.name;
+				if (Game::Menus_FindByName(Game::uiContext, menuName))
+				{
+					// It's an override, we keep it
+				}
+				else
+				{
+					// We are not allowed to keep this one, let's free it
+					FreeMenuOnly(menus[i]);
+					menus.erase(menus.begin() + i);
+					i--;
+				}
+			}
 
-	Game::MenuList* Menus::LoadScriptMenu(const char* menu)
-	{
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
+			if (menus.empty())
+			{
+				return; // No overrides!
+			}
+		}
 
-		auto menus = LoadMenu(menu);
-		if (menus.empty()) return nullptr;
+		// Tracking
+		for (const auto& loadedMenu : menus)
+		{
+			// Unload previous loaded-from-disk versions of these menus, if we had any
+			const std::string menuName = loadedMenu->window.name;
+			if (MenusFromDisk.contains(menuName))
+			{
+				UnloadMenuFromDisk(menuName);
+				MenusFromDisk.erase(menuName);
+			}
+
+			// Then mark them as loaded
+			MenusFromDisk[menuName] = loadedMenu;
+
+			AfterLoadedMenuFromDisk(loadedMenu);
+		}
+
 
 		// Allocate new menu list
-		auto* newList = allocator->allocate<Game::MenuList>();
-		if (!newList) return nullptr;
-
-		newList->menus = allocator->allocateArray<Game::menuDef_t*>(menus.size());
-		if (!newList->menus)
+		auto* newList = Allocator.allocate<Game::MenuList>();
+		if (!newList)
 		{
-			allocator->free(newList);
-			return nullptr;
+			Components::Logger::PrintError(Game::CON_CHANNEL_UI, "No more memory to allocate menu list {}\n", menu);
+			return;
 		}
 
-		newList->name = allocator->duplicateString(menu);
+		newList->menus = Allocator.allocateArray<Game::menuDef_t*>(menus.size());
+		if (!newList->menus)
+		{
+			Components::Logger::PrintError(Game::CON_CHANNEL_UI, "No more memory to allocate menus for {}\n", menu);
+			Allocator.free(newList);
+			return;
+		}
+
+		newList->name = Allocator.duplicateString(menu);
 		newList->menuCount = static_cast<int>(menus.size());
 
-		// Copy new menus
+		// Copy new menu references
 		for (unsigned int i = 0; i < menus.size(); ++i)
 		{
-			newList->menus[i] = menus[i].second;
+			newList->menus[i] = menus[i];
 		}
 
-		RemoveMenuList(newList->name);
-		MenuListList[newList->name] = newList;
-
-		return newList;
-	}
-
-	void Menus::SafeMergeMenus(std::vector<std::pair<bool, Game::menuDef_t*>>* menus, std::vector<std::pair<bool, Game::menuDef_t*>> newMenus)
-	{
-		// Check if we overwrote a menu
-		for (auto i = menus->begin(); i != menus->end();)
+		// Tracking
 		{
-			// Try to find the native menu
-			bool found = !i->first; // Only if custom menu, try to find it
-
-			// If there is none, try to find a custom menu
-			if (!found)
+			const auto menuListName = newList->name;
+			if (MenuListsFromDisk.contains(menuListName))
 			{
-				for (auto& entry : Menus::MenuList)
-				{
-					if (i->second == entry.second)
-					{
-						found = true;
-						break;
-					}
-				}
+				FreeMenuListOnly(MenuListsFromDisk[menuListName]);
 			}
 
-			// Remove the menu if it has been deallocated (not found)
-			if (!found)
-			{
-				i = menus->erase(i);
-				continue;
-			}
+			Components::Logger::Print("[MENUS] {:X} Loaded menuList {} at {:X} from disk\n",
+				std::hash<std::thread::id>{}(std::this_thread::get_id()),
+				newList->name,
+				(unsigned int)newList
+			);
 
-			bool increment = true;
-
-			// Remove the menu if it has been loaded twice
-			for (auto& newMenu : newMenus)
-			{
-				if (i->second->window.name == std::string(newMenu.second->window.name))
-				{
-					RemoveMenu(i->second);
-
-					i = menus->erase(i);
-					increment = false;
-					break;
-				}
-			}
-
-			if (increment) ++i;
+			MenuListsFromDisk[menuListName] = newList;
 		}
-
-		Utils::Merge(menus, newMenus);
-	}
-
-	Game::MenuList* Menus::LoadMenuList(Game::MenuList* menuList)
-	{
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
-		std::vector<std::pair<bool, Game::menuDef_t*>> menus;
-
-		for (int i = 0; i < menuList->menuCount; ++i)
-		{
-			if (!menuList->menus[i]) continue;
-			SafeMergeMenus(&menus, LoadMenu(menuList->menus[i]));
-		}
-
-		// Load custom menus
-		if (menuList->name == "ui_mp/code.txt"s) // Should be menus, but code is loaded ingame
-		{
-			for (auto menu : CustomMenus)
-			{
-				bool hasMenu = false;
-				for (auto& loadedMenu : menus)
-				{
-					if (loadedMenu.second->window.name == menu)
-					{
-						hasMenu = true;
-						break;
-					}
-				}
-
-				if (!hasMenu) SafeMergeMenus(&menus, LoadMenu(menu));
-			}
-		}
-
-		// Allocate new menu list
-		auto* newList = allocator->allocate<Game::MenuList>();
-		if (!newList) return menuList;
-
-		auto size = menus.size();
-		newList->menus = allocator->allocateArray<Game::menuDef_t*>(size);
-		if (!newList->menus)
-		{
-			allocator->free(newList);
-			return menuList;
-		}
-
-		newList->name = allocator->duplicateString(menuList->name);
-		newList->menuCount = static_cast<int>(size);
-
-		// Copy new menus
-		for (unsigned int i = 0; i < menus.size(); ++i)
-		{
-			newList->menus[i] = menus[i].second;
-		}
-
-		RemoveMenuList(newList->name);
-		MenuListList[newList->name] = newList;
-
-		return newList;
 	}
 
 	void Menus::FreeScript(Game::script_s* script)
@@ -507,286 +457,372 @@ namespace Components
 		Game::sourceFiles[handle] = nullptr;
 	}
 
-	void Menus::Menu_FreeItemMemory(Game::itemDef_s* item)
+	void Menus::FreeItem(Game::itemDef_s* item)
 	{
-		AssertOffset(Game::itemDef_s, floatExpressionCount, 0x13C);
-
 		for (auto i = 0; i < item->floatExpressionCount; ++i)
 		{
-			Game::free_expression(item->floatExpressions[i].expression);
+			FreeExpression(item->floatExpressions[i].expression);
 		}
+
+		Allocator.free(item->floatExpressions);
 
 		item->floatExpressionCount = 0;
+		Allocator.free(item);
 	}
 
-	void Menus::FreeMenu(Game::menuDef_t* menu)
+	void Menus::PrepareToUnloadMenu(Game::menuDef_t* menu)
 	{
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
+		const std::string name = menu->window.name;
 
-		if (menu->items)
+		bool isRemoval = OverridenMenus[name] == nullptr || !OverridenMenus.contains(name);
+		Game::menuDef_t* replacement = isRemoval ? nullptr : OverridenMenus[name];
+
+		if (Game::uiContext)
 		{
-			for (int i = 0; i < menu->itemCount; ++i)
+			for (size_t i = 0; i < ARRAYSIZE(Game::uiContext->menuStack); i++)
 			{
-#if 0
-				Menu_FreeItemMemory(menu->items[i]);
-#endif
-			}
-
-			allocator->free(menu->items);
-		}
-#if 0
-		Game::free_expression(menu->visibleExp);
-		Game::free_expression(menu->rectXExp);
-		Game::free_expression(menu->rectYExp);
-		Game::free_expression(menu->rectWExp);
-		Game::free_expression(menu->rectHExp);
-		Game::free_expression(menu->openSoundExp);
-		Game::free_expression(menu->closeSoundExp);
-#endif
-
-		allocator->free(menu);
-	}
-
-	void Menus::FreeMenuList(Game::MenuList* menuList)
-	{
-		if (!menuList) return;
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
-		// Keep our compiler happy
-		Game::MenuList list = { menuList->name, menuList->menuCount, menuList->menus };
-
-		allocator->free(list.name);
-		allocator->free(list.menus);
-		allocator->free(menuList);
-	}
-
-	void Menus::RemoveMenu(const std::string& menu)
-	{
-		auto i = MenuList.find(menu);
-		if (i != MenuList.end())
-		{
-			if (i->second) FreeMenu(i->second);
-			i = MenuList.erase(i);
-		}
-	}
-
-	void Menus::RemoveMenu(Game::menuDef_t* menudef)
-	{
-		for (auto i = MenuList.begin(); i != MenuList.end();)
-		{
-			if (i->second == menudef)
-			{
-				FreeMenu(menudef);
-				i = MenuList.erase(i);
-			}
-			else
-			{
-				++i;
-			}
-		}
-	}
-
-	void Menus::RemoveMenuList(const std::string& menuList)
-	{
-		auto i = MenuListList.find(menuList);
-		if (i != MenuListList.end())
-		{
-			if (i->second)
-			{
-				for (auto j = 0; j < i->second->menuCount; ++j)
+				if (Game::uiContext->menuStack[i] &&
+					Game::uiContext->menuStack[i]->window.name == name)
 				{
-					RemoveMenu(i->second->menus[j]);
-				}
+					Components::Logger::Print("[MENUS] {:X} In stack - Restored menu {} ({:X} => {:X})\n",
+						std::hash<std::thread::id>{}(std::this_thread::get_id()),
+						name,
+						(unsigned int)Game::uiContext->Menus[i],
+						(unsigned int)replacement
+					);
 
-				FreeMenuList(i->second);
-			}
-
-			i = MenuListList.erase(i);
-		}
-	}
-
-	// This is actually a really important function
-	// It checks if we have already loaded the menu we passed and replaces its instances in memory
-	// Due to deallocating the old menu, the game might crash on not being able to handle its old instance
-	// So we need to override it in our menu lists and the game's ui context
-	// EDIT: We might also remove the old instances inside RemoveMenu
-	// EDIT2: Removing old instances without having a menu to replace them with might leave a nullptr
-	// EDIT3: Wouldn't it be better to check if the new menu we're trying to load has already been loaded and not was not deallocated and return that one instead of loading a new one?
-	void Menus::OverrideMenu(Game::menuDef_t* menu)
-	{
-		if (!menu || !menu->window.name) return;
-		std::string name = menu->window.name;
-
-		// Find the old menu
-		if (auto i = MenuList.find(name); i != MenuList.end())
-		{
-			// We have found it, *yay*
-			Game::menuDef_t* oldMenu = i->second;
-
-			// Replace every old instance with our new one in the ui context
-			for (int j = 0; j < Game::uiContext->menuCount; ++j)
-			{
-				if (Game::uiContext->Menus[j] == oldMenu)
-				{
-					Game::uiContext->Menus[j] = menu;
-				}
-			}
-
-			// Replace every old instance with our new one in our menu lists
-			for (auto j = MenuListList.begin(); j != MenuListList.end(); ++j)
-			{
-				Game::MenuList* list = j->second;
-
-				if (list && list->menus)
-				{
-					for (int k = 0; k < list->menuCount; ++k)
+					if (isRemoval)
 					{
-						if (list->menus[k] == oldMenu)
+						if (Game::uiContext->menuStack[i] == menu)
 						{
-							list->menus[k] = menu;
+							Game::uiContext->menuStack[i] = replacement;
+
+							for (int j = i; j < Game::uiContext->openMenuCount - 1; j++)
+							{
+								Game::uiContext->menuStack[j] = Game::uiContext->menuStack[j + 1];
+							}
+
+							Game::uiContext->openMenuCount--;
+							assert(Game::uiContext->openMenuCount >= 0);
+						}
+						else
+						{
+							// The menu I could have overriden got loaded in the meantime - no need to delete them
+							// I'm simply going to remove myself
 						}
 					}
-				}
-			}
-		}
-	}
-
-	void Menus::RemoveMenuList(Game::MenuList* menuList)
-	{
-		if (!menuList || !menuList->name) return;
-		RemoveMenuList(menuList->name);
-	}
-
-	// In your dreams
-	void Menus::FreeEverything()
-	{
-		for (auto i = MenuListList.begin(); i != MenuListList.end(); ++i)
-		{
-			FreeMenuList(i->second);
-		}
-
-		MenuListList.clear();
-
-		for (auto i = MenuList.begin(); i != MenuList.end(); ++i)
-		{
-			FreeMenu(i->second);
-		}
-
-		MenuList.clear();
-	}
-
-	Game::XAssetHeader Menus::MenuFindHook(Game::XAssetType /*type*/, const std::string& filename)
-	{
-		return { Game::Menus_FindByName(Game::uiContext, filename.data()) };
-	}
-
-	Game::XAssetHeader Menus::MenuListFindHook(Game::XAssetType type, const std::string& filename)
-	{
-		Game::XAssetHeader header = { nullptr };
-
-		// Free the last menulist and ui context, as we have to rebuild it with the new menus
-		if (MenuListList.find(filename) != MenuListList.end())
-		{
-			Game::MenuList* list = MenuListList[filename];
-
-			for (int i = 0; list && list->menus && i < list->menuCount; ++i)
-			{
-				RemoveMenuFromContext(Game::uiContext, list->menus[i]);
-			}
-
-			RemoveMenuList(filename);
-		}
-
-		if (Utils::String::EndsWith(filename, ".menu"))
-		{
-			if (FileSystem::File(filename).exists())
-			{
-				header.menuList = LoadScriptMenu(filename.data());
-				if (header.menuList) return header;
-			}
-		}
-
-		Game::MenuList* menuList = Game::DB_FindXAssetHeader(type, filename.data()).menuList;
-		header.menuList = menuList;
-
-		if (menuList && reinterpret_cast<DWORD>(menuList) != 0xDDDDDDDD)
-		{
-			// Parse scriptmenus!
-			if ((menuList->menuCount > 0 && menuList->menus[0] && menuList->menus[0]->window.name == "default_menu"s))
-			{
-				if (FileSystem::File(filename).exists())
-				{
-					header.menuList = LoadScriptMenu(filename.data());
-
-					// Reset, if we didn't find scriptmenus
-					if (!header.menuList)
+					else
 					{
-						header.menuList = menuList;
+						Game::uiContext->menuStack[i] = replacement;
 					}
 				}
 			}
-			else
+
+			for (size_t i = 0; i < ARRAYSIZE(Game::uiContext->Menus); i++)
 			{
-				header.menuList = LoadMenuList(menuList);
-			}
-		}
-		else
-		{
-			header.menuList = nullptr;
-		}
-
-		return header;
-	}
-
-	bool Menus::IsMenuVisible(Game::UiContext* dc, Game::menuDef_t* menu)
-	{
-		if (menu && menu->window.name)
-		{
-			if (menu->window.name == "connect"s) // Check if we're supposed to draw the loadscreen
-			{
-				const auto* originalConnect = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, "connect").menu;
-
-				if (originalConnect == menu) // Check if we draw the original loadscreen
+				if (Game::uiContext->Menus[i] &&
+					Game::uiContext->Menus[i]->window.name == name)
 				{
-					if (MenuList.contains("connect")) // Check if we have a custom load screen, to prevent drawing the original one on top
+					Components::Logger::Print("[MENUS] {:X} In context - Restored menu {} ({:X} => {:X})\n",
+						std::hash<std::thread::id>{}(std::this_thread::get_id()),
+						name,
+						(unsigned int)Game::uiContext->Menus[i],
+						(unsigned int)replacement
+					);
+
+					if (isRemoval)
 					{
-						return false;
+						if (Game::uiContext->Menus[i] == menu)
+						{
+							Game::uiContext->Menus[i] = replacement;
+
+							for (size_t j = i; j < std::min(static_cast<unsigned int>(Game::uiContext->menuCount), ARRAYSIZE(Game::uiContext->Menus)) - 1; j++)
+							{
+								Game::uiContext->Menus[j] = Game::uiContext->Menus[j + 1];
+							}
+
+							Game::uiContext->menuCount--;
+							assert(Game::uiContext->menuCount >= 0);
+						}
+						else
+						{
+							// The menu I could have overriden got loaded in the meantime - no need to delete them
+							// I'm simply going to remove myself
+						}
+					}
+					else
+					{
+						Game::uiContext->Menus[i] = replacement;
 					}
 				}
 			}
-		}
 
-		return Game::Menu_IsVisible(dc, menu);
+			if (OverridenMenus.contains(name))
+			{
+				OverridenMenus.erase(name);
+			}
+		}
 	}
 
-	void Menus::RemoveMenuFromContext(Game::UiContext* dc, Game::menuDef_t* menu)
+	void Menus::AfterLoadedMenuFromDisk(Game::menuDef_t* menu)
 	{
-		// Search menu in context
-		int i = 0;
-		for (; i < dc->menuCount; ++i)
-		{
-			if (dc->Menus[i] == menu)
-			{
-				break;
-			}
-		}
+		const std::string name = menu->window.name;
 
-		// Remove from stack
-		if (i < dc->menuCount)
+		Components::Logger::Print("[MENUS] {:X} Loaded menu {} at {:X} from disk\n",
+			std::hash<std::thread::id>{}(std::this_thread::get_id()),
+			name,
+			(unsigned int)menu
+		);
+
+		bool overrode = false;
+
+		if (Game::uiContext)
 		{
-			for (; i < dc->menuCount - 1; ++i)
+			for (size_t i = 0; i < ARRAYSIZE(Game::uiContext->menuStack); i++)
 			{
-				dc->Menus[i] = dc->Menus[i + 1];
+				if (Game::uiContext->menuStack[i] &&
+					Game::uiContext->menuStack[i]->window.name == name)
+				{
+					if (OverridenMenus.contains(name))
+					{
+						assert(OverridenMenus[name] == Game::uiContext->menuStack[i]);
+					}
+					else
+					{
+						OverridenMenus[name] = Game::uiContext->menuStack[i];
+					}
+
+					Game::uiContext->menuStack[i] = MenusFromDisk[name];
+
+					Components::Logger::Print("[MENUS] {:X} In stack - Overrode menu {} ({:X} => {:X})\n",
+						std::hash<std::thread::id>{}(std::this_thread::get_id()),
+						name,
+						(unsigned int)OverridenMenus[name],
+						(unsigned int)MenusFromDisk[name]
+					);
+				}
 			}
 
-			// Clear last menu
-			dc->Menus[--dc->menuCount] = nullptr;
+			for (size_t i = 0; i < ARRAYSIZE(Game::uiContext->Menus); i++)
+			{
+				if (Game::uiContext->Menus[i] &&
+					Game::uiContext->Menus[i]->window.name == name)
+				{
+					if (OverridenMenus.contains(name))
+					{
+						assert(OverridenMenus[name] == Game::uiContext->Menus[i]);
+					}
+					else
+					{
+						OverridenMenus[name] = Game::uiContext->Menus[i];
+					}
+
+					Game::uiContext->Menus[i] = MenusFromDisk[name];
+
+					Components::Logger::Print("[MENUS] {:X} In context - Overrode menu {} ({:X} => {:X})\n",
+						std::hash<std::thread::id>{}(std::this_thread::get_id()),
+						name,
+						(unsigned int)OverridenMenus[name],
+						(unsigned int)MenusFromDisk[name]
+					);
+
+					overrode = true;
+				}
+			}
+
+			if (!overrode)
+			{
+				// A brand new menu! How fancy!
+				OverridenMenus[name] = nullptr;
+				Game::uiContext->Menus[Game::uiContext->menuCount] = MenusFromDisk[name];
+				Game::uiContext->menuCount++;
+			}
 		}
 	}
 
 	void Menus::Add(const std::string& menu)
 	{
-		CustomMenus.push_back(menu);
+		CustomIW4xMenus.push_back(menu);
+	}
+
+	Game::Statement_s* Menus::ReallocateExpressionLocally(Game::Statement_s* statement, bool andFree)
+	{
+		Game::Statement_s* reallocated = nullptr;
+
+		if (statement)
+		{
+			reallocated = Allocator.allocate<Game::Statement_s>();
+			std::memcpy(reallocated, statement, sizeof(Game::Statement_s));
+
+			if (statement->entries)
+			{
+				assert(reallocated->numEntries);
+				reallocated->entries = Allocator.allocateArray<Game::expressionEntry>(reallocated->numEntries);
+				std::memcpy(reallocated->entries, statement->entries, sizeof(Game::expressionEntry) * reallocated->numEntries);
+			}
+
+			if (andFree)
+			{
+				Game::free_expression(statement);
+			}
+		}
+
+		return reallocated;
+	}
+
+	void Menus::FreeMenuListOnly(Game::MenuList* menuList)
+	{
+		Components::Logger::Print("[MENUS] {:X} Freeing only menuList {} at {:X}\n",
+			std::hash<std::thread::id>{}(std::this_thread::get_id()),
+			menuList->name,
+			(unsigned int)menuList
+		);
+
+		Allocator.free(menuList->name);
+		Allocator.free(menuList->menus);
+		Allocator.free(menuList);
+	}
+
+	void Menus::FreeMenuOnly(Game::menuDef_t* menu)
+	{
+		Components::Logger::Print("[MENUS] {:X} Freeing only menu {} at {:X}\n",
+			std::hash<std::thread::id>{}(std::this_thread::get_id()),
+			menu->window.name,
+			(unsigned int)menu
+		);
+
+		if (menu->items)
+		{
+			for (int i = 0; i < menu->itemCount; ++i)
+			{
+				FreeItem(menu->items[i]);
+			}
+
+			Allocator.free(menu->items);
+		}
+
+		FreeExpression(menu->visibleExp);
+		FreeExpression(menu->rectXExp);
+		FreeExpression(menu->rectYExp);
+		FreeExpression(menu->rectWExp);
+		FreeExpression(menu->rectHExp);
+		FreeExpression(menu->openSoundExp);
+		FreeExpression(menu->closeSoundExp);
+
+		Allocator.free(menu->window.name);
+
+		Allocator.free(menu);
+	}
+
+	void Menus::FreeExpression(Game::Statement_s* statement)
+	{
+		if (statement)
+		{
+			if (statement->entries)
+			{
+				Allocator.free(statement->entries);
+			}
+
+			Allocator.free(statement);
+		}
+	}
+
+	void Menus::UnloadMenuFromDisk(const std::string& menuName)
+	{
+		const auto menu = MenusFromDisk[menuName];
+		PrepareToUnloadMenu(menu);
+		FreeMenuOnly(menu);
+		MenusFromDisk.erase(menuName);
+	}
+
+	void Menus::ReloadDiskMenus()
+	{
+		const auto connectionState = *reinterpret_cast<Game::connstate_t*>(0xB2C540);
+
+		// We only allow non-menulist menus when we're ingame
+		// Otherwise we load a ton of ingame-only menus that are glitched on main_text
+		const bool allowStrayMenus = connectionState > Game::connstate_t::CA_DISCONNECTED
+			&& Game::CL_IsCgameInitialized();
+
+		Components::Logger::Print("[MENUS] {:X} Reloading disk menus...\n",
+			std::hash<std::thread::id>{}(std::this_thread::get_id()));
+
+		// Step 1: unload everything
+		const auto listsFromDisk = MenuListsFromDisk;
+		for (const auto& menuList : listsFromDisk)
+		{
+			FreeMenuListOnly(menuList.second);
+			MenuListsFromDisk.erase(menuList.first);
+		}
+
+		const auto menusFromDisk = MenusFromDisk;
+		for (const auto& element : menusFromDisk)
+		{
+			UnloadMenuFromDisk(element.first);
+		}
+
+		if (Allocator.empty())
+		{
+			// good
+		}
+		else
+		{
+			__debugbreak();
+			Logger::Print("Warning - menu leak? Expected allocator to be empty after reload, but it's not!\n");
+		}
+
+		if (OverridenMenus.empty())
+		{
+			// good
+		}
+		else
+		{
+			Logger::Print("Warning - menu leak? Expected overriden menus to be empty after reload, but they're not!\n");
+			OverridenMenus.clear();
+		}
+
+		// Step 2: Load everything
+		{
+			const auto menus = FileSystem::GetFileList("ui_mp", "menu", Game::FS_LIST_ALL);
+
+			// Load standalone menus
+			for (const auto& filename : menus)
+			{
+				const std::string fullPath = std::format("ui_mp\\{}", filename);
+
+				LoadScriptMenu(fullPath.c_str(), allowStrayMenus);
+			}
+
+			if (allowStrayMenus)
+			{
+				const auto scriptmenus = FileSystem::GetFileList("ui_mp\\scriptmenus", "menu", Game::FS_LIST_ALL);
+
+				// Load standalone menus
+				for (const auto& filename : scriptmenus)
+				{
+					const std::string fullPath = std::format("ui_mp\\scriptmenus\\{}", filename);
+
+					LoadScriptMenu(fullPath.c_str(), allowStrayMenus);
+				}
+			}
+		}
+
+		{
+			const auto menuLists = FileSystem::GetFileList("ui_mp", "txt", Game::FS_LIST_ALL);
+
+			// Load menu list
+			for (const auto& filename : menuLists)
+			{
+				const std::string fullPath = std::format("ui_mp\\{}", filename);
+				LoadScriptMenu(fullPath.c_str(), true);
+			}
+
+			// "code.txt" for IW4x
+			for (const auto& menuName : CustomIW4xMenus)
+			{
+				LoadScriptMenu(menuName.c_str(), true);
+			}
+		}
 	}
 
 	Menus::Menus()
@@ -800,30 +836,27 @@ namespace Components
 
 		if (Dedicated::IsEnabled()) return;
 
-		// Intercept asset finding
-		AssetHandler::OnFind(Game::ASSET_TYPE_MENU, MenuFindHook);
-		AssetHandler::OnFind(Game::ASSET_TYPE_MENULIST, MenuListFindHook);
+		Components::Events::OnCGameInit(ReloadDiskMenus);
+		Components::Events::AfterUIInit(ReloadDiskMenus);
 
-		// Don't open connect menu
-		// Utils::Hook::Nop(0x428E48, 5);
+
+		// Don't open connect menu twice - it gets stuck!
+		Utils::Hook::Nop(0x428E48, 5);
 
 		// Use the connect menu open call to update server motds
-		Utils::Hook(0x428E48, []
-		{
-			if (!Party::GetMotd().empty() && Party::Target() == *Game::connectedHost)
+	/*	Utils::Hook(0x428E48, []
 			{
-				Dvar::Var("didyouknow").set(Party::GetMotd());
-			}
-		}, HOOK_CALL).install()->quick();
+				if (!Party::GetMotd().empty() && Party::Target() == *Game::connectedHost)
+				{
+					Dvar::Var("didyouknow").set(Party::GetMotd());
+				}
+			}, HOOK_CALL).install()->quick();*/
 
-		// Intercept menu painting
-		Utils::Hook(0x4FFBDF, IsMenuVisible, HOOK_CALL).install()->quick();
+			// Intercept menu painting
+			//Utils::Hook(0x4FFBDF, IsMenuVisible, HOOK_CALL).install()->quick();
 
 		// disable the 2 new tokens in ItemParse_rect (Fix by NTA. Probably because he didn't want to update the menus)
 		Utils::Hook::Set<std::uint8_t>(0x640693, 0xEB);
-
-		// don't load ASSET_TYPE_MENU assets for every menu (might cause patch menus to fail)
-		Utils::Hook::Nop(0x453406, 5);
 
 		// make Com_Error and similar go back to main_text instead of menu_xboxlive.
 		Utils::Hook::SetString(0x6FC790, "main_text");
@@ -842,30 +875,9 @@ namespace Components
 				Game::Key_SetCatcher(0, Game::KEYCATCH_UI);
 			}
 
-			Game::Menus_OpenByName(Game::uiContext, params->get(1));
-		});
+			const char* menuName = params->get(1);
 
-		Command::Add("reloadmenus", []()
-		{
-			// Close all menus
-			Game::Menus_CloseAll(Game::uiContext);
-
-			// Free custom menus (Get pranked)
-			FreeEverything();
-
-			// Only disconnect if in-game, context is updated automatically!
-			if (Game::CL_IsCgameInitialized())
-			{
-				Game::Cbuf_AddText(0, "disconnect\n");
-			}
-			else
-			{
-				// Reinitialize ui context
-				Utils::Hook::Call<void()>(0x401700)();
-
-				// Reopen main menu
-				Game::Menus_OpenByName(Game::uiContext, "main_text");
-			}
+			Game::Menus_OpenByName(Game::uiContext, menuName);
 		});
 
 		// Define custom menus here
@@ -890,6 +902,5 @@ namespace Components
 	void Menus::preDestroy()
 	{
 		// Let Windows handle the memory leaks for you!
-		Menus::FreeEverything();
 	}
 }

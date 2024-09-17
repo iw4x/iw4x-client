@@ -8,7 +8,7 @@ namespace Assets
 		Utils::Memory::Allocator* allocator = builder->getAllocator();
 
 		// actually gets the whole list
-		auto menus = Components::Menus::LoadMenu(name);
+		auto menus = Components::Menus::LoadMenuByName_Recursive(name);
 		if (menus.empty()) return;
 
 		// Allocate new menu list
@@ -28,7 +28,7 @@ namespace Assets
 		// Copy new menus
 		for (unsigned int i = 0; i < menus.size(); ++i)
 		{
-			newList->menus[i] = menus[i].second;
+			newList->menus[i] = menus[i];
 		}
 
 		header->menuList = newList;

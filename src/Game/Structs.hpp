@@ -6517,6 +6517,11 @@ namespace Game
 	{
 		XAnim_s* anims;
 	};
+	
+	struct scrMemTreePub_t
+	{
+	  char *mt_buffer;
+	};
 
 	struct scrAnimPub_t
 	{

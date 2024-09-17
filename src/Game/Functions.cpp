@@ -905,6 +905,20 @@ namespace Game
 		}
 	}
 
+	void Menu_FreeItem(itemDef_s* item)
+	{
+		__asm
+		{
+			pushad
+
+			mov edi, item
+			mov ebx, 0x63D880 // Original function address
+			call ebx
+
+			popad
+		}
+	}
+
 	void Menu_SetNextCursorItem(UiContext* a1, menuDef_t* a2, int unk)
 	{
 		__asm

@@ -758,6 +758,7 @@ namespace Game
 
 	void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize);
 
+	void Menu_FreeItem(itemDef_s* item);
 	void Menu_SetNextCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	void Menu_SetPrevCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	const char* TableLookup(StringTable* stringtable, int row, int column);

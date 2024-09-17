@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 #include "TextRenderer.hpp"
+#include "Events.hpp"
 
 namespace Game
 {
@@ -1675,14 +1676,6 @@ namespace Components
 		});
 	}
 
-	void TextRenderer::UI_Init_Hk(const int localClientNum)
-	{
-		// Call original method
-		Utils::Hook::Call<void(int)>(0x4A57D0)(localClientNum);
-
-		InitFontIcons();
-	}
-
 	TextRenderer::TextRenderer()
 	{
 		currentColorTable = &colorTableDefault;
@@ -1693,7 +1686,7 @@ namespace Components
 		sv_customTextColor = Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::DVAR_CODINFO, "Color for the extended color code.");
 
 		// Initialize font icons when initializing UI
-		Utils::Hook(0x4B5422, UI_Init_Hk, HOOK_CALL).install()->quick();
+		Components::Events::AfterUIInit(InitFontIcons);
 
 		// Replace vanilla text drawing function with a reimplementation with extensions
 		Utils::Hook(0x535410, DrawText2D, HOOK_JUMP).install()->quick();
