@@ -78,45 +78,4 @@ namespace Utils::Thread
 
 		return ids;
 	}
-
-	void ForEachThread(const std::function<void(HANDLE)>& callback)
-	{
-		const auto ids = GetThreadIds();
-
-		for (const auto& id : ids)
-		{
-			auto* const thread = OpenThread(THREAD_ALL_ACCESS, FALSE, id);
-			if (thread != nullptr)
-			{
-				const auto _ = gsl::finally([thread]()
-				{
-					CloseHandle(thread);
-				});
-
-				callback(thread);
-			}
-		}
-	}
-
-	void SuspendOtherThreads()
-	{
-		ForEachThread([](const HANDLE thread)
-		{
-			if (GetThreadId(thread) != GetCurrentThreadId())
-			{
-				SuspendThread(thread);
-			}
-		});
-	}
-
-	void ResumeOtherThreads()
-	{
-		ForEachThread([](const HANDLE thread)
-		{
-			if (GetThreadId(thread) != GetCurrentThreadId())
-			{
-				ResumeThread(thread);
-			}
-		});
-	}
 }

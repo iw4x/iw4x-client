@@ -10,23 +10,22 @@ namespace Game::Engine
 		{
 			Sys_EnterCriticalSection(this->s_);
 			this->hasOwnership_ = true;
+			return;
+		}
+
+		if (type == SCOPED_CRITSECT_TRY)
+		{
+			this->hasOwnership_ = Sys_TryEnterCriticalSection(this->s_);
 		}
 		else
 		{
-			if (type == SCOPED_CRITSECT_TRY)
+			if (type == SCOPED_CRITSECT_RELEASE)
 			{
-				this->hasOwnership_ = Sys_TryEnterCriticalSection(this->s_);
+				Sys_LeaveCriticalSection(this->s_);
+				this->isScopedRelease_ = true;
 			}
-			else
-			{
-				if (type == SCOPED_CRITSECT_RELEASE)
-				{
-					Sys_LeaveCriticalSection(this->s_);
-					this->isScopedRelease_ = true;
-				}
 
-				this->hasOwnership_ = false;
-			}
+			this->hasOwnership_ = false;
 		}
 	}
 

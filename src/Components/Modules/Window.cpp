@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
 
+#include "FastFiles.hpp"
+#include "Window.hpp"
+
 namespace Components
 {
 	Dvar::Var Window::NoBorder;

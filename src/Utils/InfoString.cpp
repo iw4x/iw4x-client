@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "InfoString.hpp"
 
 namespace Utils
 {
@@ -9,18 +10,17 @@ namespace Utils
 
 	void InfoString::set(const std::string& key, const std::string& value)
 	{
-		this->keyValuePairs[key] = value;
+		this->keyValuePairs_[key] = value;
 	}
 
 	void InfoString::remove(const std::string& key)
 	{
-		this->keyValuePairs.erase(key);
+		this->keyValuePairs_.erase(key);
 	}
 
 	std::string InfoString::get(const std::string& key) const
 	{
-		const auto value = this->keyValuePairs.find(key);
-		if (value != this->keyValuePairs.end())
+		if (const auto value = this->keyValuePairs_.find(key); value != this->keyValuePairs_.end())
 		{
 			return value->second;
 		}
@@ -35,27 +35,25 @@ namespace Utils
 			buffer = buffer.substr(1);
 		}
 
-		const auto keyValues = Utils::String::Split(buffer, '\\');
-
+		const auto keyValues = String::Split(buffer, '\\');
 		for (std::size_t i = 0; !keyValues.empty() && i < (keyValues.size() - 1); i += 2)
 		{
 			const auto& key = keyValues[i];
 			const auto& value = keyValues[i + 1];
-			this->keyValuePairs[key] = value;
+
+			if (!this->keyValuePairs_.contains(key))
+			{
+				this->keyValuePairs_[key] = value;
+			}
 		}
 	}
 
 	std::string InfoString::build() const
 	{
 		std::string infoString;
-
-		auto first = true;
-
-		for (const auto& [key, value] : this->keyValuePairs)
+		for (const auto& [key, value] : this->keyValuePairs_)
 		{
-			if (first) first = false;
-			else infoString.append("\\");
-
+			infoString.append("\\");
 			infoString.append(key);
 			infoString.append("\\");
 			infoString.append(value);
@@ -67,7 +65,7 @@ namespace Utils
 #ifdef _DEBUG
 	void InfoString::dump()
 	{
-		for (const auto& [key, value] : this->keyValuePairs)
+		for (const auto& [key, value] : this->keyValuePairs_)
 		{
 			OutputDebugStringA(String::VA("%s: %s\n", key.data(), value.data()));
 		}
@@ -76,6 +74,6 @@ namespace Utils
 
 	nlohmann::json InfoString::to_json() const
 	{
-		return this->keyValuePairs;
+		return this->keyValuePairs_;
 	}
 }

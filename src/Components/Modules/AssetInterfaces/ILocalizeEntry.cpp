@@ -82,7 +82,7 @@ namespace Assets
 		}
 	}
 
-	void ILocalizeEntry::ParseLocalizedStringsJson(Components::ZoneBuilder::Zone* builder, Components::FileSystem::File& file)
+	void ILocalizeEntry::ParseLocalizedStringsJSON(Components::ZoneBuilder::Zone* builder, Components::FileSystem::File& file)
 	{
 		nlohmann::json localize;
 		try

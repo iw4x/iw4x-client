@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Components/Modules/Auth.hpp"
 
 STEAM_IGNORE_WARNINGS_START
 
@@ -22,11 +23,7 @@ namespace Steam
 
 		if (!idBits)
 		{
-			if (Components::Dedicated::IsEnabled() || Components::ZoneBuilder::IsEnabled()) // Dedi guid
-			{
-				idBits = *reinterpret_cast<unsigned __int64*>(const_cast<char*>("DEDICATE"));
-			}
-			else if (Components::Singleton::IsFirstInstance()) // ECDSA guid
+			if (Components::Singleton::IsFirstInstance() && !Components::Dedicated::IsEnabled()) // ECDSA guid
 			{
 				idBits = Components::Auth::GetKeyHash();
 			}

@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "Changelog.hpp"
+#include "UIFeeder.hpp"
 
 namespace Components
 {
@@ -54,6 +56,6 @@ namespace Components
 		if (Dedicated::IsEnabled()) return;
 
 		// Changelog
-		UIFeeder::Add(62.0f, Changelog::GetChangelogCount, Changelog::GetChangelogText, Changelog::SelectChangelog);
+		UIFeeder::Add(62.0f, GetChangelogCount, GetChangelogText, SelectChangelog);
 	}
 }

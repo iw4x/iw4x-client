@@ -28,9 +28,6 @@ namespace Components
 			Network::Address target;
 		};
 
-		static Game::dvar_t** CGScoreboardHeight;
-		static Game::dvar_t** CGScoreboardWidth;
-
 		static Container PlayerContainer;
 
 		static void ServerStatus([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);

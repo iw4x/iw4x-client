@@ -14,7 +14,6 @@ namespace Components
 		static std::thread Thread;
 
 		static bool Terminate;
-		static bool DownloadUpdater();
 
 		static const char* GetNewsText();
 	};

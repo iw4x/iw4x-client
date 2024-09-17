@@ -26,6 +26,9 @@ namespace Game
 	typedef int(*FS_FOpenFileRead_t)(const char* filename, int* file);
 	extern FS_FOpenFileRead_t FS_FOpenFileRead;
 
+	typedef FILE*(*FS_FileOpenReadText_t)(const char* filename);
+	extern FS_FileOpenReadText_t FS_FileOpenReadText;
+
 	typedef int(*FS_FOpenFileReadDatabase_t)(const char* filename, int* file);
 	extern FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase;
 
@@ -80,7 +83,7 @@ namespace Game
 	typedef void(*FS_BuildOSPath_t)(const char* base, const char* game, const char* qpath, char* ospath);
 	extern FS_BuildOSPath_t FS_BuildOSPath;
 
-	extern searchpath_t** fs_searchpaths;
+	extern searchpath_s** fs_searchpaths;
 
 	extern int FS_FOpenFileReadCurrentThread(const char* filename, int* file);
 

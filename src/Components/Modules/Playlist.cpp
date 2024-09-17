@@ -1,4 +1,10 @@
 #include <STDInclude.hpp>
+#include <Utils/Compression.hpp>
+
+#include <proto/party.pb.h>
+
+#include "Party.hpp"
+#include "Playlist.hpp"
 
 namespace Components
 {
@@ -9,26 +15,26 @@ namespace Components
 	void Playlist::LoadPlaylist()
 	{
 		// Check if playlist already loaded
-		if (Utils::Hook::Get<bool>(0x1AD3680)) return;
+		if (*Game::s_havePlaylists) return;
 
 		// Don't load playlists when dedi and no party
-		if (Dedicated::IsEnabled() && !Dvar::Var("party_enable").get<bool>())
+		if (Dedicated::IsEnabled() && !Party::IsEnabled())
 		{
-			Utils::Hook::Set<bool>(0x1AD3680, true); // Set received to true
+			*Game::s_havePlaylists = true;
 			Dvar::Var("xblive_privateserver").set(true);
 			return;
 		}
 
 		Dvar::Var("xblive_privateserver").set(false);
 
-		auto playlistFilename = Dvar::Var("playlistFilename").get<std::string>();
+		const auto playlistFilename = Dvar::Var("playlistFilename").get<std::string>();
 		FileSystem::File playlist(playlistFilename);
 
 		if (playlist.exists())
 		{
 			Logger::Print("Parsing playlist '{}'...\n", playlist.getName());
 			Game::Playlist_ParsePlaylists(playlist.getBuffer().data());
-			Utils::Hook::Set<bool>(0x1AD3680, true); // Playlist loaded
+			*Game::s_havePlaylists = true;
 		}
 		else
 		{
@@ -36,18 +42,18 @@ namespace Components
 		}
 	}
 
-	DWORD Playlist::StorePlaylistStub(const char** buffer)
+	char* Playlist::Com_ParseOnLine_Hk(const char** data_p)
 	{
-		Playlist::MapRelocation.clear();
-		Playlist::CurrentPlaylistBuffer = Utils::Compression::ZLib::Compress(*buffer);
-		return Utils::Hook::Call<DWORD(const char**)>(0x4C0350)(buffer);
+		MapRelocation.clear();
+		CurrentPlaylistBuffer = Utils::Compression::ZLib::Compress(*data_p);
+		return Game::Com_ParseOnLine(data_p);
 	}
 
 	void Playlist::PlaylistRequest(const Network::Address& address, [[maybe_unused]] const std::string& data)
 	{
-		const auto password = Dvar::Var("g_password").get<std::string>();
+		const auto* password = *Game::g_password ? (*Game::g_password)->current.string : "";
 
-		if (password.length())
+		if (*password)
 		{
 			if (password != data)
 			{
@@ -58,7 +64,7 @@ namespace Components
 
 		Logger::Print("Received playlist request, sending currently stored buffer.\n");
 
-		std::string compressedList = Playlist::CurrentPlaylistBuffer;
+		std::string compressedList = CurrentPlaylistBuffer;
 
 		Proto::Party::Playlist list;
 		list.set_hash(Utils::Cryptography::JenkinsOneAtATime::Compute(compressedList));
@@ -67,51 +73,48 @@ namespace Components
 		Network::SendCommand(address, "playlistResponse", list.SerializeAsString());
 	}
 
-	void Playlist::PlaylistReponse(const Network::Address& address, [[maybe_unused]] const std::string& data)
+	void Playlist::PlaylistResponse(const Network::Address& address, [[maybe_unused]] const std::string& data)
 	{
-		if (Party::PlaylistAwaiting())
+		if (!Party::PlaylistAwaiting())
 		{
-			if (address == Party::Target())
-			{
-				Proto::Party::Playlist list;
+			Logger::Print("Received stray playlist response, ignoring it.\n");
+			return;
+		}
+			
+		if (address != Party::Target())
+		{
+			Logger::Print("Received playlist from someone else than our target host, ignoring it.\n");
+			return;
+		}
+		
+		Proto::Party::Playlist list;
 
-				if (!list.ParseFromString(data))
-				{
-					Party::PlaylistError(Utils::String::VA("Received playlist response from %s, but it is invalid.", address.getCString()));
-					Playlist::ReceivedPlaylistBuffer.clear();
-					return;
-				}
-				else
-				{
-					// Generate buffer and hash
-					const auto& compressedData = list.buffer();
-					const auto hash = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedData);
-
-					//Validate hashes
-					if (hash != list.hash())
-					{
-						Party::PlaylistError(Utils::String::VA("Received playlist response from %s, but the checksum did not match (%X != %X).", address.getCString(), list.hash(), hash));
-						Playlist::ReceivedPlaylistBuffer.clear();
-						return;
-					}
-
-					// Decompress buffer
-					Playlist::ReceivedPlaylistBuffer = Utils::Compression::ZLib::Decompress(compressedData);
-
-					// Load and continue connection
-					Logger::Print("Received playlist, loading and continuing connection...\n");
-					Game::Playlist_ParsePlaylists(Playlist::ReceivedPlaylistBuffer.data());
-					Party::PlaylistContinue();
-				}
-			}
-			else
-			{
-				Logger::Print("Received playlist from someone else than our target host, ignoring it.\n");
-			}
+		if (!list.ParseFromString(data))
+		{
+			Party::PlaylistError(std::format("Received playlist response from {}, but it is invalid.", address.getString()));
+			ReceivedPlaylistBuffer.clear();
 		}
 		else
 		{
-			Logger::Print("Received stray playlist response, ignoring it.\n");
+			// Generate buffer and hash
+			const auto& compressedData = list.buffer();
+			const auto hash = Utils::Cryptography::JenkinsOneAtATime::Compute(compressedData);
+
+			// Validate hashes
+			if (hash != list.hash())
+			{
+				Party::PlaylistError(std::format("Received playlist response from {}, but the checksum did not match ({} != {}).", address.getString(), list.hash(), hash));
+				ReceivedPlaylistBuffer.clear();
+				return;
+			}
+
+			// Decompress buffer
+			ReceivedPlaylistBuffer = Utils::Compression::ZLib::Decompress(compressedData);
+
+			// Load and continue connection
+			Logger::Print("Received playlist, loading and continuing connection...\n");
+			Game::Playlist_ParsePlaylists(ReceivedPlaylistBuffer.data());
+			Party::PlaylistContinue();
 		}
 	}
 
@@ -120,27 +123,27 @@ namespace Components
 		Party::PlaylistError("Error: Invalid Password for Party.");
 	}
 
-	void Playlist::MapNameCopy(char *dest, const char *src, int destsize)
+	void Playlist::MapNameCopy(char* dest, const char* src, int destsize)
 	{
 		Utils::Hook::Call<void(char*, const char*, int)>(0x4D6F80)(dest, src, destsize);
-		Playlist::MapRelocation[dest] = src;
+		MapRelocation[dest] = src;
 	}
 
-	void Playlist::SetMapName(const char* cvar, const char* value)
+	void Playlist::SetMapName(const char* dvarName, const char* value)
 	{
-		auto i = Playlist::MapRelocation.find(value);
-		if (i != Playlist::MapRelocation.end())
+		auto i = MapRelocation.find(value);
+		if (i != MapRelocation.end())
 		{
 			value = i->second.data();
 		}
 
-		Game::Dvar_SetStringByName(cvar, value);
+		Game::Dvar_SetStringByName(dvarName, value);
 	}
 
 	int Playlist::GetMapIndex(const char* mapname)
 	{
-		auto i = Playlist::MapRelocation.find(mapname);
-		if (i != Playlist::MapRelocation.end())
+		auto i = MapRelocation.find(mapname);
+		if (i != MapRelocation.end())
 		{
 			mapname = i->second.data();
 		}
@@ -153,7 +156,7 @@ namespace Components
 		// Default playlists
 		Utils::Hook::Set<const char*>(0x60B06E, "playlists_default.info");
 
-		// disable playlist download function
+		// Disable playlist download function
 		Utils::Hook::Set<BYTE>(0x4D4790, 0xC3);
 
 		// Load playlist, but don't delete it
@@ -161,34 +164,34 @@ namespace Components
 		Utils::Hook::Nop(0x4D6E67, 5);
 		Utils::Hook::Nop(0x4D6E71, 2);
 
-		// playlist dvar 'validity check'
+		// Disable Playlist_ValidatePlaylistNum
 		Utils::Hook::Set<BYTE>(0x4B1170, 0xC3);
 
-		// disable playlist checking
-		Utils::Hook::Set<BYTE>(0x5B69E9, 0xEB); // too new
-		Utils::Hook::Set<BYTE>(0x5B696E, 0xEB); // too old
+		// Disable playlist checking
+		Utils::Hook::Set<BYTE>(0x5B69E9, 0xEB); // Too new
+		Utils::Hook::Set<BYTE>(0x5B696E, 0xEB); // Too old
 
-		//Got playlists is true
+		// Got playlists is true
 		//Utils::Hook::Set<bool>(0x1AD3680, true);
 
-		Utils::Hook(0x497DB5, Playlist::GetMapIndex, HOOK_CALL).install()->quick();
-		Utils::Hook(0x42A19D, Playlist::MapNameCopy, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4A6FEE, Playlist::SetMapName, HOOK_CALL).install()->quick();
+		Utils::Hook(0x497DB5, GetMapIndex, HOOK_CALL).install()->quick();
+		Utils::Hook(0x42A19D, MapNameCopy, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4A6FEE, SetMapName, HOOK_CALL).install()->quick();
 
 		// Store playlist buffer on load
-		Utils::Hook(0x42961C, Playlist::StorePlaylistStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x42961C, Com_ParseOnLine_Hk, HOOK_CALL).install()->quick(); // Playlist_ParsePlaylists
 
 		//if (Dedicated::IsDedicated())
 		{
 			// Custom playlist loading
-			Utils::Hook(0x420B5A, Playlist::LoadPlaylist, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x420B5A, LoadPlaylist, HOOK_JUMP).install()->quick();
 
-			// disable playlist.ff loading function
-			Utils::Hook::Set<BYTE>(0x4D6E60, 0xC3);
+			// disable playlist.ff loading function (Win_LoadPlaylistFastfile)
+			Utils::Hook::Set<std::uint8_t>(0x4D6E60, 0xC3);
 		}
 
 		Network::OnClientPacket("getPlaylist", PlaylistRequest);
-		Network::OnClientPacket("playlistResponse", PlaylistReponse);
+		Network::OnClientPacket("playlistResponse", PlaylistResponse);
 		Network::OnClientPacket("playlistInvalidPassword", PlaylistInvalidPassword);
 	}
 }

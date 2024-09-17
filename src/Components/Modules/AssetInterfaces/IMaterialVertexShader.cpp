@@ -18,20 +18,7 @@ namespace Assets
 
 	void IMaterialVertexShader::loadBinary(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File vsFile(std::format("vs/{}.cso", name));
-		if (!vsFile.exists()) return;
-
-		auto buff = vsFile.getBuffer();
-		auto programSize = buff.size() / 4;
-		Game::MaterialVertexShader* asset = builder->getAllocator()->allocate<Game::MaterialVertexShader>();
-
-		asset->name = builder->getAllocator()->duplicateString(name);
-		asset->prog.loadDef.loadForRenderer = GFX_RENDERER_SHADER_SM3;
-		asset->prog.loadDef.programSize = static_cast<unsigned short>(programSize);
-		asset->prog.loadDef.program = builder->getAllocator()->allocateArray<unsigned int>(programSize);
-		memcpy_s(asset->prog.loadDef.program, buff.size(), buff.data(), buff.size());
-
-		header->vertexShader = asset;
+		header->vertexShader = builder->getIW4OfApi()->read<Game::MaterialVertexShader>(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, name);
 	}
 
 	void IMaterialVertexShader::save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)

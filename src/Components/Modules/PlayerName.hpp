@@ -7,19 +7,19 @@ namespace Components
 	public:
 		PlayerName();
 
-		static void UserInfoCopy(char* buffer, const char* name, size_t size);
+		static void UserInfoCopy(char* buffer, const char* name, int size);
 
 		static int GetClientName(int localClientNum, int index, char* buf, int size);
 
 	private:
 		static Dvar::Var sv_allowColoredNames;
-		// Message used when kicking players
-		static constexpr auto INVALID_NAME_MSG = "Invalid name detected";
 
 		static char* CleanStrStub(char* string);
 		static void ClientCleanName();
 
+		static bool IsBadChar(int c);
 		static bool CopyClientNameCheck(char* dest, const char* source, int size);
+		static void DropClient(Game::client_s* drop);
 		static void SV_UserinfoChangedStub();
 	};
 }

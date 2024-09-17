@@ -19,10 +19,12 @@ namespace Components
 		static unsigned __int64 GetKeyHash(const std::string& key);
 
 		static uint32_t GetSecurityLevel();
-		static void IncreaseSecurityLevel(uint32_t level, const std::string& command = "");
+		static void IncreaseSecurityLevel(uint32_t level, const std::string& command = {});
 
 		static uint32_t GetZeroBits(Utils::Cryptography::Token token, const std::string& publicKey);
 		static void IncrementToken(Utils::Cryptography::Token& token, Utils::Cryptography::Token& computeToken, const std::string& publicKey, uint32_t zeroBits, bool* cancel = nullptr, uint64_t* count = nullptr);
+
+		static std::string GetMachineEntropy();
 
 	private:
 
@@ -44,10 +46,16 @@ namespace Components
 		static Utils::Cryptography::Token ComputeToken;
 		static Utils::Cryptography::ECC::Key GuidKey;
 		static std::vector<std::uint64_t> BannedUids;
+
+		static bool HasAccessToReservedSlot;
 		
-		static void SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char *format, int len);
+		static void SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char* format, int len);
 		static void ParseConnectData(Game::msg_t* msg, Game::netadr_t* addr);
 		static void DirectConnectStub();
+		static char* Info_ValueForKeyStub(const char* s, const char* key);
+		static void DirectConnectPrivateClientStub();
+
+		static std::string GetGUIDFilePath();
 
 		static void Frame();
 	};

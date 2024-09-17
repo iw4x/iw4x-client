@@ -8,7 +8,7 @@ namespace Components
 		class Address
 		{
 		public:
-			Address() { setType(Game::NA_BAD); }
+			Address();
 			Address(const std::string& addrString);
 			Address(sockaddr* addr);
 			Address(sockaddr addr) : Address(&addr) {}
@@ -22,6 +22,7 @@ namespace Components
 
 			void setPort(unsigned short port);
 			[[nodiscard]] unsigned short getPort() const;
+			[[nodiscard]] unsigned short getPortRaw() const;
 
 			void setIP(DWORD ip);
 			void setIP(Game::netIP_t ip);
@@ -33,59 +34,54 @@ namespace Components
 			[[nodiscard]] sockaddr getSockAddr();
 			void toSockAddr(sockaddr* addr);
 			void toSockAddr(sockaddr_in* addr);
-			Game::netadr_t* get();
+			[[nodiscard]] const Game::netadr_t* get() const noexcept;
 			[[nodiscard]] const char* getCString() const;
 			[[nodiscard]] std::string getString() const;
 
-			[[nodiscard]] bool isLocal();
-			[[nodiscard]] bool isSelf();
-			[[nodiscard]] bool isValid() const;
-			[[nodiscard]] bool isLoopback() const;
+			[[nodiscard]] bool isLocal() const noexcept;
+			[[nodiscard]] bool isSelf()  const noexcept;
+			[[nodiscard]] bool isValid() const noexcept;
+			[[nodiscard]] bool isLoopback() const noexcept;
 
 		private:
 			Game::netadr_t address;
 		};
 
-		typedef void(CallbackRaw)();
-
-		using NetworkCallback = std::function<void(Address&, const std::string&)>;
+		using networkCallback = std::function<void(Address&, const std::string&)>;
+		using networkRawCallback = std::function<void(Game::netadr_t*, Game::msg_t* msg)>;
 
 		Network();
 
-		static unsigned short GetPort();
+		static const char* AdrToString(const Address& a, bool port = false);
 
-		static void OnStart(const Utils::Slot<CallbackRaw>& callback);
+		static std::uint16_t GetPort();
 		
 		// Send quake-styled binary data
-		static void Send(Address target, const std::string& data);
-		static void Send(Game::netsrc_t type, Address target, const std::string& data);
+		static void Send(const Address& target, const std::string& data);
+		static void Send(Game::netsrc_t type, const Address& target, const std::string& data);
 
 		// Allows sending raw data without quake header
-		static void SendRaw(Address target, const std::string& data);
-		static void SendRaw(Game::netsrc_t type, Address target, const std::string& data);
+		static void SendRaw(const Address& target, const std::string& data);
+		static void SendRaw(Game::netsrc_t type, const Address& target, const std::string& data);
 
 		// Send quake-style command using binary data
-		static void SendCommand(Address target, const std::string& command, const std::string& data = "");
-		static void SendCommand(Game::netsrc_t type, Address target, const std::string& command, const std::string& data = "");
+		static void SendCommand(const Address& target, const std::string& command, const std::string& data = {});
+		static void SendCommand(Game::netsrc_t type, const Address& target, const std::string& command, const std::string& data = {});
 
 		static void Broadcast(unsigned short port, const std::string& data);
 		static void BroadcastRange(unsigned int min, unsigned int max, const std::string& data);
 		static void BroadcastAll(const std::string& data);
 
-		static void OnClientPacket(const std::string& command, const NetworkCallback& callback);
+		static void OnClientPacket(const std::string& command, const networkCallback& callback);
+		static void OnClientPacketRaw(const std::string& command, const networkRawCallback& callback);
 
 	private:
-		static Utils::Signal<CallbackRaw> StartupSignal;
-		static std::unordered_map<std::string, NetworkCallback> CL_Callbacks;
-
-		static void NetworkStart();
-		static void NetworkStartStub();
+		static std::unordered_map<std::string, networkCallback> CL_Callbacks;
+		static std::unordered_map<std::string, networkRawCallback> CL_RawCallbacks;
 
 		static void PacketErrorCheck();
 
-		static void SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg);
-
-		static bool CL_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message);
+		static bool CL_HandleCommand(Game::netadr_t* address, const char* command, Game::msg_t* message);
 
 		static void CL_HandleCommandStub();
 	};
@@ -94,8 +90,8 @@ namespace Components
 template <>
 struct std::hash<Components::Network::Address>
 {
-	std::size_t operator()(const Components::Network::Address& k) const noexcept
+	std::size_t operator()(const Components::Network::Address& x) const noexcept
 	{
-		return std::hash<std::string>()(k.getString());
+		return std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&x.getIP().bytes[0])) ^ std::hash<std::uint16_t>()(x.getPort());
 	}
 };

@@ -25,6 +25,9 @@ namespace Game
 	CL_MouseEvent_t CL_MouseEvent = CL_MouseEvent_t(0x4D7C50);
 	CL_WriteDemoClientArchive_t CL_WriteDemoClientArchive = CL_WriteDemoClientArchive_t(0x5A8020);
 	CL_WriteDemoMessage_t CL_WriteDemoMessage = CL_WriteDemoMessage_t(0x4707C0);
+	CL_AddDebugStarWithText_t CL_AddDebugStarWithText = CL_AddDebugStarWithText_t(0x4D03C0);
+
+	Key_ClearStates_t Key_ClearStates = Key_ClearStates_t(0x5A7F00);
 
 	float* cl_angles = reinterpret_cast<float*>(0xB2F8D0);
 
@@ -60,6 +63,7 @@ namespace Game
 
 	connstate_t CL_GetLocalClientConnectionState(const int localClientNum)
 	{
+		AssertOffset(clientUIActive_t, connectionState, 0x9B8);
 		AssertIn(localClientNum, STATIC_MAX_LOCAL_CLIENTS);
 
 		return clientUIActives[localClientNum].connectionState;
@@ -97,5 +101,41 @@ namespace Game
 		}
 
 		return &(&cg_entitiesArray)[localClientNum][125 * entityIndex];
+	}
+
+	void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer)
+	{
+		static const float MY_NULLTEXTCOLOR[] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+		CL_AddDebugStarWithText(point, color, MY_NULLTEXTCOLOR, nullptr, 1.0f, duration, fromServer);
+	}
+
+	void CL_MouseMove(const int localClientNum, Game::usercmd_s* cmd, const float frametime_base)
+	{
+		static const DWORD CL_MouseMove_t = 0x5A6240;
+
+		__asm
+		{
+			pushad
+			mov ebx, cmd
+			mov eax, localClientNum
+			push frametime_base
+			call CL_MouseMove_t
+			add esp, 0x4
+			popad
+		}
+	}
+
+	void AdjustViewanglesForKeyboard(const int localClientNum)
+	{
+		static const DWORD AdjustViewanglesForKeyboard_t = 0x5A5D80;
+
+		__asm
+		{
+			pushad
+			mov eax, localClientNum
+			call AdjustViewanglesForKeyboard_t
+			popad
+		}
 	}
 }

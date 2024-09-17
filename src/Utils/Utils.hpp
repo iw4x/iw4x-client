@@ -20,8 +20,11 @@ namespace Utils
 	HMODULE GetNTDLL();
 
 	void SetEnvironment();
+	std::filesystem::path GetBaseFilesLocation();
 
 	void OpenUrl(const std::string& url);
+
+	std::wstring GetLaunchParameters();
 
 	bool HasIntersection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
 
@@ -67,12 +70,6 @@ namespace Utils
 		}
 	}
 
-	template <typename T>
-	bool Contains(const std::vector<T>* haystack, T needle)
-	{
-		return std::ranges::find(*haystack, needle) != haystack->end();
-	}
-
 	template <typename T> using Slot = std::function<T>;
 	template <typename T>
 	class Signal
@@ -86,6 +83,31 @@ namespace Utils
 			std::lock_guard<std::recursive_mutex> __(obj.mutex);
 
 			Utils::Merge(&this->slots, obj.getSlots());
+		}
+
+		void disconnect(const Slot<T> slot)
+		{
+			std::lock_guard<std::recursive_mutex> _(this->mutex);
+
+			if (slot)
+			{
+				this->slots.erase(
+					std::remove_if(
+						this->slots.begin(),
+						this->slots.end(),
+						[&](std::function<T>& a)
+						{
+							if (a.target<T>() == slot.target<T>())
+							{
+								return true;
+							}
+
+							return false;
+						}
+
+					), this->slots.end()
+				);
+			}
 		}
 
 		void connect(const Slot<T> slot)

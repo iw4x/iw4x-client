@@ -7,9 +7,9 @@ namespace Assets
 	{
 		AssertSize(Game::PhysPreset, 44);
 
-		Utils::Stream* buffer = builder->getBuffer();
-		Game::PhysPreset* asset = header.physPreset;
-		Game::PhysPreset* dest = buffer->dest<Game::PhysPreset>();
+		auto* buffer = builder->getBuffer();
+		auto* asset = header.physPreset;
+		auto* dest = buffer->dest<Game::PhysPreset>();
 		buffer->save(asset);
 
 		buffer->pushBlock(Game::XFILE_BLOCK_VIRTUAL);
@@ -27,5 +27,15 @@ namespace Assets
 		}
 
 		buffer->popBlock();
+	}
+
+	void IPhysPreset::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+	{
+		loadFromDisk(header, name, builder);
+	}
+
+	void IPhysPreset::loadFromDisk(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+	{
+		header->physPreset = builder->getIW4OfApi()->read<Game::PhysPreset>(Game::XAssetType::ASSET_TYPE_PHYSPRESET, name);
 	}
 }

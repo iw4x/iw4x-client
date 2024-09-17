@@ -1,4 +1,7 @@
 #include <STDInclude.hpp>
+#include "ServerCommands.hpp"
+#include "Stats.hpp"
+
 #include "GSC/Script.hpp"
 
 namespace Components
@@ -62,7 +65,7 @@ namespace Components
 		SendStats();
 	}
 
-	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, size_t length)
+	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, int size)
 	{
 		assert(*Game::fs_gameDirVar);
 
@@ -71,14 +74,14 @@ namespace Components
 			folder = (*Game::fs_gameDirVar)->current.string;
 		}
 
-		return Utils::Hook::Call<int(char*, const char*, const char*, size_t)>(0x426450)(dest, folder, buffer, length);
+		return Utils::Hook::Call<int(char*, const char*, const char*, int)>(0x426450)(dest, folder, buffer, size);
 	}
 
 	void Stats::AddScriptFunctions()
 	{
-		Script::AddMethod("GetStat", [](const Game::scr_entref_t entref)
+		GSC::Script::AddMethod("GetStat", [](const Game::scr_entref_t entref)
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 			const auto index = Game::Scr_GetInt(0);
 
 			if (index < 0 || index > 3499)
@@ -94,14 +97,14 @@ namespace Components
 			Game::Scr_AddInt(Game::SV_GetClientStat(ent->s.number, index));
 		});
 
-		Script::AddMethod("SetStat", [](const Game::scr_entref_t entref)
+		GSC::Script::AddMethod("SetStat", [](const Game::scr_entref_t entref)
 		{
-			const auto* ent = Game::GetPlayerEntity(entref);
+			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
 			const auto iNumParms = Game::Scr_GetNumParam();
 			if (iNumParms != 2)
 			{
-				Game::Scr_Error(Utils::String::VA("GetStat: takes 2 arguments, got %u.\n", iNumParms));
+				Game::Scr_Error(Utils::String::VA("GetStat: takes 2 arguments, got %u.", iNumParms));
 			}
 
 			const auto index = Game::Scr_GetInt(0);
@@ -159,7 +162,7 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x4CC5F9, 0xEB);
 
 		// 'M' Seems to be used on Xbox only for parsing platform specific ranks
-		ServerCommands::OnCommand('M', [](Command::Params* params)
+		ServerCommands::OnCommand('M', [](const Command::Params* params)
 		{
 			const auto* arg1 = params->get(1);
 			const auto* arg2 = params->get(2);
@@ -168,15 +171,15 @@ namespace Components
 			return true;
 		});
 
-		Command::Add("statGet", []([[maybe_unused]] Command::Params* params)
+		Command::Add("statGet", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
 			{
-				Logger::PrintError(Game::CON_CHANNEL_SERVER, "statget usage: statget <index>\n");
+				Logger::Print("statget usage: statget <index>\n");
 				return;
 			}
 
-			const auto index = std::atoi(params->get(1));
+			const auto index = std::strtol(params->get(1), nullptr, 0);
 			const auto stat = Game::LiveStorage_GetStat(0, index);
 			Logger::Print(Game::CON_CHANNEL_SYSTEM, "Stat {}: {}\n", index, stat);
 		});

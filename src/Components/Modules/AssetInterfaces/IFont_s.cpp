@@ -2,7 +2,7 @@
 #include "IFont_s.hpp"
 
 #define STB_TRUETYPE_IMPLEMENTATION
-#include <stb_truetype.h>
+#include <stb_truetype.hpp>
 
 namespace Assets
 {
@@ -110,7 +110,7 @@ namespace Assets
 		}
 		catch (const nlohmann::json::parse_error& ex)
 		{
-			Components::Logger::Error(Game::ERR_FATAL, "Json Parse Error: {}. Font {} is invalid\n", ex.what(), name);
+			Components::Logger::Error(Game::ERR_FATAL, "JSON Parse Error: {}. Font {} is invalid\n", ex.what(), name);
 			return;
 		}
 
@@ -262,9 +262,9 @@ namespace Assets
 		AssertSize(Game::Font_s, 24);
 		AssertSize(Game::Glyph, 24);
 
-		Utils::Stream* buffer = builder->getBuffer();
-		Game::Font_s* asset = header.font;
-		Game::Font_s* dest = buffer->dest<Game::Font_s>();
+		auto* buffer = builder->getBuffer();
+		auto* asset = header.font;
+		auto* dest = buffer->dest<Game::Font_s>();
 
 		buffer->save(asset);
 

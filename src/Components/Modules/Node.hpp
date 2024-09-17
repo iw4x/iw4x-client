@@ -1,6 +1,6 @@
 #pragma once
 
-#define NODE_HALFLIFE (3 * 60 * 1000) //3min
+#define NODE_HALFLIFE (3 * 60 * 1000) // 3min
 #define NODE_MAX_NODES_TO_SEND 64
 #define NODE_SEND_RATE 500ms
 
@@ -12,7 +12,7 @@ namespace Components
 		class Data
 		{
 		public:
-			uint64_t protocol;
+			std::uint64_t protocol;
 		};
 
 		class Entry
@@ -24,19 +24,19 @@ namespace Components
 			std::optional<Utils::Time::Point> lastRequest;
 			std::optional<Utils::Time::Point> lastResponse;
 
-			bool isValid();
-			bool isDead();
+			[[nodiscard]] bool isValid() const;
+			[[nodiscard]] bool isDead() const;
 
-			bool requiresRequest();
+			[[nodiscard]] bool requiresRequest() const;
 			void sendRequest();
 
 			void reset();
 		};
 
 		Node();
-		~Node();
+		void preDestroy() override;
 
-		static void Add(Network::Address address);
+		static void Add(const Network::Address& address);
 		static std::vector<Entry> GetNodes();
 		static void RunFrame();
 		static void Synchronize();
@@ -44,9 +44,11 @@ namespace Components
 	private:
 		static std::recursive_mutex Mutex;
 		static std::vector<Entry> Nodes;
-		static bool wasIngame;
+		static bool WasIngame;
 
-		static void HandleResponse(Network::Address address, const std::string& data);
+		static const Game::dvar_t* net_natFix;
+
+		static void HandleResponse(const Network::Address& address, const std::string& data);
 
 		static void SendList(const Network::Address& address);
 
@@ -54,6 +56,8 @@ namespace Components
 		static void LoadNodes();
 		static void StoreNodes(bool force);
 
-		static unsigned short GetPort();
+		static std::uint16_t GetPort();
+
+		static void Migrate();
 	};
 }

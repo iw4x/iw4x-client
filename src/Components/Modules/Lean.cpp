@@ -1,5 +1,8 @@
 #include <STDInclude.hpp>
 
+#include "Events.hpp"
+#include "Lean.hpp"
+
 namespace Components
 {
 	Dvar::Var Lean::BGLean;
@@ -27,7 +30,7 @@ namespace Components
 		Game::IN_KeyDown(&in_leanright);
 	}
 
-	void Lean::SetLeanFlags(Game::usercmd_s* cmd)
+	void Lean::ApplyLeanFlags(Game::usercmd_s* cmd)
 	{
 		if ((in_leanleft.active || in_leanleft.wasPressed) && BGLean.get<bool>())
 		{
@@ -41,23 +44,6 @@ namespace Components
 
 		in_leanleft.wasPressed = false;
 		in_leanright.wasPressed = false;
-	}
-
-	void __declspec(naked) Lean::CL_CmdButtons_Stub()
-	{
-		__asm
-		{
-			// CL_CmdButtons
-			mov ecx, 5A6510h
-			call ecx
-
-			pushad
-			push esi
-			call SetLeanFlags
-			pop esi
-			popad
-			retn
-		}
 	}
 
 	void Lean::PM_UpdateLean_Stub(Game::playerState_s* ps, float msec, Game::usercmd_s* cmd, void(*capsuleTrace)(Game::trace_t*, const float*, const float*, const Game::Bounds*, int, int))
@@ -76,12 +62,11 @@ namespace Components
 		Command::AddRaw("+leanright", IN_LeanRight_Down, true);
 		Command::AddRaw("-leanright", IN_LeanRight_Up, true);
 
-		Utils::Hook(0x5A6D84, CL_CmdButtons_Stub, HOOK_CALL).install()->quick();
+		Events::OnClientCmdButtons(ApplyLeanFlags);
 
 		Utils::Hook(0x4A0C72, PM_UpdateLean_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4A0D72, PM_UpdateLean_Stub, HOOK_CALL).install()->quick();
 
-		BGLean = Dvar::Register<bool>("bg_lean", true,
-			Game::DVAR_CODINFO, "Enable CoD4 leaning");
+		BGLean = Dvar::Register<bool>("bg_lean", true, Game::DVAR_CODINFO, "Enable CoD4 leaning");
 	}
 }

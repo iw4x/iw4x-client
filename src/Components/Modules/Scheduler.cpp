@@ -7,7 +7,7 @@ namespace Components
 {
 	std::thread Scheduler::Thread;
 	volatile bool Scheduler::Kill = false;
-	Scheduler::TaskPipeline Scheduler::Pipelines[Pipeline::COUNT];
+	Scheduler::TaskPipeline Scheduler::Pipelines[static_cast<std::underlying_type_t<Pipeline>>(Pipeline::COUNT)];
 
 	void Scheduler::TaskPipeline::add(Task&& task)
 	{
@@ -64,7 +64,8 @@ namespace Components
 	void Scheduler::Execute(Pipeline type)
 	{
 		assert(type < Pipeline::COUNT);
-		Pipelines[type].execute();
+		const auto index = static_cast<std::underlying_type_t<Pipeline>>(type);
+		Pipelines[index].execute();
 	}
 
 	void Scheduler::ScrPlace_EndFrame_Hk()
@@ -107,7 +108,8 @@ namespace Components
 		task.interval = delay;
 		task.lastCall = std::chrono::high_resolution_clock::now();
 
-		Pipelines[type].add(std::move(task));
+		const auto index = static_cast<std::underlying_type_t<Pipeline>>(type);
+		Pipelines[index].add(std::move(task));
 	}
 
 	void Scheduler::Loop(const std::function<void()>& callback, const Pipeline type,

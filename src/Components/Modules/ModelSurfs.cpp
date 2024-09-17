@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "ModelSurfs.hpp"
 
 namespace Components
 {
@@ -38,7 +39,8 @@ namespace Components
 	Game::XModelSurfs* ModelSurfs::LoadXModelSurfaces(const std::string& name)
 	{
 		Utils::Memory::Allocator allocator;
-		FileSystem::FileReader model(std::format("models/{}", name));
+		const auto path = std::format("models/{}", name);
+		FileSystem::FileReader model(path);
 
 		if (!model.exists())
 		{
@@ -56,7 +58,16 @@ namespace Components
 			}
 #endif
 
-			Logger::Error(Game::ERR_FATAL, "Loading model {} failed!", name);
+			if (ZoneBuilder::IsEnabled())
+			{
+				Logger::Print("Loading model surface {} at path \"{}\" failed!", name, path);
+			}
+			else
+			{
+				Logger::Error(Game::ERR_FATAL, "Loading model {} failed!", name);
+			}
+
+			return nullptr;
 		}
 
 		Game::CModelHeader header;

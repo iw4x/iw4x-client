@@ -1,4 +1,8 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
+#include "Discovery.hpp"
+#include "ServerList.hpp"
 
 namespace Components
 {
@@ -7,42 +11,47 @@ namespace Components
 	std::thread Discovery::Thread;
 	std::string Discovery::Challenge;
 
+	Dvar::Var Discovery::NetDiscoveryPortRangeMin;
+	Dvar::Var Discovery::NetDiscoveryPortRangeMax;
+
 	void Discovery::Perform()
 	{
-		Discovery::IsPerforming = true;
+		IsPerforming = true;
 	}
 
 	Discovery::Discovery()
 	{
-		Dvar::Register<int>("net_discoveryPortRangeMin", 25000, 0, 65535, Game::DVAR_ARCHIVE, "Minimum scan range port for local server discovery");
-		Dvar::Register<int>("net_discoveryPortRangeMax", 35000, 1, 65536, Game::DVAR_ARCHIVE, "Maximum scan range port for local server discovery");
+		NetDiscoveryPortRangeMin = Dvar::Register<int>("net_discoveryPortRangeMin", 25000, 0, 65535, Game::DVAR_NONE, "Minimum scan range port for local server discovery");
+		NetDiscoveryPortRangeMax = Dvar::Register<int>("net_discoveryPortRangeMax", 35000, 1, 65536, Game::DVAR_NONE, "Maximum scan range port for local server discovery");
 
 		// An additional thread prevents lags
 		// Not sure if that's the best way though
-		Discovery::IsPerforming = false;
-		Discovery::IsTerminating = false;
-		Discovery::Thread = std::thread([]()
+		IsPerforming = false;
+		IsTerminating = false;
+		Thread = std::thread([]
 		{
-			while (!Discovery::IsTerminating)
+			Com_InitThreadData();
+
+			while (!IsTerminating)
 			{
-				if (Discovery::IsPerforming)
+				if (IsPerforming)
 				{
-					int start = Game::Sys_Milliseconds();
+					const auto start = Game::Sys_Milliseconds();
 
 					Logger::Print("Starting local server discovery...\n");
 
-					Discovery::Challenge = Utils::Cryptography::Rand::GenerateChallenge();
+					Challenge = Utils::Cryptography::Rand::GenerateChallenge();
 
-					unsigned int minPort = Dvar::Var("net_discoveryPortRangeMin").get<unsigned int>();
-					unsigned int maxPort = Dvar::Var("net_discoveryPortRangeMax").get<unsigned int>();
-					Network::BroadcastRange(minPort, maxPort, Utils::String::VA("discovery %s", Discovery::Challenge.data()));
+					const auto minPort = NetDiscoveryPortRangeMin.get<unsigned int>();
+					const auto maxPort = NetDiscoveryPortRangeMax.get<unsigned int>();
+					Network::BroadcastRange(minPort, maxPort, std::format("discovery {}", Challenge));
 
 					Logger::Print("Discovery sent within {}ms, awaiting responses...\n", Game::Sys_Milliseconds() - start);
 
-					Discovery::IsPerforming = false;
+					IsPerforming = false;
 				}
 
-				std::this_thread::sleep_for(50ms);
+				Game::Sys_Sleep(50);
 			}
 		});
 
@@ -70,7 +79,7 @@ namespace Components
 				return;
 			}
 
-			if (Utils::ParseChallenge(data) != Discovery::Challenge)
+			if (Utils::ParseChallenge(data) != Challenge)
 			{
 				Logger::Print("Received discovery with invalid challenge from: {}\n", address.getString());
 				return;
@@ -87,12 +96,12 @@ namespace Components
 
 	void Discovery::preDestroy()
 	{
-		Discovery::IsPerforming = false;
-		Discovery::IsTerminating = true;
+		IsPerforming = false;
+		IsTerminating = true;
 
-		if (Discovery::Thread.joinable())
+		if (Thread.joinable())
 		{
-			Discovery::Thread.join();
+			Thread.join();
 		}
 	}
 }

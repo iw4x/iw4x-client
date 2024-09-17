@@ -13,7 +13,7 @@ namespace Components
 			{
 				ZeroMemory(&this->searchPath, sizeof this->searchPath);
 				this->hash = Maps::GetUsermapHash(this->mapname);
-				Game::UI_UpdateArenas();
+				Maps::ForceRefreshArenas();
 			}
 
 			~UserMapContainer()
@@ -29,7 +29,10 @@ namespace Components
 			{
 				bool wasValid = this->isValid();
 				this->mapname.clear();
-				if (wasValid) Game::UI_UpdateArenas();
+				if (wasValid)
+				{
+					Maps::ForceRefreshArenas();
+				}
 			}
 
 			void loadIwd();
@@ -43,7 +46,7 @@ namespace Components
 			bool wasFreed;
 			unsigned int hash;
 			std::string mapname;
-			Game::searchpath_t searchPath;
+			Game::searchpath_s searchPath;
 		};
 
 		Maps();
@@ -54,7 +57,7 @@ namespace Components
 		static std::string CurrentMainZone;
 		static const char* UserMapFiles[4];
 
-		static bool CheckMapInstalled(const char* mapname, bool error = false, bool dlcIsTrue = false);
+		static bool CheckMapInstalled(const std::string& mapname, bool error = false, bool dlcIsTrue = false);
 
 		static UserMapContainer* GetUserMap();
 		static unsigned int GetUsermapHash(const std::string& map);
@@ -62,6 +65,12 @@ namespace Components
 		static Game::XAssetEntry* GetAssetEntryPool();
 		static bool IsCustomMap();
 		static bool IsUserMap(const std::string& mapname);
+
+		static void ScanCustomMaps();
+		static std::string GetArenaPath(const std::string& mapName);
+		static const std::vector<std::string>& GetCustomMaps();
+
+		static std::unordered_map<std::string, std::string> ParseCustomMapArena(const std::string& singleMapArena);
 
 	private:
 		class DLC
@@ -85,8 +94,11 @@ namespace Components
 
 		static std::vector<std::pair<std::string, std::string>> DependencyList;
 		static std::vector<std::string> CurrentDependencies;
+		static std::vector<std::string> FoundCustomMaps;
 
 		static Dvar::Var RListSModels;
+
+		static void ForceRefreshArenas();
 
 		static void GetBSPName(char* buffer, size_t size, const char* format, const char* mapname);
 		static void LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* restrict);
@@ -119,14 +131,8 @@ namespace Components
 		static void HideModel();
 		static void HideModelStub();
 
-		static Game::dvar_t* GetDistortionDvar();
-		static void SetDistortionStub();
-
-		static Game::dvar_t* GetSpecularDvar();
-		static void SetSpecularStub1();
-		static void SetSpecularStub2();
 		static void G_SpawnTurretHook(Game::gentity_s* ent, int unk, int unk2);
 		static bool SV_SetTriggerModelHook(Game::gentity_s* ent);
-		static int16 CM_TriggerModelBounds(int brushModelPointer, Game::Bounds* bounds);
+		static unsigned short CM_TriggerModelBounds_Hk(unsigned int brushModelPointer, Game::Bounds* bounds);
 	};
 }

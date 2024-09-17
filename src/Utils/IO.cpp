@@ -46,12 +46,12 @@ namespace Utils::IO
 			if (!stream.is_open()) return false;
 
 			stream.seekg(0, std::ios::end);
-			std::streamsize size = stream.tellg();
+			const std::streamsize size = stream.tellg();
 			stream.seekg(0, std::ios::beg);
 
 			if (size > -1)
 			{
-				data->resize(static_cast<uint32_t>(size));
+				data->resize(static_cast<std::string::size_type>(size));
 				stream.read(data->data(), size);
 				stream.close();
 				return true;
@@ -97,13 +97,23 @@ namespace Utils::IO
 		return std::filesystem::is_empty(directory);
 	}
 
-	std::vector<std::string> ListFiles(const std::filesystem::path& directory)
+	std::vector<std::filesystem::directory_entry> ListFiles(const std::filesystem::path& directory, const bool recursive)
 	{
-		std::vector<std::string> files;
+		std::vector<std::filesystem::directory_entry> files;
 
-		for (auto& file : std::filesystem::directory_iterator(directory))
+		if (recursive)
 		{
-			files.push_back(file.path().generic_string());
+			for (auto& file : std::filesystem::recursive_directory_iterator(directory))
+			{
+				files.push_back(file);
+			}
+		}
+		else
+		{
+			for (auto& file : std::filesystem::directory_iterator(directory))
+			{
+				files.push_back(file);
+			}
 		}
 
 		return files;

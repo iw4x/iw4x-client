@@ -14,7 +14,15 @@ namespace Game
 
 	G_LocalizedStringIndex_t G_LocalizedStringIndex = G_LocalizedStringIndex_t(0x4582F0);
 
-	gentity_t* g_entities = reinterpret_cast<gentity_t*>(0x18835D8);
+	G_DebugLineWithDuration_t G_DebugLineWithDuration = G_DebugLineWithDuration_t(0x4C3280);
+
+	gentity_s* g_entities = reinterpret_cast<gentity_s*>(0x18835D8);
+	bool* g_quitRequested = reinterpret_cast<bool*>(0x649FB61);
+
+	NetField* clientStateFields = reinterpret_cast<Game::NetField*>(0x741E40);
+	size_t clientStateFieldsCount = Utils::Hook::Get<size_t>(0x7433C8);
+
+	MssLocal* milesGlobal = reinterpret_cast<MssLocal*>(0x649A1A0);
 
 	const char* origErrorMsg = reinterpret_cast<const char*>(0x79B124);
 
@@ -23,5 +31,10 @@ namespace Game
 		assert(index > 0);
 		assert(index < MAX_MODELS);
 		return cached_models[index];
+	}
+
+	void G_DebugStar(const float* point, const float* color)
+	{
+		CL_AddDebugStar(point, color, 20, 1);
 	}
 }

@@ -5,6 +5,8 @@ namespace Components
 	class ClanTags : public Component
 	{
 	public:
+		static constexpr std::size_t MAX_CLAN_NAME_LENGTH = 5;
+
 		ClanTags();
 
 		static const char* GetClanTagWithName(int clientNum, const char* playerName);
@@ -14,7 +16,7 @@ namespace Components
 		static void CL_SanitizeClanName();
 
 	private:
-		static Game::dvar_t* ClanName;
+		static const Game::dvar_t* ClanName;
 
 		static const char* dvarNameList[];
 

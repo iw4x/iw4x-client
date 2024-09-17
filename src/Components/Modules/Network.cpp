@@ -2,17 +2,25 @@
 
 namespace Components
 {
-	Utils::Signal<Network::CallbackRaw> Network::StartupSignal;
 	// Packet interception
-	std::unordered_map<std::string, Network::NetworkCallback> Network::CL_Callbacks;
+	std::unordered_map<std::string, Network::networkCallback> Network::CL_Callbacks;
+	std::unordered_map<std::string, Network::networkRawCallback> Network::CL_RawCallbacks;
+
+	Network::Address::Address()
+	{
+		ZeroMemory(&this->address, sizeof(Game::netadr_t));
+		this->setType(Game::NA_BAD);
+	}
 
 	Network::Address::Address(const std::string& addrString)
 	{
+		ZeroMemory(&this->address, sizeof(Game::netadr_t));
 		Game::NET_StringToAdr(addrString.data(), &this->address);
 	}
 
 	Network::Address::Address(sockaddr* addr)
 	{
+		ZeroMemory(&this->address, sizeof(Game::netadr_t));
 		Game::SockadrToNetadr(addr, &this->address);
 	}
 
@@ -23,12 +31,17 @@ namespace Components
 
 	void Network::Address::setPort(unsigned short port)
 	{
-		this->address.port = htons(port);
+		this->address.port = ::htons(port);
 	}
 
 	unsigned short Network::Address::getPort() const
 	{
 		return ntohs(this->address.port);
+	}
+
+	unsigned short Network::Address::getPortRaw() const
+	{
+		return this->address.port;
 	}
 
 	void Network::Address::setIP(DWORD ip)
@@ -76,7 +89,7 @@ namespace Components
 		this->toSockAddr(reinterpret_cast<sockaddr*>(addr));
 	}
 
-	Game::netadr_t* Network::Address::get()
+	const Game::netadr_t* Network::Address::get() const noexcept
 	{
 		return &this->address;
 	}
@@ -88,10 +101,10 @@ namespace Components
 
 	std::string Network::Address::getString() const
 	{
-		return {this->getCString()};
+		return std::string{ this->getCString() };
 	}
 
-	bool Network::Address::isLocal()
+	bool Network::Address::isLocal() const noexcept
 	{
 		// According to: https://en.wikipedia.org/wiki/Private_network
 
@@ -112,7 +125,7 @@ namespace Components
 		return false;
 	}
 
-	bool Network::Address::isSelf()
+	bool Network::Address::isSelf() const noexcept
 	{
 		if (Game::NET_IsLocalAddress(this->address)) return true; // Loopback
 		if (this->getPort() != GetPort()) return false; // Port not equal
@@ -128,7 +141,7 @@ namespace Components
 		return false;
 	}
 
-	bool Network::Address::isLoopback() const
+	bool Network::Address::isLoopback() const noexcept
 	{
 		if (this->getIP().full == 0x100007f) // 127.0.0.1
 		{
@@ -138,17 +151,37 @@ namespace Components
 		return Game::NET_IsLocalAddress(this->address);
 	}
 
-	bool Network::Address::isValid() const
+	bool Network::Address::isValid() const noexcept
 	{
 		return (this->getType() != Game::NA_BAD && this->getType() >= Game::NA_BOT && this->getType() <= Game::NA_IP);
 	}
 
-	void Network::OnStart(const Utils::Slot<CallbackRaw>& callback)
+	const char* Network::AdrToString(const Address& a, const bool port)
 	{
-		StartupSignal.connect(callback);
+		if (a.getType() == Game::netadrtype_t::NA_LOOPBACK)
+		{
+			return "loopback";
+		}
+
+		if (a.getType() == Game::netadrtype_t::NA_BOT)
+		{
+			return "bot";
+		}
+
+		if (a.getType() == Game::netadrtype_t::NA_IP || a.getType() == Game::netadrtype_t::NA_BROADCAST)
+		{
+			if (a.getPort() && port)
+			{
+				return Utils::String::VA("%u.%u.%u.%u:%u", a.getIP().bytes[0], a.getIP().bytes[1], a.getIP().bytes[2], a.getIP().bytes[3], htons(a.getPortRaw()));
+			}
+
+			return Utils::String::VA("%u.%u.%u.%u", a.getIP().bytes[0], a.getIP().bytes[1], a.getIP().bytes[2], a.getIP().bytes[3]);
+		}
+
+		return "bad";
 	}
 
-	void Network::Send(Game::netsrc_t type, Address target, const std::string& data)
+	void Network::Send(Game::netsrc_t type, const Address& target, const std::string& data)
 	{
 		// Do not use NET_OutOfBandPrint. It only supports non-binary data!
 
@@ -159,12 +192,12 @@ namespace Components
 		SendRaw(type, target, rawData);
 	}
 
-	void Network::Send(Address target, const std::string& data)
+	void Network::Send(const Address& target, const std::string& data)
 	{
 		Send(Game::netsrc_t::NS_CLIENT1, target, data);
 	}
 
-	void Network::SendRaw(Game::netsrc_t type, Address target, const std::string& data)
+	void Network::SendRaw(Game::netsrc_t type, const Address& target, const std::string& data)
 	{
 		if (!target.isValid()) return;
 
@@ -172,25 +205,25 @@ namespace Components
 		Game::Sys_SendPacket(type, data.size(), data.data(), *target.get());
 	}
 
-	void Network::SendRaw(Address target, const std::string& data)
+	void Network::SendRaw(const Address& target, const std::string& data)
 	{
 		SendRaw(Game::NS_CLIENT1, target, data);
 	}
 
-	void Network::SendCommand(Game::netsrc_t type, Address target, const std::string& command, const std::string& data)
+	void Network::SendCommand(Game::netsrc_t type, const Address& target, const std::string& command, const std::string& data)
 	{
 		// Use space as separator (possible separators are '\n', ' ').
 		// Though, our handler only needs exactly 1 char as separator and doesn't care which char it is.
 		// EDIT: Most 3rd party tools expect a line break, so let's use that instead!
 		std::string packet;
 		packet.append(command);
-		packet.append("\n", 1);
+		packet.push_back('\n');
 		packet.append(data);
 
 		Send(type, target, packet);
 	}
 
-	void Network::SendCommand(Address target, const std::string& command, const std::string& data)
+	void Network::SendCommand(const Address& target, const std::string& command, const std::string& data)
 	{
 		SendCommand(Game::NS_CLIENT1, target, command, data);
 	}
@@ -219,25 +252,11 @@ namespace Components
 		BroadcastRange(100, 65536, data);
 	}
 
-	void Network::NetworkStart()
+	std::uint16_t Network::GetPort()
 	{
-		StartupSignal();
-		StartupSignal.clear();
-	}
-
-	unsigned short Network::GetPort()
-	{
-		return static_cast<unsigned short>(Dvar::Var(0x64A3004).get<unsigned int>());
-	}
-
-	__declspec(naked) void Network::NetworkStartStub()
-	{
-		__asm
-		{
-			mov eax, 64D900h
-			call eax
-			jmp NetworkStart
-		}
+		assert((*Game::port));
+		assert((*Game::port)->current.unsignedInt <= std::numeric_limits<std::uint16_t>::max());
+		return static_cast<std::uint16_t>((*Game::port)->current.unsignedInt);
 	}
 
 	__declspec(naked) void Network::PacketErrorCheck()
@@ -259,40 +278,43 @@ namespace Components
 		}
 	}
 
-	void Network::SV_ExecuteClientMessageStub(Game::client_t* client, Game::msg_t* msg)
-	{
-		if (client->reliableAcknowledge < 0)
-		{
-			Logger::Print(Game::CON_CHANNEL_NETWORK, "Negative reliableAcknowledge from {} - cl->reliableSequence is {}, reliableAcknowledge is {}\n",
-				client->name, client->reliableSequence, client->reliableAcknowledge);
-			client->reliableAcknowledge = client->reliableSequence;
-			SendCommand(Game::NS_SERVER, client->header.netchan.remoteAddress, "error", "EXE_LOSTRELIABLECOMMANDS");
-			return;
-		}
-
-		Utils::Hook::Call<void(Game::client_t*, Game::msg_t*)>(0x414D40)(client, msg);
-	}
-
-	void Network::OnClientPacket(const std::string& command, const NetworkCallback& callback)
+	void Network::OnClientPacket(const std::string& command, const networkCallback& callback)
 	{
 		CL_Callbacks[Utils::String::ToLower(command)] = callback;
 	}
 
-	bool Network::CL_HandleCommand(Game::netadr_t* address, const char* command, const Game::msg_t* message)
+	void Network::OnClientPacketRaw(const std::string& command, const networkRawCallback& callback)
+	{
+		CL_RawCallbacks[Utils::String::ToLower(command)] = callback;
+	}
+
+	bool Network::CL_HandleCommand(Game::netadr_t* address, const char* command, Game::msg_t* message)
 	{
 		const auto command_ = Utils::String::ToLower(command);
-		const auto handler = CL_Callbacks.find(command_);
 
 		const auto offset = command_.size() + 5;
-		if (static_cast<std::size_t>(message->cursize) < offset || handler == CL_Callbacks.end())
+		if (static_cast<std::size_t>(message->cursize) < offset)
 		{
 			return false;
 		}
 
-		const std::string data(reinterpret_cast<char*>(message->data) + offset, message->cursize - offset);
+		if (const auto rawHandler = CL_RawCallbacks.find(command_); rawHandler != CL_RawCallbacks.end())
+		{
+			rawHandler->second(address, message);
+			return true;
+		}
 
-		auto address_ = Address(address);
-		handler->second(address_, data);
+		const auto handler = CL_Callbacks.find(command_);
+		if (handler == CL_Callbacks.end())
+		{
+			// Normal handler was not found, return
+			return false;
+		}
+
+		const std::string data{ reinterpret_cast<char*>(message->data) + offset, message->cursize - offset };
+
+		auto target = Address{ address };
+		handler->second(target, data);
 		return true;
 	}
 
@@ -331,48 +353,94 @@ namespace Components
 	{
 		AssertSize(Game::netadr_t, 20);
 
-		// maximum size in NET_OutOfBandPrint
-		Utils::Hook::Set<DWORD>(0x4AEF08, 0x1FFFC);
-		Utils::Hook::Set<DWORD>(0x4AEFA3, 0x1FFFC);
+		// Maximum size in NET_OutOfBandPrint
+		Utils::Hook::Set<std::uint32_t>(0x4AEF08, 0x1FFFC);
+		Utils::Hook::Set<std::uint32_t>(0x4AEFA3, 0x1FFFC);
 
-		// increase max port binding attempts from 10 to 100
-		Utils::Hook::Set<BYTE>(0x4FD48A, 100);
+		// Increase max port binding attempts from 10 to 100
+		Utils::Hook::Set<std::uint8_t>(0x4FD48A, 100);
 
-		// increase cl_maxpackets limit
-		Utils::Hook::Set<BYTE>(0x4050A1, 125);
+		// Increase cl_maxpackets dvar limit
+		Utils::Hook::Set<std::uint8_t>(0x4050A1, 125);
 
-		// increase snaps
+		// Increase snaps (disabled for unknown reasons)
 		//Utils::Hook::Set<BYTE>(0x405357, 40);
 
-		// default maxpackets and snaps
-		Utils::Hook::Set<BYTE>(0x40535B, 30);
-		Utils::Hook::Set<BYTE>(0x4050A5, 125);
+		// Set default value of snaps and cl_maxpackets dvar
+		Utils::Hook::Set<std::uint8_t>(0x40535B, 30);
+		Utils::Hook::Set<std::uint8_t>(0x4050A5, 125);
 
 		// Parse port as short in Net_AddrToString
 		Utils::Hook::Set<const char*>(0x4698E3, "%u.%u.%u.%u:%hu");
 
-		// Install startup handler
-		Utils::Hook(0x4FD4D4, NetworkStartStub, HOOK_JUMP).install()->quick();
-
 		// Prevent recvfrom error spam
 		Utils::Hook(0x46531A, PacketErrorCheck, HOOK_JUMP).install()->quick();
-
-		// Fix server freezer exploit
-		Utils::Hook(0x626996, SV_ExecuteClientMessageStub, HOOK_CALL).install()->quick();
 		
 		// Handle client packets
 		Utils::Hook(0x5AA703, CL_HandleCommandStub, HOOK_JUMP).install()->quick();
 
 		// Disable unused OOB packets handlers just to be sure
-		Utils::Hook::Set<BYTE>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
-		Utils::Hook::Set<BYTE>(0x5AA69F, 0xEB); // echo
-		Utils::Hook::Set<BYTE>(0x5AAA82, 0xEB); // SP
-		Utils::Hook::Set<BYTE>(0x5A9F18, 0xEB); // CL_VoiceConnectionTestPacket
-		Utils::Hook::Set<BYTE>(0x5A9FF3, 0xEB); // CL_HandleRelayPacket
+		Utils::Hook::Set<std::uint8_t>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
+		Utils::Hook::Set<std::uint8_t>(0x5AA69F, 0xEB); // echo
+		Utils::Hook::Set<std::uint8_t>(0x5AAA82, 0xEB); // SP
+		Utils::Hook::Set<std::uint8_t>(0x5A9F77, 0xEB); // CL_WeNowCantHearSomeone
+		Utils::Hook::Set<std::uint8_t>(0x5A9F18, 0xEB); // CL_VoiceConnectionTestPacket
+		Utils::Hook::Set<std::uint8_t>(0x5A9FF3, 0xEB); // CL_HandleRelayPacket
 
-		OnClientPacket("resolveAddress", [](const Address& address, [[maybe_unused]] const std::string& data)
+		// For security reasons check the sender of the 'print' OOB
+		Utils::Hook::Set<std::uint8_t>(0x5AA729, 0xEB);
+
+		// Com_GetProtocol
+		Utils::Hook::Set<std::uint32_t>(0x4FB501, PROTOCOL);
+
+		// Set the default, min and max of the protocol dvar
+		Utils::Hook::Set<std::uint32_t>(0x4D36A9, PROTOCOL);
+		Utils::Hook::Set<std::uint32_t>(0x4D36AE, PROTOCOL);
+		Utils::Hook::Set<std::uint32_t>(0x4D36B3, PROTOCOL);
+
+		// Internal version is 99, most servers should accept it
+		Utils::Hook::Set<std::uint32_t>(0x463C61, 208); // getBuildNumberAsInt
+
+		// LSP disabled
+		Utils::Hook::Set<std::uint8_t>(0x435950, 0xC3); // LSP HELLO
+		Utils::Hook::Set<std::uint8_t>(0x49C220, 0xC3); // We wanted to send a logging packet, but we haven't connected to LSP!
+		Utils::Hook::Set<std::uint8_t>(0x4BD900, 0xC3); // main LSP response func
+		Utils::Hook::Set<std::uint8_t>(0x682170, 0xC3); // Telling LSP that we're playing a private match
+		Utils::Hook::Nop(0x4FD448, 5); // Don't create lsp_socket
+
+		// Do not run UPNP stuff at all
+		Utils::Hook::Set<std::uint8_t>(0x48A135, 0xC3);
+		Utils::Hook::Nop(0x48A135 + 1, 4);
+
+		Utils::Hook::Set<std::uint8_t>(0x48A151, 0xC3);
+		Utils::Hook::Nop(0x48A151 + 1, 4);
+
+		// Don't spam the console
+		Utils::Hook(0x684080, Game::Com_DPrintf, HOOK_CALL).install()->quick();
+
+		// Disable the IWNet IP detection (default 'got ipdetect' flag to 1)
+		Utils::Hook::Set<std::uint8_t>(0x649D6F0, 1);
+
+		OnClientPacket("resolveAddress", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
 		{
 			SendRaw(address, address.getString());
+		});
+
+		OnClientPacketRaw("print", [](Game::netadr_t* address, Game::msg_t* msg)
+		{
+			auto* clc = Game::CL_GetLocalClientConnection(0);
+			if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address))
+			{
+				Logger::Debug("Ignoring stray 'print' network message from '{}'", Game::NET_AdrToString(*address));
+				return;
+			}
+
+			char printBuf[2048]{};
+
+			const auto* s = Game::MSG_ReadBigString(msg);
+			Game::I_strncpyz(clc->serverMessage, s, sizeof(clc->serverMessage));
+			Game::Com_sprintf(printBuf, sizeof(printBuf), "%s", s);
+			Game::Com_PrintMessage(Game::CON_CHANNEL_CLIENT, printBuf, false);
 		});
 	}
 }

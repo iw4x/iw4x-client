@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	enum TextColor
+	enum TextColor : int
 	{
 		TEXT_COLOR_BLACK = 0,
 		TEXT_COLOR_RED = 1,
@@ -42,6 +42,7 @@ namespace Components
 
 	class TextRenderer : public Component
 	{
+	public:
 		static constexpr auto STRING_BUFFER_SIZE_BIG = 1024;
 		static constexpr auto STRING_BUFFER_SIZE_SMALL = 128;
 
@@ -88,7 +89,6 @@ namespace Components
 			1.0f
 		};
 
-	public:
 		static constexpr char FONT_ICON_SEPARATOR_CHARACTER = ':';
 		static constexpr char FONT_ICON_MODIFIER_SEPARATOR_CHARACTER = '+';
 		static constexpr char FONT_ICON_MODIFIER_FLIP_HORIZONTALLY = 'h';
@@ -139,7 +139,7 @@ namespace Components
 		class BufferedLocalizedString
 		{
 		public:
-			BufferedLocalizedString(const char* reference, size_t bufferSize);
+			BufferedLocalizedString(const char* reference, std::size_t bufferSize);
 			void Cache();
 			const char* Format(const char* value);
 			const char* GetString() const;
@@ -148,7 +148,7 @@ namespace Components
 		private:
 			const char* stringReference;
 			std::unique_ptr<char[]> stringBuffer;
-			size_t stringBufferSize;
+			std::size_t stringBufferSize;
 			int stringWidth[FONT_ICON_ACI_COUNT];
 		};
 

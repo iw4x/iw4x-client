@@ -10,7 +10,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "windows.h"
+#include "Windows.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -29,7 +29,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 1 TEXTINCLUDE 
 BEGIN
-    "#include ""windows.h""\r\n"
+    "#include ""Windows.h""\r\n"
     "\0"
 END
 
@@ -47,8 +47,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION VERSION_RC
- PRODUCTVERSION VERSION_RC
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -69,12 +69,12 @@ BEGIN
 #else
             VALUE "FileDescription", "IW4 client modification"
 #endif
-            VALUE "FileVersion", SHORTVERSION 
+            VALUE "FileVersion", REVISION_STR
             VALUE "InternalName", "iw4x"
-            VALUE "LegalCopyright", "Copyright 2022 The IW4x Team. All rights reserved."
+            VALUE "LegalCopyright", "Copyright 2023 The IW4x Team. All rights reserved."
             VALUE "OriginalFilename", "iw4x.dll"
             VALUE "ProductName", "IW4x"
-            VALUE "ProductVersion", SHORTVERSION
+            VALUE "ProductVersion", REVISION_STR
         END
     END
     BLOCK "VarFileInfo"

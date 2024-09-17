@@ -1,8 +1,11 @@
 #include <STDInclude.hpp>
+#include <proto/session.pb.h>
+
+#include "Session.hpp"
 
 namespace Components
 {
-	bool Session::Terminate;
+	volatile bool Session::Terminate;
 	std::thread Session::Thread;
 
 	std::recursive_mutex Session::Mutex;
@@ -11,7 +14,7 @@ namespace Components
 
 	Utils::Cryptography::ECC::Key Session::SignatureKey;
 
-	std::unordered_map<std::string, Network::NetworkCallback> Session::PacketHandlers;
+	std::unordered_map<std::string, Network::networkCallback> Session::PacketHandlers;
 
 	std::queue<std::pair<Network::Address, std::string>> Session::SignatureQueue;
 
@@ -58,7 +61,7 @@ namespace Components
 #endif
 	}
 
-	void Session::Handle(const std::string& packet, const Network::NetworkCallback& callback)
+	void Session::Handle(const std::string& packet, const Network::networkCallback& callback)
 	{
 #ifdef DISABLE_SESSION
 		Network::OnClientPacket(packet, callback);
@@ -141,11 +144,13 @@ namespace Components
 			Session::Terminate = false;
 			Session::Thread = std::thread([]()
 			{
+				Com_InitThreadData();
+
 				while (!Session::Terminate)
 				{
 					Session::RunFrame();
 					Session::HandleSignatures();
-					std::this_thread::sleep_for(20ms);
+					Game::Sys_Sleep(20);
 				}
 			});
 		}

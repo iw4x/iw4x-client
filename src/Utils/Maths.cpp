@@ -7,7 +7,7 @@ namespace Utils::Maths
 		return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 	}
 
-	void VectorSubtract(float va[3], float vb[3], float out[3])
+	void VectorSubtract(const float va[3], const float vb[3], float out[3])
 	{
 		out[0] = va[0] - vb[0];
 		out[1] = va[1] - vb[1];
@@ -35,7 +35,7 @@ namespace Utils::Maths
 		out[2] = v[2] * scale;
 	}
 
-	float Vec3SqrDistance(float v1[3], float v2[3])
+	float Vec3SqrDistance(const float v1[3], const float v2[3])
 	{
 		float out[3];
 

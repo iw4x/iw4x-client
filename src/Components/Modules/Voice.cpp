@@ -1,5 +1,9 @@
 #include <STDInclude.hpp>
 
+#include "Chat.hpp"
+#include "Events.hpp"
+#include "Voice.hpp"
+
 namespace Components
 {
 	Game::VoicePacket_t Voice::VoicePackets[Game::MAX_CLIENTS][MAX_SERVER_QUEUED_VOICE_PACKETS];
@@ -34,19 +38,19 @@ namespace Components
 		assert(!msg->overflowed);
 	}
 
-	void Voice::SV_SendClientVoiceData(Game::client_t* client)
+	void Voice::SV_SendClientVoiceData(Game::client_s* client)
 	{
 		Game::msg_t msg{};
 		const auto clientNum = client - Game::svs_clients;
 
-		const auto msg_buf_large = std::make_unique<unsigned char[]>(0x10000);
+		const auto msg_buf_large = std::make_unique<unsigned char[]>(0x20000);
 		auto* msg_buf = msg_buf_large.get();
 
 		assert(VoicePacketCount[clientNum] >= 0);
 
 		if (client->header.state == Game::CS_ACTIVE && VoicePacketCount[clientNum])
 		{
-			Game::MSG_Init(&msg, msg_buf, 0x10000);
+			Game::MSG_Init(&msg, msg_buf, 0x20000);
 
 			assert(msg.cursize == 0);
 			assert(msg.bit == 0);
@@ -66,10 +70,10 @@ namespace Components
 		}
 	}
 
-	void Voice::SV_SendClientMessages_Stub(Game::client_t* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf)
+	void Voice::SV_SendClientMessages_Stub(Game::client_s* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf)
 	{
 		// SV_EndClientSnapshot
-		Utils::Hook::Call<void(Game::client_t*, Game::msg_t*, unsigned char*)>(0x4F5300)(client, msg, snapshotMsgBuf);
+		Utils::Hook::Call<void(Game::client_s*, Game::msg_t*, unsigned char*)>(0x4F5300)(client, msg, snapshotMsgBuf);
 
 		SV_SendClientVoiceData(client);
 	}
@@ -103,10 +107,12 @@ namespace Components
 		{
 			return false;
 		}
+
 		if (ent1->client->sess.cs.team)
 		{
 			return ent1->client->sess.cs.team == ent2->client->sess.cs.team;
 		}
+
 		return false;
 	}
 
@@ -144,7 +150,7 @@ namespace Components
 		}
 	}
 
-	void Voice::SV_UserVoice(Game::client_t* cl, Game::msg_t* msg)
+	void Voice::SV_UserVoice(Game::client_s* cl, Game::msg_t* msg)
 	{
 		Game::VoicePacket_t voicePacket{};
 
@@ -162,6 +168,7 @@ namespace Components
 			voicePacket.dataSize = Game::MSG_ReadByte(msg);
 			if (voicePacket.dataSize <= 0 || voicePacket.dataSize > MAX_VOICE_PACKET_DATA)
 			{
+				Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(cl->header.netchan.remoteAddress));
 				Logger::Print(Game::CON_CHANNEL_SERVER, "Received invalid voice packet of size {} from {}\n", voicePacket.dataSize, cl->name);
 				return;
 			}
@@ -175,7 +182,7 @@ namespace Components
 		}
 	}
 
-	void Voice::SV_PreGameUserVoice(Game::client_t* cl, Game::msg_t* msg)
+	void Voice::SV_PreGameUserVoice(Game::client_s* cl, Game::msg_t* msg)
 	{
 		Game::VoicePacket_t voicePacket{};
 
@@ -237,7 +244,7 @@ namespace Components
 	void Voice::CL_WriteVoicePacket_Hk(const int localClientNum)
 	{
 		const auto connstate = Game::CL_GetLocalClientConnectionState(localClientNum);
-		const auto clc = Game::CL_GetLocalClientConnection(localClientNum);
+		const auto* clc = Game::CL_GetLocalClientConnection(localClientNum);
 		const auto* vc = Game::CL_GetLocalClientVoiceCommunication(localClientNum);
 		if (clc->demoplaying || (connstate < Game::CA_LOADING))
 		{
@@ -311,8 +318,15 @@ namespace Components
 		}
 	}
 
-	void Voice::CL_VoicePacket_Hk(const int localClientNum, Game::msg_t* msg)
+	void Voice::CL_VoicePacket(Game::netadr_t* address, Game::msg_t* msg)
 	{
+		auto* clc = Game::CL_GetLocalClientConnection(0);
+		if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address))
+		{
+			Logger::Debug("Ignoring stray 'v' network message from '{}'", Game::NET_AdrToString(*address));
+			return;
+		}
+
 		const auto numPackets = Game::MSG_ReadByte(msg);
 		if (numPackets < 0 || numPackets > MAX_SERVER_QUEUED_VOICE_PACKETS)
 		{
@@ -338,7 +352,7 @@ namespace Components
 				return;
 			}
 
-			if (!CL_IsPlayerMuted_Hk(nullptr, localClientNum, voicePacket.talker))
+			if (!CL_IsPlayerMuted_Hk(nullptr, 0, voicePacket.talker))
 			{
 				if ((*Game::cl_voice)->current.enabled)
 				{
@@ -380,11 +394,21 @@ namespace Components
 
 		Events::OnSteamDisconnect(CL_ClearMutedList);
 		Events::OnClientDisconnect(SV_UnmuteClient);
+		Events::OnClientConnect([](const Game::client_s* cl) -> void
+		{
+			if (Chat::IsMuted(cl))
+			{
+				SV_MuteClient(cl - Game::svs_clients);
+			}
+		});
 
 		// Write voice packets to the server instead of other clients
 		Utils::Hook(0x487935, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5AD945, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5A9E06, CL_VoicePacket_Hk, HOOK_CALL).install()->quick();
+
+		// Disable 'v' OOB handler and use our own
+		Utils::Hook::Set<std::uint8_t>(0x5A9E02, 0xEB);
+		Network::OnClientPacketRaw("v", CL_VoicePacket);
 
 		Utils::Hook(0x4AE740, CL_IsPlayerTalking_Hk, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x4B6250, CL_IsPlayerMuted_Hk, HOOK_JUMP).install()->quick();

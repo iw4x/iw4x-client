@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Terminus_4.49.1.ttf.hpp"
-
 #define OUTPUT_HEIGHT 250
 #define OUTPUT_MAX_TOP (OUTPUT_HEIGHT - (Console::Height - 2))
 
@@ -51,6 +49,8 @@ namespace Components
 
 		static Game::SafeArea OriginalSafeArea;
 
+		static bool isCommand;
+
 		static void ShowPrompt();
 		static void RefreshStatus();
 		static void RefreshOutput();
@@ -77,25 +77,14 @@ namespace Components
 		static void AddConsoleCommand();
 
 		static Game::dvar_t* RegisterConColor(const char* dvarName, float r, float g, float b, float a, float min, float max, unsigned __int16 flags, const char* description);
+
+		static bool Con_IsDvarCommand_Stub(const char* cmd);
+		static void Cmd_ForEach_Stub(void(*callback)(const char* str));
 	
 		static LRESULT CALLBACK ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, unsigned int lParam);
 		static ATOM CALLBACK RegisterClassHook(WNDCLASSA* lpWndClass);
 		static BOOL CALLBACK ResizeChildWindow(HWND hwndChild, LPARAM lParam);
-		static HFONT CALLBACK ReplaceFont(
-			int    cHeight,
-			int    cWidth,
-			int    cEscapement,
-			int    cOrientation,
-			int    cWeight,
-			DWORD  bItalic,
-			DWORD  bUnderline,
-			DWORD  bStrikeOut,
-			DWORD  iCharSet,
-			DWORD  iOutPrecision,
-			DWORD  iClipPrecision,
-			DWORD  iQuality,
-			DWORD  iPitchAndFamily,
-			LPCSTR pszFaceName);
+		static HFONT CALLBACK ReplaceFont(int cHeight, int cWidth, int cEscapement, int cOrientation, int cWeight, DWORD bItalic, DWORD bUnderline, DWORD bStrikeOut, DWORD iCharSet, DWORD iOutPrecision, DWORD iClipPrecision, DWORD iQuality, DWORD iPitchAndFamily, LPCSTR pszFaceName);
 		static void ApplyConsoleStyle();
 		static void GetWindowPos(HWND hWnd, int* x, int* y);
 		static void Sys_PrintStub();

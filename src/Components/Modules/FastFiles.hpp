@@ -18,6 +18,8 @@ namespace Components
 
 		static unsigned char ZoneKey[1191];
 
+		static symmetric_CTR CurrentCTR;
+
 	private:
 		union Key
 		{
@@ -38,8 +40,9 @@ namespace Components
 
 		static char LastByteRead;
 
+		static Dvar::Var g_loadingInitialZones;
+
 		static Key CurrentKey;
-		static symmetric_CTR CurrentCTR;
 		static std::vector<std::string> ZonePaths;
 		static const char* GetZoneLocation(const char* file);
 		static void LoadInitialZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
@@ -55,7 +58,6 @@ namespace Components
 		static int AuthLoadInflateCompare(unsigned char* buffer, int length, unsigned char* ivValue);
 		static void AuthLoadInflateDecryptBase();
 		static void AuthLoadInflateDecryptBaseFunc(unsigned char* buffer);
-		static int InflateInitDecrypt(z_streamp strm, const char *version, int stream_size);
 
 		static void LoadZonesStub(Game::XZoneInfo *zoneInfo, unsigned int zoneCount);
 
@@ -68,5 +70,9 @@ namespace Components
 
 		static void Load_XSurfaceArray(int atStreamStart, int count);
 
+		static void DB_BuildOSPath_FromSource_Default(const char* zoneName, Game::FF_DIR source, unsigned int size, char* filename);
+		static void DB_BuildOSPath_FromSource_Custom(const char* zoneName, Game::FF_DIR source, unsigned int size, char* filename);
+		static Game::Sys_File Sys_CreateFile_Stub(const char* dir, const char* filename);
+		static bool DB_FileExists_Hk(const char* zoneName, Game::FF_DIR source);
 	};
 }

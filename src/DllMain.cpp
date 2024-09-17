@@ -4,7 +4,6 @@ namespace Main
 {
 	void Initialize()
 	{
-		Utils::SetEnvironment();
 		Utils::Cryptography::Initialize();
 		Components::Loader::Initialize();
 
@@ -26,7 +25,6 @@ namespace Main
 	void Uninitialize()
 	{
 		Components::Loader::Uninitialize();
-		google::protobuf::ShutdownProtobufLibrary();
 	}
 
 	__declspec(naked) void EntryPoint()
@@ -49,7 +47,6 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 	if (fdwReason == DLL_PROCESS_ATTACH)
 	{
 		SetProcessDEPPolicy(PROCESS_DEP_ENABLE);
-		Steam::Proxy::RunMod();
 
 		std::srand(std::uint32_t(std::time(nullptr)) ^ ~(GetTickCount() * GetCurrentProcessId()));
 
@@ -58,20 +55,22 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 
 #ifndef DEBUG_BINARY_CHECK
 		const auto* binary = reinterpret_cast<const char*>(0x6F9358);
-		if (binary == nullptr || std::strcmp(binary, BASEGAME_NAME) != 0)
+		if (!binary || std::memcmp(binary, BASEGAME_NAME, 14) != 0)
 #endif
 		{
-			MessageBoxA(nullptr, 
-				"Failed to load game binary.\n"
-				"You did not install the iw4x-rawfiles!\n"
-				"Please use the XLabs launcher to run the game. For support, please visit https://xlabs.dev/support_iw4x_client",
-				"ERROR",
-				MB_ICONERROR
+			MessageBoxA(nullptr,
+			            "Failed to load game binary.\n"
+			            "You did not install the iw4x-rawfiles!\n"
+			            "Please use the XLabs launcher to run the game. For support, please visit https://xlabs.dev/support_iw4x_client",
+			            "ERROR",
+			            MB_ICONERROR
 			);
 			return FALSE;
 		}
 #endif
 
+		Utils::SetEnvironment();
+		Steam::Proxy::RunMod();
 		// Install entry point hook
 		Utils::Hook(0x6BAC0F, Main::EntryPoint, HOOK_JUMP).install()->quick();
 	}

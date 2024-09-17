@@ -1,14 +1,17 @@
 #include <STDInclude.hpp>
+#include "ClanTags.hpp"
+#include "PlayerName.hpp"
+#include "TextRenderer.hpp"
 
 namespace Components
 {
 	Dvar::Var PlayerName::sv_allowColoredNames;
 
-	void PlayerName::UserInfoCopy(char* buffer, const char* name, const size_t size)
+	void PlayerName::UserInfoCopy(char* buffer, const char* name, const int size)
 	{
 		if (!sv_allowColoredNames.get<bool>())
 		{
-			char nameBuffer[64] = {0};
+			char nameBuffer[64]{};
 			TextRenderer::StripColors(name, nameBuffer, sizeof(nameBuffer));
 			TextRenderer::StripAllTextIcons(nameBuffer, buffer, size);
 		}
@@ -30,17 +33,18 @@ namespace Components
 	{
 		__asm
 		{
-			mov eax, [esp + 4h] // length
+			pushad
 
-			push eax
-
+			push [esp + 0x20 + 0x4] // length
 			push ecx // name
 			push edx // buffer
 
 			call UserInfoCopy
+			add esp, 0xC
 
-			add esp, 0Ch
-			retn
+			popad
+
+			ret
 		}
 	}
 
@@ -56,8 +60,28 @@ namespace Components
 
 	char* PlayerName::CleanStrStub(char* string)
 	{
-		TextRenderer::StripColors(string, string, strlen(string) + 1);
+		TextRenderer::StripColors(string, string, std::strlen(string) + 1);
 		return string;
+	}
+
+	bool PlayerName::IsBadChar(int c)
+	{
+		if (c == '%')
+		{
+			return true;
+		}
+
+		if (c == '~')
+		{
+			return true;
+		}
+
+		if (c < 32 || c > 126)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	bool PlayerName::CopyClientNameCheck(char* dest, const char* source, int size)
@@ -67,15 +91,24 @@ namespace Components
 		auto i = 0;
 		while (i < size - 1 && dest[i] != '\0')
 		{
-			if (dest[i] > 125 || dest[i] < 32 || dest[i] == '%')
+			// Check for various illegal characters
+			const auto c = static_cast<unsigned char>(dest[i]);
+			if (IsBadChar(c))
 			{
-				return false; // Illegal string
+				return false;
 			}
 
 			++i;
 		}
 
 		return true;
+	}
+
+	void PlayerName::DropClient(Game::client_s* drop)
+	{
+		const auto* reason = "Invalid name detected";
+		Network::SendCommand(drop->header.netchan.remoteAddress, "error", reason);
+		Game::SV_DropClient(drop, reason, false);
 	}
 
 	__declspec(naked) void PlayerName::SV_UserinfoChangedStub()
@@ -89,12 +122,9 @@ namespace Components
 
 			pushad
 
-			push 1 // tellThem
-			push INVALID_NAME_MSG // reason
 			push edi // drop
-			mov eax, 0x4D1600 // SV_DropClient
-			call eax
-			add esp, 0xC
+			call DropClient
+			add esp, 0x4
 
 			popad
 
@@ -108,11 +138,12 @@ namespace Components
 	{
 		sv_allowColoredNames = Dvar::Register<bool>("sv_allowColoredNames", true, Game::DVAR_NONE, "Allow colored names on the server");
 
-		// Disable SV_UpdateUserinfo_f, to block changing the name ingame
+		// Disable SV_UpdateUserinfo_f to block changing the name ingame
 		Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
 
 		// Allow colored names ingame. Hook placed in ClientUserinfoChanged
-		Utils::Hook(0x5D8B40, ClientCleanName, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x445301, ClientCleanName, HOOK_CALL).install()->quick();
+		Utils::Hook(0x44533A, ClientCleanName, HOOK_CALL).install()->quick();
 
 		// Though, don't apply that to overhead names.
 		Utils::Hook(0x581932, GetClientName, HOOK_CALL).install()->quick();

@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include <udis86.h>
 
 namespace Steam
 {
@@ -6,11 +7,11 @@ namespace Steam
 	::Utils::Library Proxy::Overlay;
 
 	ISteamClient008* Proxy::SteamClient = nullptr;
-	IClientEngine*   Proxy::ClientEngine = nullptr;
-	Interface        Proxy::ClientUser;
-	Interface        Proxy::ClientFriends;
+	IClientEngine* Proxy::ClientEngine = nullptr;
+	Interface Proxy::ClientUser;
+	Interface Proxy::ClientFriends;
 
-	Interface        Proxy::Placeholder;
+	Interface Proxy::Placeholder;
 
 	Proxy::Handle Proxy::SteamPipe = nullptr;
 	Proxy::Handle Proxy::SteamUser = nullptr;
@@ -59,7 +60,7 @@ namespace Steam
 
 				if (this->getMethodData(*vftbl, &name, &params) && name == method)
 				{
-					return{ vftbl->data, params };
+					return { vftbl->data, params };
 				}
 
 				++vftbl;
@@ -131,7 +132,7 @@ namespace Steam
 
 	void Proxy::RunGame()
 	{
-		if (Steam::Enabled() && !Components::Dedicated::IsEnabled() && !Components::ZoneBuilder::IsEnabled())
+		if (Steam::Enabled() && !Components::Dedicated::IsEnabled())
 		{
 			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", Proxy::AppId));
 			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", Proxy::AppId & 0xFFFFFF));
@@ -145,7 +146,7 @@ namespace Steam
 
 	void Proxy::SetMod(const std::string& mod)
 	{
-		if (!Proxy::ClientUser || !Proxy::SteamApps || !Steam::Enabled() || Components::Dedicated::IsEnabled() || Components::ZoneBuilder::IsEnabled()) return;
+		if (!Proxy::ClientUser || !Proxy::SteamApps || !Steam::Enabled() || Components::Dedicated::IsEnabled()) return;
 
 		if (!Proxy::SteamApps->BIsSubscribedApp(Proxy::AppId))
 		{
@@ -163,7 +164,7 @@ namespace Steam
 		clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 
 		char ourPath[MAX_PATH]{};
-		GetModuleFileNameA(GetModuleHandle(nullptr), ourPath, sizeof(ourPath));
+		GetModuleFileNameA(GetModuleHandleA(nullptr), ourPath, sizeof(ourPath));
 
 		char ourDirectory[MAX_PATH]{};
 		GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
@@ -237,7 +238,7 @@ namespace Steam
 	{
 		std::lock_guard<std::recursive_mutex> _(Proxy::CallMutex);
 
-		for(auto i = Proxy::Calls.begin(); i != Proxy::Calls.end(); ++i)
+		for (auto i = Proxy::Calls.begin(); i != Proxy::Calls.end(); ++i)
 		{
 			if(i->handled)
 			{
@@ -381,7 +382,7 @@ namespace Steam
 
 		SetDllDirectoryA(directoy.data());
 
-		if (!Components::Dedicated::IsEnabled() && !Components::ZoneBuilder::IsEnabled())
+		if (!Components::Dedicated::IsEnabled())
 		{
 			Proxy::LaunchWatchGuard();
 

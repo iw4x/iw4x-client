@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "ArenaLength.hpp"
 
 namespace Components
 {
@@ -117,6 +118,7 @@ namespace Components
 			"/dev/tty0",
 			"/dev/urandom",
 			"Dss0",
+			"Evan/Eve",
 			"FutureRave",
 			"H3X1C",
 			"Homura",
@@ -246,7 +248,7 @@ namespace Components
 
 				for (i = 0; i < iTokenLen - 2; ++i)
 				{
-					if (!std::strncmp(&szTokenBuf[i], "&&", 2) && std::isdigit(szTokenBuf[i + 2]))
+					if (!std::strncmp(&szTokenBuf[i], "&&", 2) && std::isdigit(static_cast<unsigned char>(szTokenBuf[i + 2])))
 					{
 						if (bInsertEnabled)
 						{
@@ -268,7 +270,7 @@ namespace Components
 				{
 					for (i = 0; i < iLen - 2; ++i)
 					{
-						if (!std::strncmp(&pszString[i], "&&", 2) && std::isdigit(pszString[i + 2]))
+						if (!std::strncmp(&pszString[i], "&&", 2) && std::isdigit(static_cast<unsigned char>(pszString[i + 2])))
 						{
 							const auto digit = pszString[i + 2] - 48;
 							if (!digit)
@@ -328,6 +330,25 @@ namespace Components
 		}
 
 		return pszString;
+	}
+
+	const char* Localization::LocalizeMapName(const char* mapName)
+	{
+		for (int i = 0; i < *Game::arenaCount; ++i)
+		{
+			if (!_stricmp(ArenaLength::NewArenas[i].mapName, mapName))
+			{
+				auto* uiName = &ArenaLength::NewArenas[i].uiName[0];
+				if ((uiName[0] == 'M' && uiName[1] == 'P') || (uiName[0] == 'P' && uiName[1] == 'A')) // MPUI/PATCH
+				{
+					return Get(uiName);
+				}
+
+				return uiName;
+			}
+		}
+
+		return mapName;
 	}
 
 	Localization::Localization()

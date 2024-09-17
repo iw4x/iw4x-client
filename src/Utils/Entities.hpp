@@ -13,9 +13,7 @@ namespace Utils
 		[[nodiscard]] std::string build() const;
 
 		std::vector<std::string> getModels();
-		void deleteTriggers();
-		void deleteWeapons(bool keepTurrets);
-		void convertTurrets();
+		std::vector<std::string> getWeapons();
 
 	private:
 		enum

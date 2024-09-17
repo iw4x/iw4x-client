@@ -1,11 +1,21 @@
 #include <STDInclude.hpp>
+#include <Utils/InfoString.hpp>
+
+#include "CardTitles.hpp"
+#include "ClanTags.hpp"
+#include "Events.hpp"
+#include "Party.hpp"
+#include "ServerCommands.hpp"
 
 namespace Components
 {
 	SteamID Dedicated::PlayerGuids[18][2];
 
 	Dvar::Var Dedicated::SVLanOnly;
+	Dvar::Var Dedicated::SVMOTD;
 	Dvar::Var Dedicated::COMLogFilter;
+
+	const Game::dvar_t* Dedicated::com_dedicated;
 
 	bool Dedicated::IsEnabled()
 	{
@@ -60,7 +70,6 @@ namespace Components
 		Command::Execute("xblive_privateserver 0");
 		Command::Execute("xstartprivatematch");
 		//Command::Execute("xstartlobby");
-		Command::Execute("sv_network_fps 1000");
 		Command::Execute("cl_maxpackets 125");
 		Command::Execute("snaps 30");
 		Command::Execute("com_maxfps 125");
@@ -73,12 +82,42 @@ namespace Components
 		__asm
 		{
 			pushad
-			call Dedicated::PostInitialization
+			call PostInitialization
 			popad
 
 			// Start Com_EvenLoop
 			mov eax, 43D140h
 			jmp eax
+		}
+	}
+
+	void Dedicated::Com_ClampMsec(const int msec)
+	{
+		if (msec > 500 && msec < 500000)
+		{
+			Game::Com_PrintWarning(Game::CON_CHANNEL_SYSTEM, "Hitch warning: %i msec frame time\n", msec);
+		}
+	}
+
+	__declspec(naked) void Dedicated::Com_ClampMsec_Stub()
+	{
+		using namespace Game;
+
+		__asm
+		{
+			pushad
+
+			push ecx
+			call Com_ClampMsec
+			add esp, 0x4
+
+			popad
+
+			// Game's code
+			mov edx, dword ptr com_sv_running
+
+			push 0x47DDB8
+			ret
 		}
 	}
 
@@ -93,7 +132,7 @@ namespace Components
 				list.append(Utils::String::VA(" %llX", Game::svs_clients[i].steamID));
 
 				Utils::InfoString info(Game::svs_clients[i].userinfo);
-				list.append(Utils::String::VA(" %llX", strtoull(info.get("realsteamId").data(), nullptr, 16)));
+				list.append(Utils::String::VA(" %llX", std::strtoull(info.get("realsteamId").data(), nullptr, 16)));
 			}
 			else
 			{
@@ -108,10 +147,9 @@ namespace Components
 	{
 		Scheduler::Once([]
 		{
-			const auto partyEnable = Dvar::Var("party_enable").get<bool>();
 			std::string mapname = (*Game::sv_mapname)->current.string;
 
-			if (!partyEnable) // Time wrapping should not occur in party servers, but yeah...
+			if (!Party::IsEnabled()) // Time wrapping should not occur in party servers, but yeah...
 			{
 				if (mapname.empty()) mapname = "mp_rust";
 				Command::Execute(std::format("map {}", mapname), true);
@@ -124,39 +162,31 @@ namespace Components
 	void Dedicated::Heartbeat()
 	{	
 		// Do not send a heartbeat if sv_lanOnly is set to true
-		if (Dedicated::SVLanOnly.get<bool>())
+		if (SVLanOnly.get<bool>())
 		{
 			return;
 		}
 
-		auto masterPort = Dvar::Var("masterPort").get<int>();
-		const auto* masterServerName = Dvar::Var("masterServerName").get<const char*>();
+		const auto masterPort = (*Game::com_masterPort)->current.unsignedInt;
+		const auto* masterServerName = (*Game::com_masterServerName)->current.string;
 
 		Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
 
-		Logger::Print(Game::CON_CHANNEL_SERVER, "Sending heartbeat to master: {}:{}\n", masterServerName, masterPort);
+		Logger::Print("Sending heartbeat to master: {}:{}\n", masterServerName, masterPort);
 		Network::SendCommand(master, "heartbeat", "IW4");
-	}
-
-	Game::dvar_t* Dedicated::Dvar_RegisterSVNetworkFps(const char* dvarName, int, int min, int, int, const char* description)
-	{
-		return Game::Dvar_RegisterInt(dvarName, 1000, min, 1000, Game::DVAR_NONE, description);
 	}
 
 	Dedicated::Dedicated()
 	{
-		Dedicated::COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
+		COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
 			Game::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
 
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
+		if (IsEnabled() || ZoneBuilder::IsEnabled())
 		{
 			// Make sure all callbacks are handled
 			Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::SERVER);
 
-			Dedicated::SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false,
-				Game::DVAR_NONE, "Don't act as node");
-
-			Utils::Hook(0x60BE98, Dedicated::InitDedicatedServer, HOOK_CALL).install()->quick();
+			Utils::Hook(0x60BE98, InitDedicatedServer, HOOK_CALL).install()->quick();
 
 			Utils::Hook::Set<BYTE>(0x683370, 0xC3); // steam sometimes doesn't like the server
 
@@ -195,9 +225,6 @@ namespace Components
 			// isHost script call return 0
 			Utils::Hook::Set<DWORD>(0x5DEC04, 0);
 
-			// Manually register sv_network_fps
-			Utils::Hook(0x4D3C7B, Dedicated::Dvar_RegisterSVNetworkFps, HOOK_CALL).install()->quick();
-
 			// r_loadForRenderer default to 0
 			Utils::Hook::Set<BYTE>(0x519DDF, 0);
 
@@ -214,18 +241,39 @@ namespace Components
 			Utils::Hook::Set<BYTE>(0x4B4D19, 0xEB);
 
 			// Intercept time wrapping
-			Utils::Hook(0x62737D, Dedicated::TimeWrapStub, HOOK_CALL).install()->quick();
-			//Utils::Hook::Set<DWORD>(0x62735C, 50'000); // Time wrap after 50 seconds (for testing - i don't want to wait 3 weeks)
+			Utils::Hook(0x62737D, TimeWrapStub, HOOK_CALL).install()->quick();
 
 			if (!ZoneBuilder::IsEnabled())
 			{
-				Scheduler::Once([]
+				Events::OnDvarInit([]
 				{
-					Dvar::Register<const char*>("sv_motd", "", Game::DVAR_NONE, "A custom message of the day for servers");
-				}, Scheduler::Pipeline::MAIN);
+					SVMOTD = Dvar::Register<const char*>("sv_motd", "", Game::DVAR_NONE, "A custom message of the day for servers");
+					SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false, Game::DVAR_NONE, "Don't act as node");
+
+					static const char* g_dedicatedEnumNames[] =
+					{
+						"listen server",
+						"dedicated LAN server",
+						"dedicated internet server",
+						nullptr,
+					};
+
+					// IW5MP Dedicated Server adds another flag. That flag should not exist on this version of IW4
+					com_dedicated = Game::Dvar_RegisterEnum("dedicated", g_dedicatedEnumNames, 2, Game::DVAR_ROM, "True if this is a dedicated server");
+					// Dedicated only behaviour from IW5MP Dedicated Server.
+					if (com_dedicated->current.integer != 1 && com_dedicated->current.integer != 2)
+					{
+						Game::DvarValue value;
+						value.integer = 0;
+						Game::Dvar_SetVariant(const_cast<Game::dvar_t*>(com_dedicated), value, Game::DVAR_SOURCE_INTERNAL);
+					}
+				});
 
 				// Post initialization point
-				Utils::Hook(0x60BFBF, Dedicated::PostInitializationStub, HOOK_JUMP).install()->quick();
+				Utils::Hook(0x60BFBF, PostInitializationStub, HOOK_JUMP).install()->quick();
+
+				Utils::Hook(0x47DDB2, Com_ClampMsec_Stub, HOOK_JUMP).install()->quick(); // Com_Frame_Try_Block_Function
+				Utils::Hook::Nop(0x47DDB2 + 5, 1);
 
 				// Transmit custom data
 				Scheduler::Loop([]
@@ -235,29 +283,25 @@ namespace Components
 				}, Scheduler::Pipeline::SERVER, 10s);
 
 				// Heartbeats
-				Scheduler::Once(Dedicated::Heartbeat, Scheduler::Pipeline::SERVER);
-				Scheduler::Loop(Dedicated::Heartbeat, Scheduler::Pipeline::SERVER, 2min);
+				Scheduler::Once(Heartbeat, Scheduler::Pipeline::SERVER);
+				Scheduler::Loop(Heartbeat, Scheduler::Pipeline::SERVER, 2min);
 			}
 		}
 		else
 		{
-			for (int i = 0; i < ARRAYSIZE(Dedicated::PlayerGuids); ++i)
-			{
-				Dedicated::PlayerGuids[i][0].bits = 0;
-				Dedicated::PlayerGuids[i][1].bits = 0;
-			}
+			ZeroMemory(PlayerGuids, sizeof(PlayerGuids));
 
 			// Intercept server commands
-			ServerCommands::OnCommand(20, [](Command::Params* params)
+			ServerCommands::OnCommand(20, [](const Command::Params* params)
 			{
 				for (int client = 0; client < 18; client++)
 				{
-					Dedicated::PlayerGuids[client][0].bits = strtoull(params->get(2 * client + 1), nullptr, 16);
-					Dedicated::PlayerGuids[client][1].bits = strtoull(params->get(2 * client + 2), nullptr, 16);
+					PlayerGuids[client][0].bits = std::strtoull(params->get(2 * client + 1), nullptr, 16);
+					PlayerGuids[client][1].bits = std::strtoull(params->get(2 * client + 2), nullptr, 16);
 
-					if (Steam::Proxy::SteamFriends && Dedicated::PlayerGuids[client][1].bits != 0)
+					if (Steam::Proxy::SteamFriends && PlayerGuids[client][1].bits != 0)
 					{
-						Steam::Proxy::SteamFriends->SetPlayedWith(Dedicated::PlayerGuids[client][1]);
+						Steam::Proxy::SteamFriends->SetPlayedWith(PlayerGuids[client][1]);
 					}
 				}
 
@@ -267,9 +311,9 @@ namespace Components
 
 		Scheduler::Loop([]
 		{
-			if (Dedicated::IsRunning())
+			if (IsRunning())
 			{
-				Dedicated::TransmitGuids();
+				TransmitGuids();
 			}
 		}, Scheduler::Pipeline::SERVER, 15s);
 	}

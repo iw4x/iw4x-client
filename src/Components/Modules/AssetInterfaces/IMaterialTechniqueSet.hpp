@@ -14,6 +14,6 @@ namespace Assets
 		void loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
 		void loadFromDisk(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder);
 
-		void loadTechniqueFromDisk(Game::MaterialTechnique** tech, const std::string& name, Components::ZoneBuilder::Zone* builder);
+		IMaterialTechniqueSet();
 	};
 }

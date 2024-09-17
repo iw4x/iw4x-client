@@ -1,11 +1,16 @@
 #include <STDInclude.hpp>
 
+#include "ClanTags.hpp"
+#include "Events.hpp"
+#include "PlayerName.hpp"
+#include "ServerCommands.hpp"
+
 namespace Components
 {
-	Game::dvar_t* ClanTags::ClanName;
+	const Game::dvar_t* ClanTags::ClanName;
 
 	// bgs_t and clientState_s do not have this
-	char ClanTags::ClientState[Game::MAX_CLIENTS][5];
+	char ClanTags::ClientState[Game::MAX_CLIENTS][MAX_CLAN_NAME_LENGTH];
 
 	const char* ClanTags::GetClanTagWithName(int clientNum, const char* playerName)
 	{
@@ -25,7 +30,7 @@ namespace Components
 
 		for (std::size_t i = 0; i < Game::MAX_CLIENTS; ++i)
 		{
-			list.append(std::format("\\{}\\{}", std::to_string(i), ClientState[i]));
+			list.append(std::format("\\{}\\{}", i, ClientState[i]));
 		}
 
 		Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} clanNames \"{}\"", 22, list));
@@ -70,7 +75,7 @@ namespace Components
 
 	void ClanTags::CL_SanitizeClanName()
 	{
-		char saneNameBuf[5]{};
+		char saneNameBuf[MAX_CLAN_NAME_LENGTH]{};
 		auto* saneName = saneNameBuf;
 		
 		assert(ClanName);
@@ -83,7 +88,7 @@ namespace Components
 				auto curChar = CL_FilterChar(static_cast<unsigned char>(currentName[i]));
 				if (curChar > 0)
 				{
-					*saneName++ = (curChar & 0xFF);
+					*saneName++ = curChar & 0xFF;
 				}
 			}
 
@@ -115,7 +120,7 @@ namespace Components
 	{
 		AssertIn(clientNum, Game::MAX_CLIENTS);
 
-		auto* clanAbbrev = Game::Info_ValueForKey(s, "clanAbbrev");
+		const auto* clanAbbrev = Game::Info_ValueForKey(s, "clanAbbrev");
 
 		if (clanAbbrev[0] == '\0')
 		{
@@ -190,11 +195,11 @@ namespace Components
 
 	void __declspec(naked) ClanTags::PlayerCards_SetCachedPlayerData_Stub()
 	{
-		static DWORD func = 0x4D6F80; // I_strncpyz
+		using namespace Game;
 
 		__asm
 		{
-			call func
+			call I_strncpyz
 			add esp, 0xC
 
 			mov byte ptr [esi + 0x3C], 0x0
@@ -230,15 +235,14 @@ namespace Components
 
 	ClanTags::ClanTags()
 	{
-		Events::OnClientInit([]
+		Events::OnDvarInit([]
 		{
-			ClanName = Game::Dvar_RegisterString("clanName", "", Game::DVAR_ARCHIVE,
-				"Your clan abbreviation");
+			ClanName = Game::Dvar_RegisterString("clanName", "", Game::DVAR_ARCHIVE, "Your clan abbreviation");
 		});
 
-		std::memset(&ClientState, 0, sizeof(char[Game::MAX_CLIENTS][5]));
+		std::memset(&ClientState, 0, sizeof(char[Game::MAX_CLIENTS][MAX_CLAN_NAME_LENGTH]));
 
-		ServerCommands::OnCommand(22, [](Command::Params* params)
+		ServerCommands::OnCommand(22, [](const Command::Params* params)
 		{
 			if (std::strcmp(params->get(1), "clanNames") == 0)
 			{

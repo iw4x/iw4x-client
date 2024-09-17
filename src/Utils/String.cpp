@@ -7,7 +7,7 @@ namespace Utils::String
 {
 	const char* VA(const char* fmt, ...)
 	{
-		static VAProvider<4, 100> globalProvider;
+		static VAProvider<4, 256> globalProvider;
 		static thread_local VAProvider<8, 256> provider;
 
 		va_list ap;
@@ -24,7 +24,7 @@ namespace Utils::String
 	std::string ToLower(const std::string& text)
 	{
 		std::string result;
-		std::ranges::transform(text, std::back_inserter(result), [](const unsigned char input)
+		std::ranges::transform(text, std::back_inserter(result), [](const unsigned char input) -> char
 		{
 			return static_cast<char>(std::tolower(input));
 		});
@@ -35,7 +35,7 @@ namespace Utils::String
 	std::string ToUpper(const std::string& text)
 	{
 		std::string result;
-		std::ranges::transform(text, std::back_inserter(result), [](const unsigned char input)
+		std::ranges::transform(text, std::back_inserter(result), [](const unsigned char input) -> char
 		{
 			return static_cast<char>(std::toupper(input));
 		});
@@ -45,7 +45,7 @@ namespace Utils::String
 
 	bool Compare(const std::string& lhs, const std::string& rhs)
 	{
-		return std::ranges::equal(lhs, rhs, [](const unsigned char a, const unsigned char b)
+		return std::ranges::equal(lhs, rhs, [](const unsigned char a, const unsigned char b) -> bool
 		{
 			return std::tolower(a) == std::tolower(b);
 		});

@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "RawFiles.hpp"
 
 namespace Components
 {
@@ -7,7 +8,7 @@ namespace Components
 		auto fileHandle = 0;
 		auto fileSize = Game::FS_FOpenFileRead(filename, &fileHandle);
 
-		if (fileHandle != 0)
+		if (fileHandle)
 		{
 			if ((fileSize + 1) <= size)
 			{
@@ -36,7 +37,7 @@ namespace Components
 		auto fileHandle = 0;
 		auto fileSize = Game::FS_FOpenFileRead(filename, &fileHandle);
 
-		if (fileHandle != 0)
+		if (fileHandle)
 		{
 			if (fileSize < 0x8000)
 			{
@@ -98,9 +99,8 @@ namespace Components
 
 	const char* RawFiles::Com_LoadInfoString_Hk(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer)
 	{
-		const char* buffer;
 
-		buffer = Com_LoadInfoString_LoadObj(fileName, fileDesc, ident, loadBuffer);
+		const auto* buffer = Com_LoadInfoString_LoadObj(fileName, fileDesc, ident, loadBuffer);
 		if (!buffer)
 		{
 			buffer = Game::Com_LoadInfoString_FastFile(fileName, fileDesc, ident, loadBuffer);
@@ -124,7 +124,7 @@ namespace Components
 		Utils::Hook(0x631640, GetMenuBuffer, HOOK_JUMP).install()->quick();
 		//Utils::Hook(0x463500, Com_LoadInfoString_Hk, HOOK_JUMP).install()->quick();
 
-		Command::Add("dumpraw", [](Command::Params* params)
+		Command::Add("dumpraw", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
 			{
@@ -140,9 +140,9 @@ namespace Components
 				return;
 			}
 
-			const char* data = Game::Scr_AddSourceBuffer(nullptr, file.getName().data(), nullptr, false);
+			const auto* data = Game::Scr_AddSourceBuffer(nullptr, file.getName().data(), nullptr, false);
 
-			if (data != nullptr)
+			if (data)
 			{
 				Utils::IO::WriteFile("raw/" + file.getName(), data);
 				Logger::Print("File '{}' written to raw!\n", file.getName());

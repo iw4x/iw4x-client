@@ -1,5 +1,7 @@
 #pragma once
 
+#include <api.hpp>
+
 #define XFILE_MAGIC_UNSIGNED 0x3030317566665749
 #define XFILE_VERSION 276
 
@@ -31,6 +33,7 @@ namespace Components
 				Zone* builder;
 			};
 
+			Zone(const std::string& zoneName, const std::string& sourceName, const std::string& destination);
 			Zone(const std::string& zoneName);
 			~Zone();
 
@@ -38,6 +41,7 @@ namespace Components
 
 			Utils::Stream* getBuffer();
 			Utils::Memory::Allocator* getAllocator();
+			iw4of::api* getIW4OfApi();
 
 			bool hasPointer(const void* pointer);
 			void storePointer(const void* pointer);
@@ -74,7 +78,7 @@ namespace Components
 			bool isPrimaryAsset() { return this->assetDepth <= 1; }
 
 		private:
-			void loadFastFiles();
+			void loadFastFiles() const;
 
 			bool loadAssets();
 			bool loadAssetByName(const std::string& type, std::string name, bool isSubAsset = true);
@@ -87,13 +91,17 @@ namespace Components
 
 			void addBranding();
 
+			iw4of::params_t getIW4OfApiParams();
+
 			uint32_t safeGetPointer(const void* pointer);
 
 			int indexStart;
 			unsigned int externalSize;
 			Utils::Stream buffer;
+			iw4of::api iw4ofApi;
 
 			std::string zoneName;
+			std::string destination;
 			Utils::CSV dataMap;
 
 			Utils::Memory::Allocator memAllocator;
@@ -115,32 +123,50 @@ namespace Components
 			size_t assetDepth;
 		};
 
+		struct NamedAsset
+		{
+			Game::XAssetType type;
+			std::string name;
+
+			bool operator==(const NamedAsset& other) const {
+				return type == other.type && name == other.name;
+			};
+
+			struct Hash {
+				size_t operator()(const NamedAsset& k) const {
+					return static_cast<size_t>(k.type) ^ std::hash<std::string>{}(k.name);
+				}
+			};
+		};
+
 		ZoneBuilder();
 		~ZoneBuilder();
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		bool unitTest() override;
-#endif
-
 		static bool IsEnabled();
+		static bool IsDumpingZone() { return DumpingZone.length() > 0; };
 
 		static std::string TraceZone;
-		static std::vector<std::pair<Game::XAssetType, std::string>> TraceAssets;
+		static std::vector<NamedAsset> TraceAssets;
 
 		static void BeginAssetTrace(const std::string& zone);
-		static std::vector<std::pair<Game::XAssetType, std::string>> EndAssetTrace();
+		static std::vector<NamedAsset> EndAssetTrace();
+
+		static Dvar::Var zb_sp_to_mp;
 
 		static Game::XAssetHeader GetEmptyAssetIfCommon(Game::XAssetType type, const std::string& name, Zone* builder);
-		static Dvar::Var PreferDiskAssetsDvar;
+		static std::string GetDumpingZonePath();
+		static void RefreshExporterWorkDirectory();
+
+		static iw4of::api* GetExporter();
 
 	private:
-		static int StoreTexture(Game::GfxImageLoadDef **loadDef, Game::GfxImage *image);
+		static int StoreTexture(Game::GfxImageLoadDef** loadDef, Game::GfxImage* image);
 		static void ReleaseTexture(Game::XAssetHeader header);
 
 		static std::string FindMaterialByTechnique(const std::string& name);
 		static void ReallocateLoadedSounds(void*& data, void* a2);
 
-		static int __stdcall EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
+		static BOOL APIENTRY EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
 		static void HandleError(Game::errorParm_t code, const char* fmt, ...);
 		static void SoftErrorAssetOverflow();
 
@@ -148,13 +174,24 @@ namespace Components
 		static void ResetThreadRole();
 
 		static bool IsThreadMainThreadHook();
+		static Game::Sys_File Sys_CreateFile_Stub(const char* dir, const char* filename);
+
+		static iw4of::params_t GetExporterAPIParams();
+
+		static void DumpZone(const std::string& zone);
+
+		static std::function<void()> LoadZoneWithTrace(const std::string& zone, OUT std::vector<NamedAsset>& assets);
 
 		static void Com_Quitf_t();
+
+		static void CommandThreadCallback();
 
 		static bool MainThreadInterrupted;
 		static DWORD InterruptingThreadId;
 
-		static volatile bool Terminate;
+		static volatile bool CommandThreadTerminate;
 		static std::thread CommandThread;
+		static iw4of::api ExporterAPI;
+		static std::string DumpingZone;
 	};
 }

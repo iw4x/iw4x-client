@@ -35,10 +35,10 @@ namespace Components
 		void preDestroy() override;
 
 		static void Send(const Network::Address& target, const std::string& command, const std::string& data = "");
-		static void Handle(const std::string& packet, const Network::NetworkCallback& callback);
+		static void Handle(const std::string& packet, const Network::networkCallback& callback);
 
 	private:
-		static bool Terminate;
+		static volatile bool Terminate;
 		static std::thread Thread;
 		static std::recursive_mutex Mutex;
 		static std::unordered_map<Network::Address, Frame> Sessions;
@@ -46,7 +46,7 @@ namespace Components
 
 		static Utils::Cryptography::ECC::Key SignatureKey;
 
-		static std::unordered_map<std::string, Network::NetworkCallback> PacketHandlers;
+		static std::unordered_map<std::string, Network::networkCallback> PacketHandlers;
 
 		static std::queue<std::pair<Network::Address, std::string>> SignatureQueue;
 

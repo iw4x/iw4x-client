@@ -9,9 +9,7 @@ namespace Components
 
 		Bans();
 
-		static std::unique_lock<Utils::NamedMutex> Lock();
-
-		static void BanClient(Game::client_t* cl, const std::string& reason);
+		static void BanClient(Game::client_s* cl, const std::string& reason);
 		static void UnbanClient(SteamID id);
 		static void UnbanClient(Game::netIP_t ip);
 
@@ -25,7 +23,13 @@ namespace Components
 			std::vector<Game::netIP_t> ipList;
 		};
 
+		static const char* BanListFile;
+
+		static std::unique_lock<Utils::NamedMutex> Lock();
+
 		static void LoadBans(BanList* list);
 		static void SaveBans(const BanList* list);
+
+		static void AddServerCommands();
 	};
 }

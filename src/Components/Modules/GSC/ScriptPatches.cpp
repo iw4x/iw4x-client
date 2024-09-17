@@ -4,7 +4,7 @@
 
 using namespace Utils::String;
 
-namespace Components
+namespace Components::GSC
 {
 	constexpr auto offset = 511;
 
@@ -24,7 +24,7 @@ namespace Components
 	{
 		if (Game::Scr_GetNumParam() < 3)
 		{
-			Game::Scr_Error("USAGE: tableLookupIStringByRow( filename, rowNum, returnValueColumnNum )\n");
+			Game::Scr_Error("USAGE: tableLookupIStringByRow( filename, rowNum, returnValueColumnNum )");
 			return;
 		}
 
@@ -34,9 +34,9 @@ namespace Components
 
 		const auto* table = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_STRINGTABLE, fileName).stringTable;
 
-		if (table == nullptr)
+		if (!table)
 		{
-			Game::Scr_ParamError(0, Utils::String::VA("%s does not exist\n", fileName));
+			Game::Scr_ParamError(0, Utils::String::VA("%s does not exist", fileName));
 			return;
 		}
 

@@ -1,8 +1,9 @@
 #include <STDInclude.hpp>
+
 #include "ScriptStorage.hpp"
 #include "Script.hpp"
 
-namespace Components
+namespace Components::GSC
 {
 	std::unordered_map<std::string, std::string> ScriptStorage::Data;
 
@@ -13,9 +14,9 @@ namespace Components
 			const auto* key = Game::Scr_GetString(0);
 			const auto* value = Game::Scr_GetString(1);
 
-			if (key == nullptr || value == nullptr)
+			if (!key || !value)
 			{
-				Game::Scr_Error("^1StorageSet: Illegal parameters!\n");
+				Game::Scr_Error("StorageSet: Illegal parameters!");
 				return;
 			}
 
@@ -26,15 +27,15 @@ namespace Components
 		{
 			const auto* key = Game::Scr_GetString(0);
 
-			if (key == nullptr)
+			if (!key)
 			{
-				Game::Scr_ParamError(0, "^1StorageRemove: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "StorageRemove: Illegal parameter!");
 				return;
 			}
 
 			if (!Data.contains(key))
 			{
-				Game::Scr_Error(Utils::String::VA("^1StorageRemove: Store does not have key '%s'!\n", key));
+				Game::Scr_Error(Utils::String::VA("StorageRemove: Store does not have key '%s'!", key));
 				return;
 			}
 
@@ -45,15 +46,15 @@ namespace Components
 		{
 			const auto* key = Game::Scr_GetString(0);
 
-			if (key == nullptr)
+			if (!key)
 			{
-				Game::Scr_ParamError(0, "^1StorageGet: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "StorageGet: Illegal parameter!");
 				return;
 			}
 
 			if (!Data.contains(key))
 			{
-				Game::Scr_Error(Utils::String::VA("^1StorageGet: Store does not have key '%s'!\n", key));
+				Game::Scr_Error(Utils::String::VA("StorageGet: Store does not have key '%s'!", key));
 			}
 
 			const auto& data = Data.at(key);
@@ -64,9 +65,9 @@ namespace Components
 		{
 			const auto* key = Game::Scr_GetString(0);
 
-			if (key == nullptr)
+			if (!key)
 			{
-				Game::Scr_ParamError(0, "^1StorageHas: Illegal parameter!\n");
+				Game::Scr_ParamError(0, "StorageHas: Illegal parameter!");
 				return;
 			}
 
@@ -77,18 +78,18 @@ namespace Components
 		{
 			if (Data.empty())
 			{
-				Game::Scr_Error("^1StorageDump: ScriptStorage is empty!\n");
+				Game::Scr_Error("StorageDump: ScriptStorage is empty!");
 				return;
 			}
 
 			const nlohmann::json json = Data;
 
-			FileSystem::FileWriter("scriptdata/scriptstorage.json").write(json.dump());
+			FileSystem::FileWriter(Game::SCRIPTDATA_DIR + "/scriptstorage.json"s).write(json.dump());
 		});
 
 		Script::AddFunction("StorageLoad", [] // gsc: StorageLoad();
 		{
-			FileSystem::File storageFile("scriptdata/scriptstorage.json");
+			FileSystem::File storageFile(Game::SCRIPTDATA_DIR + "/scriptstorage.json"s);
 			if (!storageFile.exists())
 			{
 				return;
@@ -103,7 +104,7 @@ namespace Components
 			}
 			catch (const std::exception& ex)
 			{
-				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}. File {} is invalid\n", ex.what(), storageFile.getName());
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "JSON Parse Error: {}. File {} is invalid\n", ex.what(), storageFile.getName());
 			}
 		});
 

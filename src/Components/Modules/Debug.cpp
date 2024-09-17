@@ -1,4 +1,8 @@
 #include <STDInclude.hpp>
+#include "Debug.hpp"
+#include "Events.hpp"
+#include "TextRenderer.hpp"
+
 #include "Game/Engine/ScopedCriticalSection.hpp"
 
 namespace Components
@@ -6,7 +10,7 @@ namespace Components
 	const Game::dvar_t* Debug::DebugOverlay;
 	const Game::dvar_t* Debug::BugName;
 
-	Game::dvar_t** Debug::PlayerDebugHealth = reinterpret_cast<Game::dvar_t**>(0x7A9F7C);
+	const Game::dvar_t* Debug::PlayerDebugHealth;
 
 	const char* Debug::PMFlagsValues[] =
 	{
@@ -92,15 +96,13 @@ namespace Components
 		"EF_SOFT",
 	};
 
-	const char Debug::strButtons[] =
+	const char Debug::StrButtons[] =
 	{
 		'\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x0E', '\x0F', '\x10',
 		'\x11', '\x12', '\x13', '\x14', '\x15', '\x16', '\x17', '\0'
 	};
 
-	const char Debug::strTemplate[] = "%s: %s All those moments will be lost in time, like tears in rain.";
-
-	const float Debug::colorWhite[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	const char Debug::StrTemplate[] = "%s: %s All those moments will be lost in time, like tears in rain.";
 
 	std::string Debug::BuildPMFlagsString(const Game::playerState_s* ps)
 	{
@@ -161,19 +163,19 @@ namespace Components
 		auto* const font2 = Game::UI_GetFontHandle(scrPlace, 6, MY_SCALE2);
 
 		Game::UI_DrawText(scrPlace, "Client View of Flags", maxChars, font2, -60.0f, 0, 1, 1,
-			MY_SCALE2, colorWhite, 1);
+			MY_SCALE2, TextRenderer::WHITE_COLOR, 1);
 
 		const auto pmf = BuildPMFlagsString(&cgameGlob->predictedPlayerState);
-		Game::UI_DrawText(scrPlace, pmf.data(), maxChars, font1, 30.0f, MY_Y, 1, 1, MY_SCALE_2, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, pmf.data(), maxChars, font1, 30.0f, MY_Y, 1, 1, MY_SCALE_2, TextRenderer::WHITE_COLOR, 3);
 
 		const auto pof = BuildPOFlagsString(&cgameGlob->predictedPlayerState);
-		Game::UI_DrawText(scrPlace, pof.data(), maxChars, font1, 350.0f, MY_Y, 1, 1, MY_SCALE_2, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, pof.data(), maxChars, font1, 350.0f, MY_Y, 1, 1, MY_SCALE_2, TextRenderer::WHITE_COLOR, 3);
 
 		const auto plf = BuildPLFlagsString(&cgameGlob->predictedPlayerState);
-		Game::UI_DrawText(scrPlace, plf.data(), maxChars, font1, 350.0f, 250.0f, 1, 1, MY_SCALE_2, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, plf.data(), maxChars, font1, 350.0f, 250.0f, 1, 1, MY_SCALE_2, TextRenderer::WHITE_COLOR, 3);
 
 		const auto pef = BuildPEFlagsString(&cgameGlob->predictedPlayerState);
-		Game::UI_DrawText(scrPlace, pef.data(), maxChars, font1, 525.0f, MY_Y, 1, 1, MY_SCALE_2, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, pef.data(), maxChars, font1, 525.0f, MY_Y, 1, 1, MY_SCALE_2, TextRenderer::WHITE_COLOR, 3);
 	}
 
 	void Debug::CG_DrawDebugPlayerHealth(const int localClientNum)
@@ -182,7 +184,7 @@ namespace Components
 		constexpr float color1[] = {0.0f, 0.0f, 0.0f, 1.0f};
 		constexpr float color2[] = {0.0f, 1.0f, 0.0f, 1.0f};
 
-		assert((*PlayerDebugHealth)->current.enabled);
+		assert(PlayerDebugHealth->current.enabled);
 		const auto* cgameGlob = Game::cgArray;
 
 		if (cgameGlob->predictedPlayerState.stats[0] && cgameGlob->predictedPlayerState.stats[2])
@@ -219,29 +221,35 @@ namespace Components
 		auto* const font5 = Game::UI_GetFontHandle(scrPlace, 5, 0.4f);
 		auto* const font6 = Game::UI_GetFontHandle(scrPlace, 6, 0.4f);
 
-		sprintf_s(strFinal, strTemplate, font1->fontName, strButtons);
+		sprintf_s(strFinal, StrTemplate, font1->fontName, StrButtons);
 		Game::UI_FilterStringForButtonAnimation(strFinal, sizeof(strFinal));
-		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font1, MY_X, 10.0f, 1, 1, 0.4f, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font1, MY_X, 10.0f, 1, 1, 0.4f, TextRenderer::WHITE_COLOR, 3);
 
-		sprintf_s(strFinal, strTemplate, font2->fontName, strButtons);
+		sprintf_s(strFinal, StrTemplate, font2->fontName, StrButtons);
 		Game::UI_FilterStringForButtonAnimation(strFinal, sizeof(strFinal));
-		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font2, MY_X, 35.0f, 1, 1, 0.4f, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font2, MY_X, 35.0f, 1, 1, 0.4f, TextRenderer::WHITE_COLOR, 3);
 
-		sprintf_s(strFinal, strTemplate, font3->fontName, strButtons);
+		sprintf_s(strFinal, StrTemplate, font3->fontName, StrButtons);
 		Game::UI_FilterStringForButtonAnimation(strFinal, sizeof(strFinal));
-		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font3, MY_X, 60.0f, 1, 1, 0.4f, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font3, MY_X, 60.0f, 1, 1, 0.4f, TextRenderer::WHITE_COLOR, 3);
 
-		sprintf_s(strFinal, strTemplate, font5->fontName, strButtons);
+		sprintf_s(strFinal, StrTemplate, font5->fontName, StrButtons);
 		Game::UI_FilterStringForButtonAnimation(strFinal, sizeof(strFinal));
-		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font5, MY_X, 85.0f, 1, 1, 0.4f, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font5, MY_X, 85.0f, 1, 1, 0.4f, TextRenderer::WHITE_COLOR, 3);
 
-		sprintf_s(strFinal, strTemplate, font6->fontName, strButtons);
+		sprintf_s(strFinal, StrTemplate, font6->fontName, StrButtons);
 		Game::UI_FilterStringForButtonAnimation(strFinal, sizeof(strFinal));
-		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font6, MY_X, 110.0f, 1, 1, 0.4f, colorWhite, 3);
+		Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font6, MY_X, 110.0f, 1, 1, 0.4f, TextRenderer::WHITE_COLOR, 3);
 	}
 
 	void Debug::CG_DrawDebugOverlays_Hk(const int localClientNum)
 	{
+		assert(DebugOverlay);
+		if (!DebugOverlay)
+		{
+			return;
+		}
+
 		switch (DebugOverlay->current.integer)
 		{
 		case 2:
@@ -254,7 +262,7 @@ namespace Components
 			break;
 		}
 
-		if ((*PlayerDebugHealth)->current.enabled)
+		if (PlayerDebugHealth->current.enabled)
 		{
 			CG_DrawDebugPlayerHealth(localClientNum);
 		}
@@ -265,11 +273,11 @@ namespace Components
 		assert(0 && "a");
 	}
 
-	void Debug::Com_Bug_f(Command::Params* params)
+	void Debug::Com_Bug_f(const Command::Params* params)
 	{
-		char newFileName[0x105]{};
-		char to_ospath[MAX_PATH]{};
-		char from_ospath[MAX_PATH]{};
+		char newFileName[MAX_PATH]{};
+		char to_ospath[MAX_OSPATH]{};
+		char from_ospath[MAX_OSPATH]{};
 		const char* bug;
 
 		if (!*Game::logfile)
@@ -310,7 +318,7 @@ namespace Components
 
 	void Debug::Com_BugNameInc_f()
 	{
-		char buf[260]{};
+		char buf[512]{};
 
 		if (std::strlen(BugName->current.string) < 4)
 		{
@@ -342,20 +350,26 @@ namespace Components
 			nullptr,
 		};
 
-		DebugOverlay = Game::Dvar_RegisterEnum("debugOverlay", debugOverlayNames_0, 0,
-			Game::DVAR_NONE, "Toggles the display of various debug info.");
-		BugName = Game::Dvar_RegisterString("bug_name", "bug0",
-			Game::DVAR_CHEAT | Game::DVAR_CODINFO, "Name appended to the copied console log");
+		DebugOverlay = Game::Dvar_RegisterEnum("debugOverlay", debugOverlayNames_0, 0, Game::DVAR_NONE, "Toggles the display of various debug info.");
+		BugName = Game::Dvar_RegisterString("bug_name", "bug0", Game::DVAR_NONE, "Name appended to the copied console log");
+	}
+
+	const Game::dvar_t* Debug::Dvar_Register_PlayerDebugHealth(const char* name, bool value, [[maybe_unused]] std::uint16_t flags, const char* description)
+	{
+		PlayerDebugHealth = Game::Dvar_RegisterBool(name, value, Game::DVAR_NONE, description);
+		return PlayerDebugHealth;
 	}
 
 	Debug::Debug()
 	{
-		Scheduler::Once(CL_InitDebugDvars, Scheduler::Pipeline::MAIN);
+		Events::OnDvarInit(CL_InitDebugDvars);
 
 		// Hook end of CG_DrawDebugOverlays (This is to ensure some checks are done before our hook is executed).
 		Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();
 
 		Utils::Hook::Set<void(*)()>(0x60BCEA, Com_Assert_f);
+
+		Utils::Hook(0x4487F7, Dvar_Register_PlayerDebugHealth, HOOK_CALL).install()->quick();
 
 #ifdef _DEBUG
 		Command::Add("bug", Com_Bug_f);

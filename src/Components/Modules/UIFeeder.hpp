@@ -31,6 +31,10 @@ namespace Components
 
 		static Container Current;
 
+		static Dvar::Var UIMapLong;
+		static Dvar::Var UIMapName;
+		static Dvar::Var UIMapDesc;
+
 		static void GetItemCountStub();
 		static unsigned int GetItemCount();
 

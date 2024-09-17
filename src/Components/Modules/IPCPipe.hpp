@@ -51,8 +51,8 @@ namespace Components
 		Type type;
 		Packet packet;
 
-		char pipeName[MAX_PATH];
-		char pipeFile[MAX_PATH];
+		char pipeName[MAX_PATH]{};
+		char pipeFile[MAX_PATH]{};
 		unsigned int reconnectAttempt;
 
 		void setName(const std::string& name);
@@ -68,7 +68,7 @@ namespace Components
 		void preDestroy() override;
 
 		static bool Write(const std::string& command, const std::string& data);
-		static void On(const std::string& command, Utils::Slot<Pipe::PacketCallback> callback);
+		static void On(const std::string& command, const Utils::Slot<Pipe::PacketCallback>& callback);
 
 	private:
 		static Pipe ServerPipe;

@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+#include "ModList.hpp"
+#include "UIFeeder.hpp"
 
 namespace Components
 {
@@ -42,7 +44,7 @@ namespace Components
 
 	void ModList::UIScript_LoadMods([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		auto folder = Dvar::Var("fs_basepath").get<std::string>() + "\\mods";
+		auto folder = (*Game::fs_basepath)->current.string + "\\mods"s;
 		Logger::Debug("Searching for mods in {}...", folder);
 		ModList::Mods = FileSystem::GetSysFileList(folder, "", true);
 		Logger::Debug("Found {} mods!", ModList::Mods.size());
@@ -58,8 +60,8 @@ namespace Components
 
 	void ModList::UIScript_ClearMods([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		auto fsGame = Dvar::Var("fs_game");
-		fsGame.set("");
+		Game::Dvar_SetString(*Game::fs_gameDirVar, "");
+		const_cast<Game::dvar_t*>((*Game::fs_gameDirVar))->modified = true;
 
 		if (Dvar::Var("cl_modVidRestart").get<bool>())
 		{
@@ -73,8 +75,8 @@ namespace Components
 
 	void ModList::RunMod(const std::string& mod)
 	{
-		auto fsGame = Dvar::Var("fs_game");
-		fsGame.set(std::format("mods/{}", mod));
+		Game::Dvar_SetString(*Game::fs_gameDirVar, Utils::String::Format("mods/{}", mod));
+		const_cast<Game::dvar_t*>((*Game::fs_gameDirVar))->modified = true;
 
 		if (Dvar::Var("cl_modVidRestart").get<bool>())
 		{

@@ -1,108 +1,11 @@
 #include <STDInclude.hpp>
 #include "IXAnimParts.hpp"
 
-#define IW4X_ANIM_VERSION 1
-
 namespace Assets
 {
 	void IXAnimParts::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		Components::FileSystem::File animFile(std::format("xanim/{}.iw4xAnim", name));
-
-		if (animFile.exists())
-		{
-			Utils::Stream::Reader reader(builder->getAllocator(), animFile.getBuffer());
-
-			__int64 magic = reader.read<__int64>();
-			if (std::memcmp(&magic, "IW4xAnim", 8))
-			{
-				Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, header is invalid!", name);
-			}
-
-			int version = reader.read<int>();
-			if (version != IW4X_ANIM_VERSION)
-			{
-				Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, expected version is {}, but it was {}!", name, IW4X_ANIM_VERSION, version);
-			}
-
-			Game::XAnimParts* xanim = reader.readArray<Game::XAnimParts>();
-
-			if (xanim)
-			{
-				if (xanim->name)
-				{
-					xanim->name = reader.readCString();
-				}
-
-				if (xanim->names)
-				{
-					xanim->names = builder->getAllocator()->allocateArray<unsigned short>(xanim->boneCount[Game::PART_TYPE_ALL]);
-					for (int i = 0; i < xanim->boneCount[Game::PART_TYPE_ALL]; ++i)
-					{
-						xanim->names[i] = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
-					}
-				}
-
-				if (xanim->notify)
-				{
-					xanim->notify = reader.readArray<Game::XAnimNotifyInfo>(xanim->notifyCount);
-
-					for (int i = 0; i < xanim->notifyCount; ++i)
-					{
-						xanim->notify[i].name = static_cast<std::uint16_t>(Game::SL_GetString(reader.readCString(), 0));
-					}
-				}
-
-				if (xanim->dataByte)
-				{
-					xanim->dataByte = reader.readArray<char>(xanim->dataByteCount);
-				}
-
-				if (xanim->dataShort)
-				{
-					xanim->dataShort = reader.readArray<short>(xanim->dataShortCount);
-				}
-
-				if (xanim->dataInt)
-				{
-					xanim->dataInt = reader.readArray<int>(xanim->dataIntCount);
-				}
-
-				if (xanim->randomDataByte)
-				{
-					xanim->randomDataByte = reader.readArray<char>(xanim->randomDataByteCount);
-				}
-
-				if (xanim->randomDataShort)
-				{
-					xanim->randomDataShort = reader.readArray<short>(xanim->randomDataShortCount);
-				}
-
-				if (xanim->randomDataInt)
-				{
-					xanim->randomDataInt = reader.readArray<int>(xanim->randomDataIntCount);
-				}
-
-				if (xanim->indices.data)
-				{
-					if (xanim->numframes < 256)
-					{
-						xanim->indices._1 = reader.readArray<char>(xanim->indexCount);
-					}
-					else
-					{
-						xanim->indices._2 = reader.readArray<unsigned short>(xanim->indexCount);
-					}
-				}
-
-				if (!reader.end())
-				{
-					Components::Logger::Error(Game::ERR_FATAL, "Reading animation '{}' failed, remaining raw data found!", name);
-				}
-
-				header->parts = xanim;
-			}
-		}
+		header->parts = builder->getIW4OfApi()->read<Game::XAnimParts>(Game::XAssetType::ASSET_TYPE_XANIMPARTS, name);
 	}
 
 	void IXAnimParts::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
@@ -111,7 +14,7 @@ namespace Assets
 
 		if (asset->names)
 		{
-			for (char i = 0; i < asset->boneCount[Game::PART_TYPE_ALL]; ++i)
+			for (unsigned char i = 0; i < asset->boneCount[Game::PART_TYPE_ALL]; ++i)
 			{
 				builder->addScriptString(asset->names[i]);
 			}
@@ -119,7 +22,7 @@ namespace Assets
 
 		if (asset->notify)
 		{
-			for (char i = 0; i < asset->notifyCount; ++i)
+			for (unsigned char i = 0; i < asset->notifyCount; ++i)
 			{
 				builder->addScriptString(asset->notify[i].name);
 			}
@@ -262,7 +165,7 @@ namespace Assets
 			unsigned short* destTagnames = buffer->dest<unsigned short>();
 			buffer->saveArray(asset->names, asset->boneCount[Game::PART_TYPE_ALL]);
 
-			for (char i = 0; i < asset->boneCount[Game::PART_TYPE_ALL]; ++i)
+			for (unsigned char i = 0; i < asset->boneCount[Game::PART_TYPE_ALL]; ++i)
 			{
 				builder->mapScriptString(destTagnames[i]);
 			}
@@ -278,7 +181,7 @@ namespace Assets
 			Game::XAnimNotifyInfo* destNotetracks = buffer->dest<Game::XAnimNotifyInfo>();
 			buffer->saveArray(asset->notify, asset->notifyCount);
 
-			for (char i = 0; i < asset->notifyCount; ++i)
+			for (unsigned char i = 0; i < asset->notifyCount; ++i)
 			{
 				builder->mapScriptString(destNotetracks[i].name);
 			}

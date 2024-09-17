@@ -1,4 +1,8 @@
 #include <STDInclude.hpp>
+#include "Party.hpp"
+
+#define MAX_SOURCEFILES	64
+#define DEFINEHASHSIZE 1024
 
 namespace Components
 {
@@ -34,25 +38,31 @@ namespace Components
 	int Menus::ReserveSourceHandle()
 	{
 		// Check if a free slot is available
-		int i = 1;
-		for (; i < MAX_SOURCEFILES; ++i)
+		auto i = 1;
+		while (i < MAX_SOURCEFILES)
 		{
 			if (!Game::sourceFiles[i])
+			{
 				break;
+			}
+
+			++i;
 		}
 
 		if (i >= MAX_SOURCEFILES)
+		{
 			return 0;
+		}
 
 		// Reserve it, if yes
-		Game::sourceFiles[i] = reinterpret_cast<Game::source_t*>(1);
+		Game::sourceFiles[i] = reinterpret_cast<Game::source_s*>(1);
 
 		return i;
 	}
 
-	Game::script_t* Menus::LoadMenuScript(const std::string& name, const std::string& buffer)
+	Game::script_s* Menus::LoadMenuScript(const std::string& name, const std::string& buffer)
 	{
-		auto* script = static_cast<Game::script_t*>(Game::GetClearedMemory(sizeof(Game::script_t) + 1 + buffer.length()));
+		auto* script = static_cast<Game::script_s*>(Game::GetClearedMemory(sizeof(Game::script_s) + 1 + buffer.length()));
 		if (!script) return nullptr;
 
 		strcpy_s(script->filename, sizeof(script->filename), name.data());
@@ -80,37 +90,28 @@ namespace Components
 
 	int Menus::LoadMenuSource(const std::string& name, const std::string& buffer)
 	{
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
 		const auto handle = ReserveSourceHandle();
 		if (!IsValidSourceHandle(handle)) return 0; // No free source slot!
 
 		auto* script = LoadMenuScript(name, buffer);
-
 		if (!script)
 		{
 			Game::sourceFiles[handle] = nullptr; // Free reserved slot
 			return 0;
 		}
 
-		auto* source = allocator->allocate<Game::source_t>();
-		if (!source)
-		{
-			Game::FreeMemory(script);
-			return 0;
-		}
-
+		auto* source = static_cast<Game::source_s*>(Game::GetMemory(sizeof(Game::source_s)));
 		std::memset(source, 0, sizeof(Game::source_s));
 
 		script->next = nullptr;
 
-		strncpy_s(source->filename, "string", _TRUNCATE);
+		strncpy_s(source->filename, name.data(), _TRUNCATE);
 		source->scriptstack = script;
 		source->tokens = nullptr;
 		source->defines = nullptr;
 		source->indentstack = nullptr;
 		source->skip = 0;
-		source->definehash = static_cast<Game::define_s**>(Game::GetClearedMemory(1024 * sizeof(Game::define_s*)));
+		source->definehash = static_cast<Game::define_s**>(Game::GetClearedMemory(DEFINEHASHSIZE * sizeof(Game::define_s*)));
 
 		Game::sourceFiles[handle] = source;
 
@@ -135,7 +136,7 @@ namespace Components
 			return nullptr;
 		}
 
-		Game::pc_token_t token;
+		Game::pc_token_s token;
 		if (!Game::PC_ReadTokenHandle(handle, &token) || token.string[0] != '{')
 		{
 			allocator->free(menu->items);
@@ -194,8 +195,8 @@ namespace Components
 
 		if (!menuFile.exists()) return nullptr;
 
-		Game::pc_token_t token;
-		int handle = LoadMenuSource(menu, menuFile.getBuffer());
+		Game::pc_token_s token;
+		const auto handle = LoadMenuSource(menu, menuFile.getBuffer());
 
 		if (IsValidSourceHandle(handle))
 		{
@@ -258,7 +259,7 @@ namespace Components
 
 		if (menuFile.exists())
 		{
-			Game::pc_token_t token;
+			Game::pc_token_s token;
 			const auto handle = LoadMenuSource(menu, menuFile.getBuffer());
 
 			if (IsValidSourceHandle(handle))
@@ -433,7 +434,7 @@ namespace Components
 		}
 
 		newList->name = allocator->duplicateString(menuList->name);
-		newList->menuCount = size;
+		newList->menuCount = static_cast<int>(size);
 
 		// Copy new menus
 		for (unsigned int i = 0; i < menus.size(); ++i)
@@ -447,45 +448,61 @@ namespace Components
 		return newList;
 	}
 
+	void Menus::FreeScript(Game::script_s* script)
+	{
+		if (script->punctuationtable)
+		{
+			Game::FreeMemory(script->punctuationtable);
+		}
+
+		Game::FreeMemory(script);
+	}
+
 	void Menus::FreeMenuSource(int handle)
 	{
-		Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
-
 		if (!IsValidSourceHandle(handle)) return;
 
-		Game::source_t* source = Game::sourceFiles[handle];
+		auto* source = Game::sourceFiles[handle];
 
 		while (source->scriptstack)
 		{
-			Game::script_t* script = source->scriptstack;
+			auto* script = source->scriptstack;
 			source->scriptstack = source->scriptstack->next;
-			Game::FreeMemory(script);
+			FreeScript(script);
 		}
 
 		while (source->tokens)
 		{
-			Game::token_t* token = source->tokens;
+			auto* token = source->tokens;
 			source->tokens = source->tokens->next;
+
 			Game::FreeMemory(token);
+			--*Game::numtokens;
 		}
 
-		while (source->defines)
+		for (auto i = 0; i < DEFINEHASHSIZE; ++i)
 		{
-			Game::define_t* define = source->defines;
-			source->defines = source->defines->next;
-			Game::FreeMemory(define);
+			while (source->definehash[i])
+			{
+				auto* define = source->definehash[i];
+				source->definehash[i] = source->definehash[i]->hashnext;
+				Game::PC_FreeDefine(define);
+			}
 		}
 
 		while (source->indentstack)
 		{
-			Game::indent_t* indent = source->indentstack;
+			auto* indent = source->indentstack;
 			source->indentstack = source->indentstack->next;
-			allocator->free(indent);
+			Game::FreeMemory(indent);
 		}
 
-		if (source->definehash) allocator->free(source->definehash);
+		if (source->definehash)
+		{
+			Game::FreeMemory(source->definehash);
+		}
 
-		allocator->free(source);
+		Game::FreeMemory(source);
 
 		Game::sourceFiles[handle] = nullptr;
 	}
@@ -727,11 +744,11 @@ namespace Components
 		{
 			if (menu->window.name == "connect"s) // Check if we're supposed to draw the loadscreen
 			{
-				Game::menuDef_t* originalConnect = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, "connect").menu;
+				const auto* originalConnect = AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_MENU, "connect").menu;
 
 				if (originalConnect == menu) // Check if we draw the original loadscreen
 				{
-					if (MenuList.find("connect") != Menus::MenuList.end()) // Check if we have a custom loadscreen, to prevent drawing the original one on top
+					if (MenuList.contains("connect")) // Check if we have a custom load screen, to prevent drawing the original one on top
 					{
 						return false;
 					}
@@ -784,8 +801,8 @@ namespace Components
 		if (Dedicated::IsEnabled()) return;
 
 		// Intercept asset finding
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENU, MenuFindHook);
-		AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_MENULIST, MenuListFindHook);
+		AssetHandler::OnFind(Game::ASSET_TYPE_MENU, MenuFindHook);
+		AssetHandler::OnFind(Game::ASSET_TYPE_MENULIST, MenuListFindHook);
 
 		// Don't open connect menu
 		// Utils::Hook::Nop(0x428E48, 5);
@@ -811,7 +828,7 @@ namespace Components
 		// make Com_Error and similar go back to main_text instead of menu_xboxlive.
 		Utils::Hook::SetString(0x6FC790, "main_text");
 
-		Command::Add("openmenu", [](Command::Params* params)
+		Command::Add("openmenu", [](const Command::Params* params)
 		{
 			if (params->size() != 2)
 			{
@@ -828,7 +845,7 @@ namespace Components
 			Game::Menus_OpenByName(Game::uiContext, params->get(1));
 		});
 
-		Command::Add("reloadmenus", []([[maybe_unused]] Command::Params* params)
+		Command::Add("reloadmenus", []()
 		{
 			// Close all menus
 			Game::Menus_CloseAll(Game::uiContext);
@@ -851,31 +868,26 @@ namespace Components
 			}
 		});
 
-		Command::Add("mp_QuickMessage", [](Command::Params*)
-		{
-			Command::Execute("openmenu quickmessage");
-		});
-
 		// Define custom menus here
 		Add("ui_mp/changelog.menu");
-		Add("ui_mp/theater_menu.menu");
-		Add("ui_mp/pc_options_multi.menu");
+		Add("ui_mp/iw4x_credits.menu");
+		Add("ui_mp/menu_first_launch.menu");
+		Add("ui_mp/mod_download_popmenu.menu");
 		Add("ui_mp/pc_options_game.menu");
 		Add("ui_mp/pc_options_gamepad.menu");
+		Add("ui_mp/pc_options_multi.menu");
+		Add("ui_mp/popup_customclan.menu");
+		Add("ui_mp/popup_customtitle.menu");
+		Add("ui_mp/popup_friends.menu");
+		Add("ui_mp/resetclass.menu");
+		Add("ui_mp/security_increase_popmenu.menu");
+		Add("ui_mp/startup_messages.menu");
 		Add("ui_mp/stats_reset.menu");
 		Add("ui_mp/stats_unlock.menu");
-		Add("ui_mp/security_increase_popmenu.menu");
-		Add("ui_mp/mod_download_popmenu.menu");
-		Add("ui_mp/popup_friends.menu");
-		Add("ui_mp/menu_first_launch.menu");
-		Add("ui_mp/startup_messages.menu");
-		Add("ui_mp/iw4x_credits.menu");
-		Add("ui_mp/resetclass.menu");
-		Add("ui_mp/popup_customtitle.menu");
-		Add("ui_mp/popup_customclan.menu");
+		Add("ui_mp/theater_menu.menu");
 	}
 
-	Menus::~Menus()
+	void Menus::preDestroy()
 	{
 		// Let Windows handle the memory leaks for you!
 		Menus::FreeEverything();

@@ -17,7 +17,7 @@
 [submodule "deps/mongoose"]
 	path = deps/mongoose
 	url = https://github.com/cesanta/mongoose.git
-	branch = master
+	branch = 7.10
 [submodule "deps/protobuf"]
 	path = deps/protobuf
 	url = https://github.com/google/protobuf.git
@@ -35,3 +35,12 @@
 	path = deps/json
 	url = https://github.com/nlohmann/json.git
 	branch = v3.11.2
+[submodule "deps/discord-rpc"]
+	path = deps/discord-rpc
+	url = https://github.com/discord/discord-rpc.git
+[submodule "deps/rapidjson"]
+	path = deps/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "deps/iw4-open-formats"]
+	path = deps/iw4-open-formats
+	url = https://github.com/iw4x/iw4-open-formats.git

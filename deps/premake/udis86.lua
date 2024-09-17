@@ -3,7 +3,7 @@ udis86 = {
 }
 
 function udis86.import()
-	links {"udis86"}
+	links "udis86"
 
 	udis86.includes()
 end

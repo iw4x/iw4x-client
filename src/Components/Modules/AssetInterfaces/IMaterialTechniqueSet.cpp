@@ -9,6 +9,11 @@ namespace Assets
 	{
 		if (!header->data) this->loadFromDisk(header, name, builder); // Check if we need to import a new one into the game
 		if (!header->data) this->loadNative(header, name, builder); // Check if there is a native one
+
+		if (!header->data)
+		{
+			AssertUnreachable;
+		}
 	}
 
 	void IMaterialTechniqueSet::loadNative(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* /*builder*/)
@@ -16,198 +21,56 @@ namespace Assets
 		header->techniqueSet = Components::AssetHandler::FindOriginalAsset(this->getType(), name.data()).techniqueSet;
 	}
 
-	void IMaterialTechniqueSet::loadTechniqueFromDisk(Game::MaterialTechnique** tech, const std::string& name, Components::ZoneBuilder::Zone* builder)
+	void IMaterialTechniqueSet::loadFromDisk(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
-		AssertSize(Game::MaterialPass, 20);
+		header->techniqueSet = builder->getIW4OfApi()->read<Game::MaterialTechniqueSet>(Game::ASSET_TYPE_TECHNIQUE_SET, name);
 
-		Components::FileSystem::File techFile(std::format("techniques/{}.iw4x.json", name));
-		if (!techFile.exists())
+		auto ptr = header->techniqueSet;
+		if (ptr)
 		{
-			*tech = nullptr;
-
-			Components::Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "Missing technique '{}'\n", name);
-			return;
-		}
-
-		nlohmann::json technique;
-
-		try
-		{
-			technique = nlohmann::json::parse(techFile.getBuffer());
-		}
-		catch (std::exception& e)
-		{
-			Components::Logger::Error(Game::ERR_FATAL, "Reading techset '{}' failed, file is messed up! {}", name, e.what());
-		}
-
-		int version = technique["version"].get<int>();
-
-		if (version != IW4X_TECHSET_VERSION)
-		{
-			Components::Logger::Error(Game::ERR_FATAL,
-				"Reading technique '{}' failed, expected version is {}, but it was {}!", name, IW4X_TECHSET_VERSION, version);
-		}
-
-		unsigned short flags = static_cast<unsigned short>(Utils::Json::ReadFlags(technique["flags"].get<std::string>(), sizeof(short)));
-
-		if (technique["passArray"].is_array())
-		{
-			nlohmann::json::array_t passArray = technique["passArray"];
-
-			Game::MaterialTechnique* asset = (Game::MaterialTechnique*)builder->getAllocator()->allocateArray<unsigned char>(sizeof(Game::MaterialTechnique) + (sizeof(Game::MaterialPass) * (passArray.size() - 1)));
-
-			asset->name = builder->getAllocator()->duplicateString(name);
-			asset->flags = flags;
-			asset->passCount = static_cast<unsigned short>(passArray.size());
-
-			Game::MaterialPass* passes = builder->getAllocator()->allocateArray<Game::MaterialPass>(asset->passCount);
-			std::memcpy(asset->passArray, passes, sizeof(Game::MaterialPass) * asset->passCount);
-
-			for (unsigned short i = 0; i < asset->passCount; i++)
+			while (ptr->remappedTechniqueSet && ptr->remappedTechniqueSet != ptr)
 			{
-				Game::MaterialPass* pass = &asset->passArray[i];
-				auto jsonPass = passArray[i];
+				ptr = ptr->remappedTechniqueSet;
+				builder->loadAsset(Game::ASSET_TYPE_TECHNIQUE_SET, ptr, false);
 
-				if (jsonPass["vertexDeclaration"].is_string())
+				for (size_t i = 0; i < Game::TECHNIQUE_COUNT; i++)
 				{
-					auto declName = jsonPass["vertexDeclaration"].get<std::string>();
-					pass->vertexDecl = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_VERTEXDECL, declName, builder).vertexDecl;
-				}
-
-				if (jsonPass["vertexShader"].is_string())
-				{
-					auto vsName = jsonPass["vertexShader"].get<std::string>();
-					pass->vertexShader = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_VERTEXSHADER, vsName, builder).vertexShader;
-				}
-
-				if (jsonPass["pixelShader"].is_string())
-				{
-					auto psName = jsonPass["pixelShader"].get<std::string>();
-					pass->pixelShader = Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_PIXELSHADER, psName, builder).pixelShader;
-				}
-
-				pass->perPrimArgCount = jsonPass["perPrimArgCount"].get<char>();
-				pass->perObjArgCount = jsonPass["perObjArgCount"].get<char>();
-				pass->stableArgCount = jsonPass["stableArgCount"].get<char>();
-				pass->customSamplerFlags = jsonPass["customSamplerFlags"].get<char>();
-
-
-				if (jsonPass["arguments"].is_array())
-				{
-					nlohmann::json::array_t jsonAguments = jsonPass["arguments"];
-
-					pass->args = builder->getAllocator()->allocateArray<Game::MaterialShaderArgument>(jsonAguments.size());
-
-					for (size_t j = 0; j < jsonAguments.size(); j++)
+					const auto technique = ptr->techniques[i];
+					if (technique)
 					{
-						auto jsonArgument = jsonAguments[j];
-						Game::MaterialShaderArgument* argument = &pass->args[j];
-
-						argument->type = jsonArgument["type"].get<Game::MaterialShaderArgumentType>();
-						argument->dest = jsonArgument["dest"].get<unsigned short>();
-
-						if (argument->type == Game::MaterialShaderArgumentType::MTL_ARG_LITERAL_VERTEX_CONST ||
-							argument->type == Game::MaterialShaderArgumentType::MTL_ARG_LITERAL_PIXEL_CONST)
+						for (size_t j = 0; j < technique->passCount; j++)
 						{
-							argument->u.literalConst = builder->getAllocator()->allocateArray<float>(4);
-
-							auto literals = jsonArgument["literals"].get<std::vector<float>>();
-							std::copy(literals.begin(), literals.end(), argument->u.literalConst);
-						}
-						else if (argument->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_VERTEX_CONST ||
-							argument->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_PIXEL_CONST)
-						{
-							if (jsonArgument["codeConst"].is_object())
-							{
-								auto codeConst = jsonArgument["codeConst"];
-
-								argument->u.codeConst.index = codeConst["index"].get<unsigned short>();
-								argument->u.codeConst.firstRow = codeConst["firstRow"].get<unsigned char>();
-								argument->u.codeConst.rowCount = codeConst["rowCount"].get<unsigned char>();
-							}
-						}
-						else if (argument->type == Game::MaterialShaderArgumentType::MTL_ARG_MATERIAL_PIXEL_SAMPLER ||
-							argument->type == Game::MaterialShaderArgumentType::MTL_ARG_MATERIAL_VERTEX_CONST ||
-							argument->type == Game::MaterialShaderArgumentType::MTL_ARG_MATERIAL_PIXEL_CONST)
-						{
-							argument->u.nameHash = jsonArgument["nameHash"].get<unsigned int>();
-						}
-						else if (argument->type == Game::MaterialShaderArgumentType::MTL_ARG_CODE_PIXEL_SAMPLER)
-						{
-							argument->u.codeSampler = jsonArgument["codeSampler"].get<unsigned int>();
+							const auto pass = &technique->passArray[j];
+							builder->loadAsset(Game::ASSET_TYPE_VERTEXDECL, pass->vertexDecl, true);
+							builder->loadAsset(Game::ASSET_TYPE_PIXELSHADER, pass->pixelShader, true);
+							builder->loadAsset(Game::ASSET_TYPE_VERTEXSHADER, pass->vertexShader, true);
 						}
 					}
 				}
 			}
-
-			*tech = asset;
 		}
 	}
 
-	void IMaterialTechniqueSet::loadFromDisk(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
+	IMaterialTechniqueSet::IMaterialTechniqueSet()
 	{
-		Components::FileSystem::File tsFile(std::format("techsets/{}.iw4x.json", name));
-		if (!tsFile.exists()) return;
-
-		nlohmann::json techset;
-
-		try
-		{
-			techset = nlohmann::json::parse(tsFile.getBuffer());
-		}
-		catch (std::exception& e)
-		{
-			Components::Logger::Error(Game::ERR_FATAL, "Reading techset '{}' failed, file is messed up! {}", name, e.what());
-		}
-
-		auto version = techset["version"].get<int>();
-		if (version != IW4X_TECHSET_VERSION)
-		{
-			Components::Logger::Error(Game::ERR_FATAL, "Reading techset '{}' failed, expected version is {}, but it was {}!",
-				name, IW4X_TECHSET_VERSION, version);
-		}
-
-		Game::MaterialTechniqueSet* asset = builder->getAllocator()->allocate<Game::MaterialTechniqueSet>();
-
-		if (asset == nullptr)
-		{
-			Components::Logger::Error(Game::ERR_FATAL, "Reading techset '{}' failed, allocation failed!", name);
-			return;
-		}
-
-		if (techset["name"].is_string())
-		{
-			asset->name = builder->getAllocator()->duplicateString(techset["name"].get<std::string>());
-		}
-
-		asset->hasBeenUploaded = techset["hasBeenUploaded"].get<bool>();
-		asset->worldVertFormat = techset["worldVertFormat"].get<char>();
-
-
-		if (techset["remappedTechniqueSet"].is_string())
-		{
-			auto remapped = techset["remappedTechniqueSet"].get<std::string>();
-
-			if (remapped != asset->name)
+		Components::Command::Add("dumptechset", [](const Components::Command::Params* params)
 			{
-				builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, remapped, false);
-			}
-		}
+				if (params->size() < 2) return;
 
-		if (techset["techniques"].is_object())
-		{
-			for (int i = 0; i < Game::TECHNIQUE_COUNT; i++)
-			{
-				auto technique = techset["techniques"].at(std::to_string(i));
+				std::string techset = params->get(1);
 
-				if (technique.is_string())
+				const auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, techset.data());
+				if (header.data)
 				{
-					this->loadTechniqueFromDisk(&asset->techniques[i], technique.get<std::string>(), builder);
+					Components::ZoneBuilder::RefreshExporterWorkDirectory();
+					Components::ZoneBuilder::GetExporter()->write(Game::XAssetType::ASSET_TYPE_TECHNIQUE_SET, header.data);
+				}
+				else
+				{
+					Components::Logger::Print("Could not find techset {}!\n", techset);
 				}
 			}
-		}
-
-		header->techniqueSet = asset;
+		);
 	}
 
 	void IMaterialTechniqueSet::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)

@@ -1,8 +1,5 @@
 #pragma once
 
-// This enables version filtering
-#define VERSION_FILTER
-
 namespace Components
 {
 	class ServerList : public Component
@@ -10,15 +7,15 @@ namespace Components
 	public:
 		typedef int(SortCallback)(const void*, const void*);
 
-		class ServerInfo
+		struct ServerInfo
 		{
-		public:
 			Network::Address addr;
 			std::string hostname;
 			std::string mapname;
 			std::string gametype;
 			std::string mod;
-			std::string shortversion;
+			std::string version;
+			std::size_t hash;
 			int clients;
 			int bots;
 			int maxClients;
@@ -26,6 +23,7 @@ namespace Components
 			int ping;
 			int matchType;
 			int securityLevel;
+			int protocol;
 			bool hardcore;
 			bool svRunning;
 			bool aimassist;
@@ -33,7 +31,8 @@ namespace Components
 		};
 
 		ServerList();
-		~ServerList();
+		
+		void preDestroy() override;
 
 		static void Refresh([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
 		static void RefreshVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
@@ -53,11 +52,17 @@ namespace Components
 
 		static void UpdateVisibleInfo();
 
-		static bool GetMasterServer(const char* ip, int port, Game::netadr_t& address);
 		static bool UseMasterServer;
 
+		static bool GetMasterServer(const char* ip, int port, Game::netadr_t& address);
+
+		static Dvar::Var UIServerSelected;
+		static Dvar::Var UIServerSelectedMap;
+		static Dvar::Var NETServerQueryLimit;
+		static Dvar::Var NETServerFrames;
+
 	private:
-		enum Column
+		enum class Column : int
 		{
 			Password,
 			Matchtype,
@@ -69,6 +74,8 @@ namespace Components
 			Gametype,
 			Mod,
 			Ping,
+
+			Count
 		};
 
 		static constexpr auto* FavouriteFile = "players/favourites.json";
@@ -83,13 +90,13 @@ namespace Components
 				uint16_t port;
 			};
 
-			bool IsEndToken()
+			[[nodiscard]] bool IsEndToken() const noexcept
 			{
 				// End of transmission or file token
 				return (token[0] == 'E' && token[1] == 'O' && (token[2] == 'T' || token[2] == 'F'));
 			}
 
-			bool HasSeparator()
+			[[nodiscard]] bool HasSeparator() const noexcept
 			{
 				return (token[6] == '\\');
 			}
@@ -119,6 +126,8 @@ namespace Components
 			std::recursive_mutex mutex;
 		};
 
+		static void ParseNewMasterServerResponse(const std::string& servers);
+
 		static unsigned int GetServerCount();
 		static const char* GetServerText(unsigned int index, int column);
 		static const char* GetServerInfoText(ServerInfo* server, int column, bool sorting = false);
@@ -136,6 +145,7 @@ namespace Components
 		static ServerInfo* GetServer(unsigned int index);
 
 		static bool CompareVersion(const std::string& version1, const std::string& version2);
+		static bool IsServerDuplicate(const std::vector<ServerInfo>* list, const ServerInfo& server);
 
 		static int SortKey;
 		static bool SortAsc;
@@ -149,11 +159,23 @@ namespace Components
 
 		static std::vector<unsigned int> VisibleList;
 
-		static Dvar::Var UIServerSelected;
-		static Dvar::Var UIServerSelectedMap;
-		static Dvar::Var NETServerQueryLimit;
-		static Dvar::Var NETServerFrames;
-
 		static bool IsServerListOpen();
 	};
 }
+
+template <>
+struct std::hash<Components::ServerList::ServerInfo>
+{
+	std::size_t operator()(const Components::ServerList::ServerInfo& x) const noexcept
+	{
+		std::size_t hash = 0;
+
+		hash ^= std::hash<std::string>()(x.hostname);
+		hash ^= std::hash<std::string>()(x.mapname);
+		hash ^= std::hash<std::string>()(x.mod);
+		hash ^= std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&x.addr.getIP().bytes[0]));
+		hash ^= x.clients;
+
+		return hash;
+	}
+};

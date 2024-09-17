@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Ceg.hpp"
 
 namespace Components
 {
@@ -32,10 +33,20 @@ namespace Components
 		Utils::Hook::Nop(0x43CA16, 9);
 		Utils::Hook::Nop(0x505426, 9);
 
+		// Removed on IW5 MP (unprotected) but present on IW5 SP (protected) - CEG uninitialization / Steam Shutdown
+		Utils::Hook::Set<std::uint8_t>(0x4F6370, 0xC3);
+
+		// Remove 'Steam Start' checking for DRM IPC
+		Utils::Hook::Nop(0x451145, 5);
+		Utils::Hook::Set<BYTE>(0x45114C, 0xEB);
+
 		// Disable some checks on certain game events
 		Utils::Hook::Nop(0x43EC96, 9);
 		Utils::Hook::Nop(0x4675C6, 9);
 		Utils::Hook::Nop(0x405A36, 9);
+		Utils::Hook::Nop(0x4CE656, 9);
+		Utils::Hook::Nop(0x461E66, 9);
+		Utils::Hook::Nop(0x4EB3F6, 9);
 
 		// Random checks scattered throughout the binary
 		Utils::Hook::Set<std::uint8_t>(0x499F90, 0xC3);
@@ -48,13 +59,7 @@ namespace Components
 		Utils::Hook::Set<std::uint8_t>(0x461930, 0xC3);
 		Utils::Hook::Set<std::uint8_t>(0x430410, 0xC3);
 
-		// Used next to file system functions
-		Utils::Hook::Set<std::uint8_t>(0x47BC00, 0xC3);
-
 		// Looking for stuff in the registry
 		Utils::Hook::Nop(0x4826F8, 5);
-
-		// Live_Init
-		Utils::Hook::Nop(0x420937, 5);
 	}
 }

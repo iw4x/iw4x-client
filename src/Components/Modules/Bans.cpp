@@ -1,11 +1,15 @@
 #include <STDInclude.hpp>
+#include "Bans.hpp"
+#include "Events.hpp"
 
 namespace Components
 {
+	const char* Bans::BanListFile = "userraw/bans.json";
+
 	// Have only one instance of IW4x read/write the file
 	std::unique_lock<Utils::NamedMutex> Bans::Lock()
 	{
-		static Utils::NamedMutex mutex{"iw4x-ban-list-lock"};
+		static Utils::NamedMutex mutex{ "iw4x-ban-list-lock" };
 		std::unique_lock lock{mutex};
 		return lock;
 	}
@@ -86,7 +90,7 @@ namespace Components
 
 	void Bans::SaveBans(const BanList* list)
 	{
-		assert(list != nullptr);
+		assert(list);
 
 		const auto _ = Lock();
 
@@ -104,7 +108,8 @@ namespace Components
 				ipEntry.bytes[0] & 0xFF,
 				ipEntry.bytes[1] & 0xFF,
 				ipEntry.bytes[2] & 0xFF,
-				ipEntry.bytes[3] & 0xFF));
+				ipEntry.bytes[3] & 0xFF)
+			);
 		}
 
 		const nlohmann::json bans = nlohmann::json
@@ -113,18 +118,17 @@ namespace Components
 			{ "id", idVector },
 		};
 
-		FileSystem::FileWriter ("bans.json").write(bans.dump());
+		Utils::IO::WriteFile(BanListFile, bans.dump());
 	}
 
 	void Bans::LoadBans(BanList* list)
 	{
-		assert(list != nullptr);
+		assert(list);
 
 		const auto _ = Lock();
 
-		FileSystem::File bans("bans.json");
-
-		if (!bans.exists())
+		const auto bans = Utils::IO::ReadFile(BanListFile);
+		if (bans.empty())
 		{
 			Logger::Debug("bans.json does not exist");
 			return;
@@ -133,11 +137,17 @@ namespace Components
 		nlohmann::json banData;
 		try
 		{
-			banData = nlohmann::json::parse(bans.getBuffer());
+			banData = nlohmann::json::parse(bans);
 		}
-		catch (const nlohmann::json::parse_error& ex)
+		catch (const std::exception& ex)
 		{
-			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Json Parse Error: {}\n", ex.what());
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "JSON Parse Error: {}\n", ex.what());
+			return;
+		}
+
+		if (!banData.contains("id") || !banData.contains("ip"))
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "bans.json contains invalid data\n");
 			return;
 		}
 
@@ -177,12 +187,12 @@ namespace Components
 		}
 	}
 
-	void Bans::BanClient(Game::client_t* cl, const std::string& reason)
+	void Bans::BanClient(Game::client_s* cl, const std::string& reason)
 	{
 		SteamID guid;
 		guid.bits = cl->steamID;
 
-		InsertBan({guid, cl->header.netchan.remoteAddress.ip});
+		InsertBan({ guid, cl->header.netchan.remoteAddress.ip });
 
 		Game::SV_DropClient(cl, reason.data(), true);
 	}
@@ -223,9 +233,9 @@ namespace Components
 		SaveBans(&list);
 	}
 
-	Bans::Bans()
+	void Bans::AddServerCommands()
 	{
-		Command::Add("banClient", [](Command::Params* params)
+		Command::AddSV("banClient", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -250,26 +260,30 @@ namespace Components
 				}
 			}
 
-			const auto num = std::atoi(input);
-
-			if (num < 0 || num >= *Game::svs_clientCount)
+			const auto clientNum = std::strtoul(input, nullptr, 10);
+			if (clientNum >= Game::MAX_CLIENTS)
 			{
-				Logger::Print("Bad client slot: {}\n", num);
+				Logger::Print("Bad client slot: {}\n", clientNum);
 				return;
 			}
 
-			const auto* cl = &Game::svs_clients[num];
-			if (cl->header.state == Game::CS_FREE)
+			auto* cl = &Game::svs_clients[clientNum];
+			if (cl->header.state < Game::CS_ACTIVE)
 			{
-				Logger::Print("Client {} is not active\n", num);
+				Logger::Print("Client {} is not active\n", clientNum);
 				return;
 			}
 
-			const std::string reason = params->size() < 3 ? "EXE_ERR_BANNED_PERM" : params->join(2);
-			Bans::BanClient(&Game::svs_clients[num], reason);
+			if (cl->bIsTestClient)
+			{
+				return;
+			}
+
+			const auto reason = params->size() < 3 ? "EXE_ERR_BANNED_PERM"s : params->join(2);
+			BanClient(cl, reason);
 		});
 
-		Command::Add("unbanClient", [](Command::Params* params)
+		Command::AddSV("unbanClient", [](const Command::Params* params)
 		{
 			if (!Dedicated::IsRunning())
 			{
@@ -296,12 +310,17 @@ namespace Components
 			else if (type == "guid"s)
 			{
 				SteamID id;
-				id.bits = strtoull(params->get(2), nullptr, 16);
+				id.bits = std::strtoull(params->get(2), nullptr, 16);
 
 				UnbanClient(id);
 
 				Logger::Print("Unbanned GUID {}\n", params->get(2));
 			}
 		});
+	}
+
+	Bans::Bans()
+	{
+		Events::OnSVInit(AddServerCommands);
 	}
 }
