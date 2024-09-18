@@ -11,6 +11,29 @@ namespace Components
 	{
 		if (auto* rawWeaponFile = Game::BG_LoadWeaponCompleteDefInternal("mp", name))
 		{
+			// Fix for rumbles being wrong in the raw files.. This should not happen normally
+			// But in effect, it happens very often, so we need to fix it to avoid rumble errors
+			{
+				if (rawWeaponFile->weapDef->notetrackRumbleMapKeys &&
+					rawWeaponFile->weapDef->notetrackRumbleMapKeys[0] == rawWeaponFile->weapDef->notetrackSoundMapKeys[0])
+				{
+					// This means it's wrong and the dump is bad (it gave sound names as rumble names, which is not possible)
+					// The zone has it right so let's take it from there
+					const auto zoneWeapon = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_WEAPON, name).weapon;
+
+					if (zoneWeapon)
+					{
+						// Restore rumble from zone
+						std::memcpy(rawWeaponFile->weapDef->notetrackRumbleMapKeys, zoneWeapon->weapDef->notetrackRumbleMapKeys, 16 * sizeof(unsigned short));
+						std::memcpy(rawWeaponFile->weapDef->notetrackRumbleMapValues, zoneWeapon->weapDef->notetrackRumbleMapValues, 16 * sizeof(unsigned short));
+					}
+					else
+					{
+						// Oh well. You'll have to fix your weapon file :)
+					}
+				}
+			}
+
 			return rawWeaponFile;
 		}
 

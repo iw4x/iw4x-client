@@ -221,7 +221,7 @@ namespace Game
 	typedef const char*(*UI_GetMapDisplayName_t)(const char* pszMap);
 	extern UI_GetMapDisplayName_t UI_GetMapDisplayName;
 
-	typedef int(*ParseConfigStringToStruct_t)(void* pStruct, Game::cspField_t* pFieldList, const int iNumFields, const char* pszBuffer, const int iMaxFieldTypes, int(__cdecl* parseSpecialFieldType)(char*, const char*, const int), void(__cdecl* parseStrcpy)(char*, char*));
+	typedef int(*ParseConfigStringToStruct_t)(void* pStruct, const Game::cspField_t* pFieldList, const int iNumFields, const char* pszBuffer, const int iMaxFieldTypes, int(__cdecl* parseSpecialFieldType)(char*, const char*, const int), void(__cdecl* parseStrcpy)(char*, char*));
 	extern ParseConfigStringToStruct_t ParseConfigStringToStruct;
 
 	typedef void(*MSG_Init_t)(msg_t* buf, unsigned char* data, int length);

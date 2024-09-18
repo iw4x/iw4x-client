@@ -162,7 +162,7 @@ namespace Components
 		return CL_GetConfigString(RUMBLE_FIRST + index, Game::MAX_CONFIGSTRINGS, Game::MAX_CONFIGSTRINGS);
 	}
 
-	int ConfigStrings::SV_GetRumbleConfigStringConst(int index)
+	unsigned int ConfigStrings::SV_GetRumbleConfigStringConst(int index)
 	{
 		return SV_GetConfigString(RUMBLE_FIRST +index, Game::MAX_CONFIGSTRINGS, Game::MAX_CONFIGSTRINGS);
 	}

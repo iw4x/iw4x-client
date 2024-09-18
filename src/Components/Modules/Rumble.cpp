@@ -7,6 +7,38 @@ namespace Components
 {
 	static Game::RumbleGlobals rumbleGlobArray[Game::MAX_GPAD_COUNT]{}; // We're only gonna use #0 anyway cause only one client
 
+	// Normally these would be defined per-map, but let's just load all of them for good measure
+	static const std::string rumbleStrings[] = {
+			"riotshield_impact"
+			,"damage_heavy"
+			,"defaultweapon_fire"
+			,"pistol_fire"
+			,"defaultweapon_melee"
+			,"viewmodel_small"
+			,"viewmodel_medium"
+			,"viewmodel_large"
+			,"silencer_fire"
+			,"smg_fire"
+			,"assault_fire"
+			,"shotgun_fire"
+			,"heavygun_fire"
+			,"sniper_fire"
+			,"artillery_rumble"
+			,"grenade_rumble"
+			,"ac130_25mm_fire"
+			,"ac130_40mm_fire"
+			,"ac130_105mm_fire"
+			,"minigun_rumble"
+	};
+
+	const static Game::cspField_t rumbleFields[4] =
+	{
+		{"duration", 4, 7},
+		{"range", 8, 7},
+		{"fadeWithDistance", 0x14, 5},
+		{"broadcast", 0x18, 5}
+	};
+
 	int GetRumbleInfoIndexFromName(const char* rumbleName)
 	{
 		for (size_t i = 0; i < Gamepad::RUMBLE_CONFIGSTRINGS_COUNT; i++)
@@ -58,48 +90,37 @@ namespace Components
 
 	int FindClosestToDyingActiveRumble(Game::cg_s* cgameGlob, Game::ActiveRumble* activeRumbleArray)
 	{
-		__int64 v2; // r7
-		double v3; // fp31
-		int v5; // r23
-		int v6; // r28
-		Game::RumbleSourceType* v7; // r31
-		int v8; // r9
-
-		v3 = 0.0;
-		v5 = 32;
-		v6 = 0;
+		float oldestRumbleAge = 0.0f;
+		int oldestRumbleIndex = 0;
 		for (int i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; i++)
 		{
-			Game::ActiveRumble* ar = &activeRumbleArray[i];
+			const Game::ActiveRumble* ar = &activeRumbleArray[i];
 			assert(ar->rumbleInfo);
 			assert(ar->sourceType != Game::RUMBLESOURCE_INVALID);
 
 			if (ar->rumbleInfo && (ar->sourceType != Game::RUMBLESOURCE_ENTITY || ar->source.entityNum != cgameGlob->predictedPlayerState.clientNum))
 			{
 				auto rumbleInfo = ar->rumbleInfo;
-				double timeDiff = cgameGlob->time - ar->startTime;
-				if ((timeDiff / rumbleInfo->duration) > v3)
+				float timeDiff = static_cast<float>(cgameGlob->time - ar->startTime);
+				float timeLived01 = timeDiff / rumbleInfo->duration;
+				if (timeLived01 > oldestRumbleAge)
 				{
-					v5 = v6;
-					v3 = (timeDiff / rumbleInfo->duration);
+					oldestRumbleIndex = i;
+					oldestRumbleAge = timeLived01;
 				}
 			}
-			++v6;
 		};
 
-		if (v5 != 32)
-			return v5;
+		if (oldestRumbleAge == 0.0f)
+		{
+			Logger::Warning(Game::CON_CHANNEL_SYSTEM, "FindClosestToDyingActiveRumble(): Couldn't find a suitable rumble to stop, defaulting to index zero.\n");
+		}
 
-		Logger::Warning(Game::CON_CHANNEL_SYSTEM, "FindClosestToDyingActiveRumble(): Couldn't find a suitable rumble to stop, defaulting to index zero.\n");
-		return 0;
+		return oldestRumbleIndex;
 	}
 
 	Game::ActiveRumble* NextAvailableRumble(Game::cg_s* cgameGlob, Game::ActiveRumble* arArray)
 	{
-		int v4; // r9
-		int* v5; // r11
-		int v7; // r31
-
 		for (auto i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; i++)
 		{
 			Game::ActiveRumble* candidate = &arArray[i];
@@ -155,41 +176,35 @@ namespace Components
 
 			assert(activeRumble->sourceType != Game::RUMBLESOURCE_INVALID);
 
-			if (activeRumble->rumbleInfo->fadeWithDistance) { // I think ?
 
-				if (activeRumble->sourceType == Game::RUMBLESOURCE_ENTITY && activeRumble->source.entityNum != cg->predictedPlayerState.clientNum)
-				{
-					continue;
-				}
-
-				scale = 1.f; // ???
+			if (activeRumble->sourceType == Game::RUMBLESOURCE_ENTITY && activeRumble->source.entityNum != cg->predictedPlayerState.clientNum)
+			{
+				continue;
 			}
-			else
+
 			{
 				float distance = 0.f;
-				if (activeRumble->sourceType == Game::RUMBLESOURCE_ENTITY)
-				{
-					auto entity = Game::CG_GetEntity(localClientNum, activeRumble->source.entityNum);
-					auto x = (*rumbleReceiverPos - entity->pose.origin[0]);
-					auto y = (rumbleReceiverPos[1] - entity->pose.origin[1]);
-					auto z = (rumbleReceiverPos[2] - entity->pose.origin[2]);
 
-					distance = std::sqrtf((x * x) + (y * y) + (z * z));
-
-				}
-				else
+				// Compute rumble distance
 				{
-					/*	if (v16 != RUMBLESOURCE_POS)
-							MyAssertHandler(
-								"c:\\trees\\iw4build1-iw\\iw4\\code_source\\src\\cgame\\cg_rumble.cpp",
-								591,
-								0,
-								"%s",
-								"ar->sourceType == RUMBLESOURCE_POS");
-						v26 = (*rumbleReceiverPos - *(v12 + 2));
-						v27 = (rumbleReceiverPos[2] - *(v12 + 4));
-						v24 = (rumbleReceiverPos[1] - *(v12 + 3));
-						v25 = ((v27 * v27) + (v26 * v26));*/
+					if (activeRumble->sourceType == Game::RUMBLESOURCE_ENTITY)
+					{
+						auto entity = Game::CG_GetEntity(localClientNum, activeRumble->source.entityNum);
+						auto x = (*rumbleReceiverPos - entity->pose.origin[0]);
+						auto y = (rumbleReceiverPos[1] - entity->pose.origin[1]);
+						auto z = (rumbleReceiverPos[2] - entity->pose.origin[2]);
+
+						distance = std::sqrtf((x * x) + (y * y) + (z * z));
+
+					}
+					else
+					{
+						auto x = (*rumbleReceiverPos - activeRumble->source.pos[0]);
+						auto y = (rumbleReceiverPos[1] - activeRumble->source.pos[1]);
+						auto z = (rumbleReceiverPos[2] - activeRumble->source.pos[2]);
+
+						distance = std::sqrtf((x * x) + (y * y) + (z * z));
+					}
 				}
 
 				if (distance <= activeRumble->rumbleInfo->range)
@@ -201,6 +216,14 @@ namespace Components
 						// Complete guesswork
 						scale = 1.f - distance / activeRumble->rumbleInfo->range;
 					}
+					else
+					{
+						scale = 1.f;
+					}
+				}
+				else
+				{
+					continue;
 				}
 			}
 
@@ -276,31 +299,31 @@ namespace Components
 		if (type == Game::RUMBLESOURCE_ENTITY)
 		{
 			auto entity = Game::CG_GetEntity(localClientNum, entityNum);
-			//if (!rumbleInfo->broadcast)
-			//{
-			//	if ((entity->flags & 1) == 0)
-			//		return;
-			//	if (entity->nextState.eType != 1)
-			//	{
-			//		Logger::Error(
-			//			Game::ERR_FATAL,
-			//			"Non-player entity #{} of type {} at ({}, {}, {}) is trying to play non-broadcasting rumble \"{}\" on themselves.\n",
-			//			entityNum,
-			//			entity->nextState.eType,
-			//			entity->prevState.pos.trBase[0],
-			//			entity->prevState.pos.trBase[1],
-			//			entity->prevState.pos.trBase[2],
-			//			rumbleName);
-			//		return;
-			//	}
-			//}
+			if (!rumbleInfo->broadcast)
+			{
+				if (!entity->nextValid)
+					return;
+
+				if (entity->nextState.eType != 1)
+				{
+					Logger::Error(
+						Game::ERR_FATAL,
+						"Non-player entity #{} of type {} at ({}, {}, {}) is trying to play non-broadcasting rumble \"{}\" on themselves.\n",
+						entityNum,
+						entity->nextState.eType,
+						entity->prevState.pos.trBase[0],
+						entity->prevState.pos.trBase[1],
+						entity->prevState.pos.trBase[2],
+						rumbleName);
+					return;
+				}
+			}
 
 			activeRumble->source.entityNum = entityNum;
 		}
 		else if (type == Game::RUMBLESOURCE_POS)
 		{
-			// Not implemented for now
-			printf("");
+			std::memcpy(activeRumble->source.pos, pos, ARRAYSIZE(activeRumble->source.pos) * sizeof(float));
 		}
 		else
 		{
@@ -316,13 +339,18 @@ namespace Components
 		activeRumble->startTime = cg->time;
 		activeRumble->rumbleInfo = rumbleInfo;
 		activeRumble->loop = loop;
-		activeRumble->scale = (scale * 255.0);
+		activeRumble->scale = static_cast<uint8_t>(scale * 255.0);
 
 		if (!cg->nextSnap || cg->predictedPlayerState.clientNum == cg->clientNum && cg->predictedPlayerState.pm_type != 5)
 			CalcActiveRumbles(
 				localClientNum,
 				rumbleGlobArray[localClientNum].activeRumbles,
 				rumbleGlobArray[localClientNum].receiverPos);
+	}
+
+	void CG_PlayRumbleOnPosition(int localClientNum, const char* rumbleName, const float* pos)
+	{
+		PlayRumbleInternal(localClientNum, rumbleName, 0, Game::RUMBLESOURCE_POS, 0, pos, 1.0);
 	}
 
 	void CG_PlayRumbleOnClient(int localClientNum, const char* rumbleName)
@@ -344,15 +372,17 @@ namespace Components
 		}
 	}
 
-
-
-	static Game::cspField_t rumbleFields[4] =
+	void CG_PlayRumbleOnClientSafe(int localClientNum, const char* rumbleName)
 	{
-		{"duration", 4, 7},
-		{"range", 8, 7},
-		{"fadeWithDistance", 0x14, 5},
-		{"broadcast", 0x18, 5}
-	};
+		if (GetRumbleInfoIndexFromName(rumbleName) >= 0)
+		{
+			PlayRumbleInternal(localClientNum, rumbleName, 0, Game::RUMBLESOURCE_ENTITY, Game::CL_GetLocalClientGlobals(localClientNum)->predictedPlayerState.clientNum, 0, 1.0);
+		}
+		else
+		{
+			Game::Com_PrintWarning(14, "Can't play rumble asset '%s' because it is not registered.", rumbleName);
+		}
+	}
 
 	void Rumble_Strcpy(char* member, char* keyValue)
 	{
@@ -394,12 +424,12 @@ namespace Components
 						if (*parsedCharacterA == '}')
 							break;
 
-						float floatA = atof(parsedCharacterA);
+						float floatA = static_cast<float>(atof(parsedCharacterA));
 
 						const char* parsedCharacterB = Game::Com_Parse(&buffer_);
 						if (!*parsedCharacterB || *parsedCharacterB == '}')
 							break;
-						float floatB = atof(parsedCharacterB);
+						float floatB = static_cast<float>(atof(parsedCharacterB));
 
 						if (i >= MAX_RUMBLE_GRAPH_KNOTS)
 						{
@@ -410,14 +440,8 @@ namespace Components
 						(*knot)[1] = floatB;
 					};
 				}
-				Game::Com_EndParseSession();
 
-				///
-				if (graph->graphName == "smg_fire_l.rmb"s)
-				{
-					printf("");
-				}
-				///
+				Game::Com_EndParseSession();
 
 				return true;
 			}
@@ -463,9 +487,7 @@ namespace Components
 	int LoadRumbleGraph(Game::RumbleGraph* rumbleGraphArray, Game::RumbleInfo* info, const char* highRumbleFileName, const char* lowRumbleFileName)
 	{
 		info->highRumbleGraph = 0;
-		auto highRumbleFileName_ = highRumbleFileName;
 		info->lowRumbleGraph = 0;
-		auto lowRumbleFileName_ = lowRumbleFileName;
 
 		auto i = 0;
 
@@ -474,15 +496,15 @@ namespace Components
 			auto rumbleGraph = &rumbleGraphArray[i];
 			if (!rumbleGraph->knotCount)
 				break;
-			if (!strnicmp(rumbleGraph->graphName, highRumbleFileName, 0x7FFFFFFF)) // TODO change that
+			if (!_strnicmp(rumbleGraph->graphName, highRumbleFileName, 0x7FFFFFFF)) // TODO change that
 				info->highRumbleGraph = rumbleGraph;
-			if (!strnicmp(rumbleGraph->graphName, lowRumbleFileName_, 0x7FFFFFFF))
+			if (!_strnicmp(rumbleGraph->graphName, lowRumbleFileName, 0x7FFFFFFF))
 				info->lowRumbleGraph = rumbleGraph;
 		}
 		if (!info->highRumbleGraph || !info->lowRumbleGraph)
 		{
 			if (i == 64)
-				Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
+				Components::Logger::Error(Game::ERR_DROP, "No more room to allocate rumble graph");
 
 			auto rumbleGraph = &rumbleGraphArray[i];
 
@@ -490,7 +512,7 @@ namespace Components
 			{
 				if (i == 64)
 				{
-					Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
+					Components::Logger::Error(Game::ERR_DROP, "No more room to allocate rumble graph");
 				}
 				else if (!info->highRumbleGraph)
 				{
@@ -510,47 +532,7 @@ namespace Components
 				}
 			}
 
-			printf("");
-			//int v12;
-			//int v15;
-			//unsigned short* v16 = nullptr;
-			//if (!info->highRumbleGraph || !info->lowRumbleGraph)
-			//{
-			//	v15 = 0;
-			//	v16 = &rumbleGraphArray[1].knotCount;
-			//	do
-			//	{
-			//		*(&v12 + 1) = *(v16 - 118);
-			//		if (!*(v16 - 118))
-			//			break;
-			//		*(&v12 + 1) = *v16;
-			//		if (!*v16)
-			//		{
-			//			++v15;
-			//			break;
-			//		}
-			//		*(&v12 + 1) = v16[118];
-			//		if (!v16[118])
-			//		{
-			//			v15 += 2;
-			//			break;
-			//		}
-			//		*(&v12 + 1) = v16[236];
-			//		if (!v16[236])
-			//		{
-			//			v15 += 3;
-			//			break;
-			//		}
-			//		v15 += 4;
-			//		v16 += 472;
-			//	} while (v15 < 64);
-			//	if (v15 == 64)
-			//		Components::Logger::Error(Game::ERR_DROP, "No moore room to allocate rumble graph");
-			////	
-			//	auto v17 = &rumbleGraphArray[v15];
-			//	ReadRumbleGraph(v17, lowRumbleFileName);
-			//	info->lowRumbleGraph = v17;
-			//}
+			// There's more stuff that should be happening here
 		}
 
 		return 1;
@@ -595,29 +577,24 @@ namespace Components
 			return 0;
 
 		info->rumbleNameIndex = rumbleNameIndex;
-		info->duration = info->duration * 1000.0;
+		info->duration = info->duration * 1000.f;
 
 		return 1;
 	}
 
 	void CG_RegisterRumbles(int localClientNum)
 	{
-		auto configStringBasePos = 0;
-		auto myRumbleGlobal = &rumbleGlobArray[localClientNum];
-		auto maxRumbleGraphIndex = Gamepad::RUMBLE_CONFIGSTRINGS_COUNT;
-		auto myRumbleInfo = &rumbleGlobArray[localClientNum].infos[1];
-		do
+		const auto myRumbleGlobal = &rumbleGlobArray[localClientNum];
+		const auto maxRumbleGraphIndex = Gamepad::RUMBLE_CONFIGSTRINGS_COUNT;
+
+		for (int i = 1; i < maxRumbleGraphIndex; i++)
 		{
-			auto rumbleConf = ConfigStrings::CL_GetRumbleConfigString(configStringBasePos);
+			auto rumbleConf = ConfigStrings::CL_GetRumbleConfigString(i);
 			if (*rumbleConf)
 			{
-				CG_LoadRumble(myRumbleGlobal->graphs, myRumbleInfo, rumbleConf, configStringBasePos);
+				CG_LoadRumble(myRumbleGlobal->graphs, &rumbleGlobArray[localClientNum].infos[i-1], rumbleConf, i);
 			}
-
-			--maxRumbleGraphIndex;
-			++configStringBasePos;
-			++myRumbleInfo;
-		} while (maxRumbleGraphIndex);
+		}
 	}
 
 	void CG_RegisterGraphics_Hk(int localClientNum, int b)
@@ -648,8 +625,14 @@ namespace Components
 					return;
 			}
 
-			assert(i <= Gamepad::RUMBLE_CONFIGSTRINGS_COUNT);
-			ConfigStrings::SV_SetRumbleConfigString(i, name);
+			if (i <= Gamepad::RUMBLE_CONFIGSTRINGS_COUNT)
+			{
+				Logger::Print("WARNING: Rumble not registered, {}\n", name);
+			}
+			else
+			{
+				ConfigStrings::SV_SetRumbleConfigString(i, name);
+			}
 		}
 	}
 
@@ -673,10 +656,6 @@ namespace Components
 		//Disabled for now cause it's weird
 		for (auto i = 0; i < 16; ++i)
 		{
-			//
-			weapDef->notetrackRumbleMapKeys[i] = 0;
-			//
-
 			if (!weapDef->notetrackRumbleMapKeys[i])
 				break;
 			auto noteTrackRumbleMap = weapDef->notetrackRumbleMapValues;
@@ -703,7 +682,7 @@ namespace Components
 				auto cg = Game::CL_GetLocalClientGlobals(localClientNum); // should be CG instead
 
 				if (ent->eType != 12
-					|| (cg->predictedPlayerState.eFlags & 0x100000) == 0
+					|| (cg->predictedPlayerState.eFlags & Game::EF_VEHICLE_ACTIVE) == 0
 					|| (v10 = 1, cg->predictedPlayerState.viewlocked_entNum != ent->number))
 				{
 					v10 = 0;
@@ -716,27 +695,28 @@ namespace Components
 
 	void __declspec(naked) CG_FireWeapon_FireSoundHk()
 	{
-		static auto CG_FireWeapon_FireSound_t = 0x59D7D0u;
-
 		__asm
 		{
-			call CG_FireWeapon_FireSound_t;
-
 			pushad;
-			//CG_FireWeapon_Rumble(localClientNum, cent, weapon, isPlayerView);
 
-			push bl
-				push[esp + 0x20 + 0x58] // weapon
-				push[esp + 0x20 + 0x4] // cent
+				push bx
+				push[esp + 0x20 + 0x28 + 0x2] // weapon
+				push esi // cent
 				push ebp
 
 				call CG_FireWeapon_Rumble
 
-				add esp, 0x4 * 4
+				add esp, 0x4 * 3 + 0x2
 
-				popad;
+			popad;
 
-			push 0x4FB362;
+				// OG code
+				sub esp, 0x10;
+				push ebp;
+				mov ebp, [esp + 0x24];
+
+			// Return
+			push 0x59D7D8;
 			retn;
 		}
 	}
@@ -773,7 +753,7 @@ namespace Components
 
 		for (int i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; i++)
 		{
-			auto ar = &rumbleGlobArray[localClientNum].activeRumbles[i];
+			auto ar = &activeRumbleArray[i];
 
 			if (!ar->rumbleInfo)
 			{
@@ -792,15 +772,23 @@ namespace Components
 			if (ar->sourceType == Game::RUMBLESOURCE_ENTITY && ar->source.pos)
 			{
 				auto entity = Game::CG_GetEntity(localClientNum, ar->source.entityNum);
-				auto snap = cg->nextSnap;
-				auto eFlags = ar->source.entityNum == snap->ps.clientNum ? snap->ps.eFlags : entity->nextState.lerp.eFlags;
-				//if (!entity->nextValid || (eFlags & 0x1000) == 0)
-				//{
-				//	ar->sourceType = Game::RUMBLESOURCE_INVALID;
-				//	ar->rumbleInfo = nullptr;
-				//	ar->startTime = -1;
-				//	continue;
-				//}
+				auto snap = &cg->predictedPlayerState;
+				auto eFlags =
+					ar->source.entityNum == snap->clientNum ?
+					snap->eFlags :
+					entity->nextState.lerp.eFlags;
+
+
+				// EF_LOOP_RUMBLE Seems to never be set
+				// I don't know where to look for it
+				// So we need to comment it out in the meantime otherwise no rumble ever plays
+				if (!entity->nextValid/* || (eFlags & Game::EF_LOOP_RUMBLE) == 0*/)
+				{
+					ar->sourceType = Game::RUMBLESOURCE_INVALID;
+					ar->rumbleInfo = nullptr;
+					ar->startTime = -1;
+					continue;
+				}
 			}
 		}
 	}
@@ -830,6 +818,24 @@ namespace Components
 			RemoveInactiveRumbles(localClientNum, rumbleGlobArray[localClientNum].activeRumbles);
 			CalcActiveRumbles(localClientNum, rumbleGlobArray[localClientNum].activeRumbles, rumbleGlobArray[localClientNum].receiverPos);
 		}
+	}
+
+	void CG_SetRumbleReceiver()
+	{
+		constexpr int localClientIndex = 0; // :(
+
+		rumbleGlobArray[localClientIndex].receiverEntNum = Game::CL_GetLocalClientGlobals(localClientIndex)->predictedPlayerState.clientNum;
+
+		std::memcpy(
+			rumbleGlobArray[localClientIndex].receiverPos,
+			//Game::CL_GetLocalClientGlobals(localClientIndex)->refdef.view.org,
+			Game::CG_GetEntity(localClientIndex, rumbleGlobArray[localClientIndex].receiverEntNum)->pose.origin,
+			sizeof(float) * ARRAYSIZE(rumbleGlobArray[localClientIndex].receiverPos
+			)
+		);
+
+		// R_EndDobjScene
+		Utils::Hook::Call<void()>(0x50BB30)();
 	}
 
 	void CG_UpdateEntInfo_Hk()
@@ -878,30 +884,6 @@ namespace Components
 		}
 	}
 	
-	
-	static const std::string rumbleStrings[] = {
-			"riotshield_impact"
-			,"damage_heavy"
-			,"defaultweapon_fire"
-			,"pistol_fire"
-			,"defaultweapon_melee"
-			,"viewmodel_small"
-			,"viewmodel_medium"
-			,"viewmodel_large"
-			,"silencer_fire"
-			,"smg_fire"
-			,"assault_fire"
-			,"shotgun_fire"
-			,"heavygun_fire"
-			,"sniper_fire"
-			,"artillery_rumble"
-			,"grenade_rumble"
-			,"ac130_25mm_fire"
-			,"ac130_40mm_fire"
-			,"ac130_105mm_fire"
-			,"minigun_rumble"
-		};
-
 
 	void LoadConstantRumbleConfigStrings()
 	{
@@ -927,33 +909,112 @@ namespace Components
 		return Utils::Hook::Call<void(int)>(0x445940)(arg);
 	}
 
+	void CG_GetImpactEffectForWeapon_Hk(int localClientNum, const int sourceEntityNum, const int weaponIndex, const int surfType, const int impactFlags, Game::FxEffectDef** outFx, Game::snd_alias_list_t** outSnd)
+	{
+		CG_PlayRumbleOnClient(localClientNum, "riotshield_impact");
+		Utils::Hook::Call<void(int, int, int, int, int, Game::FxEffectDef**, Game::snd_alias_list_t**)>(0x4E43E0)(localClientNum, sourceEntityNum, weaponIndex, surfType, impactFlags, outFx, outSnd);
+	}
+
+	void CG_ExplosiveImpactOnShieldEvent(int localClientNum)
+	{
+		CG_PlayRumbleOnClient(localClientNum, "riotshield_impact");
+		Utils::Hook::Call<void(int)>(0x4FBCB0)(localClientNum);
+	}
+
+	void CG_ExplosiveSplashOnShieldEvent(int localClientNum, int weaponIndex)
+	{
+		CG_PlayRumbleOnClient(localClientNum, "riotshield_impact");
+		Utils::Hook::Call<void(int, int)>(0x4F2EA0)(localClientNum, weaponIndex);
+	}
+
+	void PlayNoteMappedRumbleAliases(int localClientNum, const char* noteName, Game::WeaponDef* weapDef)
+	{
+		if (*weapDef->notetrackRumbleMapKeys)
+		{
+			const auto stringID = Game::SL_FindLowercaseString(noteName);
+			if (stringID)
+			{
+				for (auto i = 0; i < 16; ++i)
+				{
+					if (!weapDef->notetrackRumbleMapKeys[i])
+						break;
+
+					const auto values = weapDef->notetrackRumbleMapValues;
+					if (values[i] && weapDef->notetrackRumbleMapKeys[i] == stringID)
+					{
+						const auto rumbleName = Game::SL_ConvertToString(values[i]);
+						if (rumbleName)
+						{
+							CG_PlayRumbleOnClientSafe(localClientNum, rumbleName);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	void __declspec(naked) PlayNoteMappedSoundAliases_Stub()
+	{
+		__asm
+		{
+			pushad
+				push edi // WeapDeff
+				push ecx // NoteName
+				push edx // LocalClientNum
+
+				call PlayNoteMappedRumbleAliases
+
+				pop edx
+				pop ecx
+				pop edi
+			popad
+
+			// original code
+			mov eax, [edi + 0x18]
+			cmp word ptr[eax], 0
+
+			// Go back
+			push 0x59C447
+			retn
+		}
+	}
 
 	Rumble::Rumble()
 	{
 		if (ZoneBuilder::IsEnabled())
 			return;
 
+		// CG_setRumbleReceiver
+		Utils::Hook(0x486DEC, CG_SetRumbleReceiver, HOOK_CALL).install()->quick();
+
 		// Client & server
 		Utils::Hook(0x5AC2F3, CCS_GetChecksum_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4A75CC, SV_InitGameProgs_Hk, HOOK_CALL).install()->quick();
 
 		// Rumble action
-		Utils::Hook(0x4FB35D, CG_FireWeapon_FireSoundHk, HOOK_JUMP).install()->quick();
-		// TODO: CG_BulletHitClientShield
-		// TODO: CG_ExplosiveImpactOnShield
-		// TODO: CG_ExplosiveSplashOnShield
+		Utils::Hook(0x59D7D0, CG_FireWeapon_FireSoundHk, HOOK_JUMP).install()->quick();
+
+		// CG_BulletHitClientShield
+		Utils::Hook(0x42A611, CG_GetImpactEffectForWeapon_Hk, HOOK_CALL).install()->quick();
+
+		//  CG_ExplosiveImpactOnShield
+		Utils::Hook(0x4DE156, CG_ExplosiveImpactOnShieldEvent, HOOK_CALL).install()->quick();
+
+		// CG_ExplosiveSplashOnShieldEvent
+		Utils::Hook(0x4DE17D, CG_ExplosiveSplashOnShieldEvent, HOOK_CALL).install()->quick();
+
+		// PlayNoteMappedRumbleAliases
+		Utils::Hook(0x59C440, PlayNoteMappedSoundAliases_Stub, HOOK_JUMP).install()->quick();
 
 		// TODO: CG_PlayRumbleOnEntity
 		// TODO: CG_PlayRumbleOnPosition
 		// TODO: CG_PlayRumbleLoopOnEntity
 		// TODO: CG_PlayRumbleLoopOnPosition
-		// TODO: CG_PlayRumbleOnClientSafe
 		// TODO: CG_PlayRumbleOnClientScaledWithUpdate
 		// TODO: CG_PlayLoopRumbleOnClient
 		// TODO: CG_StopRumble
 		// TODO: CG_StopAllRumbles
 
-		// TODO: PlayNoteMappedRumbleAliases
 		// TODO: ScrCmd_PlayRumbleOnEntity_Internal
 		// TODO: ScrCmd_PlayRumbleOnEntity
 		// TODO: ScrCmd_PlayRumbleLoopOnEntity
@@ -971,6 +1032,7 @@ namespace Components
 		Utils::Hook(0x43E1F8, BG_GetWeaponDef_RegisterRumble_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4E37D3, CG_RegisterGraphics_Hk, HOOK_CALL).install()->quick();
 
+		// CG_PlayRumble_f
 		Command::Add("playrumble", [](const Command::Params* params) {
 			if (Game::CL_GetLocalClientGlobals(0)->nextSnap)
 			{

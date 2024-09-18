@@ -22,7 +22,7 @@ namespace Components
 		ConfigStrings();
 
 		static const char* CL_GetRumbleConfigString(int index);
-		static int SV_GetRumbleConfigStringConst(int index);
+		static unsigned int SV_GetRumbleConfigStringConst(int index);
 		static void SV_SetRumbleConfigString(int index, const char* data);
 
 
