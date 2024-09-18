@@ -1,40 +1,24 @@
-﻿#include <STDInclude.hpp>
+#include <STDInclude.hpp>
 
+#include "ConfigStrings.hpp"
+#include "Events.hpp"
 
 namespace Components
 {
-
-
 	static Game::RumbleGlobals rumbleGlobArray[Game::MAX_GPAD_COUNT]{}; // We're only gonna use #0 anyway cause only one client
-	static constexpr unsigned int MAX_ACTIVE_RUMBLES = 32;
 
 	int GetRumbleInfoIndexFromName(const char* rumbleName)
 	{
-
-		int i = 1;
-		int v7;
-		while (1)
+		for (size_t i = 0; i < Gamepad::RUMBLE_CONFIGSTRINGS_COUNT; i++)
 		{
-			const char* configString = Game::CL_GetConfigString(i + 1024);
-			auto rumbleName_ = rumbleName;
-
-			do
+			const std::string& configString = ConfigStrings::CL_GetRumbleConfigString(i);
+			if (configString == rumbleName)
 			{
-				char currentCStringChar = *configString;
-				bool hasReachedEnd = currentCStringChar == 0;
-				v7 = currentCStringChar - *rumbleName_;
-				if (hasReachedEnd)
-					break;
-				++configString;
-				++rumbleName_;
-			} while (!v7);
-
-			if (!v7)
-				break;
-			if (++i >= MAX_ACTIVE_RUMBLES)
-				return -1;
+				return i;
+			}
 		}
-		return i;
+
+		return -1;
 	}
 
 	Game::ActiveRumble* GetDuplicateRumbleIfExists(Game::cg_s* cgameGlob, Game::ActiveRumble* arArray, Game::RumbleInfo* info, bool loop, Game::RumbleSourceType type, int entityNum, const float* pos)
@@ -45,7 +29,7 @@ namespace Components
 		assert(arArray);
 		assert(type != Game::RUMBLESOURCE_INVALID);
 
-		for (auto i = 0; i < MAX_ACTIVE_RUMBLES; i++)
+		for (auto i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; i++)
 		{
 			result = &arArray[i];
 			if (result->rumbleInfo != info || result->loop != loop || result->sourceType != type)
@@ -84,7 +68,7 @@ namespace Components
 		v3 = 0.0;
 		v5 = 32;
 		v6 = 0;
-		for (int i = 0; i < MAX_ACTIVE_RUMBLES; i++)
+		for (int i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; i++)
 		{
 			Game::ActiveRumble* ar = &activeRumbleArray[i];
 			assert(ar->rumbleInfo);
@@ -116,7 +100,7 @@ namespace Components
 		int* v5; // r11
 		int v7; // r31
 
-		for (auto i = 0; i < MAX_ACTIVE_RUMBLES; i++)
+		for (auto i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; i++)
 		{
 			Game::ActiveRumble* candidate = &arArray[i];
 
@@ -138,7 +122,7 @@ namespace Components
 		};
 
 		auto index = FindClosestToDyingActiveRumble(cgameGlob, arArray);
-		assert(index != MAX_ACTIVE_RUMBLES);
+		assert(index != Rumble::MAX_ACTIVE_RUMBLES);
 
 		return &arArray[index];
 	}
@@ -158,7 +142,7 @@ namespace Components
 		float finalRumbleLow = -1.f;
 		bool anyRumble = false;
 
-		for (auto i = 0; i < MAX_ACTIVE_RUMBLES; i++)
+		for (auto i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; i++)
 		{
 			float scale;
 
@@ -239,7 +223,7 @@ namespace Components
 
 			anyRumble = true;
 		}
-		
+
 		if (anyRumble)
 		{
 			assert(finalRumbleHigh >= 0.F);
@@ -274,7 +258,7 @@ namespace Components
 
 		if (!rumbleInfo->rumbleNameIndex)
 		{
-			Components::Logger::Error(Game::ERR_DROP, "Could not play rumble {} because it was not registered and loaded. Make surez to precache rumble before playing from script!", rumbleName);
+			Components::Logger::Error(Game::ERR_DROP, "Could not play rumble {} because it was not registered and loaded. Make sure to precache rumble before playing from script!", rumbleName);
 			return;
 		}
 
@@ -585,10 +569,10 @@ namespace Components
 		///
 
 		std::string path = std::format("rumble/{}", rumbleName);
-		char buff[256]{}; //64
+		char buff[256]{}; // should be 64 but it ALWAYS goes overboard!
 
 		[[maybe_unused]] auto infoPtr = info;
-		const char* str = Game::Com_LoadInfoString(path.data(), "rumble info file", "RUMBLE", buff); // Idk why but this destroys the stack
+		const char* str = Game::Com_LoadInfoString(path.data(), "rumble info file", "RUMBLE", buff); 
 		assert(infoPtr == info);
 
 		const std::string highRumbleFile = Game::Info_ValueForKey(str, "highRumbleFile");
@@ -606,6 +590,7 @@ namespace Components
 				Components::Logger::Error(Game::ERR_DROP, "Rumble file {} cannot have broadcast because its range is zero\n", rumbleName);
 			}
 		}
+
 		if (!LoadRumbleGraph(rumbleGraphArray, info, highRumbleFile.data(), lowRumbleFile.data()))
 			return 0;
 
@@ -617,13 +602,13 @@ namespace Components
 
 	void CG_RegisterRumbles(int localClientNum)
 	{
-		auto configStringBasePos = 1025;
+		auto configStringBasePos = 0;
 		auto myRumbleGlobal = &rumbleGlobArray[localClientNum];
-		auto maxRumbleGraphIndex = 31;
+		auto maxRumbleGraphIndex = Gamepad::RUMBLE_CONFIGSTRINGS_COUNT;
 		auto myRumbleInfo = &rumbleGlobArray[localClientNum].infos[1];
 		do
 		{
-			auto rumbleConf = Game::CL_GetConfigString(configStringBasePos);
+			auto rumbleConf = ConfigStrings::CL_GetRumbleConfigString(configStringBasePos);
 			if (*rumbleConf)
 			{
 				CG_LoadRumble(myRumbleGlobal->graphs, myRumbleInfo, rumbleConf, configStringBasePos);
@@ -651,25 +636,20 @@ namespace Components
 
 		if (*name)
 		{
-			///
-			if (name == "weap_m9_clipout_plr"s)
-			{
-				printf("");
-			}
-			///
 			auto v2 = Game::SL_FindLowercaseString(name);
 			int i;
 
-			for (i = 1; i < MAX_ACTIVE_RUMBLES; ++i)
+			for (i = 1; i <= Gamepad::RUMBLE_CONFIGSTRINGS_COUNT; ++i)
 			{
-				auto v7 = Game::SV_GetConfigstringConst(i + 1024);
+				auto v7 = ConfigStrings::SV_GetRumbleConfigStringConst(i);
 				if (v7 == Game::scr_const->_)
 					break;
 				if (v7 == v2)
 					return;
 			}
 
-			Game::SV_SetConfigstring(i + 1024, name);
+			assert(i <= Gamepad::RUMBLE_CONFIGSTRINGS_COUNT);
+			ConfigStrings::SV_SetRumbleConfigString(i, name);
 		}
 	}
 
@@ -746,15 +726,15 @@ namespace Components
 			//CG_FireWeapon_Rumble(localClientNum, cent, weapon, isPlayerView);
 
 			push bl
-			push[esp + 0x20 + 0x58] // weapon
-			push[esp + 0x20 + 0x4] // cent
-			push ebp
+				push[esp + 0x20 + 0x58] // weapon
+				push[esp + 0x20 + 0x4] // cent
+				push ebp
 
-			call CG_FireWeapon_Rumble
+				call CG_FireWeapon_Rumble
 
-			add esp, 0x4 * 4
+				add esp, 0x4 * 4
 
-			popad;
+				popad;
 
 			push 0x4FB362;
 			retn;
@@ -791,7 +771,7 @@ namespace Components
 	{
 		auto cg = Game::CL_GetLocalClientGlobals(localClientNum);
 
-		for (int i = 0; i < MAX_ACTIVE_RUMBLES; i++)
+		for (int i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; i++)
 		{
 			auto ar = &rumbleGlobArray[localClientNum].activeRumbles[i];
 
@@ -830,7 +810,7 @@ namespace Components
 		auto cg = Game::CL_GetLocalClientGlobals(localClientNum);
 		if (cg->nextSnap && (cg->predictedPlayerState.clientNum != cg->clientNum || cg->predictedPlayerState.pm_type == 5))
 		{
-			for (int i = 0; i < MAX_ACTIVE_RUMBLES; i++)
+			for (int i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; i++)
 			{
 				auto ar = &rumbleGlobArray[localClientNum].activeRumbles[i];
 
@@ -841,7 +821,7 @@ namespace Components
 
 				InvalidateActiveRumble(ar);
 			}
-			
+
 			Gamepad::GPad_SetLowRumble(localClientNum, 0.0);
 			Gamepad::GPad_SetHighRumble(localClientNum, 0.0);
 		}
@@ -866,12 +846,12 @@ namespace Components
 
 		auto activeRumbles = rumbleGlobArray[0].activeRumbles;
 
-		for (std::size_t i = 0; i < MAX_ACTIVE_RUMBLES; ++i)
+		for (std::size_t i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; ++i)
 		{
 			float color[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 			std::stringstream str;
 			str << std::format("{} => ", i);
-			
+
 			if (activeRumbles[i].rumbleInfo == nullptr)
 			{
 				str << "INACTIVE";
@@ -888,7 +868,7 @@ namespace Components
 				auto lowGraph = activeRumble->rumbleInfo->lowRumbleGraph;
 				auto lowValue = Game::GraphGetValueFromFraction(lowGraph->knotCount, lowGraph->knots, duration01);
 
-				str << std::format("HIGH: {} / LOW: {} (Time left: {:.0f}%)", highValue * scale, lowValue * scale, duration01*100);
+				str << std::format("HIGH: {} / LOW: {} (Time left: {:.0f}%)", highValue * scale, lowValue * scale, duration01 * 100);
 
 				color[0] = 0.f;
 				color[2] = 1.f;
@@ -897,11 +877,65 @@ namespace Components
 			Game::R_AddCmdDrawText(str.str().data(), std::numeric_limits<int>::max(), font, 15.0f, (height * scale + 1) * (i + 1) + 4.0f, scale, scale, 0.0f, color, Game::ITEM_TEXTSTYLE_NORMAL);
 		}
 	}
+	
+	
+	static const std::string rumbleStrings[] = {
+			"riotshield_impact"
+			,"damage_heavy"
+			,"defaultweapon_fire"
+			,"pistol_fire"
+			,"defaultweapon_melee"
+			,"viewmodel_small"
+			,"viewmodel_medium"
+			,"viewmodel_large"
+			,"silencer_fire"
+			,"smg_fire"
+			,"assault_fire"
+			,"shotgun_fire"
+			,"heavygun_fire"
+			,"sniper_fire"
+			,"artillery_rumble"
+			,"grenade_rumble"
+			,"ac130_25mm_fire"
+			,"ac130_40mm_fire"
+			,"ac130_105mm_fire"
+			,"minigun_rumble"
+		};
+
+
+	void LoadConstantRumbleConfigStrings()
+	{
+		static_assert(ARRAYSIZE(rumbleStrings) < Gamepad::RUMBLE_CONFIGSTRINGS_COUNT);
+
+		for (size_t i = 0; i < ARRAYSIZE(rumbleStrings); i++)
+		{
+			// this registers the config string as constant
+			ConfigStrings::SV_SetRumbleConfigString(i+1, rumbleStrings[i].data());
+		}
+	}
+
+	int CCS_GetChecksum_Hk()
+	{
+		LoadConstantRumbleConfigStrings();
+		return Utils::Hook::Call<int()>(0x4A0060)();
+	}
+
+	void SV_InitGameProgs_Hk(int arg)
+	{
+		LoadConstantRumbleConfigStrings();
+
+		return Utils::Hook::Call<void(int)>(0x445940)(arg);
+	}
+
 
 	Rumble::Rumble()
 	{
 		if (ZoneBuilder::IsEnabled())
 			return;
+
+		// Client & server
+		Utils::Hook(0x5AC2F3, CCS_GetChecksum_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4A75CC, SV_InitGameProgs_Hk, HOOK_CALL).install()->quick();
 
 		// Rumble action
 		Utils::Hook(0x4FB35D, CG_FireWeapon_FireSoundHk, HOOK_JUMP).install()->quick();
@@ -950,12 +984,12 @@ namespace Components
 					Game::Com_Printf(0, "USAGE: playrumble <rumblename>\n");
 				}
 			}
-		});
+			});
 
 		// Debug
 		Scheduler::Loop([]() {
 			DebugRumbles();
-		}, Scheduler::Pipeline::RENDERER);
+			}, Scheduler::Pipeline::RENDERER);
 
 	}
 

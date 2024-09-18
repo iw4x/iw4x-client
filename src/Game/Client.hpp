@@ -89,6 +89,14 @@ namespace Game
 
 	extern voiceCommunication_t* cl_voiceCommunication;
 
+	extern [[nodiscard]] int CL_GetMaxXP();
+	extern [[nodiscard]] clientConnection_t* CL_GetLocalClientConnection(int localClientNum);
+	extern [[nodiscard]] connstate_t CL_GetLocalClientConnectionState(int localClientNum);
+	extern [[nodiscard]] voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
+	extern [[nodiscard]] clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
+	extern [[nodiscard]] cg_s* CL_GetLocalClientGlobals(int localClientNum);
+	extern [[nodiscard]] centity_s* CG_GetEntity(int localClientNum, int entityIndex);
+
 	extern cg_s* cgArray;
 	extern cgs_t* cgsArray;
 	extern centity_s* cg_entitiesArray;
@@ -99,4 +107,5 @@ namespace Game
 	extern void CL_MouseMove(int localClientNum, Game::usercmd_s* cmd, float frametime_base);
 
 	extern void AdjustViewanglesForKeyboard(int localClientNum);
+
 }
