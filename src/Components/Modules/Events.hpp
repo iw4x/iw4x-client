@@ -25,6 +25,8 @@ namespace Components
 
 		static void OnClientInit(const std::function<void()>& callback);
 
+		static void AfterUIInit(const std::function<void()>& callback);
+
 		static void OnClientCmdButtons(const std::function<void(Game::usercmd_s*)>& callback);
 
 		static void OnClientKeyMove(const std::function<void(Game::usercmd_s*)>& callback);
@@ -37,6 +39,9 @@ namespace Components
 
 		// Client & Server (triggered once)
 		static void OnNetworkInit(const std::function<void()>& callback);
+		
+		// Client & Server (triggered every FS/Vidrestart)
+		static void OnCGameInit(const std::function<void()>& callback);
 
 	private:
 		static Utils::Concurrency::Container<ClientCallback> ClientDisconnectTasks_;
@@ -47,6 +52,8 @@ namespace Components
 		static Utils::Concurrency::Container<Callback> ServerInitTasks_;
 		static Utils::Concurrency::Container<Callback> DvarInitTasks_;
 		static Utils::Concurrency::Container<Callback> NetworkInitTasks_;
+		static Utils::Concurrency::Container<Callback> CGameInitTasks_;
+		static Utils::Concurrency::Container<Callback> UIInitTasks_;
 
 		// For speed this one does not use concurrency container. Be careful
 		static ClientCmdCallback ClientCmdButtonsTasks_;
@@ -62,11 +69,13 @@ namespace Components
 		static void CL_CmdButtons_Stub();
 		static void CL_KeyMove(Game::usercmd_s* cmd);
 		static void CL_KeyMove_Stub();
-
 		static void SV_Init_Hk();
 		static void Com_InitDvars_Hk();
 
 		static void NetworkStart();
+		static void UI_Init_Hk(int localClientNum);
 		static void NET_OpenSocks_Hk();
+
+		static int CL_InitCGame_Hk();
 	};
 }

@@ -58,10 +58,10 @@ namespace Components
 
 	bool Console::isCommand;
 
-	const char** Console::GetAutoCompleteFileList(const char* path, const char* extension, Game::FsListBehavior_e behavior, int* numfiles, int allocTrackType)
+	const char** Console::GetAutoCompleteFileList(const char* path, const char* extension, Game::FsListBehavior_e behavior, int* numfiles, [[maybe_unused]] int allocTrackType)
 	{
 		if (path == reinterpret_cast<char*>(0xBAADF00D) || path == reinterpret_cast<char*>(0xCDCDCDCD) || ::Utils::Memory::IsBadReadPtr(path)) return nullptr;
-		return Game::FS_ListFiles(path, extension, behavior, numfiles, allocTrackType);
+		return Game::FS_ListFiles(path, extension, behavior, numfiles);
 	}
 
 	void Console::RefreshStatus()

@@ -4560,6 +4560,18 @@ namespace Game
 		Operand lastResult;
 	};
 
+	enum EventType
+	{
+		EVENT_UNCONDITIONAL = 0x0,
+		EVENT_IF = 0x1,
+		EVENT_ELSE = 0x2,
+		EVENT_SET_LOCAL_VAR_BOOL = 0x3,
+		EVENT_SET_LOCAL_VAR_INT = 0x4,
+		EVENT_SET_LOCAL_VAR_FLOAT = 0x5,
+		EVENT_SET_LOCAL_VAR_STRING = 0x6,
+		EVENT_COUNT = 0x7,
+	};
+
 	struct ConditionalScript
 	{
 		MenuEventHandlerSet* eventHandlerSet;
@@ -4576,7 +4588,7 @@ namespace Game
 	{
 		const char* unconditionalScript;
 		ConditionalScript* conditionalScript;
-		MenuEventHandlerSet* elseScript;
+		struct MenuEventHandlerSet* elseScript;
 		SetLocalVarData* setLocalVarData;
 	};
 
@@ -4678,6 +4690,34 @@ namespace Game
 	{
 		int target;
 		Statement_s* expression;
+	};
+
+	enum ItemDefType
+	{
+		ITEM_TYPE_TEXT = 0x0,
+		ITEM_TYPE_BUTTON = 0x1,
+		ITEM_TYPE_RADIOBUTTON = 0x2,
+		ITEM_TYPE_CHECKBOX = 0x3,
+		ITEM_TYPE_EDITFIELD = 0x4,
+		ITEM_TYPE_COMBO = 0x5,
+		ITEM_TYPE_LISTBOX = 0x6,
+		ITEM_TYPE_MODEL = 0x7,
+		ITEM_TYPE_OWNERDRAW = 0x8,
+		ITEM_TYPE_NUMERICFIELD = 0x9,
+		ITEM_TYPE_SLIDER = 0xA,
+		ITEM_TYPE_YESNO = 0xB,
+		ITEM_TYPE_MULTI = 0xC,
+		ITEM_TYPE_DVARENUM = 0xD,
+		ITEM_TYPE_BIND = 0xE,
+		ITEM_TYPE_MENUMODEL = 0xF,
+		ITEM_TYPE_VALIDFILEFIELD = 0x10,
+		ITEM_TYPE_DECIMALFIELD = 0x11,
+		ITEM_TYPE_UPREDITFIELD = 0x12,
+		ITEM_TYPE_GAME_MESSAGE_WINDOW = 0x13,
+		ITEM_TYPE_NEWS_TICKER = 0x14,
+		ITEM_TYPE_TEXT_SCROLL = 0x15,
+		ITEM_TYPE_EMAILFIELD = 0x16,
+		ITEM_TYPE_PASSWORDFIELD = 0x17,
 	};
 
 	struct itemDef_s
@@ -6516,6 +6556,11 @@ namespace Game
 	struct scr_animtree_t
 	{
 		XAnim_s* anims;
+	};
+
+	struct scrMemTreePub_t
+	{
+		char* mt_buffer;
 	};
 
 	struct scrAnimPub_t
