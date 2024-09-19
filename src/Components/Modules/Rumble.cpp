@@ -755,11 +755,12 @@ namespace Components
 			if (ar->sourceType == Game::RUMBLESOURCE_ENTITY && ar->source.pos)
 			{
 				auto entity = Game::CG_GetEntity(localClientNum, ar->source.entityNum);
-				auto snap = &cg->predictedPlayerState;
-				auto eFlags =
-					ar->source.entityNum == snap->clientNum ?
-					snap->eFlags :
-					entity->nextState.lerp.eFlags;
+
+				//auto snap = &cg->predictedPlayerState;
+				//auto eFlags =
+				//	ar->source.entityNum == snap->clientNum ?
+				//	snap->eFlags :
+				//	entity->nextState.lerp.eFlags;
 
 
 				// EF_LOOP_RUMBLE Seems to never be set
@@ -767,9 +768,7 @@ namespace Components
 				// So we need to comment it out in the meantime otherwise no rumble ever plays
 				if (!entity->nextValid/* || (eFlags & Game::EF_LOOP_RUMBLE) == 0*/)
 				{
-					ar->sourceType = Game::RUMBLESOURCE_INVALID;
-					ar->rumbleInfo = nullptr;
-					ar->startTime = -1;
+					InvalidateActiveRumble(ar);
 					continue;
 				}
 			}
