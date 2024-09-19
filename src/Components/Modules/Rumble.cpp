@@ -55,37 +55,35 @@ namespace Components
 
 	Game::ActiveRumble* GetDuplicateRumbleIfExists(Game::cg_s* cgameGlob, Game::ActiveRumble* arArray, Game::RumbleInfo* info, bool loop, Game::RumbleSourceType type, int entityNum, const float* pos)
 	{
-		Game::ActiveRumble* result; // r3
-
 		assert(cgameGlob);
 		assert(arArray);
 		assert(type != Game::RUMBLESOURCE_INVALID);
 
 		for (auto i = 0; i < Rumble::MAX_ACTIVE_RUMBLES; i++)
 		{
-			result = &arArray[i];
-			if (result->rumbleInfo != info || result->loop != loop || result->sourceType != type)
+			Game::ActiveRumble*  duplicateRumble = &arArray[i];
+			if (duplicateRumble->rumbleInfo != info || duplicateRumble->loop != loop || duplicateRumble->sourceType != type)
 				continue;
 
 			bool isSame = false;
 			if (type == Game::RUMBLESOURCE_ENTITY)
 			{
-				isSame = result->source.entityNum == entityNum;
+				isSame = duplicateRumble->source.entityNum == entityNum;
 			}
 			else
 			{
 				if (type != Game::RUMBLESOURCE_POS)
-					return result;
-				if (result->source.pos[0] != *pos || result->source.pos[1] != pos[1])
+					return duplicateRumble;
+				if (duplicateRumble->source.pos[0] != *pos || duplicateRumble->source.pos[1] != pos[1])
 					continue;
-				isSame = result->source.pos[2] == pos[2];
+				isSame = duplicateRumble->source.pos[2] == pos[2];
 			}
 
 			if (isSame)
-				return result;
+				return duplicateRumble;
 		};
 
-		return 0;
+		return nullptr;
 	}
 
 	int FindClosestToDyingActiveRumble(Game::cg_s* cgameGlob, Game::ActiveRumble* activeRumbleArray)
@@ -386,15 +384,7 @@ namespace Components
 
 	void Rumble_Strcpy(char* member, char* keyValue)
 	{
-		int v2; // r11
-		char v3; // r10
-
-		v2 = member - keyValue;
-		do
-		{
-			v3 = *keyValue;
-			(keyValue++)[v2] = v3;
-		} while (v3);
+		strcpy(member, keyValue);
 	}
 
 	bool ParseRumbleGraph(Game::RumbleGraph* graph, const char* buffer, const char* fileName)
@@ -542,13 +532,6 @@ namespace Components
 	{
 		assert(info);
 		assert(rumbleName);
-
-		///
-		if (rumbleName == "weap_m9_clipout_plr"s)
-		{
-			printf("");
-		}
-		///
 
 		std::string path = std::format("rumble/{}", rumbleName);
 		char buff[256]{}; // should be 64 but it ALWAYS goes overboard!
