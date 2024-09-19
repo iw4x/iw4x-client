@@ -28,6 +28,18 @@ namespace Components
 
 		static Utils::Memory::Allocator Allocator;
 
+		static void FreeZAllocatedMemory(const void* ptr, bool fromTheGame = false);
+		static void FreeAllocatedString(const void* ptr, bool fromTheGame = false);
+		static void FreeHunkAllocatedMemory(const void* ptr, bool fromTheGame = false);
+		
+		template <typename T> static T* Reallocate(T* ptr, size_t size)
+		{
+			const auto newData = Allocator.allocate(size);
+			std::memcpy(newData, ptr, size);
+
+			return newData;
+		}
+
 		static void PrepareToUnloadMenu(Game::menuDef_t * menu);
 		static void AfterLoadedMenuFromDisk(Game::menuDef_t * menu);
 
@@ -39,17 +51,14 @@ namespace Components
 
 		static void FreeMenuListOnly(Game::MenuList* menuList);
 		static void FreeMenuOnly(Game::menuDef_t * menu);
-		static void FreeExpression(Game::Statement_s* statement);
-		static void FreeItem(Game::itemDef_s* item);
-		static void FreeEventHandlerSet(Game::MenuEventHandlerSet* handlerSet);;
-		static void FreeExpressionSupportingData(Game::ExpressionSupportingData * data);
+		static void FreeExpression(Game::Statement_s* statement, bool fromTheGame = false);
+		static void FreeItem(Game::itemDef_s* item, bool fromTheGame = false);
+		static void FreeEventHandlerSet(Game::MenuEventHandlerSet* handlerSet, bool fromTheGame = false);
+		static void FreeExpressionSupportingData(Game::ExpressionSupportingData * data, bool fromTheGame = false);
 
 		static void UnloadMenuFromDisk(const std::string & menuName);
 
 		static void ReloadDiskMenus();
-
-		static Game::XAssetHeader MenuFindHook(Game::XAssetType type, const std::string& filename);
-		static Game::XAssetHeader MenuListFindHook(Game::XAssetType type, const std::string& filename);
 
 		static void LoadScriptMenu(const char* menu, bool allowNewMenus);
 

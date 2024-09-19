@@ -8,12 +8,20 @@
 namespace Components
 {
 
+	// As of now it is not sure whether supporting data needs to be reallocated
+	// It is a global singleton, cleared on UI_Init, which is also when we clear our menus
+	// so maybe keeping a reference to it is fine actually!
+#define REALLOCATE_SUPPORTING_DATA false
+
+#define ALLOCATED_BY_GAME true
+#define ALLOCATED_BY_IW4X false
+
 #define DUPLICATE_STRING_IF_EXISTS(obj, x) if (##obj->##x) ##obj->##x = Allocator.duplicateString(##obj->##x)
-#define FREE_STRING_IF_EXISTS(obj, x) if (##obj->##x) Allocator.free(##obj->##x)
+#define FREE_STRING_IF_EXISTS(obj, x, fromTheGame) if (##obj->##x) FreeAllocatedString(##obj->##x, fromTheGame)
 
 	/// This variable dispenses us from the horror of having a text file in IWD containing the menus we want to load
 	std::vector<std::string> Menus::CustomIW4xMenus;
-	
+
 	Dvar::Var Menus::PrintMenuDebug;
 
 	std::unordered_map<std::string, Game::menuDef_t*> Menus::MenusFromDisk;
@@ -212,14 +220,14 @@ namespace Components
 
 		// Reallocate Menu with our allocator because these data will get freed when LargeLocal::Reset gets called!
 		{
-			DebugPrint("Reallocating menu {} ({:X})...", menu->window.name,(unsigned int)(menu));
+			DebugPrint("Reallocating menu {} ({:X})...", menu->window.name, (unsigned int)(menu));
 
 
 			menu->window.name = Allocator.duplicateString(menu->window.name);
 
 			for (int i = 0; i < menu->itemCount; i++)
 			{
-				menu->items[i] = ReallocateItemLocally(menu->items[i]);
+				menu->items[i] = ReallocateItemLocally(menu->items[i], true);
 			}
 
 			menu->onOpen = ReallocateEventHandlerSetLocally(menu->onOpen, true);
@@ -446,32 +454,113 @@ namespace Components
 		Game::sourceFiles[handle] = nullptr;
 	}
 
-	void Menus::FreeItem(Game::itemDef_s* item)
+	void Menus::FreeItem(Game::itemDef_s* item, bool fromTheGame)
 	{
 		for (auto i = 0; i < item->floatExpressionCount; ++i)
 		{
-			FreeExpression(item->floatExpressions[i].expression);
+			FreeExpression(item->floatExpressions[i].expression, fromTheGame);
+		}
+		
+		FreeEventHandlerSet(item->accept, fromTheGame);
+		FreeEventHandlerSet(item->action, fromTheGame);
+		FreeEventHandlerSet(item->leaveFocus, fromTheGame);
+		FreeEventHandlerSet(item->mouseEnter, fromTheGame);
+		FreeEventHandlerSet(item->mouseEnterText, fromTheGame);
+		FreeEventHandlerSet(item->mouseExit, fromTheGame);
+		FreeEventHandlerSet(item->mouseExitText, fromTheGame);
+		FreeEventHandlerSet(item->onFocus, fromTheGame);
+
+		FREE_STRING_IF_EXISTS(item, dvar, fromTheGame);
+		FREE_STRING_IF_EXISTS(item, dvarTest, fromTheGame);
+		FREE_STRING_IF_EXISTS(item, localVar, fromTheGame);
+		FREE_STRING_IF_EXISTS(item, enableDvar, fromTheGame);
+		FREE_STRING_IF_EXISTS(item, text, fromTheGame);
+
+		FREE_STRING_IF_EXISTS(item, window.name, fromTheGame);
+
+		FreeExpression(item->visibleExp, fromTheGame);
+		item->visibleExp = nullptr;
+
+		FreeExpression(item->disabledExp, fromTheGame);
+		item->disabledExp = nullptr;
+
+		FreeExpression(item->textExp, fromTheGame);
+		item->textExp = nullptr;
+
+		FreeExpression(item->materialExp, fromTheGame);
+		item->materialExp = nullptr;
+		
+		if (item->typeData.data)
+		{
+			switch (item->dataType)
+			{
+			case Game::ITEM_TYPE_LISTBOX:
+			case Game::ITEM_TYPE_EDITFIELD:
+			case Game::ITEM_TYPE_NUMERICFIELD:
+			case Game::ITEM_TYPE_VALIDFILEFIELD:
+			case Game::ITEM_TYPE_UPREDITFIELD:
+			case Game::ITEM_TYPE_YESNO:
+			case Game::ITEM_TYPE_BIND:
+			case Game::ITEM_TYPE_SLIDER:
+			case Game::ITEM_TYPE_TEXT:
+			case Game::ITEM_TYPE_DECIMALFIELD:
+			case Game::ITEM_TYPE_EMAILFIELD:
+			case Game::ITEM_TYPE_PASSWORDFIELD:
+			case Game::ITEM_TYPE_MULTI:
+			case Game::ITEM_TYPE_NEWS_TICKER:
+			case Game::ITEM_TYPE_TEXT_SCROLL:
+				FreeHunkAllocatedMemory(item->typeData.data, fromTheGame);
+				break;
+			}
 		}
 
-		FreeEventHandlerSet(item->accept);
-		FreeEventHandlerSet(item->action);
-		FreeEventHandlerSet(item->leaveFocus);
-		FreeEventHandlerSet(item->mouseEnter);
-		FreeEventHandlerSet(item->mouseEnterText);
-		FreeEventHandlerSet(item->mouseExit);
-		FreeEventHandlerSet(item->mouseExitText);
-		FreeEventHandlerSet(item->onFocus);
 
-		FREE_STRING_IF_EXISTS(item, dvar);
-		FREE_STRING_IF_EXISTS(item, dvarTest);
-		FREE_STRING_IF_EXISTS(item, localVar);
-		FREE_STRING_IF_EXISTS(item, enableDvar);
-		FREE_STRING_IF_EXISTS(item, text);
-
-		Allocator.free(item->floatExpressions);
+		FreeZAllocatedMemory(item->floatExpressions, fromTheGame);
 
 		item->floatExpressionCount = 0;
-		Allocator.free(item);
+		FreeZAllocatedMemory(item, fromTheGame);
+	}
+
+	void Menus::FreeAllocatedString(const void* ptr, bool fromTheGame)
+	{
+		if (fromTheGame)
+		{
+			// Ideally, this is what we should do.
+			// The issue is I don't nkow enough about StringTable to know what I'm doing
+			// and so currently when doing this, the game hangs. I suspect it's removing one too many users on a string
+			// and ends up with -1 unsigned users and loops forever
+			// Until we know what we're doing here we'll have to accept a little leak
+			// 
+			// Game::Free_String(reinterpret_cast<const char*>(ptr));
+		}
+		else
+		{
+			Allocator.free(ptr);
+		}
+	}
+
+	void Menus::FreeHunkAllocatedMemory(const void* ptr, bool fromTheGame)
+	{
+		if (fromTheGame)
+		{
+			Game::Z_VirtualFree(const_cast<void*>(ptr));
+		}
+		else
+		{
+			Allocator.free(ptr);
+		}
+	}
+
+	void Menus::FreeZAllocatedMemory(const void* ptr, bool fromTheGame)
+	{
+		if (fromTheGame)
+		{
+			Game::Z_Free(ptr);
+		}
+		else
+		{
+			Allocator.free(ptr);
+		}
 	}
 
 	void Menus::PrepareToUnloadMenu(Game::menuDef_t* menu)
@@ -574,8 +663,8 @@ namespace Components
 	void Menus::AfterLoadedMenuFromDisk(Game::menuDef_t* menu)
 	{
 		const std::string name = menu->window.name;
-		
-			DebugPrint("Loaded menu {} at {:X} from disk",
+
+		DebugPrint("Loaded menu {} at {:X} from disk",
 			name,
 			(unsigned int)menu
 		);
@@ -599,7 +688,7 @@ namespace Components
 					}
 
 					Game::uiContext->menuStack[i] = MenusFromDisk[name];
-					
+
 					DebugPrint("In stack - Overrode menu {} ({:X} => {:X})",
 						name,
 						(unsigned int)OverridenMenus[name],
@@ -623,7 +712,7 @@ namespace Components
 					}
 
 					Game::uiContext->Menus[i] = MenusFromDisk[name];
-					
+
 					DebugPrint("In context - Overrode menu {} ({:X} => {:X})",
 						name,
 						(unsigned int)OverridenMenus[name],
@@ -720,18 +809,60 @@ namespace Components
 				for (auto j = 0; j < item->floatExpressionCount; ++j)
 				{
 					const auto previousExpression = item->floatExpressions[j].expression;
-					reallocatedItem->floatExpressions[j].expression = ReallocateExpressionLocally(previousExpression, false);
+					reallocatedItem->floatExpressions[j].expression = ReallocateExpressionLocally(previousExpression);
 				}
 			}
 
-			reallocatedItem->accept = ReallocateEventHandlerSetLocally(item->accept, andFree);
-			reallocatedItem->action = ReallocateEventHandlerSetLocally(item->action, andFree);
-			reallocatedItem->leaveFocus = ReallocateEventHandlerSetLocally(item->leaveFocus, andFree);
-			reallocatedItem->mouseEnter = ReallocateEventHandlerSetLocally(item->mouseEnter, andFree);
-			reallocatedItem->mouseEnterText = ReallocateEventHandlerSetLocally(item->mouseEnterText, andFree);
-			reallocatedItem->mouseExit = ReallocateEventHandlerSetLocally(item->mouseExit, andFree);
-			reallocatedItem->mouseExitText = ReallocateEventHandlerSetLocally(item->mouseExitText, andFree);
-			reallocatedItem->onFocus = ReallocateEventHandlerSetLocally(item->onFocus, andFree);
+			reallocatedItem->accept = ReallocateEventHandlerSetLocally(item->accept);
+			reallocatedItem->action = ReallocateEventHandlerSetLocally(item->action);
+			reallocatedItem->leaveFocus = ReallocateEventHandlerSetLocally(item->leaveFocus);
+			reallocatedItem->mouseEnter = ReallocateEventHandlerSetLocally(item->mouseEnter);
+			reallocatedItem->mouseEnterText = ReallocateEventHandlerSetLocally(item->mouseEnterText);
+			reallocatedItem->mouseExit = ReallocateEventHandlerSetLocally(item->mouseExit);
+			reallocatedItem->mouseExitText = ReallocateEventHandlerSetLocally(item->mouseExitText);
+			reallocatedItem->onFocus = ReallocateEventHandlerSetLocally(item->onFocus);
+
+			reallocatedItem->disabledExp = ReallocateExpressionLocally(reallocatedItem->disabledExp);
+			reallocatedItem->visibleExp = ReallocateExpressionLocally(reallocatedItem->visibleExp);
+			reallocatedItem->materialExp = ReallocateExpressionLocally(reallocatedItem->materialExp);
+			reallocatedItem->textExp = ReallocateExpressionLocally(reallocatedItem->textExp);
+
+			// You can check this at 0x63EEA0
+			if (reallocatedItem->typeData.data)
+			{
+				switch (reallocatedItem->dataType)
+				{
+				case Game::ITEM_TYPE_LISTBOX:
+					reallocatedItem->typeData.data = Reallocate(reallocatedItem->typeData.data, 324);
+					break;
+
+				case Game::ITEM_TYPE_EDITFIELD:
+				case Game::ITEM_TYPE_NUMERICFIELD:
+				case Game::ITEM_TYPE_VALIDFILEFIELD:
+				case Game::ITEM_TYPE_UPREDITFIELD:
+				case Game::ITEM_TYPE_YESNO:
+				case Game::ITEM_TYPE_BIND:
+				case Game::ITEM_TYPE_SLIDER:
+				case Game::ITEM_TYPE_TEXT:
+				case Game::ITEM_TYPE_DECIMALFIELD:
+				case Game::ITEM_TYPE_EMAILFIELD:
+				case Game::ITEM_TYPE_PASSWORDFIELD:
+					reallocatedItem->typeData.data = Reallocate(reallocatedItem->typeData.data, 32);
+					break;
+					
+				case Game::ITEM_TYPE_MULTI:
+					reallocatedItem->typeData.data = Reallocate(reallocatedItem->typeData.data, 392);
+					break;
+					
+				case Game::ITEM_TYPE_NEWS_TICKER:
+					reallocatedItem->typeData.data = Reallocate(reallocatedItem->typeData.data, 28);
+					break;
+					
+				case Game::ITEM_TYPE_TEXT_SCROLL:
+					reallocatedItem->typeData.data = Reallocate(reallocatedItem->typeData.data, 4);
+					break;
+				}
+			}
 
 			DUPLICATE_STRING_IF_EXISTS(reallocatedItem, dvar);
 			DUPLICATE_STRING_IF_EXISTS(reallocatedItem, dvarTest);
@@ -739,12 +870,22 @@ namespace Components
 			DUPLICATE_STRING_IF_EXISTS(reallocatedItem, enableDvar);
 			DUPLICATE_STRING_IF_EXISTS(reallocatedItem, text);
 
+			DUPLICATE_STRING_IF_EXISTS(reallocatedItem, window.name);
+
 			// What about item expressions? We don't free these?
 			// Apparently not, the game doesn't free them
 			// They're freed in bulk!
 			if (andFree)
 			{
+#if 0
 				Game::Menu_FreeItem(item);
+#else
+				// The menuFreeItem misses lots of stuff! Mainly allocated item entries.
+				// And those are Z_Alloced so they are NOT FREED IN BULK!
+				// This is a good example: 0x413050
+				// Let's do us a favor and free them too otherwise it leaks into the engine
+				Menus::FreeItem(item, ALLOCATED_BY_GAME);
+#endif
 			}
 
 
@@ -778,10 +919,12 @@ namespace Components
 			}
 
 			// Reallocate all the supporting data
+#if REALLOCATE_SUPPORTING_DATA
 			if (statement->supportingData)
 			{
 				reallocated->supportingData = ReallocateSupportingDataLocally(statement->supportingData);
 			}
+#endif
 
 			if (andFree)
 			{
@@ -815,63 +958,72 @@ namespace Components
 		{
 			for (int i = 0; i < menu->itemCount; ++i)
 			{
-				FreeItem(menu->items[i]);
+				FreeItem(menu->items[i], ALLOCATED_BY_IW4X);
 			}
 
-			Allocator.free(menu->items);
+			FreeZAllocatedMemory(menu->items, ALLOCATED_BY_IW4X);
 		}
 
 
-		FreeEventHandlerSet(menu->onOpen);
-		FreeEventHandlerSet(menu->onCloseRequest);
-		FreeEventHandlerSet(menu->onClose);
-		FreeEventHandlerSet(menu->onESC);
+		FreeEventHandlerSet(menu->onOpen, ALLOCATED_BY_IW4X);
+		FreeEventHandlerSet(menu->onCloseRequest, ALLOCATED_BY_IW4X);
+		FreeEventHandlerSet(menu->onClose, ALLOCATED_BY_IW4X);
+		FreeEventHandlerSet(menu->onESC, ALLOCATED_BY_IW4X);
 
-		FreeExpression(menu->visibleExp);
-		FreeExpression(menu->rectXExp);
-		FreeExpression(menu->rectYExp);
-		FreeExpression(menu->rectWExp);
-		FreeExpression(menu->rectHExp);
-		FreeExpression(menu->openSoundExp);
-		FreeExpression(menu->closeSoundExp);
+		FreeExpression(menu->visibleExp, ALLOCATED_BY_IW4X);
+		FreeExpression(menu->rectXExp, ALLOCATED_BY_IW4X);
+		FreeExpression(menu->rectYExp, ALLOCATED_BY_IW4X);
+		FreeExpression(menu->rectWExp, ALLOCATED_BY_IW4X);
+		FreeExpression(menu->rectHExp, ALLOCATED_BY_IW4X);
+		FreeExpression(menu->openSoundExp, ALLOCATED_BY_IW4X);
+		FreeExpression(menu->closeSoundExp, ALLOCATED_BY_IW4X);
 
 
-		FREE_STRING_IF_EXISTS(menu, font);
-		FREE_STRING_IF_EXISTS(menu, allowedBinding);
-		FREE_STRING_IF_EXISTS(menu, soundName);
+		FREE_STRING_IF_EXISTS(menu, font, ALLOCATED_BY_IW4X);
+		FREE_STRING_IF_EXISTS(menu, allowedBinding, ALLOCATED_BY_IW4X);
+		FREE_STRING_IF_EXISTS(menu, soundName, ALLOCATED_BY_IW4X);
 
-		Allocator.free(menu->window.name);
+		FreeZAllocatedMemory(menu->window.name, ALLOCATED_BY_IW4X);
 
-		Allocator.free(menu);
+		FreeZAllocatedMemory(menu, ALLOCATED_BY_IW4X);
 	}
 
-	void Menus::FreeExpressionSupportingData(Game::ExpressionSupportingData* data) {
+	void Menus::FreeExpressionSupportingData(Game::ExpressionSupportingData* data, bool fromTheGame) {
+
+		if (fromTheGame)
+		{
+			// expression supporting data is a reference to a SINGLETON !
+			// It is unique and does not need to be destroyed (it's freed properly on UI_INIT
+			// It is stored at 0x62D2270  !
+			return;
+		}
 
 		for (auto i = 0; i < data->uifunctions.totalFunctions; ++i) {
 			auto* function = data->uifunctions.functions[i];
-			FreeExpression(function);
+			FreeExpression(function, fromTheGame);
 		}
-
+		
 		for (auto i = 0; i < data->staticDvarList.numStaticDvars; i++)
 		{
-			FREE_STRING_IF_EXISTS(data, staticDvarList.staticDvars[i]->dvarName);
-			Allocator.free(data->staticDvarList.staticDvars[i]);
+			// This is not on the string table, it IS a zmalloced string!
+			FreeZAllocatedMemory(data->staticDvarList.staticDvars[i], fromTheGame);
 		}
+
 
 		for (auto i = 0; i < data->uiStrings.totalStrings; i++)
 		{
-			FREE_STRING_IF_EXISTS(data, uiStrings.strings[i]);
+			FREE_STRING_IF_EXISTS(data, uiStrings.strings[i], fromTheGame);
 		}
 
-		Allocator.free(data->uifunctions.functions);
-		Allocator.free(data->staticDvarList.staticDvars);
-		Allocator.free(data->uiStrings.strings);
+		FreeZAllocatedMemory(data->uifunctions.functions, fromTheGame);
+		FreeZAllocatedMemory(data->staticDvarList.staticDvars, fromTheGame);
+		FreeZAllocatedMemory(data->uiStrings.strings, fromTheGame);
 
 		data->staticDvarList.numStaticDvars = 0;
 		data->uiStrings.totalStrings = 0;
 		data->uifunctions.totalFunctions = 0;
 
-		Allocator.free(data);
+		FreeZAllocatedMemory(data, fromTheGame);
 	}
 
 	Game::MenuEventHandlerSet* Menus::ReallocateEventHandlerSetLocally(const Game::MenuEventHandlerSet* handlerSet, bool andFree)
@@ -896,7 +1048,7 @@ namespace Components
 
 				switch (event->eventType) {
 				case Game::EVENT_IF:
- 					conditionalScript = Allocator.allocate<Game::ConditionalScript>();
+					conditionalScript = Allocator.allocate<Game::ConditionalScript>();
 					std::memcpy(conditionalScript, event->eventData.conditionalScript, sizeof(Game::ConditionalScript));
 
 					if (conditionalScript->eventHandlerSet)
@@ -926,13 +1078,13 @@ namespace Components
 				case Game::EVENT_SET_LOCAL_VAR_FLOAT:
 				case Game::EVENT_SET_LOCAL_VAR_STRING:
 					localVar = Allocator.allocate<Game::SetLocalVarData>();
-					std::memcpy(localVar,  event->eventData.setLocalVarData, sizeof(Game::SetLocalVarData));
+					std::memcpy(localVar, event->eventData.setLocalVarData, sizeof(Game::SetLocalVarData));
 
 					if (localVar->expression)
 					{
 						localVar->expression = ReallocateExpressionLocally(localVar->expression, andFree);
 					}
-					
+
 					event->eventData.setLocalVarData = localVar;
 
 					break;
@@ -946,7 +1098,7 @@ namespace Components
 		return reallocated;
 	}
 
-	void Menus::FreeEventHandlerSet(Game::MenuEventHandlerSet* handlerSet)
+	void Menus::FreeEventHandlerSet(Game::MenuEventHandlerSet* handlerSet, bool fromTheGame)
 	{
 		if (handlerSet)
 		{
@@ -964,15 +1116,18 @@ namespace Components
 
 					if (conditionalScript->eventHandlerSet)
 					{
-						FreeEventHandlerSet(conditionalScript->eventHandlerSet);
+						FreeEventHandlerSet(conditionalScript->eventHandlerSet, fromTheGame);
+						conditionalScript->eventHandlerSet = nullptr;
 					}
 
 					if (conditionalScript->eventExpression)
 					{
-						FreeExpression(conditionalScript->eventExpression);
+						FreeExpression(conditionalScript->eventExpression, fromTheGame);
+						conditionalScript->eventExpression = nullptr;
 					}
-					
-					Allocator.free(conditionalScript);
+
+					FreeHunkAllocatedMemory(conditionalScript, fromTheGame);
+					event->eventData.conditionalScript = nullptr;
 
 					break;
 
@@ -981,10 +1136,11 @@ namespace Components
 
 					if (elseScript)
 					{
-						FreeEventHandlerSet(elseScript);
+						FreeEventHandlerSet(elseScript, fromTheGame);
+						event->eventData.elseScript = nullptr;
 					}
 
-					Allocator.free(elseScript);
+					FreeHunkAllocatedMemory(elseScript, fromTheGame);
 
 					break;
 
@@ -996,43 +1152,50 @@ namespace Components
 
 					if (localVar->expression)
 					{
-						FreeExpression(localVar->expression);
+						FreeExpression(localVar->expression, fromTheGame);
+						localVar->expression = nullptr;
 					}
-					
-					Allocator.free(localVar);
 
+					FreeHunkAllocatedMemory(localVar, fromTheGame);
+
+					break;
+
+				case Game::EVENT_UNCONDITIONAL:
+					FREE_STRING_IF_EXISTS(event, eventData.unconditionalScript, fromTheGame);
 					break;
 
 				default:
 					break;
 				}
 
-				Allocator.free(event);
+				FreeHunkAllocatedMemory(event, fromTheGame);
 			}
 
 			handlerSet->eventHandlerCount = 0;
-			Allocator.free(handlerSet->eventHandlers);
-			Allocator.free(handlerSet);
+			FreeHunkAllocatedMemory(handlerSet->eventHandlers, fromTheGame);
+			FreeHunkAllocatedMemory(handlerSet, fromTheGame);
 		}
 	}
 
-	void Menus::FreeExpression(Game::Statement_s* statement)
+	void Menus::FreeExpression(Game::Statement_s* statement, bool fromTheGame)
 	{
 		if (statement)
 		{
 			if (statement->entries)
 			{
-				Allocator.free(statement->entries);
+				FreeZAllocatedMemory(statement->entries, fromTheGame);
 				statement->entries = nullptr;
 			}
 
+#if REALLOCATE_SUPPORTING_DATA
 			if (statement->supportingData)
 			{
-				FreeExpressionSupportingData(statement->supportingData);
+				FreeExpressionSupportingData(statement->supportingData, fromTheGame);
 				statement->supportingData = nullptr;
 			}
+#endif
 
-			Allocator.free(statement);
+			FreeZAllocatedMemory(statement, fromTheGame);
 		}
 	}
 
@@ -1065,6 +1228,79 @@ namespace Components
 	}
 
 
+	static std::mutex Mutex;
+	static Utils::Memory::Allocator tracker{};
+
+	static std::map<void*, size_t> tracked_memory{};
+
+	static void* track_malloc(size_t size)
+	{
+		std::lock_guard _(Mutex);
+		//return malloc(size);
+
+		void* ptr = tracker.allocate(size);
+
+		if (tracked_memory.contains(ptr))
+		{
+			printf("");
+		}
+
+		if (size == 10)
+		{
+			printf("");
+		}
+
+		if (size == 8)
+		{
+			printf("");
+		}
+
+		if (size == 11)
+		{
+			printf("");
+		}
+
+		if (size == 520)
+		{
+			printf("");
+		}
+
+		if (size == 643228)
+		{
+			printf("");
+		}
+
+		tracked_memory[ptr] = size;
+
+		return ptr;
+	};
+
+	static void track_free(void* ptr)
+	{
+		std::lock_guard _(Mutex);
+		//free(ptr);
+		if (tracked_memory.contains(ptr))
+		{
+			tracked_memory.erase(ptr);
+		}
+
+		tracker.free(ptr);
+	};
+
+	static void* track_realloc(void* ptr, size_t size)
+	{
+		std::lock_guard _(Mutex);
+		track_free(ptr);
+		return track_malloc(size);
+	}
+
+	static void* track_calloc(size_t size, size_t count)
+	{
+		std::lock_guard _(Mutex);
+		return track_malloc(size * count);
+	}
+
+
 	void Menus::ReloadDiskMenus()
 	{
 		const auto connectionState = *reinterpret_cast<Game::connstate_t*>(0xB2C540);
@@ -1073,7 +1309,7 @@ namespace Components
 		// Otherwise we load a ton of ingame-only menus that are glitched on main_text
 		const bool allowStrayMenus = connectionState > Game::connstate_t::CA_DISCONNECTED
 			&& Game::CL_IsCgameInitialized();
-		
+
 		DebugPrint("Reloading disk menus...");
 
 		// Step 1: unload everything
@@ -1118,6 +1354,7 @@ namespace Components
 			for (const auto& filename : menus)
 			{
 				const std::string fullPath = std::format("ui_mp\\{}", filename);
+
 				LoadScriptMenu(fullPath.c_str(), allowStrayMenus);
 			}
 
@@ -1201,6 +1438,7 @@ namespace Components
 
 	Menus::Menus()
 	{
+
 		menuParseKeywordHash = reinterpret_cast<Game::KeywordHashEntry<Game::menuDef_t, 128, 3523>**>(0x63AE928);
 
 		if (ZoneBuilder::IsEnabled())
@@ -1213,9 +1451,9 @@ namespace Components
 		Components::Events::OnCGameInit(ReloadDiskMenus_OnCGameStart);
 		Components::Events::AfterUIInit(ReloadDiskMenus_OnUIInitialization);
 
-		Components::Scheduler::Once([](){
+		Components::Scheduler::Once([]() {
 			PrintMenuDebug = Dvar::Register<bool>("g_log_menu_allocations", false, Game::DVAR_SAVED, "Prints all menu allocations and swapping in the console");
-		}, Components::Scheduler::Pipeline::MAIN);
+			}, Components::Scheduler::Pipeline::MAIN);
 
 
 		// Don't open connect menu twice - it gets stuck!

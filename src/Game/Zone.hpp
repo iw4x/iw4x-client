@@ -8,6 +8,9 @@ namespace Game
 	typedef void*(*Z_Malloc_t)(int size);
 	extern Z_Malloc_t Z_Malloc;
 
+	typedef void (*Z_Free_t)(const void* ptr);
+	extern Z_Free_t Z_Free;
+
 	typedef void*(*Hunk_AllocateTempMemoryHigh_t)(int size);
 	extern Hunk_AllocateTempMemoryHigh_t Hunk_AllocateTempMemoryHigh;
 
