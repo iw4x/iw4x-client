@@ -927,8 +927,11 @@ namespace Components
 			// Reallocate all the supporting data
 			if (statement->supportingData)
 			{
+#if DEBUG
 				const Game::ExpressionSupportingData* original = reinterpret_cast<Game::ExpressionSupportingData*>(0x62D2270);
 				assert(statement->supportingData  == original);
+#endif
+
 				reallocated->supportingData = Menus::SupportingData;
 			}
 
