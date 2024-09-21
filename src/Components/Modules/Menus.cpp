@@ -11,7 +11,7 @@ namespace Components
 	// As of now it is not sure whether supporting data needs to be reallocated
 	// It is a global singleton, cleared on UI_Init, which is also when we clear our menus
 	// so maybe keeping a reference to it is fine actually!
-#define REALLOCATE_SUPPORTING_DATA false
+	// EDIT: Okay so it needs to be allocated ONCE per ZONE, so we have to reallocate our own
 
 #define ALLOCATED_BY_GAME true
 #define ALLOCATED_BY_IW4X false
@@ -24,11 +24,17 @@ namespace Components
 
 	Dvar::Var Menus::PrintMenuDebug;
 
+	Game::UiContext* Menus::GameUiContexts[] = {
+		Game::uiContext,
+		Game::cgDC // Ingame context
+	};
+
 	std::unordered_map<std::string, Game::menuDef_t*> Menus::MenusFromDisk;
 	std::unordered_map<std::string, Game::MenuList*> Menus::MenuListsFromDisk;
 
 	std::unordered_map<std::string, Game::menuDef_t*> Menus::OverridenMenus;
 
+	Game::ExpressionSupportingData* Menus::SupportingData;
 
 	Utils::Memory::Allocator Menus::Allocator;
 
@@ -246,6 +252,14 @@ namespace Components
 			DUPLICATE_STRING_IF_EXISTS(menu, font);
 			DUPLICATE_STRING_IF_EXISTS(menu, allowedBinding);
 			DUPLICATE_STRING_IF_EXISTS(menu, soundName);
+
+			if (menu->expressionData)
+			{
+				UpdateSupportingDataContents();
+
+				assert(menu->expressionData == Game::menuSupportingData);
+				menu->expressionData = Menus::SupportingData;
+			}
 		}
 
 		return menu;
@@ -300,6 +314,19 @@ namespace Components
 		return menus;
 	}
 
+	bool Menus::MenuAlreadyExists(const std::string& name)
+	{
+		for (size_t i = 0; i < ARRAYSIZE(GameUiContexts); i++)
+		{
+			if (Game::Menus_FindByName(GameUiContexts[i], name.data()))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	void Menus::LoadScriptMenu(const char* menu, bool allowNewMenus)
 	{
 		auto menus = LoadMenuByName_Recursive(menu);
@@ -316,7 +343,7 @@ namespace Components
 			for (int i = 0; i < static_cast<int>(menus.size()); i++)
 			{
 				const auto menuName = menus[i]->window.name;
-				if (Game::Menus_FindByName(Game::uiContext, menuName))
+				if (MenuAlreadyExists(menuName))
 				{
 					// It's an override, we keep it
 				}
@@ -460,7 +487,7 @@ namespace Components
 		{
 			FreeExpression(item->floatExpressions[i].expression, fromTheGame);
 		}
-		
+
 		FreeEventHandlerSet(item->accept, fromTheGame);
 		FreeEventHandlerSet(item->action, fromTheGame);
 		FreeEventHandlerSet(item->leaveFocus, fromTheGame);
@@ -489,7 +516,7 @@ namespace Components
 
 		FreeExpression(item->materialExp, fromTheGame);
 		item->materialExp = nullptr;
-		
+
 		if (item->typeData.data)
 		{
 			switch (item->dataType)
@@ -541,25 +568,31 @@ namespace Components
 
 	void Menus::FreeHunkAllocatedMemory(const void* ptr, bool fromTheGame)
 	{
-		if (fromTheGame)
+		if (ptr)
 		{
-			Game::Z_VirtualFree(const_cast<void*>(ptr));
-		}
-		else
-		{
-			Allocator.free(ptr);
+			if (fromTheGame)
+			{
+				Game::Z_VirtualFree(const_cast<void*>(ptr));
+			}
+			else
+			{
+				Allocator.free(ptr);
+			}
 		}
 	}
 
 	void Menus::FreeZAllocatedMemory(const void* ptr, bool fromTheGame)
 	{
-		if (fromTheGame)
+		if (ptr)
 		{
-			Game::Z_Free(ptr);
-		}
-		else
-		{
-			Allocator.free(ptr);
+			if (fromTheGame)
+			{
+				Game::Z_Free(ptr);
+			}
+			else
+			{
+				Allocator.free(ptr);
+			}
 		}
 	}
 
@@ -570,32 +603,35 @@ namespace Components
 		bool isRemoval = OverridenMenus[name] == nullptr || !OverridenMenus.contains(name);
 		Game::menuDef_t* replacement = isRemoval ? nullptr : OverridenMenus[name];
 
-		if (Game::uiContext)
+		for (size_t contextIndex = 0; contextIndex < ARRAYSIZE(Menus::GameUiContexts); contextIndex++)
 		{
-			for (size_t i = 0; i < ARRAYSIZE(Game::uiContext->menuStack); i++)
+			const auto context = Menus::GameUiContexts[contextIndex];
+
+			for (size_t i = 0; i < ARRAYSIZE(context->menuStack); i++)
 			{
-				if (Game::uiContext->menuStack[i] &&
-					Game::uiContext->menuStack[i]->window.name == name)
+				if (context->menuStack[i] &&
+					context->menuStack[i]->window.name == name)
 				{
 					DebugPrint("In stack - Restored menu {} ({:X} => {:X})",
 						name,
-						(unsigned int)Game::uiContext->Menus[i],
+						(unsigned int)context->Menus[i],
 						(unsigned int)replacement
 					);
 
 					if (isRemoval)
 					{
-						if (Game::uiContext->menuStack[i] == menu)
+						if (context->menuStack[i] == menu)
 						{
-							Game::uiContext->menuStack[i] = replacement;
+							context->menuStack[i] = replacement;
 
-							for (int j = i; j < Game::uiContext->openMenuCount - 1; j++)
+							for (int j = i; j < context->openMenuCount - 1; j++)
 							{
-								Game::uiContext->menuStack[j] = Game::uiContext->menuStack[j + 1];
+								context->menuStack[j] = context->menuStack[j + 1];
 							}
 
-							Game::uiContext->openMenuCount--;
-							assert(Game::uiContext->openMenuCount >= 0);
+							context->menuStack[context->openMenuCount] = nullptr;
+							context->openMenuCount--;
+							assert(context->openMenuCount >= 0);
 
 							i--;
 						}
@@ -607,38 +643,39 @@ namespace Components
 					}
 					else
 					{
-						Game::uiContext->menuStack[i] = replacement;
+						context->menuStack[i] = replacement;
 					}
 				}
 			}
 
-			for (int i = 0; i < Game::uiContext->menuCount; i++)
+			for (int i = 0; i < context->menuCount; i++)
 			{
-				if (Game::uiContext->Menus[i] &&
-					Game::uiContext->Menus[i]->window.name == name)
+				if (context->Menus[i] &&
+					context->Menus[i]->window.name == name)
 				{
 					DebugPrint("In context - Restored menu {} ({:X} => {:X})",
 						name,
-						(unsigned int)Game::uiContext->Menus[i],
+						(unsigned int)context->Menus[i],
 						(unsigned int)replacement
 					);
 
 					if (isRemoval)
 					{
-						if (Game::uiContext->Menus[i] == menu)
+						if (context->Menus[i] == menu)
 						{
-							Game::uiContext->Menus[i] = replacement;
+							context->Menus[i] = replacement;
 
-							for (size_t j = i; j < std::min(static_cast<unsigned int>(Game::uiContext->menuCount), ARRAYSIZE(Game::uiContext->Menus)) - 1; j++)
+							for (size_t j = i; j < std::min(static_cast<unsigned int>(context->menuCount), ARRAYSIZE(context->Menus)) - 1; j++)
 							{
-								Game::uiContext->Menus[j] = Game::uiContext->Menus[j + 1];
+								context->Menus[j] = context->Menus[j + 1];
 							}
-
-							Game::uiContext->menuCount--;
+							
+							context->Menus[context->menuCount] = nullptr;
+							context->menuCount--;
 
 							i--;
 
-							assert(Game::uiContext->menuCount >= 0);
+							assert(context->menuCount >= 0);
 						}
 						else
 						{
@@ -648,15 +685,15 @@ namespace Components
 					}
 					else
 					{
-						Game::uiContext->Menus[i] = replacement;
+						context->Menus[i] = replacement;
 					}
 				}
 			}
+		}
 
-			if (OverridenMenus.contains(name))
-			{
-				OverridenMenus.erase(name);
-			}
+		if (OverridenMenus.contains(name))
+		{
+			OverridenMenus.erase(name);
 		}
 	}
 
@@ -671,23 +708,25 @@ namespace Components
 
 		bool overrode = false;
 
-		if (Game::uiContext)
+		for (size_t contextIndex = 0; contextIndex < ARRAYSIZE(Menus::GameUiContexts); contextIndex++)
 		{
-			for (size_t i = 0; i < ARRAYSIZE(Game::uiContext->menuStack); i++)
+			const auto context = Menus::GameUiContexts[contextIndex];
+
+			for (size_t i = 0; i < ARRAYSIZE(context->menuStack); i++)
 			{
-				if (Game::uiContext->menuStack[i] &&
-					Game::uiContext->menuStack[i]->window.name == name)
+				if (context->menuStack[i] &&
+					context->menuStack[i]->window.name == name)
 				{
 					if (OverridenMenus.contains(name))
 					{
-						assert(OverridenMenus[name] == Game::uiContext->menuStack[i]);
+						assert(OverridenMenus[name] == context->menuStack[i]);
 					}
 					else
 					{
-						OverridenMenus[name] = Game::uiContext->menuStack[i];
+						OverridenMenus[name] = context->menuStack[i];
 					}
 
-					Game::uiContext->menuStack[i] = MenusFromDisk[name];
+					context->menuStack[i] = MenusFromDisk[name];
 
 					DebugPrint("In stack - Overrode menu {} ({:X} => {:X})",
 						name,
@@ -697,21 +736,21 @@ namespace Components
 				}
 			}
 
-			for (int i = 0; i < Game::uiContext->menuCount; i++)
+			for (int i = 0; i < context->menuCount; i++)
 			{
-				if (Game::uiContext->Menus[i] &&
-					Game::uiContext->Menus[i]->window.name == name)
+				if (context->Menus[i] &&
+					context->Menus[i]->window.name == name)
 				{
 					if (OverridenMenus.contains(name))
 					{
-						assert(OverridenMenus[name] == Game::uiContext->Menus[i]);
+						assert(OverridenMenus[name] == context->Menus[i]);
 					}
 					else
 					{
-						OverridenMenus[name] = Game::uiContext->Menus[i];
+						OverridenMenus[name] = context->Menus[i];
 					}
 
-					Game::uiContext->Menus[i] = MenusFromDisk[name];
+					context->Menus[i] = MenusFromDisk[name];
 
 					DebugPrint("In context - Overrode menu {} ({:X} => {:X})",
 						name,
@@ -722,14 +761,15 @@ namespace Components
 					overrode = true;
 				}
 			}
+		}
 
-			if (!overrode)
-			{
-				// A brand new menu! How fancy!
-				OverridenMenus[name] = nullptr;
-				Game::uiContext->Menus[Game::uiContext->menuCount] = MenusFromDisk[name];
-				Game::uiContext->menuCount++;
-			}
+		if (!overrode)
+		{
+			// A brand new menu! How fancy!
+			// We add it to the standard uiContext
+			OverridenMenus[name] = nullptr;
+			Game::uiContext->Menus[Game::uiContext->menuCount] = MenusFromDisk[name];
+			Game::uiContext->menuCount++;
 		}
 	}
 
@@ -757,38 +797,39 @@ namespace Components
 		return reallocated;
 	}
 
-	Game::ExpressionSupportingData* Menus::ReallocateSupportingDataLocally(const Game::ExpressionSupportingData* original, bool andFree)
+	void Menus::UpdateSupportingDataContents()
 	{
-		Game::ExpressionSupportingData* supportingData = nullptr;
+		assert(Menus::SupportingData->staticDvarList.staticDvars);
+		assert(Menus::SupportingData->uiStrings.strings);
+		assert(Menus::SupportingData->uifunctions.functions);
 
-		if (original)
-		{
-			supportingData = Allocator.allocate<Game::ExpressionSupportingData>();
-			std::memcpy(supportingData, original, sizeof(Game::ExpressionSupportingData));
+		const auto original = Game::menuSupportingData;
+		const auto supportingData = Menus::SupportingData;
 
-			supportingData->uifunctions.functions = Allocator.allocateArray<Game::Statement_s*>(original->uifunctions.totalFunctions);
-			std::memcpy(supportingData->uifunctions.functions, original->uifunctions.functions, sizeof(Game::Statement_s*) * original->uifunctions.totalFunctions);
-			for (auto i = 0; i < original->uifunctions.totalFunctions; ++i) {
-				auto* function = original->uifunctions.functions[i];
-				supportingData->uifunctions.functions[i] = ReallocateExpressionLocally(function, andFree);
-			}
+		// It should never has _decreased_ otherwise we're in trouble lol
+		assert(original->uifunctions.totalFunctions >= supportingData->uifunctions.totalFunctions);
+		assert(original->staticDvarList.numStaticDvars >= supportingData->staticDvarList.numStaticDvars);
+		assert(original->uiStrings.totalStrings >= supportingData->uiStrings.totalStrings);
 
-			supportingData->staticDvarList.staticDvars = Allocator.allocateArray<Game::StaticDvar*>(original->staticDvarList.numStaticDvars);
-			std::memcpy(supportingData->staticDvarList.staticDvars, original->staticDvarList.staticDvars, sizeof(Game::StaticDvar*) * original->staticDvarList.numStaticDvars);
-			for (auto i = 0; i < original->staticDvarList.numStaticDvars; ++i) {
-				auto* dvar = original->staticDvarList.staticDvars[i];
-				supportingData->staticDvarList.staticDvars[i] = ReallocateStaticDvarLocally(dvar);
-			}
-
-			supportingData->uiStrings.strings = Allocator.allocateArray<const char*>(original->uiStrings.totalStrings);
-			std::memcpy(supportingData->uiStrings.strings, original->uiStrings.strings, sizeof(const char*) * original->uiStrings.totalStrings);
-			for (auto i = 0; i < original->uiStrings.totalStrings; ++i) {
-				auto string = original->uiStrings.strings[i];
-				supportingData->uiStrings.strings[i] = Allocator.duplicateString(string);
-			}
+		// Grab all the stuff we might be missing - normally there's already room for it
+		for (auto i = supportingData->uifunctions.totalFunctions; i < original->uifunctions.totalFunctions; ++i) {
+			auto* function = original->uifunctions.functions[i];
+			supportingData->uifunctions.functions[i] = ReallocateExpressionLocally(function);
 		}
 
-		return supportingData;
+		for (auto i = supportingData->staticDvarList.numStaticDvars; i < original->staticDvarList.numStaticDvars; ++i) {
+			auto* dvar = original->staticDvarList.staticDvars[i];
+			supportingData->staticDvarList.staticDvars[i] = ReallocateStaticDvarLocally(dvar);
+		}
+
+		for (auto i = supportingData->uiStrings.totalStrings; i < original->uiStrings.totalStrings; ++i) {
+			auto string = original->uiStrings.strings[i];
+			supportingData->uiStrings.strings[i] = Allocator.duplicateString(string);
+		}
+
+		supportingData->uifunctions.totalFunctions = original->uifunctions.totalFunctions;
+		supportingData->staticDvarList.numStaticDvars = original->staticDvarList.numStaticDvars;
+		supportingData->uiStrings.totalStrings = original->uiStrings.totalStrings;
 	}
 
 	Game::itemDef_s* Menus::ReallocateItemLocally(Game::itemDef_s* item, bool andFree)
@@ -849,15 +890,15 @@ namespace Components
 				case Game::ITEM_TYPE_PASSWORDFIELD:
 					reallocatedItem->typeData.data = Reallocate(reallocatedItem->typeData.data, 32);
 					break;
-					
+
 				case Game::ITEM_TYPE_MULTI:
 					reallocatedItem->typeData.data = Reallocate(reallocatedItem->typeData.data, 392);
 					break;
-					
+
 				case Game::ITEM_TYPE_NEWS_TICKER:
 					reallocatedItem->typeData.data = Reallocate(reallocatedItem->typeData.data, 28);
 					break;
-					
+
 				case Game::ITEM_TYPE_TEXT_SCROLL:
 					reallocatedItem->typeData.data = Reallocate(reallocatedItem->typeData.data, 4);
 					break;
@@ -886,14 +927,14 @@ namespace Components
 				// Let's do us a favor and free them too otherwise it leaks into the engine
 				Menus::FreeItem(item, ALLOCATED_BY_GAME);
 #endif
-			}
-
-
 		}
+
+
+	}
 
 		return reallocatedItem;
 
-	}
+}
 
 	Game::Statement_s* Menus::ReallocateExpressionLocally(Game::Statement_s* statement, bool andFree)
 	{
@@ -919,12 +960,16 @@ namespace Components
 			}
 
 			// Reallocate all the supporting data
-#if REALLOCATE_SUPPORTING_DATA
 			if (statement->supportingData)
 			{
-				reallocated->supportingData = ReallocateSupportingDataLocally(statement->supportingData);
-			}
+#if DEBUG
+				assert(statement->supportingData == Game::menuSupportingData);
 #endif
+				// It might have moved in the meantime
+				UpdateSupportingDataContents();
+
+				reallocated->supportingData = Menus::SupportingData;
+			}
 
 			if (andFree)
 			{
@@ -988,42 +1033,31 @@ namespace Components
 		FreeZAllocatedMemory(menu, ALLOCATED_BY_IW4X);
 	}
 
-	void Menus::FreeExpressionSupportingData(Game::ExpressionSupportingData* data, bool fromTheGame) {
+	// We free our own, but keep the object because we're going to reuse it
+	void Menus::FreeLocalSupportingDataContents() {
 
-		if (fromTheGame)
-		{
-			// expression supporting data is a reference to a SINGLETON !
-			// It is unique and does not need to be destroyed (it's freed properly on UI_INIT
-			// It is stored at 0x62D2270  !
-			return;
-		}
+		const auto data = Menus::SupportingData;
 
 		for (auto i = 0; i < data->uifunctions.totalFunctions; ++i) {
 			auto* function = data->uifunctions.functions[i];
-			FreeExpression(function, fromTheGame);
+			FreeExpression(function);
 		}
-		
+
 		for (auto i = 0; i < data->staticDvarList.numStaticDvars; i++)
 		{
 			// This is not on the string table, it IS a zmalloced string!
-			FreeZAllocatedMemory(data->staticDvarList.staticDvars[i], fromTheGame);
+			FreeZAllocatedMemory(data->staticDvarList.staticDvars[i]->dvarName);
+			FreeZAllocatedMemory(data->staticDvarList.staticDvars[i]);
 		}
-
 
 		for (auto i = 0; i < data->uiStrings.totalStrings; i++)
 		{
-			FREE_STRING_IF_EXISTS(data, uiStrings.strings[i], fromTheGame);
+			FREE_STRING_IF_EXISTS(data, uiStrings.strings[i], false);
 		}
-
-		FreeZAllocatedMemory(data->uifunctions.functions, fromTheGame);
-		FreeZAllocatedMemory(data->staticDvarList.staticDvars, fromTheGame);
-		FreeZAllocatedMemory(data->uiStrings.strings, fromTheGame);
 
 		data->staticDvarList.numStaticDvars = 0;
 		data->uiStrings.totalStrings = 0;
 		data->uifunctions.totalFunctions = 0;
-
-		FreeZAllocatedMemory(data, fromTheGame);
 	}
 
 	Game::MenuEventHandlerSet* Menus::ReallocateEventHandlerSetLocally(const Game::MenuEventHandlerSet* handlerSet, bool andFree)
@@ -1187,13 +1221,17 @@ namespace Components
 				statement->entries = nullptr;
 			}
 
-#if REALLOCATE_SUPPORTING_DATA
 			if (statement->supportingData)
 			{
-				FreeExpressionSupportingData(statement->supportingData, fromTheGame);
-				statement->supportingData = nullptr;
+				// <
+				//	DO NOT FREE SUPPORTING DATA !
+				// >
+
+				if (!fromTheGame)
+				{
+					assert(statement->supportingData == SupportingData);
+				}
 			}
-#endif
 
 			FreeZAllocatedMemory(statement, fromTheGame);
 		}
@@ -1215,6 +1253,15 @@ namespace Components
 		//	which contains the whole UIContext, and that destroys all pointers there
 		// The game doesn't care about memory because it uses LargeLocalReset to free it all.. from what i've seen
 		OverridenMenus.clear();
+		FreeLocalSupportingDataContents();
+
+		// Free the CGDC - The game doesn't do it, but it _should_
+		// Otherwise it's full of weird garbage. It's never used until CGame starts anyway!
+		{
+			// At this point our menus are already tracked so we will be able to free them
+			// and the HUD menus are freed in bulk at 0x4E32D5
+			Game::cgDC->menuCount = 0;
+		}
 
 		// And so this will only free our stuff anyway
 		ReloadDiskMenus();
@@ -1252,7 +1299,8 @@ namespace Components
 			UnloadMenuFromDisk(element.first);
 		}
 
-		if (Allocator.empty())
+#if DEBUG
+		if (Allocator.empty() || allowStrayMenus)
 		{
 			// good
 		}
@@ -1261,6 +1309,7 @@ namespace Components
 			__debugbreak();
 			Logger::Print("Warning - menu leak? Expected allocator to be empty after reload, but it's not!\n");
 		}
+#endif
 
 		if (OverridenMenus.empty())
 		{
@@ -1315,6 +1364,8 @@ namespace Components
 			}
 		}
 
+		// Step 3 - Keep supporting data around
+
 		// Debug-only check
 		CheckMenus();
 	}
@@ -1328,17 +1379,23 @@ namespace Components
 			// Uniqueness check - each unique menu should have a unique name for this whole circus to run
 			std::unordered_map<std::string, void*> names{};
 
-			if (Game::uiContext)
+			assert(Game::menuSupportingData->staticDvarList.numStaticDvars == Menus::SupportingData->staticDvarList.numStaticDvars);
+			assert(Game::menuSupportingData->uifunctions.totalFunctions == Menus::SupportingData->uifunctions.totalFunctions);
+			assert(Game::menuSupportingData->uiStrings.totalStrings == Menus::SupportingData->uiStrings.totalStrings);
+
+			for (size_t contextIndex = 0; contextIndex < ARRAYSIZE(Menus::GameUiContexts); contextIndex++)
 			{
-				for (size_t i = 0; i < ARRAYSIZE(Game::uiContext->Menus); i++)
+				const auto context = Menus::GameUiContexts[contextIndex];
+
+				for (size_t i = 0; i < ARRAYSIZE(context->Menus); i++)
 				{
-					if (Game::uiContext->Menus[i])
+					if (context->Menus[i] && static_cast<int>(i) < context->menuCount)
 					{
-						const auto name = Game::uiContext->Menus[i]->window.name;
+						const auto name = context->Menus[i]->window.name;
 
 						if (names.contains(name))
 						{
-							if (names[name] != Game::uiContext->Menus[i])
+							if (names[name] != context->Menus[i])
 							{
 								assert(false && "Two menus were loaded with the same name!");
 							}
@@ -1349,22 +1406,52 @@ namespace Components
 						}
 						else
 						{
-							names[name] = Game::uiContext->Menus[i];
+							names[name] = context->Menus[i];
 						}
 					}
 					else
 					{
-						assert(static_cast<int>(i) >= Game::uiContext->menuCount && "Unexpected NULL data where the game expects a menu!");
+						assert(static_cast<int>(i) >= context->menuCount && "Unexpected NULL data where the game expects a menu!");
 					}
 				}
+			}
+
+			for (const auto& pair : MenusFromDisk)
+			{
+				const auto menu = pair.second;
+
+#define CHECK_SD(x) if (menu->##x && menu->##x->supportingData) assert(menu->##x->supportingData == Menus::SupportingData)
+
+				CHECK_SD(visibleExp);
+				CHECK_SD(rectXExp);
+				CHECK_SD(rectYExp);
+				CHECK_SD(rectWExp);
+				CHECK_SD(rectHExp);
+				CHECK_SD(openSoundExp);
+				CHECK_SD(closeSoundExp);
 			}
 		}
 #endif
 	}
 
+	void Menus::InitializeSupportingData()
+	{
+		// Do not use the local allocator for this
+		const auto allocator = Utils::Memory::GetAllocator();
+
+		Menus::SupportingData = allocator->allocate<Game::ExpressionSupportingData>();
+
+		const auto staticDvarSize = *reinterpret_cast<size_t*>(0x4A1299 + 1);
+		const auto functionListSize = *reinterpret_cast<size_t*>(0x4A12A3 + 1);
+		const auto stringListSize = *reinterpret_cast<size_t*>(0x4A12B2 + 1);
+
+		Menus::SupportingData->uifunctions.functions = allocator->allocateArray<Game::Statement_s*>(functionListSize / sizeof(Game::Statement_s*));
+		Menus::SupportingData->staticDvarList.staticDvars = allocator->allocateArray<Game::StaticDvar*>(staticDvarSize / sizeof(Game::StaticDvar*));
+		Menus::SupportingData->uiStrings.strings = allocator->allocateArray<const char*>(stringListSize / sizeof(const char*));
+	}
+
 	Menus::Menus()
 	{
-
 		menuParseKeywordHash = reinterpret_cast<Game::KeywordHashEntry<Game::menuDef_t, 128, 3523>**>(0x63AE928);
 
 		if (ZoneBuilder::IsEnabled())
@@ -1374,6 +1461,8 @@ namespace Components
 
 		if (Dedicated::IsEnabled()) return;
 
+		Menus::InitializeSupportingData();
+
 		Components::Events::OnCGameInit(ReloadDiskMenus_OnCGameStart);
 		Components::Events::AfterUIInit(ReloadDiskMenus_OnUIInitialization);
 
@@ -1381,6 +1470,10 @@ namespace Components
 			PrintMenuDebug = Dvar::Register<bool>("g_log_menu_allocations", false, Game::DVAR_SAVED, "Prints all menu allocations and swapping in the console");
 			}, Components::Scheduler::Pipeline::MAIN);
 
+
+		// Increase HunkMemory for people with heavy-loaded menus
+		// Original is 0xA00000
+		Utils::Hook::Set<uint32_t>(0x420830 + 6, 0xB00000);
 
 		// Don't open connect menu twice - it gets stuck!
 		Utils::Hook::Nop(0x428E48, 5);

@@ -15,9 +15,13 @@ namespace Components
 
 		static std::vector<Game::menuDef_t*> LoadMenuByName_Recursive(const std::string& menu);
 
+
 	private:
 		static std::unordered_map<std::string, Game::menuDef_t*> MenusFromDisk;
 		static std::unordered_map<std::string, Game::MenuList*> MenuListsFromDisk;
+		static Game::ExpressionSupportingData* SupportingData;
+
+		static Game::UiContext* GameUiContexts[];
 
 		static Dvar::Var PrintMenuDebug;
 
@@ -27,6 +31,8 @@ namespace Components
 		static std::vector<std::string> CustomIW4xMenus;
 
 		static Utils::Memory::Allocator Allocator;
+
+		static bool MenuAlreadyExists(const std::string& name);
 
 		static void FreeZAllocatedMemory(const void* ptr, bool fromTheGame = false);
 		static void FreeAllocatedString(const void* ptr, bool fromTheGame = false);
@@ -45,7 +51,6 @@ namespace Components
 
 		static Game::Statement_s* ReallocateExpressionLocally(Game::Statement_s* statement, bool andFree = false);
 		static Game::StaticDvar* ReallocateStaticDvarLocally(Game::StaticDvar* dvar);
-		static Game::ExpressionSupportingData * ReallocateSupportingDataLocally(const Game::ExpressionSupportingData * original, bool andFree= false);
 		static Game::itemDef_s* ReallocateItemLocally(Game::itemDef_s* item, bool andFree = false);
 		static Game::MenuEventHandlerSet* ReallocateEventHandlerSetLocally(const Game::MenuEventHandlerSet* handlerSet, bool andFree= false);
 
@@ -54,7 +59,10 @@ namespace Components
 		static void FreeExpression(Game::Statement_s* statement, bool fromTheGame = false);
 		static void FreeItem(Game::itemDef_s* item, bool fromTheGame = false);
 		static void FreeEventHandlerSet(Game::MenuEventHandlerSet* handlerSet, bool fromTheGame = false);
-		static void FreeExpressionSupportingData(Game::ExpressionSupportingData * data, bool fromTheGame = false);
+		
+		static void UpdateSupportingDataContents();
+		static void FreeLocalSupportingDataContents();
+		static void InitializeSupportingData();
 
 		static void UnloadMenuFromDisk(const std::string & menuName);
 
@@ -78,6 +86,7 @@ namespace Components
 		static void ReloadDiskMenus_OnUIInitialization();
 
 		static void CheckMenus();
+
 
 		template <typename... Args>
 		static void DebugPrint(const std::string_view& fmt, Args&&... args)
