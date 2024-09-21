@@ -622,6 +622,8 @@ namespace Game
 	extern source_s** sourceFiles;
 
 	extern UiContext* uiContext;
+	extern UiContext* cgDC;
+	extern const ExpressionSupportingData* menuSupportingData;
 
 	extern int* arenaCount;
 	extern mapArena_t* arenas;
