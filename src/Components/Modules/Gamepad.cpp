@@ -1469,9 +1469,7 @@ namespace Components
 	{
 		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
-		constexpr bool dvar_rumble_enabled = true;
-
-		if (dvar_rumble_enabled)
+		if (Gamepad::gpad_rumble.get<bool>())
 		{
 			auto gamepad = &gamePads[gamePadIndex];
 			gamepad->rumble.wRightMotorSpeed = gamepad->highRumble * 65535.0;
