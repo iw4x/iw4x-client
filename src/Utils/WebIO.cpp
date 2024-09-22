@@ -259,7 +259,7 @@ namespace Utils
 		if (success) *success = false;
 		if (!this->openConnection()) return {};
 
-		static const char* acceptTypes[] = { "application/x-www-form-urlencoded", nullptr };
+		static const char* acceptTypes[] = { "application/x-www-form-urlencoded", "application/json", nullptr };
 
 		DWORD dwFlag = INTERNET_FLAG_RELOAD | (this->isSecuredConnection() ? INTERNET_FLAG_SECURE : 0);
 
@@ -298,7 +298,7 @@ namespace Utils
 
 		DWORD statusCode = 404;
 		DWORD length = sizeof(statusCode);
-		if (HttpQueryInfoA(this->hFile_, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE, &statusCode, &length, nullptr) == FALSE || (statusCode != 200 && statusCode != 201))
+		if (HttpQueryInfoA(this->hFile_, HTTP_QUERY_FLAG_NUMBER | HTTP_QUERY_STATUS_CODE, &statusCode, &length, nullptr) == FALSE || (statusCode != 200 && statusCode != 201 && statusCode != 304))
 		{
 			this->closeConnection();
 			return {};
