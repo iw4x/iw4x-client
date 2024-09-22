@@ -89,12 +89,12 @@ namespace Game
 
 	extern voiceCommunication_t* cl_voiceCommunication;
 
-	extern [[nodiscard]] int CL_GetMaxXP();
-	extern [[nodiscard]] clientConnection_t* CL_GetLocalClientConnection(int localClientNum);
-	extern [[nodiscard]] connstate_t CL_GetLocalClientConnectionState(int localClientNum);
-	extern [[nodiscard]] voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
-	extern [[nodiscard]] clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
-	extern [[nodiscard]] clientActive_t* CL_GetLocalClientGlobals(int localClientNum);
+	[[nodiscard]] extern int CL_GetMaxXP();
+	[[nodiscard]] extern clientConnection_t* CL_GetLocalClientConnection(int localClientNum);
+	[[nodiscard]] extern connstate_t CL_GetLocalClientConnectionState(int localClientNum);
+	[[nodiscard]] extern voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
+	[[nodiscard]] extern clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
+	[[nodiscard]] extern clientActive_t* CL_GetLocalClientGlobals(int localClientNum);
 
 	extern void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer);
 

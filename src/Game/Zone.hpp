@@ -22,7 +22,7 @@ namespace Game
 
 	constexpr auto PAGE_SIZE = 4096;
 
-	extern [[nodiscard]] void* Z_VirtualReserve(int size);
+	[[nodiscard]] extern void* Z_VirtualReserve(int size);
 	extern void Z_VirtualCommit(void* ptr, int size);
 	extern void Z_VirtualDecommit(void* ptr, int size);
 	extern void Z_VirtualFree(void* ptr);
