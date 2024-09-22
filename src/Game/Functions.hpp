@@ -625,6 +625,8 @@ namespace Game
 	extern source_s** sourceFiles;
 
 	extern UiContext* uiContext;
+	extern UiContext* cgDC;
+	extern const ExpressionSupportingData* menuSupportingData;
 
 	extern int* arenaCount;
 	extern mapArena_t* arenas;
@@ -761,6 +763,7 @@ namespace Game
 
 	void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize);
 
+	void Menu_FreeItem(itemDef_s* item);
 	void Menu_SetNextCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	void Menu_SetPrevCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
 	const char* TableLookup(StringTable* stringtable, int row, int column);

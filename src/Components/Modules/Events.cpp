@@ -11,6 +11,8 @@ namespace Components
 	Utils::Concurrency::Container<Events::Callback> Events::ServerInitTasks_;
 	Utils::Concurrency::Container<Events::Callback> Events::DvarInitTasks_;
 	Utils::Concurrency::Container<Events::Callback> Events::NetworkInitTasks_;
+	Utils::Concurrency::Container<Events::Callback> Events::CGameInitTasks_;
+	Utils::Concurrency::Container<Events::Callback> Events::UIInitTasks_;
 
 	Events::ClientCmdCallback Events::ClientCmdButtonsTasks_;
 	Events::ClientCmdCallback Events::ClientKeyMoveTasks_;
@@ -55,6 +57,14 @@ namespace Components
 		});
 	}
 
+	void Events::AfterUIInit(const std::function<void()>& callback)
+	{
+		UIInitTasks_.access([&callback](Callback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
+	}
+
 	void Events::OnClientCmdButtons(const std::function<void(Game::usercmd_s*)>& callback)
 	{
 		ClientCmdButtonsTasks_.emplace_back(callback);
@@ -84,6 +94,14 @@ namespace Components
 	void Events::OnNetworkInit(const std::function<void()>& callback)
 	{
 		NetworkInitTasks_.access([&callback](Callback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
+	}
+
+	void Events::OnCGameInit(const std::function<void()>& callback)
+	{
+		CGameInitTasks_.access([&callback](Callback& tasks)
 		{
 			tasks.emplace_back(callback);
 		});
@@ -244,6 +262,19 @@ namespace Components
 		Utils::Hook::Call<void()>(0x60AD10)(); // Com_InitDvars
 	}
 
+	int Events::CL_InitCGame_Hk()
+	{
+		CGameInitTasks_.access([](Callback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func();
+			}
+		});
+
+		return Game::Sys_Milliseconds();
+	}
+
 	void Events::NetworkStart()
 	{
 		NetworkInitTasks_.access([](Callback& tasks)
@@ -254,6 +285,19 @@ namespace Components
 			}
 
 			tasks = {}; // Only called once. Clear
+		});
+	}
+
+	void Events::UI_Init_Hk(int localClientNum)
+	{
+		Utils::Hook::Call<void(int)>(0x4A57D0)(localClientNum); // CAll UI_INIT
+
+		UIInitTasks_.access([](Callback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func();
+			}
 		});
 	}
 
@@ -284,10 +328,14 @@ namespace Components
 
 		Utils::Hook(0x5A6D8B, CL_KeyMove_Stub, HOOK_CALL).install()->quick();
 
+		Utils::Hook(0x4236A5, CL_InitCGame_Hk, HOOK_CALL).install()->quick(); // CL_InitCGame
+
 		Utils::Hook(0x60BB3A, Com_InitDvars_Hk, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
 		Utils::Hook(0x4D3665, SV_Init_Hk, HOOK_CALL).install()->quick(); // SV_Init
 
 		Utils::Hook(0x4FD4D4, NET_OpenSocks_Hk, HOOK_JUMP).install()->quick(); // NET_OpenIP
+
+		Utils::Hook(0x4B5422, UI_Init_Hk, HOOK_CALL).install()->quick();
 	}
 }

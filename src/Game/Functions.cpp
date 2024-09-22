@@ -274,6 +274,8 @@ namespace Game
 	float* cgameFOVSensitivityScale = reinterpret_cast<float*>(0xB2F884);
 
 	UiContext* uiContext = reinterpret_cast<UiContext*>(0x62E2858);
+	UiContext* cgDC = reinterpret_cast<Game::UiContext*>(0x7DEDB8);
+	const ExpressionSupportingData* menuSupportingData = reinterpret_cast<Game::ExpressionSupportingData*>(0x62D2270);
 
 	int* arenaCount = reinterpret_cast<int*>(0x62E6930);
 	mapArena_t* arenas = reinterpret_cast<mapArena_t*>(0x62E6934);
@@ -900,6 +902,20 @@ namespace Game
 
 			popad
 			retn
+		}
+	}
+
+	void Menu_FreeItem(itemDef_s* item)
+	{
+		__asm
+		{
+			pushad
+
+			mov edi, item
+			mov ebx, 0x63D880 // Original function address
+			call ebx
+
+			popad
 		}
 	}
 

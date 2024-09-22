@@ -4,6 +4,7 @@ namespace Game
 {
 	Z_VirtualAlloc_t Z_VirtualAlloc = Z_VirtualAlloc_t(0x4CFBA0);
 	Z_Malloc_t Z_Malloc = Z_Malloc_t(0x4F3680);
+	Z_Free_t Z_Free = Z_Free_t(0x4291A0);
 
 	Hunk_AllocateTempMemoryHigh_t Hunk_AllocateTempMemoryHigh = Hunk_AllocateTempMemoryHigh_t(0x475B30);
 	Hunk_UserAlloc_t Hunk_UserAlloc = Hunk_UserAlloc_t(0x45D1C0);

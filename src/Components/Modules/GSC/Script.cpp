@@ -44,7 +44,7 @@ namespace Components::GSC
 		strncat_s(searchPath, "/", _TRUNCATE);
 
 		auto numFiles = 0;
-		const auto** files = Game::FS_ListFiles(searchPath, "gsc", Game::FS_LIST_ALL, &numFiles, 10);
+		const auto** files = Game::FS_ListFiles(searchPath, "gsc", Game::FS_LIST_ALL, &numFiles);
 
 		for (auto i = 0; i < numFiles; ++i)
 		{

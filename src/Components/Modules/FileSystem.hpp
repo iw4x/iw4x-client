@@ -95,7 +95,7 @@ namespace Components
 		~FileSystem();
 
 		static std::filesystem::path GetAppdataPath();
-		static std::vector<std::string> GetFileList(const std::string& path, const std::string& extension);
+		static std::vector<std::string> GetFileList(const std::string& path, const std::string& extension,  Game::FsListBehavior_e behaviour =  Game::FsListBehavior_e::FS_LIST_PURE_ONLY);
 		static std::vector<std::string> GetSysFileList(const std::string& path, const std::string& extension, bool folders = false);
 		static bool _DeleteFile(const std::string& folder, const std::string& file);
 
