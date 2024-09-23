@@ -542,10 +542,10 @@ namespace Components
 		}
 
 
-		FreeZAllocatedMemory(item->floatExpressions, fromTheGame);
+		FreeHunkAllocatedMemory(item->floatExpressions, fromTheGame);
 
 		item->floatExpressionCount = 0;
-		FreeZAllocatedMemory(item, fromTheGame);
+		FreeHunkAllocatedMemory(item, fromTheGame);
 	}
 
 	void Menus::FreeAllocatedString(const void* ptr, bool fromTheGame)
@@ -572,7 +572,7 @@ namespace Components
 		{
 			if (fromTheGame)
 			{
-				Game::Z_VirtualFree(const_cast<void*>(ptr));
+				// Hunk memory doesn't need freeing - in that context the hunk is cleared at once
 			}
 			else
 			{
