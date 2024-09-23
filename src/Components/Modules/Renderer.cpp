@@ -133,7 +133,7 @@ namespace Components
 			state->material && state->material->info.name ? state->material->info.name : "NULL",
 			state->technique && state->technique->name ? state->technique->name : "NULL",
 			static_cast<int>(state->techType),
-			state->technique->flags,
+			(state->technique) ? state->technique->flags : 0,
 			state->passIndex,
 			state->pixelShader && state->pixelShader->name ? state->pixelShader->name : "NULL"
 		);

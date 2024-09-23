@@ -38,12 +38,12 @@ namespace Components
 		static void FreeAllocatedString(const void* ptr, bool fromTheGame = false);
 		static void FreeHunkAllocatedMemory(const void* ptr, bool fromTheGame = false);
 		
-		template <typename T> static T* Reallocate(T* ptr, size_t size)
+		template <typename T> static T* Reallocate(const T* ptr, size_t size)
 		{
 			const auto newData = Allocator.allocate(size);
 			std::memcpy(newData, ptr, size);
 
-			return newData;
+			return reinterpret_cast<T*>(newData);
 		}
 
 		static void PrepareToUnloadMenu(Game::menuDef_t * menu);
@@ -53,13 +53,15 @@ namespace Components
 		static Game::StaticDvar* ReallocateStaticDvarLocally(Game::StaticDvar* dvar);
 		static Game::itemDef_s* ReallocateItemLocally(Game::itemDef_s* item, bool andFree = false);
 		static Game::MenuEventHandlerSet* ReallocateEventHandlerSetLocally(const Game::MenuEventHandlerSet* handlerSet, bool andFree= false);
+		static Game::ItemKeyHandler* ReallocateItemKeyHandler(const Game::ItemKeyHandler* handlerSet, bool andFree= false);
 
 		static void FreeMenuListOnly(Game::MenuList* menuList);
 		static void FreeMenuOnly(Game::menuDef_t * menu);
 		static void FreeExpression(Game::Statement_s* statement, bool fromTheGame = false);
 		static void FreeItem(Game::itemDef_s* item, bool fromTheGame = false);
 		static void FreeEventHandlerSet(Game::MenuEventHandlerSet* handlerSet, bool fromTheGame = false);
-		
+		static void FreeItemKeyHandler(Game::ItemKeyHandler* handlerSet, bool fromTheGame = false);
+
 		static void UpdateSupportingDataContents();
 		static void FreeLocalSupportingDataContents();
 		static void InitializeSupportingData();
