@@ -1454,7 +1454,7 @@ namespace Components
 		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
-		gamePad.lowRumble = rumble;
+		gamePad.lowRumble = static_cast<float>(rumble);
 	}
 
 	void Gamepad::GPad_SetHighRumble(int gamePadIndex, double rumble)
@@ -1462,7 +1462,7 @@ namespace Components
 		AssertIn(gamePadIndex, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[gamePadIndex];
-		gamePad.highRumble = rumble;
+		gamePad.highRumble = static_cast<float>(rumble);
 	}
 
 	void Gamepad::GPad_UpdateRumble(int gamePadIndex)
@@ -1472,8 +1472,8 @@ namespace Components
 		if (Gamepad::gpad_rumble.get<bool>())
 		{
 			auto gamepad = &gamePads[gamePadIndex];
-			gamepad->rumble.wRightMotorSpeed = gamepad->highRumble * 65535.0;
-			gamepad->rumble.wLeftMotorSpeed = gamepad->lowRumble * 65535.0;
+			gamepad->rumble.wRightMotorSpeed = static_cast<WORD>(gamepad->highRumble * 65535.0);
+			gamepad->rumble.wLeftMotorSpeed = static_cast<WORD>(gamepad->lowRumble * 65535.0);
 			XInputSetState(gamePadIndex, &gamepad->rumble);
 		}
 		else

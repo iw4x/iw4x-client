@@ -3,17 +3,10 @@
 #include "ConfigStrings.hpp"
 #include "Events.hpp"
 
+#include "GSC/Script.hpp"
+
 namespace Components
 {
-	enum
-	{
-		EV_PLAY_RUMBLE_ON_ENT = Game::EV_MAX_EVENTS + 1,
-		EV_PLAY_RUMBLE_ON_POS,
-		EV_PLAY_RUMBLELOOP_ON_ENT,
-		EV_PLAY_RUMBLELOOP_ON_POS,
-		EV_STOP_RUMBLE,
-		EV_STOP_ALL_RUMBLES,
-	};
 
 	static Game::RumbleGlobals rumbleGlobArray[Game::MAX_GPAD_COUNT]{}; // We're only gonna use #0 anyway cause only one client
 
@@ -59,7 +52,7 @@ namespace Components
 			const std::string& configString = ConfigStrings::CL_GetRumbleConfigString(i);
 			if (configString == rumbleName)
 			{
-				return i;
+				return i - 1;
 			}
 		}
 
@@ -281,7 +274,7 @@ namespace Components
 		int rumbleIndex = GetRumbleInfoIndexFromName(rumbleName);
 
 		const auto logError = [&](const std::string& view)
-		{
+			{
 				if ((*Game::com_sv_running)->current.value)
 				{
 					Components::Logger::Error(Game::ERR_DROP, view);
@@ -290,7 +283,7 @@ namespace Components
 				{
 					Components::Logger::Warning(Game::CON_CHANNEL_SCRIPT, view);
 				}
-		};
+			};
 
 		if (rumbleIndex < 0)
 		{
@@ -616,7 +609,7 @@ namespace Components
 			auto rumbleConf = ConfigStrings::CL_GetRumbleConfigString(i);
 			if (*rumbleConf)
 			{
-				CG_LoadRumble(myRumbleGlobal->graphs, &rumbleGlobArray[localClientNum].infos[i - 1], rumbleConf, i);
+				CG_LoadRumble(myRumbleGlobal->graphs, &rumbleGlobArray[localClientNum].infos[i - 1], rumbleConf, i-1);
 			}
 		}
 	}
@@ -629,8 +622,13 @@ namespace Components
 		CG_RegisterRumbles(localClientNum);
 	}
 
-	void Rumble::G_RumbleIndex(const char* name)
+	int Rumble::G_RumbleIndex(const char* name)
 	{
+		if (name == "melee_knife_stab"s)
+		{
+			printf("");
+		}
+
 		assert(name);
 
 		if (*name)
@@ -644,18 +642,21 @@ namespace Components
 				if (v7 == Game::scr_const->_)
 					break;
 				if (v7 == v2)
-					return;
+					return i;
 			}
 
-			if (i <= Gamepad::RUMBLE_CONFIGSTRINGS_COUNT)
+			if (i > Gamepad::RUMBLE_CONFIGSTRINGS_COUNT)
 			{
 				Logger::Print("WARNING: Rumble not registered, {}\n", name);
 			}
 			else
 			{
 				ConfigStrings::SV_SetRumbleConfigString(i, name);
+				return i;
 			}
 		}
+
+		return 0;
 	}
 
 	void Rumble::RegisterWeaponRumbles(Game::WeaponDef* weapDef)
@@ -664,22 +665,28 @@ namespace Components
 
 		auto fireRumble = weapDef->fireRumble;
 		if (fireRumble && *fireRumble)
+		{
 			G_RumbleIndex(fireRumble);
+		}
 
 		auto meleeImpactRumble = weapDef->meleeImpactRumble;
 		if (meleeImpactRumble && *meleeImpactRumble)
+		{
 			G_RumbleIndex(meleeImpactRumble);
+		}
 
 		auto turretBarrelSpinRumble = weapDef->turretBarrelSpinRumble;
 		if (turretBarrelSpinRumble && *turretBarrelSpinRumble)
+		{
 			G_RumbleIndex(turretBarrelSpinRumble);
+		}
 
 
-		//Disabled for now cause it's weird
 		for (auto i = 0; i < 16; ++i)
 		{
 			if (!weapDef->notetrackRumbleMapKeys[i])
 				break;
+
 			auto noteTrackRumbleMap = weapDef->notetrackRumbleMapValues;
 			if (noteTrackRumbleMap[i])
 			{
@@ -1029,7 +1036,7 @@ namespace Components
 		}
 	}
 
-	void Rumble::CG_EntityEvents_Hk(Game::centity_s* entity, Game::entity_event_t event)
+	void Rumble::CG_EntityEvents_Hk(Game::centity_s* entity, rumble_entity_event_t event)
 	{
 		const auto rumbleIndex = entity->nextState.eventParm;
 
@@ -1114,6 +1121,120 @@ namespace Components
 		Gamepad::GPad_StopRumbles(0);
 	}
 
+	void Rumble::Scr_PlayRumbleOnEntity(Game::scr_entref_t entref)
+	{
+		Scr_PlayRumbleOnEntity_Internal(entref, EV_PLAY_RUMBLE_ON_ENT);
+	}
+
+	void Rumble::Scr_PlayRumbleLoopOnEntity(Game::scr_entref_t entref)
+	{
+		Scr_PlayRumbleOnEntity_Internal(entref, EV_PLAY_RUMBLELOOP_ON_ENT);
+	}
+
+	void Rumble::Scr_PlayRumbleOnEntity_Internal(Game::scr_entref_t entref, rumble_entity_event_t event)
+	{
+		auto entity = Game::GetEntity(entref);
+		const auto rumbleName = Game::Scr_GetString(0);
+		const auto index = G_RumbleIndex(rumbleName);
+
+		if (!index)
+		{
+			Logger::Error(Game::ERR_SCRIPT, "unknown rumble name '{}'", rumbleName);
+			return;
+		}
+
+		entity->r.svFlags &= 0xFEu;
+		if (Game::Scr_GetNumParam() == 1)
+		{
+			if (event == EV_PLAY_RUMBLELOOP_ON_ENT)
+			{
+				auto client = entity->client;
+				if (client)
+				{
+					const auto newFlags = client->ps.eFlags | Game::EF_LOOP_RUMBLE;
+					client->ps.eFlags = newFlags;
+				}
+				else
+				{
+					entity->s.lerp.eFlags |= Game::EF_LOOP_RUMBLE;
+				}
+			}
+
+			Game::G_AddEvent(entity, static_cast<Game::entity_event_t>(event), index);
+		}
+		else
+		{
+			Game::Scr_Error("Incorrect number of parameters.\n");
+		}
+	}
+
+	void Rumble::Scr_PlayRumbleOnPosition_Internal(rumble_entity_event_t event)
+	{
+		const auto rumbleName = Game::Scr_GetString(0);
+		const auto index = G_RumbleIndex(rumbleName);
+
+		if (!index)
+		{
+			Logger::Error(Game::ERR_SCRIPT, "unknown rumble name '{}'", rumbleName);
+			return;
+		}
+
+		float vec[3]{};
+		Game::Scr_GetVector(1u, vec);
+
+		const auto entity = Game::G_TempEntity(vec, static_cast<Game::entity_event_t>(event));
+		entity->s.eventParm = index;
+	}
+
+	void Rumble::Scr_PlayRumbleLoopOnPosition()
+	{
+		if (Game::Scr_GetNumParam() != 2)
+		{
+			Game::Scr_ParamError(0, "PlayRumbleLoopOnPosition [rumble name] [pos]");
+		}
+
+		Scr_PlayRumbleOnPosition_Internal(EV_PLAY_RUMBLELOOP_ON_POS);
+	}
+
+	void Rumble::Scr_PlayRumbleOnPosition()
+	{
+		if (Game::Scr_GetNumParam() != 2)
+		{
+			Game::Scr_ParamError(0, "PlayRumbleOnPosition [rumble name] [pos]");
+		}
+
+		Scr_PlayRumbleOnPosition_Internal(EV_PLAY_RUMBLE_ON_POS);
+	}
+
+	void Rumble::CG_Turret_UpdateBarrelSpinRumble(int localClientNum, Game::centity_s* cent)
+	{
+		// Update barrel spin sound
+		Utils::Hook::Call<void(int, Game::centity_s*)>(0x4E3090)(localClientNum, cent);
+
+		// Then rumble
+		const auto weapon = Game::BG_GetWeaponDef(cent->nextState.weapon);
+		
+		if (weapon->turretBarrelSpinEnabled)
+		{
+			const auto rumble = weapon->turretBarrelSpinRumble;
+			if (rumble)
+			{
+				if (*rumble && cent->pose.___u10.turret.playerUsing)
+				{
+					const auto time = Game::cgArray->time;
+					const auto BG_Turret_ComputeBarrelSpinRate = Utils::Hook::Call<double(Game::WeaponDef*, Game::LerpEntityStateTurret*, int)>(0x4D5770);
+
+					const auto spinRate = BG_Turret_ComputeBarrelSpinRate(weapon, &cent->nextState.lerp.u.turret, time);
+
+					if (spinRate > 0.f)
+					{
+						PlayRumbleInternal(localClientNum, rumble, 0, Game::RUMBLESOURCE_ENTITY, Game::cgArray->predictedPlayerState.clientNum, 0, spinRate);
+					}
+				}
+			}
+		}
+	}
+
 	Rumble::Rumble()
 	{
 		if (ZoneBuilder::IsEnabled())
@@ -1146,12 +1267,8 @@ namespace Components
 		Utils::Hook(0x59C440, PlayNoteMappedSoundAliases_Stub, HOOK_JUMP).install()->quick();
 
 
-		// TODO: ScrCmd_PlayRumbleOnEntity_Internal
-		// TODO: ScrCmd_PlayRumbleOnEntity
-		// TODO: ScrCmd_PlayRumbleLoopOnEntity
-
-		// TODO: G_InitDefaultViewmodelRumbles
-		// TODO: CG_Turret_UpdateBarrelSpinRumble
+		// CG_Turret_UpdateBarrelSpinRumble
+		Utils::Hook(0x5861B8, CG_Turret_UpdateBarrelSpinRumble, HOOK_CALL).install()->quick();
 
 		Events::OnDvarInit([]() {
 			InitDvars();
@@ -1181,6 +1298,12 @@ namespace Components
 				}
 			}
 			});
+
+		GSC::Script::AddFunction("PlayRumbleOnPosition", Scr_PlayRumbleOnPosition);
+		GSC::Script::AddFunction("PlayRumbleLoopOnPosition", Scr_PlayRumbleLoopOnPosition);
+
+		GSC::Script::AddMethod("PlayRumbleOnEntity", Scr_PlayRumbleOnEntity);
+		GSC::Script::AddMethod("PlayRumbleLoopOnEntity", Scr_PlayRumbleLoopOnEntity);
 
 		// Debug
 		Scheduler::Loop([]() {

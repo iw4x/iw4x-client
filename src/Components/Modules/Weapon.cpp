@@ -9,6 +9,12 @@ namespace Components
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
+		std::string test = name;
+		if (test.ends_with("deserteaglegold_akimbo_mp"))
+		{
+			printf("");
+		}
+
 		if (auto* rawWeaponFile = Game::BG_LoadWeaponCompleteDefInternal("mp", name))
 		{
 			// Fix for rumbles being wrong in the raw files.. This should not happen normally
@@ -26,11 +32,60 @@ namespace Components
 						// Restore rumble from zone
 						std::memcpy(rawWeaponFile->weapDef->notetrackRumbleMapKeys, zoneWeapon->weapDef->notetrackRumbleMapKeys, 16 * sizeof(unsigned short));
 						std::memcpy(rawWeaponFile->weapDef->notetrackRumbleMapValues, zoneWeapon->weapDef->notetrackRumbleMapValues, 16 * sizeof(unsigned short));
+
+						rawWeaponFile->weapDef->fireRumble = zoneWeapon->weapDef->fireRumble;
+						rawWeaponFile->weapDef->meleeImpactRumble = zoneWeapon->weapDef->meleeImpactRumble;
+						rawWeaponFile->weapDef->turretBarrelSpinRumble = zoneWeapon->weapDef->turretBarrelSpinRumble;
 					}
-					else
+
+
+					// Oh well. You'll have to fix your weapon file :)
+#define VALIDATE(weap, rumble)\
+	if (weap->weapDef->rumble && *weap->weapDef->rumble)\
+	{\
+		std::string path = std::format("rumble/{}", weap->weapDef->rumble);\
+		const auto rawfile = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_RAWFILE, path.c_str());\
+		if (rawfile.data == nullptr)\
+		{\
+			Logger::Warning(Game::CON_CHANNEL_FILES, "Weapon {} has INVALID RUMBLE {} '{}'! Remove or replace it.\n", weap->szInternalName, #rumble, weap->weapDef->rumble);\
+			weap->weapDef->rumble = nullptr;\
+		}\
+	}
+					VALIDATE(rawWeaponFile, fireRumble);
+					VALIDATE(rawWeaponFile, meleeImpactRumble);
+					VALIDATE(rawWeaponFile, turretBarrelSpinRumble);
+
+					for (auto i = 0; i < 16; ++i)
 					{
-						// Oh well. You'll have to fix your weapon file :)
+						if (!rawWeaponFile->weapDef->notetrackRumbleMapKeys[i])
+							break;
+
+						auto noteTrackRumbleMap = rawWeaponFile->weapDef->notetrackRumbleMapValues;
+						if (noteTrackRumbleMap[i])
+						{
+							auto str = Game::SL_ConvertToString(noteTrackRumbleMap[i]);
+							if (str && *str)
+							{
+								std::string path = std::format("rumble/{}", str); 
+								const auto rawfile = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_RAWFILE, path.c_str()); 
+								if (rawfile.data == nullptr || !strnlen(rawfile.rawfile->buffer, 1))
+								{
+									// Void it and warn the user
+									noteTrackRumbleMap[i] = 0;
+									rawWeaponFile->weapDef->notetrackRumbleMapKeys[i] = 0;
+
+									Logger::Warning(
+										Game::CON_CHANNEL_FILES,
+										"Weapon {} has INVALID RUMBLE {} notetrackRumbleMap #'{}'! Remove or replace it.\n",
+										rawWeaponFile->szInternalName,
+										str,
+										i
+									);
+								}
+							}
+						}
 					}
+#undef VALIDATE
 				}
 			}
 
@@ -276,9 +331,9 @@ namespace Components
 			push 0x59E349
 			retn
 
-		null:
+			null :
 			mov al, 1
-			ret
+				ret
 		}
 	}
 
@@ -297,9 +352,9 @@ namespace Components
 			push 0x48BB2D
 			ret
 
-		null:
+			null :
 			push 0x48BB1F // Exit function
-			ret
+				ret
 		}
 	}
 
@@ -309,27 +364,27 @@ namespace Components
 
 		__asm
 		{
-			cmp dword ptr [esp + 0x8], 0x0
+			cmp dword ptr[esp + 0x8], 0x0
 			jz touched
 
 			push 0x56E82C
 			ret
 
-		touched:
-			test dword ptr [edi + 0x2BC], PWF_DISABLE_WEAPON_PICKUP
-			jnz exit_func
+			touched :
+			test dword ptr[edi + 0x2BC], PWF_DISABLE_WEAPON_PICKUP
+				jnz exit_func
 
-			// Game code
-			test eax, eax
-			jz continue_func
+				// Game code
+				test eax, eax
+				jz continue_func
 
-		exit_func:
+				exit_func :
 			xor eax, eax
-			ret
+				ret
 
-		continue_func:
+				continue_func :
 			push 0x56E84C
-			ret
+				ret
 		}
 	}
 
@@ -343,18 +398,18 @@ namespace Components
 
 			push eax
 			mov eax, BGWeaponOffHandFix
-			cmp byte ptr [eax + 0x10], 1
+			cmp byte ptr[eax + 0x10], 1
 			pop eax
 
 			jne safeReturn
 
-			mov dword ptr [esi + 0x34], 0 // playerState_s.grenadeTimeLeft
+			mov dword ptr[esi + 0x34], 0 // playerState_s.grenadeTimeLeft
 
-		safeReturn:
+			safeReturn:
 			pop edi
-			pop esi
-			pop ebx
-			ret
+				pop esi
+				pop ebx
+				ret
 		}
 	}
 
@@ -407,25 +462,25 @@ namespace Components
 	void Weapon::AddScriptMethods()
 	{
 		GSC::Script::AddMethod("DisableWeaponPickup", [](const Game::scr_entref_t entref)
-		{
-			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+			{
+				const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
-			ent->client->ps.weapCommon.weapFlags |= Game::PWF_DISABLE_WEAPON_PICKUP;
-		});
+				ent->client->ps.weapCommon.weapFlags |= Game::PWF_DISABLE_WEAPON_PICKUP;
+			});
 
 		GSC::Script::AddMethod("EnableWeaponPickup", [](const Game::scr_entref_t entref)
-		{
-			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+			{
+				const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
 
-			ent->client->ps.weapCommon.weapFlags &= ~Game::PWF_DISABLE_WEAPON_PICKUP;
-		});
+				ent->client->ps.weapCommon.weapFlags &= ~Game::PWF_DISABLE_WEAPON_PICKUP;
+			});
 
 		// PlayerCmd_AreControlsFrozen GSC function from Black Ops 2
 		GSC::Script::AddMethod("AreControlsFrozen", [](Game::scr_entref_t entref) // Usage: self AreControlsFrozen();
-		{
-			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
-			Game::Scr_AddBool((ent->client->flags & Game::CF_BIT_FROZEN) != 0);
-		});
+			{
+				const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+				Game::Scr_AddBool((ent->client->flags & Game::CF_BIT_FROZEN) != 0);
+			});
 
 		GSC::Script::AddMethod("InitialWeaponRaise", PlayerCmd_InitialWeaponRaise);
 		GSC::Script::AddMethod("FreezeControlsAllowLook", PlayerCmd_FreezeControlsAllowLook);

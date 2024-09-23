@@ -2045,12 +2045,33 @@ namespace Game
 		float trDelta[3];
 	};
 
+	struct LerpEntityStateTurret
+	{
+		float gunAngles[3];
+		int lastBarrelRotChangeTime;
+		int lastBarrelRotChangeRate;
+		int lastHeatChangeLevel;
+		int lastHeatChangeTime;
+		bool isBarrelRotating;
+		bool isOverheat;
+		bool isHeatingUp;
+		bool isBeingCarried;
+	};
+
+	union LerpEntityStateTypeUnion
+	{
+		LerpEntityStateTurret turret;
+		char pad0[0x24];
+	};
+
+	static_assert(sizeof(LerpEntityStateTypeUnion) == 0x24);
+
 	struct LerpEntityState
 	{
 		int eFlags;
 		trajectory_t pos;
 		trajectory_t apos;
-		char pad0[0x24];
+		LerpEntityStateTypeUnion u;
 	};
 
 	static_assert(sizeof(LerpEntityState) == 0x70);
@@ -6158,7 +6179,7 @@ namespace Game
 		unsigned int hashSize;
 		fileInIwd_s** hashTable;
 		fileInIwd_s* buildBuffer;
-	};
+};
 
 #ifdef IDA
 	typedef void _iobuf;
