@@ -606,7 +606,7 @@ namespace Components
 
 		for (int i = 1; i < maxRumbleGraphIndex; i++)
 		{
-			auto rumbleConf = ConfigStrings::CL_GetRumbleConfigString(i-1);
+			auto rumbleConf = ConfigStrings::CL_GetRumbleConfigString(i - 1);
 			if (*rumbleConf)
 			{
 				CG_LoadRumble(myRumbleGlobal->graphs, &rumbleGlobArray[localClientNum].infos[i - 1], rumbleConf, i);
@@ -638,7 +638,7 @@ namespace Components
 
 			for (i = 1; i <= Gamepad::RUMBLE_CONFIGSTRINGS_COUNT; ++i)
 			{
-				auto rumble = ConfigStrings::SV_GetRumbleConfigStringConst(i-1);
+				auto rumble = ConfigStrings::SV_GetRumbleConfigStringConst(i - 1);
 				if (rumble == Game::scr_const->_)
 					break;
 				if (rumble == rumbleToLookFor)
@@ -651,7 +651,7 @@ namespace Components
 			}
 			else
 			{
-				ConfigStrings::SV_SetRumbleConfigString(i-1, name);
+				ConfigStrings::SV_SetRumbleConfigString(i - 1, name);
 				return i;
 			}
 		}
@@ -768,14 +768,8 @@ namespace Components
 
 		int controllerIndex = Game::CL_ControllerIndexFromClientNum(0);
 		if (connectionState != 9 || (*Game::cl_paused)->current.enabled)
-			controllerIndex = -1;
-		else
-			Gamepad::GPad_UpdateRumble(controllerIndex);
-
-		for (auto i = 0; i < Game::MAX_GPAD_COUNT; ++i)
 		{
-			if (i != controllerIndex)
-				Gamepad::GPad_StopRumbles(i);
+			Gamepad::GPad_StopRumbles(controllerIndex);
 		}
 	}
 
@@ -1117,15 +1111,15 @@ namespace Components
 			push 0x4DED0A
 			retn
 
-		processCgEvents : 
+			processCgEvents :
 			pop eax
 
-			// original code
-			mov edx, 0x9F5CE4
+				// original code
+				mov edx, 0x9F5CE4
 
-			// go back
-			push 0x4DCF8A
-			retn
+				// go back
+				push 0x4DCF8A
+				retn
 		}
 	}
 

@@ -59,6 +59,13 @@
 #include <iphlpapi.h>
 #pragma comment (lib, "iphlpapi.lib")
 
+#include <SetupAPI.h>
+#pragma comment(lib, "Setupapi.lib")
+
+#include <hidsdi.h>
+#pragma comment(lib, "Hid.lib")
+
+
 // Ignore the warnings
 #pragma warning(push)
 #pragma warning(disable: 4100)
