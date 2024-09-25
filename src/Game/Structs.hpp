@@ -534,6 +534,8 @@ namespace Game
 		CS_WEAPONFILES = 0xAF5, // 2805 Confirmed
 		CS_WEAPONFILES_LAST = 0xFA3, // Confirmed too // 4003
 		CS_ITEMS = 4138, // Correct! CS_ITEMS is actually an item **COUNT**
+
+		CS_LAST = CS_ITEMS,
 		MAX_CONFIGSTRINGS = 4139
 	}; // Incomplete
 

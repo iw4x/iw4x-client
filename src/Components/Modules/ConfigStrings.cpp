@@ -22,7 +22,7 @@ namespace Components
 	constexpr auto EXTRA_MODELCACHE_LAST = EXTRA_MODELCACHE_FIRST + ModelCache::ADDITIONAL_GMODELS;
 
 	constexpr auto RUMBLE_FIRST = EXTRA_MODELCACHE_LAST + 1;
-	constexpr auto RUMBLE_LAST = RUMBLE_FIRST + Rumble::MAX_ACTIVE_RUMBLES - 1; // TODO
+	constexpr auto RUMBLE_LAST = RUMBLE_FIRST + Gamepad::RUMBLE_CONFIGSTRINGS_COUNT - 1; // TODO
 
 	void ConfigStrings::PatchConfigStrings()
 	{
@@ -159,17 +159,17 @@ namespace Components
 
 	const char* ConfigStrings::CL_GetRumbleConfigString(int index)
 	{
-		return CL_GetConfigString(RUMBLE_FIRST + index, Game::MAX_CONFIGSTRINGS, Game::MAX_CONFIGSTRINGS);
+		return CL_GetConfigString(RUMBLE_FIRST + index, Game::CS_LAST, Game::MAX_CONFIGSTRINGS);
 	}
 
 	unsigned int ConfigStrings::SV_GetRumbleConfigStringConst(int index)
 	{
-		return SV_GetConfigString(RUMBLE_FIRST +index, Game::MAX_CONFIGSTRINGS, Game::MAX_CONFIGSTRINGS);
+		return SV_GetConfigString(RUMBLE_FIRST +index, Game::CS_LAST, Game::MAX_CONFIGSTRINGS);
 	}
 
 	void ConfigStrings::SV_SetRumbleConfigString(int index, const char* data)
 	{
-		SV_SetConfigString(RUMBLE_FIRST + index, data, Game::MAX_CONFIGSTRINGS, Game::MAX_CONFIGSTRINGS);
+		SV_SetConfigString(RUMBLE_FIRST + index, data, Game::CS_LAST, Game::MAX_CONFIGSTRINGS);
 	}
 	
 	void ConfigStrings::SV_SetCachedModelConfigString(int index, const char* data)

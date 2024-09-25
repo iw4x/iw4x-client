@@ -80,7 +80,7 @@ namespace Components
 		static void CG_PlayRumbleOnClientSafe(int localClientNum, const char* rumbleName);
 		static void CG_EntityEvents_Stub();
 		static void CG_StopRumble(int localClientNum, int entityNum, const char* rumbleName);
-		static void CG_EntityEvents_Hk(Game::centity_s* entity, rumble_entity_event_t event);
+		static bool CG_EntityEvents_Hk(Game::centity_s* entity, rumble_entity_event_t event);
 		static void CG_StopAllRumbles();
 
 		static int CCS_GetChecksum_Hk();

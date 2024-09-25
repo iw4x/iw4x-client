@@ -161,7 +161,7 @@ namespace Components::GSC
 		CustomScrMethods.emplace_back(toAdd);
 	}
 
-	Game::BuiltinFunction Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
+	Game::BuiltinFunction Script::Common_GetFunctionStub(const char** pName, int* type)
 	{
 		if (pName != nullptr)
 		{
@@ -185,10 +185,10 @@ namespace Components::GSC
 		}
 
 		// If no function was found let's call game's function
-		return Utils::Hook::Call<Game::BuiltinFunction(const char**, int*)>(0x5FA2B0)(pName, type); // BuiltIn_GetFunction
+		return Utils::Hook::Call<Game::BuiltinFunction(const char**)>(0x4BCF80)(pName); // Common_GetFunction
 	}
 
-	Game::BuiltinMethod Script::BuiltIn_GetMethodStub(const char** pName, int* type)
+	Game::BuiltinMethod Script::Common_GetMethodStub(const char** pName)
 	{
 		if (pName != nullptr)
 		{
@@ -197,7 +197,6 @@ namespace Components::GSC
 			{
 				if (std::ranges::find(meths.aliases, name) != meths.aliases.end())
 				{
-					*type = meths.type;
 					return meths.actionFunc;
 				}
 			}
@@ -212,7 +211,7 @@ namespace Components::GSC
 		}
 
 		// If no method was found let's call game's function
-		return Utils::Hook::Call<Game::BuiltinMethod(const char**, int*)>(0x5FA360)(pName, type); // Player_GetMethod
+		return Utils::Hook::Call<Game::BuiltinMethod(const char**)>(0x4DBA50)(pName); // Player_GetMethod
 	}
 
 	unsigned int Script::SetExpFogStub()
@@ -280,8 +279,8 @@ namespace Components::GSC
 		Utils::Hook(0x45D44A, GScr_LoadGameTypeScript_Stub, HOOK_CALL).install()->quick();
 
 		// Fetch custom functions
-		Utils::Hook(0x44E72E, BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
-		Utils::Hook(0x4EC8DD, BuiltIn_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
+		Utils::Hook(0x44E712, Common_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
+		Utils::Hook(0x4EC881, Common_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
 
 		Utils::Hook(0x5F41A3, SetExpFogStub, HOOK_CALL).install()->quick();
 

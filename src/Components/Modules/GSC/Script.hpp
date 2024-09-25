@@ -46,8 +46,8 @@ namespace Components::GSC
 		static void Scr_StartupGameType_Stub();
 		static void GScr_LoadGameTypeScript_Stub();
 
-		static Game::BuiltinFunction BuiltIn_GetFunctionStub(const char** pName, int* type);
-		static Game::BuiltinMethod BuiltIn_GetMethodStub(const char** pName, int* type);
+		static Game::BuiltinFunction Common_GetFunctionStub(const char** pName, int* type);
+		static Game::BuiltinMethod Common_GetMethodStub(const char** pName);
 
 		static unsigned int SetExpFogStub();
 	};
