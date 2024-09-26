@@ -10,6 +10,7 @@ namespace Components::GamepadControls
 		bool PlugIn(uint8_t portIndex) override;
 		void UpdateRumbles(float left, float right) override;
 		void UpdateForceFeedback(const TriggerFeedback& left, const TriggerFeedback& right) override;
+		void UpdateLights(uint32_t color) override;
 		
 		bool Fetch() override;
 		void ReadSticks(Game::vec2_t& leftStick, Game::vec2_t& rightStick) override;

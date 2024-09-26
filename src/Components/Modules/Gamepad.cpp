@@ -1220,11 +1220,11 @@ namespace Components
 
 		if (Game::Key_IsCatcherActive(localClientNum, Game::KEYCATCH_LOCATION_SELECTION) && pressedOrUpdated)
 		{
-			if (key == Game::K_BUTTON_B || keyState.keys[key].binding && std::strcmp(keyState.keys[key].binding, "+actionslot 4") == 0)
+			if (key == Game::K_BUTTON_B || keyState.keys[key].binding && keyState.keys[key].binding == "+actionslot 4"s)
 			{
 				keyState.locSelInputState = Game::LOC_SEL_INPUT_CANCEL;
 			}
-			else if (key == Game::K_BUTTON_A || keyState.keys[key].binding && std::strcmp(keyState.keys[key].binding, "+attack") == 0)
+			else if (key == Game::K_BUTTON_A || keyState.keys[key].binding && keyState.keys[key].binding == "+attack"s)
 			{
 				keyState.locSelInputState = Game::LOC_SEL_INPUT_CONFIRM;
 			}
@@ -1341,6 +1341,23 @@ namespace Components
 			}
 
 			gamePads[localClientNum].UpdateState();
+		}
+	}
+
+	void Gamepad::GPad_UpdateFeedbacks()
+	{
+		for (auto localClientNum = 0; localClientNum < Game::MAX_GPAD_COUNT; ++localClientNum)
+		{
+			const auto& gamePad = gamePads[localClientNum];
+			if (!gamePad.get_enabled())
+			{
+				continue;
+			}
+
+			if (!Gamepad::gpad_rumble.get<bool>())
+			{
+				gamePads[localClientNum].StopRumbles();
+			}
 
 			gamePads[localClientNum].PushUpdates();
 		}
@@ -1657,14 +1674,14 @@ namespace Components
 		return command;
 	}
 
-	int Gamepad::Key_GetCommandAssignmentInternal([[maybe_unused]] int localClientNum, const char* cmd, int(*keys)[2])
+	int Gamepad::Key_GetCommandAssignmentInternal(int localClientNum, const char* cmd, int(*keys)[2])
 	{
 		auto keyCount = 0;
 
 		(*keys)[0] = -1;
 		(*keys)[1] = -1;
 
-		if (gamePads[0].inUse)
+		if (gamePads[localClientNum].inUse)
 		{
 			const auto gamePadCmd = GetGamePadCommand(cmd);
 			for (auto keyNum = 0; keyNum < Game::K_LAST_KEY; keyNum++)
@@ -1674,7 +1691,7 @@ namespace Components
 					continue;
 				}
 
-				if (Game::playerKeys[0].keys[keyNum].binding && std::strcmp(Game::playerKeys[0].keys[keyNum].binding, gamePadCmd) == 0)
+				if (Game::playerKeys[localClientNum].keys[keyNum].binding && std::strcmp(Game::playerKeys[0].keys[keyNum].binding, gamePadCmd) == 0)
 				{
 					(*keys)[keyCount++] = keyNum;
 
@@ -1694,7 +1711,7 @@ namespace Components
 					continue;
 				}
 
-				if (Game::playerKeys[0].keys[keyNum].binding && std::strcmp(Game::playerKeys[0].keys[keyNum].binding, cmd) == 0)
+				if (Game::playerKeys[localClientNum].keys[keyNum].binding && std::strcmp(Game::playerKeys[localClientNum].keys[keyNum].binding, cmd) == 0)
 				{
 					(*keys)[keyCount++] = keyNum;
 
@@ -1743,7 +1760,7 @@ namespace Components
 	void Gamepad::CL_KeyEvent_Hk(const int localClientNum, const int key, const int down, const unsigned time)
 	{
 		// A keyboard key has been pressed. Mark controller as unused.
-		gamePads[0].inUse = false;
+		gamePads[localClientNum].inUse = false;
 		gpad_in_use.setRaw(false);
 
 		// Call original function
@@ -1828,57 +1845,158 @@ namespace Components
 		Utils::Hook(0x435C97, GetLocalizedKeyName_Stub, HOOK_CALL).install()->quick();
 	}
 
+	void Gamepad::GetTriggerRoles(TriggerRole& leftTrigger, TriggerRole& rightTrigger)
+	{
+		constexpr Game::keyNum_t triggers[] = {
+			Game::K_BUTTON_LTRIG,
+			Game::K_BUTTON_RTRIG
+		};
+
+		static TriggerRole* buttonBits[ARRAYSIZE(triggers)];
+
+		buttonBits[0] = &leftTrigger;
+		buttonBits[1] = &rightTrigger;
+
+		for (size_t i = 0; i < ARRAYSIZE(triggers); i++)
+		{
+			if (Game::playerKeys[0].keys[triggers[i]].binding)
+			{
+				const auto& binding = Game::playerKeys[0].keys[triggers[i]].binding;
+
+				if (binding == "+attack"s)
+				{
+					*buttonBits[i] = TriggerRole::Shooting;
+				}
+				else if (binding == "+toggleads_throw"s || binding == "+speed_throw"s)
+				{
+					*buttonBits[i] = TriggerRole::Aiming;
+				}
+				else if (binding == "+frag"s )
+				{
+					*buttonBits[i] = TriggerRole::PrimaryOffHand;
+				}
+				else if (binding == "+smoke"s)
+				{
+					*buttonBits[i] = TriggerRole::SecondaryOffHand;
+				}
+				else
+				{
+					*buttonBits[i] = TriggerRole::None;
+				}
+			}
+		}
+	}
+
+	void Gamepad::GetTriggerFeedbackForShooting(const Game::playerState_s* playerState, GamepadControls::GamepadAPI::TriggerFeedback& feedback)
+	{
+		feedback.resistance = GamepadControls::GamepadAPI::TriggerFeedback::NoResistance;
+
+		const auto viewModelWeaponIndex = Game::BG_GetViewModelWeaponIndex(playerState);
+
+		if (viewModelWeaponIndex)
+		{
+			const auto weap = Game::BG_GetWeaponDef(viewModelWeaponIndex);
+
+			switch (weap->weapClass)
+			{
+			case Game::WEAPCLASS_MG:
+			case Game::WEAPCLASS_RIFLE:
+			case Game::WEAPCLASS_TURRET:
+				feedback.resistance = GamepadControls::GamepadAPI::TriggerFeedback::ContinuousHeavyResistance;
+				break;
+
+
+			case Game::WEAPCLASS_SMG:
+				feedback.resistance = GamepadControls::GamepadAPI::TriggerFeedback::ContinuousSlightResistance;
+				break;
+
+			case Game::WEAPCLASS_PISTOL:
+				feedback.resistance = GamepadControls::GamepadAPI::TriggerFeedback::SectionSlightResistance;
+				break;
+
+			case Game::WEAPCLASS_SPREAD:
+			case Game::WEAPCLASS_SNIPER:
+			case Game::WEAPCLASS_ROCKETLAUNCHER:
+				feedback.resistance = GamepadControls::GamepadAPI::TriggerFeedback::SectionHeavyResistance;
+				break;
+			}
+		}
+	}
+
+	void Gamepad::GetTriggerFeedbackForEquipment(const Game::playerState_s* playerState, bool primary, GamepadControls::GamepadAPI::TriggerFeedback& feedback)
+	{
+		feedback.resistance = GamepadControls::GamepadAPI::TriggerFeedback::NoResistance;
+
+		feedback.resistance = GamepadControls::GamepadAPI::TriggerFeedback::SectionSlightResistance;
+		if (Game::cgArray->snap)
+		{
+			if ((primary ? playerState->weapCommon.offhandPrimary : playerState->weapCommon.offhandSecondary) != Game::OFFHAND_CLASS_NONE)
+			{
+				feedback.resistance = GamepadControls::GamepadAPI::TriggerFeedback::SectionSlightResistance;
+			}
+		}
+	}
+
 	void Gamepad::UpdateForceFeedback(GamepadControls::Controller& api)
 	{
-		GamepadControls::GamepadAPI::TriggerFeedback right{};
-		GamepadControls::GamepadAPI::TriggerFeedback left{};
+		constexpr uint8_t LEFT = 0;
+		constexpr uint8_t RIGHT = 1;
 
+		GamepadControls::GamepadAPI::TriggerFeedback triggerFeedbacks[2]{};
+
+		TriggerRole leftRole;
+		TriggerRole rightRole;
+
+		GetTriggerRoles(leftRole, rightRole);
 		if (Game::cgArray->snap)
 		{
 			const auto playerState = &Game::cgArray->snap->ps;
-			const auto viewModelWeaponIndex = Game::BG_GetViewModelWeaponIndex(playerState);
-
-			if (viewModelWeaponIndex)
+			if (playerState)
 			{
-				const auto weap = Game::BG_GetWeaponDef(viewModelWeaponIndex);
-
-				switch (weap->weapClass)
+				for (size_t i = 0; i < 2; i++)
 				{
-				case Game::WEAPCLASS_MG:
-				case Game::WEAPCLASS_RIFLE:
-				case Game::WEAPCLASS_TURRET:
-					right.resistance = GamepadControls::GamepadAPI::TriggerFeedback::ContinuousHeavyResistance;
-					break;
+					const TriggerRole& role = i == LEFT ? leftRole : rightRole;
 
-
-				case Game::WEAPCLASS_SMG:
-					right.resistance = GamepadControls::GamepadAPI::TriggerFeedback::ContinuousSlightResistance;
-					break;
-
-				case Game::WEAPCLASS_PISTOL:
-					right.resistance = GamepadControls::GamepadAPI::TriggerFeedback::SectionSlightResistance;
-					break;
-
-				case Game::WEAPCLASS_SPREAD:
-				case Game::WEAPCLASS_SNIPER:
-				case Game::WEAPCLASS_ROCKETLAUNCHER:
-					right.resistance = GamepadControls::GamepadAPI::TriggerFeedback::SectionHeavyResistance;
-					break;
-				}
-
-
-				const auto* equippedWeapon = Game::BG_GetEquippedWeaponState(playerState, viewModelWeaponIndex);
-				if (equippedWeapon)
-				{
-					if (equippedWeapon->dualWielding)
+					if (role == TriggerRole::Shooting)
 					{
-						left = right;
+						GetTriggerFeedbackForShooting(playerState, triggerFeedbacks[i]);
+
+						const auto viewModelWeaponIndex = Game::BG_GetViewModelWeaponIndex(playerState);
+
+						if (viewModelWeaponIndex)
+						{
+							const auto* equippedWeapon = Game::BG_GetEquippedWeaponState(playerState, viewModelWeaponIndex);
+							if (equippedWeapon)
+							{
+								const auto& otherRole = (1-i) == LEFT ? leftRole : rightRole;
+								if (equippedWeapon->dualWielding && otherRole == role)
+								{
+									// Both triggers the same
+									triggerFeedbacks[1 - i] = triggerFeedbacks[i];
+									break;
+								}
+							}
+						}
+					}
+					else if (role == TriggerRole::Aiming)
+					{
+						// No resistance
+						triggerFeedbacks[i].resistance = GamepadControls::GamepadAPI::TriggerFeedback::NoResistance;
+					}
+					else if (role == TriggerRole::PrimaryOffHand)
+					{
+						GetTriggerFeedbackForEquipment(playerState, true, triggerFeedbacks[i]);
+					}
+					else if (role == TriggerRole::SecondaryOffHand)
+					{
+						GetTriggerFeedbackForEquipment(playerState, true, triggerFeedbacks[i]);
 					}
 				}
 			}
-
-			api.SetForceFeedback(left, right);
 		}
+
+
+		api.SetForceFeedback(triggerFeedbacks[LEFT], triggerFeedbacks[RIGHT]);
 	}
 
 	Gamepad::Gamepad()

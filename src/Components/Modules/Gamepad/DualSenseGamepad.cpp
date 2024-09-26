@@ -117,6 +117,25 @@ void Components::GamepadControls::DualSenseGamePadAPI::UpdateForceFeedback(const
 	}
 }
 
+void Components::GamepadControls::DualSenseGamePadAPI::UpdateLights(uint32_t color)
+{
+	if (EnsureConnected())
+	{
+		// Remove white led
+		outState.playerLeds.playerLedFade = false;
+		outState.playerLeds.bitmask = 0;
+		outState.playerLeds.brightness = DS5W::LedBrightness::LOW;
+
+		// And update
+		outState.lightbar.r = static_cast<unsigned char>(color & 0xFF);
+		outState.lightbar.g = static_cast<unsigned char>((color >> 8) & 0xFF);
+		outState.lightbar.b = static_cast<unsigned char>((color >> 16) & 0xFF);
+
+		DS5W::setDeviceOutputState(&context, &outState);
+	}
+}
+
+
 bool Components::GamepadControls::DualSenseGamePadAPI::Fetch()
 {
 	if (EnsureConnected())

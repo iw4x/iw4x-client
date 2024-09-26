@@ -29,6 +29,7 @@ namespace Components::GamepadControls
 		virtual bool SupportsForceFeedback() const { return false; };
 
 		virtual void UpdateRumbles([[maybe_unused]] float left, [[maybe_unused]] float right) {};
+		virtual void UpdateLights([[maybe_unused]] uint32_t color) {};
 		virtual void StopRumbles() {};
 
 		virtual void UpdateForceFeedback([[maybe_unused]] const TriggerFeedback& left, [[maybe_unused]] const TriggerFeedback& right) {};

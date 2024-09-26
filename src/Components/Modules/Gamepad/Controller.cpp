@@ -104,6 +104,7 @@ namespace Components::GamepadControls
 		// We write
 		if (api)
 		{
+			api->UpdateLights(RGB(50, 237, 40));
 			api->UpdateForceFeedback(leftForceFeedback, rightForceFeedback);
 			api->UpdateRumbles(lowRumble, highRumble);
 		}

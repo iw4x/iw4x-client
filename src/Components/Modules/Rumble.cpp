@@ -771,6 +771,10 @@ namespace Components
 		{
 			Gamepad::GPad_StopRumbles(controllerIndex);
 		}
+		else
+		{
+			Gamepad::GPad_UpdateFeedbacks();
+		}
 	}
 
 	void Rumble::RemoveInactiveRumbles(int localClientNum, Game::ActiveRumble* activeRumbleArray)
@@ -1313,11 +1317,11 @@ namespace Components
 			}
 			});
 
-		GSC::Script::AddFunction("PlayRumbleOnPosition", Scr_PlayRumbleOnPosition);
-		GSC::Script::AddFunction("PlayRumbleLoopOnPosition", Scr_PlayRumbleLoopOnPosition);
+		GSC::Script::AddFunction("PlayRumbleOnPosition", Scr_PlayRumbleOnPosition, false, true);
+		GSC::Script::AddFunction("PlayRumbleLoopOnPosition", Scr_PlayRumbleLoopOnPosition, false, true);
 
-		GSC::Script::AddMethod("PlayRumbleOnEntity", Scr_PlayRumbleOnEntity);
-		GSC::Script::AddMethod("PlayRumbleLoopOnEntity", Scr_PlayRumbleLoopOnEntity);
+		GSC::Script::AddMethod("PlayRumbleOnEntity", Scr_PlayRumbleOnEntity, false, true);
+		GSC::Script::AddMethod("PlayRumbleLoopOnEntity", Scr_PlayRumbleLoopOnEntity, false, true);
 
 		// Debug
 		Scheduler::Loop([]() {
