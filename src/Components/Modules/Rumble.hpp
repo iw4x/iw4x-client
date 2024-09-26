@@ -60,6 +60,10 @@ namespace Components
 		static void PlayNoteMappedRumbleAliases(int localClientNum, const char* noteName, Game::WeaponDef* weapDef);
 		static void PlayNoteMappedSoundAliases_Stub();
 
+		static void MeleeRumble_Hook(Game::gentity_s* targetEntity, Game::WeaponDef* weaponDef);
+		static void MeleeRumble_Stub();
+
+
 		static void CG_Turret_UpdateBarrelSpinRumble(int localClientNum, Game::centity_s* cent);
 		static void CG_UpdateRumble(int localClientNum);
 		static void CG_GetImpactEffectForWeapon_Hk(int localClientNum, const int sourceEntityNum, const int weaponIndex, const int surfType, const int impactFlags, Game::FxEffectDef** outFx, Game::snd_alias_list_t** outSnd);

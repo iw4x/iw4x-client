@@ -313,7 +313,8 @@ namespace Components
 
 		auto& gamePad = gamePads[localClientNum];
 
-		return gamePad.PlugIn(static_cast<uint8_t>(portIndex));
+		return gamePad.get_enabled() ||
+			gamePad.PlugIn(static_cast<uint8_t>(portIndex));
 	}
 
 	void Gamepad::GPad_RefreshAll()

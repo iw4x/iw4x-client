@@ -56,6 +56,7 @@ namespace Components::GamepadControls
 		static Dvar::Var gpad_button_deadzone;
 		static Dvar::Var gpad_button_rstick_deflect_max;
 		static Dvar::Var gpad_button_lstick_deflect_max;
+		static Dvar::Var gpad_allow_force_feedback;
 
 		void UpdateDigitals();
 		void UpdateAnalogs();

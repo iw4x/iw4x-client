@@ -5,6 +5,8 @@ namespace Components::GamepadControls
 {
 	Dvar::Var Controller::gpad_debug;
 
+	Dvar::Var Controller::gpad_allow_force_feedback;
+
 	Dvar::Var Controller::gpad_stick_pressed_hysteresis;
 	Dvar::Var Controller::gpad_stick_pressed;
 	Dvar::Var Controller::gpad_stick_deadzone_max;
@@ -62,19 +64,22 @@ namespace Components::GamepadControls
 
 	void Controller::SetForceFeedback(const GamepadAPI::TriggerFeedback& left, const GamepadAPI::TriggerFeedback& right)
 	{
-		leftForceFeedback = left;
-		rightForceFeedback = right;
+		if (gpad_allow_force_feedback.get<bool>())
+		{
+			leftForceFeedback = left;
+			rightForceFeedback = right;
+		}
+		else
+		{
+			leftForceFeedback.resistance = GamepadAPI::TriggerFeedback::NoResistance;
+			rightForceFeedback.resistance = GamepadAPI::TriggerFeedback::NoResistance;
+		}
 	}
 
 	void Controller::StopRumbles()
 	{
 		lowRumble = 0.f;
 		highRumble = 0.f;
-
-		if (api)
-		{
-			api->StopRumbles();
-		}
 	}
 
 	void Controller::UpdateState()
@@ -107,6 +112,7 @@ namespace Components::GamepadControls
 			api->UpdateLights(RGB(50, 237, 40));
 			api->UpdateForceFeedback(leftForceFeedback, rightForceFeedback);
 			api->UpdateRumbles(lowRumble, highRumble);
+			api->Send();
 		}
 	}
 
@@ -350,6 +356,8 @@ namespace Components::GamepadControls
 	{
 		gpad_debug = Dvar::Register<bool>("gpad_debug", false, Game::DVAR_NONE, "Game pad debugging");
 
+		gpad_allow_force_feedback = Dvar::Register<bool>("gpad_allow_force_feedback", true, Game::DVAR_NONE, "Allow force feedback if the game pad supports it");
+		
 		gpad_stick_pressed_hysteresis = Dvar::Register<float>("gpad_stick_pressed_hysteresis", 0.1f, 0.0f, 1.0f, Game::DVAR_ARCHIVE,
 			"Game pad stick pressed no-change-zone around gpad_stick_pressed to prevent bouncing");
 		gpad_stick_pressed = Dvar::Register<float>("gpad_stick_pressed", 0.4f, 0.0, 1.0, Game::DVAR_ARCHIVE, "Game pad stick pressed threshhold");

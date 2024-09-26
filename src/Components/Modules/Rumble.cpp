@@ -1253,11 +1253,54 @@ namespace Components
 		}
 	}
 
+	void Rumble::MeleeRumble_Hook(Game::gentity_s* targetEntity, Game::WeaponDef* weaponDef)
+	{
+		if (targetEntity && targetEntity->client)
+		{
+			if (weaponDef->meleeImpactRumble && *weaponDef->meleeImpactRumble)
+			{
+				targetEntity->r.svFlags &= 0xFEu;
+				const auto index = G_RumbleIndex(weaponDef->meleeImpactRumble);
+				Game::G_AddEvent(targetEntity, static_cast<Game::entity_event_t>(EV_PLAY_RUMBLE_ON_ENT), index);
+			}
+		}
+	}
+
+	__declspec(naked) void Rumble::MeleeRumble_Stub()
+	{
+		__asm
+		{
+			pushad
+
+			push ebx
+			push esi
+			call MeleeRumble_Hook
+			add esp, 8
+
+			popad
+
+			// Original code
+			cmp		dword ptr[esi + 0x158], 0
+			je		goBack
+
+			// go back
+			push	0x05FCD7D
+			retn
+
+			// other condition
+			goBack:
+				push 0x5FCDA0
+				retn
+		}
+	}
+
 	Rumble::Rumble()
 	{
 		if (ZoneBuilder::IsEnabled())
 			return;
 
+		// WeaponMelee rumble
+		Utils::Hook(0x5FCD74, MeleeRumble_Stub, HOOK_JUMP).install()->quick();
 
 		// Parse CG_EntityEvents for new events
 		Utils::Hook(0x4DCF84, CG_EntityEvents_Stub, HOOK_JUMP).install()->quick();

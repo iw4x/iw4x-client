@@ -1,9 +1,12 @@
 #include <STDInclude.hpp>
 #include "DualSenseGamepad.hpp"
 
+
 bool Components::GamepadControls::DualSenseGamePadAPI::PlugIn(uint8_t index)
 {
+	dirty = true;
 	ZeroMemory(&context, sizeof(DS5W::DeviceContext));
+	ZeroMemory(&outState, sizeof(DS5W::DS5OutputState));
 
 	DS5W::DeviceEnumInfo infos[Game::MAX_GPAD_COUNT];
 	unsigned int controllersCount = 0;
@@ -30,9 +33,18 @@ void Components::GamepadControls::DualSenseGamePadAPI::UpdateRumbles(float left,
 {
 	if (EnsureConnected())
 	{
-		if (ToSCE(left, outState.leftRumble) && ToSCE(right, outState.rightRumble))
+		static uint8_t leftRumble;
+		static uint8_t rightRumble;
+
+		if (ToSCE(left, leftRumble) && ToSCE(right, rightRumble))
 		{
-			DS5W::setDeviceOutputState(&context, &outState);
+			// Ready
+			if (leftRumble != outState.leftRumble || rightRumble != outState.rightRumble)
+			{
+				outState.leftRumble = leftRumble;
+				outState.rightRumble = rightRumble;
+				dirty = true;
+			}
 		}
 	}
 }
@@ -56,7 +68,6 @@ bool Components::GamepadControls::DualSenseGamePadAPI::EnsureConnected()
 		}
 	}
 }
-
 
 bool Components::GamepadControls::DualSenseGamePadAPI::ToSCE(const float& amount01, unsigned char &amount)
 {
@@ -105,14 +116,50 @@ bool Components::GamepadControls::DualSenseGamePadAPI::ToSCE(const TriggerFeedba
 	return false;
 }
 
+#define EQUALS(member) a.##member == b.##member
+
+bool Components::GamepadControls::DualSenseGamePadAPI::AreEqual(const DS5W::Color& a, const DS5W::Color& b)
+{
+	return EQUALS(r) && EQUALS(g) && EQUALS(b);
+}
+
+bool Components::GamepadControls::DualSenseGamePadAPI::AreEqual(const DS5W::TriggerEffect& a, const DS5W::TriggerEffect& b)
+{
+	return
+		EQUALS(effectType) &&
+		EQUALS(Continuous.startPosition) &&
+		EQUALS(Continuous.force) &&
+		EQUALS(Section.startPosition) &&
+		EQUALS(Section.endPosition) &&
+		EQUALS(EffectEx.startPosition) &&
+		EQUALS(EffectEx.keepEffect) &&
+		EQUALS(EffectEx.middleForce) &&
+		EQUALS(EffectEx.endForce) &&
+		EQUALS(EffectEx.frequency);
+}
+
+#undef EQUALS
+
 
 void Components::GamepadControls::DualSenseGamePadAPI::UpdateForceFeedback(const TriggerFeedback& left, const TriggerFeedback& right)
 {
 	if (EnsureConnected())
 	{
-		if (ToSCE(left, &outState.leftTriggerEffect) && ToSCE(right, &outState.rightTriggerEffect))
+		static DS5W::TriggerEffect leftTE;
+		static DS5W::TriggerEffect rightTE;
+
+		if (ToSCE(left, &leftTE) && ToSCE(right, &rightTE))
 		{
-			DS5W::setDeviceOutputState(&context, &outState);
+			// Ready
+			bool leftEqual = AreEqual(leftTE, outState.leftTriggerEffect);
+			bool rightEqual = AreEqual(rightTE, outState.rightTriggerEffect);
+
+			if (!leftEqual || !rightEqual)
+			{
+				outState.leftTriggerEffect = leftTE;
+				outState.rightTriggerEffect = rightTE;
+				dirty = true;
+			}
 		}
 	}
 }
@@ -127,11 +174,17 @@ void Components::GamepadControls::DualSenseGamePadAPI::UpdateLights(uint32_t col
 		outState.playerLeds.brightness = DS5W::LedBrightness::LOW;
 
 		// And update
-		outState.lightbar.r = static_cast<unsigned char>(color & 0xFF);
-		outState.lightbar.g = static_cast<unsigned char>((color >> 8) & 0xFF);
-		outState.lightbar.b = static_cast<unsigned char>((color >> 16) & 0xFF);
+		static DS5W::Color dsColor{};
+		dsColor.r = static_cast<unsigned char>(color & 0xFF);
+		dsColor.g = static_cast<unsigned char>((color >> 8) & 0xFF);
+		dsColor.b = static_cast<unsigned char>((color >> 16) & 0xFF);
 
-		DS5W::setDeviceOutputState(&context, &outState);
+		bool areEqual = AreEqual(dsColor, outState.lightbar);
+		if (!areEqual)
+		{
+			outState.lightbar = dsColor;
+			dirty = true;
+		}
 	}
 }
 
@@ -191,5 +244,14 @@ void Components::GamepadControls::DualSenseGamePadAPI::ReadDigitals(unsigned sho
 void Components::GamepadControls::DualSenseGamePadAPI::ReadAnalogs(float& leftTrigger, float& rightTrigger)
 {
 	ConvertStickToFloat(inputState.leftTrigger, inputState.rightTrigger, leftTrigger, rightTrigger);
+}
+
+void Components::GamepadControls::DualSenseGamePadAPI::Send()
+{
+	if (dirty)
+	{
+		DS5W::setDeviceOutputState(&context, &outState);
+		dirty = false;
+	}
 }
 

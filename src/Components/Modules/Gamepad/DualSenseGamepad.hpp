@@ -17,6 +17,8 @@ namespace Components::GamepadControls
 		void ReadDigitals(unsigned short& digitals) override;
 		void ReadAnalogs(float& leftTrigger, float& rightTrigger) override;
 
+		void Send() override;
+
 		bool SupportsForceFeedback()  const override {return true;};
 
 	private:
@@ -26,8 +28,12 @@ namespace Components::GamepadControls
 
 		uint8_t portIndex;
 
+		bool dirty;
+
 		bool EnsureConnected();
 		bool ToSCE(const TriggerFeedback& triggerFeedback, DS5W::TriggerEffect* sce);
+		inline bool AreEqual(const DS5W::TriggerEffect& a, const DS5W::TriggerEffect& b);
+		inline bool AreEqual(const DS5W::Color& a, const DS5W::Color& b);
 		bool ToSCE(const float & amount01, unsigned char & amount);
 	};
 }

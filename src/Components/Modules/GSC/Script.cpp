@@ -194,15 +194,15 @@ namespace Components::GSC
 		}
 		else
 		{
+			// "func" here is a struct that contains several things
 			for (const auto& func : CommonOverridenFunctions)
 			{
-				const auto& name = func.aliases.at(0);
-				Game::Scr_RegisterFunction(reinterpret_cast<int>(func.actionFunc), name.data());
+				Game::Scr_RegisterFunction(reinterpret_cast<int>(func.actionFunc), nullptr);
 			}
 		}
 
 		// If no function was found let's call game's function
-		return Utils::Hook::Call<Game::BuiltinFunction(const char**)>(0x4BCF80)(pName); // Common_GetFunction
+		return Utils::Hook::Call<Game::BuiltinFunction(const char**, int* type)>(0x4BCF80)(pName, type); // Common_GetFunction
 	}
 
 	Game::BuiltinFunction Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
@@ -352,8 +352,10 @@ namespace Components::GSC
 		// Fetch custom functions
 		Utils::Hook(0x44E72E, BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
 		Utils::Hook(0x4EC8DD, BuiltIn_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
-		Utils::Hook(0x44E712, Common_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
 		Utils::Hook(0x4EC881, Common_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
+
+		Utils::Hook(0x44E712, Common_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
+
 
 		Utils::Hook(0x5F41A3, SetExpFogStub, HOOK_CALL).install()->quick();
 

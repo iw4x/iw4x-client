@@ -269,7 +269,9 @@ namespace Components
 			// Rumble!
 			else if (index >= RUMBLE_FIRST && index <= RUMBLE_LAST)
 			{
-
+				// Apparently, there is nothing to do here. At least the game doesn't look like
+				// it needs anything to be done. If there was to do rumble string replication
+				//	between server and client, it would happen here
 			}
 			else
 			{

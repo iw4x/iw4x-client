@@ -16,6 +16,8 @@ namespace Components::GamepadControls
 		void ReadDigitals(unsigned short& digitals) override;
 		void ReadAnalogs(float& leftTrigger, float& rightTrigger) override;
 
+		void Send() override;
+
 	private:
 		DWORD gamePadIndex;
 		XINPUT_VIBRATION rumble;

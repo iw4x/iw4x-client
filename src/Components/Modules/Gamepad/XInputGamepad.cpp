@@ -17,8 +17,6 @@ namespace Components::GamepadControls
 	{
 		rumble.wRightMotorSpeed = static_cast<WORD>(right * 65535.0);
 		rumble.wLeftMotorSpeed = static_cast<WORD>(left * 65535.0);
-
-		XInputSetState(gamePadIndex, &rumble);
 	}
 
 	void XInputGamePadAPI::StopRumbles()
@@ -54,5 +52,10 @@ namespace Components::GamepadControls
 	{
 		leftTrigger = static_cast<float>(state.Gamepad.bLeftTrigger) / static_cast<float>(std::numeric_limits<unsigned char>::max());
 		rightTrigger = static_cast<float>(state.Gamepad.bRightTrigger) / static_cast<float>(std::numeric_limits<unsigned char>::max());
+	}
+	void XInputGamePadAPI::Send()
+	{
+		// We have nothing else to set here
+		XInputSetState(gamePadIndex, &rumble);
 	}
 }
