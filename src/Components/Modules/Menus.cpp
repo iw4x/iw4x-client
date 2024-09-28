@@ -236,6 +236,8 @@ namespace Components
 				menu->items[i] = ReallocateItemLocally(menu->items[i], true);
 			}
 
+			menu->onKey = ReallocateItemKeyHandler(menu->onKey);
+
 			menu->onOpen = ReallocateEventHandlerSetLocally(menu->onOpen, true);
 			menu->onCloseRequest = ReallocateEventHandlerSetLocally(menu->onCloseRequest, true);
 			menu->onClose = ReallocateEventHandlerSetLocally(menu->onClose, true);
@@ -497,6 +499,8 @@ namespace Components
 		FreeEventHandlerSet(item->mouseExitText, fromTheGame);
 		FreeEventHandlerSet(item->onFocus, fromTheGame);
 
+		FreeItemKeyHandler(item->onKey, fromTheGame);
+
 		FREE_STRING_IF_EXISTS(item, dvar, fromTheGame);
 		FREE_STRING_IF_EXISTS(item, dvarTest, fromTheGame);
 		FREE_STRING_IF_EXISTS(item, localVar, fromTheGame);
@@ -542,10 +546,10 @@ namespace Components
 		}
 
 
-		FreeZAllocatedMemory(item->floatExpressions, fromTheGame);
+		FreeHunkAllocatedMemory(item->floatExpressions, fromTheGame);
 
 		item->floatExpressionCount = 0;
-		FreeZAllocatedMemory(item, fromTheGame);
+		FreeHunkAllocatedMemory(item, fromTheGame);
 	}
 
 	void Menus::FreeAllocatedString(const void* ptr, bool fromTheGame)
@@ -572,7 +576,7 @@ namespace Components
 		{
 			if (fromTheGame)
 			{
-				Game::Z_VirtualFree(const_cast<void*>(ptr));
+				// Hunk memory doesn't need freeing - in that context the hunk is cleared at once
 			}
 			else
 			{
@@ -669,7 +673,7 @@ namespace Components
 							{
 								context->Menus[j] = context->Menus[j + 1];
 							}
-							
+
 							context->Menus[context->menuCount] = nullptr;
 							context->menuCount--;
 
@@ -862,11 +866,13 @@ namespace Components
 			reallocatedItem->mouseExit = ReallocateEventHandlerSetLocally(item->mouseExit);
 			reallocatedItem->mouseExitText = ReallocateEventHandlerSetLocally(item->mouseExitText);
 			reallocatedItem->onFocus = ReallocateEventHandlerSetLocally(item->onFocus);
+			
+			reallocatedItem->onKey = ReallocateItemKeyHandler(item->onKey);
 
-			reallocatedItem->disabledExp = ReallocateExpressionLocally(reallocatedItem->disabledExp);
-			reallocatedItem->visibleExp = ReallocateExpressionLocally(reallocatedItem->visibleExp);
-			reallocatedItem->materialExp = ReallocateExpressionLocally(reallocatedItem->materialExp);
-			reallocatedItem->textExp = ReallocateExpressionLocally(reallocatedItem->textExp);
+			reallocatedItem->disabledExp = ReallocateExpressionLocally(item->disabledExp);
+			reallocatedItem->visibleExp = ReallocateExpressionLocally(item->visibleExp);
+			reallocatedItem->materialExp = ReallocateExpressionLocally(item->materialExp);
+			reallocatedItem->textExp = ReallocateExpressionLocally(item->textExp);
 
 			// You can check this at 0x63EEA0
 			if (reallocatedItem->typeData.data)
@@ -927,14 +933,14 @@ namespace Components
 				// Let's do us a favor and free them too otherwise it leaks into the engine
 				Menus::FreeItem(item, ALLOCATED_BY_GAME);
 #endif
+			}
+
+
 		}
-
-
-	}
 
 		return reallocatedItem;
 
-}
+	}
 
 	Game::Statement_s* Menus::ReallocateExpressionLocally(Game::Statement_s* statement, bool andFree)
 	{
@@ -1009,6 +1015,7 @@ namespace Components
 			FreeZAllocatedMemory(menu->items, ALLOCATED_BY_IW4X);
 		}
 
+		FreeItemKeyHandler(menu->onKey, ALLOCATED_BY_IW4X);
 
 		FreeEventHandlerSet(menu->onOpen, ALLOCATED_BY_IW4X);
 		FreeEventHandlerSet(menu->onCloseRequest, ALLOCATED_BY_IW4X);
@@ -1132,6 +1139,35 @@ namespace Components
 		return reallocated;
 	}
 
+	Game::ItemKeyHandler* Menus::ReallocateItemKeyHandler(const Game::ItemKeyHandler* keyHandler, bool andFree)
+	{
+		Game::ItemKeyHandler* reallocated = nullptr;
+
+		if (keyHandler)
+		{
+			reallocated = Reallocate(keyHandler, sizeof(Game::ItemKeyHandler));
+			std::memcpy(reallocated, keyHandler, sizeof(Game::MenuEventHandlerSet));
+
+			reallocated->action = ReallocateEventHandlerSetLocally(reallocated->action, andFree);
+
+			if (keyHandler->next)
+			{
+				if (keyHandler == keyHandler->next)
+				{
+					reallocated->next = reallocated;
+				}
+				else
+				{
+					// Recurse
+					reallocated->next = ReallocateItemKeyHandler(reallocated->next, andFree);
+				}
+			}
+
+		}
+
+		return reallocated;
+	}
+
 	void Menus::FreeEventHandlerSet(Game::MenuEventHandlerSet* handlerSet, bool fromTheGame)
 	{
 		if (handlerSet)
@@ -1208,6 +1244,21 @@ namespace Components
 			handlerSet->eventHandlerCount = 0;
 			FreeHunkAllocatedMemory(handlerSet->eventHandlers, fromTheGame);
 			FreeHunkAllocatedMemory(handlerSet, fromTheGame);
+		}
+	}
+
+	void Menus::FreeItemKeyHandler(Game::ItemKeyHandler* itemKeyHandler, bool fromTheGame)
+	{
+		if (itemKeyHandler)
+		{
+			if (itemKeyHandler->next && itemKeyHandler->next != itemKeyHandler)
+			{
+				FreeItemKeyHandler(itemKeyHandler->next, fromTheGame);
+			}
+
+			FreeEventHandlerSet(itemKeyHandler->action, fromTheGame);
+
+			FreeHunkAllocatedMemory(itemKeyHandler, fromTheGame);
 		}
 	}
 
