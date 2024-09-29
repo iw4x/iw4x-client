@@ -7,19 +7,19 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _USE_MATH_DEFINES
 
-#include <Windows.h>
-#include <WinSock2.h>
-#include <ShlObj.h>
+#include <windows.h>
+#include <winsock2.h>
+#include <shlobj.h>
 #include <timeapi.h>
 #include <shellapi.h>
 #include <wininet.h>
 #include <d3d9.h>
-#include <AclAPI.h>
-#include <Psapi.h>
-#include <TlHelp32.h>
-#include <Shlwapi.h>
+#include <aclapi.h>
+#include <psapi.h>
+#include <tlhelp32.h>
+#include <shlwapi.h>
 
-#include <DbgHelp.h>
+#include <dbghelp.h>
 
 #include <algorithm>
 #include <cctype>
