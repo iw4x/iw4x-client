@@ -57,6 +57,7 @@ namespace Components::GamepadControls
 		static Dvar::Var gpad_button_rstick_deflect_max;
 		static Dvar::Var gpad_button_lstick_deflect_max;
 		static Dvar::Var gpad_allow_force_feedback;
+		static Dvar::Var gpad_force_xinput_only;
 
 		void UpdateDigitals();
 		void UpdateAnalogs();

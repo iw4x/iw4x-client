@@ -197,7 +197,8 @@ namespace Components::GSC
 			// "func" here is a struct that contains several things
 			for (const auto& func : CommonOverridenFunctions)
 			{
-				Game::Scr_RegisterFunction(reinterpret_cast<int>(func.actionFunc), nullptr);
+				const auto& name = func.aliases.at(0);
+				Game::Scr_RegisterFunction(reinterpret_cast<int>(func.actionFunc), name.data());
 			}
 		}
 

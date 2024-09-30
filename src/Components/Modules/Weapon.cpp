@@ -9,12 +9,6 @@ namespace Components
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
-		std::string test = name;
-		if (test.ends_with("deserteaglegold_akimbo_mp"))
-		{
-			printf("");
-		}
-
 		if (auto* rawWeaponFile = Game::BG_LoadWeaponCompleteDefInternal("mp", name))
 		{
 			// Fix for rumbles being wrong in the raw files.. This should not happen normally

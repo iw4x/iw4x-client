@@ -6,6 +6,7 @@ namespace Components::GamepadControls
 	Dvar::Var Controller::gpad_debug;
 
 	Dvar::Var Controller::gpad_allow_force_feedback;
+	Dvar::Var Controller::gpad_force_xinput_only;
 
 	Dvar::Var Controller::gpad_stick_pressed_hysteresis;
 	Dvar::Var Controller::gpad_stick_pressed;
@@ -19,15 +20,18 @@ namespace Components::GamepadControls
 	{
 		enabled = false;
 
-		// Dualsense first
-		if (!enabled)
+		if (gpad_force_xinput_only.get<bool>() == false)
 		{
-			api.reset(new GamepadControls::DualSenseGamePadAPI());
-
-			if (api->PlugIn(index))
+			// Dualsense first
+			if (!enabled)
 			{
-				portIndex = index;
-				enabled = true;
+				api.reset(new GamepadControls::DualSenseGamePadAPI());
+
+				if (api->PlugIn(index))
+				{
+					portIndex = index;
+					enabled = true;
+				}
 			}
 		}
 
@@ -358,6 +362,8 @@ namespace Components::GamepadControls
 
 		gpad_allow_force_feedback = Dvar::Register<bool>("gpad_allow_force_feedback", true, Game::DVAR_NONE, "Allow force feedback if the game pad supports it");
 		
+		gpad_force_xinput_only = Dvar::Register<bool>("gpad_force_xinput_only", false, Game::DVAR_ARCHIVE, "Only listen for XInput controllers and ignore the rest");
+
 		gpad_stick_pressed_hysteresis = Dvar::Register<float>("gpad_stick_pressed_hysteresis", 0.1f, 0.0f, 1.0f, Game::DVAR_ARCHIVE,
 			"Game pad stick pressed no-change-zone around gpad_stick_pressed to prevent bouncing");
 		gpad_stick_pressed = Dvar::Register<float>("gpad_stick_pressed", 0.4f, 0.0, 1.0, Game::DVAR_ARCHIVE, "Game pad stick pressed threshhold");

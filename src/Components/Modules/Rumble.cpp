@@ -292,7 +292,8 @@ namespace Components
 
 		if (rumbleIndex < 0)
 		{
-			logError(std::format("Could not play rumble {} because it was not registered!", rumbleName));
+			// Should we play it anyway?
+			logError(std::format("Could not play rumble {} because it was not registered!\n", rumbleName));
 			return;
 		}
 
@@ -626,11 +627,6 @@ namespace Components
 
 	int Rumble::G_RumbleIndex(const char* name)
 	{
-		if (name == "melee_knife_stab"s)
-		{
-			printf("");
-		}
-
 		assert(name);
 
 		if (*name)
