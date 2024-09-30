@@ -1100,26 +1100,21 @@ namespace Components
 			call CG_EntityEvents_Hk
 
 			add esp, 8
-			mov[esp + 0x28], eax
+			mov[esp + 0x20], eax
+
 			popad
-
-			mov eax, [esp + 0x8]
-
+			pop eax
 
 			test al, al
 			jz processCgEvents
-
-			// End procedure for CG_EntityEvents
-			pop eax
 
 			push 0x4DED0A
 			retn
 
 			processCgEvents :
-			pop eax
 
 				// original code
-				mov edx, 0x9F5CE4
+				mov edx, [0x9F5CE4]
 
 				// go back
 				push 0x4DCF8A
@@ -1304,6 +1299,8 @@ namespace Components
 
 		// Parse CG_EntityEvents for new events
 		Utils::Hook(0x4DCF84, CG_EntityEvents_Stub, HOOK_JUMP).install()->quick();
+
+		MessageBoxA(NULL, "", "", 0);
 
 		// CG_setRumbleReceiver
 		Utils::Hook(0x486DEC, CG_SetRumbleReceiver, HOOK_CALL).install()->quick();
