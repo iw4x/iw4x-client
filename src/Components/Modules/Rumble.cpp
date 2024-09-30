@@ -270,7 +270,7 @@ namespace Components
 		}
 	}
 
-	void Rumble::PlayRumbleInternal(int localClientNum, const char* rumbleName, bool loop, Game::RumbleSourceType type, int entityNum, const float* pos, double scale)
+	void Rumble::PlayRumbleInternal(int localClientNum, const char* rumbleName, bool loop, Game::RumbleSourceType type, int entityNum, const float* pos, double scale, bool updateDuplicates)
 	{
 		assert(type != Game::RumbleSourceType::RUMBLESOURCE_INVALID);
 		assert(rumbleName);
@@ -310,45 +310,58 @@ namespace Components
 		auto cg = Game::CL_GetLocalClientGlobals(localClientNum); // should be CG?
 
 		auto activeRumble = GetDuplicateRumbleIfExists(cg, rumbleGlobArray[localClientNum].activeRumbles, rumbleInfo, loop, type, entityNum, pos);
+		bool rumbleIsDuplicate = activeRumble;
 
-		if (!activeRumble)
+		if (activeRumble)
 		{
-			activeRumble = NextAvailableRumble(cg, rumbleGlobArray[localClientNum].activeRumbles);
-		}
-
-		assert(activeRumble);
-
-		if (type == Game::RUMBLESOURCE_ENTITY)
-		{
-			auto entity = Game::CG_GetEntity(localClientNum, entityNum);
-			if (!rumbleInfo->broadcast)
-			{
-				if (entity->nextState.eType != 1)
-				{
-					logError(
-						std::format(
-							"Non-player entity #{} of type {} at ({}, {}, {}) is trying to play non-broadcasting rumble \"{}\" on themselves.\n",
-							entityNum,
-							entity->nextState.eType,
-							entity->prevState.pos.trBase[0],
-							entity->prevState.pos.trBase[1],
-							entity->prevState.pos.trBase[2],
-							rumbleName
-						)
-					);
-					return;
-				}
-			}
-
-			activeRumble->source.entityNum = entityNum;
-		}
-		else if (type == Game::RUMBLESOURCE_POS)
-		{
-			std::memcpy(activeRumble->source.pos, pos, ARRAYSIZE(activeRumble->source.pos) * sizeof(float));
+			// All good
 		}
 		else
 		{
-			assert(false); // Wrong type
+			activeRumble = NextAvailableRumble(cg, rumbleGlobArray[localClientNum].activeRumbles);
+			assert(activeRumble);
+		}
+
+		if (!rumbleIsDuplicate || updateDuplicates)
+		{
+			if (type == Game::RUMBLESOURCE_ENTITY)
+			{
+				auto entity = Game::CG_GetEntity(localClientNum, entityNum);
+				if (!rumbleInfo->broadcast)
+				{
+					if ((entity->nextValid & 1) == 0)
+					{
+						// Next snap is not valid
+						return;
+					}
+
+					if (entity->nextState.eType != 1)
+					{
+						logError(
+							std::format(
+								"Non-player entity #{} of type {} at ({}, {}, {}) is trying to play non-broadcasting rumble \"{}\" on themselves.\n",
+								entityNum,
+								entity->nextState.eType,
+								entity->prevState.pos.trBase[0],
+								entity->prevState.pos.trBase[1],
+								entity->prevState.pos.trBase[2],
+								rumbleName
+							)
+						);
+						return;
+					}
+				}
+
+				activeRumble->source.entityNum = entityNum;
+			}
+			else if (type == Game::RUMBLESOURCE_POS)
+			{
+				std::memcpy(activeRumble->source.pos, pos, ARRAYSIZE(activeRumble->source.pos) * sizeof(float));
+			}
+			else
+			{
+				assert(false); // Wrong type
+			}
 		}
 
 		if (scale < 0.0 || scale > 1.0)
@@ -371,22 +384,22 @@ namespace Components
 
 	void Rumble::CG_PlayRumbleOnEntity(int localClientNum, const char* rumbleName, int entityNum)
 	{
-		PlayRumbleInternal(localClientNum, rumbleName, 0, Game::RUMBLESOURCE_ENTITY, entityNum, nullptr, cl_rumbleScale.get<float>());
+		PlayRumbleInternal(localClientNum, rumbleName, 0, Game::RUMBLESOURCE_ENTITY, entityNum, nullptr, cl_rumbleScale.get<float>(), false);
 	}
 
 	void Rumble::CG_PlayRumbleOnPosition(int localClientNum, const char* rumbleName, const float* pos)
 	{
-		PlayRumbleInternal(localClientNum, rumbleName, 0, Game::RUMBLESOURCE_POS, 0, pos, cl_rumbleScale.get<float>());
+		PlayRumbleInternal(localClientNum, rumbleName, 0, Game::RUMBLESOURCE_POS, 0, pos, cl_rumbleScale.get<float>(), false);
 	}
 
 	void Rumble::CG_PlayRumbleLoopOnEntity(int localClientNum, const char* rumbleName, int entityNum)
 	{
-		PlayRumbleInternal(localClientNum, rumbleName, true, Game::RUMBLESOURCE_ENTITY, entityNum, nullptr, cl_rumbleScale.get<float>());
+		PlayRumbleInternal(localClientNum, rumbleName, true, Game::RUMBLESOURCE_ENTITY, entityNum, nullptr, cl_rumbleScale.get<float>(), false);
 	}
 
 	void Rumble::CG_PlayRumbleLoopOnPosition(int localClientNum, const char* rumbleName, const float* pos)
 	{
-		PlayRumbleInternal(localClientNum, rumbleName, true, Game::RUMBLESOURCE_POS, 0, pos, cl_rumbleScale.get<float>());
+		PlayRumbleInternal(localClientNum, rumbleName, true, Game::RUMBLESOURCE_POS, 0, pos, cl_rumbleScale.get<float>(), false);
 	}
 
 	void Rumble::CG_PlayRumbleOnClient(int localClientNum, const char* rumbleName)
@@ -404,7 +417,9 @@ namespace Components
 				Game::RUMBLESOURCE_ENTITY,
 				clientGlob->predictedPlayerState.clientNum,
 				nullptr,
-				1.0);
+				1.0,
+				false
+			);
 		}
 	}
 
@@ -412,11 +427,11 @@ namespace Components
 	{
 		if (GetRumbleInfoIndexFromName(rumbleName) >= 0)
 		{
-			PlayRumbleInternal(localClientNum, rumbleName, 0, Game::RUMBLESOURCE_ENTITY, Game::CL_GetLocalClientGlobals(localClientNum)->predictedPlayerState.clientNum, 0, 1.0);
+			PlayRumbleInternal(localClientNum, rumbleName, 0, Game::RUMBLESOURCE_ENTITY, Game::CL_GetLocalClientGlobals(localClientNum)->predictedPlayerState.clientNum, 0, 1.0, false);
 		}
 		else
 		{
-			Game::Com_PrintWarning(14, "Can't play rumble asset '%s' because it is not registered.", rumbleName);
+			Game::Com_PrintWarning(14, "Can't play rumble asset '%s' because it is not registered.\n", rumbleName);
 		}
 	}
 
@@ -1111,8 +1126,8 @@ namespace Components
 
 			processCgEvents :
 
-				// original code
-				mov edx, [0x9F5CE4]
+			// original code
+			mov edx, [0x9F5CE4]
 
 				// go back
 				push 0x4DCF8A
@@ -1239,7 +1254,16 @@ namespace Components
 
 					if (spinRate > 0.f)
 					{
-						PlayRumbleInternal(localClientNum, rumble, 0, Game::RUMBLESOURCE_ENTITY, Game::cgArray->predictedPlayerState.clientNum, 0, spinRate);
+						PlayRumbleInternal(
+							localClientNum,
+							rumble,
+							0,
+							Game::RUMBLESOURCE_ENTITY,
+							Game::cgArray->predictedPlayerState.clientNum,
+							0,
+							spinRate,
+							true
+						);
 					}
 				}
 			}
@@ -1281,8 +1305,8 @@ namespace Components
 			retn
 
 			// other condition
-			goBack:
-				push 0x5FCDA0
+			goBack :
+			push 0x5FCDA0
 				retn
 		}
 	}

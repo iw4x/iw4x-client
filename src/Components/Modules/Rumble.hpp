@@ -32,7 +32,7 @@ namespace Components
 		static Game::ActiveRumble* NextAvailableRumble(Game::cg_s* cgameGlob, Game::ActiveRumble* arArray);
 		static void InvalidateActiveRumble(Game::ActiveRumble* ar);
 		static void CalcActiveRumbles(int localClientNum, Game::ActiveRumble* activeRumbleArray, const float* rumbleReceiverPos);
-		static void PlayRumbleInternal(int localClientNum, const char* rumbleName, bool loop, Game::RumbleSourceType type, int entityNum, const float* pos, double scale);
+		static void PlayRumbleInternal(int localClientNum, const char* rumbleName, bool loop, Game::RumbleSourceType type, int entityNum, const float* pos, double scale, bool updateDuplicates);
 		static void Rumble_Strcpy(char* member, char* keyValue);
 		static bool ParseRumbleGraph(Game::RumbleGraph* graph, const char* buffer, const char* fileName);
 		static void ReadRumbleGraph(Game::RumbleGraph* graph, const char* rumbleFileName);
