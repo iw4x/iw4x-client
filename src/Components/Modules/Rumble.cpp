@@ -1300,8 +1300,6 @@ namespace Components
 		// Parse CG_EntityEvents for new events
 		Utils::Hook(0x4DCF84, CG_EntityEvents_Stub, HOOK_JUMP).install()->quick();
 
-		MessageBoxA(NULL, "", "", 0);
-
 		// CG_setRumbleReceiver
 		Utils::Hook(0x486DEC, CG_SetRumbleReceiver, HOOK_CALL).install()->quick();
 
