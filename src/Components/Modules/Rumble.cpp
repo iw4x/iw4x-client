@@ -49,10 +49,15 @@ namespace Components
 	{
 		for (size_t i = 0; i < Gamepad::RUMBLE_CONFIGSTRINGS_COUNT; i++)
 		{
-			const std::string& configString = ConfigStrings::CL_GetRumbleConfigString(i);
-			if (configString == rumbleName)
+			const char* configStringArr = ConfigStrings::CL_GetRumbleConfigString(i);
+			if (configStringArr && *configStringArr)
 			{
-				return i;
+				const std::string& configString = configStringArr;
+
+				if (configString == rumbleName)
+				{
+					return i;
+				}
 			}
 		}
 
@@ -317,9 +322,6 @@ namespace Components
 			auto entity = Game::CG_GetEntity(localClientNum, entityNum);
 			if (!rumbleInfo->broadcast)
 			{
-				if (!entity->nextValid)
-					return;
-
 				if (entity->nextState.eType != 1)
 				{
 					logError(
