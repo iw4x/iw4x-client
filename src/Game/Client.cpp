@@ -41,7 +41,7 @@ namespace Game
 
 	cg_s* cgArray = reinterpret_cast<cg_s*>(0x7F0F78);
 	cgs_t* cgsArray = reinterpret_cast<cgs_t*>(0x7ED3B8);
-	centity_s* cg_entitiesArray = reinterpret_cast<centity_s*>(0x8F3CA8);
+	cgEntity_s* cg_entitiesArray = reinterpret_cast<cgEntity_s*>(0x8F3CA8);
 	dvar_t** cl_paused = reinterpret_cast<dvar_t**>(0x9FBE4C);
 
 	voiceCommunication_t* cl_voiceCommunication = reinterpret_cast<voiceCommunication_t*>(0x1079DA0);
@@ -89,18 +89,12 @@ namespace Game
 		return &cgArray[localClientNum];
 	}
 
-	centity_s* CG_GetEntity(int localClientNum, int entityIndex)
+	centity_s* CG_GetEntity([[maybe_unused]] int localClientNum, int entityIndex)
 	{
 		assert(entityIndex < MAX_GENTITIES);
 		assert(localClientNum == 0);
 
-		if (!(&cg_entitiesArray)[localClientNum])
-		{
-			auto connState = CL_GetLocalClientConnectionState(localClientNum);
-			Components::Logger::Error(Game::ERR_DROP, "Trying to access unallocated cg_entitiesArray when connectionstate is {} for localClientNum {}\n"s, static_cast<int>(connState), localClientNum);
-		}
-
-		return &(&cg_entitiesArray)[localClientNum][125 * entityIndex];
+		return &cg_entitiesArray[entityIndex].entity;
 	}
 
 	void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer)

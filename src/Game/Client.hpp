@@ -99,7 +99,7 @@ namespace Game
 
 	extern cg_s* cgArray;
 	extern cgs_t* cgsArray;
-	extern centity_s* cg_entitiesArray;
+	extern cgEntity_s* cg_entitiesArray;
 	extern dvar_t** cl_paused;
 
 	extern void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer);

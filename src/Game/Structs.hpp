@@ -9200,8 +9200,16 @@ namespace Game
 		centity_s* updateDelayedNext;
 	};
 
+	// Unknown what it's real name is
+	struct cgEntity_s
+	{
+		centity_s entity;
+		int unkown;
+	};
+
 	static_assert(sizeof(entityState_s) == 0x100);
 	static_assert(sizeof(centity_s) == 0x200);
+	static_assert(sizeof(cgEntity_s) == 0x204);
 
 	struct playerEntity_t
 	{

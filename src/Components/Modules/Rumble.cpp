@@ -185,12 +185,17 @@ namespace Components
 
 			assert(activeRumble->sourceType != Game::RUMBLESOURCE_INVALID);
 
-
-			if (activeRumble->sourceType == Game::RUMBLESOURCE_ENTITY && activeRumble->source.entityNum != cg->predictedPlayerState.clientNum)
+			if (activeRumble->rumbleInfo->broadcast)
 			{
-				continue;
-			}
+				if (activeRumble->sourceType == Game::RUMBLESOURCE_ENTITY && activeRumble->source.entityNum != cg->predictedPlayerState.clientNum)
+				{
+					continue;
+				}
 
+				// Don't fade with distance
+				scale = 1.f;
+			}
+			else
 			{
 				float distance = 0.f;
 
@@ -199,9 +204,10 @@ namespace Components
 					if (activeRumble->sourceType == Game::RUMBLESOURCE_ENTITY)
 					{
 						auto entity = Game::CG_GetEntity(localClientNum, activeRumble->source.entityNum);
-						auto x = (*rumbleReceiverPos - entity->pose.origin[0]);
-						auto y = (rumbleReceiverPos[1] - entity->pose.origin[1]);
-						auto z = (rumbleReceiverPos[2] - entity->pose.origin[2]);
+						auto receiver = Game::CG_GetEntity(localClientNum, rumbleGlobArray[localClientNum].receiverEntNum);
+						auto x = receiver->pose.origin[0] - entity->pose.origin[0];
+						auto y = receiver->pose.origin[1] - entity->pose.origin[1];
+						auto z = receiver->pose.origin[2] - entity->pose.origin[2];
 
 						distance = std::sqrtf((x * x) + (y * y) + (z * z));
 
@@ -218,9 +224,9 @@ namespace Components
 
 				if (distance <= activeRumble->rumbleInfo->range)
 				{
-					if (activeRumble->source.entityNum)
+					if (activeRumble->rumbleInfo->fadeWithDistance)
 					{
-						assert(distance > 0.f);
+						assert(activeRumble->rumbleInfo->range > 0.f);
 
 						// Complete guesswork
 						scale = 1.f - distance / activeRumble->rumbleInfo->range;
@@ -870,8 +876,7 @@ namespace Components
 
 		std::memcpy(
 			rumbleGlobArray[localClientIndex].receiverPos,
-			//Game::CL_GetLocalClientGlobals(localClientIndex)->refdef.view.org,
-			Game::CG_GetEntity(localClientIndex, rumbleGlobArray[localClientIndex].receiverEntNum)->pose.origin,
+			Game::CL_GetLocalClientGlobals(localClientIndex)->refdef.view.org,
 			sizeof(float) * ARRAYSIZE(rumbleGlobArray[localClientIndex].receiverPos
 			)
 		);
