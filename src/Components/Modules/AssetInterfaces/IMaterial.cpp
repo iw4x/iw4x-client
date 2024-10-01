@@ -175,4 +175,35 @@ namespace Assets
 
 		buffer->popBlock();
 	}
+
+	IMaterial::IMaterial()
+	{
+		Components::Command::Add("hashName", [](const Components::Command::Params* params)
+		{
+			if (params->size() < 2) return;
+
+			for (int i = 1; i < params->size(); i++)
+			{
+				Components::Logger::Print("{}	=>	{}\n", params->get(i), Game::R_HashString(params->get(i)));
+			}
+		});
+
+		Components::Command::Add("dumpMaterial", [](const Components::Command::Params* params)
+			{
+				if (params->size() < 2) return;
+
+				std::string material = params->get(1);
+
+				const auto header = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, material.data());
+				if (header.data)
+				{
+					Components::ZoneBuilder::RefreshExporterWorkDirectory();
+					Components::ZoneBuilder::GetExporter()->write(Game::XAssetType::ASSET_TYPE_MATERIAL, header.data);
+				}
+				else
+				{
+					Components::Logger::Print("Could not find material {}!\n", material);
+				}
+			});
+	}
 }
