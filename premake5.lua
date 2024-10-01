@@ -206,7 +206,7 @@ workspace "iw4x"
 	configurations {"Debug", "Release"}
 
 	language "C++"
-	cppdialect "C++20"
+	cppdialect "C++23"
 
 	architecture "x86"
 	platforms "Win32"
