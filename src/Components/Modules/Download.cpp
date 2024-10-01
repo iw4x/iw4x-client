@@ -890,12 +890,12 @@ namespace Components
 
 	bool Download::ClientDownload::File::allowed() const
 	{
-		if (name.contains("..") || name.contains(":"))
+		if (Utils::String::Contains(name, "..") || Utils::String::Contains(name, ":"))
 		{
 			return false;
 		}
 
-		if (name.contains("\\") || name.contains("/"))
+		if (Utils::String::Contains(name, "\\") || Utils::String::Contains(name, "/"))
 		{
 			return false;
 		}
