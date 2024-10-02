@@ -255,10 +255,12 @@ namespace Components
 			DUPLICATE_STRING_IF_EXISTS(menu, allowedBinding);
 			DUPLICATE_STRING_IF_EXISTS(menu, soundName);
 
+			// Sometimes it requries updating even if the menu _itself_ does not have any
+			// Because it might have items that did update it
+			UpdateSupportingDataContents();
+
 			if (menu->expressionData)
 			{
-				UpdateSupportingDataContents();
-
 				assert(menu->expressionData == Game::menuSupportingData);
 				menu->expressionData = Menus::SupportingData;
 			}
