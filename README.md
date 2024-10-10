@@ -5,7 +5,7 @@
 
 <img src=".github/assets/readme/icon.png" align="right" width="100" height="100">
 
-IW4x is a community-driven project that aims to revitalize and enhance the [Call of Duty: Modern Warfare 2 (2009) ](https://store.steampowered.com/app/10180/Call_of_Duty_Modern_Warfare_2_2009/)multiplayer experience by providing a stable platform with support for dedicated servers and modding.
+IW4x is a community-driven project that aims to revitalize and enhance the [Call of Duty: Modern Warfare 2 (2009)](https://store.steampowered.com/app/10180/Call_of_Duty_Modern_Warfare_2_2009/) multiplayer experience by providing a stable platform with support for dedicated servers and modding.
 
 IW4x is currently distributed through the [AlterWare Launcher](https://github.com/mxve/alterware-launcher).
 

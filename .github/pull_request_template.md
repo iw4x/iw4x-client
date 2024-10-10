@@ -14,6 +14,6 @@ Add any other context about your changes here.
 **Did you check all the boxes?**
 
 - [ ] Focus on a single fix or feature; remove any unrelated formatting or code changes
-- [ ] Mention any [related issues](https://github.com/XLabsProject/iw4x-client/issues) (put `closes #XXXX` in comment to auto-close issue when PR is merged)
-- [ ] Follow our [coding conventions](https://github.com/XLabsProject/iw4x-client/blob/master/CODESTYLE.md)
+- [ ] Mention any [related issues](https://github.com/iw4x/iw4x-client/issues) (put `closes #XXXX` in comment to auto-close issue when PR is merged)
+- [ ] Follow our [coding conventions](https://github.com/iw4x/iw4x-client/blob/master/CODESTYLE.md)
 - [ ] Minimize the number of commits

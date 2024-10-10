@@ -22,7 +22,7 @@ jobs:
         configuration:
           - Debug
           - Release
-    steps:          
+    steps:
       - name: Check out files
         uses: actions/checkout@v3.5.3
         with:
@@ -50,4 +50,3 @@ jobs:
           path: |
             build/bin/Win32/${{matrix.configuration}}/iw4x.dll
             build/bin/Win32/${{matrix.configuration}}/iw4x.pdb
-
