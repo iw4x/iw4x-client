@@ -55,7 +55,12 @@ namespace Assets
 			for (char i = 0; i < 16; ++i)
 			{
 				if (asset->weapDef->notetrackSoundMapValues[i] == NULL) break; // no more strings
-				builder->addScriptString(asset->weapDef->notetrackSoundMapValues[i]);
+
+				const auto soundName = Game::SL_ConvertToString(asset->weapDef->notetrackSoundMapValues[i]);
+
+				builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_SOUND, soundName, false);
+
+				builder->addScriptString(soundName);
 			}
 		}
 
@@ -73,7 +78,11 @@ namespace Assets
 			for (char i = 0; i < 16; ++i)
 			{
 				if (asset->weapDef->notetrackRumbleMapValues[i] == NULL) break; // no more strings
-				builder->addScriptString(asset->weapDef->notetrackRumbleMapValues[i]);
+				const auto rumbleName = Game::SL_ConvertToString(asset->weapDef->notetrackRumbleMapValues[i]);
+
+				builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_RAWFILE, std::format("rumble/{}", rumbleName), false);
+
+				builder->addScriptString(rumbleName);
 			}
 		}
 
