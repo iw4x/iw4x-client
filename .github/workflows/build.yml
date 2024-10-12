@@ -24,7 +24,7 @@ jobs:
           - Release
     steps:
       - name: Check out files
-        uses: actions/checkout@v3.5.3
+        uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 0
@@ -32,7 +32,7 @@ jobs:
           lfs: false
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.3.1
+        uses: microsoft/setup-msbuild@v2
 
       - name: Generate project files
         run: tools/premake5 vs2022
@@ -44,7 +44,7 @@ jobs:
         run: msbuild /m /v:minimal /p:Configuration=${{matrix.configuration}} /p:Platform=Win32 build/iw4x.sln
 
       - name: Upload ${{matrix.configuration}} binaries
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.configuration}} binaries
           path: |
