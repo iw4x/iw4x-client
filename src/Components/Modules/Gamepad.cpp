@@ -495,7 +495,7 @@ namespace Components
 			return;
 		}
 
-		const auto aimAssistRange = AimAssist_Lerp(weaponDef->aimAssistRange, weaponDef->aimAssistRangeAds, aaGlob.adsLerp) * aim_aimAssistRangeScale.get<float>();
+		const auto aimAssistRange = std::lerp(weaponDef->aimAssistRange, weaponDef->aimAssistRangeAds, aaGlob.adsLerp) * aim_aimAssistRangeScale.get<float>();
 		const auto screenTarget = AimAssist_GetPrevOrBestTarget(&aaGlob, aimAssistRange, aaGlob.tweakables.lockOnRegionWidth, aaGlob.tweakables.lockOnRegionHeight, prevTargetEnt);
 
 		if (screenTarget && screenTarget->distSqr > 0.0f)
@@ -623,24 +623,19 @@ namespace Components
 		}
 
 		const auto* weaponDef = Game::BG_GetWeaponDef(static_cast<std::uint32_t>(aaGlob.ps.weapIndex));
-		const auto aimAssistRange = AimAssist_Lerp(weaponDef->aimAssistRange, weaponDef->aimAssistRangeAds, aaGlob.adsLerp) * aim_aimAssistRangeScale.get<float>();
+		const auto aimAssistRange = std::lerp(weaponDef->aimAssistRange, weaponDef->aimAssistRangeAds, aaGlob.adsLerp) * aim_aimAssistRangeScale.get<float>();
 		const auto screenTarget = AimAssist_GetBestTarget(&aaGlob, aimAssistRange, aaGlob.tweakables.slowdownRegionWidth, aaGlob.tweakables.slowdownRegionHeight);
 
 		if (screenTarget)
 		{
-			*pitchScale = AimAssist_Lerp(aim_slowdown_pitch_scale.get<float>(), aim_slowdown_pitch_scale_ads.get<float>(), aaGlob.adsLerp);
-			*yawScale = AimAssist_Lerp(aim_slowdown_yaw_scale.get<float>(), aim_slowdown_yaw_scale_ads.get<float>(), aaGlob.adsLerp);
+			*pitchScale = std::lerp(aim_slowdown_pitch_scale.get<float>(), aim_slowdown_pitch_scale_ads.get<float>(), aaGlob.adsLerp);
+			*yawScale = std::lerp(aim_slowdown_yaw_scale.get<float>(), aim_slowdown_yaw_scale_ads.get<float>(), aaGlob.adsLerp);
 		}
 
 		if (AimAssist_IsPlayerUsingOffhand(&aaGlob.ps))
 		{
 			*pitchScale = 1.0f;
 		}
-	}
-
-	float Gamepad::AimAssist_Lerp(const float from, const float to, const float fraction)
-	{
-		return (to - from) * fraction + from;
 	}
 
 	void Gamepad::AimAssist_ApplyTurnRates(const Game::AimInput* input, Game::AimOutput* output)
@@ -670,9 +665,9 @@ namespace Components
 		}
 
 		const auto sensitivity = input_viewSensitivity.get<float>();
-		auto pitchTurnRate = AimAssist_Lerp(aim_turnrate_pitch.get<float>(), aim_turnrate_pitch_ads.get<float>(), aaGlob.adsLerp);
+		auto pitchTurnRate = std::lerp(aim_turnrate_pitch.get<float>(), aim_turnrate_pitch_ads.get<float>(), aaGlob.adsLerp);
 		pitchTurnRate = slowdownPitchScale * aaGlob.fovTurnRateScale * sensitivity * pitchTurnRate;
-		auto yawTurnRate = AimAssist_Lerp(aim_turnrate_yaw.get<float>(), aim_turnrate_yaw_ads.get<float>(), aaGlob.adsLerp);
+		auto yawTurnRate = std::lerp(aim_turnrate_yaw.get<float>(), aim_turnrate_yaw_ads.get<float>(), aaGlob.adsLerp);
 		yawTurnRate = slowdownYawScale * aaGlob.fovTurnRateScale * sensitivity * yawTurnRate;
 
 		if (input->pitchMax > 0 && input->pitchMax < pitchTurnRate)

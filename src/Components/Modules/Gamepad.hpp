@@ -131,7 +131,6 @@ namespace Components
 		static void AimAssist_CalcAdjustedAxis(const Game::AimInput* input, float* pitchAxis, float* yawAxis);
 		static bool AimAssist_IsSlowdownActive(const Game::AimAssistPlayerState* ps);
 		static void AimAssist_CalcSlowdown(const Game::AimInput* input, float* pitchScale, float* yawScale);
-		static float AimAssist_Lerp(float from, float to, float fraction);
 		static void AimAssist_ApplyTurnRates(const Game::AimInput* input, Game::AimOutput* output);
 		static void AimAssist_UpdateGamePadInput(const Game::AimInput* input, Game::AimOutput* output);
 
