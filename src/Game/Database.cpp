@@ -25,6 +25,7 @@ namespace Game
 	DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = reinterpret_cast<DB_ReleaseXAssetHandler_t*>(0x799AB8);
 
 	XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
+	const char** g_assetNames = reinterpret_cast<const char**>(0x799278);
 	unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
 
 	XBlock** g_streamBlocks = reinterpret_cast<XBlock**>(0x16E554C);

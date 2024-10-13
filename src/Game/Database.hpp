@@ -39,7 +39,7 @@ namespace Game
 	typedef void(*DB_EnumXAssets_t)(XAssetType type, void(*)(XAssetHeader, void*), void* userdata, bool overrides);
 	extern DB_EnumXAssets_t DB_EnumXAssets;
 
-	typedef void(*DB_EnumXAssets_Internal_t)(XAssetType type, void(*)(XAssetHeader, void*), void* userdata, bool overrides);
+	typedef void(*DB_EnumXAssets_Internal_t)(XAssetType type, void(*)(XAssetHeader, void*), const void* userdata, bool overrides);
 	extern DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal;
 
 	typedef XAssetHeader(*DB_FindXAssetHeader_t)(XAssetType type, const char* name);
@@ -91,6 +91,7 @@ namespace Game
 	extern DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers;
 
 	extern XAssetHeader* DB_XAssetPool;
+	extern const char** g_assetNames;
 	extern unsigned int* g_poolSize;
 
 	extern XBlock** g_streamBlocks;
