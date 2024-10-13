@@ -18,5 +18,6 @@ namespace Components
 		static void IN_RawMouseMove();
 		static void IN_RawMouse_Init();
 		static void IN_Init();
+		static BOOL IN_RecenterMouse();
 	};
 }
