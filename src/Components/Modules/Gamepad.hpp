@@ -111,6 +111,7 @@ namespace Components
 		static Dvar::Var aim_slowdown_yaw_scale_ads;
 		static Dvar::Var aim_lockon_enabled;
 		static Dvar::Var aim_lockon_deflection;
+		static Dvar::Var aim_lockon_pitch_strength;
 		static Dvar::Var aim_lockon_strength;
 
 		static void MSG_WriteDeltaUsercmdKeyStub();

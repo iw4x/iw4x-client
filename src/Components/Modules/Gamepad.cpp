@@ -218,6 +218,7 @@ namespace Components
 	Dvar::Var Gamepad::aim_slowdown_yaw_scale_ads;
 	Dvar::Var Gamepad::aim_lockon_enabled;
 	Dvar::Var Gamepad::aim_lockon_deflection;
+	Dvar::Var Gamepad::aim_lockon_pitch_strength;
 	Dvar::Var Gamepad::aim_lockon_strength;
 
 	Gamepad::GamePadGlobals::GamePadGlobals()
@@ -506,7 +507,7 @@ namespace Components
 			const auto pitchTurnRate =
 				(screenTarget->velocity[0] * aaGlob.viewAxis[2][0] + screenTarget->velocity[1] * aaGlob.viewAxis[2][1] + screenTarget->velocity[2] * aaGlob.viewAxis[2][2]
 					- (aaGlob.ps.velocity[0] * aaGlob.viewAxis[2][0] + aaGlob.ps.velocity[1] * aaGlob.viewAxis[2][1] + aaGlob.ps.velocity[2] * aaGlob.viewAxis[2][2]))
-				/ arcLength * 180.0f * aim_lockon_strength.get<float>();
+				/ arcLength * 180.0f * aim_lockon_pitch_strength.get<float>();
 
 			const auto yawTurnRate = 
 				(screenTarget->velocity[0] * aaGlob.viewAxis[1][0] + screenTarget->velocity[1] * aaGlob.viewAxis[1][1] + screenTarget->velocity[2] * aaGlob.viewAxis[1][2]
@@ -1876,6 +1877,7 @@ namespace Components
 		aim_slowdown_yaw_scale_ads = Dvar::Var("aim_slowdown_yaw_scale_ads");
 		aim_lockon_enabled = Dvar::Var("aim_lockon_enabled");
 		aim_lockon_deflection = Dvar::Var("aim_lockon_deflection");
+		aim_lockon_pitch_strength = Dvar::Register<float>("aim_lockon_pitch_strength", 0.6f, 0, 1, Game::DVAR_CHEAT, "The amount of aim assistance given by the target lock on (pitch)");
 		aim_lockon_strength = Dvar::Var("aim_lockon_strength");
 	}
 
