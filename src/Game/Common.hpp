@@ -71,6 +71,9 @@ namespace Game
 	typedef int(*Com_Compress_t)(char* data_p);
 	extern Com_Compress_t Com_Compress;
 
+	typedef char* (*Com_LoadInfoString_t)(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer);
+	extern Com_LoadInfoString_t Com_LoadInfoString;
+
 	extern int* com_frameTime;
 
 	extern int* com_fixedConsolePosition;

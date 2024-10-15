@@ -8,11 +8,12 @@ namespace Components::GSC
 		Script();
 
 		using scriptNames = std::vector<std::string>;
-		static void AddFunction(const std::string& name, Game::BuiltinFunction func, bool type = false);
-		static void AddMethod(const std::string& name, Game::BuiltinMethod func, bool type = false);
+		static void AddFunction(const std::string& name, Game::BuiltinFunction func, bool type = false, bool isBuitIn= false);
+		static void AddMethod(const std::string& name, Game::BuiltinMethod func, bool type = false, bool isBuitIn= false);
 
 		static void AddFuncMultiple(Game::BuiltinFunction func, bool type, scriptNames);
 		static void AddMethMultiple(Game::BuiltinMethod func, bool type, scriptNames);
+
 
 		static Game::client_s* GetClient(const Game::gentity_s* gentity);
 		// Probably a macro 'originally' but this is fine
@@ -33,6 +34,9 @@ namespace Components::GSC
 			scriptNames aliases;
 		};
 
+		static std::vector<ScriptFunction> CommonOverridenFunctions;
+		static std::vector<ScriptMethod> CommonOverridenMethods;
+
 		static std::vector<ScriptFunction> CustomScrFunctions;
 		static std::vector<ScriptMethod> CustomScrMethods;
 
@@ -45,6 +49,9 @@ namespace Components::GSC
 		static void Scr_LoadGameType_Stub();
 		static void Scr_StartupGameType_Stub();
 		static void GScr_LoadGameTypeScript_Stub();
+
+		static Game::BuiltinFunction Common_GetFunctionStub(const char** pName, int* type);
+		static Game::BuiltinMethod Common_GetMethodStub(const char** pName);
 
 		static Game::BuiltinFunction BuiltIn_GetFunctionStub(const char** pName, int* type);
 		static Game::BuiltinMethod BuiltIn_GetMethodStub(const char** pName, int* type);

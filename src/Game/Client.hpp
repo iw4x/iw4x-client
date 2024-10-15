@@ -94,11 +94,18 @@ namespace Game
 	extern [[nodiscard]] connstate_t CL_GetLocalClientConnectionState(int localClientNum);
 	extern [[nodiscard]] voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
 	extern [[nodiscard]] clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
-	extern [[nodiscard]] clientActive_t* CL_GetLocalClientGlobals(int localClientNum);
+	extern [[nodiscard]] cg_s* CL_GetLocalClientGlobals(int localClientNum);
+	extern [[nodiscard]] centity_s* CG_GetEntity(int localClientNum, int entityIndex);
+
+	extern cg_s* cgArray;
+	extern cgs_t* cgsArray;
+	extern cgEntity_s* cg_entitiesArray;
+	extern dvar_t** cl_paused;
 
 	extern void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer);
 
 	extern void CL_MouseMove(int localClientNum, Game::usercmd_s* cmd, float frametime_base);
 
 	extern void AdjustViewanglesForKeyboard(int localClientNum);
+
 }

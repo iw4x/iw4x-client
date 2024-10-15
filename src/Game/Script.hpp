@@ -100,6 +100,9 @@ namespace Game
 
 	typedef float(*Scr_GetFloat_t)(unsigned int index);
 	extern Scr_GetFloat_t Scr_GetFloat;
+	
+	typedef float(*Scr_GetVector_t)(unsigned int index, float* destination);
+	extern Scr_GetVector_t Scr_GetVector;
 
 	typedef int(*Scr_GetInt_t)(unsigned int index);
 	extern Scr_GetInt_t Scr_GetInt;

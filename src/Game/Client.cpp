@@ -39,6 +39,11 @@ namespace Game
 
 	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
 
+	cg_s* cgArray = reinterpret_cast<cg_s*>(0x7F0F78);
+	cgs_t* cgsArray = reinterpret_cast<cgs_t*>(0x7ED3B8);
+	cgEntity_s* cg_entitiesArray = reinterpret_cast<cgEntity_s*>(0x8F3CA8);
+	dvar_t** cl_paused = reinterpret_cast<dvar_t**>(0x9FBE4C);
+
 	voiceCommunication_t* cl_voiceCommunication = reinterpret_cast<voiceCommunication_t*>(0x1079DA0);
 
 	int CL_GetMaxXP()
@@ -77,11 +82,19 @@ namespace Game
 		return &clientUIActives[localClientNum];
 	}
 
-	clientActive_t* CL_GetLocalClientGlobals(const int localClientNum)
+	cg_s* CL_GetLocalClientGlobals(const int localClientNum)
 	{
 		AssertIn(localClientNum, MAX_LOCAL_CLIENTS);
 		assert(clients[localClientNum].alwaysFalse == false);
-		return &clients[localClientNum];
+		return &cgArray[localClientNum];
+	}
+
+	centity_s* CG_GetEntity([[maybe_unused]] int localClientNum, int entityIndex)
+	{
+		assert(entityIndex < MAX_GENTITIES);
+		assert(localClientNum == 0);
+
+		return &cg_entitiesArray[entityIndex].entity;
 	}
 
 	void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer)

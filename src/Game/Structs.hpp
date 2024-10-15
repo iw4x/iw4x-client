@@ -534,6 +534,8 @@ namespace Game
 		CS_WEAPONFILES = 0xAF5, // 2805 Confirmed
 		CS_WEAPONFILES_LAST = 0xFA3, // Confirmed too // 4003
 		CS_ITEMS = 4138, // Correct! CS_ITEMS is actually an item **COUNT**
+
+		CS_LAST = CS_ITEMS,
 		MAX_CONFIGSTRINGS = 4139
 	}; // Incomplete
 
@@ -654,6 +656,13 @@ namespace Game
 		SV_CMD_RELIABLE = 0x1,
 	};
 
+	enum RumbleSourceType
+	{
+		RUMBLESOURCE_INVALID = 0x0,
+		RUMBLESOURCE_ENTITY = 0x1,
+		RUMBLESOURCE_POS = 0x2,
+	};
+
 	struct FxEffectDef;
 	struct pathnode_t;
 	struct pathnode_tree_t;
@@ -661,6 +670,13 @@ namespace Game
 	struct Statement_s;
 	struct MenuEventHandlerSet;
 	struct menuDef_t;
+
+	struct cspField_t
+	{
+		const char* szName;
+		int iOffset;
+		int iFieldType;
+	};
 
 	struct CmdArgs
 	{
@@ -2031,12 +2047,33 @@ namespace Game
 		float trDelta[3];
 	};
 
+	struct LerpEntityStateTurret
+	{
+		float gunAngles[3];
+		int lastBarrelRotChangeTime;
+		int lastBarrelRotChangeRate;
+		int lastHeatChangeLevel;
+		int lastHeatChangeTime;
+		bool isBarrelRotating;
+		bool isOverheat;
+		bool isHeatingUp;
+		bool isBeingCarried;
+	};
+
+	union LerpEntityStateTypeUnion
+	{
+		LerpEntityStateTurret turret;
+		char pad0[0x24];
+	};
+
+	static_assert(sizeof(LerpEntityStateTypeUnion) == 0x24);
+
 	struct LerpEntityState
 	{
 		int eFlags;
 		trajectory_t pos;
 		trajectory_t apos;
-		char pad0[0x24];
+		LerpEntityStateTypeUnion u;
 	};
 
 	static_assert(sizeof(LerpEntityState) == 0x70);
@@ -6144,7 +6181,7 @@ namespace Game
 		unsigned int hashSize;
 		fileInIwd_s** hashTable;
 		fileInIwd_s* buildBuffer;
-	};
+};
 
 #ifdef IDA
 	typedef void _iobuf;
@@ -9150,7 +9187,10 @@ namespace Game
 		cpose_t pose;
 		LerpEntityState prevState;
 		entityState_s nextState;
-		int flags;
+		char nextValid;
+		char bMuzzleFlash;
+		char bTrailMade;
+		char pad;
 		unsigned __int8 tracerDrawRateCounter;
 		unsigned __int8 weaponVisTestCounter;
 		int previousEventSequence;
@@ -9160,8 +9200,16 @@ namespace Game
 		centity_s* updateDelayedNext;
 	};
 
+	// Unknown what it's real name is
+	struct cgEntity_s
+	{
+		centity_s entity;
+		int unkown;
+	};
+
 	static_assert(sizeof(entityState_s) == 0x100);
 	static_assert(sizeof(centity_s) == 0x200);
+	static_assert(sizeof(cgEntity_s) == 0x204);
 
 	struct playerEntity_t
 	{
@@ -9784,6 +9832,7 @@ namespace Game
 		unsigned char handler;
 	};
 
+
 	static_assert(sizeof(pmove_s) == 296);
 
 	struct pml_t
@@ -9813,6 +9862,130 @@ namespace Game
 		PM_EFF_STANCE_LASTSTANDCRAWL = 3,
 		PM_EFF_STANCE_COUNT = 4
 	};
+
+	enum entity_event_t
+	{
+		EV_NONE = 0x0,
+		EV_FOLIAGE_SOUND = 0x1,
+		EV_STOP_WEAPON_SOUND = 0x2,
+		EV_SOUND_ALIAS = 0x3,
+		EV_SOUND_ALIAS_AS_MASTER = 0x4,
+		EV_STOPSOUNDS = 0x5,
+		EV_STANCE_FORCE_STAND = 0x6,
+		EV_STANCE_FORCE_CROUCH = 0x7,
+		EV_STANCE_FORCE_PRONE = 0x8,
+		EV_STANCE_INVALID = 0x9,
+		EV_ITEM_PICKUP = 0xA,
+		EV_AMMO_PICKUP = 0xB,
+		EV_NOAMMO = 0xC,
+		EV_EMPTYCLIP = 0xD,
+		EV_EMPTY_OFFHAND_PRIMARY = 0xE,
+		EV_EMPTY_OFFHAND_SECONDARY = 0xF,
+		EV_OFFHAND_END_NOTIFY = 0x10,
+		EV_RESET_ADS = 0x11,
+		EV_RELOAD = 0x12,
+		EV_RELOAD_FROM_EMPTY = 0x13,
+		EV_RELOAD_START = 0x14,
+		EV_RELOAD_END = 0x15,
+		EV_RELOAD_START_NOTIFY = 0x16,
+		EV_RELOAD_ADDAMMO = 0x17,
+		EV_RAISE_WEAPON = 0x18,
+		EV_FIRST_RAISE_WEAPON = 0x19,
+		EV_PUTAWAY_WEAPON = 0x1A,
+		EV_WEAPON_ALT = 0x1B,
+		EV_WEAPON_SWITCH_STARTED = 0x1C,
+		EV_PULLBACK_WEAPON = 0x1D,
+		EV_FIRE_WEAPON = 0x1E,
+		EV_FIRE_WEAPON_LASTSHOT = 0x1F,
+		EV_FIRE_RICOCHET = 0x20,
+		EV_RECHAMBER_WEAPON = 0x21,
+		EV_EJECT_BRASS = 0x22,
+		EV_FIRE_WEAPON_LEFT = 0x23,
+		EV_FIRE_WEAPON_LASTSHOT_LEFT = 0x24,
+		EV_EJECT_BRASS_LEFT = 0x25,
+		EV_HITCLIENT_FIRE_WEAPON = 0x26,
+		EV_HITCLIENT_FIRE_WEAPON_LASTSHOT = 0x27,
+		EV_HITCLIENT_FIRE_WEAPON_LEFT = 0x28,
+		EV_HITCLIENT_FIRE_WEAPON_LASTSHOT_LEFT = 0x29,
+		EV_SV_FIRE_WEAPON = 0x2A,
+		EV_SV_FIRE_WEAPON_LASTSHOT = 0x2B,
+		EV_SV_FIRE_WEAPON_LEFT = 0x2C,
+		EV_SV_FIRE_WEAPON_LASTSHOT_LEFT = 0x2D,
+		EV_MELEE_SWIPE = 0x2E,
+		EV_FIRE_MELEE = 0x2F,
+		EV_PREP_OFFHAND = 0x30,
+		EV_USE_OFFHAND = 0x31,
+		EV_SWITCH_OFFHAND = 0x32,
+		EV_MELEE_HIT = 0x33,
+		EV_MELEE_MISS = 0x34,
+		EV_MELEE_BLOOD = 0x35,
+		EV_FIRE_TURRET = 0x36,
+		EV_FIRE_SENTRY = 0x37,
+		EV_FIRE_QUADBARREL_1 = 0x38,
+		EV_FIRE_QUADBARREL_2 = 0x39,
+		EV_BULLET_HIT = 0x3A,
+		EV_BULLET_HIT_EXPLODE = 0x3B,
+		EV_BULLET_HIT_SHIELD = 0x3C,
+		EV_BULLET_HIT_CLIENT_SMALL = 0x3D,
+		EV_BULLET_HIT_CLIENT_LARGE = 0x3E,
+		EV_BULLET_HIT_CLIENT_EXPLODE = 0x3F,
+		EV_BULLET_HIT_CLIENT_SHIELD = 0x40,
+		EV_EXPLOSIVE_IMPACT_ON_SHIELD = 0x41,
+		EV_EXPLOSIVE_SPLASH_ON_SHIELD = 0x42,
+		EV_GRENADE_BOUNCE = 0x43,
+		EV_GRENADE_STICK = 0x44,
+		EV_GRENADE_REST = 0x45,
+		EV_GRENADE_EXPLODE = 0x46,
+		EV_GRENADE_PICKUP = 0x47,
+		EV_GRENADE_LETGO = 0x48,
+		EV_ROCKET_EXPLODE = 0x49,
+		EV_ROCKET_EXPLODE_NOMARKS = 0x4A,
+		EV_FLASHBANG_EXPLODE = 0x4B,
+		EV_CUSTOM_EXPLODE = 0x4C,
+		EV_CUSTOM_EXPLODE_NOMARKS = 0x4D,
+		EV_CHANGE_TO_DUD = 0x4E,
+		EV_DUD_EXPLODE = 0x4F,
+		EV_DUD_IMPACT = 0x50,
+		EV_TROPHY_EXPLODE = 0x51,
+		EV_BULLET = 0x52,
+		EV_PLAY_FX = 0x53,
+		EV_PLAY_FX_ON_TAG = 0x54,
+		EV_STOP_FX_ON_TAG = 0x55,
+		EV_PLAY_FX_ON_TAG_FOR_CLIENTS = 0x56,
+		EV_PHYS_EXPLOSION_SPHERE = 0x57,
+		EV_PHYS_EXPLOSION_CYLINDER = 0x58,
+		EV_PHYS_EXPLOSION_JOLT = 0x59,
+		EV_RADIUSDAMAGE = 0x5A,
+		EV_PHYS_JITTER = 0x5B,
+		EV_EARTHQUAKE = 0x5C,
+		EV_GRENADE_SUICIDE = 0x5D,
+		EV_DETONATE = 0x5E,
+		EV_NIGHTVISION_WEAR = 0x5F,
+		EV_NIGHTVISION_REMOVE = 0x60,
+		EV_MISSILE_REMOTE_BOOST = 0x61,
+		EV_OBITUARY = 0x62,
+		EV_NO_PRIMARY_GRENADE_HINT = 0x63,
+		EV_NO_SECONDARY_GRENADE_HINT = 0x64,
+		EV_TARGET_TOO_CLOSE_HINT = 0x65,
+		EV_TARGET_NOT_ENOUGH_CLEARANCE_HINT = 0x66,
+		EV_LOCKON_REQUIRED_HINT = 0x67,
+		EV_VEHICLE_COLLISION = 0x68,
+		EV_VEHICLE_SUSPENSION_SOFT = 0x69,
+		EV_VEHICLE_SUSPENSION_HARD = 0x6A,
+		EV_FOOTSTEP_SPRINT = 0x6B,
+		EV_FOOTSTEP_RUN = 0x6C,
+		EV_FOOTSTEP_WALK = 0x6D,
+		EV_FOOTSTEP_PRONE = 0x6E,
+		EV_JUMP = 0x6F,
+		EV_LANDING_FIRST = 0x70,
+		EV_LANDING_LAST = 0x8E,
+		EV_LANDING_PAIN_FIRST = 0x8F,
+		EV_LANDING_PAIN_LAST = 0xAD,
+		EV_MANTLE = 0xAE,
+		EV_DEBUG_SERVER_AIMING = 0xAF,
+		EV_MAX_EVENTS = 0xB0,
+	};
+
 
 	struct TempPriority
 	{
@@ -11045,6 +11218,87 @@ namespace Game
 		GfxParticleCloud cloudData[256];
 		GfxDrawSurf drawSurfs[16384];
 		GfxLight sceneLights[253];
+	};
+
+
+	struct RumbleDevguiGraphInfo
+	{
+		struct RumbleInfo* rumbleInfo;
+		struct RumbleGraph* rumbleGraph;
+	};
+
+	enum DevEventType
+	{
+		EVENT_ACTIVATE = 0x0,
+		EVENT_DEACTIVATE = 0x1,
+		EVENT_ACCEPT = 0x2,
+		EVENT_UPDATE = 0x3,
+		EVENT_DRAW = 0x4,
+		EVENT_SAVE = 0x5,
+	};
+
+	struct __declspec(align(4)) DevGraph
+	{
+		float(*knots)[2];
+		unsigned __int16* knotCount;
+		unsigned __int16 knotCountMax;
+		int selectedKnot;
+		void(__cdecl* eventCallback)(DevGraph*, DevEventType, int);
+		void(__cdecl* textCallback)(DevGraph*, const float, const float, char*, const int);
+		void* data;
+		bool disableEditingEndPoints;
+	};
+
+	struct RumbleGraph
+	{
+		char graphName[64];
+		float knots[16][2];
+		unsigned __int16 knotCount;
+		DevGraph devguiGraph;
+		RumbleDevguiGraphInfo devguiGraphInfo;
+	};
+
+	static_assert(sizeof(RumbleGraph) == 236);
+
+	struct RumbleInfo
+	{
+		int rumbleNameIndex;
+		float duration;
+		float range;
+		RumbleGraph* highRumbleGraph;
+		RumbleGraph* lowRumbleGraph;
+		int fadeWithDistance;
+		int broadcast;
+		dvar_t* durationDvar;
+		dvar_t* loopDvar;
+	};
+
+	static_assert(sizeof(RumbleInfo) == 36);
+
+
+	union RumbleSource
+	{
+		int entityNum;
+		float pos[3];
+	};
+
+	struct ActiveRumble
+	{
+		RumbleInfo* rumbleInfo;
+		int startTime;
+		bool loop;
+		RumbleSourceType sourceType;
+		unsigned char scale;
+		RumbleSource source;
+	};
+
+	struct RumbleGlobals
+	{
+		RumbleGraph graphs[64];
+		RumbleInfo infos[32];
+		ActiveRumble activeRumbles[32];
+		float receiverPos[3];
+		int receiverEntNum;
 	};
 
 	struct GfxSModelCachePageUsage

@@ -80,5 +80,6 @@ namespace Components
 #include "Modules/Renderer.hpp"
 #include "Modules/Scheduler.hpp"
 #include "Modules/Zones.hpp"
+#include "Modules/Rumble.hpp"
 
 #include "Modules/GSC/GSC.hpp"

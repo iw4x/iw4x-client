@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Gamepad/Controller.hpp"
+
 namespace Components
 {
 	class Gamepad : public Component
@@ -8,26 +10,6 @@ namespace Components
 		{
 			Game::keyNum_t controllerKey;
 			Game::keyNum_t pcKey;
-		};
-
-		struct GamePad
-		{
-			bool enabled;
-			bool inUse;
-			int portIndex;
-			unsigned short digitals;
-			unsigned short lastDigitals;
-			float analogs[2];
-			float lastAnalogs[2];
-			float sticks[4];
-			float lastSticks[4];
-			bool stickDown[4][Game::GPAD_STICK_DIR_COUNT];
-			bool stickDownLast[4][Game::GPAD_STICK_DIR_COUNT];
-			float lowRumble;
-			float highRumble;
-
-			XINPUT_VIBRATION rumble;
-			XINPUT_CAPABILITIES caps;
 		};
 
 		struct GamePadGlobals
@@ -39,15 +21,29 @@ namespace Components
 		};
 
 	public:
-		static const int RUMBLE_CONFIGSTRINGS_COUNT = 31;
+		static const int RUMBLE_CONFIGSTRINGS_COUNT = 32;
 
 		Gamepad();
 
 		static void OnMouseMove(int x, int y, int dx, int dy);
 
+		static void GPad_SetLowRumble(int gamePadIndex, double rumble);
+		static void GPad_SetHighRumble(int gamePadIndex, double rumble);
+		static void GPad_StopRumbles(int gamePadIndex);
+		static void GPad_UpdateFeedbacks();
+
 		static Dvar::Var sv_allowAimAssist;
 
 	private:
+		enum TriggerRole
+		{
+			None,
+			Shooting,
+			Aiming,
+			PrimaryOffHand,
+			SecondaryOffHand
+		};
+
 		static Game::ButtonToCodeMap_t buttonList[];
 		static Game::StickToCodeMap_t analogStickList[4];
 		static Game::GamePadStick stickForAxis[];
@@ -64,13 +60,12 @@ namespace Components
 		static Game::keyname_t combinedLocalizedKeyNamesPs3[];
 		static ControllerMenuKeyMapping controllerMenuKeyMappings[];
 
-		static GamePad gamePads[Game::MAX_GPAD_COUNT];
+		static GamepadControls::Controller gamePads[Game::MAX_GPAD_COUNT];
 		static GamePadGlobals gamePadGlobals[Game::MAX_GPAD_COUNT];
 
 		static int gamePadBindingsModifiedFlags;
 
 		static Dvar::Var gpad_enabled;
-		static Dvar::Var gpad_debug;
 		static Dvar::Var gpad_present;
 		static Dvar::Var gpad_in_use;
 		static Dvar::Var gpad_style;
@@ -79,13 +74,6 @@ namespace Components
 		static Dvar::Var gpad_menu_scroll_delay_first;
 		static Dvar::Var gpad_menu_scroll_delay_rest;
 		static Dvar::Var gpad_rumble;
-		static Dvar::Var gpad_stick_pressed_hysteresis;
-		static Dvar::Var gpad_stick_pressed;
-		static Dvar::Var gpad_stick_deadzone_max;
-		static Dvar::Var gpad_stick_deadzone_min;
-		static Dvar::Var gpad_button_deadzone;
-		static Dvar::Var gpad_button_rstick_deflect_max;
-		static Dvar::Var gpad_button_lstick_deflect_max;
 		static Dvar::Var gpad_use_hold_time;
 		static Dvar::Var gpad_lockon_enabled;
 		static Dvar::Var gpad_slowdown_enabled;
@@ -113,6 +101,8 @@ namespace Components
 		static Dvar::Var aim_lockon_deflection;
 		static Dvar::Var aim_lockon_pitch_strength;
 		static Dvar::Var aim_lockon_strength;
+
+		static DS5W::DeviceContext dualSenseContext;
 
 		static void MSG_WriteDeltaUsercmdKeyStub();
 
@@ -150,26 +140,14 @@ namespace Components
 		static void Player_UseEntity_Stub();
 
 		static bool Key_IsValidGamePadChar(int key);
-		static void CL_GamepadResetMenuScrollTime(int localClientNum, int key, bool down, unsigned int time);
+		static void CL_GamepadResetMenuScrollTime(const int localClientNum, const int key, const bool down, const unsigned time);
 		static bool Scoreboard_HandleInput(int localClientNum, int key);
-		static bool CL_CheckForIgnoreDueToRepeat(int localClientNum, int key, int repeatCount, unsigned int time);
+		static bool CL_CheckForIgnoreDueToRepeat(const int localClientNum, const int key, const int repeatCount, const unsigned time);
 		static void UI_GamepadKeyEvent(int localClientNum, int key, bool down);
 		static void CL_GamepadGenerateAPad(int localClientNum, Game::GamepadPhysicalAxis physicalAxis, unsigned time);
 		static void CL_GamepadEvent(int localClientNum, Game::GamepadPhysicalAxis physicalAxis, float value, unsigned time);
 		static void CL_GamepadButtonEvent(int localClientNum, int key, Game::GamePadButtonEvent buttonEvent, unsigned time);
-		static void CL_GamepadButtonEventForPort(int localClientNum, int key, Game::GamePadButtonEvent buttonEvent, unsigned int time);
-
-		static void GPad_ConvertStickToFloat(short x, short y, float& outX, float& outY);
-		static float GPad_GetStick(int localClientNum, Game::GamePadStick stick);
-		static float GPad_GetButton(int localClientNum, Game::GamePadButton button);
-		static bool GPad_IsButtonPressed(int localClientNum, Game::GamePadButton button);
-		static bool GPad_ButtonRequiresUpdates(int localClientNum, Game::GamePadButton button);
-		static bool GPad_IsButtonReleased(int localClientNum, Game::GamePadButton button);
-
-		static void GPad_UpdateSticksDown(int localClientNum);
-		static void GPad_UpdateSticks(int localClientNum, const XINPUT_GAMEPAD& state);
-		static void GPad_UpdateDigitals(int localClientNum, const XINPUT_GAMEPAD& state);
-		static void GPad_UpdateAnalogs(int localClientNum, const XINPUT_GAMEPAD& state);
+		static void CL_GamepadButtonEventForPort(const int localClientNum, const int key, const Game::GamePadButtonEvent buttonEvent, const unsigned time);
 
 		static bool GPad_Check(int localClientNum, int portIndex);
 		static void GPad_RefreshAll();
@@ -198,13 +176,19 @@ namespace Components
 		static int Key_GetCommandAssignmentInternal(int localClientNum, const char* cmd, int (*keys)[2]);
 		static void Key_GetCommandAssignmentInternal_Stub();
 		static void Key_SetBinding_Hk(int localClientNum, int keyNum, const char* binding);
+		static void CL_KeyEvent_Hk(const int localClientNum, const int key, const int down, const unsigned time);
 		static bool IsGamePadInUse();
-		static void CL_KeyEvent_Hk(int localClientNum, int key, int down, unsigned int time);
 		static int CL_MouseEvent_Hk(int x, int y, int dx, int dy);
 		static bool UI_RefreshViewport_Hk();
 
 		static Game::keyname_t* GetLocalizedKeyNameMap();
 		static void GetLocalizedKeyName_Stub();
 		static void CreateKeyNameMap();
+
+		static void GetTriggerRoles(TriggerRole& leftTrigger, TriggerRole& rightTrigger);
+		static void GetTriggerFeedbackForShooting(const Game::playerState_s* playerState, GamepadControls::GamepadAPI::TriggerFeedback& feedback);
+		static void GetTriggerFeedbackForEquipment(const Game::playerState_s* playerState, bool primary, GamepadControls::GamepadAPI::TriggerFeedback& feedback);
+
+		static void UpdateForceFeedback(GamepadControls::Controller& api);
 	};
 }

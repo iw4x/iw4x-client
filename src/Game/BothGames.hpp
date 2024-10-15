@@ -26,6 +26,9 @@ namespace Game
 	typedef int(*BG_GetEquippedWeaponIndex_t)(const playerState_s* ps, unsigned int weaponIndex);
 	extern BG_GetEquippedWeaponIndex_t BG_GetEquippedWeaponIndex;
 
+	typedef int(*BG_GetViewModelWeaponIndex_t)(const playerState_s* ps);
+	extern BG_GetViewModelWeaponIndex_t BG_GetViewModelWeaponIndex;
+
 	typedef PlayerEquippedWeaponState*(*BG_GetEquippedWeaponState_t)(playerState_s* ps, unsigned int weaponIndex);
 	extern BG_GetEquippedWeaponState_t BG_GetEquippedWeaponState;
 

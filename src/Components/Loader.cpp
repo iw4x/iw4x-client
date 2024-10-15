@@ -47,6 +47,7 @@
 #include "Modules/RawFiles.hpp"
 #include "Modules/RawMouse.hpp"
 #include "Modules/RCon.hpp"
+#include "Modules/Rumble.hpp"
 #include "Modules/Security.hpp"
 #include "Modules/ServerCommands.hpp"
 #include "Modules/ServerInfo.hpp"
@@ -141,6 +142,7 @@ namespace Components
 		Register(new FileSystem());
 		Register(new Friends());
 		Register(new Gamepad());
+		Register(new Rumble());
 		Register(new Huffman());
 		Register(new Lean());
 		Register(new Localization());
