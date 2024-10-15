@@ -47,7 +47,7 @@ namespace Components
 
 	int Rumble::GetRumbleInfoIndexFromName(const char* rumbleName)
 	{
-		for (size_t i = 0; i < Gamepad::RUMBLE_CONFIGSTRINGS_COUNT; i++)
+		for (size_t i = 0; i < Gamepad::RUMBLE_CONFIGSTRINGS_COUNT-1; i++)
 		{
 			const char* configStringArr = ConfigStrings::CL_GetRumbleConfigString(i);
 			if (configStringArr && *configStringArr)

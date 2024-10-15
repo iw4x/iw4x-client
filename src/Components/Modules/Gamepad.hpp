@@ -21,7 +21,7 @@ namespace Components
 		};
 
 	public:
-		static const int RUMBLE_CONFIGSTRINGS_COUNT = 31;
+		static const int RUMBLE_CONFIGSTRINGS_COUNT = 32;
 
 		Gamepad();
 
