@@ -12,7 +12,6 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::BGPlayerEjection;
 	const Game::dvar_t* PlayerMovement::BGPlayerCollision;
 	const Game::dvar_t* PlayerMovement::BGClimbAnything;
-	const Game::dvar_t* PlayerMovement::BGRecoilMultiplier;
 	const Game::dvar_t* PlayerMovement::CGNoclipScaler;
 	const Game::dvar_t* PlayerMovement::CGUfoScaler;
 	const Game::dvar_t* PlayerMovement::PlayerSpectateSpeedScale;
@@ -274,33 +273,6 @@ namespace Components
 		return PlayerSpectateSpeedScale;
 	}
 
-	void PlayerMovement::BG_WeaponFireRecoil_Stub(
-		void* ps,
-		float* recoilSpeed,
-		float* kickAVel,
-		unsigned int* holdrand,
-		Game::PlayerHandIndex hand
-	)
-	{
-		float adjustedRecoilSpeed[3]{};
-		float adjustedKick[3]{};
-
-
-		Utils::Hook::Call<void(void*, float*, float*, unsigned int*, Game::PlayerHandIndex)>(0x4A5FE0)(
-			ps,
-			adjustedRecoilSpeed,
-			adjustedKick,
-			holdrand,
-			hand
-		);
-
-		for (size_t axis = 0; axis < 3; axis++)
-		{
-			recoilSpeed [axis] = adjustedRecoilSpeed[axis] * BGRecoilMultiplier->current.value;
-			kickAVel [axis] = adjustedKick[axis] * BGRecoilMultiplier->current.value;
-		}
-	}
-
 	void PlayerMovement::RegisterMovementDvars()
 	{
 		PlayerDuckedSpeedScale = Game::Dvar_RegisterFloat("player_duckedSpeedScale",
@@ -341,12 +313,7 @@ namespace Components
 
 		BGClimbAnything = Game::Dvar_RegisterBool("bg_climbAnything",
 			false, Game::DVAR_CODINFO, "Treat any surface as a ladder");
-
-		BGRecoilMultiplier = Game::Dvar_RegisterFloat("bg_recoilMultiplier",
-			1.0f, 0.0f, 1000.0f, Game::DVAR_CHEAT,
-			"The scale applied to the player recoil when firing");
 	}
-
 
 	PlayerMovement::PlayerMovement()
 	{
@@ -406,9 +373,6 @@ namespace Components
 
 		Utils::Hook(0x570020, PM_CrashLand_Stub, HOOK_CALL).install()->quick(); // Vec3Scale
 		Utils::Hook(0x4E9889, Jump_Check_Stub, HOOK_JUMP).install()->quick();
-
-		Utils::Hook(0x44D90B, BG_WeaponFireRecoil_Stub, HOOK_CALL).install()->quick();
-		Utils::Hook(0x4FB2D7, BG_WeaponFireRecoil_Stub, HOOK_CALL).install()->quick();
 
 		GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
 

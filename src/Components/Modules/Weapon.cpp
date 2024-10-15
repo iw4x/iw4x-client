@@ -6,6 +6,7 @@
 namespace Components
 {
 	const Game::dvar_t* Weapon::BGWeaponOffHandFix;
+	const Game::dvar_t* Weapon::CGRecoilMultiplier;
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
@@ -335,6 +336,33 @@ namespace Components
 		}
 	}
 
+	void Weapon::BG_WeaponFireRecoil_Stub(
+		void* ps,
+		float* recoilSpeed,
+		float* kickAVel,
+		unsigned int* holdrand,
+		Game::PlayerHandIndex hand
+	)
+	{
+		float adjustedRecoilSpeed[3]{};
+		float adjustedKick[3]{};
+
+
+		Utils::Hook::Call<void(void*, float*, float*, unsigned int*, Game::PlayerHandIndex)>(0x4A5FE0)(
+			ps,
+			adjustedRecoilSpeed,
+			adjustedKick,
+			holdrand,
+			hand
+		);
+
+		for (size_t axis = 0; axis < 3; axis++)
+		{
+			recoilSpeed [axis] = adjustedRecoilSpeed[axis] * CGRecoilMultiplier->current.value;
+			kickAVel [axis] = adjustedKick[axis] * CGRecoilMultiplier->current.value;
+		}
+	}
+
 	void Weapon::PlayerCmd_InitialWeaponRaise(const Game::scr_entref_t entref)
 	{
 		auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
@@ -447,6 +475,12 @@ namespace Components
 		AssertOffset(Game::playerState_s, grenadeTimeLeft, 0x34);
 		BGWeaponOffHandFix = Game::Dvar_RegisterBool("bg_weaponOffHandFix", true, Game::DVAR_CODINFO, "Reset grenadeTimeLeft after using off hand weapon");
 		Utils::Hook(0x578F52, JavelinResetHook_Stub, HOOK_JUMP).install()->quick();
+	
+		CGRecoilMultiplier = Game::Dvar_RegisterFloat("cg_recoilMultiplier",
+			1.0f, 0.0f, 1000.0f, Game::DVAR_CHEAT,
+			"The scale applied to the player recoil when firing");
+		Utils::Hook(0x44D90B, BG_WeaponFireRecoil_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4FB2D7, BG_WeaponFireRecoil_Stub, HOOK_CALL).install()->quick();
 
 		AddScriptMethods();
 	}
