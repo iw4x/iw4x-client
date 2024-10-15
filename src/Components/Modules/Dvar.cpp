@@ -259,6 +259,11 @@ namespace Components
 		return Game::Dvar_RegisterFloat(dvarName, value, min, 10000.0f, flags, description);
 	}
 
+	const Game::dvar_t* Dvar::Dvar_RegisterAimLockonStrength(const char* dvarName, float value, float min, float max, std::uint16_t flags, const char* /*description*/)
+	{
+		return Game::Dvar_RegisterFloat(dvarName, value, min, max, flags, "The amount of aim assistance given by the target lock on (yaw)");
+	}
+
 	void Dvar::SetFromStringByNameSafeExternal(const char* dvarName, const char* string)
 	{
 		static std::array exceptions =
@@ -483,6 +488,9 @@ namespace Components
 
 		// Hook dvar 'perk_extendedMeleeRange' and set a higher max, better than having people force this with external programs
 		Utils::Hook(0x492D2F, Dvar_RegisterPerkExtendedMeleeRange, HOOK_CALL).install()->quick();
+
+		// Hook dvar 'aim_lockon_strength' and clarify in the description that it is for yaw, now that 'aim_lockon_pitch_strength' is registered
+		Utils::Hook(0x43FCFD, Dvar_RegisterAimLockonStrength, HOOK_CALL).install()->quick();
 
 		// un-cheat safeArea_* and add archive flags
 		Utils::Hook::Xor<std::uint32_t>(0x42E3F5, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_horizontal

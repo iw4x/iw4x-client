@@ -97,7 +97,7 @@ namespace Utils
 						this->slots.end(),
 						[&](std::function<T>& a)
 						{
-							if (a.target<T>() == slot.target<T>())
+							if (a.template target<T>() == slot.template target<T>())
 							{
 								return true;
 							}
