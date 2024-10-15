@@ -129,6 +129,7 @@ namespace Utils::String
 
 	[[nodiscard]] bool StartsWith(const std::string& haystack, const std::string& needle);
 	[[nodiscard]] bool EndsWith(const std::string& haystack, const std::string& needle);
+	[[nodiscard]] bool Contains(const std::string& haystack, const std::string& needle);
 
 	[[nodiscard]] bool IsNumber(const std::string& str);
 

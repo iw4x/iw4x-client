@@ -116,8 +116,9 @@ namespace Components
 				fileEntry.name = name;
 				fileEntry.hash = hash;
 				fileEntry.size = size;
+				fileEntry.isMap = download->isMap_;
 
-				if (!fileEntry.name.empty())
+				if (!fileEntry.name.empty() && fileEntry.allowed())
 				{
 					download->files_.push_back(fileEntry);
 					download->totalBytes_ += fileEntry.size;
@@ -138,6 +139,8 @@ namespace Components
 		if (!download || download->files_.size() <= index) return false;
 
 		auto file = download->files_[index];
+
+		assert(file.allowed());
 
 		auto path = download->mod_ + "/" + file.name;
 		if (download->isMap_)
@@ -883,5 +886,50 @@ namespace Components
 		{
 			CLDownload.clear();
 		}
+	}
+
+	bool Download::ClientDownload::File::allowed() const
+	{
+		if (Utils::String::Contains(name, "..") || Utils::String::Contains(name, ":"))
+		{
+			return false;
+		}
+
+		if (Utils::String::Contains(name, "\\") || Utils::String::Contains(name, "/"))
+		{
+			return false;
+		}
+
+		if (isMap)
+		{
+			if (name.ends_with(".arena"))
+			{
+				return true;
+			}
+
+			if (name.ends_with(".iwd"))
+			{
+				return true;
+			}
+
+			if (name.ends_with(".ff"))
+			{
+				return true;
+			}
+		}
+		else
+		{
+			// Plain and simple
+			if (name == "mod.ff")
+			{
+				return true;
+			}
+			if (name.ends_with(".iwd"))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

@@ -114,6 +114,16 @@ namespace Utils::String
 		return std::equal(needle.rbegin(), needle.rend(), haystack.rbegin());
 	}
 
+	bool Contains(const std::string& haystack, const std::string& needle)
+	{
+		if (haystack.find(needle) != std::string::npos) 
+		{
+			return true;
+		} 
+		
+		return false;
+	}		
+
 	bool IsNumber(const std::string& str)
 	{
 		return !str.empty() && std::find_if(str.begin(), str.end(), [](unsigned char input)

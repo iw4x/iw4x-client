@@ -55,6 +55,9 @@ namespace Components
 				std::string name;
 				std::string hash;
 				std::size_t size;
+				bool isMap;
+
+				bool allowed() const;
 			};
 
 			std::vector<File> files_;

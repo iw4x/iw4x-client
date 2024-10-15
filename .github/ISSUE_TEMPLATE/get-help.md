@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 _Do not open an issue here if you need help with modding or have a problem getting the client to run.
-Ask in `iw4x-support` or `iw4x-modding` channels on the [Discord](https://discord.gg/tKTQJxcCkk) server if you still have problems.
+Ask in MW2 channels on the [Discord](https://discord.gg/2ETE8engZM) server if you still have problems.
 If this does not apply, please continue by filling in the template below._
 
 **What are you trying to do?**

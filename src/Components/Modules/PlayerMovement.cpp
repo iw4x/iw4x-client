@@ -321,26 +321,26 @@ namespace Components
 			"The speed at which noclip camera moves");
 
 		BGDisableLandingSlowdown = Game::Dvar_RegisterBool("bg_disableLandingSlowdown",
-			false, Game::DVAR_CHEAT, "Toggle landing slowdown");
+			false, Game::DVAR_CODINFO, "Toggle landing slowdown");
 
 		BGBunnyHopAuto = Game::Dvar_RegisterBool("bg_bunnyHopAuto",
-			false, Game::DVAR_CHEAT, "Constantly jump when holding space");
+			false, Game::DVAR_CODINFO, "Constantly jump when holding space");
 
 		BGRocketJump = Game::Dvar_RegisterBool("bg_rocketJump",
-			false, Game::DVAR_CHEAT, "Enable CoD4 rocket jumps");
+			false, Game::DVAR_CODINFO, "Enable CoD4 rocket jumps");
 
 		BGRocketJumpScale = Game::Dvar_RegisterFloat("bg_rocketJumpScale",
-			64.0f, 1.0f, std::numeric_limits<float>::max(), Game::DVAR_CHEAT,
+			64.0f, 1.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO,
 			"The scale applied to the pushback force of a rocket");
 
 		BGPlayerEjection = Game::Dvar_RegisterBool("bg_playerEjection",
-			true, Game::DVAR_CHEAT, "Push intersecting players away from each other");
+			true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
 
 		BGPlayerCollision = Game::Dvar_RegisterBool("bg_playerCollision",
-			true, Game::DVAR_CHEAT, "Push intersecting players away from each other");
+			true, Game::DVAR_CODINFO, "Push intersecting players away from each other");
 
 		BGClimbAnything = Game::Dvar_RegisterBool("bg_climbAnything",
-			false, Game::DVAR_CHEAT, "Treat any surface as a ladder");
+			false, Game::DVAR_CODINFO, "Treat any surface as a ladder");
 
 		BGRecoilMultiplier = Game::Dvar_RegisterFloat("bg_recoilMultiplier",
 			1.0f, 0.0f, 1000.0f, Game::DVAR_CHEAT,

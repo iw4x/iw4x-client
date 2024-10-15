@@ -2,6 +2,7 @@
 
 #include "Updater.hpp"
 #include "Scheduler.hpp"
+#include "version.hpp"
 
 #include <Utils/WebIO.hpp>
 
@@ -13,21 +14,11 @@ namespace Components
 	{
 		const Game::dvar_t* cl_updateAvailable;
 
-		// If they use the alterware-launcher once to install they will have this file
-		// If they don't, what are they waiting for?
-		constexpr auto* REVISION_FILE = ".iw4xrevision";
 		constexpr auto* GITHUB_REMOTE_URL = "https://api.github.com/repos/iw4x/iw4x-client/releases/latest";
 		constexpr auto* INSTALL_GUIDE_REMOTE_URL = "https://forum.alterware.dev/t/how-to-install-the-alterware-launcher/56";
 
 		void CheckForUpdate()
 		{
-			std::string revision;
-			if (!Utils::IO::ReadFile(REVISION_FILE, &revision) || revision.empty())
-			{
-				Logger::Print("{} does not exist. Notifying the user an update is available\n", REVISION_FILE);
-				Game::Dvar_SetBool(cl_updateAvailable, true);
-			}
-
 			const auto result = Utils::WebIO("IW4x", GITHUB_REMOTE_URL).setTimeout(5000)->get();
 			if (result.empty())
 			{
@@ -52,8 +43,8 @@ namespace Components
 				return;
 			}
 
-			const auto* tag = doc["tag_name"].GetString();
-			if (revision != tag)
+			const std::string tag = doc["tag_name"].GetString();
+			if (REVISION_STR != tag)
 			{
 				// A new version came out!
 				Game::Dvar_SetBool(cl_updateAvailable, true);

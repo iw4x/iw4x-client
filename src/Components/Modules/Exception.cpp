@@ -136,7 +136,7 @@ namespace Components
 		// Combine with queued MinidumpsFolder
 		char filename[MAX_PATH]{};
 		CreateDirectoryA("minidumps", nullptr);
-		PathCombineA(filename, "minidumps\\", Utils::String::VA("%s-" VERSION "-%s.dmp", exeFileName, filenameFriendlyTime));
+		PathCombineA(filename, "minidumps\\", Utils::String::VA("%s-" REVISION_STR "-%s.dmp", exeFileName, filenameFriendlyTime));
 
 		constexpr auto fileShare = FILE_SHARE_READ | FILE_SHARE_WRITE;
 		HANDLE hFile = CreateFileA(filename, GENERIC_WRITE | GENERIC_READ, fileShare, nullptr, (fileShare & FILE_SHARE_WRITE) > 0 ? OPEN_ALWAYS : OPEN_EXISTING, NULL, nullptr);
