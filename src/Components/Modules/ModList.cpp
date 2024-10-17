@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+
+#include "Events.hpp"
 #include "ModList.hpp"
 #include "UIFeeder.hpp"
 
@@ -65,11 +67,11 @@ namespace Components
 
 		if (Dvar::Var("cl_modVidRestart").get<bool>())
 		{
-			Game::Cmd_ExecuteSingleCommand(0, 0, "vid_restart");
+			Command::Execute("vid_restart", false);
 		}
 		else
 		{
-			Game::Cmd_ExecuteSingleCommand(0, 0, "closemenu mods_menu");
+			Command::Execute("closemenu mods_menu", false);
 		}
 	}
 
@@ -100,5 +102,26 @@ namespace Components
 		UIScript::Add("ClearMods", ModList::UIScript_ClearMods);
 
 		UIFeeder::Add(9.0f, ModList::GetItemCount, ModList::GetItemText, ModList::Select);
+
+		Events::OnSteamDisconnect([]() -> void
+		{
+			if (Game::cgsArray->localServer)
+			{
+				// Do not unload when exiting a private match because GH-70
+				// Might be okay to do when that PR and related issues are sorted out
+				return;
+			}
+
+			// Clear mod sequence
+			if (*Game::fs_gameDirVar == nullptr || *(*Game::fs_gameDirVar)->current.string == '\0')
+			{
+				return;
+			}
+
+			Game::Dvar_SetString(*Game::fs_gameDirVar, "");
+			const_cast<Game::dvar_t*>((*Game::fs_gameDirVar))->modified = true;
+
+			Command::Execute("vid_restart", false);
+		});
 	}
 }
