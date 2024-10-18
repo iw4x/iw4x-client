@@ -9,6 +9,8 @@ namespace Components
 	std::vector<std::string> ModList::Mods;
 	unsigned int ModList::CurrentMod;
 
+	Dvar::Var ModList::cl_modVidRestart;
+
 	bool ModList::HasMod(const std::string& modName)
 	{
 		auto list = FileSystem::GetSysFileList(Dvar::Var("fs_basepath").get<std::string>() + "\\mods", "", true);
@@ -22,6 +24,26 @@ namespace Components
 		}
 
 		return false;
+	}
+
+	void ModList::ClearMods()
+	{
+		// Clear mod sequence (make sure fs_game is actually set)
+		if (*Game::fs_gameDirVar == nullptr || *(*Game::fs_gameDirVar)->current.string == '\0')
+		{
+			return;
+		}
+
+		Game::Dvar_SetString(*Game::fs_gameDirVar, "");
+
+		if (cl_modVidRestart.get<bool>())
+		{
+			Command::Execute("vid_restart", false);
+		}
+		else
+		{
+			Command::Execute("closemenu mods_menu", false);
+		}
 	}
 
 	unsigned int ModList::GetItemCount()
@@ -62,17 +84,7 @@ namespace Components
 
 	void ModList::UIScript_ClearMods([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		Game::Dvar_SetString(*Game::fs_gameDirVar, "");
-		const_cast<Game::dvar_t*>((*Game::fs_gameDirVar))->modified = true;
-
-		if (Dvar::Var("cl_modVidRestart").get<bool>())
-		{
-			Command::Execute("vid_restart", false);
-		}
-		else
-		{
-			Command::Execute("closemenu mods_menu", false);
-		}
+		ClearMods();
 	}
 
 	void ModList::RunMod(const std::string& mod)
@@ -80,7 +92,7 @@ namespace Components
 		Game::Dvar_SetString(*Game::fs_gameDirVar, Utils::String::Format("mods/{}", mod));
 		const_cast<Game::dvar_t*>((*Game::fs_gameDirVar))->modified = true;
 
-		if (Dvar::Var("cl_modVidRestart").get<bool>())
+		if (cl_modVidRestart.get<bool>())
 		{
 			Command::Execute("vid_restart", false);
 		}
@@ -95,7 +107,7 @@ namespace Components
 		if (Dedicated::IsEnabled()) return;
 
 		ModList::CurrentMod = 0;
-		Dvar::Register("cl_modVidRestart", true, Game::DVAR_ARCHIVE, "Perform a vid_restart when loading a mod.");
+		cl_modVidRestart = Dvar::Register("cl_modVidRestart", true, Game::DVAR_ARCHIVE, "Perform a vid_restart when loading a mod.");
 
 		UIScript::Add("LoadMods", ModList::UIScript_LoadMods);
 		UIScript::Add("RunMod", ModList::UIScript_RunMod);
@@ -112,16 +124,7 @@ namespace Components
 				return;
 			}
 
-			// Clear mod sequence
-			if (*Game::fs_gameDirVar == nullptr || *(*Game::fs_gameDirVar)->current.string == '\0')
-			{
-				return;
-			}
-
-			Game::Dvar_SetString(*Game::fs_gameDirVar, "");
-			const_cast<Game::dvar_t*>((*Game::fs_gameDirVar))->modified = true;
-
-			Command::Execute("vid_restart", false);
+			ClearMods();
 		});
 	}
 }

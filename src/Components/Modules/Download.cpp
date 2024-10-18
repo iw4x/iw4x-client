@@ -5,6 +5,7 @@
 #include "Download.hpp"
 #include "Events.hpp"
 #include "MapRotation.hpp"
+#include "ModList.hpp"
 #include "Node.hpp"
 #include "Party.hpp"
 #include "ServerInfo.hpp"
@@ -348,7 +349,7 @@ namespace Components
 
 				Command::Execute("closemenu mod_download_popmenu", false);
 
-				if (Dvar::Var("cl_modVidRestart").get<bool>())
+				if (ModList::cl_modVidRestart.get<bool>())
 				{
 					Command::Execute("vid_restart", false);
 				}
