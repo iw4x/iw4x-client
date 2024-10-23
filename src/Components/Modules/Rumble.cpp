@@ -245,6 +245,8 @@ namespace Components
 			assert(scale <= 1.f);
 			assert(scale >= 0.f);
 
+			scale *= activeRumble->scale / static_cast<float>(std::numeric_limits<uint8_t>().max());
+
 			// Guesswork
 			float duration01 = (cg->time - activeRumble->startTime) / activeRumble->rumbleInfo->duration;
 			assert(duration01 >= 0.f);
@@ -423,7 +425,7 @@ namespace Components
 				Game::RUMBLESOURCE_ENTITY,
 				clientGlob->predictedPlayerState.clientNum,
 				nullptr,
-				1.0,
+				cl_rumbleScale.get<float>(),
 				false
 			);
 		}
@@ -433,7 +435,7 @@ namespace Components
 	{
 		if (GetRumbleInfoIndexFromName(rumbleName) >= 0)
 		{
-			PlayRumbleInternal(localClientNum, rumbleName, 0, Game::RUMBLESOURCE_ENTITY, Game::CL_GetLocalClientGlobals(localClientNum)->predictedPlayerState.clientNum, 0, 1.0, false);
+			PlayRumbleInternal(localClientNum, rumbleName, 0, Game::RUMBLESOURCE_ENTITY, Game::CL_GetLocalClientGlobals(localClientNum)->predictedPlayerState.clientNum, 0, cl_rumbleScale.get<float>(), false);
 		}
 		else
 		{
@@ -1029,7 +1031,7 @@ namespace Components
 	void Rumble::InitDvars()
 	{
 		cl_debug_rumbles = Dvar::Register<bool>("cl_debug_rumbles", false, Game::DVAR_SAVED, "Debug rumbles on the screen");
-		cl_rumbleScale = Dvar::Register<float>("cl_rumbleScale", 1.f, 0.f, 1.f, Game::DVAR_SAVED, "Rumble multiplier for the controller");
+		cl_rumbleScale = Dvar::Register<float>("cl_rumbleScale", 0.6f, 0.f, 1.f, Game::DVAR_SAVED, "Rumble multiplier for the controller");
 	}
 
 	void Rumble::CG_StopRumble(int localClientNum, int entityNum, const char* rumbleName)
@@ -1266,7 +1268,7 @@ namespace Components
 							Game::RUMBLESOURCE_ENTITY,
 							Game::cgArray->predictedPlayerState.clientNum,
 							0,
-							spinRate,
+							spinRate * cl_rumbleScale.get<float>(),
 							true
 						);
 					}
