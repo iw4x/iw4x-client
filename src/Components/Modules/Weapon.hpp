@@ -26,6 +26,8 @@ namespace Components
 
 		static void SaveRegisteredWeapons();
 
+		static void PatchHintStrings();
+
 		static void CG_UpdatePrimaryForAltModeWeapon_Stub();
 		static void CG_SelectWeaponIndex_Stub();
 

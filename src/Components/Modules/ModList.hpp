@@ -7,6 +7,8 @@ namespace Components
 	public:
 		ModList();
 
+		static Dvar::Var cl_modVidRestart;
+
 		static void RunMod(const std::string& mod);
 
 	private:
@@ -14,6 +16,8 @@ namespace Components
 		static unsigned int CurrentMod;
 
 		static bool HasMod(const std::string& modName);
+
+		static void ClearMods();
 
 		static unsigned int GetItemCount();
 		static const char* GetItemText(unsigned int index, int column);

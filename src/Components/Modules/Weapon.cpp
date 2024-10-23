@@ -103,6 +103,27 @@ namespace Components
 			}
 		}
 	}
+
+	void Weapon::PatchHintStrings()
+	{
+		static Game::Material* hintMaterials[WEAPON_LIMIT + 4];
+
+		// CG_RegisterWeapon
+		Utils::Hook::Set(0x4EF619, &hintMaterials[4]);
+
+		Utils::Hook::Set(0x58D003, hintMaterials); // CG_DrawCursorhint (All hints related to crosshair, like pickup hints)
+		Utils::Hook::Set(0x58969A, &hintMaterials[3]); // hint_health in CG_RegisterGraphics
+		Utils::Hook::Set(0x5896AB, &hintMaterials[4]); // hint_friendly in CG_RegisterGraphics
+
+		Utils::Hook::Set<uint32_t>(0x58D01C + 1, ARRAYSIZE(hintMaterials));
+
+		// Has to do with fx, but somehow lies within the material array
+		// EDIT: Those are unrelated (PlayFX OnTag, with FX Id, which is also in cg_media but not related to hint materials)
+		//Utils::Hook::Set(0x402069, &unknownMaterialArray[32]);
+		//Utils::Hook::Set(0x4E05D9, &unknownMaterialArray[32]);
+
+	}
+
 	void Weapon::PatchLimit()
 	{
 		Utils::Hook::Set<DWORD>(0x403783, WEAPON_LIMIT);
@@ -252,15 +273,7 @@ namespace Components
 		Utils::Hook::Set(0x59C095, cg_weaponsStaticArray);
 		Utils::Hook::Set(0x59C09D, cg_weaponsStaticArray);
 
-		static int unknownMaterialArray[WEAPON_LIMIT + 4];
-		Utils::Hook::Set(0x58D003, unknownMaterialArray);
-		Utils::Hook::Set(0x58969A, &unknownMaterialArray[3]);
-		Utils::Hook::Set(0x4EF619, &unknownMaterialArray[4]);
-		Utils::Hook::Set(0x5896AB, &unknownMaterialArray[4]);
-
-		// Has to do with fx, but somehow lies within the material array
-		//Utils::Hook::Set(0x402069, &unknownMaterialArray[32]);
-		//Utils::Hook::Set(0x4E05D9, &unknownMaterialArray[32]);
+		PatchHintStrings();
 
 		// Patch bg_weaponDefs on the stack
 		Utils::Hook::Set<DWORD>(0x40C31D, sizeof(bg_weaponDefs));

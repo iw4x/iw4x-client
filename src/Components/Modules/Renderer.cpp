@@ -149,8 +149,8 @@ namespace Components
 			// Show error
 			pushad
 
-			push eax
-			push [esp + 0x20 + 0x24]
+			push edx
+			push [esp + 0x20 + 0x24 + 0x4]
 			push eax
 			call R_TextureFromCodeError
 			add esp, 0xC

@@ -1,4 +1,6 @@
 #include <STDInclude.hpp>
+
+#include "Events.hpp"
 #include "ModList.hpp"
 #include "UIFeeder.hpp"
 
@@ -6,6 +8,8 @@ namespace Components
 {
 	std::vector<std::string> ModList::Mods;
 	unsigned int ModList::CurrentMod;
+
+	Dvar::Var ModList::cl_modVidRestart;
 
 	bool ModList::HasMod(const std::string& modName)
 	{
@@ -20,6 +24,26 @@ namespace Components
 		}
 
 		return false;
+	}
+
+	void ModList::ClearMods()
+	{
+		// Clear mod sequence (make sure fs_game is actually set)
+		if (*Game::fs_gameDirVar == nullptr || *(*Game::fs_gameDirVar)->current.string == '\0')
+		{
+			return;
+		}
+
+		Game::Dvar_SetString(*Game::fs_gameDirVar, "");
+
+		if (cl_modVidRestart.get<bool>())
+		{
+			Command::Execute("vid_restart", false);
+		}
+		else
+		{
+			Command::Execute("closemenu mods_menu", false);
+		}
 	}
 
 	unsigned int ModList::GetItemCount()
@@ -60,17 +84,7 @@ namespace Components
 
 	void ModList::UIScript_ClearMods([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		Game::Dvar_SetString(*Game::fs_gameDirVar, "");
-		const_cast<Game::dvar_t*>((*Game::fs_gameDirVar))->modified = true;
-
-		if (Dvar::Var("cl_modVidRestart").get<bool>())
-		{
-			Game::Cmd_ExecuteSingleCommand(0, 0, "vid_restart");
-		}
-		else
-		{
-			Game::Cmd_ExecuteSingleCommand(0, 0, "closemenu mods_menu");
-		}
+		ClearMods();
 	}
 
 	void ModList::RunMod(const std::string& mod)
@@ -78,7 +92,7 @@ namespace Components
 		Game::Dvar_SetString(*Game::fs_gameDirVar, Utils::String::Format("mods/{}", mod));
 		const_cast<Game::dvar_t*>((*Game::fs_gameDirVar))->modified = true;
 
-		if (Dvar::Var("cl_modVidRestart").get<bool>())
+		if (cl_modVidRestart.get<bool>())
 		{
 			Command::Execute("vid_restart", false);
 		}
@@ -93,12 +107,24 @@ namespace Components
 		if (Dedicated::IsEnabled()) return;
 
 		ModList::CurrentMod = 0;
-		Dvar::Register("cl_modVidRestart", true, Game::DVAR_ARCHIVE, "Perform a vid_restart when loading a mod.");
+		cl_modVidRestart = Dvar::Register("cl_modVidRestart", true, Game::DVAR_ARCHIVE, "Perform a vid_restart when loading a mod.");
 
 		UIScript::Add("LoadMods", ModList::UIScript_LoadMods);
 		UIScript::Add("RunMod", ModList::UIScript_RunMod);
 		UIScript::Add("ClearMods", ModList::UIScript_ClearMods);
 
 		UIFeeder::Add(9.0f, ModList::GetItemCount, ModList::GetItemText, ModList::Select);
+
+		Events::OnSteamDisconnect([]() -> void
+		{
+			if (Game::cgsArray->localServer)
+			{
+				// Do not unload when exiting a private match because GH-70
+				// Might be okay to do when that PR and related issues are sorted out
+				return;
+			}
+
+			ClearMods();
+		});
 	}
 }

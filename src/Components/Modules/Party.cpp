@@ -5,6 +5,7 @@
 #include "Download.hpp"
 #include "Friends.hpp"
 #include "Gamepad.hpp"
+#include "ModList.hpp"
 #include "Node.hpp"
 #include "Party.hpp"
 #include "ServerList.hpp"
@@ -530,7 +531,7 @@ namespace Components
 					{
 						Game::Dvar_SetString(*Game::fs_gameDirVar, "");
 
-						if (Dvar::Var("cl_modVidRestart").get<bool>())
+						if (ModList::cl_modVidRestart.get<bool>())
 						{
 							Command::Execute("vid_restart", false);
 						}
