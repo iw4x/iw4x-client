@@ -26,6 +26,7 @@ namespace Game
 	Com_OpenLogFile_t Com_OpenLogFile = Com_OpenLogFile_t(0x60A8D0);
 	Com_UpdateSlowMotion_t Com_UpdateSlowMotion = Com_UpdateSlowMotion_t(0x60B2D0);
 	Com_Compress_t Com_Compress = Com_Compress_t(0x498220);
+	Com_LoadInfoString_t Com_LoadInfoString = Com_LoadInfoString_t(0x463500);
 
 	int* com_frameTime = reinterpret_cast<int*>(0x1AD8F3C);
 

@@ -6,6 +6,9 @@ namespace Components::GSC
 	std::vector<Script::ScriptFunction> Script::CustomScrFunctions;
 	std::vector<Script::ScriptMethod> Script::CustomScrMethods;
 
+	std::vector<Script::ScriptFunction> Script::CommonOverridenFunctions;
+	std::vector<Script::ScriptMethod> Script::CommonOverridenMethods;
+	
 	std::unordered_map<std::string, int> Script::ScriptMainHandles;
 	std::unordered_map<std::string, int> Script::ScriptInitHandles;
 
@@ -117,24 +120,38 @@ namespace Components::GSC
 		Game::GScr_LoadGameTypeScript();
 	}
 
-	void Script::AddFunction(const std::string& name, const Game::BuiltinFunction func, const bool type)
+	void Script::AddFunction(const std::string& name, const Game::BuiltinFunction func, const bool type, const bool builtIn)
 	{
 		ScriptFunction toAdd;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
-		toAdd.aliases.push_back({Utils::String::ToLower(name)});
+		toAdd.aliases.push_back({ Utils::String::ToLower(name) });
 
-		CustomScrFunctions.emplace_back(toAdd);
+		if (builtIn)
+		{
+			CommonOverridenFunctions.emplace_back(toAdd);
+		}
+		else
+		{
+			CustomScrFunctions.emplace_back(toAdd);
+		}
 	}
 
-	void Script::AddMethod(const std::string& name, const Game::BuiltinMethod func, const bool type)
+	void Script::AddMethod(const std::string& name, const Game::BuiltinMethod func, const bool type, const bool builtIn)
 	{
 		ScriptMethod toAdd;
 		toAdd.actionFunc = func;
 		toAdd.type = type;
-		toAdd.aliases.push_back({Utils::String::ToLower(name)});
-
-		CustomScrMethods.emplace_back(toAdd);
+		toAdd.aliases.push_back({ Utils::String::ToLower(name) });
+		
+		if (builtIn)
+		{
+			CommonOverridenMethods.emplace_back(toAdd);
+		}
+		else
+		{
+			CustomScrMethods.emplace_back(toAdd);
+		}
 	}
 
 	void Script::AddFuncMultiple(Game::BuiltinFunction func, bool type, scriptNames aliases)
@@ -159,6 +176,34 @@ namespace Components::GSC
 		toAdd.aliases = std::move(aliasesToAdd);
 
 		CustomScrMethods.emplace_back(toAdd);
+	}
+
+    Game::BuiltinFunction Script::Common_GetFunctionStub(const char** pName, int* type)
+	{
+		if (pName != nullptr)
+		{
+			const auto name = Utils::String::ToLower(*pName);
+			for (const auto& funcs : CommonOverridenFunctions)
+			{
+				if (std::ranges::find(funcs.aliases, name) != funcs.aliases.end())
+				{
+					*type = funcs.type;
+					return funcs.actionFunc;
+				}
+			}
+		}
+		else
+		{
+			// "func" here is a struct that contains several things
+			for (const auto& func : CommonOverridenFunctions)
+			{
+				const auto& name = func.aliases.at(0);
+				Game::Scr_RegisterFunction(reinterpret_cast<int>(func.actionFunc), name.data());
+			}
+		}
+
+		// If no function was found let's call game's function
+		return Utils::Hook::Call<Game::BuiltinFunction(const char**, int* type)>(0x4BCF80)(pName, type); // Common_GetFunction
 	}
 
 	Game::BuiltinFunction Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
@@ -186,6 +231,32 @@ namespace Components::GSC
 
 		// If no function was found let's call game's function
 		return Utils::Hook::Call<Game::BuiltinFunction(const char**, int*)>(0x5FA2B0)(pName, type); // BuiltIn_GetFunction
+	}
+
+	Game::BuiltinMethod Script::Common_GetMethodStub(const char** pName)
+	{
+		if (pName != nullptr)
+		{
+			const auto name = Utils::String::ToLower(*pName);
+			for (const auto& meths : CommonOverridenMethods)
+			{
+				if (std::ranges::find(meths.aliases, name) != meths.aliases.end())
+				{
+					return meths.actionFunc;
+				}
+			}
+		}
+		else
+		{
+			for (const auto& meth : CommonOverridenMethods)
+			{
+				const auto& name = meth.aliases.at(0);
+				Game::Scr_RegisterFunction(reinterpret_cast<int>(meth.actionFunc), name.data());
+			}
+		}
+
+		// If no method was found let's call game's function
+		return Utils::Hook::Call<Game::BuiltinMethod(const char**)>(0x4DBA50)(pName); // Player_GetMethod
 	}
 
 	Game::BuiltinMethod Script::BuiltIn_GetMethodStub(const char** pName, int* type)
@@ -282,6 +353,10 @@ namespace Components::GSC
 		// Fetch custom functions
 		Utils::Hook(0x44E72E, BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
 		Utils::Hook(0x4EC8DD, BuiltIn_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
+		Utils::Hook(0x4EC881, Common_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
+
+		Utils::Hook(0x44E712, Common_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
+
 
 		Utils::Hook(0x5F41A3, SetExpFogStub, HOOK_CALL).install()->quick();
 

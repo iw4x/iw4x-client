@@ -22,7 +22,7 @@ namespace Components
 	constexpr auto EXTRA_MODELCACHE_LAST = EXTRA_MODELCACHE_FIRST + ModelCache::ADDITIONAL_GMODELS;
 
 	constexpr auto RUMBLE_FIRST = EXTRA_MODELCACHE_LAST + 1;
-	constexpr auto RUMBLE_LAST = RUMBLE_FIRST + 31; // TODO
+	constexpr auto RUMBLE_LAST = RUMBLE_FIRST + Gamepad::RUMBLE_CONFIGSTRINGS_COUNT - 1; // TODO
 
 	void ConfigStrings::PatchConfigStrings()
 	{
@@ -156,6 +156,21 @@ namespace Components
 	{
 		SV_SetConfigString(index, data, Game::CS_WEAPONFILES_LAST, EXTRA_WEAPONS_FIRST);
 	}
+
+	const char* ConfigStrings::CL_GetRumbleConfigString(int index)
+	{
+		return CL_GetConfigString(RUMBLE_FIRST + index, Game::CS_LAST, Game::MAX_CONFIGSTRINGS);
+	}
+
+	unsigned int ConfigStrings::SV_GetRumbleConfigStringConst(int index)
+	{
+		return SV_GetConfigString(RUMBLE_FIRST +index, Game::CS_LAST, Game::MAX_CONFIGSTRINGS);
+	}
+
+	void ConfigStrings::SV_SetRumbleConfigString(int index, const char* data)
+	{
+		SV_SetConfigString(RUMBLE_FIRST + index, data, Game::CS_LAST, Game::MAX_CONFIGSTRINGS);
+	}
 	
 	void ConfigStrings::SV_SetCachedModelConfigString(int index, const char* data)
 	{
@@ -250,6 +265,13 @@ namespace Components
 
 				index = index - EXTRA_MODELCACHE_FIRST + ModelCache::BASE_GMODEL_COUNT;
 				ModelCache::gameModels_reallocated[index] = Utils::Hook::Call<Game::XModel*(const char*)>(R_RegisterModel)(name);
+			}
+			// Rumble!
+			else if (index >= RUMBLE_FIRST && index <= RUMBLE_LAST)
+			{
+				// Apparently, there is nothing to do here. At least the game doesn't look like
+				// it needs anything to be done. If there was to do rumble string replication
+				//	between server and client, it would happen here
 			}
 			else
 			{

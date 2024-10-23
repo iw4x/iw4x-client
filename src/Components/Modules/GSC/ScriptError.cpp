@@ -800,7 +800,7 @@ namespace Components::GSC
 	unsigned int ScriptError::Scr_LoadScriptInternal_Hk(const char* filename, Game::PrecacheEntry* entries, int entriesCount)
 	{
 		char extFilename[MAX_QPATH];
-		Game::sval_u parseData;
+		Game::sval_u parseData{};
 
 		assert(Game::scrCompilePub->script_loading);
 		assert(std::strlen(filename) < MAX_QPATH);
