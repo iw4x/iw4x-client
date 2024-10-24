@@ -37,7 +37,7 @@ namespace Components
 		static void FreeZAllocatedMemory(const void* ptr, bool fromTheGame = false);
 		static void FreeAllocatedString(const void* ptr, bool fromTheGame = false);
 		static void FreeHunkAllocatedMemory(const void* ptr, bool fromTheGame = false);
-		
+
 		template <typename T> static T* Reallocate(const T* ptr, size_t size)
 		{
 			const auto newData = Allocator.allocate(size);
@@ -96,7 +96,7 @@ namespace Components
 			if (PrintMenuDebug.get<bool>())
 			{
 				const std::string msg = std::vformat(fmt, std::make_format_args(args...));
-				const std::string preformatted = std::format("[MENUS] {:X} {}\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), msg);	
+				const std::string preformatted = std::format("[MENUS] {:X} {}\n", std::hash<std::thread::id>{}(std::this_thread::get_id()), msg);
 				Logger::Print(preformatted);
 			}
 		}

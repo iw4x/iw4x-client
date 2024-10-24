@@ -6,7 +6,7 @@ namespace Assets
 	void Isnd_alias_list_t::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		header->sound = builder->getIW4OfApi()->read<Game::snd_alias_list_t>(Game::XAssetType::ASSET_TYPE_SOUND, name);
-		
+
 		if (!header->sound)
 		{
 			header->sound = Components::AssetHandler::FindOriginalAsset(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, name.data()).sound;

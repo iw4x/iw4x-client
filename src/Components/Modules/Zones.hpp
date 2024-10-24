@@ -16,7 +16,7 @@ namespace Components
 			std::uint32_t len;
 			std::string fileContents;
 		};
-		
+
 		Zones();
 
 		static void SetVersion(int version);
@@ -25,7 +25,7 @@ namespace Components
 
 	private:
 		static int ZoneVersion;
-		
+
 		static int FxEffectIndex;
 		static char* FxEffectStrings[64];
 

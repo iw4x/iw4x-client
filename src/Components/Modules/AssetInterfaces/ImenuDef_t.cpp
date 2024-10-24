@@ -497,7 +497,7 @@ namespace Assets
 			buffer->enterStruct(Utils::String::VA("itemDef_s: name = '%s'", asset->window.name));
 		else if (asset->window.background)
 			buffer->enterStruct(Utils::String::VA("itemDef_s: bg = '%s'", asset->window.background->info.name));
-		else 
+		else
 			buffer->enterStruct("itemDef_s");
 #endif
 

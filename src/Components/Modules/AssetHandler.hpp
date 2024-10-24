@@ -42,7 +42,7 @@ namespace Components
 		static void ExposeTemporaryAssets(bool expose);
 
 		static void OffsetToAlias(Utils::Stream::Offset* offset);
-		
+
 	private:
 		static thread_local int BypassState;
 		static bool ShouldSearchTempAssets;

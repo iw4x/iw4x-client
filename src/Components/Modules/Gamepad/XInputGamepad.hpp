@@ -10,7 +10,7 @@ namespace Components::GamepadControls
 
 		void UpdateRumbles(float left, float right) override;
 		void StopRumbles() override;
-		
+
 		bool Fetch() override;
 		void ReadSticks(Game::vec2_t& leftStick, Game::vec2_t& rightStick) override;
 		void ReadDigitals(unsigned short& digitals) override;

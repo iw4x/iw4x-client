@@ -41,7 +41,7 @@ namespace Components
 				{
 					break;
 				}
-			}	
+			}
 
 			++i;
 			if (i >= 26) // CorrectSolidDeltas count

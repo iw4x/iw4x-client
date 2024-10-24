@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package Proto.Party;
 
-message Playlist 
+message Playlist
 {
 	uint32 hash     = 1;
 	bytes buffer    = 2;

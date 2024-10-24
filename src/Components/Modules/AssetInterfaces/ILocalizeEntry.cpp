@@ -67,13 +67,13 @@ namespace Assets
 		{
 			assets.push_back(asset);
 		});
-		
+
 		const auto* psLoadedFile = Game::SE_Load(filename.data(), false);
 		if (psLoadedFile)
 		{
 			Game::Com_PrintError(Game::CON_CHANNEL_SYSTEM, "^1Localization ERROR: %s\n", psLoadedFile);
 			return;
-		}		
+		}
 
 		auto type = Game::DB_GetXAssetNameType("localize");
 		for (const auto& entry : assets)

@@ -36,7 +36,7 @@ namespace Components::GamepadControls
 		virtual void UpdateForceFeedback([[maybe_unused]] const TriggerFeedback& left, [[maybe_unused]] const TriggerFeedback& right) {};
 
 	protected:
-		template <typename T> 
+		template <typename T>
 		void ConvertStickToFloat(const T x, const T y, float& outX, float& outY)
 		{
 			if (x == 0 && y == 0)

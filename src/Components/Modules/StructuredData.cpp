@@ -109,7 +109,7 @@ namespace Components
 			constexpr auto structIndex = 0;
 			{
 				auto strct = &data->structs[structIndex];
-				
+
 				auto newProperties = StructuredData::MemAllocator.allocateArray<Game::StructuredDataStructProperty>(strct->propertyCount);
 				std::memcpy(newProperties, strct->properties, strct->propertyCount * sizeof(Game::StructuredDataStructProperty));
 				strct->properties = newProperties;

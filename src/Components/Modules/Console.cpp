@@ -34,7 +34,7 @@ namespace Components
 	bool Console::HasConsole = false;
 	bool Console::SkipShutdown = false;
 
-	COLORREF Console::TextColor = 
+	COLORREF Console::TextColor =
 #ifdef _DEBUG
 		RGB(255, 200, 117);
 #else
@@ -156,7 +156,7 @@ namespace Components
 		const auto user32 = Utils::Library("user32.dll");
 		const auto getDpiForWindow = user32.getProc<UINT(WINAPI*)(HWND)>("GetDpiForWindow");
 		const auto getDpiForMonitor = user32.getProc<HRESULT(WINAPI*)(HMONITOR, int, UINT*, UINT*)>("GetDpiForMonitor");
-		
+
 		int dpi;
 
 		if (getDpiForWindow)
@@ -168,7 +168,7 @@ namespace Components
 			HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
 			UINT xdpi, ydpi;
 			getDpiForMonitor(hMonitor, 0, &xdpi, &ydpi);
-			
+
 			dpi = 96;
 		}
 		else
@@ -176,7 +176,7 @@ namespace Components
 			HDC hDC = GetDC(hWnd);
 			INT ydpi = GetDeviceCaps(hDC, LOGPIXELSY);
 			ReleaseDC(nullptr, hDC);
-			
+
 			dpi = ydpi;
 		}
 
@@ -467,13 +467,13 @@ namespace Components
 		auto isInputBox = id == INPUT_BOX;
 		auto isOutputBox = id == OUTPUT_BOX;
 
-		if (isInputBox || isOutputBox) 
+		if (isInputBox || isOutputBox)
 		{
 			RECT newParentRect = *reinterpret_cast<LPRECT>(lParam);
 
 			RECT childRect;
 
-			if (GetWindowRect(hwndChild, &childRect)) 
+			if (GetWindowRect(hwndChild, &childRect))
 			{
 
 				int childX, childY;
@@ -484,7 +484,7 @@ namespace Components
 
 				auto scale = GetDpiScale(parent);
 
-				if (isInputBox) 
+				if (isInputBox)
 				{
 
 					auto newX = childX; // No change!
@@ -494,7 +494,7 @@ namespace Components
 
 					MoveWindow(hwndChild, newX, newY, newWidth, newHeight, TRUE);
 				}
-				
+
 				if (isOutputBox)
 				{
 					auto newX = childX; // No change!
@@ -619,7 +619,7 @@ namespace Components
 		return RegisterClassA(lpWndClass);
 	}
 
-	void Console::ApplyConsoleStyle() 
+	void Console::ApplyConsoleStyle()
 	{
 		Utils::Hook::Set<std::uint8_t>(0x428A8E, 0);    // Adjust logo Y pos
 		Utils::Hook::Set<std::uint8_t>(0x428A90, 0);    // Adjust logo X pos
@@ -871,10 +871,10 @@ namespace Components
 		static float consoleColor[] = { 0.70f, 1.00f, 0.00f, 1.00f };
 		Utils::Hook::Set<float*>(0x5A451A, consoleColor);
 		Utils::Hook::Set<float*>(0x5A4400, consoleColor);
-		
+
 		// Remove the need to type '\' or '/' to send a console command
 		Utils::Hook::Set<std::uint8_t>(0x431565, 0xEB);
-		
+
 		// Internal console
 		Utils::Hook(0x4F690C, Con_ToggleConsole, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4F65A5, Con_ToggleConsole, HOOK_JUMP).install()->quick();

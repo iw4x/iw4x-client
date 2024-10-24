@@ -332,7 +332,7 @@ namespace Components
 		Utils::IO::CreateDir(appdata.string());
 
 		const auto guidPath = appdata / "guid.dat";
-		
+
 		return guidPath.string();
 	}
 
@@ -368,7 +368,7 @@ namespace Components
 			cert.set_token(GuidToken.toString());
 			cert.set_ctoken(ComputeToken.toString());
 			cert.set_privatekey(GuidKey.serialize(PK_PRIVATE));
-			
+
 			const auto guidPath = GetGUIDFilePath();
 			Utils::IO::WriteFile(guidPath, cert.SerializeAsString());
 		}

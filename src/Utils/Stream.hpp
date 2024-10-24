@@ -13,7 +13,7 @@
 namespace Utils
 {
 	constexpr auto POINTER = 255;
-	constexpr auto FOLLOWING = 254;				
+	constexpr auto FOLLOWING = 254;
 
 	class Stream
 	{
@@ -45,7 +45,7 @@ namespace Utils
 
 			template <typename T> T* readArrayOnce(std::size_t count = 1)
 			{
-				auto b = static_cast<unsigned char>(readByte());	
+				auto b = static_cast<unsigned char>(readByte());
 				switch (b)
 				{
 				case POINTER:
@@ -65,7 +65,7 @@ namespace Utils
 					auto filePosition = position_;
 					auto data = readArray<T>(count);
 					allocator_->mapPointer(reinterpret_cast<void*>(filePosition), data);
-          
+
 					return data;
 				}
 				default:

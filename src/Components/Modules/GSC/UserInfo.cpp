@@ -93,7 +93,7 @@ namespace Components::GSC
 		Script::AddMethod("ResetClanTag", [](Game::scr_entref_t entref)  // gsc: self ResetClanTag()
 		{
 			const auto* ent = Script::Scr_GetPlayerEntity(entref);
-			
+
 			Logger::Debug("Resetting clanName of {}", ent->s.number);
 			UserInfoOverrides[ent->s.number].erase("clanAbbrev");
 			Game::ClientUserinfoChanged(ent->s.number);

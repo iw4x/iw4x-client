@@ -55,7 +55,7 @@ namespace Components
 		static const char* AdrToString(const Address& a, bool port = false);
 
 		static std::uint16_t GetPort();
-		
+
 		// Send quake-styled binary data
 		static void Send(const Address& target, const std::string& data);
 		static void Send(Game::netsrc_t type, const Address& target, const std::string& data);

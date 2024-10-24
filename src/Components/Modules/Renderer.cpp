@@ -297,7 +297,7 @@ namespace Components
 		auto drawDistance = static_cast<float>(r_playerDrawDebugDistance.get<int>());
 		float sqrDist = drawDistance * static_cast<float>(drawDistance);
 
-		switch (val) 
+		switch (val)
 		{
 		case 1:
 			for (auto i = 0; i < scene->sceneModelCount; i++)
@@ -702,7 +702,7 @@ namespace Components
 
 				Game::R_AddDebugLine(color, light->origin, to);
 				Game::R_AddDebugString(color, light->origin, 1.0f, str.data());
-				
+
 			}
 		}
 	}
@@ -711,7 +711,7 @@ namespace Components
 	{
 		auto result = Utils::Hook::Call<int(Game::GfxCamera*, Game::GfxSunShadowMapMetrics*, Game::GfxSunShadow*, Game::GfxSunShadowClip*, float*)>(0x5463B0)(camera, mapMetrics, sunShadow, clip, partitionFraction);
 
-		if (Maps::IsCustomMap()) 
+		if (Maps::IsCustomMap())
 		{
 			// Fixes shadowmap viewport which fixes pixel adjustment shadowmap bug - partly, because the real problem lies within the way CoD4 shaders are programmed
 			sunShadow->partition[Game::SunShadowPartition::R_SUNSHADOW_FAR].viewportParms.viewport = sunShadow->partition[Game::SunShadowPartition::R_SUNSHADOW_NEAR].viewportParms.viewport;

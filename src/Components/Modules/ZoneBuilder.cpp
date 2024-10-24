@@ -995,7 +995,7 @@ namespace Components
 		Utils::Hook::Call<void(const char*)>(0x464A90)(GetCommandLineA()); // Com_ParseCommandLine
 		Utils::Hook::Call<void()>(0x60C3D0)(); // Com_AddStartupCommands
 
-		// so for this i'm going to say that we just run the commands (after + signs) 
+		// so for this i'm going to say that we just run the commands (after + signs)
 		// and don't spawn into a shell because why not?
 		if (Flags::HasFlag("stdout"))
 		{

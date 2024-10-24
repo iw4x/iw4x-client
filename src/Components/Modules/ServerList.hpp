@@ -31,7 +31,7 @@ namespace Components
 		};
 
 		ServerList();
-		
+
 		void preDestroy() override;
 
 		static void Refresh([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);

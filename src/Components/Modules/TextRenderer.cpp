@@ -45,7 +45,7 @@ namespace Components
 	TextRenderer::FontIconAutocompleteContext TextRenderer::autocompleteContextArray[FONT_ICON_ACI_COUNT];
 	std::map<std::string, TextRenderer::FontIconTableEntry> TextRenderer::fontIconLookup;
 	std::vector<TextRenderer::FontIconTableEntry> TextRenderer::fontIconList;
-	
+
 	TextRenderer::BufferedLocalizedString TextRenderer::stringHintAutoComplete(REFERENCE_HINT_AUTO_COMPLETE, STRING_BUFFER_SIZE_SMALL);
 	TextRenderer::BufferedLocalizedString TextRenderer::stringHintModifier(REFERENCE_HINT_MODIFIER, STRING_BUFFER_SIZE_SMALL);
 	TextRenderer::BufferedLocalizedString TextRenderer::stringListHeader(REFERENCE_MODIFIER_LIST_HEADER, STRING_BUFFER_SIZE_SMALL);
@@ -68,7 +68,7 @@ namespace Components
 		stringBufferSize(bufferSize),
 		stringWidth{-1}
 	{
-		
+
 	}
 
 	void TextRenderer::BufferedLocalizedString::Cache()
@@ -137,7 +137,7 @@ namespace Components
 		maxMaterialNameWidth(0.0f),
 		stringSearchStartWith(REFERENCE_SEARCH_START_WITH, STRING_BUFFER_SIZE_BIG)
 	{
-		
+
 	}
 
 	unsigned TextRenderer::HsvToRgb(HsvColor hsv)
@@ -229,7 +229,7 @@ namespace Components
 		context.resultCount = 0;
 		context.hasMoreResults = false;
 		context.lastResultOffset = context.resultOffset;
-		
+
 		auto skipCount = context.resultOffset;
 
 		const auto queryLen = context.lastQuery.size();
@@ -432,8 +432,8 @@ namespace Components
 		const auto totalLines = 1u + context.resultCount + (hintEnabled ? 2u : 0u);
 		const auto arrowPadding = context.resultOffset > 0 || context.hasMoreResults ? FONT_ICON_AUTOCOMPLETE_ARROW_SIZE : 0.0f;
 		DrawAutocompleteBox(context,
-			x - FONT_ICON_AUTOCOMPLETE_BOX_PADDING, 
-			y - FONT_ICON_AUTOCOMPLETE_BOX_PADDING, 
+			x - FONT_ICON_AUTOCOMPLETE_BOX_PADDING,
+			y - FONT_ICON_AUTOCOMPLETE_BOX_PADDING,
 			boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2 + arrowPadding,
 			static_cast<float>(totalLines) * lineHeight + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
 			(*con_inputBoxColor)->current.vector);
@@ -744,7 +744,7 @@ namespace Components
 			curPos++;
 
 		const auto* nameEnd = curPos;
-		
+
 		if (*curPos == FONT_ICON_MODIFIER_SEPARATOR_CHARACTER)
 		{
 			auto breakArgs = false;
@@ -1550,7 +1550,7 @@ namespace Components
 		Utils::Hook::Set<char>(0x5815DB, limit); // No idea
 		Utils::Hook::Set<char>(0x592ED0, limit); // No idea
 		Utils::Hook::Set<char>(0x5A2E2E, limit); // No idea
-			
+
 		Utils::Hook::Set<char>(0x5A2733, static_cast<char>(ColorIndexForChar(limit))); // No idea
 	}
 
@@ -1679,7 +1679,7 @@ namespace Components
 	TextRenderer::TextRenderer()
 	{
 		currentColorTable = &colorTableDefault;
-		
+
 		cg_newColors = Dvar::Register<bool>("cg_newColors", true, Game::DVAR_ARCHIVE, "Use Warfare 2 color code style.");
 		cg_fontIconAutocomplete = Dvar::Register<bool>("cg_fontIconAutocomplete", true, Game::DVAR_ARCHIVE, "Show autocomplete for fonticons when typing.");
 		cg_fontIconAutocompleteHint = Dvar::Register<bool>("cg_fontIconAutocompleteHint", true, Game::DVAR_ARCHIVE, "Show hint text in autocomplete for fonticons.");

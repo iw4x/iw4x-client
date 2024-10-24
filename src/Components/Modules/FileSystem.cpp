@@ -427,12 +427,12 @@ namespace Components
 		// Set the working dir based on info from the Xlabs launcher
 		Utils::Hook(0x4326E0, Sys_DefaultInstallPath_Hk, HOOK_JUMP).install()->quick();
 
-		// Make the exe run from a folder other than the game folder 
+		// Make the exe run from a folder other than the game folder
 		Utils::Hook(0x406D26, FS_FileOpenReadText_Hk, HOOK_CALL).install()->quick();
 
-		// Make the exe run from a folder other than the game folder 
-		Utils::Hook::Nop(0x4290D8, 5); // FS_IsBasePathValid  
-		Utils::Hook::Set<uint8_t>(0x4290DF, 0xEB);				
+		// Make the exe run from a folder other than the game folder
+		Utils::Hook::Nop(0x4290D8, 5); // FS_IsBasePathValid
+		Utils::Hook::Set<uint8_t>(0x4290DF, 0xEB);
 		// ^^ This check by the game above is super redundant, IW4x has other checks in place to make sure we
 		// are running from a properly installed directory. This only breaks the containerized patch and we don't need it
 
@@ -441,7 +441,7 @@ namespace Components
 		Utils::Hook(0x643232, Sys_HomePath_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x6431B6, Sys_Cwd_Hk, HOOK_CALL).install()->quick();
 		Utils::Hook(0x51C29A, Sys_Cwd_Hk, HOOK_CALL).install()->quick();
-		
+
 		// patch max file amount returned by Sys_ListFiles
 		Utils::Hook::Set<std::uint32_t>(0x45A66B, (NEW_MAX_FILES_LISTED + FILE_COUNT_MULTIPLIER) * 4);
 		Utils::Hook::Set<std::uint32_t>(0x64AF78, NEW_MAX_FILES_LISTED);

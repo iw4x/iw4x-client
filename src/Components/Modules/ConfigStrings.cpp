@@ -74,7 +74,7 @@ namespace Components
 		Utils::Hook(0x4503F6, ConfigStrings::CL_GetCachedModelConfigString, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4504A0, ConfigStrings::CL_GetCachedModelConfigString, HOOK_CALL).install()->quick();
 		Utils::Hook(0x450A30, ConfigStrings::CL_GetCachedModelConfigString, HOOK_CALL).install()->quick();
-		
+
 		Utils::Hook(0x44F217, ConfigStrings::SV_GetCachedModelConfigStringConst, HOOK_CALL).install()->quick();
 		Utils::Hook(0X418F93, ConfigStrings::SV_GetCachedModelConfigStringConst, HOOK_CALL).install()->quick();
 		Utils::Hook(0x497B0A, ConfigStrings::SV_GetCachedModelConfigStringConst, HOOK_CALL).install()->quick();
@@ -82,7 +82,7 @@ namespace Components
 		Utils::Hook(0x5FC46D, ConfigStrings::SV_GetCachedModelConfigStringConst, HOOK_JUMP).install()->quick();
 
 		Utils::Hook(0x44F282, ConfigStrings::SV_SetCachedModelConfigString, HOOK_CALL).install()->quick();
-		
+
 		Utils::Hook::Set<DWORD>(0x44A333, sizeof(cl_gameState));
 		Utils::Hook::Set<DWORD>(0x5A1F56, sizeof(cl_gameState));
 		Utils::Hook::Set<DWORD>(0x5A2043, sizeof(cl_gameState));
@@ -151,7 +151,7 @@ namespace Components
 		// This will go back to our reallocated game state anyway
 		return Game::SV_SetConfigstring(index, data);
 	}
-	
+
 	void ConfigStrings::SV_SetWeaponConfigString(int index, const char* data)
 	{
 		SV_SetConfigString(index, data, Game::CS_WEAPONFILES_LAST, EXTRA_WEAPONS_FIRST);
@@ -171,12 +171,12 @@ namespace Components
 	{
 		SV_SetConfigString(RUMBLE_FIRST + index, data, Game::CS_LAST, Game::MAX_CONFIGSTRINGS);
 	}
-	
+
 	void ConfigStrings::SV_SetCachedModelConfigString(int index, const char* data)
 	{
 		SV_SetConfigString(index, data, Game::CS_MODELS_LAST, EXTRA_MODELCACHE_FIRST);
 	}
-	
+
 	unsigned int ConfigStrings::SV_GetConfigString(int index, Game::ConfigString basegameLastPosition, int extendedFirstPosition)
 	{
 		if (index > basegameLastPosition)
@@ -229,7 +229,7 @@ namespace Components
 
 	int ConfigStrings::CG_ParseExtraConfigStrings()
 	{
-		Command::ClientParams params; 
+		Command::ClientParams params;
 
 		if (params.size() <= 1)
 			return 0;

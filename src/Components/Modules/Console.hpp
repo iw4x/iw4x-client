@@ -80,7 +80,7 @@ namespace Components
 
 		static bool Con_IsDvarCommand_Stub(const char* cmd);
 		static void Cmd_ForEach_Stub(void(*callback)(const char* str));
-	
+
 		static LRESULT CALLBACK ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, unsigned int lParam);
 		static ATOM CALLBACK RegisterClassHook(WNDCLASSA* lpWndClass);
 		static BOOL CALLBACK ResizeChildWindow(HWND hwndChild, LPARAM lParam);

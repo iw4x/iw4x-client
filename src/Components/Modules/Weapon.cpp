@@ -61,8 +61,8 @@ namespace Components
 							auto str = Game::SL_ConvertToString(noteTrackRumbleMap[i]);
 							if (str && *str)
 							{
-								std::string path = std::format("rumble/{}", str); 
-								const auto rawfile = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_RAWFILE, path.c_str()); 
+								std::string path = std::format("rumble/{}", str);
+								const auto rawfile = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_RAWFILE, path.c_str());
 								if (rawfile.data == nullptr || !strnlen(rawfile.rawfile->buffer, 1))
 								{
 									// Void it and warn the user
@@ -560,7 +560,7 @@ namespace Components
 		AssertOffset(Game::playerState_s, grenadeTimeLeft, 0x34);
 		BGWeaponOffHandFix = Game::Dvar_RegisterBool("bg_weaponOffHandFix", true, Game::DVAR_CODINFO, "Reset grenadeTimeLeft after using off hand weapon");
 		Utils::Hook(0x578F52, JavelinResetHook_Stub, HOOK_JUMP).install()->quick();
-	
+
 		CGRecoilMultiplier = Game::Dvar_RegisterFloat("cg_recoilMultiplier",
 			1.0f, 0.0f, 1000.0f, Game::DVAR_CHEAT,
 			"The scale applied to the player recoil when firing");

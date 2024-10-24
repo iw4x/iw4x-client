@@ -77,7 +77,7 @@ namespace Components
 	{
 		char saneNameBuf[MAX_CLAN_NAME_LENGTH]{};
 		auto* saneName = saneNameBuf;
-		
+
 		assert(ClanName);
 		const auto* currentName = ClanName->current.string;
 		if (currentName)
