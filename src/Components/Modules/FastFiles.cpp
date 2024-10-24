@@ -565,6 +565,15 @@ namespace Components
 		return file;
 	}
 
+	void enum_assets(const Game::XAssetType type, const std::function<void(Game::XAssetHeader, void*)> callback, const bool includeOverride)
+	{
+		Game::DB_EnumXAssets_Internal(type, static_cast<void(*)(Game::XAssetHeader, void*)>([](Game::XAssetHeader header, void* data)
+		{
+			const auto& cb = *static_cast<const std::function<void(Game::XAssetHeader, void*)>*>(data);
+			cb(header, data);
+		}), &callback, includeOverride);
+	}
+
 	FastFiles::FastFiles()
 	{
 		Dvar::Register<bool>("ui_zoneDebug", false, Game::DVAR_ARCHIVE, "Display current loaded zone.");
@@ -688,6 +697,56 @@ namespace Components
 		{
 			Logger::Print("Waiting for database...\n");
 			while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms);
+		});
+
+		Command::Add("poolUsages", []()
+		{
+			for (auto i = 0; i < Game::ASSET_TYPE_COUNT; i++)
+			{
+				auto count = 0;
+				enum_assets(static_cast<Game::XAssetType>(i), [&](Game::XAssetHeader header, void* data)
+				{
+					count++;
+				}, true);
+
+				Logger::Print(Utils::String::VA("%i %s: %i / %i\n", i, Game::g_assetNames[i], count, Game::g_poolSize[i]));
+			}
+		});
+
+		Command::Add("poolUsage", [](const Command::Params* params)
+		{
+			if (params->size() < 2)
+			{
+				Logger::Print("Usage: poolUsage <type>\n");
+				return;
+			}
+
+			const auto type = static_cast<Game::XAssetType>(std::atoi(params->get(1)));
+
+			auto count = 0;
+			enum_assets(type, [&](Game::XAssetHeader header, void* data)
+			{
+				count++;
+			}, true);
+
+			Logger::Print(Utils::String::VA("%i %s: %i / %i\n", type, Game::g_assetNames[type], count, Game::g_poolSize[type]));
+		});
+
+		Command::Add("assetCount", [](const Command::Params* params)
+		{
+			auto count = 0;
+			auto totalCount = 0;
+			for (auto i = 0; i < Game::ASSET_TYPE_COUNT; i++)
+			{
+				enum_assets(static_cast<Game::XAssetType>(i), [&](Game::XAssetHeader header, void* data)
+				{
+					count++;
+				}, true);
+
+				totalCount += Game::g_poolSize[i];
+			}
+
+			Logger::Print(Utils::String::VA("total assets: %i / %i\n", count, totalCount));
 		});
 	}
 }
