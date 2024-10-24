@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package Proto.RCon;
 
-message Command 
+message Command
 {
 	bytes command  = 1;
 	bytes signature = 2;

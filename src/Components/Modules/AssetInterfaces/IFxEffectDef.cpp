@@ -122,7 +122,7 @@ namespace Assets
 			if (visuals->soundName)
 			{
 				// Double "find call" but we have to because otherwise we'd crash on missing asset
-				// Sometimes Fx reference by name a sound that does not exist. IW oversight ? 
+				// Sometimes Fx reference by name a sound that does not exist. IW oversight ?
 				// Never happens on iw3 but often happens on iw5, especially DLC maps.
 				if (Components::AssetHandler::FindAssetForZone(Game::XAssetType::ASSET_TYPE_SOUND, visuals->soundName, builder, false).data)
 				{

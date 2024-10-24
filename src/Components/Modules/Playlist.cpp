@@ -80,13 +80,13 @@ namespace Components
 			Logger::Print("Received stray playlist response, ignoring it.\n");
 			return;
 		}
-			
+
 		if (address != Party::Target())
 		{
 			Logger::Print("Received playlist from someone else than our target host, ignoring it.\n");
 			return;
 		}
-		
+
 		Proto::Party::Playlist list;
 
 		if (!list.ParseFromString(data))
