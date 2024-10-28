@@ -46,4 +46,4 @@
 	url = https://github.com/iw4x/iw4-open-formats.git
 [submodule "deps/dualsense-windows"]
 	path = deps/dualsense-windows
-	url = git@github.com:Ohjurot/DualSense-Windows.git
+	url = https://github.com/Ohjurot/DualSense-Windows.git
