@@ -12,7 +12,7 @@ namespace Components
 		std::lock_guard _(Mutex);
 		Lines.clear();
 
-		const auto data = Utils::Cache::GetFile("/develop/CHANGELOG.md");
+		const auto data = Utils::Cache::GetFile("/info/changelog/plain");
 
 		if (data.empty())
 		{
