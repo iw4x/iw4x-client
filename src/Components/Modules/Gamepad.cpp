@@ -173,6 +173,7 @@ namespace Components
 	};
 
 	GamepadControls::Controller Gamepad::gamePads[Game::MAX_GPAD_COUNT]{};
+	std::mutex Gamepad::gamePadStateMutexes[Game::MAX_GPAD_COUNT]{};
 	Gamepad::GamePadGlobals Gamepad::gamePadGlobals[Game::MAX_GPAD_COUNT]{ {} };
 	int Gamepad::gamePadBindingsModifiedFlags = 0;
 
@@ -312,6 +313,8 @@ namespace Components
 		AssertIn(localClientNum, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[localClientNum];
+		std::lock_guard _(gamePadStateMutexes[localClientNum]);
+
 
 		return gamePad.get_enabled() ||
 			gamePad.PlugIn(static_cast<uint8_t>(portIndex));
@@ -1326,6 +1329,8 @@ namespace Components
 		for (auto localClientNum = 0; localClientNum < Game::MAX_GPAD_COUNT; ++localClientNum)
 		{
 			const auto& gamePad = gamePads[localClientNum];
+			std::lock_guard _(gamePadStateMutexes[localClientNum]);
+
 			if (!gamePad.get_enabled())
 			{
 				continue;
@@ -1364,13 +1369,14 @@ namespace Components
 		if (!gpad_enabled.get<bool>())
 			return;
 
-		GPad_UpdateAll();
 		const auto time = Game::Sys_Milliseconds();
 
 		bool gpadPresent = false;
 		for (auto localClientNum = 0; localClientNum < Game::MAX_GPAD_COUNT; ++localClientNum)
 		{
 			auto& gamePad = gamePads[localClientNum];
+			std::lock_guard _(gamePadStateMutexes[localClientNum]);
+
 			if (!gamePad.get_enabled())
 			{
 				continue;
@@ -1867,7 +1873,7 @@ namespace Components
 				{
 					*buttonBits[i] = TriggerRole::Aiming;
 				}
-				else if (binding == "+frag"s )
+				else if (binding == "+frag"s)
 				{
 					*buttonBits[i] = TriggerRole::PrimaryOffHand;
 				}
@@ -1964,7 +1970,7 @@ namespace Components
 							const auto* equippedWeapon = Game::BG_GetEquippedWeaponState(playerState, viewModelWeaponIndex);
 							if (equippedWeapon)
 							{
-								const auto& otherRole = (1-i) == LEFT ? leftRole : rightRole;
+								const auto& otherRole = (1 - i) == LEFT ? leftRole : rightRole;
 								if (equippedWeapon->dualWielding && otherRole == role)
 								{
 									// Both triggers the same
@@ -2064,5 +2070,27 @@ namespace Components
 
 		// Add gamepad inputs to user commands if it is enabled
 		Utils::Hook(0x5A6DAE, CL_MouseMove_Stub, HOOK_CALL).install()->quick();
+
+		// Refresh gamepads on a separate thread to prevent IO latency from breaking up framerate
+		// This is never a problem at 30~60 fps (which the game is made for) but becomes a problem above 300+...
+		// Some users like their game at 300 hZ so let's handle it
+		{
+			static std::thread gamepadRefreshThread([]()
+				{
+					constexpr auto INPUT_THREAD_REFRESH_RATE = 120; // hZ for input refresh rate
+					constexpr auto INPUT_THREAD_TICK_TIME_MS = 1000 / INPUT_THREAD_REFRESH_RATE;
+
+					while (true)
+					{
+						const auto startTime = std::chrono::system_clock::now();
+						const auto sleepUntil = startTime + std::chrono::milliseconds(INPUT_THREAD_TICK_TIME_MS);
+
+						GPad_UpdateAll();
+						std::this_thread::sleep_until(sleepUntil);
+					}
+				});
+
+			gamepadRefreshThread.detach();
+		}
 	}
 }
