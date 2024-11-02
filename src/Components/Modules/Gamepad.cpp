@@ -1342,6 +1342,7 @@ namespace Components
 			}
 
 			gamePads[localClientNum].UpdateState();
+			gamePads[localClientNum].PushUpdates(); // We call them both together now because we update from another thread anyway
 		}
 	}
 
@@ -1359,8 +1360,6 @@ namespace Components
 			{
 				gamePads[localClientNum].StopRumbles();
 			}
-
-			gamePads[localClientNum].PushUpdates();
 		}
 	}
 
