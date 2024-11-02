@@ -65,6 +65,8 @@
 #include <hidsdi.h>
 #pragma comment(lib, "Hid.lib")
 
+#include <CommCtrl.h>
+#pragma comment(lib, "Comctl32.lib")
 
 // Ignore the warnings
 #pragma warning(push)
