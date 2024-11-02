@@ -14,6 +14,12 @@ namespace Utils
 
 	bool IsWineEnvironment();
 
+	/// <summary>
+	/// Retrieves the current Windows Version and Build Number.
+	/// </summary>
+	/// <returns>A std::string of format "Windows {type} (Build {number})"</returns>
+	std::string GetWindowsVersion();
+
 	unsigned long GetParentProcessId();
 	std::size_t GetModuleSize(HMODULE);
 	void* GetThreadStartAddress(HANDLE hThread);

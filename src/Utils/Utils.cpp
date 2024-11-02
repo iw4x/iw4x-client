@@ -50,6 +50,36 @@ namespace Utils
 		return (GetProcAddress(hntdll, "wine_get_version") != nullptr);
 	}
 
+	std::string GetWindowsVersion()
+	{
+		const auto ntdll = Utils::Library("ntdll.dll");
+		const auto rtlGetVersion = ntdll.getProc<LONG(WINAPI*)(PRTL_OSVERSIONINFOW)>("RtlGetVersion");
+
+		if (rtlGetVersion)
+		{
+			LONG STATUS_SUCCESS = 0;
+			RTL_OSVERSIONINFOW versionInfo = {};
+			versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
+
+			if (rtlGetVersion(&versionInfo) == STATUS_SUCCESS)
+			{
+				const auto major = versionInfo.dwMajorVersion;
+				const auto minor = versionInfo.dwMinorVersion;
+				const auto build = versionInfo.dwBuildNumber;
+
+				if (major == 10 && build >= 22000) return std::format("Windows 11 (Build {})", build);
+				if (major == 10)				   return std::format("Windows 10 (Build {})", build);
+				if (major == 6 && minor == 3)	   return std::format("Windows 8.1 (Build {})", build);
+				if (major == 6 && minor == 2)	   return std::format("Windows 8.0 (Build {})", build);
+				if (major == 6 && minor == 1)	   return std::format("Windows 7 (Build {})", build);
+				if (major == 6 && minor == 0)	   return std::format("Windows Vista (Build {})", build);
+				if (major == 5 && minor == 1)	   return std::format("Windows XP (Build {})", build);
+			}
+		}
+
+		return "Unknown Version";
+	}
+
 	unsigned long GetParentProcessId()
 	{
 		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
