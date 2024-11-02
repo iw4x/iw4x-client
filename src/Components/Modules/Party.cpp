@@ -12,6 +12,7 @@
 #include "Stats.hpp"
 #include "TextRenderer.hpp"
 #include "Voice.hpp"
+#include "Events.hpp"
 
 #include <version.hpp>
 
@@ -40,6 +41,7 @@ namespace Components
 	std::map<std::uint64_t, Network::Address> Party::LobbyMap;
 
 	Dvar::Var Party::PartyEnable;
+	Dvar::Var Party::ServerVersion;
 
 	SteamID Party::GenerateLobbyId()
 	{
@@ -207,6 +209,13 @@ namespace Components
 		{
 			return;
 		}
+
+		Events::OnDvarInit([]
+		{
+			ServerVersion = Dvar::Register<const char*>("sv_version", "", Game::DVAR_SERVERINFO | Game::DVAR_INIT, "Server version");
+			PartyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::DVAR_NONE, "Enable party system");
+			Dvar::Register<bool>("xblive_privatematch", true, Game::DVAR_INIT, "");
+		});
 
 		PartyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::DVAR_NONE, "Enable party system");
 		Dvar::Register<bool>("xblive_privatematch", true, Game::DVAR_INIT, "");
@@ -563,11 +572,13 @@ namespace Components
 						{
 							int clients;
 							int maxClients;
+							std::string version;
 
 							try
 							{
 								clients = std::stoi(Container.info.get("clients"));
 								maxClients = std::stoi(Container.info.get("sv_maxclients"));
+								version = Container.info.get("version");
 							}
 							catch ([[maybe_unused]] const std::exception& ex)
 							{
