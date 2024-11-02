@@ -3,6 +3,8 @@
 #include "Console.hpp"
 #include "Exception.hpp"
 #include "Window.hpp"
+#include "Party.hpp"
+#include "TextRenderer.hpp"
 
 #include <version.hpp>
 
@@ -51,6 +53,112 @@ namespace Components
 
 		// This only suspends the main game threads, which is enough for us
 		Game::Sys_SuspendOtherThreads();
+	}
+
+	std::wstring Exception::GetErrorMessage()
+	{
+		const auto clientVersion = (*Game::shortversion)->current.string;
+		const auto osVersion = Utils::IsWineEnvironment() ? "Wine" : Utils::GetWindowsVersion();
+		const auto launchParams = Utils::String::Convert(Utils::GetLaunchParameters());
+
+		std::string clientInfo = std::format(R"(
+			Client Info:
+			IW4x Version: {}
+			OS Version: {}
+			Parameters: {})",
+			clientVersion, osVersion, launchParams);
+
+		if (!Game::CL_IsCgameInitialized())
+		{
+			std::string msg = std::format("{}\n\nDo you want to copy this message to the clipboard?", clientInfo);
+			std::wstring message(msg.begin(), msg.end());
+			return message;
+		}
+
+		const auto* gameType = (*Game::sv_gametype)->current.string;
+		const auto* mapName = (*Game::sv_mapname)->current.string;
+
+		// Get info for a private match
+		{
+			if (std::strcmp(Game::cls->servername, "localhost") == 0)
+			{
+				std::string privateMatchInfo = std::format(R"(
+					Host Info:
+					Type: Private Match
+					Gametype: {}
+					Map Name: {})",
+					gameType, mapName);
+
+				std::string msg = std::format("{}\n{}\n\nDo you want to copy this message to the clipboard?", clientInfo, privateMatchInfo);
+				std::wstring message(msg.begin(), msg.end());
+				return message;
+			}
+		}
+
+		// Get info for a dedicated server
+		{
+			const auto serverVersion = Dvar::Var("sv_version").get<std::string>();
+			const auto ipAddress = Network::Address(*Game::connectedHost).getString();
+
+			char serverName[256]{ 0 };
+			TextRenderer::StripColors(Party::GetHostName().data(), serverName, sizeof(serverName));
+			TextRenderer::StripAllTextIcons(serverName, serverName, sizeof(serverName));
+
+			std::string serverInfo = std::format(R"(
+				Server Info:
+				Type: Dedicated Server							
+				IW4x Version: {}
+				Server Name: {}
+				IP Address: {}					
+				Gametype: {}
+				Map Name: {})",
+				serverVersion, serverName, ipAddress, gameType, mapName);
+
+			std::string msg = std::format("{}\n{}\n\nDo you want to copy this message to the clipboard?", clientInfo, serverInfo);
+			std::wstring message(msg.begin(), msg.end());
+			return message;
+		}
+	}
+
+	void Exception::DisplayErrorMessage(const std::wstring& title, const std::wstring& message)
+	{
+		TASKDIALOGCONFIG taskDialogConfig = { 0 };
+		taskDialogConfig.cbSize				= sizeof(taskDialogConfig);
+		taskDialogConfig.hInstance			= GetModuleHandleA(nullptr);
+		taskDialogConfig.hwndParent			= Window::GetWindow();
+		taskDialogConfig.pszWindowTitle		= L"Unhandled Exception";
+		taskDialogConfig.pszMainIcon		= MAKEINTRESOURCEW(-7); // Red bar with a shield icon
+		taskDialogConfig.pszMainInstruction = title.c_str();
+		taskDialogConfig.pszContent			= message.c_str();
+		taskDialogConfig.dwCommonButtons	= TDCBF_YES_BUTTON | TDCBF_NO_BUTTON;
+		taskDialogConfig.nDefaultButton		= IDYES;
+		taskDialogConfig.pszFooterIcon		= TD_INFORMATION_ICON;
+		taskDialogConfig.pszFooter			= L"Join the official <a href=\"https://discord.gg/2ETE8engZM\">Discord Server</a> for additional support.";
+		taskDialogConfig.dwFlags			= TDF_ENABLE_HYPERLINKS | TDF_POSITION_RELATIVE_TO_WINDOW | TDF_SIZE_TO_CONTENT;
+		taskDialogConfig.lpCallbackData		= reinterpret_cast<LONG_PTR>(&message);
+		taskDialogConfig.pfCallback = [](HWND, UINT notification, WPARAM wParam, LPARAM, LONG_PTR data)
+		{
+			const auto* msg = reinterpret_cast<const std::wstring*>(data);
+
+			if (notification == TDN_HYPERLINK_CLICKED)
+			{
+				Utils::OpenUrl("https://discord.gg/2ETE8engZM");
+			}
+
+			if (notification == TDN_BUTTON_CLICKED)
+			{
+				if (wParam == IDYES)
+				{
+					std::string message = Utils::String::Convert(msg->c_str());
+					Utils::String::Trim(message);
+					Exception::CopyMessageToClipboard(message.c_str());
+				}
+			}
+
+			return S_OK;
+		};
+
+		::TaskDialogIndirect(&taskDialogConfig, nullptr, nullptr, nullptr);
 	}
 
 	void Exception::CopyMessageToClipboard(const char* error)
@@ -105,13 +213,13 @@ namespace Components
 		}
 		else
 		{
-			error = Utils::String::VA("Fatal error (0x%08X) at 0x%08X.\nCopy exception address to clipboard?", ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
-		}
+			const auto code	   = ExceptionInfo->ExceptionRecord->ExceptionCode;
+			const auto address = reinterpret_cast<std::uintptr_t>(ExceptionInfo->ExceptionRecord->ExceptionAddress);
 
-		// Message should be copied to the keyboard if no button is pressed
-		if (MessageBoxA(nullptr, error, nullptr, MB_YESNO | MB_ICONERROR) == IDYES)
-		{
-			CopyMessageToClipboard(Utils::String::VA("0x%08X", ExceptionInfo->ExceptionRecord->ExceptionAddress));
+			std::wstring title   = Utils::String::Convert(std::format("Fatal error (0x{:X}) at 0x{:X}", code, address));
+			std::wstring message = Exception::GetErrorMessage();
+
+			Exception::DisplayErrorMessage(title, message);	
 		}
 
 		if (Flags::HasFlag("bigminidumps"))
