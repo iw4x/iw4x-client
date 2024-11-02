@@ -132,6 +132,10 @@ namespace Game
 	extern const dvar_t** cg_scoreboardWidth;
 
 	extern const dvar_t** version;
+	/// <summary>
+	/// Client Revision
+	/// </summary>
+	extern const dvar_t** shortversion;
 
 	extern const dvar_t** viewposNow;
 

@@ -80,6 +80,7 @@ namespace Game
 	const dvar_t** cg_scoreboardWidth = reinterpret_cast<const dvar_t**>(0x9FD0AC);
 
 	const dvar_t** version = reinterpret_cast<const dvar_t**>(0x1AD7930);
+	const dvar_t** shortversion = reinterpret_cast<const dvar_t**>(0x01AD79D0);
 
 	const dvar_t** viewposNow = reinterpret_cast<const dvar_t**>(0x9FD30C);
 
