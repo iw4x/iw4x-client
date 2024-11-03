@@ -239,10 +239,15 @@ namespace Components
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
 
-		const char* error;
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 		{
-			error = "Termination because of a stack overflow.\nCopy exception address to clipboard?";
+			const char* error = "Termination because of a stack overflow.\nCopy exception address to clipboard?";
+
+			// Message should be copied to the clipboard if no button is pressed
+			if (MessageBoxA(nullptr, error, nullptr, MB_YESNO | MB_ICONERROR) == IDYES)
+			{
+				CopyMessageToClipboard(Utils::String::VA("0x%08X", ExceptionInfo->ExceptionRecord->ExceptionAddress));
+			}
 		}
 		else
 		{
