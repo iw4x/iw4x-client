@@ -6,6 +6,7 @@
 #include "Party.hpp"
 #include "TextRenderer.hpp"
 
+#include <cwctype>
 #include <version.hpp>
 
 namespace Components
@@ -120,6 +121,37 @@ namespace Components
 		}
 	}
 
+	std::string Exception::FormatMessageForClipboard(const std::wstring& message)
+	{
+		std::wstringstream ss(message);
+		std::wstring line;
+		std::wostringstream result;
+
+		// Trim all the whitespaces from the message
+		auto trim = [](std::wstring& s)
+		{
+			s.erase(s.begin(), std::find_if_not(s.begin(), s.end(), [](wchar_t ch) { return std::iswspace(ch); })); // trim left
+			s.erase(std::find_if_not(s.rbegin(), s.rend(), [](wchar_t ch) { return std::iswspace(ch); }).base());	// trim right
+		};
+
+		// Construct a corrected version and get rid of the last line
+		while (std::getline(ss, line))
+		{
+			trim(line);
+
+			if (line != L"Do you want to copy this message to the clipboard?")
+			{
+				if (!line.empty())
+				{
+					result << line << L'\n';
+				}
+			}
+		}
+
+		// Enough wide strings for today
+		return Utils::String::Convert(result.str());
+	}
+
 	void Exception::DisplayErrorMessage(const std::wstring& title, const std::wstring& message)
 	{
 		TASKDIALOGCONFIG taskDialogConfig = { 0 };
@@ -136,29 +168,30 @@ namespace Components
 		taskDialogConfig.pszFooter			= L"Join the official <a href=\"https://discord.gg/2ETE8engZM\">Discord Server</a> for additional support.";
 		taskDialogConfig.dwFlags			= TDF_ENABLE_HYPERLINKS | TDF_POSITION_RELATIVE_TO_WINDOW | TDF_SIZE_TO_CONTENT;
 		taskDialogConfig.lpCallbackData		= reinterpret_cast<LONG_PTR>(&message);
-		taskDialogConfig.pfCallback = [](HWND, UINT notification, WPARAM wParam, LPARAM, LONG_PTR data)
-		{
-			const auto* msg = reinterpret_cast<const std::wstring*>(data);
-
-			if (notification == TDN_HYPERLINK_CLICKED)
-			{
-				Utils::OpenUrl("https://discord.gg/2ETE8engZM");
-			}
-
-			if (notification == TDN_BUTTON_CLICKED)
-			{
-				if (wParam == IDYES)
-				{
-					std::string message = Utils::String::Convert(msg->c_str());
-					Utils::String::Trim(message);
-					Exception::CopyMessageToClipboard(message.c_str());
-				}
-			}
-
-			return S_OK;
-		};
+		taskDialogConfig.pfCallback			= Exception::TaskDialogCallbackProc;
 
 		::TaskDialogIndirect(&taskDialogConfig, nullptr, nullptr, nullptr);
+	}
+
+	HRESULT CALLBACK Exception::TaskDialogCallbackProc(HWND, UINT notification, WPARAM clickedButton, LPARAM, LONG_PTR data)
+	{
+		const auto* msg = reinterpret_cast<const std::wstring*>(data);
+
+		if (notification == TDN_HYPERLINK_CLICKED)
+		{
+			Utils::OpenUrl("https://discord.gg/2ETE8engZM");
+		}
+
+		if (notification == TDN_BUTTON_CLICKED)
+		{
+			if (clickedButton == IDYES)
+			{
+				std::string formattedMessage = Exception::FormatMessageForClipboard(*msg);
+				Exception::CopyMessageToClipboard(formattedMessage.c_str());
+			}
+		}
+
+		return S_OK;
 	}
 
 	void Exception::CopyMessageToClipboard(const char* error)
