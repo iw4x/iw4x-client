@@ -62,6 +62,8 @@ namespace Components
 
 		static GamepadControls::Controller gamePads[Game::MAX_GPAD_COUNT];
 		static GamePadGlobals gamePadGlobals[Game::MAX_GPAD_COUNT];
+		static std::mutex gamePadStateMutexes[Game::MAX_GPAD_COUNT];
+
 
 		static int gamePadBindingsModifiedFlags;
 
