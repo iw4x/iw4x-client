@@ -9,11 +9,11 @@
 #include <cwctype>
 #include <version.hpp>
 
-#define CLIPBOARD_MSG "Do you want to copy this message to the clipboard?"
-#define DISCORD_LINK  "https://discord.gg/2ETE8engZM"
-
 namespace Components
 {
+	constexpr auto CLIPBOARD_MSG = "Do you want to copy this message to the clipboard?";
+	constexpr auto DISCORD_LINK = "https://discord.gg/2ETE8engZM";
+
 	Utils::Hook Exception::SetFilterHook;
 	int Exception::MiniDumpType;
 
