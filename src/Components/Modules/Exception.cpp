@@ -9,6 +9,9 @@
 #include <cwctype>
 #include <version.hpp>
 
+#define CLIPBOARD_MSG "Do you want to copy this message to the clipboard?"
+#define DISCORD_LINK  "https://discord.gg/2ETE8engZM"
+
 namespace Components
 {
 	Utils::Hook Exception::SetFilterHook;
@@ -71,7 +74,7 @@ namespace Components
 
 		if (!Game::CL_IsCgameInitialized())
 		{
-			std::string msg = std::format("{}\n\nDo you want to copy this message to the clipboard?", clientInfo);
+			std::string msg = std::format("{}\n\n{}", clientInfo, CLIPBOARD_MSG);
 			std::wstring message(msg.begin(), msg.end());
 			return message;
 		}
@@ -90,7 +93,7 @@ namespace Components
 					Map Name: {})",
 					gameType, mapName);
 
-				std::string msg = std::format("{}\n{}\n\nDo you want to copy this message to the clipboard?", clientInfo, privateMatchInfo);
+				std::string msg = std::format("{}\n{}\n\n{}", clientInfo, privateMatchInfo, CLIPBOARD_MSG);
 				std::wstring message(msg.begin(), msg.end());
 				return message;
 			}
@@ -115,7 +118,7 @@ namespace Components
 				Map Name: {})",
 				serverVersion, serverName, ipAddress, gameType, mapName);
 
-			std::string msg = std::format("{}\n{}\n\nDo you want to copy this message to the clipboard?", clientInfo, serverInfo);
+			std::string msg = std::format("{}\n{}\n\n{}", clientInfo, serverInfo, CLIPBOARD_MSG);
 			std::wstring message(msg.begin(), msg.end());
 			return message;
 		}
@@ -139,7 +142,7 @@ namespace Components
 		{
 			trim(line);
 
-			if (line != L"Do you want to copy this message to the clipboard?")
+			if (line != Utils::String::Convert(CLIPBOARD_MSG))
 			{
 				if (!line.empty())
 				{
@@ -154,6 +157,10 @@ namespace Components
 
 	void Exception::DisplayErrorMessage(const std::wstring& title, const std::wstring& message)
 	{
+		const std::wstring footerText = std::format(
+			L"Join the official <a href=\"{}\">Discord Server</a> for additional support.",
+			Utils::String::Convert(DISCORD_LINK));
+
 		TASKDIALOGCONFIG taskDialogConfig = { 0 };
 		taskDialogConfig.cbSize				= sizeof(taskDialogConfig);
 		taskDialogConfig.hInstance			= GetModuleHandleA(nullptr);
@@ -165,7 +172,7 @@ namespace Components
 		taskDialogConfig.dwCommonButtons	= TDCBF_YES_BUTTON | TDCBF_NO_BUTTON;
 		taskDialogConfig.nDefaultButton		= IDYES;
 		taskDialogConfig.pszFooterIcon		= TD_INFORMATION_ICON;
-		taskDialogConfig.pszFooter			= L"Join the official <a href=\"https://discord.gg/2ETE8engZM\">Discord Server</a> for additional support.";
+        taskDialogConfig.pszFooter			= footerText.c_str();
 		taskDialogConfig.dwFlags			= TDF_ENABLE_HYPERLINKS | TDF_POSITION_RELATIVE_TO_WINDOW | TDF_SIZE_TO_CONTENT;
 		taskDialogConfig.lpCallbackData		= reinterpret_cast<LONG_PTR>(&message);
 		taskDialogConfig.pfCallback			= Exception::TaskDialogCallbackProc;
@@ -179,7 +186,7 @@ namespace Components
 
 		if (notification == TDN_HYPERLINK_CLICKED)
 		{
-			Utils::OpenUrl("https://discord.gg/2ETE8engZM");
+			Utils::OpenUrl(DISCORD_LINK);
 		}
 
 		if (notification == TDN_BUTTON_CLICKED)
@@ -241,10 +248,10 @@ namespace Components
 
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 		{
-			const char* error = "Termination because of a stack overflow.\nCopy exception address to clipboard?";
+			const auto error = std::format("Termination because of a stack overflow.\n{}", CLIPBOARD_MSG);
 
 			// Message should be copied to the clipboard if no button is pressed
-			if (MessageBoxA(nullptr, error, nullptr, MB_YESNO | MB_ICONERROR) == IDYES)
+			if (MessageBoxA(nullptr, error.c_str(), nullptr, MB_YESNO | MB_ICONERROR) == IDYES)
 			{
 				CopyMessageToClipboard(Utils::String::VA("0x%08X", ExceptionInfo->ExceptionRecord->ExceptionAddress));
 			}
