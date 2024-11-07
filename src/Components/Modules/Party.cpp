@@ -590,7 +590,7 @@ namespace Components
 							else
 							{
 								Dvar::Var("xblive_privateserver").set(true);
-								ServerVersion.set(version.c_str());
+								ServerVersion.set(version);
 								Game::Menus_CloseAll(Game::uiContext);
 
 								Game::_XSESSION_INFO hostInfo;

@@ -5,6 +5,7 @@
 #include "Window.hpp"
 #include "Party.hpp"
 #include "TextRenderer.hpp"
+#include "Discord.hpp"
 
 #include <cwctype>
 #include <version.hpp>
@@ -12,8 +13,7 @@
 namespace Components
 {
 	constexpr auto CLIPBOARD_MSG = "Do you want to copy this message to the clipboard?";
-	constexpr auto DISCORD_LINK = "https://discord.gg/2ETE8engZM";
-
+	
 	Utils::Hook Exception::SetFilterHook;
 	int Exception::MiniDumpType;
 
@@ -84,7 +84,7 @@ namespace Components
 
 		// Get info for a private match
 		{
-			if (std::strcmp(Game::cls->servername, "localhost") == 0)
+			if (Game::cls->servername == "localhost"s)
 			{
 				std::string privateMatchInfo = std::format(R"(
 					Host Info:
@@ -159,7 +159,7 @@ namespace Components
 	{
 		const std::wstring footerText = std::format(
 			L"Join the official <a href=\"{}\">Discord Server</a> for additional support.",
-			Utils::String::Convert(DISCORD_LINK));
+			Utils::String::Convert(Discord::GetDiscordServerLink()));
 
 		TASKDIALOGCONFIG taskDialogConfig = { 0 };
 		taskDialogConfig.cbSize				= sizeof(taskDialogConfig);
@@ -186,7 +186,7 @@ namespace Components
 
 		if (notification == TDN_HYPERLINK_CLICKED)
 		{
-			Utils::OpenUrl(DISCORD_LINK);
+			Utils::OpenUrl(Discord::GetDiscordServerLink());
 		}
 
 		if (notification == TDN_BUTTON_CLICKED)
