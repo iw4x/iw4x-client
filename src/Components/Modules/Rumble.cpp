@@ -288,7 +288,7 @@ namespace Components
 
 		const auto logError = [&](const std::string& view)
 			{
-				if ((*Game::com_sv_running)->current.value)
+				if ((*Game::sv_running)->current.value)
 				{
 					Components::Logger::Error(Game::ERR_DROP, view);
 				}
