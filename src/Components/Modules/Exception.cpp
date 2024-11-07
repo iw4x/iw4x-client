@@ -84,7 +84,7 @@ namespace Components
 
 		// Get info for a private match
 		{
-			if (Game::cls->servername == "localhost"s)
+			if (Dedicated::IsRunning())
 			{
 				std::string privateMatchInfo = std::format(R"(
 					Host Info:
