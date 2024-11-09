@@ -9,6 +9,9 @@ namespace Components
 	int RawMouse::MouseRawX = 0;
 	int RawMouse::MouseRawY = 0;
 
+#define K_MWHEELUP 206
+#define K_MWHEELDOWN 205
+
 	void RawMouse::IN_ClampMouseMove()
 	{
 		tagRECT rc;
@@ -86,6 +89,16 @@ namespace Components
 					mouse_event_flag |= 0x10u;
 
 				Game::IN_MouseEvent(mouse_event_flag);
+
+				if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
+				{
+					const SHORT scroll_delta = static_cast<SHORT>(raw->data.mouse.usButtonData);
+
+					if (scroll_delta > 0)
+						Game::Sys_QueEvents(Game::sysMsgTime(), 1, K_MWHEELDOWN, 0, 0);
+					if (scroll_delta < 0)
+						Game::Sys_QueEvents(Game::sysMsgTime(), 1, K_MWHEELUP, 0, 0);
+				}
 			}
 		}
 
@@ -135,7 +148,7 @@ namespace Components
 			RAWINPUTDEVICE Rid[1];
 			Rid[0].usUsagePage = 0x01; // HID_USAGE_PAGE_GENERIC
 			Rid[0].usUsage = 0x02; // HID_USAGE_GENERIC_MOUSE
-			Rid[0].dwFlags = RIDEV_INPUTSINK;
+			Rid[0].dwFlags = RIDEV_INPUTSINK | RIDEV_NOLEGACY | RIDEV_CAPTUREMOUSE;
 			Rid[0].hwndTarget = Window::GetWindow();
 
 			RegisterRawInputDevices(Rid, ARRAYSIZE(Rid), sizeof(Rid[0]));
