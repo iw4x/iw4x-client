@@ -220,6 +220,9 @@ namespace Components
 
 		bool success = RegisterRawInputDevices(Rid, ARRAYSIZE(Rid), sizeof(Rid[0])) == TRUE;
 
+		if (!success)
+			Logger::Warning(Game::CON_CHANNEL_SYSTEM, "RawInputDevices: failed: {}\n", GetLastError());
+
 		if (success && enable) //
 			RawInputWasEverEnabled = true;
 
