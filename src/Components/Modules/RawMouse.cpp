@@ -11,8 +11,8 @@ namespace Components
 	bool RawMouse::InRawInput = false;
 	bool RawMouse::RawInputWasEverEnabled = false;
 
-#define K_MWHEELUP 205
-#define K_MWHEELDOWN 206
+	constexpr const int K_MWHEELUP = 205;
+	constexpr const int K_MWHEELDOWN = 206;
 
 #define HIGH_POLLING_FIX 1
 
@@ -62,6 +62,13 @@ namespace Components
 		ClampMousePos(curPos);
 	}
 
+	bool CheckButtonFlag(DWORD usButtonFlags, DWORD flag_down)
+	{
+		DWORD flag_up = (flag_down << 1);
+		DWORD flag = (flag_down | flag_up);
+		return (usButtonFlags & flag) != 0u;
+	}
+
 	BOOL RawMouse::OnRawInput(LPARAM lParam, WPARAM)
 	{
 		if (!M_RawInput.get<bool>())
@@ -92,14 +99,14 @@ namespace Components
 		if (GetForegroundWindow() != Window::GetWindow())
 			return TRUE;
 
-		int mouse_event_flag = (raw->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_1_DOWN) != 0;
-		if ((raw->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_2_DOWN) != 0)
+		int mouse_event_flag = CheckButtonFlag(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_1_DOWN);
+		if (CheckButtonFlag(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_2_DOWN))
 			mouse_event_flag |= 2u;
-		if ((raw->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_3_DOWN) != 0)
+		if (CheckButtonFlag(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_3_DOWN))
 			mouse_event_flag |= 4u;
-		if ((raw->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_4_DOWN) != 0)
+		if (CheckButtonFlag(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_4_DOWN))
 			mouse_event_flag |= 8u;
-		if ((raw->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_5_DOWN) != 0)
+		if (CheckButtonFlag(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_5_DOWN))
 			mouse_event_flag |= 0x10u;
 
 		Game::IN_MouseEvent(mouse_event_flag);
