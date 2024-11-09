@@ -274,6 +274,7 @@ namespace Components
 		Utils::Hook(0x4A87E2, IN_Frame, HOOK_CALL).install()->quick();
 		Utils::Hook(0x48A0E6, IN_Frame, HOOK_CALL).install()->quick();
 
+		Utils::Hook(0x473517, IN_RecenterMouse, HOOK_CALL).install()->quick();
 		Utils::Hook(0x64C520, IN_RecenterMouse, HOOK_CALL).install()->quick();
 
 		M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates");
