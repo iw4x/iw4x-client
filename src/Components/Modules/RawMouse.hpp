@@ -12,7 +12,7 @@ namespace Components
 	private:
 		static Dvar::Var M_RawInput;
 		static int MouseRawX, MouseRawY;
-		static bool InRawInput;
+		static bool InRawInput, RawInputWasEverEnabled;
 
 		static void IN_ClampMouseMove();
 		static BOOL OnRawInput(LPARAM lParam, WPARAM);

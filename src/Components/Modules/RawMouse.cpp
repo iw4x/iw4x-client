@@ -9,18 +9,16 @@ namespace Components
 	int RawMouse::MouseRawX = 0;
 	int RawMouse::MouseRawY = 0;
 	bool RawMouse::InRawInput = false;
+	bool RawMouse::RawInputWasEverEnabled = false;
 
 #define K_MWHEELUP 205
 #define K_MWHEELDOWN 206
 
 #define HIGH_POLLING_FIX 1
 
-	void RawMouse::IN_ClampMouseMove()
+	void ClampMousePos(POINT& curPos)
 	{
 		tagRECT rc;
-		tagPOINT curPos;
-
-		GetCursorPos(&curPos);
 		GetWindowRect(Window::GetWindow(), &rc);
 		auto isClamped = false;
 		if (curPos.x >= rc.left)
@@ -36,6 +34,7 @@ namespace Components
 			curPos.x = rc.left;
 			isClamped = true;
 		}
+
 		if (curPos.y >= rc.top)
 		{
 			if (curPos.y >= rc.bottom)
@@ -56,8 +55,18 @@ namespace Components
 		}
 	}
 
+	void RawMouse::IN_ClampMouseMove()
+	{
+		tagPOINT curPos;
+		GetCursorPos(&curPos);
+		ClampMousePos(curPos);
+	}
+
 	BOOL RawMouse::OnRawInput(LPARAM lParam, WPARAM)
 	{
+		if (!M_RawInput.get<bool>())
+			return TRUE;
+
 		auto dwSize = sizeof(RAWINPUT);
 		static BYTE lpb[sizeof(RAWINPUT)];
 
@@ -144,8 +153,6 @@ namespace Components
 
 	void RawMouse::IN_RawMouseMove()
 	{
-		static auto r_fullscreen = Dvar::Var("r_fullscreen");
-
 		if (GetForegroundWindow() != Window::GetWindow())
 			return;
 
@@ -180,7 +187,7 @@ namespace Components
 	{
 		if (!M_RawInput.get<bool>())
 		{
-			if (!InRawInput)
+			if (!InRawInput || !RawInputWasEverEnabled)
 				return false;
 
 			enable = false;
@@ -192,18 +199,21 @@ namespace Components
 		}
 
 #if HIGH_POLLING_FIX
-		constexpr DWORD rawinput_flags = RIDEV_INPUTSINK | RIDEV_NOLEGACY | RIDEV_CAPTUREMOUSE;
+		constexpr DWORD rawinput_flags = RIDEV_INPUTSINK | RIDEV_NOLEGACY;
 #else
 		constexpr DWORD rawinput_flags = RIDEV_INPUTSINK;
 #endif
 
 		RAWINPUTDEVICE Rid[1];
-		Rid[0].usUsagePage = 0x01; // HID_USAGE_PAGE_GENERIC
-		Rid[0].usUsage = 0x02; // HID_USAGE_GENERIC_MOUSE
+		Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+		Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
 		Rid[0].dwFlags = (enable ? rawinput_flags : RIDEV_REMOVE);
 		Rid[0].hwndTarget = enable ? Window::GetWindow() : NULL;
 
 		bool success = RegisterRawInputDevices(Rid, ARRAYSIZE(Rid), sizeof(Rid[0])) == TRUE;
+
+		if (success && enable) //
+			RawInputWasEverEnabled = true;
 
 		InRawInput = success && (Rid[0].dwFlags & RIDEV_REMOVE) == 0;
 #ifdef _DEBUG
@@ -213,13 +223,12 @@ namespace Components
 			Logger::Debug("Raw Mouse disabled");
 #endif
 		return true;
-}
+	}
 
 	void RawMouse::IN_RawMouse_Init()
 	{
 		if (Window::GetWindow() && ToggleRawInput(true)) {
 			Logger::Debug("Raw Mouse Init");
-			InRawInput = true;
 		}
 	}
 
@@ -252,13 +261,42 @@ namespace Components
 
 	void RawMouse::IN_MouseMove()
 	{
+		static auto r_fullscreen = Dvar::Var("r_fullscreen");
+
 		if (InRawInput)
 		{
-			IN_RawMouseMove();
+			return IN_RawMouseMove();
 		}
-		else
+
+		// IN_MouseMove
+		if (GetForegroundWindow() != Window::GetWindow())
+			return;
+
+		tagPOINT cursor_pos;
+		static tagPOINT prev_cursor;
+
+		GetCursorPos(&cursor_pos);
+		if (r_fullscreen.get<bool>())
+			ClampMousePos(cursor_pos);
+
+		int delta_x = cursor_pos.x - prev_cursor.x;
+		int delta_y = cursor_pos.y - prev_cursor.y;
+		prev_cursor = cursor_pos;
+
+		ScreenToClient(Window::GetWindow(), &cursor_pos);
+		auto recenterMouse = Game::CL_MouseEvent(cursor_pos.x, cursor_pos.y, delta_x, delta_y);
+
+		if (recenterMouse && (delta_x || delta_y))
 		{
-			Game::IN_MouseMove();
+			RECT Rect;
+			GetWindowRect(Window::GetWindow(), &Rect);
+
+			int window_center_x = (Rect.right + Rect.left) / 2;
+			int window_center_y = (Rect.top + Rect.bottom) / 2;
+			SetCursorPos(window_center_x, window_center_y);
+
+			prev_cursor.x = window_center_x;
+			prev_cursor.y = window_center_y;
 		}
 	}
 
@@ -266,22 +304,28 @@ namespace Components
 	{
 		Utils::Hook(0x475E65, IN_MouseMove, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x475E8D, IN_MouseMove, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x475E9E, IN_MouseMove, HOOK_JUMP).install()->quick();
 
 		Utils::Hook(0x467C03, IN_Init, HOOK_CALL).install()->quick();
 		Utils::Hook(0x64D095, IN_Init, HOOK_JUMP).install()->quick();
 
+#if HIGH_POLLING_FIX
 		Utils::Hook(0x60BFB9, IN_Frame, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4A87E2, IN_Frame, HOOK_CALL).install()->quick();
 		Utils::Hook(0x48A0E6, IN_Frame, HOOK_CALL).install()->quick();
+#endif
 
 		Utils::Hook(0x473517, IN_RecenterMouse, HOOK_CALL).install()->quick();
 		Utils::Hook(0x64C520, IN_RecenterMouse, HOOK_CALL).install()->quick();
 
 		M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates");
 
-		Window::OnWndMessage(WM_INPUT, OnRawInput);
+#if HIGH_POLLING_FIX
 		Window::OnWndMessage(WM_KILLFOCUS, OnKillFocus);
 		Window::OnWndMessage(WM_SETFOCUS, OnSetFocus);
+#endif
+
+		Window::OnWndMessage(WM_INPUT, OnRawInput);
 		Window::OnCreate(IN_RawMouse_Init);
 	}
 }
