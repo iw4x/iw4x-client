@@ -10,6 +10,7 @@ namespace Components
 	int RawMouse::MouseRawY = 0;
 	bool RawMouse::InRawInput = false;
 	bool RawMouse::RawInputWasEverEnabled = false;
+	bool RawMouse::RawInputSupported = false;
 
 	constexpr const int K_MWHEELUP = 205;
 	constexpr const int K_MWHEELDOWN = 206;
@@ -192,9 +193,9 @@ namespace Components
 
 	bool RawMouse::ToggleRawInput(bool enable)
 	{
-		if (!M_RawInput.get<bool>())
+		if (!RawInputSupported || !M_RawInput.get<bool>())
 		{
-			if (!InRawInput || !RawInputWasEverEnabled)
+			if (!InRawInput)
 				return false;
 
 			enable = false;
@@ -234,6 +235,18 @@ namespace Components
 
 	void RawMouse::IN_RawMouse_Init()
 	{
+		RawInputSupported = false;
+
+		HMODULE user32 = GetModuleHandleA("USER32.dll");
+		if (user32)
+		{
+			PVOID pfnRegisterRawInputDevices = GetProcAddress(user32, "RegisterRawInputDevices");
+			PVOID pfnGetRawInputData = GetProcAddress(user32, "GetRawInputData");
+		
+			if (pfnRegisterRawInputDevices && pfnGetRawInputData)
+				RawInputSupported = true;
+		}
+
 		if (Window::GetWindow() && ToggleRawInput(true)) {
 			Logger::Debug("Raw Mouse Init");
 		}
