@@ -71,6 +71,22 @@ namespace Components
 				MouseRawX += raw->data.mouse.lLastX;
 				MouseRawY += raw->data.mouse.lLastY;
 			}
+
+			// we need to repeat this check there, since raw input sends attack if game is alt tabbed.
+			if (GetForegroundWindow() == Window::GetWindow())
+			{
+				auto mouse_event_flag = (raw->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_1_DOWN) != 0;
+				if ((raw->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_2_DOWN) != 0)
+					mouse_event_flag |= 2u;
+				if ((raw->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_3_DOWN) != 0)
+					mouse_event_flag |= 4u;
+				if ((raw->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_4_DOWN) != 0)
+					mouse_event_flag |= 8u;
+				if ((raw->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_5_DOWN) != 0)
+					mouse_event_flag |= 0x10u;
+
+				Game::IN_MouseEvent(mouse_event_flag);
+			}
 		}
 
 		return TRUE;
