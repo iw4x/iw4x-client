@@ -332,7 +332,7 @@ namespace Components
 		ResetMouseRawEvents();
 
 		R_AutoPriority = Dvar::Var("r_autopriority");
-		R_FullScreen = Dvar::Var("r_fullscreen");
+		R_FullScreen = Dvar::Var(0x069F0DA0);
 	}
 
 	void RawMouse::IN_Frame()
