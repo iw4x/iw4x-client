@@ -3,22 +3,34 @@
 #include "RawMouse.hpp"
 #include "Window.hpp"
 
+#define HIGH_POLLING_RATE_FIX 1
+#define RAW_MOUSE_VERBOSE 1
+
 namespace Components
 {
+	void raw_mouse_value_t::ResetDelta()
+	{
+		previous = current;
+	}
+
+	int raw_mouse_value_t::GetDelta() const
+	{
+		return current - previous;
+	}
+
 	Dvar::Var RawMouse::M_RawInput;
 	Dvar::Var RawMouse::R_AutoPriority = nullptr;
 	Dvar::Var RawMouse::R_FullScreen = nullptr;
 
-	int RawMouse::MouseRawX = 0;
-	int RawMouse::MouseRawY = 0;
-	int RawMouse::MouseRawEvents = 0;
+	raw_mouse_value_t RawMouse::MouseRawX{ 0,0 };
+	raw_mouse_value_t RawMouse::MouseRawY{ 0,0 };
+	uint32_t RawMouse::MouseRawEvents = 0;
 
 	bool RawMouse::InRawInput = false;
+	bool RawMouse::FirstRawInputUpdate = true;
 
 	constexpr const int K_MWHEELUP = 205;
 	constexpr const int K_MWHEELDOWN = 206;
-
-#define HIGH_POLLING_RATE_FIX 1
 
 	void ClampMousePos(POINT& curPos)
 	{
@@ -74,51 +86,103 @@ namespace Components
 
 	void RawMouse::ResetMouseRawEvents()
 	{
-		MouseRawEvents = 0;
+		if (MouseRawEvents != 0)
+		{
+			// send release event for all buttons.
+			Game::IN_MouseEvent(MouseRawEvents);
+#if RAW_MOUSE_VERBOSE
+			Logger::Debug("Force-Releasing buttons {}", MouseRawEvents);
+#endif
+		}
+		MouseRawEvents = 0u;
+		FirstRawInputUpdate = true;
 	}
 
 	void RawMouse::ProcessMouseRawEvent(DWORD usButtonFlags, DWORD flag_down, DWORD mouse_event)
 	{
+		const uint32_t pre_events = MouseRawEvents;
+
 		if (CheckButtonFlag(usButtonFlags, flag_down))
+		{
+#if RAW_MOUSE_VERBOSE
+			if ((pre_events & mouse_event) != 0u)
+				Logger::Debug("!! Pressing button that wasn't released");
+
+			Logger::Debug("Mouse button down: [{}, {}]", mouse_event, pre_events);
+#endif
+
 			MouseRawEvents |= mouse_event;
-		if (CheckButtonFlag(usButtonFlags, flag_down << 1))
+		}
+
+		if (CheckButtonFlag(usButtonFlags, flag_down << 1u))
+		{
+			// Sometimes when alt-tabbing this thing somehow gets passed there,
+			// releasing button that was not even pressed...
+			if ((pre_events & mouse_event) == 0u)
+			{
+#if RAW_MOUSE_VERBOSE
+				Logger::Debug("!! Releasing button that wasn't pressed");
+#endif
+				return;
+			}
+#if RAW_MOUSE_VERBOSE
+			Logger::Debug("Mouse button up: [{}, {}]", mouse_event, pre_events);
+#endif
+
 			MouseRawEvents &= ~mouse_event;
+		}
+	}
+
+	bool RawMouse::GetRawInput(LPARAM lParam, RAWINPUT& raw, UINT& dwSize)
+	{
+		const UINT result = GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, &raw, &dwSize, sizeof(RAWINPUTHEADER));
+
+		if (result == static_cast<UINT>(-1) || raw.header.dwType != RIM_TYPEMOUSE)
+			return false;
+
+		return true;
 	}
 
 	BOOL RawMouse::OnRawInput(LPARAM lParam, WPARAM)
 	{
-		if (!M_RawInput.get<bool>()) {
+		if (!InRawInput) {
 			ResetMouseRawEvents();
 			return TRUE;
 		}
 
-		auto dwSize = sizeof(RAWINPUT);
+		UINT dwSize = sizeof(RAWINPUT);
 		static RAWINPUT raw;
 
-		auto input_result = GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, &raw, &dwSize, sizeof(RAWINPUTHEADER));
+		if (!GetRawInput(lParam, raw, dwSize))
+			return TRUE;
 
-		if (input_result == static_cast<UINT>(-1) || raw.header.dwType != RIM_TYPEMOUSE)
+		if (GetForegroundWindow() != Window::GetWindow())
 			return TRUE;
 
 		// Is there's really absolute mouse on earth?
 		if (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
 		{
-			MouseRawX = raw.data.mouse.lLastX;
-			MouseRawY = raw.data.mouse.lLastY;
+			MouseRawX.current = raw.data.mouse.lLastX;
+			MouseRawY.current = raw.data.mouse.lLastY;
 		}
 		else
 		{
-			MouseRawX += raw.data.mouse.lLastX;
-			MouseRawY += raw.data.mouse.lLastY;
+			MouseRawX.current += raw.data.mouse.lLastX;
+			MouseRawY.current += raw.data.mouse.lLastY;
+		}
+
+		// fix of angle snap when alt tabbing.
+		if (FirstRawInputUpdate)
+		{
+			MouseRawX.ResetDelta();
+			MouseRawY.ResetDelta();
+			FirstRawInputUpdate = false;
 		}
 
 #if HIGH_POLLING_RATE_FIX
-		// we need to repeat this check there, since raw input sends attack if game is alt tabbed.
-		if (GetForegroundWindow() != Window::GetWindow()) {
-			ResetMouseRawEvents();
-			return TRUE;
-		}
-
+		// Process mouse buttons events
+		// format: (current_rawinput_flags, rawinput_mouse_button_keycode, cod_mouse_event).
+		// The function checks both down & up states.
 		ProcessMouseRawEvent(raw.data.mouse.usButtonFlags, RI_MOUSE_BUTTON_1_DOWN, 1);
 		ProcessMouseRawEvent(raw.data.mouse.usButtonFlags, RI_MOUSE_BUTTON_2_DOWN, 2);
 		ProcessMouseRawEvent(raw.data.mouse.usButtonFlags, RI_MOUSE_BUTTON_3_DOWN, 4);
@@ -178,13 +242,11 @@ namespace Components
 		if (GetForegroundWindow() != Window::GetWindow())
 			return;
 
-		static auto oldX = 0, oldY = 0;
+		auto dx = MouseRawX.GetDelta();
+		auto dy = MouseRawY.GetDelta();
 
-		auto dx = MouseRawX - oldX;
-		auto dy = MouseRawY - oldY;
-
-		oldX = MouseRawX;
-		oldY = MouseRawY;
+		MouseRawX.ResetDelta();
+		MouseRawY.ResetDelta();
 
 		// Don't use raw input for menu?
 		// Because it needs to call the ScreenToClient
@@ -238,7 +300,7 @@ namespace Components
 			Logger::Warning(Game::CON_CHANNEL_SYSTEM, "RawInputDevices: failed: {}\n", GetLastError());
 		else
 		{
-			InRawInput = (Rid[0].dwFlags & RIDEV_REMOVE) == 0;
+			InRawInput = (Rid[0].dwFlags & RIDEV_REMOVE) == 0u;
 
 #ifdef _DEBUG
 			if (InRawInput)
@@ -246,6 +308,9 @@ namespace Components
 			else
 				Logger::Debug("Raw Mouse disabled");
 #endif
+
+			if (!InRawInput)
+				ResetMouseRawEvents();
 		}
 
 		return true;

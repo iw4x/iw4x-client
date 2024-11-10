@@ -2,6 +2,15 @@
 
 namespace Components
 {
+	struct raw_mouse_value_t
+	{
+		int current = 0;
+		int previous = 0;
+
+		void ResetDelta();
+		int GetDelta() const;
+	};
+
 	class RawMouse : public Component
 	{
 	public:
@@ -11,12 +20,14 @@ namespace Components
 
 	private:
 		static Dvar::Var M_RawInput, R_FullScreen, R_AutoPriority;
-		static int MouseRawX, MouseRawY, MouseRawEvents;
-		static bool InRawInput;
+		static raw_mouse_value_t MouseRawX, MouseRawY;
+		static uint32_t MouseRawEvents;
+		static bool InRawInput, FirstRawInputUpdate;
 
 		static void IN_ClampMouseMove();
 		static void ResetMouseRawEvents();
 		static void ProcessMouseRawEvent(DWORD usButtonFlags, DWORD flag_down, DWORD mouse_event);
+		static bool GetRawInput(LPARAM lParam, RAWINPUT& raw, UINT& dwSize);
 		static BOOL OnRawInput(LPARAM lParam, WPARAM);
 		static bool IsMouseInClientBounds();
 		static BOOL OnKillFocus(LPARAM lParam, WPARAM);
