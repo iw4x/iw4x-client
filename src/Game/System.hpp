@@ -81,8 +81,6 @@ namespace Game
 
 	extern RTL_CRITICAL_SECTION* s_criticalSection;
 
-	extern int& sysMsgTime();
-
 	extern void Sys_QueEvents(int time, int type, int value2, int ptrLength, void* ptr);
 
 	extern void Sys_LockRead(FastCriticalSection* critSect);

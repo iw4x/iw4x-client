@@ -29,12 +29,6 @@ namespace Game
 
 	Sys_QueEvent_t Sys_QueEvent = Sys_QueEvent_t(0x497DE0);
 
-	int &sysMsgTime()
-	{
-		static const DWORD sysMsgTime_t = 0x64A3AE8;
-		return *(int*)sysMsgTime_t;
-	}
-
 	void Sys_QueEvents(int time, int type, int value2, int ptrLength, void* ptr)
 	{
 		Sys_QueEvent(time, type, value2, true, ptrLength, ptr);

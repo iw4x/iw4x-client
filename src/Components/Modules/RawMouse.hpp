@@ -10,7 +10,7 @@ namespace Components
 		static void IN_MouseMove();
 
 	private:
-		static Dvar::Var M_RawInput;
+		static Dvar::Var M_RawInput, R_FullScreen, R_AutoPriority;
 		static int MouseRawX, MouseRawY, MouseRawEvents;
 		static bool InRawInput, RawInputSupported;
 

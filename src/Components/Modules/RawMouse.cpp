@@ -6,9 +6,13 @@
 namespace Components
 {
 	Dvar::Var RawMouse::M_RawInput;
+	Dvar::Var RawMouse::R_AutoPriority = nullptr;
+	Dvar::Var RawMouse::R_FullScreen = nullptr;
+
 	int RawMouse::MouseRawX = 0;
 	int RawMouse::MouseRawY = 0;
 	int RawMouse::MouseRawEvents = 0;
+
 	bool RawMouse::InRawInput = false;
 	bool RawMouse::RawInputSupported = false;
 
@@ -20,7 +24,8 @@ namespace Components
 	void ClampMousePos(POINT& curPos)
 	{
 		tagRECT rc;
-		GetWindowRect(Window::GetWindow(), &rc);
+		if (GetWindowRect(Window::GetWindow(), &rc) != TRUE)
+			return;
 		auto isClamped = false;
 		if (curPos.x >= rc.left)
 		{
@@ -89,24 +94,23 @@ namespace Components
 		}
 
 		auto dwSize = sizeof(RAWINPUT);
-		static BYTE lpb[sizeof(RAWINPUT)];
+		static RAWINPUT raw;
 
-		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+		auto input_result = GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, &raw, &dwSize, sizeof(RAWINPUTHEADER));
 
-		auto* raw = reinterpret_cast<RAWINPUT*>(lpb);
-		if (raw->header.dwType != RIM_TYPEMOUSE)
+		if (input_result == static_cast<UINT>(-1) || raw.header.dwType != RIM_TYPEMOUSE)
 			return TRUE;
 
 		// Is there's really absolute mouse on earth?
-		if (raw->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
+		if (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
 		{
-			MouseRawX = raw->data.mouse.lLastX;
-			MouseRawY = raw->data.mouse.lLastY;
+			MouseRawX = raw.data.mouse.lLastX;
+			MouseRawY = raw.data.mouse.lLastY;
 		}
 		else
 		{
-			MouseRawX += raw->data.mouse.lLastX;
-			MouseRawY += raw->data.mouse.lLastY;
+			MouseRawX += raw.data.mouse.lLastX;
+			MouseRawY += raw.data.mouse.lLastY;
 		}
 
 #if HIGH_POLLING_RATE_FIX
@@ -116,22 +120,22 @@ namespace Components
 			return TRUE;
 		}
 
-		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_1_DOWN, 1);
-		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_2_DOWN, 2);
-		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_3_DOWN, 4);
-		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_4_DOWN, 8);
-		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_5_DOWN, 16);
+		ProcessMouseRawEvent(raw.data.mouse.usButtonFlags, RI_MOUSE_BUTTON_1_DOWN, 1);
+		ProcessMouseRawEvent(raw.data.mouse.usButtonFlags, RI_MOUSE_BUTTON_2_DOWN, 2);
+		ProcessMouseRawEvent(raw.data.mouse.usButtonFlags, RI_MOUSE_BUTTON_3_DOWN, 4);
+		ProcessMouseRawEvent(raw.data.mouse.usButtonFlags, RI_MOUSE_BUTTON_4_DOWN, 8);
+		ProcessMouseRawEvent(raw.data.mouse.usButtonFlags, RI_MOUSE_BUTTON_5_DOWN, 16);
 
 		Game::IN_MouseEvent(MouseRawEvents);
 
-		if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
+		if (raw.data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
 		{
-			const SHORT scroll_delta = static_cast<SHORT>(raw->data.mouse.usButtonData);
+			const SHORT scroll_delta = static_cast<SHORT>(raw.data.mouse.usButtonData);
 
 			if (scroll_delta > 0)
-				Game::Sys_QueEvents(Game::sysMsgTime(), 1, K_MWHEELDOWN, 0, 0);
+				Game::Sys_QueEvents(Game::g_wv->sysMsgTime, 1, K_MWHEELDOWN, 0, 0);
 			if (scroll_delta < 0)
-				Game::Sys_QueEvents(Game::sysMsgTime(), 1, K_MWHEELUP, 0, 0);
+				Game::Sys_QueEvents(Game::g_wv->sysMsgTime, 1, K_MWHEELUP, 0, 0);
 		}
 #endif
 
@@ -152,9 +156,8 @@ namespace Components
 
 	BOOL RawMouse::OnKillFocus([[maybe_unused]] LPARAM lParam, WPARAM)
 	{
-		static auto r_autopriority = Dvar::Var("r_autopriority");
 		ToggleRawInput(false);
-		if (r_autopriority.get<bool>())
+		if (R_AutoPriority.get<Game::dvar_t*>() && R_AutoPriority.get<bool>())
 			SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 		SetFocus(nullptr);
 		ResetMouseRawEvents();
@@ -163,9 +166,8 @@ namespace Components
 
 	BOOL RawMouse::OnSetFocus([[maybe_unused]] LPARAM lParam, WPARAM)
 	{
-		static auto r_autopriority = Dvar::Var("r_autopriority");
 		ToggleRawInput(IsMouseInClientBounds());
-		if (r_autopriority.get<bool>())
+		if (R_AutoPriority.get<Game::dvar_t*>() && R_AutoPriority.get<bool>())
 			SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
 
 		SetFocus(Window::GetWindow());
@@ -274,6 +276,9 @@ namespace Components
 		Game::IN_Init();
 		IN_RawMouse_Init();
 		ResetMouseRawEvents();
+
+		R_AutoPriority = Dvar::Var("r_autopriority");
+		R_FullScreen = Dvar::Var("r_fullscreen");
 	}
 
 	void RawMouse::IN_Frame()
@@ -299,8 +304,6 @@ namespace Components
 
 	void RawMouse::IN_MouseMove()
 	{
-		static auto r_fullscreen = Dvar::Var("r_fullscreen");
-
 		if (InRawInput)
 		{
 			return IN_RawMouseMove();
@@ -314,7 +317,7 @@ namespace Components
 		static tagPOINT prev_cursor;
 
 		GetCursorPos(&cursor_pos);
-		if (r_fullscreen.get<bool>())
+		if (R_FullScreen.get<Game::dvar_t*>() && R_FullScreen.get<bool>())
 			ClampMousePos(cursor_pos);
 
 		int delta_x = cursor_pos.x - prev_cursor.x;
@@ -327,14 +330,15 @@ namespace Components
 		if (recenterMouse && (delta_x || delta_y))
 		{
 			RECT Rect;
-			GetWindowRect(Window::GetWindow(), &Rect);
+			if (GetWindowRect(Window::GetWindow(), &Rect) == TRUE)
+			{
+				int window_center_x = (Rect.right + Rect.left) / 2;
+				int window_center_y = (Rect.top + Rect.bottom) / 2;
+				SetCursorPos(window_center_x, window_center_y);
 
-			int window_center_x = (Rect.right + Rect.left) / 2;
-			int window_center_y = (Rect.top + Rect.bottom) / 2;
-			SetCursorPos(window_center_x, window_center_y);
-
-			prev_cursor.x = window_center_x;
-			prev_cursor.y = window_center_y;
+				prev_cursor.x = window_center_x;
+				prev_cursor.y = window_center_y;
+			}
 		}
 	}
 
