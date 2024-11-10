@@ -31,8 +31,8 @@ namespace Game
 
 	void Sys_QueEvents(int time, int type, int value2, int ptrLength, void* ptr)
 	{
-		Sys_QueEvent(time, type, value2, true, ptrLength, ptr);
-		Sys_QueEvent(time, type, value2, false, ptrLength, ptr);
+		Sys_QueEvent(time, type, value2, TRUE, ptrLength, ptr);
+		Sys_QueEvent(time, type, value2, FALSE, ptrLength, ptr);
 	}
 
 	char(*sys_exitCmdLine)[1024] = reinterpret_cast<char(*)[1024]>(0x649FB68);

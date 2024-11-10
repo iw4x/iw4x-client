@@ -10,12 +10,20 @@ namespace Components
 {
 	void raw_mouse_value_t::ResetDelta()
 	{
-		previous = current;
+		this->previous = this->current;
 	}
 
 	int raw_mouse_value_t::GetDelta() const
 	{
-		return current - previous;
+		return this->current - this->previous;
+	}
+
+	void raw_mouse_value_t::Update(int value, bool absolute)
+	{
+		if (absolute) // if mouse is absolute, reset current value
+			this->current = 0;
+
+		this->current += value;
 	}
 
 	Dvar::Var RawMouse::M_RawInput;
@@ -160,16 +168,10 @@ namespace Components
 			return TRUE;
 
 		// Is there's really absolute mouse on earth?
-		if (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
-		{
-			MouseRawX.current = raw.data.mouse.lLastX;
-			MouseRawY.current = raw.data.mouse.lLastY;
-		}
-		else
-		{
-			MouseRawX.current += raw.data.mouse.lLastX;
-			MouseRawY.current += raw.data.mouse.lLastY;
-		}
+		const bool absolute_mouse_move = (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) != 0u;
+
+		MouseRawX.Update(raw.data.mouse.lLastX, absolute_mouse_move);
+		MouseRawY.Update(raw.data.mouse.lLastY, absolute_mouse_move);
 
 		// fix of angle snap when alt tabbing.
 		if (FirstRawInputUpdate)

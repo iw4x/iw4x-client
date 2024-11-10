@@ -9,6 +9,7 @@ namespace Components
 
 		void ResetDelta();
 		int GetDelta() const;
+		void Update(int value, bool absolute);
 	};
 
 	class RawMouse : public Component
