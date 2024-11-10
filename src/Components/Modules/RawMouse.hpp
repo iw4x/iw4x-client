@@ -11,10 +11,12 @@ namespace Components
 
 	private:
 		static Dvar::Var M_RawInput;
-		static int MouseRawX, MouseRawY;
+		static int MouseRawX, MouseRawY, MouseRawEvents;
 		static bool InRawInput, RawInputWasEverEnabled, RawInputSupported;
 
 		static void IN_ClampMouseMove();
+		static void ResetMouseRawEvents();
+		static void ProcessMouseRawEvent(DWORD usButtonFlags, DWORD flag_down, DWORD mouse_event);
 		static BOOL OnRawInput(LPARAM lParam, WPARAM);
 		static bool IsMouseInClientBounds();
 		static BOOL OnKillFocus(LPARAM lParam, WPARAM);

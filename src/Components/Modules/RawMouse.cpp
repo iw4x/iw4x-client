@@ -8,6 +8,7 @@ namespace Components
 	Dvar::Var RawMouse::M_RawInput;
 	int RawMouse::MouseRawX = 0;
 	int RawMouse::MouseRawY = 0;
+	int RawMouse::MouseRawEvents = 0;
 	bool RawMouse::InRawInput = false;
 	bool RawMouse::RawInputWasEverEnabled = false;
 	bool RawMouse::RawInputSupported = false;
@@ -63,11 +64,22 @@ namespace Components
 		ClampMousePos(curPos);
 	}
 
-	bool CheckButtonFlag(DWORD usButtonFlags, DWORD flag_down)
+	bool CheckButtonFlag(DWORD usButtonFlags, DWORD flag)
 	{
-		DWORD flag_up = (flag_down << 1);
-		DWORD flag = (flag_down | flag_up);
 		return (usButtonFlags & flag) != 0u;
+	}
+
+	void RawMouse::ResetMouseRawEvents()
+	{
+		MouseRawEvents = 0;
+	}
+
+	void RawMouse::ProcessMouseRawEvent(DWORD usButtonFlags, DWORD flag_down, DWORD mouse_event)
+	{
+		if (CheckButtonFlag(usButtonFlags, flag_down))
+			MouseRawEvents |= mouse_event;
+		if (CheckButtonFlag(usButtonFlags, flag_down << 1))
+			MouseRawEvents &= ~mouse_event;
 	}
 
 	BOOL RawMouse::OnRawInput(LPARAM lParam, WPARAM)
@@ -100,17 +112,13 @@ namespace Components
 		if (GetForegroundWindow() != Window::GetWindow())
 			return TRUE;
 
-		int mouse_event_flag = CheckButtonFlag(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_1_DOWN);
-		if (CheckButtonFlag(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_2_DOWN))
-			mouse_event_flag |= 2u;
-		if (CheckButtonFlag(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_3_DOWN))
-			mouse_event_flag |= 4u;
-		if (CheckButtonFlag(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_4_DOWN))
-			mouse_event_flag |= 8u;
-		if (CheckButtonFlag(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_5_DOWN))
-			mouse_event_flag |= 0x10u;
+		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_1_DOWN, 1);
+		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_2_DOWN, 2);
+		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_3_DOWN, 4);
+		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_4_DOWN, 8);
+		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_5_DOWN, 16);
 
-		Game::IN_MouseEvent(mouse_event_flag);
+		Game::IN_MouseEvent(MouseRawEvents);
 
 		if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
 		{
@@ -145,6 +153,7 @@ namespace Components
 		if (r_autopriority.get<bool>())
 			SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 		SetFocus(nullptr);
+		ResetMouseRawEvents();
 		return FALSE;
 	}
 
@@ -245,7 +254,7 @@ namespace Components
 		{
 			PVOID pfnRegisterRawInputDevices = GetProcAddress(user32, "RegisterRawInputDevices");
 			PVOID pfnGetRawInputData = GetProcAddress(user32, "GetRawInputData");
-		
+
 			if (pfnRegisterRawInputDevices && pfnGetRawInputData)
 				RawInputSupported = true;
 		}
@@ -259,6 +268,7 @@ namespace Components
 	{
 		Game::IN_Init();
 		IN_RawMouse_Init();
+		ResetMouseRawEvents();
 	}
 
 	void RawMouse::IN_Frame()
