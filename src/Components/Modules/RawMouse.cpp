@@ -10,13 +10,12 @@ namespace Components
 	int RawMouse::MouseRawY = 0;
 	int RawMouse::MouseRawEvents = 0;
 	bool RawMouse::InRawInput = false;
-	bool RawMouse::RawInputWasEverEnabled = false;
 	bool RawMouse::RawInputSupported = false;
 
 	constexpr const int K_MWHEELUP = 205;
 	constexpr const int K_MWHEELDOWN = 206;
 
-#define HIGH_POLLING_FIX 1
+#define HIGH_POLLING_RATE_FIX 1
 
 	void ClampMousePos(POINT& curPos)
 	{
@@ -97,6 +96,7 @@ namespace Components
 		auto* raw = reinterpret_cast<RAWINPUT*>(lpb);
 		if (raw->header.dwType != RIM_TYPEMOUSE)
 			return TRUE;
+
 		// Is there's really absolute mouse on earth?
 		if (raw->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
 		{
@@ -109,7 +109,7 @@ namespace Components
 			MouseRawY += raw->data.mouse.lLastY;
 		}
 
-#if HIGH_POLLING_FIX
+#if HIGH_POLLING_RATE_FIX
 		// we need to repeat this check there, since raw input sends attack if game is alt tabbed.
 		if (GetForegroundWindow() != Window::GetWindow()) {
 			ResetMouseRawEvents();
@@ -219,7 +219,7 @@ namespace Components
 				return InRawInput;
 		}
 
-#if HIGH_POLLING_FIX
+#if HIGH_POLLING_RATE_FIX
 		constexpr DWORD rawinput_flags = RIDEV_INPUTSINK | RIDEV_NOLEGACY;
 #else
 		constexpr DWORD rawinput_flags = RIDEV_INPUTSINK;
@@ -235,17 +235,18 @@ namespace Components
 
 		if (!success)
 			Logger::Warning(Game::CON_CHANNEL_SYSTEM, "RawInputDevices: failed: {}\n", GetLastError());
-
-		if (success && enable) //
-			RawInputWasEverEnabled = true;
-
-		InRawInput = success && (Rid[0].dwFlags & RIDEV_REMOVE) == 0;
-#ifdef _DEBUG
-		if (InRawInput)
-			Logger::Debug("Raw Mouse enabled");
 		else
-			Logger::Debug("Raw Mouse disabled");
+		{
+			InRawInput = (Rid[0].dwFlags & RIDEV_REMOVE) == 0;
+
+#ifdef _DEBUG
+			if (InRawInput)
+				Logger::Debug("Raw Mouse enabled");
+			else
+				Logger::Debug("Raw Mouse disabled");
 #endif
+		}
+
 		return true;
 	}
 
@@ -346,7 +347,7 @@ namespace Components
 		Utils::Hook(0x467C03, IN_Init, HOOK_CALL).install()->quick();
 		Utils::Hook(0x64D095, IN_Init, HOOK_JUMP).install()->quick();
 
-#if HIGH_POLLING_FIX
+#if HIGH_POLLING_RATE_FIX
 		Utils::Hook(0x60BFB9, IN_Frame, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4A87E2, IN_Frame, HOOK_CALL).install()->quick();
 		Utils::Hook(0x48A0E6, IN_Frame, HOOK_CALL).install()->quick();
@@ -357,7 +358,7 @@ namespace Components
 
 		M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates");
 
-#if HIGH_POLLING_FIX
+#if HIGH_POLLING_RATE_FIX
 		Window::OnWndMessage(WM_KILLFOCUS, OnKillFocus);
 		Window::OnWndMessage(WM_SETFOCUS, OnSetFocus);
 #endif
