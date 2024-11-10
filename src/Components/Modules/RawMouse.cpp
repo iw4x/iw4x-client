@@ -150,7 +150,7 @@ namespace Components
 		return (curPos.y >= 0 && curPos.x >= 0 && (rect.right - rect.left) >= curPos.x && (rect.bottom - rect.top) >= curPos.y);
 	}
 
-	BOOL RawMouse::OnKillFocus(LPARAM lParam, WPARAM)
+	BOOL RawMouse::OnKillFocus([[maybe_unused]] LPARAM lParam, WPARAM)
 	{
 		static auto r_autopriority = Dvar::Var("r_autopriority");
 		ToggleRawInput(false);
@@ -161,7 +161,7 @@ namespace Components
 		return FALSE;
 	}
 
-	BOOL RawMouse::OnSetFocus(LPARAM lParam, WPARAM)
+	BOOL RawMouse::OnSetFocus([[maybe_unused]] LPARAM lParam, WPARAM)
 	{
 		static auto r_autopriority = Dvar::Var("r_autopriority");
 		ToggleRawInput(IsMouseInClientBounds());
