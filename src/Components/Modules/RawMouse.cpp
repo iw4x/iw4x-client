@@ -84,8 +84,10 @@ namespace Components
 
 	BOOL RawMouse::OnRawInput(LPARAM lParam, WPARAM)
 	{
-		if (!M_RawInput.get<bool>())
+		if (!M_RawInput.get<bool>()) {
+			ResetMouseRawEvents();
 			return TRUE;
+		}
 
 		auto dwSize = sizeof(RAWINPUT);
 		static BYTE lpb[sizeof(RAWINPUT)];
@@ -109,8 +111,10 @@ namespace Components
 
 #if HIGH_POLLING_FIX
 		// we need to repeat this check there, since raw input sends attack if game is alt tabbed.
-		if (GetForegroundWindow() != Window::GetWindow())
+		if (GetForegroundWindow() != Window::GetWindow()) {
+			ResetMouseRawEvents();
 			return TRUE;
+		}
 
 		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_1_DOWN, 1);
 		ProcessMouseRawEvent(raw->data.mouse.usButtonFlags, RI_MOUSE_BUTTON_2_DOWN, 2);
