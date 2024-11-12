@@ -243,7 +243,7 @@ namespace Components
 
 		Game::IN_MouseEvent(MouseEvents);
 
-		// we should call DefWindowProcA there as game, but msg is not available in arguments...
+		// we should call DefWindowProcA there as game, thats why there is 8 1line functions...
 		return DefWindowProcA(Window::GetWindow(), Msg, wParam, lParam);
 	}
 
