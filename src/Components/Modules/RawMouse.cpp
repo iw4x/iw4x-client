@@ -104,28 +104,28 @@ namespace Components
 		FirstRawInputUpdate = true;
 	}
 
-	void RawMouse::ProcessMouseRawEvent(DWORD usButtonFlags, DWORD flag_down, DWORD mouse_event)
+	void RawMouse::ProcessMouseRawEvent(DWORD usButtonFlags, DWORD flagDown, DWORD mouseEvent)
 	{
-		const uint32_t pre_events = MouseRawEvents;
+		const uint32_t prevMouseEvents = MouseRawEvents;
 
-		if (CheckButtonFlag(usButtonFlags, flag_down))
+		if (CheckButtonFlag(usButtonFlags, flagDown))
 		{
 			if (M_RawInputVerbose.get<bool>())
 			{
-				if ((pre_events & mouse_event) != 0u)
+				if ((prevMouseEvents & mouseEvent) != 0u)
 					Logger::Debug("!! Pressing button that wasn't released");
 
-				Logger::Debug("Mouse button down: [{}, {}]", mouse_event, pre_events);
+				Logger::Debug("Mouse button down: [{}, {}]", mouseEvent, prevMouseEvents);
 			}
 
-			MouseRawEvents |= mouse_event;
+			MouseRawEvents |= mouseEvent;
 		}
 
-		if (CheckButtonFlag(usButtonFlags, flag_down << 1u))
+		if (CheckButtonFlag(usButtonFlags, flagDown << 1u))
 		{
-			// Sometimes when alt-tabbing this thing somehow gets passed there,
+			// Sometimes when alt-tabbing LMB release somehow gets passed there,
 			// releasing button that was not even pressed...
-			if ((pre_events & mouse_event) == 0u)
+			if ((prevMouseEvents & mouseEvent) == 0u)
 			{
 				if (M_RawInputVerbose.get<bool>())
 					Logger::Debug("!! Releasing button that wasn't pressed");
@@ -134,9 +134,9 @@ namespace Components
 			}
 
 			if (M_RawInputVerbose.get<bool>())
-				Logger::Debug("Mouse button up: [{}, {}]", mouse_event, pre_events);
+				Logger::Debug("Mouse button up: [{}, {}]", mouseEvent, prevMouseEvents);
 
-			MouseRawEvents &= ~mouse_event;
+			MouseRawEvents &= ~mouseEvent;
 		}
 	}
 
@@ -167,10 +167,10 @@ namespace Components
 			return TRUE;
 
 		// Is there's really absolute mouse on earth?
-		const bool absolute_mouse_move = (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) != 0u;
+		const bool bAbsMouseMove = (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) != 0u;
 
-		MouseRawX.Update(raw.data.mouse.lLastX, absolute_mouse_move);
-		MouseRawY.Update(raw.data.mouse.lLastY, absolute_mouse_move);
+		MouseRawX.Update(raw.data.mouse.lLastX, bAbsMouseMove);
+		MouseRawY.Update(raw.data.mouse.lLastY, bAbsMouseMove);
 
 		// fix of angle snap when alt tabbing.
 		if (FirstRawInputUpdate)
@@ -281,12 +281,12 @@ namespace Components
 				return InRawInput;
 		}
 
-		constexpr DWORD rawinput_flags = RIDEV_INPUTSINK | RIDEV_NOLEGACY;
+		constexpr DWORD rawMouseFlags = RIDEV_INPUTSINK | RIDEV_NOLEGACY;
 
 		RAWINPUTDEVICE Rid[1];
 		Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
 		Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
-		Rid[0].dwFlags = (enable ? rawinput_flags : RIDEV_REMOVE);
+		Rid[0].dwFlags = (enable ? rawMouseFlags : RIDEV_REMOVE);
 		Rid[0].hwndTarget = enable ? Window::GetWindow() : NULL;
 
 		bool success = RegisterRawInputDevices(Rid, ARRAYSIZE(Rid), sizeof(Rid[0])) == TRUE;
@@ -296,7 +296,6 @@ namespace Components
 		else
 		{
 			InRawInput = (Rid[0].dwFlags & RIDEV_REMOVE) == 0u;
-
 
 			if (M_RawInputVerbose.get<bool>())
 			{
