@@ -19,6 +19,20 @@ namespace Components
 
 		static void IN_MouseMove();
 
+		static BOOL OnMouseFirst(LPARAM lParam, WPARAM wParam);
+
+		static BOOL OnLBDown(LPARAM lParam, WPARAM wParam);
+		static BOOL OnLBUp(LPARAM lParam, WPARAM wParam);
+
+		static BOOL OnRBDown(LPARAM lParam, WPARAM wParam);
+		static BOOL OnRBUp(LPARAM lParam, WPARAM wParam);
+
+		static BOOL OnMBDown(LPARAM lParam, WPARAM wParam);
+		static BOOL OnMBUp(LPARAM lParam, WPARAM wParam);
+
+		static BOOL OnXBDown(LPARAM lParam, WPARAM wParam);
+		static BOOL OnXBUp(LPARAM lParam, WPARAM wParam);
+
 	private:
 		static Dvar::Var M_RawInput, M_RawInputVerbose, R_FullScreen, R_AutoPriority;
 		static rawMouseValue_t MouseRawX, MouseRawY;
@@ -31,6 +45,7 @@ namespace Components
 		static bool GetRawInput(LPARAM lParam, RAWINPUT& raw, UINT& dwSize);
 		static BOOL OnRawInput(LPARAM lParam, WPARAM);
 		static bool IsMouseInClientBounds();
+		static BOOL OnLegacyMouseEvent(UINT Msg, LPARAM lParam, WPARAM wParam);
 		static BOOL OnKillFocus(LPARAM lParam, WPARAM);
 		static BOOL OnSetFocus(LPARAM lParam, WPARAM);
 		static void IN_RawMouseMove();

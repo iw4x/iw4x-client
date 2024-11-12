@@ -92,14 +92,15 @@ namespace Components
 
 	void RawMouse::ResetMouseRawEvents()
 	{
-		if (MouseRawEvents != 0)
-		{
-			// send release event for all buttons.
-			Game::IN_MouseEvent(MouseRawEvents);
-
-			if (M_RawInputVerbose.get<bool>())
-				Logger::Debug("Force-Releasing buttons {}", MouseRawEvents);
-		}
+		// this code messes up sometimes and forces attack in alt-tabbing.
+		//if (MouseRawEvents != 0)
+		//{
+		//	// send release event for all buttons.
+		//	Game::IN_MouseEvent(MouseRawEvents);
+		//
+		//	if (M_RawInputVerbose.get<bool>())
+		//		Logger::Debug("Force-Releasing buttons {}", MouseRawEvents);
+		//}
 		MouseRawEvents = 0u;
 		FirstRawInputUpdate = true;
 	}
@@ -214,6 +215,36 @@ namespace Components
 		Window::Dimension(Window::GetWindow(), &rect);
 
 		return (curPos.y >= 0 && curPos.x >= 0 && (rect.right - rect.left) >= curPos.x && (rect.bottom - rect.top) >= curPos.y);
+	}
+
+	BOOL RawMouse::OnLegacyMouseEvent(UINT Msg, LPARAM lParam, WPARAM wParam)
+	{
+		int MouseEvents = (wParam & MK_LBUTTON) != 0;
+		if ((wParam & MK_RBUTTON) != 0)
+			MouseEvents |= 2u;
+		if ((wParam & MK_MBUTTON) != 0)
+			MouseEvents |= 4u;
+		if ((wParam & MK_XBUTTON1) != 0)
+			MouseEvents |= 8u;
+		if ((wParam & MK_XBUTTON2) != 0)
+			MouseEvents |= 0x10u;
+
+		if (M_RawInput.get<bool>())
+		{
+			if (MouseEvents == 0)
+				return TRUE;
+
+			if (M_RawInputVerbose.get<bool>())
+				Logger::Debug("Window Mouse Message: [{}, {}]", MouseEvents, MouseRawEvents);
+
+			MouseRawEvents = MouseEvents;
+			return TRUE;
+		}
+
+		Game::IN_MouseEvent(MouseEvents);
+
+		// we should call DefWindowProcA there as game, but msg is not available in arguments...
+		return DefWindowProcA(Window::GetWindow(), Msg, wParam, lParam);
 	}
 
 	BOOL RawMouse::OnKillFocus([[maybe_unused]] LPARAM lParam, WPARAM)
@@ -390,6 +421,51 @@ namespace Components
 		}
 	}
 
+	BOOL RawMouse::OnMouseFirst(LPARAM lParam, WPARAM wParam)
+	{
+		return OnLegacyMouseEvent(WM_MOUSEFIRST, lParam, wParam);
+	}
+
+	BOOL RawMouse::OnLBDown(LPARAM lParam, WPARAM wParam)
+	{
+		return OnLegacyMouseEvent(WM_LBUTTONDOWN, lParam, wParam);
+	}
+
+	BOOL RawMouse::OnLBUp(LPARAM lParam, WPARAM wParam)
+	{
+		return OnLegacyMouseEvent(WM_LBUTTONUP, lParam, wParam);
+	}
+
+	BOOL RawMouse::OnRBDown(LPARAM lParam, WPARAM wParam)
+	{
+		return OnLegacyMouseEvent(WM_RBUTTONDOWN, lParam, wParam);
+	}
+
+	BOOL RawMouse::OnRBUp(LPARAM lParam, WPARAM wParam)
+	{
+		return OnLegacyMouseEvent(WM_RBUTTONUP, lParam, wParam);
+	}
+
+	BOOL RawMouse::OnMBDown(LPARAM lParam, WPARAM wParam)
+	{
+		return OnLegacyMouseEvent(WM_MBUTTONDOWN, lParam, wParam);
+	}
+
+	BOOL RawMouse::OnMBUp(LPARAM lParam, WPARAM wParam)
+	{
+		return OnLegacyMouseEvent(WM_MBUTTONUP, lParam, wParam);
+	}
+
+	BOOL RawMouse::OnXBDown(LPARAM lParam, WPARAM wParam)
+	{
+		return OnLegacyMouseEvent(WM_XBUTTONDOWN, lParam, wParam);
+	}
+
+	BOOL RawMouse::OnXBUp(LPARAM lParam, WPARAM wParam)
+	{
+		return OnLegacyMouseEvent(WM_XBUTTONUP, lParam, wParam);
+	}
+
 	RawMouse::RawMouse()
 	{
 		Utils::Hook(0x475E65, IN_MouseMove, HOOK_JUMP).install()->quick();
@@ -407,10 +483,21 @@ namespace Components
 		Utils::Hook(0x64C520, IN_RecenterMouse, HOOK_CALL).install()->quick();
 
 		M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates");
-		M_RawInputVerbose = Dvar::Register<bool>("m_rawinput_verbose", true, Game::DVAR_ARCHIVE | Game::DVAR_SAVED, "Raw mouse input debug log");
+		M_RawInputVerbose = Dvar::Register<bool>("m_rawinput_verbose", false, Game::DVAR_ARCHIVE | Game::DVAR_SAVED, "Raw mouse input debug log");
 
 		Window::OnWndMessage(WM_KILLFOCUS, OnKillFocus);
 		Window::OnWndMessage(WM_SETFOCUS, OnSetFocus);
+
+		// not the cleanest way but we got Msg in arguments now...
+		Window::OnWndMessage(WM_MOUSEFIRST, OnMouseFirst);
+		Window::OnWndMessage(WM_LBUTTONDOWN, OnLBDown);
+		Window::OnWndMessage(WM_LBUTTONUP, OnLBUp);
+		Window::OnWndMessage(WM_RBUTTONDOWN, OnRBDown);
+		Window::OnWndMessage(WM_RBUTTONUP, OnRBUp);
+		Window::OnWndMessage(WM_MBUTTONDOWN, OnMBDown);
+		Window::OnWndMessage(WM_MBUTTONUP, OnMBUp);
+		Window::OnWndMessage(WM_XBUTTONDOWN, OnXBDown);
+		Window::OnWndMessage(WM_XBUTTONUP, OnXBUp);
 
 		Window::OnWndMessage(WM_INPUT, OnRawInput);
 		Window::OnCreate(IN_RawMouse_Init);
