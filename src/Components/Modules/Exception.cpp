@@ -80,7 +80,12 @@ namespace Components
 		}
 
 		const auto* gameType = (*Game::sv_gametype)->current.string;
-		const auto* mapName = (*Game::sv_mapname)->current.string;
+		const auto* mapName  = (*Game::sv_mapname)->current.string;
+		const auto* fsGame   = (*Game::fs_gameDirVar)->current.string[0] != '\0' ? (*Game::fs_gameDirVar)->current.string : "None";
+
+		char modName[256]{ 0 };
+		TextRenderer::StripColors(fsGame, modName, sizeof(modName));
+		TextRenderer::StripAllTextIcons(modName, modName, sizeof(modName));
 
 		// Get info for a private match
 		{
@@ -90,8 +95,9 @@ namespace Components
 					Host Info:
 					Type: Private Match
 					Gametype: {}
-					Map Name: {})",
-					gameType, mapName);
+					Map Name: {}
+					Mod Name: {})",
+					gameType, mapName, modName);
 
 				std::string msg = std::format("{}\n{}\n\n{}", clientInfo, privateMatchInfo, CLIPBOARD_MSG);
 				std::wstring message(msg.begin(), msg.end());
@@ -115,8 +121,9 @@ namespace Components
 				Server Name: {}
 				IP Address: {}					
 				Gametype: {}
-				Map Name: {})",
-				serverVersion, serverName, ipAddress, gameType, mapName);
+				Map Name: {}
+				Mod Name: {})",
+				serverVersion, serverName, ipAddress, gameType, mapName, modName);
 
 			std::string msg = std::format("{}\n{}\n\n{}", clientInfo, serverInfo, CLIPBOARD_MSG);
 			std::wstring message(msg.begin(), msg.end());
