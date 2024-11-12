@@ -297,12 +297,14 @@ namespace Components
 		{
 			InRawInput = (Rid[0].dwFlags & RIDEV_REMOVE) == 0u;
 
-#ifdef _DEBUG
-			if (InRawInput)
-				Logger::Debug("Raw Mouse enabled");
-			else
-				Logger::Debug("Raw Mouse disabled");
-#endif
+
+			if (M_RawInputVerbose.get<bool>())
+			{
+				if (InRawInput)
+					Logger::Debug("Raw Input enabled");
+				else
+					Logger::Debug("Raw Input disabled");
+			}
 
 			if (!InRawInput)
 				ResetMouseRawEvents();
