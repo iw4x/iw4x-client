@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	struct raw_mouse_value_t
+	struct rawMouseValue_t
 	{
 		int current = 0;
 		int previous = 0;
@@ -20,8 +20,8 @@ namespace Components
 		static void IN_MouseMove();
 
 	private:
-		static Dvar::Var M_RawInput, R_FullScreen, R_AutoPriority;
-		static raw_mouse_value_t MouseRawX, MouseRawY;
+		static Dvar::Var M_RawInput, M_RawInputVerbose, R_FullScreen, R_AutoPriority;
+		static rawMouseValue_t MouseRawX, MouseRawY;
 		static uint32_t MouseRawEvents;
 		static bool InRawInput, FirstRawInputUpdate;
 

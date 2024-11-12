@@ -3,22 +3,19 @@
 #include "RawMouse.hpp"
 #include "Window.hpp"
 
-#define HIGH_POLLING_RATE_FIX 1
-#define RAW_MOUSE_VERBOSE 1
-
 namespace Components
 {
-	void raw_mouse_value_t::ResetDelta()
+	void rawMouseValue_t::ResetDelta()
 	{
 		this->previous = this->current;
 	}
 
-	int raw_mouse_value_t::GetDelta() const
+	int rawMouseValue_t::GetDelta() const
 	{
 		return this->current - this->previous;
 	}
 
-	void raw_mouse_value_t::Update(int value, bool absolute)
+	void rawMouseValue_t::Update(int value, bool absolute)
 	{
 		if (absolute) // if mouse is absolute, reset current value
 			this->current = 0;
@@ -27,11 +24,12 @@ namespace Components
 	}
 
 	Dvar::Var RawMouse::M_RawInput;
+	Dvar::Var RawMouse::M_RawInputVerbose;
 	Dvar::Var RawMouse::R_AutoPriority = nullptr;
 	Dvar::Var RawMouse::R_FullScreen = nullptr;
 
-	raw_mouse_value_t RawMouse::MouseRawX{ 0,0 };
-	raw_mouse_value_t RawMouse::MouseRawY{ 0,0 };
+	rawMouseValue_t RawMouse::MouseRawX{ 0,0 };
+	rawMouseValue_t RawMouse::MouseRawY{ 0,0 };
 	uint32_t RawMouse::MouseRawEvents = 0;
 
 	bool RawMouse::InRawInput = false;
@@ -98,9 +96,9 @@ namespace Components
 		{
 			// send release event for all buttons.
 			Game::IN_MouseEvent(MouseRawEvents);
-#if RAW_MOUSE_VERBOSE
-			Logger::Debug("Force-Releasing buttons {}", MouseRawEvents);
-#endif
+
+			if (M_RawInputVerbose.get<bool>())
+				Logger::Debug("Force-Releasing buttons {}", MouseRawEvents);
 		}
 		MouseRawEvents = 0u;
 		FirstRawInputUpdate = true;
@@ -112,12 +110,13 @@ namespace Components
 
 		if (CheckButtonFlag(usButtonFlags, flag_down))
 		{
-#if RAW_MOUSE_VERBOSE
-			if ((pre_events & mouse_event) != 0u)
-				Logger::Debug("!! Pressing button that wasn't released");
+			if (M_RawInputVerbose.get<bool>())
+			{
+				if ((pre_events & mouse_event) != 0u)
+					Logger::Debug("!! Pressing button that wasn't released");
 
-			Logger::Debug("Mouse button down: [{}, {}]", mouse_event, pre_events);
-#endif
+				Logger::Debug("Mouse button down: [{}, {}]", mouse_event, pre_events);
+			}
 
 			MouseRawEvents |= mouse_event;
 		}
@@ -128,14 +127,14 @@ namespace Components
 			// releasing button that was not even pressed...
 			if ((pre_events & mouse_event) == 0u)
 			{
-#if RAW_MOUSE_VERBOSE
-				Logger::Debug("!! Releasing button that wasn't pressed");
-#endif
+				if (M_RawInputVerbose.get<bool>())
+					Logger::Debug("!! Releasing button that wasn't pressed");
+
 				return;
 			}
-#if RAW_MOUSE_VERBOSE
-			Logger::Debug("Mouse button up: [{}, {}]", mouse_event, pre_events);
-#endif
+
+			if (M_RawInputVerbose.get<bool>())
+				Logger::Debug("Mouse button up: [{}, {}]", mouse_event, pre_events);
 
 			MouseRawEvents &= ~mouse_event;
 		}
@@ -181,7 +180,6 @@ namespace Components
 			FirstRawInputUpdate = false;
 		}
 
-#if HIGH_POLLING_RATE_FIX
 		// Process mouse buttons events
 		// format: (current_rawinput_flags, rawinput_mouse_button_keycode, cod_mouse_event).
 		// The function checks both down & up states.
@@ -202,7 +200,6 @@ namespace Components
 			if (scroll_delta < 0)
 				Game::Sys_QueEvents(Game::g_wv->sysMsgTime, 1, K_MWHEELUP, 0, 0);
 		}
-#endif
 
 		return TRUE;
 	}
@@ -284,11 +281,7 @@ namespace Components
 				return InRawInput;
 		}
 
-#if HIGH_POLLING_RATE_FIX
 		constexpr DWORD rawinput_flags = RIDEV_INPUTSINK | RIDEV_NOLEGACY;
-#else
-		constexpr DWORD rawinput_flags = RIDEV_INPUTSINK;
-#endif
 
 		RAWINPUTDEVICE Rid[1];
 		Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
@@ -367,31 +360,31 @@ namespace Components
 		if (GetForegroundWindow() != Window::GetWindow())
 			return;
 
-		tagPOINT cursor_pos;
-		static tagPOINT prev_cursor;
+		tagPOINT cursorPos;
+		static tagPOINT prevCursorPos;
 
-		GetCursorPos(&cursor_pos);
+		GetCursorPos(&cursorPos);
 		if (R_FullScreen.get<Game::dvar_t*>() && R_FullScreen.get<bool>())
-			ClampMousePos(cursor_pos);
+			ClampMousePos(cursorPos);
 
-		int delta_x = cursor_pos.x - prev_cursor.x;
-		int delta_y = cursor_pos.y - prev_cursor.y;
-		prev_cursor = cursor_pos;
+		int deltaX = cursorPos.x - prevCursorPos.x;
+		int deltaY = cursorPos.y - prevCursorPos.y;
+		prevCursorPos = cursorPos;
 
-		ScreenToClient(Window::GetWindow(), &cursor_pos);
-		auto recenterMouse = Game::CL_MouseEvent(cursor_pos.x, cursor_pos.y, delta_x, delta_y);
+		ScreenToClient(Window::GetWindow(), &cursorPos);
+		auto recenterMouse = Game::CL_MouseEvent(cursorPos.x, cursorPos.y, deltaX, deltaY);
 
-		if (recenterMouse && (delta_x || delta_y))
+		if (recenterMouse && (deltaX || deltaY))
 		{
 			RECT Rect;
 			if (GetWindowRect(Window::GetWindow(), &Rect) == TRUE)
 			{
-				int window_center_x = (Rect.right + Rect.left) / 2;
-				int window_center_y = (Rect.top + Rect.bottom) / 2;
-				SetCursorPos(window_center_x, window_center_y);
+				int WindowCenterX = (Rect.right + Rect.left) / 2;
+				int WindowCenterY = (Rect.top + Rect.bottom) / 2;
+				SetCursorPos(WindowCenterX, WindowCenterY);
 
-				prev_cursor.x = window_center_x;
-				prev_cursor.y = window_center_y;
+				prevCursorPos.x = WindowCenterX;
+				prevCursorPos.y = WindowCenterY;
 			}
 		}
 	}
@@ -400,26 +393,23 @@ namespace Components
 	{
 		Utils::Hook(0x475E65, IN_MouseMove, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x475E8D, IN_MouseMove, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x475E9E, IN_MouseMove, HOOK_JUMP).install()->quick();
+		//Utils::Hook(0x475E9E, IN_MouseMove, HOOK_JUMP).install()->quick(); // Used in controller
 
 		Utils::Hook(0x467C03, IN_Init, HOOK_CALL).install()->quick();
 		Utils::Hook(0x64D095, IN_Init, HOOK_JUMP).install()->quick();
 
-#if HIGH_POLLING_RATE_FIX
 		Utils::Hook(0x60BFB9, IN_Frame, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4A87E2, IN_Frame, HOOK_CALL).install()->quick();
 		Utils::Hook(0x48A0E6, IN_Frame, HOOK_CALL).install()->quick();
-#endif
 
 		Utils::Hook(0x473517, IN_RecenterMouse, HOOK_CALL).install()->quick();
 		Utils::Hook(0x64C520, IN_RecenterMouse, HOOK_CALL).install()->quick();
 
 		M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates");
+		M_RawInputVerbose = Dvar::Register<bool>("m_rawinput_verbose", true, Game::DVAR_ARCHIVE | Game::DVAR_SAVED, "Raw mouse input debug log");
 
-#if HIGH_POLLING_RATE_FIX
 		Window::OnWndMessage(WM_KILLFOCUS, OnKillFocus);
 		Window::OnWndMessage(WM_SETFOCUS, OnSetFocus);
-#endif
 
 		Window::OnWndMessage(WM_INPUT, OnRawInput);
 		Window::OnCreate(IN_RawMouse_Init);
