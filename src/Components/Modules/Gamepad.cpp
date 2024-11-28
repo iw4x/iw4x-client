@@ -174,6 +174,7 @@ namespace Components
 
 	GamepadControls::Controller Gamepad::gamePads[Game::MAX_GPAD_COUNT]{};
 	std::mutex Gamepad::gamePadStateMutexes[Game::MAX_GPAD_COUNT]{};
+	bool Gamepad::gamePadDataReady[Game::MAX_GPAD_COUNT]{};
 	Gamepad::GamePadGlobals Gamepad::gamePadGlobals[Game::MAX_GPAD_COUNT]{ {} };
 	int Gamepad::gamePadBindingsModifiedFlags = 0;
 
@@ -1341,8 +1342,14 @@ namespace Components
 				gamePads[localClientNum].StopRumbles();
 			}
 
-			gamePads[localClientNum].UpdateState();
+			if (!gamePadDataReady[localClientNum])
+			{
+				gamePads[localClientNum].UpdateState();
+			}
+
 			gamePads[localClientNum].PushUpdates(); // We call them both together now because we update from another thread anyway
+
+			gamePadDataReady[localClientNum] = true;
 		}
 	}
 
@@ -1413,6 +1420,8 @@ namespace Components
 			}
 
 			UpdateForceFeedback(gamePad);
+
+			gamePadDataReady[localClientNum] = false;
 		}
 
 		gpad_present.setRaw(gpadPresent);
