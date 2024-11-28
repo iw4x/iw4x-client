@@ -321,6 +321,19 @@ namespace Game
 		CONST_SRC_NONE = 0x85,
 	};
 
+	enum HE_Font
+	{
+	  HE_FONT_DEFAULT = 0x0,
+	  HE_FONT_BIGFIXED = 0x1,
+	  HE_FONT_SMALLFIXED = 0x2,
+	  HE_FONT_OBJECTIVE = 0x3,
+	  HE_FONT_BIG = 0x4,
+	  HE_FONT_SMALL = 0x5,
+	  HE_FONT_HUDBIG = 0x6,
+	  HE_FONT_HUDSMALL = 0x7,
+	  HE_FONT_COUNT = 0x8,
+	};
+
 	enum FsThread
 	{
 		FS_THREAD_MAIN = 0x0,
@@ -527,6 +540,10 @@ namespace Game
 		CS_VOTE_NO = 0x14,
 		CS_VOTE_MAPNAME = 0x15,
 		CS_VOTE_GAMETYPE = 0x16,
+
+		CS_LOCALIZED_STRINGS = 0x1FF, // 511 confirmed
+		CS_LOCALIZED_STRINGS_LAST = 0x457,
+
 		CS_MODELS = 0x465,	// Models (confirmed) 1125
 		// 1580<>1637 models not cached (something's going on, not sure what)
 		CS_MODELS_LAST = 0x664,	// End of models
@@ -1585,7 +1602,7 @@ namespace Game
 		int team;
 		int archived;
 	};
-
+	
 	enum
 	{
 		PMF_PRONE = 1 << 0,
@@ -4236,6 +4253,23 @@ namespace Game
 		Material* material;
 		Material* glowMaterial;
 		Glyph* glyphs;
+	};
+	
+	struct cg_hudelem_t
+	{
+	  float x;
+	  float y;
+	  float width;
+	  float height;
+	  char hudElemLabel[256];
+	  float labelWidth;
+	  char hudElemText[256];
+	  float textWidth;
+	  Font_s *font;
+	  float fontScale;
+	  float fontHeight;
+	  float color[4];
+	  int timeNow;
 	};
 
 	struct rectDef_s
@@ -10824,6 +10858,31 @@ namespace Game
 	{
 		unsigned __int16 id;
 		unsigned __int16 byteCount;
+	};
+	
+	struct GfxCmdDrawText2D
+	{
+	  GfxCmdHeader header;
+	  float x;
+	  float y;
+	  float rotation;
+	  Font_s *font;
+	  float xScale;
+	  float yScale;
+	  GfxColor color;
+	  int maxChars;
+	  int renderFlags;
+	  int cursorPos;
+	  char cursorLetter;
+	  GfxColor glowForceColor;
+	  int fxBirthTime;
+	  int fxLetterTime;
+	  int fxDecayStartTime;
+	  int fxDecayDuration;
+	  Material *fxMaterial;
+	  Material *fxMaterialGlow;
+	  float padding;
+	  char text[3];
 	};
 
 	struct GfxCmdArray

@@ -17,6 +17,8 @@ namespace Game
 	G_LocalizedStringIndex_t G_LocalizedStringIndex = G_LocalizedStringIndex_t(0x4582F0);
 
 	G_DebugLineWithDuration_t G_DebugLineWithDuration = G_DebugLineWithDuration_t(0x4C3280);
+	
+	G_WorldPointToScreenPos_t G_WorldPointToScreenPos = G_WorldPointToScreenPos_t(0x502DC0);
 
 	gentity_s* g_entities = reinterpret_cast<gentity_s*>(0x18835D8);
 	bool* g_quitRequested = reinterpret_cast<bool*>(0x649FB61);

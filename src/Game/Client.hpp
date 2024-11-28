@@ -53,6 +53,9 @@ namespace Game
 	typedef void(*CL_DrawStretchPic_t)(const ScreenPlacement* scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, float s1, float t1, float s2, float t2, const float* color, Material* material);
 	extern CL_DrawStretchPic_t CL_DrawStretchPic;
 
+	typedef void(*CL_DrawTextPhysicalWithEffects_t)(const char *text, int maxChars, Font_s *font, float x, float y, float xScale, float yScale, const float *color, int style, const float *glowColor, Material *fxMaterial, Material *fxMaterialGlow, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration);
+	extern CL_DrawTextPhysicalWithEffects_t CL_DrawTextPhysicalWithEffects;
+
 	typedef void(*CL_ConsoleFixPosition_t)();
 	extern CL_ConsoleFixPosition_t CL_ConsoleFixPosition;
 

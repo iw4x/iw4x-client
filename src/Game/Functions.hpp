@@ -60,6 +60,9 @@ namespace Game
 	typedef void(*CG_SetupWeaponConfigString_t)(int localClientNum, unsigned int weapIndex);
 	extern CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString;
 
+	typedef void(*CG_WorldPosToScreenPos_t)(int localClientNum, ScreenPlacement *scrPlace, const Game::vec3_t *worldPos, Game::vec2_t &outScreenPos);
+	extern CG_WorldPosToScreenPos_t CG_WorldPosToScreenPos;
+
 	typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_s* allocedCmd, int isKey);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 
