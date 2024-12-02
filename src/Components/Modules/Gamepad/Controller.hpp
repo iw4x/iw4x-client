@@ -34,7 +34,7 @@ namespace Components::GamepadControls
 
 		void StopRumbles();
 
-		void UpdateState();
+		void UpdateState(bool additive=false);
 		void PushUpdates();
 
 		float GetStick(const Game::GamePadStick stick);
@@ -59,11 +59,11 @@ namespace Components::GamepadControls
 		static Dvar::Var gpad_allow_force_feedback;
 		static Dvar::Var gpad_force_xinput_only;
 
-		void UpdateDigitals();
+		void UpdateDigitals(bool additive);
 		void UpdateAnalogs();
-		void UpdateSticks();
+		void UpdateSticks(bool additive);
 		void ApplyDeadzone(Game::vec2_t& stick);
-		void UpdateSticksDown();
+		void UpdateSticksDown(bool additive);
 
 		bool stickDown[4][Game::GPAD_STICK_DIR_COUNT];
 		bool stickDownLast[4][Game::GPAD_STICK_DIR_COUNT];
