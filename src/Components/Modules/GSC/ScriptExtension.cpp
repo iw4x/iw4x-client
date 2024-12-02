@@ -175,7 +175,7 @@ namespace Components::GSC
 
 				Logger::Print(Game::level->scriptPrintChannel, "{}", str);
 			}
-		});		
+		});
 	}
 
 	ScriptExtension::ScriptExtension()

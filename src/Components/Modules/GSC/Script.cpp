@@ -8,7 +8,7 @@ namespace Components::GSC
 
 	std::vector<Script::ScriptFunction> Script::CommonOverridenFunctions;
 	std::vector<Script::ScriptMethod> Script::CommonOverridenMethods;
-	
+
 	std::unordered_map<std::string, int> Script::ScriptMainHandles;
 	std::unordered_map<std::string, int> Script::ScriptInitHandles;
 
@@ -143,7 +143,7 @@ namespace Components::GSC
 		toAdd.actionFunc = func;
 		toAdd.type = type;
 		toAdd.aliases.push_back({ Utils::String::ToLower(name) });
-		
+
 		if (builtIn)
 		{
 			CommonOverridenMethods.emplace_back(toAdd);

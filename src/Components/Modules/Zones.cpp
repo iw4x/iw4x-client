@@ -1929,7 +1929,7 @@ namespace Components
 			AssetHandler::Relocate(buffer + 0x20, buffer + 0x18, 0x30);
 			AssetHandler::Relocate(buffer + 0x51, buffer + 0x48, 5);
 			AssetHandler::Relocate(buffer + 0x58, buffer + 0x50, 0x10);
-			
+
 			Game::Material* material = reinterpret_cast<Game::Material*>(buffer);
 			// fix statebit
 			material->stateBitsEntry[47] = codol_material[0x50];
@@ -3650,4 +3650,4 @@ namespace Components
 		Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).install()->quick();
 	}
 }
-#pragma optimize( "", on ) 
+#pragma optimize( "", on )

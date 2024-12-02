@@ -813,7 +813,7 @@ namespace Components
 		Utils::Hook(0x5FC2671, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
 #endif
 
-		// 
+		//
 
 //#define SORT_SMODELS
 #if !defined(DEBUG) || !defined(SORT_SMODELS)
