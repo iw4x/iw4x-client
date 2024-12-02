@@ -11760,6 +11760,18 @@ namespace Game
 		MssStreamReadInfo streamReadInfo[12];
 	};
 
+	struct WinVars_t
+	{
+		HINSTANCE__* reflib_library;
+		int reflib_active;
+		HWND__* hWnd;
+		HINSTANCE__* hInstance;
+		int activeApp;
+		int isMinimized;
+		int recenterMouse;
+		HHOOK__* lowLevelKeyboardHook;
+		unsigned int sysMsgTime;
+	};
 
 #pragma endregion
 

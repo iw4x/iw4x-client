@@ -66,7 +66,7 @@ namespace Game
 	extern NetField* clientStateFields;
 	extern size_t clientStateFieldsCount;
 	extern MssLocal* milesGlobal;
-
+	extern WinVars_t* g_wv;
 
 	extern const char* origErrorMsg;
 
