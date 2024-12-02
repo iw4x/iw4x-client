@@ -42,11 +42,11 @@ namespace Components::GamepadControls
 		bool ButtonRequiresUpdates(Game::GamePadButton button);
 		bool IsButtonReleased(Game::GamePadButton button);
 		bool IsButtonPressed(Game::GamePadButton button);
-		
+
 		static Dvar::Var gpad_debug;
 
 		bool inUse;
-		
+
 	private:
 
 		static Dvar::Var gpad_stick_pressed_hysteresis;
@@ -71,7 +71,7 @@ namespace Components::GamepadControls
 	public:
 		bool get_stickDown(int stickIndex, Game::GamePadStickDir dir) { return stickDown[stickIndex][dir];}
 		bool get_stickDownLast(int stickIndex, Game::GamePadStickDir dir) { return stickDownLast[stickIndex][dir];}
-		
+
 		PUBLIC_GET_PRIVATE_SET(GamepadAPI::TriggerFeedback, leftForceFeedback);
 		PUBLIC_GET_PRIVATE_SET(GamepadAPI::TriggerFeedback, rightForceFeedback);
 
@@ -81,7 +81,7 @@ namespace Components::GamepadControls
 		PUBLIC_GET_PRIVATE_SET(unsigned short, lastDigitals);
 		PUBLIC_GET_PRIVATE_SET(float, lowRumble);
 		PUBLIC_GET_PRIVATE_SET(float, highRumble);
-		
+
 		PUBLIC_GET_PRIVATE_SET_ARRAY(float, analogs, [2]);
 		PUBLIC_GET_PRIVATE_SET_ARRAY(float, lastAnalogs, [2]);
 		PUBLIC_GET_PRIVATE_SET_ARRAY(float, sticks, [4]);

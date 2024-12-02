@@ -563,7 +563,7 @@ namespace Components
 			// and so currently when doing this, the game hangs. I suspect it's removing one too many users on a string
 			// and ends up with -1 unsigned users and loops forever
 			// Until we know what we're doing here we'll have to accept a little leak
-			// 
+			//
 			// Game::Free_String(reinterpret_cast<const char*>(ptr));
 		}
 		else
@@ -868,7 +868,7 @@ namespace Components
 			reallocatedItem->mouseExit = ReallocateEventHandlerSetLocally(item->mouseExit);
 			reallocatedItem->mouseExitText = ReallocateEventHandlerSetLocally(item->mouseExitText);
 			reallocatedItem->onFocus = ReallocateEventHandlerSetLocally(item->onFocus);
-			
+
 			reallocatedItem->onKey = ReallocateItemKeyHandler(item->onKey);
 
 			reallocatedItem->disabledExp = ReallocateExpressionLocally(item->disabledExp);

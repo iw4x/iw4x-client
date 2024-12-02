@@ -19,7 +19,7 @@ namespace Components
 
 		// Client game
 		static Game::XModel* gameModels_reallocated[G_MODELINDEX_LIMIT];
-		
+
 		static bool modelsHaveBeenReallocated;
 
 		static void R_RegisterModel_InitGraphics(const char* name, void* atAddress);

@@ -160,7 +160,7 @@ namespace Components
 	}
 
 	void Dedicated::Heartbeat()
-	{	
+	{
 		// Do not send a heartbeat if sv_lanOnly is set to true
 		if (SVLanOnly.get<bool>())
 		{

@@ -233,7 +233,7 @@ namespace Game
 	Touch_Item_t Touch_Item = Touch_Item_t(0x44FA20);
 
 	Add_Ammo_t Add_Ammo = Add_Ammo_t(0x4E1480);
-  
+
 	ClientUserinfoChanged_t ClientUserinfoChanged = ClientUserinfoChanged_t(0x445240);
 
 	player_die_t player_die = player_die_t(0x42BC70);
