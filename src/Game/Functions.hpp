@@ -313,10 +313,13 @@ namespace Game
 
 	typedef void (*FireWeapon_t)(Game::gentity_s* ent, int gameTime, int a3);
 	extern FireWeapon_t FireWeapon;
+
 	typedef void (*FireWeaponMelee_t)(Game::gentity_s* ent, int gameTime);
 	extern FireWeaponMelee_t FireWeaponMelee;
+
 	typedef bool (*GetClientPositionAtTime_t)(int targetTime, vec3_t* clientsOrigins, vec3_t* clientsAngles, bool* clientsMoved);
 	extern GetClientPositionAtTime_t GetClientPositionAtTime;
+
 	typedef void (*SV_LinkEntity_t)(Game::gentity_s* ent);
 	extern SV_LinkEntity_t SV_LinkEntity;
 
