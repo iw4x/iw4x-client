@@ -233,6 +233,12 @@ namespace Game
 	Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire = Weapon_RocketLauncher_Fire_t(0x424680);
 	Bullet_Fire_t Bullet_Fire = Bullet_Fire_t(0x4402C0);
 
+	FireWeapon_t FireWeapon = FireWeapon_t(0x4A4D50);
+	FireWeaponMelee_t FireWeaponMelee = FireWeaponMelee_t(0x4F2470);
+	GetClientPositionAtTime_t GetClientPositionAtTime = GetClientPositionAtTime_t(0x455960);
+	SV_LinkEntity_t SV_LinkEntity = SV_LinkEntity_t(0x4E0880);
+	OnSameTeam_t OnSameTeam = OnSameTeam_t(0x4BEB80);
+
 	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
 
 	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);

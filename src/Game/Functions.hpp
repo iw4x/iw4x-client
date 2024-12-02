@@ -308,6 +308,18 @@ namespace Game
 	typedef void(*NET_DeferPacketToClient_t)(netadr_t*, msg_t*);
 	extern NET_DeferPacketToClient_t NET_DeferPacketToClient;
 
+	typedef bool(*OnSameTeam_t)(gentity_s* a1, gentity_s* a2);
+	extern OnSameTeam_t OnSameTeam;
+
+	typedef void (*FireWeapon_t)(Game::gentity_s* ent, int gameTime, int a3);
+	extern FireWeapon_t FireWeapon;
+	typedef void (*FireWeaponMelee_t)(Game::gentity_s* ent, int gameTime);
+	extern FireWeaponMelee_t FireWeaponMelee;
+	typedef bool (*GetClientPositionAtTime_t)(int targetTime, vec3_t* clientsOrigins, vec3_t* clientsAngles, bool* clientsMoved);
+	extern GetClientPositionAtTime_t GetClientPositionAtTime;
+	typedef void (*SV_LinkEntity_t)(Game::gentity_s* ent);
+	extern SV_LinkEntity_t SV_LinkEntity;
+
 	typedef const char* (*NET_ErrorString_t)();
 	extern NET_ErrorString_t NET_ErrorString;
 
