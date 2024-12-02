@@ -314,7 +314,7 @@ namespace Components
 
 				// Reallocate the definition
 				auto* newData = StructuredData::MemAllocator.allocateArray<Game::StructuredDataDef>(data->defCount + patchDefinitions.size());
-				std::memcpy(&newData[patchDefinitions.size()], data->defs, sizeof Game::StructuredDataDef * data->defCount);
+				std::memcpy(&newData[patchDefinitions.size()], data->defs, sizeof(Game::StructuredDataDef) * data->defCount);
 
 				// Set the versions
 				for (unsigned int i = 0; i < patchDefinitions.size(); ++i)
