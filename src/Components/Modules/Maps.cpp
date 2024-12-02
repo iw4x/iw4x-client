@@ -97,7 +97,7 @@ namespace Components
 			Utils::Hook::Call<void(void*)>(0x6B5CF2)(this->searchPath.iwd->buildBuffer);
 			Utils::Hook::Call<void(void*)>(0x6B5CF2)(this->searchPath.iwd);
 
-			ZeroMemory(&this->searchPath, sizeof this->searchPath);
+			ZeroMemory(&this->searchPath, sizeof(this->searchPath));
 		}
 	}
 
@@ -489,7 +489,7 @@ namespace Components
 		Theatre::StopRecording();
 
 		char hashBuf[100] = { 0 };
-		unsigned int hash = atoi(Game::MSG_ReadStringLine(msg, hashBuf, sizeof hashBuf));
+		unsigned int hash = atoi(Game::MSG_ReadStringLine(msg, hashBuf, sizeof(hashBuf)));
 
 		if (!Maps::CheckMapInstalled(mapname, false, true) || hash && hash != Maps::GetUsermapHash(mapname))
 		{

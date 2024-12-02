@@ -2553,7 +2553,7 @@ namespace Components
 			size /= 44;
 			size *= 36;
 
-			memset(&codolMapEnts, 0, sizeof Game::MapEnts);
+			memset(&codolMapEnts, 0, sizeof(Game::MapEnts));
 
 			buffer = &codolMapEnts;
 			codolMapEntsPtr = &codolMapEnts;
@@ -2574,7 +2574,7 @@ namespace Components
 		AssertSize(Game::cplane_s, 20);
 		AssertSize(Game::Bounds, 24);
 
-		Game::Load_Stream(atStreamStart, varClipInfoPtr, sizeof ClipInfo);
+		Game::Load_Stream(atStreamStart, varClipInfoPtr, sizeof(ClipInfo));
 
 		if (varClipInfoPtr->cPlanes)
 		{
@@ -2866,7 +2866,7 @@ namespace Components
 					std::memcpy(&iw4Models[i].leaf, &varClipMap->cModels[i].leaf, 40);
 				}
 
-				std::memcpy(varClipMap->cModels, iw4Models.data(), iw4Models.size() * sizeof Game::cmodel_t);
+				std::memcpy(varClipMap->cModels, iw4Models.data(), iw4Models.size() * sizeof(Game::cmodel_t));
 			}
 
 			if (varClipMap->smodelNodes)
@@ -2941,7 +2941,7 @@ namespace Components
 			Game::DB_PopStreamPos();
 
 			auto codolMap = new codolClipMap_t;
-			memcpy(codolMap, varClipMap, sizeof codolClipMap_t);
+			memcpy(codolMap, varClipMap, sizeof(codolClipMap_t));
 
 			auto cancerMap = reinterpret_cast<codolClipMap_t*>(varClipMap);
 			auto iw4Map = reinterpret_cast<Game::clipMap_t*>(varClipMap);
@@ -3110,11 +3110,11 @@ namespace Components
 				auto nonce = HashCRC32StringInt(strippedFileName, strippedFileName.size());
 
 				std::uint8_t iv[16];
-				std::memset(iv, 0, sizeof iv);
+				std::memset(iv, 0, sizeof(iv));
 				std::memcpy(iv, &nonce, 4);
 				std::memcpy(iv + 4, &unpackedSize, 4);
 
-				ctr_start(aes, reinterpret_cast<unsigned char*>(&aesIV[0]), &aesKey[0], sizeof aesKey, 0, CTR_COUNTER_BIG_ENDIAN, &ctr_state);
+				ctr_start(aes, reinterpret_cast<unsigned char*>(&aesIV[0]), &aesKey[0], sizeof(aesKey), 0, CTR_COUNTER_BIG_ENDIAN, &ctr_state);
 
 				// decrypt image
 				auto readDataSize = 0u;
@@ -3126,7 +3126,7 @@ namespace Components
 					std::memcpy(iv + 8, &readDataSize, 4);
 					std::memcpy(iv + 12, &blockSize, 4);
 
-					ctr_setiv(iv, sizeof iv, &ctr_state);
+					ctr_setiv(iv, sizeof(iv), &ctr_state);
 					ctr_decrypt(reinterpret_cast<uint8_t*>(&encryptedData[readDataSize]), reinterpret_cast<uint8_t*>(&decryptedData[readDataSize]), blockSize, &ctr_state);
 
 					readDataSize += blockSize;
@@ -3361,8 +3361,8 @@ namespace Components
 			static std::vector<Game::G_GlassPiece> glassPieces;
 
 			// clear previous glass data
-			memset(&glassMap, 0, sizeof Game::GameWorldMp);
-			memset(&glassData, 0, sizeof Game::G_GlassData);
+			memset(&glassMap, 0, sizeof(Game::GameWorldMp));
+			memset(&glassData, 0, sizeof(Game::G_GlassData));
 			glassPieces.clear();
 
 			// generate glassPieces array
@@ -3405,7 +3405,7 @@ namespace Components
 				{
 					const auto name = (*asset)->name;
 					const auto fx_model = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_XMODEL, "void").model;
-					memcpy(*asset, fx_model, sizeof Game::XModel);
+					memcpy(*asset, fx_model, sizeof(Game::XModel));
 					(*asset)->name = name;
 					break;
 				}
@@ -3431,7 +3431,7 @@ namespace Components
 			{
 				const auto name = (*asset)->info.name;
 				const auto default_material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "$default").material;
-				memcpy(*asset, default_material, sizeof Game::Material);
+				memcpy(*asset, default_material, sizeof(Game::Material));
 				(*asset)->info.name = name;
 			}
 		}
