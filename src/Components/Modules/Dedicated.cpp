@@ -31,8 +31,8 @@ namespace Components
 
 	bool Dedicated::IsRunning()
 	{
-		assert(*Game::com_sv_running);
-		return *Game::com_sv_running && (*Game::com_sv_running)->current.enabled;
+		assert(*Game::sv_running);
+		return *Game::sv_running && (*Game::sv_running)->current.enabled;
 	}
 
 	void Dedicated::InitDedicatedServer()
@@ -114,7 +114,7 @@ namespace Components
 			popad
 
 			// Game's code
-			mov edx, dword ptr com_sv_running
+			mov edx, dword ptr sv_running
 
 			push 0x47DDB8
 			ret

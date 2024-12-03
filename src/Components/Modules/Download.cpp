@@ -498,7 +498,7 @@ namespace Components
 
 	std::optional<std::string> Download::InfoHandler([[maybe_unused]] mg_connection* c, [[maybe_unused]] const mg_http_message* hm)
 	{
-		if (!(*Game::com_sv_running)->current.enabled)
+		if (!(*Game::sv_running)->current.enabled)
 		{
 			// Game is not running ,cannot return info
 			return std::nullopt;

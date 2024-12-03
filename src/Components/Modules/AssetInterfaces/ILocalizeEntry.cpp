@@ -54,32 +54,34 @@ namespace Assets
 	}
 
 	void ILocalizeEntry::ParseLocalizedStringsFile(Components::ZoneBuilder::Zone* builder, const std::string& name, const std::string& filename)
-	{
-		std::vector<Game::LocalizeEntry*> assets;
-		const auto _0 = gsl::finally([]
+	{		
+		if (Components::Flags::HasFlag("-original-str-parsing"))
 		{
-			Components::Localization::ParseOutput(nullptr);
-			Components::Localization::PrefixOverride = {};
-		});
-
-		Components::Localization::PrefixOverride = Utils::String::ToUpper(name) + "_";
-		Components::Localization::ParseOutput([&assets](Game::LocalizeEntry* asset)
-		{
-			assets.push_back(asset);
-		});
+			Components::Localization::PrefixOverride = Utils::String::ToUpper(name) + "_";
+		}
 
 		const auto* psLoadedFile = Game::SE_Load(filename.data(), false);
 		if (psLoadedFile)
 		{
 			Game::Com_PrintError(Game::CON_CHANNEL_SYSTEM, "^1Localization ERROR: %s\n", psLoadedFile);
+			Components::Localization::PrefixOverride = {};
 			return;
 		}
+
+		std::vector<Game::LocalizeEntry*> assets;
+		Components::Localization::ParseOutput([&assets](Game::LocalizeEntry* asset)
+		{
+			assets.push_back(asset);
+		});
 
 		auto type = Game::DB_GetXAssetNameType("localize");
 		for (const auto& entry : assets)
 		{
 			builder->addRawAsset(type, entry);
 		}
+
+		Components::Localization::ParseOutput(nullptr);
+		Components::Localization::PrefixOverride = {};
 	}
 
 	void ILocalizeEntry::ParseLocalizedStringsJSON(Components::ZoneBuilder::Zone* builder, Components::FileSystem::File& file)

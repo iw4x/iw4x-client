@@ -50,6 +50,49 @@ namespace Utils
 		return (GetProcAddress(hntdll, "wine_get_version") != nullptr);
 	}
 
+	std::string GetWindowsVersion()
+	{
+		const auto ntdll = Utils::Library("ntdll.dll");
+		const auto rtlGetVersion = ntdll.getProc<LONG(WINAPI*)(PRTL_OSVERSIONINFOW)>("RtlGetVersion");
+
+		if (rtlGetVersion)
+		{
+			RTL_OSVERSIONINFOW versionInfo = {};
+			versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
+			rtlGetVersion(&versionInfo);
+
+			const auto major = versionInfo.dwMajorVersion;
+			const auto minor = versionInfo.dwMinorVersion;
+			const auto build = versionInfo.dwBuildNumber;
+			const auto arch  = Utils::GetWindowsArchitecture();
+
+			if (major == 10 && build >= 22000) return std::format("Windows 11 (Build {}) {}", build, arch);
+			if (major == 10)				   return std::format("Windows 10 (Build {}) {}", build, arch);
+			if (major == 6 && minor == 3)	   return std::format("Windows 8.1 (Build {}) {}", build, arch);
+			if (major == 6 && minor == 2)	   return std::format("Windows 8.0 (Build {}) {}", build, arch);
+			if (major == 6 && minor == 1)	   return std::format("Windows 7 (Build {}) {}", build, arch);
+			if (major == 6 && minor == 0)	   return std::format("Windows Vista (Build {}) {}", build, arch);
+			if (major == 5 && minor == 2)	   return std::format("Windows XP Professional (Build {}) {}", build, arch);
+			if (major == 5 && minor == 1)	   return std::format("Windows XP (Build {}) {}", build, arch);
+		}
+
+		return "Unknown Version";
+	}
+
+	std::string GetWindowsArchitecture()
+	{
+		SYSTEM_INFO sysInfo;
+		::GetNativeSystemInfo(&sysInfo);
+
+		switch (sysInfo.wProcessorArchitecture)
+		{
+			case PROCESSOR_ARCHITECTURE_AMD64: return "64 Bit";
+			case PROCESSOR_ARCHITECTURE_INTEL: return "32 Bit";
+			case PROCESSOR_ARCHITECTURE_ARM:   return "ARM";
+			default: return "Unknown Architecture";
+		}
+	}
+
 	unsigned long GetParentProcessId()
 	{
 		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
