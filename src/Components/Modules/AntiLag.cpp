@@ -62,7 +62,7 @@ namespace Components
 
 		for (int i = 0; i < Game::level->maxclients; ++i)
 		{
-			auto& ent = Game::g_entities[i];
+			Game::gentity_s& ent = Game::g_entities[i];
 
 			bool clientMoved = clientsMoved[i];
 			if (antiLagMode == 2)
@@ -121,7 +121,7 @@ namespace Components
 
 		for (int i = 0; i < Game::level->maxclients; ++i)
 		{
-			auto& ent = Game::g_entities[i];
+			Game::gentity_s& ent = Game::g_entities[i];
 
 			if (!antilagStore->clientMoved[i]) {
 				continue;

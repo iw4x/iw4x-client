@@ -16,7 +16,7 @@ namespace Components
 		Game::FireWeaponMelee(ent, gameTime);
 	}
 
-	Game::gentity_s* Melee_Trace(
+	Game::gentity_s* Melee::Melee_Trace(
 		Game::gentity_s* attacker,
 		Game::weaponParms* wpParms,
 		float player_meleeRange,
@@ -26,7 +26,7 @@ namespace Components
 		float hitPoint[3];
 		Game::trace_t tr;
 
-		auto weapDef = wpParms->weapDef;
+		const Game::WeaponDef* weapDef = wpParms->weapDef;
 		int iMeleeDamage = weapDef->iMeleeDamage;
 		if (!Game::Melee_Trace_Internal(
 			attacker,
@@ -42,8 +42,8 @@ namespace Components
 		}
 
 		// game does not check if entityHitId is valid, should we start to do it for safer code?
-		int entityHitId = Game::Trace_GetEntityHitId(&tr);
-		auto hitEntity = &Game::g_entities[entityHitId];
+		uint16_t entityHitId = Game::Trace_GetEntityHitId(&tr);
+		Game::gentity_s* hitEntity = &Game::g_entities[entityHitId];
 		const bool specialPartgroup = tr.partGroup == 19;
 
 		if (attacker->client && hitEntity->client && !specialPartgroup) {
@@ -129,7 +129,7 @@ namespace Components
 		Game::AntilagClientStore antilagStore;
 
 		AntiLag::G_AntiLagRewindClientPos(attacker, gameTime, &antilagStore);
-		Melee_Trace(attacker, wpParms, player_meleeRange, player_meleeWidth, player_meleeHeight);
+		Melee::Melee_Trace(attacker, wpParms, player_meleeRange, player_meleeWidth, player_meleeHeight);
 		AntiLag::G_AntiLag_RestoreClientPos(&antilagStore);
 	}
 
