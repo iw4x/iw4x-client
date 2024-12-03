@@ -15,6 +15,13 @@
 #ifndef IDA
 namespace Game
 {
+	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
+	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
+	constexpr std::size_t MAX_CLIENTS = 18;
+
+	constexpr auto MAX_CMD_BUFFER = 0x10000;
+	constexpr auto MAX_CMD_LINE = 0x1000;
+	constexpr auto CMD_MAX_NESTING = 8;
 #endif
 	constexpr std::size_t MAX_GENTITIES = 2048;
 	constexpr std::size_t ENTITYNUM_NONE = MAX_GENTITIES - 1;
@@ -7675,6 +7682,9 @@ namespace Game
 		int useCount;
 		gentity_s* nextFree;
 		int birthTime;
+		char pad210[4];
+		gentity_s** linkedEntity; // used in G_RunMissile, name was guessed
+		char pad218[92];
 	};
 
 	static_assert(sizeof(gentity_s) == 0x274);
@@ -11932,12 +11942,46 @@ namespace Game
 
 	struct AntilagClientStore
 	{
-		float realClientAngles[18][3];
-		float realClientPositions[18][3];
-		bool clientMoved[18];
+		float realClientAngles[MAX_CLIENTS][3];
+		float realClientPositions[MAX_CLIENTS][3];
+		bool clientMoved[MAX_CLIENTS];
+
 		void Reset()
 		{
-			memset(this, 0, sizeof(Game::AntilagClientStore));
+			memset(this, 0, sizeof(AntilagClientStore));
+		}
+	};
+
+	struct BulletTrace_t : Game::trace_t
+	{
+		int unk2C = 0;
+		float vecUnk30[3];
+		bool flag3C = false; 
+		int unk40 = 0;
+	};
+
+	struct BulletContext_t
+	{
+		int weaponIndex = 0;
+		int weaponIndex2 = 0;
+		float unk_flt=1;
+		int bulletMethodOfDeath=0;
+		float muzzleTrace[3];
+		float startPos[3];
+		float endPos[3];
+		float muzzleDir[3];
+
+		void Init(int InitWeaponIndex, weaponParms* wpParms)
+		{
+			this->weaponIndex = InitWeaponIndex;
+			this->weaponIndex2 = InitWeaponIndex;
+			this->unk_flt = 1.0f;
+			this->muzzleTrace[0] = wpParms->muzzleTrace[0];
+			this->muzzleTrace[1] = wpParms->muzzleTrace[1];
+			this->muzzleTrace[2] = wpParms->muzzleTrace[2];
+			this->startPos[0] = wpParms->muzzleTrace[0];
+			this->startPos[1] = wpParms->muzzleTrace[1];
+			this->startPos[2] = wpParms->muzzleTrace[2];
 		}
 	};
 

@@ -10,105 +10,41 @@ namespace Components
 	float AntiLag::ColorGreen[] = { 0.0f, 1.0f, 0.0f, 1.0f };
 	float AntiLag::ColorWhite[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+	bool AntiLag::IsDisabled()
+	{
+		return G_AntiLag.get<int>() == 0;
+	}
+
+	bool AntiLag::IsDebugging(const int mode)
+	{
+		return G_AntiLagDebug.get<int>() >= mode;
+	}
+
 	void AntiLag::FireWeapon(Game::gentity_s* ent, int gameTime, int eventType)
 	{
-		if (G_AntiLag.get<int>() == 0)
+		if (AntiLag::IsDisabled()) {
 			gameTime = Game::level->time;
-		else if (G_AntiLagDebug.get<int>() != 0)
+		}
+		else if (AntiLag::IsDebugging()) {
 			Logger::Debug("FireWeapon: at tick {}, level.time {}\n", gameTime, Game::level->time);
+		}
 
 		Game::FireWeapon(ent, gameTime, eventType);
 	}
 
-	void AntiLag::FireWeaponMelee(Game::gentity_s* ent, int gameTime)
-	{
-		if (G_AntiLag.get<int>() == 0)
-			gameTime = Game::level->time;
-		else if (G_AntiLagDebug.get<int>() != 0)
-			Logger::Debug("FireWeaponMelee: at tick {}, level.time {}\n", gameTime, Game::level->time);
-
-		Game::FireWeaponMelee(ent, gameTime);
-	}
-
-	bool AntiLag::ShouldRewind(uintptr_t stack, uintptr_t returnAddress, Game::gentity_s** attacker)
-	{
-		constexpr uintptr_t Bullet_FireRet = 0x004402E0;
-		constexpr uintptr_t Run_MeleeRet = 0x00501A07;
-		constexpr uintptr_t G_RunMissileRet = 0x004AAD46;
-
-		if (Bullet_FireRet == returnAddress) {
-			*attacker = *reinterpret_cast<Game::gentity_s**>(stack + 0x14);
-			return true;
-		}
-
-		if (Run_MeleeRet == returnAddress) {
-			*attacker = *reinterpret_cast<Game::gentity_s**>(stack + 0x10);
-			return true;
-		}
-
-		if (G_RunMissileRet != returnAddress)
-		{
-			// no debug check since this is totally unexpected to happen at all.
-			Logger::Debug("G_AntiLagRewindClientPos called from unknown location...");
-			return false;
-		}
-
-		Game::gentity_s* projectile = *reinterpret_cast<Game::gentity_s**>(stack + 0x10);
-		if (!projectile)
-		{
-			// no debug check since this is totally unexpected to happen at all.
-			Logger::Debug("ERROR: G_AntiLagRewindClientPos called from G_RunMissile but has no projectile in stack...");
-			return false;
-		}
-
-		int ownerId = projectile->r.ownerNum.number;
-		if (ownerId > 0 && ownerId <= Game::level->maxclients) //
-			*attacker = &Game::g_entities[ownerId - 1];
-
-		const bool hitGround = projectile->s.groundEntityNum == 0x7FE;
-		Game::WeaponDef* WeaponDef = Game::BG_GetWeaponDef(projectile->s.weapon);
-
-		// l3d note: this check below does not exist in original iw engine.
-		if (hitGround && (WeaponDef->stickiness == Game::WEAPSTICKINESS_ALL
-			|| WeaponDef->stickiness == Game::WEAPSTICKINESS_ALL_ORIENT
-			|| WeaponDef->stickiness == Game::WEAPSTICKINESS_KNIFE))
-		{
-			// we did stick, no need for rewinding anymore.
-			return false;
-		}
-
-		if (G_AntiLagDebug.get<int>() == 3)
-		{
-			// draw flying projectiles origin
-			float org[3];
-			Utils::Maths::VectorScale(projectile->r.box.halfSize, 3, org);
-			Utils::Maths::VectorAdd(projectile->r.currentOrigin, org, org);
-
-			// draw current origin
-			Game::G_DebugLineWithDuration(org, projectile->r.currentOrigin, ColorWhite, 1, 100);
-		}
-
-		return true;
-	}
-
-	void AntiLag::G_AntiLagRewindClientPos(int gameTime, Game::AntilagClientStore* antilagStore)
+	void AntiLag::G_AntiLagRewindClientPos(Game::gentity_s* owner, int gameTime, Game::AntilagClientStore* antilagStore)
 	{
 		const int antiLagMode = G_AntiLag.get<int>();
-		if (antiLagMode == 0)
+		if (antiLagMode == 0) {
 			return;
-
-		Game::gentity_s* attacker = nullptr;
-
-		// get attacker, check if we should run.
-		if (!ShouldRewind(reinterpret_cast<uintptr_t>(_AddressOfReturnAddress()), reinterpret_cast<uintptr_t>(_ReturnAddress()), &attacker))
-			return;
+		}
 
 		antilagStore->Reset();
 
 		// GetClientPositionsAtTime results arrays.
-		std::array<bool, 18> clientsMoved;
-		std::array<Game::vec3_t, 18> clientsAngles;
-		std::array<Game::vec3_t, 18> clientsPositions;
+		std::array<bool, Game::MAX_CLIENTS> clientsMoved;
+		std::array<Game::vec3_t, Game::MAX_CLIENTS> clientsAngles;
+		std::array<Game::vec3_t, Game::MAX_CLIENTS> clientsPositions;
 
 		const int deltaTime = Game::level->time - gameTime;
 		const int targetTime = deltaTime > 400 ? (Game::level->time - 400) : gameTime;
@@ -117,8 +53,9 @@ namespace Components
 
 		if (!Game::GetClientPositionAtTime(targetTime, clientsPositions.data(), clientsAngles.data(), clientsMoved.data()))
 		{
-			if (G_AntiLagDebug.get<int>() != 0)
+			if (AntiLag::IsDebugging()) {
 				Logger::Debug("GetClientPositionAtTime failed: tick {}, level.time {}\n", targetTime, Game::level->time);
+			}
 
 			return;
 		}
@@ -131,7 +68,7 @@ namespace Components
 			if (antiLagMode == 2)
 			{
 				// skip teammates here.
-				if (attacker != nullptr && attacker->s.number != ent.s.number && Game::OnSameTeam(attacker, &ent) /*&& src_friendlyFire.get<bool>()*/)
+				if (owner != nullptr && owner->s.number != ent.s.number && Game::OnSameTeam(owner, &ent) /*&& src_friendlyFire.get<bool>()*/)
 					clientMoved = false;
 			}
 
@@ -144,7 +81,7 @@ namespace Components
 			Utils::Maths::VectorCopy(ent.r.currentOrigin, antilagStore->realClientPositions[i]);
 			Utils::Maths::VectorCopy(ent.r.currentAngles, antilagStore->realClientAngles[i]);
 
-			if (G_AntiLagDebug.get<int>() == 3)
+			if (AntiLag::IsDebugging(3))
 			{
 				float org[3];
 				Utils::Maths::VectorCopy(ent.r.currentOrigin, org);
@@ -165,8 +102,9 @@ namespace Components
 
 			Game::SV_LinkEntity(&ent);
 
-			if (G_AntiLagDebug.get<int>() == 2)
+			if (AntiLag::IsDebugging(2)) {
 				Logger::Debug("antiLag: moving entity ({}) tick {}, level.time {}\n", i, targetTime, Game::level->time);
+			}
 
 			antilagStore->clientMoved[i] = true;
 		}
@@ -176,15 +114,17 @@ namespace Components
 
 	void AntiLag::G_AntiLag_RestoreClientPos(Game::AntilagClientStore* antilagStore)
 	{
-		if (!AntiLag::AntiLagFilled)
+		if (!AntiLag::AntiLagFilled) {
 			return;
+		}
 
 		for (int i = 0; i < Game::level->maxclients; ++i)
 		{
 			auto& ent = Game::g_entities[i];
 
-			if (!antilagStore->clientMoved[i])
+			if (!antilagStore->clientMoved[i]) {
 				continue;
+			}
 
 			Utils::Maths::VectorCopy(antilagStore->realClientAngles[i], ent.r.currentAngles);
 			Utils::Maths::VectorCopy(antilagStore->realClientPositions[i], ent.r.currentOrigin);
@@ -197,6 +137,59 @@ namespace Components
 		AntiLag::AntiLagFilled = false;
 	}
 
+	static void G_RunMissile(Game::gentity_s* missile)
+	{
+		// idk if we need to make this static, since it does not search for anything.
+		Dvar::Var missileDebugDraw(0x1A865D4);
+
+		if (missile->linkedEntity)
+		{
+			float org[3];
+			Utils::Maths::VectorCopy(missile->r.currentOrigin, org);
+
+			Game::G_RunItem(missile);
+			Game::G_RunThink(missile);
+
+			if (missileDebugDraw.get<bool>()) {
+				Game::G_DebugLineWithDuration(org, missile->r.currentOrigin, AntiLag::ColorWhite, 1, 1000);
+			}
+
+			return;
+		}
+
+		Game::WeaponDef* WeaponDef = Game::BG_GetWeaponDef(missile->s.weapon);
+		bool isThrowingKnife = WeaponDef->weapClass == Game::WEAPCLASS_THROWINGKNIFE;
+		const bool hitGround = missile->s.groundEntityNum == 0x7FE;
+
+		// l3d note: this check below does not exist in original iw engine.
+		if (hitGround && (WeaponDef->stickiness == Game::WEAPSTICKINESS_ALL
+			|| WeaponDef->stickiness == Game::WEAPSTICKINESS_ALL_ORIENT
+			|| WeaponDef->stickiness == Game::WEAPSTICKINESS_KNIFE))
+		{
+			// we did stick, no need for rewinding anymore.
+			isThrowingKnife = false;
+		}
+
+		// game does not run antilag on throwables except throwing knife.
+		if (!isThrowingKnife) {
+			return Game::G_RunMissileInternal(missile);
+		}
+
+		Game::AntilagClientStore antilagStore;
+
+		// i have no idea why it is dereferencing attachModelNames - thats what its actually pointing in this structure...
+		// the structure itself can be wrong
+		int32_t throwingDelay = *reinterpret_cast<int32_t*>(&missile->attachModelNames[10]);
+
+		if (!AntiLag::IsDisabled() && AntiLag::IsDebugging()) {
+			Logger::Debug("G_RunMissile: at tick {}, level.time {}\n", Game::level->time + throwingDelay, Game::level->time);
+		}
+
+		AntiLag::G_AntiLagRewindClientPos(missile, Game::level->time + throwingDelay, &antilagStore);
+		Game::G_RunMissileInternal(missile);
+		AntiLag::G_AntiLag_RestoreClientPos(&antilagStore);
+	}
+
 	AntiLag::AntiLag()
 	{
 		G_AntiLag = Game::Dvar_RegisterInt("g_antilag", 1, 0, 2, Game::DVAR_CODINFO, "Perform antiLag.\nModes: 1 = original antiLag behaviour, 2 = optimized antiLag.");
@@ -205,15 +198,9 @@ namespace Components
 		AntiLag::AntiLagFilled = false;
 
 		Utils::Hook(0x5D6D59, AntiLag::FireWeapon, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5D6D6C, AntiLag::FireWeaponMelee, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x4402DB, AntiLag::G_AntiLagRewindClientPos, HOOK_CALL).install()->quick(); // Bullet_Fire
-		Utils::Hook(0x4404EA, AntiLag::G_AntiLag_RestoreClientPos, HOOK_CALL).install()->quick(); // Bullet_Fire
+		// antilag is being called in Melee.cpp and Bullet.cpp now.
 
-		Utils::Hook(0x4AAD41, AntiLag::G_AntiLagRewindClientPos, HOOK_CALL).install()->quick(); // Run_Missile
-		Utils::Hook(0x4AAD5C, AntiLag::G_AntiLag_RestoreClientPos, HOOK_CALL).install()->quick(); // Run_Missile
-
-		Utils::Hook(0x501A02, AntiLag::G_AntiLagRewindClientPos, HOOK_CALL).install()->quick(); // Run_Melee (name was guessed)
-		Utils::Hook(0x501A42, AntiLag::G_AntiLag_RestoreClientPos, HOOK_CALL).install()->quick(); // Run_Melee (name was guessed)
+		Utils::Hook(0x5E4F9E, G_RunMissile, HOOK_CALL).install()->quick(); // Run_Missile
 	}
 }

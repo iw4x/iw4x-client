@@ -238,6 +238,24 @@ namespace Game
 	GetClientPositionAtTime_t GetClientPositionAtTime = GetClientPositionAtTime_t(0x455960);
 	SV_LinkEntity_t SV_LinkEntity = SV_LinkEntity_t(0x4E0880);
 	OnSameTeam_t OnSameTeam = OnSameTeam_t(0x4BEB80);
+	Melee_Trace_t Melee_Trace = Melee_Trace_t(0x5FCCF0);
+	G_RunItem_t G_RunItem = G_RunItem_t(0x43B9D0);
+	G_RunThink_t G_RunThink = G_RunThink_t(0x43EC40);
+
+	G_RunMissileInternal_t G_RunMissileInternal = G_RunMissileInternal_t(0x5E8BE0);
+
+	Bullet_GetMethodOfDeath_t Bullet_GetMethodOfDeath = Bullet_GetMethodOfDeath_t(0x4A0420);
+	Bullet_Endpos_t Bullet_Endpos = Bullet_Endpos_t(0x4D1A50);
+	BG_WeaponBulletFire_ShouldPenetrate_t BG_WeaponBulletFire_ShouldPenetrate = BG_WeaponBulletFire_ShouldPenetrate_t(0x4B5380);
+	BG_WeaponBulletFire_ShouldSpread_t BG_WeaponBulletFire_ShouldSpread = BG_WeaponBulletFire_ShouldSpread_t(0x4D7D90);
+	Bullet_PenetrationTrace_t Bullet_PenetrationTrace = Bullet_PenetrationTrace_t(0x5D60D0);
+	Bullet_SpreadTrace_t Bullet_SpreadTrace = Bullet_SpreadTrace_t(0x5D5F50);
+	Bullet_ShotgunSpread_t Bullet_ShotgunSpread = Bullet_ShotgunSpread_t(0x5D6860);
+
+	Trace_GetEntityHitId_t Trace_GetEntityHitId = Trace_GetEntityHitId_t(0x501F90);
+	G_ShieldNotifyAndDamage_t G_ShieldNotifyAndDamage = G_ShieldNotifyAndDamage_t(0x4BFA10);
+	G_Damage_t G_Damage = G_Damage_t(0x418600);
+	Melee_Trace_Internal_t Melee_Trace_Internal = Melee_Trace_Internal_t(0x5FC8A0);
 
 	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
 

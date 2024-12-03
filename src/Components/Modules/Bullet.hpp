@@ -5,6 +5,8 @@ namespace Components
 	class Bullet : public Component
 	{
 	public:
+		static int Bullet_Fire(Game::gentity_s* attacker, float spread, Game::weaponParms* weaponParms, Game::gentity_s* weaponEnt, int extrapolate_or_smth, int gameTime);
+
 		Bullet();
 
 	private:
@@ -19,10 +21,9 @@ namespace Components
 		static float ColorYellow[];
 		static float ColorBlue[];
 		static float ColorOrange[];
+		static float ColorWhite[];
 
 		static float BG_GetSurfacePenetrationDepthStub(const Game::WeaponDef* weapDef, int surfaceType);
-
-		static void Bullet_FireStub();
 
 		static void BG_srand_Hk(unsigned int* pHoldrand);
 
