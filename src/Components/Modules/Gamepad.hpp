@@ -64,7 +64,7 @@ namespace Components
 		static GamePadGlobals gamePadGlobals[Game::MAX_GPAD_COUNT];
 		static std::mutex gamePadStateMutexes[Game::MAX_GPAD_COUNT];
 
-
+		static bool gamePadDataReady[Game::MAX_GPAD_COUNT];
 		static int gamePadBindingsModifiedFlags;
 
 		static Dvar::Var gpad_enabled;
@@ -137,7 +137,7 @@ namespace Components
 		static void CL_GamepadMove(int localClientNum, float frameTimeBase, Game::usercmd_s* cmd);
 		static void CL_MouseMove(int localClientNum, Game::usercmd_s* cmd, float frametime_base);
 		static void CL_MouseMove_Stub();
-		
+
 		static bool Gamepad_ShouldUse(const Game::gentity_s* playerEnt, unsigned useTime);
 		static void Player_UseEntity_Stub();
 

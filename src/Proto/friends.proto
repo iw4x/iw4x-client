@@ -11,7 +11,7 @@ message Friend
 	uint32 experience = 5;
 }
 
-message List 
+message List
 {
 	repeated Friend friends = 1;
 }

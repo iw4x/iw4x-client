@@ -26,7 +26,7 @@ namespace Components
 		static const Game::dvar_t* BGBunnyHopAuto;
 		static const Game::dvar_t* PlayerDuckedSpeedScale;
 		static const Game::dvar_t* PlayerProneSpeedScale;
-		
+
 		static void PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask);
 		static void PM_PlayerDuckedSpeedScaleStub();
 		static void PM_PlayerProneSpeedScaleStub();

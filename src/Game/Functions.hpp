@@ -208,10 +208,10 @@ namespace Game
 
 	typedef bool(*UI_KeyEvent_t)(int clientNum, int key, int down);
 	extern UI_KeyEvent_t UI_KeyEvent;
-	
+
 	typedef const char*(*UI_SafeTranslateString_t)(const char* reference);
 	extern UI_SafeTranslateString_t UI_SafeTranslateString;
-	
+
 	typedef void(*UI_ReplaceConversions_t)(const char* sourceString, ConversionArguments* arguments, char* outputString, size_t outputStringSize);
 	extern UI_ReplaceConversions_t UI_ReplaceConversions;
 
@@ -220,6 +220,9 @@ namespace Game
 
 	typedef const char*(*UI_GetMapDisplayName_t)(const char* pszMap);
 	extern UI_GetMapDisplayName_t UI_GetMapDisplayName;
+
+	typedef const char* (*UI_GetGameTypeDisplayName_t)(const char* pszGameType);
+	extern UI_GetGameTypeDisplayName_t UI_GetGameTypeDisplayName;
 
 	typedef int(*ParseConfigStringToStruct_t)(void* pStruct, const Game::cspField_t* pFieldList, const int iNumFields, const char* pszBuffer, const int iMaxFieldTypes, int(__cdecl* parseSpecialFieldType)(char*, const char*, const int), void(__cdecl* parseStrcpy)(char*, char*));
 	extern ParseConfigStringToStruct_t ParseConfigStringToStruct;
@@ -436,7 +439,7 @@ namespace Game
 
 	typedef void(*UI_AddMenuList_t)(UiContext* dc, MenuList* menuList, int close);
 	extern UI_AddMenuList_t UI_AddMenuList;
-	
+
 	typedef uiMenuCommand_t(*UI_GetActiveMenu_t)(int localClientNum);
 	extern UI_GetActiveMenu_t UI_GetActiveMenu;
 
@@ -466,10 +469,10 @@ namespace Game
 
 	typedef void(*UI_DrawText_t)(const ScreenPlacement* scrPlace, const char* text, int maxChars, Font_s* font, float x, float y, int horzAlign, int vertAlign, float scale, const float* color, int style);
 	extern UI_DrawText_t UI_DrawText;
-	
+
 	typedef Font_s*(*UI_GetFontHandle_t)(ScreenPlacement* scrPlace, int fontEnum, float scale);
 	extern UI_GetFontHandle_t UI_GetFontHandle;
-	
+
 	typedef void(*ScrPlace_ApplyRect_t)(const ScreenPlacement* scrPlace, float* x, float* y, float* w, float* h, int horzAlign, int vertAlign);
 	extern ScrPlace_ApplyRect_t ScrPlace_ApplyRect;
 
@@ -478,10 +481,10 @@ namespace Game
 
 	typedef void(*Vec3UnpackUnitVec_t)(PackedUnitVec, vec3_t*);
 	extern Vec3UnpackUnitVec_t Vec3UnpackUnitVec;
-	
+
 	typedef float(*vectoryaw_t)(vec2_t* vec);
 	extern vectoryaw_t vectoryaw;
-	
+
 	typedef float(*AngleNormalize360_t)(float val);
 	extern AngleNormalize360_t AngleNormalize360;
 
@@ -490,13 +493,13 @@ namespace Game
 
 	typedef void(*unzClose_t)(void* handle);
 	extern unzClose_t unzClose;
-	
+
 	typedef void(*RB_DrawCursor_t)(Material* material, char cursor, float x, float y, float sinAngle, float cosAngle, Font_s* font, float xScale, float yScale, unsigned int color);
 	extern RB_DrawCursor_t RB_DrawCursor;
-	
+
 	typedef float(*R_NormalizedTextScale_t)(Font_s* font, float scale);
 	extern R_NormalizedTextScale_t R_NormalizedTextScale;
-	
+
 	typedef void(*Material_Process2DTextureCoordsForAtlasing_t)(const Material* material, float* s0, float* s1, float* t0, float* t1);
 	extern Material_Process2DTextureCoordsForAtlasing_t Material_Process2DTextureCoordsForAtlasing;
 
@@ -505,13 +508,13 @@ namespace Game
 
 	typedef int(*RandWithSeed_t)(int* seed);
 	extern RandWithSeed_t RandWithSeed;
-	
+
 	typedef void(*GetDecayingLetterInfo_t)(unsigned int letter, int* randSeed, int decayTimeElapsed, int fxBirthTime, int fxDecayDuration, unsigned __int8 alpha, bool* resultSkipDrawing, char* resultAlpha, unsigned int* resultLetter, bool* resultDrawExtraFxChar);
 	extern GetDecayingLetterInfo_t GetDecayingLetterInfo;
-	
+
 	typedef void(*Field_Draw_t)(int localClientNum, field_t* edit, int x, int y, int horzAlign, int vertAlign);
 	extern Field_Draw_t Field_Draw;
-	
+
 	typedef void(*Field_AdjustScroll_t)(ScreenPlacement* scrPlace, field_t* edit);
 	extern Field_AdjustScroll_t Field_AdjustScroll;
 
@@ -529,6 +532,12 @@ namespace Game
 
 	typedef void(*IN_MouseMove_t)();
 	extern IN_MouseMove_t IN_MouseMove;
+
+	typedef void(*IN_MouseEvent_t)(int flags);
+	extern IN_MouseEvent_t IN_MouseEvent;
+
+	typedef void(*IN_Frame_t)();
+	extern IN_Frame_t IN_Frame;
 
 	typedef void(*IN_Init_t)();
 	extern IN_Init_t IN_Init;

@@ -171,7 +171,7 @@ namespace Components
 	BOOL QuickPatch::IsDynClassname_Stub(const char* classname)
 	{
 		const auto version = Zones::Version();
-		
+
 		if (version >= VERSION_LATEST_CODO)
 		{
 			for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
@@ -185,7 +185,7 @@ namespace Components
 
 				if (isSpecOps && isSpecOpsOnly)
 				{
-					// This will prevent spawning of any entity that contains "script_specialops: '1'" 
+					// This will prevent spawning of any entity that contains "script_specialops: '1'"
 					// It removes extra hitboxes / meshes on 461+ CODO multiplayer maps
 					return TRUE;
 				}
@@ -388,9 +388,9 @@ namespace Components
 		// disable bind protection
 		Utils::Hook::Set<BYTE>(0x4DACA2, 0xEB);
 
-		// require Windows 5
-		Utils::Hook::Set<BYTE>(0x467ADF, 5);
-		Utils::Hook::Set<char>(0x6DF5D6, '5');
+		// require Windows 6 (Vista)
+		Utils::Hook::Set<BYTE>(0x467ADF, 6);
+		Utils::Hook::Set<char>(0x6DF5D6, '6');
 
 		// disable 'ignoring asset' notices
 		Utils::Hook::Nop(0x5BB902, 5);
@@ -649,7 +649,7 @@ namespace Components
 					info.freeFlags = 0x20;
 					Game::DB_LoadXAssets(&info, 1, true);
 				}
-				
+
 				count++;
 			}
 		});
