@@ -46,8 +46,7 @@ namespace Components
 		auto hitEntity = &Game::g_entities[entityHitId];
 		const bool specialPartgroup = tr.partGroup == 19;
 
-		if (attacker->client && hitEntity->client && !specialPartgroup)
-		{
+		if (attacker->client && hitEntity->client && !specialPartgroup) {
 			Game::G_AddEvent(attacker, Game::EV_MELEE_BLOOD, 0);
 		}
 
@@ -59,13 +58,16 @@ namespace Components
 		meleeTempEvent->s.un2.__s1.weaponModel = attacker->s.un2.__s1.weaponModel;
 		meleeTempEvent->s.eventParm = 0;
 
-		if (weapDef->knifeModel && attacker->client)
+		if (weapDef->knifeModel && attacker->client) {
 			meleeTempEvent->s.eventParm = 1;
-		if (specialPartgroup)
+		}
+		if (specialPartgroup) {
 			meleeTempEvent->s.eventParm |= 2u;
+		}
 
-		if (hitEntity->s.number == 0x7FE || !hitEntity->takedamage)
+		if (hitEntity->s.number == 0x7FE || !hitEntity->takedamage) {
 			return nullptr;
+		}
 
 		float endPoint[3];
 		endPoint[0] = wpParms->forward[0];
