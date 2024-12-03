@@ -83,8 +83,17 @@ namespace Components
 		std::memcpy(CalcRicochetSave, result, sizeof(float[3]));
 	}
 
-	int Bullet::Bullet_Fire_Stub(Game::gentity_s* attacker, [[maybe_unused]] float spread, Game::weaponParms* wp, Game::gentity_s* weaponEnt, Game::PlayerHandIndex hand, int gameTime)
+	int Bullet::Bullet_Fire(Game::gentity_s* attacker,
+		float spread,
+		Game::weaponParms* wpParms,
+		Game::gentity_s* weaponEnt,
+		int unkBool,
+		int gameTime)
 	{
+		Game::AntilagClientStore antiLag_Backup;
+		AntiLag::G_AntiLagRewindClientPos(attacker, gameTime, &antiLag_Backup);
+
+#ifdef DEBUG_RIOT_SHIELD
 		float tmp[3];
 
 		Game::G_DebugStar(ContactPointSave, ColorYellow);
@@ -96,20 +105,8 @@ namespace Components
 		Game::G_DebugLineWithDuration(VCSave, tmp, ColorOrange, 1, 100);
 		Game::G_DebugStar(tmp, ColorBlue);
 
-		// Set the spread to 0 when drawing
-		return Game::Bullet_Fire(attacker, 0.0f, wp, weaponEnt, hand, gameTime);
-	}
-
-	int Bullet::Bullet_Fire(Game::gentity_s* attacker,
-		float spread,
-		Game::weaponParms* wpParms,
-		Game::gentity_s* weaponEnt,
-		int unkBool,
-		int gameTime)
-	{
-		Game::AntilagClientStore antiLag_Backup;
-		AntiLag::G_AntiLagRewindClientPos(attacker, gameTime, &antiLag_Backup);
-
+		spread = 0;
+#endif
 		uint32_t perks[2] = { 0,0 };
 
 		if (attacker->client) {
@@ -227,8 +224,6 @@ namespace Components
 		Utils::Hook(0x5D5BBA, CalcRicochet_Stub, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x5D5BD7, _VectorMA_Stub, HOOK_CALL).install()->quick();
-
-		Utils::Hook(0x5D5C0B, Bullet_Fire_Stub, HOOK_CALL).install()->quick();
 #endif
 	}
 }

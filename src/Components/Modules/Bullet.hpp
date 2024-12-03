@@ -5,8 +5,6 @@ namespace Components
 	class Bullet : public Component
 	{
 	public:
-		static int Bullet_Fire(Game::gentity_s* attacker, float spread, Game::weaponParms* weaponParms, Game::gentity_s* weaponEnt, int extrapolate_or_smth, int gameTime);
-
 		Bullet();
 
 	private:
@@ -26,6 +24,7 @@ namespace Components
 		static float BG_GetSurfacePenetrationDepthStub(const Game::WeaponDef* weapDef, int surfaceType);
 
 		static void BG_srand_Hk(unsigned int* pHoldrand);
+		static int Bullet_Fire(Game::gentity_s* attacker, float spread, Game::weaponParms* weaponParms, Game::gentity_s* weaponEnt, int extrapolate_or_smth, int gameTime);
 
 		static void BulletRicochet_Save(const float* contactPoint);
 		static void BulletRicochet_Stub();
@@ -33,7 +32,5 @@ namespace Components
 		static void CalcRicochet_Stub(const float* incoming, const float* normal, float* result);
 
 		static void _VectorMA_Stub(float* va, float scale, float* vb, float* vc);
-
-		static int Bullet_Fire_Stub(Game::gentity_s* attacker, float spread, Game::weaponParms* wp, Game::gentity_s* weaponEnt, Game::PlayerHandIndex hand, int gameTime);
 	};
 }
