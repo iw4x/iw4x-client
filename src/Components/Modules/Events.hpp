@@ -40,7 +40,7 @@ namespace Components
 
 		// Client & Server (triggered once)
 		static void OnNetworkInit(const std::function<void()>& callback);
-		
+
 		// Client & Server (triggered every FS/Vidrestart)
 		static void OnCGameInit(const std::function<void()>& callback);
 

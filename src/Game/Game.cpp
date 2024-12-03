@@ -26,6 +26,8 @@ namespace Game
 
 	MssLocal* milesGlobal = reinterpret_cast<MssLocal*>(0x649A1A0);
 
+	WinVars_t* g_wv = reinterpret_cast<WinVars_t*>(0x64A3AC8);
+
 	const char* origErrorMsg = reinterpret_cast<const char*>(0x79B124);
 
 	XModel* G_GetModel(const int index)

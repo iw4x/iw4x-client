@@ -7,7 +7,7 @@ namespace Components
 	public:
 		Logger();
 		~Logger();
-		
+
 		static bool IsConsoleReady();
 
 		static void Print_Stub(int channel, const char* message, ...);

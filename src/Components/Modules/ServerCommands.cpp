@@ -13,7 +13,7 @@ namespace Components
 	bool ServerCommands::OnServerCommand()
 	{
 		Command::ClientParams params;
-		
+
 		for (const auto& [id, callback] : Commands)
 		{
 			if (params.size() >= 1)

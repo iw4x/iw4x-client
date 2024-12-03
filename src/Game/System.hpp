@@ -74,9 +74,14 @@ namespace Game
 	typedef void(*Sys_QuitAndStartProcess_t)(const char*);
 	extern Sys_QuitAndStartProcess_t Sys_QuitAndStartProcess;
 
+	typedef void(*Sys_QueEvent_t)(int time, int type, int value, int value2, int ptrLength, void* ptr);
+	extern Sys_QueEvent_t Sys_QueEvent;
+
 	extern char(*sys_exitCmdLine)[1024];
 
 	extern RTL_CRITICAL_SECTION* s_criticalSection;
+
+	extern void Sys_QueEvents(int time, int type, int value2, int ptrLength, void* ptr);
 
 	extern void Sys_LockRead(FastCriticalSection* critSect);
 	extern void Sys_UnlockRead(FastCriticalSection* critSect);
