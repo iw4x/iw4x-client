@@ -75,7 +75,7 @@ namespace Components
 				Changelog::LoadChangelog();
 				if (Terminate) return;
 
-				const auto data = Utils::Cache::GetFile("/iw4/motd.txt");
+				const auto data = Utils::Cache::GetFile("/info/motd/plain");
 				if (!data.empty())
 				{
 					Localization::Set("MPUI_MOTD_TEXT", data);
