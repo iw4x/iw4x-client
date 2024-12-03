@@ -58,6 +58,7 @@ namespace Game
 	extern G_DebugLineWithDuration_t G_DebugLineWithDuration;
 
 	extern gentity_s* g_entities;
+	extern unsigned short* PartName_None;
 	extern bool* g_quitRequested;
 
 	extern char(*g_cmdlineCopy)[1024];

@@ -78,7 +78,7 @@ namespace Components
 
 		if (specialPartgroup)
 		{
-			partName = *reinterpret_cast<uint16_t*>(0x1AA2E7A);
+			partName = *Game::PartName_None;
 			partGroup = 0;
 
 			if (hitEntity->client)
