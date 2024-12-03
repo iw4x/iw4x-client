@@ -31,6 +31,7 @@ namespace Components
 		static std::map<std::uint64_t, Network::Address> LobbyMap;
 
 		static Dvar::Var PartyEnable;
+		static Dvar::Var ServerVersion;
 
 		static SteamID GenerateLobbyId();
 
