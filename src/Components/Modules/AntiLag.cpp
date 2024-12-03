@@ -178,7 +178,7 @@ namespace Components
 		Game::AntilagClientStore antilagStore;
 
 		// i have no idea why it is dereferencing attachModelNames - thats what its actually pointing in this structure...
-		// the structure itself can be wrong
+		// the structure itself can be wrong. throwingDelay equals negative numbers like -67
 		int32_t throwingDelay = *reinterpret_cast<int32_t*>(&missile->attachModelNames[10]);
 
 		if (!AntiLag::IsDisabled() && AntiLag::IsDebugging()) {
@@ -198,9 +198,8 @@ namespace Components
 		AntiLag::AntiLagFilled = false;
 
 		Utils::Hook(0x5D6D59, AntiLag::FireWeapon, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5E4F9E, G_RunMissile, HOOK_CALL).install()->quick(); // #todo: this needs its own file - Missile.cpp...
 
 		// antilag is being called in Melee.cpp and Bullet.cpp now.
-
-		Utils::Hook(0x5E4F9E, G_RunMissile, HOOK_CALL).install()->quick(); // Run_Missile
 	}
 }

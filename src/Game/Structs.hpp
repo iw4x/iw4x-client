@@ -11956,7 +11956,7 @@ namespace Game
 	{
 		int unk2C = 0;
 		float vecUnk30[3];
-		bool flag3C = false; 
+		bool flag3C = false;
 		int unk40 = 0;
 	};
 
@@ -11964,18 +11964,19 @@ namespace Game
 	{
 		int weaponIndex = 0;
 		int weaponIndex2 = 0;
-		float unk_flt=1;
-		int bulletMethodOfDeath=0;
+		float unkFlt = 1; // most likely is penetationPower?
+		int methodOfDeath = 0;
 		float muzzleTrace[3];
 		float startPos[3];
 		float endPos[3];
 		float muzzleDir[3];
 
+		// this function is inlined in game, game also calls Bullet_GetMethodOfDeath and fills methodOfDeath with its result - we can't due to include errors.
 		void Init(int InitWeaponIndex, weaponParms* wpParms)
 		{
 			this->weaponIndex = InitWeaponIndex;
 			this->weaponIndex2 = InitWeaponIndex;
-			this->unk_flt = 1.0f;
+			this->unkFlt = 1.0f;
 			this->muzzleTrace[0] = wpParms->muzzleTrace[0];
 			this->muzzleTrace[1] = wpParms->muzzleTrace[1];
 			this->muzzleTrace[2] = wpParms->muzzleTrace[2];

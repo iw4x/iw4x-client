@@ -133,9 +133,6 @@ namespace Components
 
 		BG_srand_Hk(&randomSeed);
 
-		if (nBullets <= 0)
-			return -1;
-
 		Dvar::Var g_debugBullet(0x19BD624);
 		Game::BulletContext_t bulletContext;
 		const int weaponIndex = weaponEnt ? weaponEnt->s.number : 0x7FE;
@@ -146,7 +143,7 @@ namespace Components
 		{
 			// #TODO: should we move Init out of iteration for optimization? (current code is IW4 copy)
 			bulletContext.Init(weaponIndex, wpParms);
-			bulletContext.bulletMethodOfDeath = Game::Bullet_GetMethodOfDeath(perks, wpParms->weapDef);
+			bulletContext.methodOfDeath = Game::Bullet_GetMethodOfDeath(perks, wpParms->weapDef);
 
 			Game::Bullet_Endpos(&randomSeed, spread, bulletContext.endPos, bulletContext.muzzleDir, wpParms, fMinDamageRange);
 
@@ -179,7 +176,7 @@ namespace Components
 
 		if (ShouldSpread)
 		{
-			float spreadDummy = 0, rangeDummy = 0;
+			float spreadDummy = 0, rangeDummy = 0; // required for fstp instruction
 			__asm
 			{
 				mov     ecx, weaponEnt
