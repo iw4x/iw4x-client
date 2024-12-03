@@ -191,8 +191,9 @@ namespace Components
 
 		uint16_t ownerId = missile->r.ownerNum.number;
 		Game::gentity_s* attacker = nullptr;
-		if (ownerId > 0 && ownerId <= Game::level->maxclients) //
+		if (ownerId > 0 && ownerId <= Game::level->maxclients) {
 			attacker = &Game::g_entities[static_cast<int>(ownerId) - 1];
+		}
 
 		AntiLag::G_AntiLagRewindClientPos(attacker, Game::level->time + throwingDelay, &antilagStore);
 		Game::G_RunMissileInternal(missile);
