@@ -38,7 +38,7 @@ namespace Components
 				Password.clear();
 				return;
 			}
-				
+
 			auto* addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
 			if (Password.empty())
 			{

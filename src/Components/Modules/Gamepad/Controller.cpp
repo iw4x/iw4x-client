@@ -86,16 +86,16 @@ namespace Components::GamepadControls
 		highRumble = 0.f;
 	}
 
-	void Controller::UpdateState()
+	void Controller::UpdateState(bool additive)
 	{
 		// We read
 		if (api)
 		{
 			if (api->Fetch())
 			{
-				UpdateSticks();
+				UpdateSticks(additive);
 				UpdateAnalogs();
-				UpdateDigitals();
+				UpdateDigitals(additive);
 			}
 			else
 			{
@@ -121,13 +121,23 @@ namespace Components::GamepadControls
 	}
 
 
-	void Controller::UpdateDigitals()
+	void Controller::UpdateDigitals(bool additive)
 	{
 		lastDigitals = digitals;
-
+		
 		if (api)
 		{
-			api->ReadDigitals(digitals);
+			unsigned short newDigitals{};
+			api->ReadDigitals(newDigitals);
+			
+			if (additive)
+			{
+				digitals |= newDigitals;
+			}
+			else
+			{
+				digitals = newDigitals;
+			}
 		}
 
 		const auto leftDeflect = gpad_button_lstick_deflect_max.get<float>();
@@ -176,7 +186,7 @@ namespace Components::GamepadControls
 		}
 	}
 
-	void Controller::UpdateSticks()
+	void Controller::UpdateSticks(bool additive)
 	{
 
 		lastSticks[0] = sticks[0];
@@ -199,7 +209,7 @@ namespace Components::GamepadControls
 		sticks[2] = rVec[0];
 		sticks[3] = rVec[1];
 
-		UpdateSticksDown();
+		UpdateSticksDown(additive);
 
 		if (gpad_debug.get<bool>())
 		{
@@ -324,12 +334,17 @@ namespace Components::GamepadControls
 		return down && !lastDown;
 	}
 
-	void Controller::UpdateSticksDown()
+	void Controller::UpdateSticksDown(bool additive)
 	{
 		for (auto stickIndex = 0u; stickIndex < std::extent_v<decltype(Controller::sticks)>; stickIndex++)
 		{
 			for (auto dir = 0; dir < Game::GPAD_STICK_DIR_COUNT; dir++)
 			{
+				if (!additive)
+				{
+					stickDown[stickIndex][dir] = false;
+				}
+
 				stickDownLast[stickIndex][dir] = stickDown[stickIndex][dir];
 
 				auto threshold = gpad_stick_pressed.get<float>();
@@ -345,12 +360,12 @@ namespace Components::GamepadControls
 
 				if (dir == Game::GPAD_STICK_POS)
 				{
-					stickDown[stickIndex][dir] = sticks[stickIndex] > threshold;
+					stickDown[stickIndex][dir] |= sticks[stickIndex] > threshold;
 				}
 				else
 				{
 					assert(dir == Game::GPAD_STICK_NEG);
-					stickDown[stickIndex][dir] = sticks[stickIndex] < -threshold;
+					stickDown[stickIndex][dir] |= sticks[stickIndex] < -threshold;
 				}
 			}
 		}
@@ -361,7 +376,7 @@ namespace Components::GamepadControls
 		gpad_debug = Dvar::Register<bool>("gpad_debug", false, Game::DVAR_NONE, "Game pad debugging");
 
 		gpad_allow_force_feedback = Dvar::Register<bool>("gpad_allow_force_feedback", true, Game::DVAR_NONE, "Allow force feedback if the game pad supports it");
-		
+
 		gpad_force_xinput_only = Dvar::Register<bool>("gpad_force_xinput_only", false, Game::DVAR_ARCHIVE, "Only listen for XInput controllers and ignore the rest");
 
 		gpad_stick_pressed_hysteresis = Dvar::Register<float>("gpad_stick_pressed_hysteresis", 0.1f, 0.0f, 1.0f, Game::DVAR_ARCHIVE,

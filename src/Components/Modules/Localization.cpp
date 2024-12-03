@@ -125,7 +125,7 @@ namespace Components
 			"Laupetin",
 			"Louvenarde",
 			"lsb_release -a",
-			"quaK",			
+			"quaK",
 		};
 
 		static const char* contributors[] =

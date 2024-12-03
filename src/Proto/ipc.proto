@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package Proto.IPC;
 
-message Command 
+message Command
 {
 	bytes name  = 1;
 	bytes data = 2;

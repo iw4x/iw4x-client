@@ -27,14 +27,14 @@ namespace Game
 
 	typedef gentity_s* (*G_Spawn_t)();
 	extern G_Spawn_t G_Spawn;
-	
+
 	typedef gentity_s* (*G_TempEntity_t)(float *origin, Game::entity_event_t  entity);
 	extern G_TempEntity_t G_TempEntity;
-	
+
 	typedef void (*G_AddEvent_t)(gentity_s *ent, entity_event_t event, unsigned int eventParm);
 	extern G_AddEvent_t G_AddEvent;
 
-	
+
 
 	typedef void(*G_FreeEntity_t)(gentity_s* ed);
 	extern G_FreeEntity_t G_FreeEntity;
@@ -66,7 +66,7 @@ namespace Game
 	extern NetField* clientStateFields;
 	extern size_t clientStateFieldsCount;
 	extern MssLocal* milesGlobal;
-
+	extern WinVars_t* g_wv;
 
 	extern const char* origErrorMsg;
 

@@ -225,13 +225,15 @@ namespace Game
 	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
 
 	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);
+	IN_MouseEvent_t IN_MouseEvent = IN_MouseEvent_t(0x4C84D0);
+	IN_Frame_t IN_Frame = IN_Frame_t(0x475E10);
 	IN_Init_t IN_Init = IN_Init_t(0x45D620);
 	IN_Shutdown_t IN_Shutdown = IN_Shutdown_t(0x426360);
 
 	Touch_Item_t Touch_Item = Touch_Item_t(0x44FA20);
 
 	Add_Ammo_t Add_Ammo = Add_Ammo_t(0x4E1480);
-  
+
 	ClientUserinfoChanged_t ClientUserinfoChanged = ClientUserinfoChanged_t(0x445240);
 
 	player_die_t player_die = player_die_t(0x42BC70);
