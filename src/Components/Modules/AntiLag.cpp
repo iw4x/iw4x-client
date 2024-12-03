@@ -68,8 +68,9 @@ namespace Components
 			if (antiLagMode == 2)
 			{
 				// skip teammates here.
-				if (owner != nullptr && owner->s.number != ent.s.number && Game::OnSameTeam(owner, &ent) /*&& src_friendlyFire.get<bool>()*/)
+				if (owner != nullptr && owner->s.number != ent.s.number && Game::OnSameTeam(owner, &ent) /*&& src_friendlyFire.get<bool>()*/) {
 					clientMoved = false;
+				}
 			}
 
 			if (!clientMoved)
@@ -158,13 +159,16 @@ namespace Components
 		}
 
 		Game::WeaponDef* WeaponDef = Game::BG_GetWeaponDef(missile->s.weapon);
-		bool isThrowingKnife = WeaponDef->weapClass == Game::WEAPCLASS_THROWINGKNIFE;
+
 		const bool hitGround = missile->s.groundEntityNum == 0x7FE;
+		const bool canStick = (WeaponDef->stickiness == Game::WEAPSTICKINESS_ALL
+			|| WeaponDef->stickiness == Game::WEAPSTICKINESS_ALL_ORIENT
+			|| WeaponDef->stickiness == Game::WEAPSTICKINESS_KNIFE);
+
+		bool isThrowingKnife = WeaponDef->weapClass == Game::WEAPCLASS_THROWINGKNIFE;
 
 		// l3d note: this check below does not exist in original iw engine.
-		if (hitGround && (WeaponDef->stickiness == Game::WEAPSTICKINESS_ALL
-			|| WeaponDef->stickiness == Game::WEAPSTICKINESS_ALL_ORIENT
-			|| WeaponDef->stickiness == Game::WEAPSTICKINESS_KNIFE))
+		if (isThrowingKnife && hitGround && canStick)
 		{
 			// we did stick, no need for rewinding anymore.
 			isThrowingKnife = false;
