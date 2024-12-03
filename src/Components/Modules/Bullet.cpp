@@ -132,10 +132,10 @@ namespace Components
 		BG_srand_Hk(&randomSeed);
 
 		Dvar::Var g_debugBullet(0x19BD624);
-		Game::BulletContext_t bulletContext;
+		Game::BulletFireParams bulletContext;
 		const int weaponIndex = weaponEnt ? weaponEnt->s.number : 0x7FE;
 
-		Game::BulletTrace_t bulletTr;
+		Game::BulletTraceResults bulletTr;
 
 		for (; nBullets > 0; nBullets--)
 		{
@@ -143,15 +143,15 @@ namespace Components
 			bulletContext.Init(weaponIndex, wpParms);
 			bulletContext.methodOfDeath = Game::Bullet_GetMethodOfDeath(perks, wpParms->weapDef);
 
-			Game::Bullet_Endpos(&randomSeed, spread, bulletContext.endPos, bulletContext.muzzleDir, wpParms, fMinDamageRange);
+			Game::Bullet_Endpos(&randomSeed, spread, bulletContext.end, bulletContext.dir, wpParms, fMinDamageRange);
 
 			if (g_debugBullet.get<int>() == 1) {
-				Game::G_DebugLineWithDuration(bulletContext.startPos, bulletContext.endPos, ColorWhite, 1, 100);
+				Game::G_DebugLineWithDuration(bulletContext.origStart, bulletContext.end, ColorWhite, 1, 100);
 			}
 
 			if (Game::BG_WeaponBulletFire_ShouldPenetrate(perks, wpParms->weapDef))
 			{
-				Game::Bullet_PenetrationTrace(&randomSeed, &bulletContext, &bulletTr, wpParms->weaponIndex, attacker, gameTime);
+				Game::Bullet_FirePenetrate(&randomSeed, &bulletContext, &bulletTr, wpParms->weaponIndex, attacker, gameTime);
 				continue;
 			}
 
@@ -168,7 +168,7 @@ namespace Components
 				push    eax
 				mov     eax, attacker
 				lea     ecx, bulletTr
-				call    Game::Bullet_SpreadTrace
+				call    Game::Bullet_FireExtended
 				add     esp, 10h
 			}
 		}

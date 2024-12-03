@@ -248,8 +248,8 @@ namespace Game
 	Bullet_Endpos_t Bullet_Endpos = Bullet_Endpos_t(0x4D1A50);
 	BG_WeaponBulletFire_ShouldPenetrate_t BG_WeaponBulletFire_ShouldPenetrate = BG_WeaponBulletFire_ShouldPenetrate_t(0x4B5380);
 	BG_WeaponBulletFire_ShouldSpread_t BG_WeaponBulletFire_ShouldSpread = BG_WeaponBulletFire_ShouldSpread_t(0x4D7D90);
-	Bullet_PenetrationTrace_t Bullet_PenetrationTrace = Bullet_PenetrationTrace_t(0x5D60D0);
-	Bullet_SpreadTrace_t Bullet_SpreadTrace = Bullet_SpreadTrace_t(0x5D5F50);
+	Bullet_PenetrationTrace_t Bullet_FirePenetrate = Bullet_PenetrationTrace_t(0x5D60D0);
+	Bullet_SpreadTrace_t Bullet_FireExtended = Bullet_SpreadTrace_t(0x5D5F50);
 	Bullet_ShotgunSpread_t Bullet_ShotgunSpread = Bullet_ShotgunSpread_t(0x5D6860);
 
 	Trace_GetEntityHitId_t Trace_GetEntityHitId = Trace_GetEntityHitId_t(0x501F90);

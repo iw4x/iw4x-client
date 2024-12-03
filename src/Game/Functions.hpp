@@ -341,20 +341,20 @@ namespace Game
 	extern BG_WeaponBulletFire_ShouldSpread_t BG_WeaponBulletFire_ShouldSpread;
 
 	typedef void(*Bullet_PenetrationTrace_t)(uint32_t* randomSeed,
-		BulletContext_t* bullet,
-		trace_t* tr,
+		BulletFireParams* bullet,
+		BulletTraceResults* tr,
 		unsigned int weaponIndex,
 		gentity_s* attacker,
 		int gameTime);
-	extern Bullet_PenetrationTrace_t Bullet_PenetrationTrace;
+	extern Bullet_PenetrationTrace_t Bullet_FirePenetrate;
 
 	typedef void(*Bullet_SpreadTrace_t)(int a1,
 		gentity_s* a2,
 		uint32_t* randomSeed,
-		BulletContext_t* bullet,
+		BulletFireParams* bullet,
 		unsigned int weaponIndex,
 		int gameTime);
-	extern Bullet_SpreadTrace_t Bullet_SpreadTrace;
+	extern Bullet_SpreadTrace_t Bullet_FireExtended;
 
 	typedef void(*Bullet_ShotgunSpread_t)(gentity_s*/*@<eax>*/ attacker, float range, float spread, weaponParms* wpParms, gentity_s* weaponEnt);
 	extern Bullet_ShotgunSpread_t Bullet_ShotgunSpread;

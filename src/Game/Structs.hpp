@@ -11952,39 +11952,44 @@ namespace Game
 		}
 	};
 
-	struct BulletTrace_t : Game::trace_t
+	struct BulletTraceResults
 	{
-		int unk2C = 0;
-		float vecUnk30[3];
-		bool flag3C = false;
+		trace_t trace;
+		gentity_s* hitEnt;
+		float hitPos[3];
+		bool ignoreHitEnt;
 		int unk40 = 0;
 	};
 
-	struct BulletContext_t
+	static_assert(sizeof(BulletTraceResults) == 0x44);
+
+	struct BulletFireParams
 	{
-		int weaponIndex = 0;
-		int weaponIndex2 = 0;
-		float unkFlt = 1; // most likely is penetationPower?
+		int weaponEntIndex = 0;
+		int ignoreEntIndex = 0;
+		float damageMultiplier = 1;
 		int methodOfDeath = 0;
-		float muzzleTrace[3];
-		float startPos[3];
-		float endPos[3];
-		float muzzleDir[3];
+		float start[3];
+		float origStart[3];
+		float end[3];
+		float dir[3];
 
 		// this function is inlined in game, game also calls Bullet_GetMethodOfDeath and fills methodOfDeath with its result - we can't due to include errors.
-		void Init(int InitWeaponIndex, weaponParms* wpParms)
+		void Init(int weaponIndex, weaponParms* wpParms)
 		{
-			this->weaponIndex = InitWeaponIndex;
-			this->weaponIndex2 = InitWeaponIndex;
-			this->unkFlt = 1.0f;
-			this->muzzleTrace[0] = wpParms->muzzleTrace[0];
-			this->muzzleTrace[1] = wpParms->muzzleTrace[1];
-			this->muzzleTrace[2] = wpParms->muzzleTrace[2];
-			this->startPos[0] = wpParms->muzzleTrace[0];
-			this->startPos[1] = wpParms->muzzleTrace[1];
-			this->startPos[2] = wpParms->muzzleTrace[2];
+			this->weaponEntIndex = weaponIndex;
+			this->ignoreEntIndex = weaponIndex;
+			this->damageMultiplier = 1.0f;
+			this->start[0] = wpParms->muzzleTrace[0];
+			this->start[1] = wpParms->muzzleTrace[1];
+			this->start[2] = wpParms->muzzleTrace[2];
+			this->origStart[0] = wpParms->muzzleTrace[0];
+			this->origStart[1] = wpParms->muzzleTrace[1];
+			this->origStart[2] = wpParms->muzzleTrace[2];
 		}
 	};
+
+	static_assert(sizeof(BulletFireParams) == 0x40);
 
 	struct cgMedia_t
 	{
@@ -12164,13 +12169,11 @@ namespace Game
 		WEAP_ANIM_ADS_LASTSHOT = 0x21,
 		WEAP_ANIM_ADS_RECHAMBER = 0x22,
 		WEAP_ANIM_ADS_UP = 0x23,
-		WEAP_ANIM_ADS_DOWN = 0x24,
+	WEAP_ANIM_ADS_DOWN = 0x24,
 
-		NUM_WEAP_ANIMS,
-	};
+	NUM_WEAP_ANIMS,
+};
 
-#pragma endregion
-
-#ifndef IDA
+#pragma endregion#ifndef IDA
 }
 #endif
