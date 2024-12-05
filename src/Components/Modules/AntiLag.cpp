@@ -148,7 +148,7 @@ namespace Components
 			float org[3];
 			Utils::Maths::VectorCopy(missile->r.currentOrigin, org);
 
-			Game::G_RunItem(missile);
+			Game::G_GeneralLink(missile);
 			Game::G_RunThink(missile);
 
 			if (missileDebugDraw.get<bool>()) {

@@ -315,7 +315,7 @@ namespace Game
 	extern Melee_Trace_t Melee_Trace;
 
 	typedef void(*G_RunItem_t)(gentity_s* item);
-	extern G_RunItem_t G_RunItem;
+	extern G_RunItem_t G_GeneralLink;
 
 	typedef void(*G_RunThink_t)(gentity_s* thinkable);
 	extern G_RunThink_t G_RunThink;

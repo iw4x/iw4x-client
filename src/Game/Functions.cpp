@@ -239,7 +239,7 @@ namespace Game
 	SV_LinkEntity_t SV_LinkEntity = SV_LinkEntity_t(0x4E0880);
 	OnSameTeam_t OnSameTeam = OnSameTeam_t(0x4BEB80);
 	Melee_Trace_t Melee_Trace = Melee_Trace_t(0x5FCCF0);
-	G_RunItem_t G_RunItem = G_RunItem_t(0x43B9D0);
+	G_RunItem_t G_GeneralLink = G_RunItem_t(0x43B9D0);
 	G_RunThink_t G_RunThink = G_RunThink_t(0x43EC40);
 
 	G_RunMissileInternal_t G_RunMissileInternal = G_RunMissileInternal_t(0x5E8BE0);
