@@ -183,6 +183,7 @@ namespace Components
 
 		// i have no idea why it is dereferencing attachModelNames - thats what its actually pointing in this structure...
 		// the structure itself can be wrong. throwingDelay equals negative numbers like -67
+		// 05.12.24 UPD: Caball009 made a PR with fixed gentity_s struct, so this line below starts to point at "missile->entData.missile.antilagTimeOffset"
 		int32_t throwingDelay = *reinterpret_cast<int32_t*>(&missile->attachModelNames[10]);
 
 		if (!AntiLag::IsDisabled() && AntiLag::IsDebugging()) {
