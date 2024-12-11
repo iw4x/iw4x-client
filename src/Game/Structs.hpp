@@ -7528,13 +7528,20 @@ namespace Game
 		float curve;
 	};
 
+	enum MissileStage
+	{
+		MISSILESTAGE_SOFTLAUNCH = 0x0,
+		MISSILESTAGE_ASCENT = 0x1,
+		MISSILESTAGE_DESCENT = 0x2,
+	};
+
 	struct missile_fields_nonGrenade
 	{
 		vec3_t curvature;
 		vec3_t targetEntOffset;
 		vec3_t targetPos;
 		vec3_t launchOrigin;
-		int stage;
+		MissileStage stage;
 	};
 
 	union missile_data_t
@@ -7549,7 +7556,7 @@ namespace Game
 		int timeOfBirth;
 		int travelDist;
 		vec3_t surfaceNormal;
-		int team;
+		team_t team;
 		int flags;
 		int antilagTimeOffset;
 		missile_data_t missileData;
