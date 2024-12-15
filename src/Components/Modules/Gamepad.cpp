@@ -2009,7 +2009,7 @@ namespace Components
 		api.SetForceFeedback(triggerFeedbacks[LEFT], triggerFeedbacks[RIGHT]);
 	}
 
-	Gamepad::Gamepad()
+	Gamepad::Gamepad() : run(true)
 	{
 		if (ZoneBuilder::IsEnabled())
 		{
@@ -2079,26 +2079,38 @@ namespace Components
 		// Add gamepad inputs to user commands if it is enabled
 		Utils::Hook(0x5A6DAE, CL_MouseMove_Stub, HOOK_CALL).install()->quick();
 
-		// Refresh gamepads on a separate thread to prevent IO latency from breaking up framerate
-		// This is never a problem at 30~60 fps (which the game is made for) but becomes a problem above 300+...
-		// Some users like their game at 300 hZ so let's handle it
+		// Refresh gamepads on a separate thread to prevent IO latency from
+		// breaking up framerate This is never a problem at 30~60 fps (which the
+		// game is made for) but becomes a problem above 300+... Some users like
+		// their game at 300 hZ so let's handle it
 		{
-			static std::thread gamepadRefreshThread([]()
+			gamepadRefreshThread = std::thread([this]()
+			{
+				constexpr auto INPUT_THREAD_REFRESH_RATE = 120; // hZ for input refresh rate
+				constexpr auto INPUT_THREAD_TICK_TIME_MS = 1000 / INPUT_THREAD_REFRESH_RATE;
+
+				while (run.load(std::memory_order_relaxed))
 				{
-					constexpr auto INPUT_THREAD_REFRESH_RATE = 120; // hZ for input refresh rate
-					constexpr auto INPUT_THREAD_TICK_TIME_MS = 1000 / INPUT_THREAD_REFRESH_RATE;
+					const auto startTime = std::chrono::steady_clock::now();
+					const auto elapsed = std::chrono::steady_clock::now() - startTime;
+					const auto remainingTime = std::chrono::milliseconds(INPUT_THREAD_TICK_TIME_MS) - elapsed;
 
-					while (true)
-					{
-						const auto startTime = std::chrono::system_clock::now();
-						const auto sleepUntil = startTime + std::chrono::milliseconds(INPUT_THREAD_TICK_TIME_MS);
+					GPad_UpdateAll();
 
-						GPad_UpdateAll();
-						std::this_thread::sleep_until(sleepUntil);
-					}
-				});
-
-			gamepadRefreshThread.detach();
+					if (remainingTime > std::chrono::milliseconds(0))
+						std::this_thread::sleep_for(remainingTime);
+					else
+						std::this_thread::yield();
+				}
+			});
 		}
+	}
+
+	Gamepad::~Gamepad()
+	{
+		run.store(false, std::memory_order_relaxed);
+
+		if (gamepadRefreshThread.joinable())
+			gamepadRefreshThread.join();
 	}
 }
