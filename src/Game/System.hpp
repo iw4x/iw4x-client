@@ -78,6 +78,7 @@ namespace Game
 	extern Sys_QueEvent_t Sys_QueEvent;
 
 	extern char(*sys_exitCmdLine)[1024];
+	extern char(*sys_cmdline)[1024];
 
 	extern RTL_CRITICAL_SECTION* s_criticalSection;
 

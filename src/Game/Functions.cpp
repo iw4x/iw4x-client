@@ -361,6 +361,8 @@ namespace Game
 
 	float (*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT] = reinterpret_cast<float(*)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT]>(0x7C4878);
 
+	char (*com_consoleLines)[32] = reinterpret_cast<char(*)[32]>(0x1AD7948);
+
 	WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x649D640);
 
 	int* window_center_x = reinterpret_cast<int*>(0x649D638);
