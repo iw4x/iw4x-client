@@ -62,6 +62,8 @@ namespace Game
 	extern gentity_s* g_entities;
 	extern bool* g_quitRequested;
 
+	extern char(*g_cmdlineCopy)[1024];
+
 	// This does not belong anywhere else
 	extern NetField* clientStateFields;
 	extern size_t clientStateFieldsCount;

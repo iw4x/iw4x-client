@@ -934,8 +934,13 @@ namespace Components
 		}
 	}
 
-	BOOL APIENTRY ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/)
+	BOOL APIENTRY ZoneBuilder::EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR lpCmdLine, int /*nShowCmd*/)
 	{
+		// The game saves the command line in these two arrays
+		// See GH-151
+		Game::I_strncpyz(*Game::sys_cmdline, lpCmdLine, 1024); // Used instead of calling GetCommandLineA
+		Game::I_strncpyz(*Game::g_cmdlineCopy, lpCmdLine, 1024); // Used by logfile functions (in case ZoneBuilder will ever use the game's logging functions)
+
 		Utils::Hook::Call<void()>(0x42F0A0)(); // Com_InitCriticalSections
 		Utils::Hook::Call<void()>(0x4301B0)(); // Com_InitMainThread
 		Utils::Hook::Call<void(int)>(0x406D10)(0); // Win_InitLocalization
@@ -991,7 +996,7 @@ namespace Components
 		Utils::Hook::Call<void()>(0x4A1280)();  // something related to uiInfoArray
 
 
-		Utils::Hook::Call<void(const char*)>(0x464A90)(GetCommandLineA()); // Com_ParseCommandLine
+		Utils::Hook::Call<void(const char*)>(0x464A90)(*Game::sys_cmdline); // Com_ParseCommandLine
 		Utils::Hook::Call<void()>(0x60C3D0)(); // Com_AddStartupCommands
 
 		// so for this i'm going to say that we just run the commands (after + signs)

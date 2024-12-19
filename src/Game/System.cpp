@@ -35,6 +35,7 @@ namespace Game
 	}
 
 	char(*sys_exitCmdLine)[1024] = reinterpret_cast<char(*)[1024]>(0x649FB68);
+	char(*sys_cmdline)[1024] = reinterpret_cast<char(*)[1024]>(0x649F760);
 
 	RTL_CRITICAL_SECTION* s_criticalSection = reinterpret_cast<RTL_CRITICAL_SECTION*>(0x6499BC8);
 
