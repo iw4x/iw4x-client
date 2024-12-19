@@ -13,7 +13,7 @@
 namespace Components
 {
 	constexpr auto CLIPBOARD_MSG = "Do you want to copy this message to the clipboard?";
-	
+
 	Utils::Hook Exception::SetFilterHook;
 	int Exception::MiniDumpType;
 
@@ -59,7 +59,7 @@ namespace Components
 		Game::Sys_SuspendOtherThreads();
 	}
 
-	std::wstring Exception::GetErrorMessage()
+	std::wstring Exception::GetErrorMessage(const std::string& error)
 	{
 		const auto clientVersion = (*Game::shortversion)->current.string;
 		const auto osVersion = Utils::IsWineEnvironment() ? "Wine" : Utils::GetWindowsVersion();
@@ -74,7 +74,7 @@ namespace Components
 
 		if (!Game::CL_IsCgameInitialized())
 		{
-			std::string msg = std::format("{}\n\n{}", clientInfo, CLIPBOARD_MSG);
+			std::string msg = std::format("{}\n\n{}\n\n{}", clientInfo, error, CLIPBOARD_MSG);
 			std::wstring message(msg.begin(), msg.end());
 			return message;
 		}
@@ -99,7 +99,7 @@ namespace Components
 					Mod Name: {})",
 					gameType, mapName, modName);
 
-				std::string msg = std::format("{}\n{}\n\n{}", clientInfo, privateMatchInfo, CLIPBOARD_MSG);
+				std::string msg = std::format("{}\n{}\n\n{}\n\n{}", clientInfo, privateMatchInfo, error, CLIPBOARD_MSG);
 				std::wstring message(msg.begin(), msg.end());
 				return message;
 			}
@@ -125,7 +125,7 @@ namespace Components
 				Mod Name: {})",
 				serverVersion, serverName, ipAddress, gameType, mapName, modName);
 
-			std::string msg = std::format("{}\n{}\n\n{}", clientInfo, serverInfo, CLIPBOARD_MSG);
+			std::string msg = std::format("{}\n{}\n\n{}\n\n{}", clientInfo, serverInfo, error, CLIPBOARD_MSG);
 			std::wstring message(msg.begin(), msg.end());
 			return message;
 		}
@@ -162,11 +162,13 @@ namespace Components
 		return Utils::String::Convert(result.str());
 	}
 
-	void Exception::DisplayErrorMessage(const std::wstring& title, const std::wstring& message)
+	void Exception::DisplayErrorMessage(const std::wstring& title, const std::wstring& message, const std::string& crashDumpFolder)
 	{
 		const std::wstring footerText = std::format(
-			L"Join the official <a href=\"{}\">Discord Server</a> for additional support.",
-			Utils::String::Convert(Discord::GetDiscordServerLink()));
+			L"Join the official <a href=\"{}\">Discord Server</a> for additional support.\n"
+			L"Open the <a href=\"{}\">Crash Dump Folder</a> (and share these files with the support team).",
+			Utils::String::Convert(Discord::GetDiscordServerLink()),
+			Utils::String::Convert(crashDumpFolder));
 
 		TASKDIALOGCONFIG taskDialogConfig = { 0 };
 		taskDialogConfig.cbSize				= sizeof(taskDialogConfig);
@@ -187,13 +189,14 @@ namespace Components
 		::TaskDialogIndirect(&taskDialogConfig, nullptr, nullptr, nullptr);
 	}
 
-	HRESULT CALLBACK Exception::TaskDialogCallbackProc(HWND, UINT notification, WPARAM clickedButton, LPARAM, LONG_PTR data)
+	HRESULT CALLBACK Exception::TaskDialogCallbackProc(HWND, UINT notification, WPARAM clickedButton, LPARAM lParam, LONG_PTR data)
 	{
 		const auto* msg = reinterpret_cast<const std::wstring*>(data);
 
 		if (notification == TDN_HYPERLINK_CLICKED)
 		{
-			Utils::OpenUrl(Discord::GetDiscordServerLink());
+			const wchar_t* link = reinterpret_cast<const wchar_t*>(lParam);
+			Utils::OpenUrl(Utils::String::Convert(link));
 		}
 
 		if (notification == TDN_BUTTON_CLICKED)
@@ -263,21 +266,6 @@ namespace Components
 				CopyMessageToClipboard(Utils::String::VA("0x%08X", ExceptionInfo->ExceptionRecord->ExceptionAddress));
 			}
 		}
-		else
-		{
-			const auto code	   = ExceptionInfo->ExceptionRecord->ExceptionCode;
-			const auto address = reinterpret_cast<std::uintptr_t>(ExceptionInfo->ExceptionRecord->ExceptionAddress);
-
-			std::wstring title   = Utils::String::Convert(std::format("Fatal error (0x{:X}) at 0x{:X}", code, address));
-			std::wstring message = Exception::GetErrorMessage();
-
-			Exception::DisplayErrorMessage(title, message);	
-		}
-
-		if (Flags::HasFlag("bigminidumps"))
-		{
-			SetMiniDumpType(true, false);
-		}
 
 		// Current executable name
 		char exeFileName[MAX_PATH];
@@ -298,22 +286,33 @@ namespace Components
 		CreateDirectoryA("minidumps", nullptr);
 		PathCombineA(filename, "minidumps\\", Utils::String::VA("%s-" REVISION_STR "-%s.dmp", exeFileName, filenameFriendlyTime));
 
-		constexpr auto fileShare = FILE_SHARE_READ | FILE_SHARE_WRITE;
-		HANDLE hFile = CreateFileA(filename, GENERIC_WRITE | GENERIC_READ, fileShare, nullptr, (fileShare & FILE_SHARE_WRITE) > 0 ? OPEN_ALWAYS : OPEN_EXISTING, NULL, nullptr);
+		if (Flags::HasFlag("bigminidumps"))
+		{
+			SetMiniDumpType(true, false);
+		}
+
+		HANDLE dumpfile = CreateFileA(filename, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		MINIDUMP_EXCEPTION_INFORMATION ex = { GetCurrentThreadId(), ExceptionInfo, FALSE };
-		if (!MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, static_cast<MINIDUMP_TYPE>(MiniDumpType), &ex, nullptr, nullptr))
+
+		if (!MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dumpfile, static_cast<MINIDUMP_TYPE>(MiniDumpType), &ex, nullptr, nullptr))
 		{
 			MessageBoxA(nullptr, Utils::String::Format("There was an error creating the minidump ({})! Hit OK to close the program.", Utils::GetLastWindowsError()), "ERROR", MB_OK | MB_ICONERROR);
-#ifdef _DEBUG
+			#ifdef _DEBUG
 			OutputDebugStringA("Failed to create new minidump!");
 			Utils::OutputDebugLastError();
-#endif
+			#endif
 			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
 		}
 
-		{
-			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
-		}
+		const auto code = ExceptionInfo->ExceptionRecord->ExceptionCode;
+		const auto address = reinterpret_cast<std::uintptr_t>(ExceptionInfo->ExceptionRecord->ExceptionAddress);
+
+		std::wstring message = Exception::GetErrorMessage(std::format("Error: 0x{:X} at 0x{:X}", code, address));
+		std::wstring title = Utils::String::Convert(std::format("Fatal error (0x{:X}) at 0x{:X}", code, address));
+		std::string crashDump = std::format("file:\\\\{}\\minidumps", (*Game::fs_basepath)->current.string);
+		Exception::DisplayErrorMessage(title, message, crashDump);
+
+		TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
 
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
