@@ -61,7 +61,7 @@ namespace Components
 
 	void Dedicated::PostInitialization()
 	{
-		Command::Execute("exec autoexec.cfg");
+		Command::Execute("exec autoexec.cfg"); // Can be used by mods / server owners at will : Currently shows an error message on a default setup
 		Command::Execute("onlinegame 1");
 		Command::Execute("exec default_xboxlive.cfg");
 		Command::Execute("xblive_rankedmatch 1");
