@@ -11,7 +11,7 @@ namespace Components
 			UserMapContainer() : wasFreed(false), hash(0) {}
 			UserMapContainer(const std::string& _mapname) : wasFreed(false), mapname(_mapname)
 			{
-				ZeroMemory(&this->searchPath, sizeof this->searchPath);
+				ZeroMemory(&this->searchPath, sizeof(this->searchPath));
 				this->hash = Maps::GetUsermapHash(this->mapname);
 				Maps::ForceRefreshArenas();
 			}
