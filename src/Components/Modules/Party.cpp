@@ -213,14 +213,9 @@ namespace Components
 		Events::OnDvarInit([]
 		{
 			ServerVersion = Dvar::Register<const char*>("sv_version", "", Game::DVAR_SERVERINFO | Game::DVAR_INIT, "Server version");
+			PartyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::DVAR_NONE, "Enable party system");
+			Dvar::Register<bool>("xblive_privatematch", true, Game::DVAR_INIT, "");
 		});
-
-		// Force xblive_privatematch to 1 and prevent it from being modified because IW4x was built around this dvar being always 1
-		Dvar::Register<bool>("xblive_privatematch", true, Game::DVAR_INIT, "private match");
-		// Disable the game's own call to register xblive_privatematch
-		Utils::Hook::Nop(0x420A77, 5);
-
-		PartyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::DVAR_NONE, "Enable party system");
 
 		// Kill the party migrate handler - it's not necessary and has apparently been used in the past for trickery?
 		Utils::Hook(0x46AB70, PartyMigrate_HandlePacket, HOOK_JUMP).install()->quick();
@@ -279,8 +274,10 @@ namespace Components
 		// Force teams, even if not private match
 		Utils::Hook::Set<BYTE>(0x487BB2, 0xEB);
 
-		// Register xblive_privateserver because it is used by the Info Handlers
-		Dvar::Register<bool>("xblive_privateserver", false, Game::DVAR_NONE, "private server");
+		// Force xblive_privatematch 0 and rename it
+		//Utils::Hook::Set<BYTE>(0x420A6A, 4);
+		Utils::Hook::Set<BYTE>(0x420A6C, 0);
+		Utils::Hook::Set<const char*>(0x420A6E, "xblive_privateserver");
 
 		// Remove migration shutdown, it causes crashes and will be destroyed when erroring anyways
 		Utils::Hook::Nop(0x5A8E1C, 12);
