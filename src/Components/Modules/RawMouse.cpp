@@ -348,6 +348,7 @@ namespace Components
 		if (Window::GetWindow() && ToggleRawInput(true)) {
 			Logger::Debug("Raw Mouse Init");
 		}
+
 	}
 
 	void RawMouse::IN_Init()
@@ -358,6 +359,12 @@ namespace Components
 
 		R_AutoPriority = Dvar::Var("r_autopriority");
 		R_FullScreen = Dvar::Var(0x069F0DA0);
+
+#if true
+		// https://github.com/iw4x/iw4x-client/issues/177
+		M_RawInput.set(false);
+#endif
+
 	}
 
 	void RawMouse::IN_Frame()

@@ -327,7 +327,7 @@ namespace Components
 			tm time;
 			char buffer[1000] = {0};
 			localtime_s(&time, &info.timeStamp);
-			asctime_s(buffer, sizeof buffer, &time);
+			asctime_s(buffer, sizeof(buffer), &time);
 
 			Dvar::Var("ui_demo_mapname").set(info.mapname);
 			Dvar::Var("ui_demo_mapname_localized").set(Localization::LocalizeMapName(info.mapname.data()));

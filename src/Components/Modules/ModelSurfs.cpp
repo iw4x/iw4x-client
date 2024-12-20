@@ -71,7 +71,7 @@ namespace Components
 		}
 
 		Game::CModelHeader header;
-		if (!model.read(&header, sizeof header))
+		if (!model.read(&header, sizeof(header)))
 		{
 			Logger::Error(Game::ERR_FATAL, "Reading header for model {} failed!", name);
 		}
@@ -142,6 +142,7 @@ namespace Components
 
 			std::memcpy(&tempSurfaces[i], source, 12);
 			std::memcpy(&tempSurfaces[i].triIndices, source + 16, 20);
+			std::memcpy(&tempSurfaces[i].baseVertIndex, source + 12, 2);
 			std::memcpy(&tempSurfaces[i].vertListCount, source + 40, 8);
 			std::memcpy(&tempSurfaces[i].partBits, source + 52, 24);
 			tempSurfaces[i].zoneHandle = -1; // Fake handle for buffer interception

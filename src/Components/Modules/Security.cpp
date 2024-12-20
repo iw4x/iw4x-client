@@ -132,6 +132,43 @@ namespace Components
 		Utils::Hook::Call<void(Game::client_s*, Game::msg_t*)>(0x414D40)(client, msg);
 	}
 
+	void UI_ReplaceDirective_Hook([[maybe_unused]] int localClientNum, char *message, char *hudElemString, const size_t hudElemStringLength)
+	{
+		const auto messageLength = strnlen_s(message, hudElemStringLength + 1);
+
+		if (messageLength > hudElemStringLength)
+		{
+			// Truncate the message to avoid an out of bounds write while iterating message
+			message[hudElemStringLength-1] = '\x00';
+			Logger::Print("Truncated an overextended UI_ReplaceDirective message ({}+ characters) regarding {}\n", messageLength, hudElemString);
+		}
+	}
+
+	__declspec(naked) void UI_ReplaceDirective_Stub()
+	{
+		_asm
+		{
+			pushad
+			push [esp + 0x10 + 0x20] // hudelemStringLength
+			push [esp + 0x10 + 0x20] // hudelemString
+			push [esp + 0x10 + 0x20] // message
+			push [esp + 0x10 + 0x20] // localClientNum
+
+			call UI_ReplaceDirective_Hook
+
+			add esp, 0x10
+			popad
+
+
+			// Original code
+			sub esp, 0x208
+
+			// Go back
+			push 0x412C36
+			retn;
+		}
+	}
+
 	Security::Security()
 	{
 		// Exploit fixes
@@ -141,6 +178,9 @@ namespace Components
 			Utils::Hook(0x414D92, Msg_ReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
 			Utils::Hook(0x4A9F56, Msg_ReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
 		}
+
+		// Prevent out-of-bound write in UI_ReplaceDirective (Server->Client vulnerability)
+		Utils::Hook(0x412C30, UI_ReplaceDirective_Stub, HOOK_JUMP).install()->quick();
 
 		Utils::Hook::Set<std::uint8_t>(0x412370, 0xC3); // SV_SteamAuthClient
 		Utils::Hook::Set<std::uint8_t>(0x5A8C70, 0xC3); // CL_HandleRelayPacket
