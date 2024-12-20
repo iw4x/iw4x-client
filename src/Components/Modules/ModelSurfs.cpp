@@ -71,7 +71,7 @@ namespace Components
 		}
 
 		Game::CModelHeader header;
-		if (!model.read(&header, sizeof header))
+		if (!model.read(&header, sizeof(header)))
 		{
 			Logger::Error(Game::ERR_FATAL, "Reading header for model {} failed!", name);
 		}
