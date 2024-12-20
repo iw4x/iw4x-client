@@ -212,9 +212,11 @@ namespace Components
 		Events::OnDvarInit([]
 		{
 			ServerVersion = Dvar::Register<const char*>("sv_version", "", Game::DVAR_SERVERINFO | Game::DVAR_INIT, "Server version");
-			PartyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::DVAR_NONE, "Enable party system");
-			Dvar::Register<bool>("xblive_privatematch", true, Game::DVAR_INIT, "");
+			
 		});
+
+		PartyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::DVAR_NONE, "Enable party system");
+		Dvar::Register<bool>("xblive_privatematch", true, Game::DVAR_INIT, "private match");
 
 		// Kill the party migrate handler - it's not necessary and has apparently been used in the past for trickery?
 		Utils::Hook(0x46AB70, PartyMigrate_HandlePacket, HOOK_JUMP).install()->quick();
