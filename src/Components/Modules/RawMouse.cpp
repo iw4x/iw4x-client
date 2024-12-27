@@ -298,11 +298,7 @@ namespace Components
 		RECT Rect;
 		if (GetWindowRect(Window::GetWindow(), &Rect) == TRUE)
 		{
-			ClipCursor(&Rect);
-
-			int WindowCenterX = (Rect.right + Rect.left) / 2;
-			int WindowCenterY = (Rect.top + Rect.bottom) / 2;
-			SetCursorPos(WindowCenterX, WindowCenterY);
+			RawMouse::IN_RecenterMouse();
 		}
 	}
 
@@ -384,14 +380,23 @@ namespace Components
 		return Game::IN_Frame();
 	}
 
+	BOOL RawMouse::IN_ClipCursor()
+	{
+		RECT clientRect;
+		if (!GetClientRect(Window::GetWindow(), &clientRect))
+		{
+			return FALSE;
+		}
+
+		ClientToScreen(Window::GetWindow(), std::bit_cast<POINT*>(&clientRect.left));
+		ClientToScreen(Window::GetWindow(), std::bit_cast<POINT*>(&clientRect.right));
+		return ClipCursor(&clientRect);
+	}
+
 	BOOL RawMouse::IN_RecenterMouse()
 	{
-		RECT Rect;
-		if (GetWindowRect(Window::GetWindow(), &Rect) == TRUE)
-		{
-			return ClipCursor(&Rect);
-		}
-		return FALSE;
+		IN_ClipCursor();
+		return Game::IN_RecenterMouse();
 	}
 
 	void RawMouse::IN_MouseMove()
@@ -430,14 +435,14 @@ namespace Components
 			RECT Rect;
 			if (GetWindowRect(Window::GetWindow(), &Rect) == TRUE)
 			{
+				RawMouse::IN_ClipCursor();
+
 				int WindowCenterX = (Rect.right + Rect.left) / 2;
 				int WindowCenterY = (Rect.top + Rect.bottom) / 2;
 				SetCursorPos(WindowCenterX, WindowCenterY);
 
 				prevCursorPos.x = WindowCenterX;
 				prevCursorPos.y = WindowCenterY;
-
-				ClipCursor(&Rect);
 			}
 		}
 		else if (!recenterMouse)

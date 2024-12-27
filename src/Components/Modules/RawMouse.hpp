@@ -51,6 +51,7 @@ namespace Components
 		static void IN_RawMouse_Init();
 		static void IN_Init();
 		static void IN_Frame();
+		static BOOL IN_ClipCursor();
 		static BOOL IN_RecenterMouse();
 	};
 }
