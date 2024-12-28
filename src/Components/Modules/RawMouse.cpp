@@ -289,6 +289,7 @@ namespace Components
 
 		Gamepad::OnMouseMove(curPos.x, curPos.y, dx, dy);
 
+		// CL_MouseEvent returns true if we need to recenter mouse (the same case when we need clipping)
 		if (!Game::CL_MouseEvent(curPos.x, curPos.y, dx, dy))
 		{
 			ClipCursor(NULL);
