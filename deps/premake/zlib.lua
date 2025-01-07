@@ -16,7 +16,7 @@ function zlib.includes()
 		"ZLIB_CONST",
 	}
 
-	if os.isfile("/usr/include/unistd.h") then
+	if os.host() ~= "windows" and os.isfile("/usr/include/unistd.h") then
 		defines { "HAVE_UNISTD_H" }
 	end
 end
