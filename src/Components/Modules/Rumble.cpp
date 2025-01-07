@@ -1029,8 +1029,8 @@ namespace Components
 
 	void Rumble::InitDvars()
 	{
-		cl_debug_rumbles = Dvar::Register<bool>("cl_debug_rumbles", false, Game::DVAR_SAVED, "Debug rumbles on the screen");
-		cl_rumbleScale = Dvar::Register<float>("cl_rumbleScale", 0.6f, 0.f, 1.f, Game::DVAR_SAVED, "Rumble multiplier for the controller");
+		cl_debug_rumbles = Dvar::Register<bool>("cl_debug_rumbles", false, Game::DVAR_NONE, "Debug rumbles on the screen");
+		cl_rumbleScale = Dvar::Register<float>("cl_rumbleScale", 0.6f, 0.f, 1.f, Game::DVAR_ARCHIVE, "Rumble multiplier for the controller");
 	}
 
 	void Rumble::CG_StopRumble(int localClientNum, int entityNum, const char* rumbleName)
