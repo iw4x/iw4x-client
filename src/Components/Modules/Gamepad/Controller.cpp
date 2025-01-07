@@ -374,7 +374,7 @@ namespace Components::GamepadControls
 	{
 		gpad_debug = Dvar::Register<bool>("gpad_debug", false, Game::DVAR_NONE, "Game pad debugging");
 
-		gpad_allow_force_feedback = Dvar::Register<bool>("gpad_allow_force_feedback", true, Game::DVAR_NONE, "Allow force feedback if the game pad supports it");
+		gpad_allow_force_feedback = Dvar::Register<bool>("gpad_allow_force_feedback", true, Game::DVAR_ARCHIVE, "Allow force feedback if the game pad supports it");
 
 		gpad_force_xinput_only = Dvar::Register<bool>("gpad_force_xinput_only", false, Game::DVAR_ARCHIVE, "Only listen for XInput controllers and ignore the rest");
 
