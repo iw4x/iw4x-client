@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IclipMap_t.hpp"
 
 namespace Assets

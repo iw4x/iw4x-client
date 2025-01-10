@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IWeapon.hpp"
 
 namespace Assets

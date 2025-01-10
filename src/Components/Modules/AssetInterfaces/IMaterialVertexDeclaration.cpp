@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IMaterialVertexDeclaration.hpp"
 
 #define IW4X_TECHSET_VERSION 1

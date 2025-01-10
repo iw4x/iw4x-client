@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "ISndCurve.hpp"
 
 namespace Assets

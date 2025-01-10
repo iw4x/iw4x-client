@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Game/Engine/Hunk.hpp"
 
 #include "ScriptError.hpp"

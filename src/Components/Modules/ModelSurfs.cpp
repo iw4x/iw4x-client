@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "ModelSurfs.hpp"
 
 namespace Components

@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 
 #include "Bots.hpp"
 #include "ClanTags.hpp"

@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 
 #include "Events.hpp"
 #include "Lean.hpp"

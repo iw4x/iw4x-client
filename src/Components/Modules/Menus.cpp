@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Party.hpp"
 #include "Events.hpp"
 

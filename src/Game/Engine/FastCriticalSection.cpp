@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "FastCriticalSection.hpp"
 
 namespace Game::Engine

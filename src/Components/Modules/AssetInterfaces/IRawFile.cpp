@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IRawFile.hpp"
 
 #include <Utils/Compression.hpp>

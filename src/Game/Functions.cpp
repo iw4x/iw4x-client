@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 
 // Unsorted function definitions
 namespace Game

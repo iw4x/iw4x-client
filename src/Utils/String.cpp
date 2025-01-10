@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #ifdef ENABLE_BASE128
 #include "base128.h"
 #endif

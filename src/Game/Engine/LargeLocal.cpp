@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "LargeLocal.hpp"
 
 namespace Game::Engine

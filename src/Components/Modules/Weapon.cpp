@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Weapon.hpp"
 
 #include "GSC/Script.hpp"

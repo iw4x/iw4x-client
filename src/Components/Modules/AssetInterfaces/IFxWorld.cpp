@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IFxWorld.hpp"
 
 namespace Assets

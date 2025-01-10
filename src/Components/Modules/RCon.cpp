@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include <proto/rcon.pb.h>
 
 #include "Events.hpp"

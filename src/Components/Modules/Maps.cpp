@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 
 #include "ArenaLength.hpp"
 #include "FastFiles.hpp"

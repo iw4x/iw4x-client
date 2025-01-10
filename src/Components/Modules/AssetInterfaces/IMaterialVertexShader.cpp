@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IMaterialVertexShader.hpp"
 
 #define GFX_RENDERER_SHADER_SM3 0

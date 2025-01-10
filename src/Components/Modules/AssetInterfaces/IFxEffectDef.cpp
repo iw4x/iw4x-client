@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IFxEffectDef.hpp"
 
 namespace Assets

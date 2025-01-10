@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "RawFiles.hpp"
 
 namespace Components

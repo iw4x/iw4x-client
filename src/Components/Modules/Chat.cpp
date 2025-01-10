@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Chat.hpp"
 #include "Events.hpp"
 #include "PlayerName.hpp"

@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IGfxImage.hpp"
 
 namespace Assets

@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include <Shlwapi.h>
 
 #include "WebIO.hpp"

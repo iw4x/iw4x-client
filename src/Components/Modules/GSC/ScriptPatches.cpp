@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "ScriptPatches.hpp"
 #include "Script.hpp"
 
