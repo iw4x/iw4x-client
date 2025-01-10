@@ -269,6 +269,7 @@ workspace "iw4x"
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
+		forceincludes  { "STDInclude.hpp" }
 
 		dependencies.imports()
 

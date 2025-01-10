@@ -2,7 +2,6 @@
 //
 #pragma code_page(65001)
 
-#include <STDInclude.hpp>
 #include <version.hpp>
 
 #define APSTUDIO_READONLY_SYMBOLS

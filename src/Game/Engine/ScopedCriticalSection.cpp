@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "ScopedCriticalSection.hpp"
 
 namespace Game::Engine

@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include <bitset>
 
 #include "JSON.hpp"

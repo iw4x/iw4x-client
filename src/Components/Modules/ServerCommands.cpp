@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "ServerCommands.hpp"
 
 namespace Components

@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Int64.hpp"
 #include "Script.hpp"
 

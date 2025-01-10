@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include <Utils/Compression.hpp>
 
 #include <proto/party.pb.h>

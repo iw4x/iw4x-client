@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IMenuList.hpp"
 
 namespace Assets

@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Script.hpp"
 
 namespace Components::GSC

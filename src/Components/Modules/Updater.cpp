@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 
 #include "Updater.hpp"
 #include "Scheduler.hpp"

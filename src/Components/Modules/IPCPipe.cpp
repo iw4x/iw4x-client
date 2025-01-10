@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include <proto/ipc.pb.h>
 
 #include "IPCPipe.hpp"

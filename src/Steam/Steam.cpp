@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Components/Modules/StartupMessages.hpp"
 
 namespace Steam

@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "MapDump.hpp"
 
 namespace Components

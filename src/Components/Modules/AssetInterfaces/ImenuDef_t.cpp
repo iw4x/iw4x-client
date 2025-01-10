@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "ImenuDef_t.hpp"
 
 namespace Assets

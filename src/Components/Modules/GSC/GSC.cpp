@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 
 #include "Field.hpp"
 #include "Int64.hpp"

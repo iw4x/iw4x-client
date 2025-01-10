@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "FastFiles.hpp"
 #include "Weapon.hpp"
 

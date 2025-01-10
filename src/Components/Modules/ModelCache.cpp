@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "ModelCache.hpp"
 
 namespace Components
