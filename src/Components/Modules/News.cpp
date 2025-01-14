@@ -5,30 +5,16 @@
 
 namespace Components
 {
-	bool News::Terminate;
-	std::thread News::Thread;
-
 	bool News::unitTest()
 	{
-		bool result = true;
-
-		if (Thread.joinable())
+		if (!std::strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFAULT))
 		{
-			Logger::Debug("Awaiting thread termination...");
-			Thread.join();
-
-			if (!std::strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFAULT))
-			{
-				Logger::Print("Failed to fetch motd!\n");
-				result = false;
-			}
-			else
-			{
-				Logger::Print("Successfully fetched motd");
-			}
+			Logger::Print("Failed to fetch motd!\n");
+			return false;
 		}
 
-		return result;
+		Logger::Print("Successfully fetched motd");
+		return true;
 	}
 
 	const char* News::GetNewsText()
@@ -47,7 +33,6 @@ namespace Components
 			if (Dvar::Var("g_firstLaunch").get<bool>())
 			{
 				Command::Execute("openmenu menu_first_launch", false);
-				//Dvar::Var("g_firstLaunch").set(false); // The menus should set it
 			}
 		});
 
@@ -66,42 +51,18 @@ namespace Components
 		Utils::Hook::Nop(0x6388BB, 2); // skip the "if (item->text[0] == '@')" localize check
 		Utils::Hook(0x6388C1, GetNewsText, HOOK_CALL).install()->quick();
 
-		if (!Utils::IsWineEnvironment() && !Loader::IsPerformingUnitTests())
+		if (!Loader::IsPerformingUnitTests())
 		{
-			Terminate = false;
-			Thread = std::thread([]()
-			{
-				Changelog::LoadChangelog();
-				if (Terminate) return;
+			Changelog::LoadChangelog();
 
-				const auto data = Utils::Cache::GetFile("/info/motd/plain");
-				if (!data.empty())
-				{
-					Localization::Set("MPUI_MOTD_TEXT", data);
-				}
+			const auto data = Utils::Cache::GetFile("/info/motd/plain");
 
-				if (!Loader::IsPerformingUnitTests() && !Terminate)
-				{
-					while (!Terminate)
-					{
-						// Sleep for 3 minutes
-						for (int i = 0; i < 180 && !Terminate; ++i)
-						{
-							Game::Sys_Sleep(1);
-						}
-					}
-				}
-			});
+			if (!data.empty())
+				Localization::Set("MPUI_MOTD_TEXT", data);
 		}
 	}
 
 	void News::preDestroy()
 	{
-		Terminate = true;
-
-		if (Thread.joinable())
-		{
-			Thread.join();
-		}
 	}
 }
