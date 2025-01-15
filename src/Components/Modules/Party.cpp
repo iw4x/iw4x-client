@@ -212,7 +212,6 @@ namespace Components
 		Events::OnDvarInit([]
 		{
 			ServerVersion = Dvar::Register<const char*>("sv_version", "", Game::DVAR_SERVERINFO | Game::DVAR_INIT, "Server version");
-			
 		});
 
 		PartyEnable = Dvar::Register<bool>("party_enable", Dedicated::IsEnabled(), Game::DVAR_NONE, "Enable party system");
