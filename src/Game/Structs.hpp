@@ -7463,6 +7463,129 @@ namespace Game
 		ENT_HANDLER_COUNT
 	};
 
+	struct item_ent_t
+	{
+		int ammoCount;
+		int clipAmmoCount;
+		int index;
+		char dualWieldItem;
+		char padding[3];
+	};
+
+	struct spawner_ent_t
+	{
+		int team;
+		int timestamp;
+		int index;
+	};
+
+	struct trigger_ent_t
+	{
+		int threshold;
+		int accumulate;
+		int timestamp;
+		int singleUserEntIndex;
+		char requireLookAt;
+		char padding[3];
+	};
+
+	struct mover_positions_t
+	{
+		float decelTime;
+		float speed;
+		float midTime;
+		vec3_t pos1;
+		vec3_t pos2;
+		vec3_t pos3;
+	};
+
+	struct mover_slidedata_t
+	{
+		Bounds bounds;
+		vec3_t velocity;
+	};
+
+	union mover_data_t
+	{
+		mover_positions_t pos;
+		mover_slidedata_t slide;
+	};
+
+	struct mover_ent_t
+	{
+		mover_data_t moverData;
+		mover_positions_t angle;
+	};
+
+	struct corpse_ent_t
+	{
+		int deathAnimStartTime;
+	};
+
+	struct missile_fields_grenade
+	{
+		float wobbleCycle;
+		float curve;
+	};
+
+	enum MissileStage
+	{
+		MISSILESTAGE_SOFTLAUNCH = 0x0,
+		MISSILESTAGE_ASCENT = 0x1,
+		MISSILESTAGE_DESCENT = 0x2,
+	};
+
+	struct missile_fields_nonGrenade
+	{
+		vec3_t curvature;
+		vec3_t targetEntOffset;
+		vec3_t targetPos;
+		vec3_t launchOrigin;
+		MissileStage stage;
+	};
+
+	union missile_data_t
+	{
+		missile_fields_grenade grenade;
+		missile_fields_nonGrenade nonGrenade;
+	};
+
+	struct missile_ent_t
+	{
+		int time;
+		int timeOfBirth;
+		int travelDist;
+		vec3_t surfaceNormal;
+		team_t team;
+		int flags;
+		int antilagTimeOffset;
+		missile_data_t missileData;
+	};
+
+	struct blend_ent_t
+	{
+		vec3_t pos;
+		vec3_t vel;
+		vec4_t viewQuat;
+		char changed;
+		char padding[3];
+		float accelTime;
+		float decelTime;
+		float startTime;
+		float totalTime;
+	};
+
+	union entity_data_t
+	{
+		item_ent_t item[2];
+		spawner_ent_t spawner;
+		trigger_ent_t trigger;
+		mover_ent_t mover;
+		corpse_ent_t corpse;
+		missile_ent_t missile;
+		blend_ent_t blend;
+	};
+
 	struct gentity_s
 	{
 		entityState_s s;
@@ -7496,15 +7619,16 @@ namespace Game
 		int maxHealth;
 		int damage;
 		int count;
+		entity_data_t entData;
 		EntHandle missileTargetEnt;
 		EntHandle remoteControlledOwner;
+		int tagInfo;
 		gentity_s* tagChildren;
 		unsigned __int16 attachModelNames[19];
 		unsigned __int16 attachTagNames[19];
 		int useCount;
 		gentity_s* nextFree;
 		int birthTime;
-		char pad[100];
 	};
 
 	static_assert(sizeof(gentity_s) == 0x274);

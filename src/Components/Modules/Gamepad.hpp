@@ -1,5 +1,11 @@
 #pragma once
 
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+
 #include "Gamepad/Controller.hpp"
 
 namespace Components
@@ -24,6 +30,7 @@ namespace Components
 		static const int RUMBLE_CONFIGSTRINGS_COUNT = 32;
 
 		Gamepad();
+		~Gamepad();
 
 		static void OnMouseMove(int x, int y, int dx, int dy);
 
@@ -192,5 +199,8 @@ namespace Components
 		static void GetTriggerFeedbackForEquipment(const Game::playerState_s* playerState, bool primary, GamepadControls::GamepadAPI::TriggerFeedback& feedback);
 
 		static void UpdateForceFeedback(GamepadControls::Controller& api);
+
+		std::atomic<bool> run;
+		std::thread gamepadRefreshThread;
 	};
 }

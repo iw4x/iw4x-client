@@ -1,6 +1,5 @@
 #pragma once
 
-#include <STDInclude.hpp>
 
 #ifdef _WIN64
 #define GAMEOVERLAY_LIB "gameoverlayrenderer64.dll"

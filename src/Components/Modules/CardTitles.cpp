@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "CardTitles.hpp"
 #include "Events.hpp"
 #include "ServerCommands.hpp"

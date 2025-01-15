@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Bullet.hpp"
 
 namespace Components

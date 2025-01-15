@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 
 #include "Elevators.hpp"
 #include "Events.hpp"

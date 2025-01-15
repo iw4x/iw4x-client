@@ -1,5 +1,3 @@
-#include "STDInclude.hpp"
-
 // Rename sections
 #ifndef DEBUG
 #pragma comment(linker, "/merge:.text=.UPX0")

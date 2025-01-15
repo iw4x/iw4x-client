@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IGameWorldMp.hpp"
 
 #define IW4X_GAMEWORLD_VERSION 1

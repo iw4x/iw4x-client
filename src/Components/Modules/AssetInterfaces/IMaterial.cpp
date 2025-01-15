@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IMaterial.hpp"
 
 namespace Assets

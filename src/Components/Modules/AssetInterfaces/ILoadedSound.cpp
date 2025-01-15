@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "ILoadedSound.hpp"
 
 namespace Assets

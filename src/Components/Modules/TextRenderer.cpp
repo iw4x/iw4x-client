@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "TextRenderer.hpp"
 #include "Events.hpp"
 

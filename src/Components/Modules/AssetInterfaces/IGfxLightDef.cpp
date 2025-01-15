@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IGfxLightDef.hpp"
 
 namespace Assets

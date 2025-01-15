@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IFont_s.hpp"
 
 #define STB_TRUETYPE_IMPLEMENTATION

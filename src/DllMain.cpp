@@ -1,5 +1,3 @@
-#include "STDInclude.hpp"
-
 namespace Main
 {
 	void Initialize()

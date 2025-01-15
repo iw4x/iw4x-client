@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IXAnimParts.hpp"
 
 namespace Assets

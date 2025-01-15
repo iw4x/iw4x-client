@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "ConfigStrings.hpp"
 
 namespace Components

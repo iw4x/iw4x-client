@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Hunk.hpp"
 
 namespace Game::Engine

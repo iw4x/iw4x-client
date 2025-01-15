@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 
 using namespace Components;
 

@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IStructuredDataDefSet.hpp"
 
 namespace Assets

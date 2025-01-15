@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Huffman.hpp"
 
 namespace Components

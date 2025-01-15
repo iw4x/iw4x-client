@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include <udis86.h>
 
 namespace Steam

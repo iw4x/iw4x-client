@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include <Utils/Compression.hpp>
 
 #include "Console.hpp"

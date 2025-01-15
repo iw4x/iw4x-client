@@ -1,4 +1,3 @@
-#include "STDInclude.hpp"
 #include "Controller.hpp"
 
 namespace Components::GamepadControls
@@ -124,12 +123,12 @@ namespace Components::GamepadControls
 	void Controller::UpdateDigitals(bool additive)
 	{
 		lastDigitals = digitals;
-		
+
 		if (api)
 		{
 			unsigned short newDigitals{};
 			api->ReadDigitals(newDigitals);
-			
+
 			if (additive)
 			{
 				digitals |= newDigitals;

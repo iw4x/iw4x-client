@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IPhysCollmap.hpp"
 
 namespace Assets

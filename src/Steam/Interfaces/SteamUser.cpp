@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "Components/Modules/Auth.hpp"
 
 STEAM_IGNORE_WARNINGS_START

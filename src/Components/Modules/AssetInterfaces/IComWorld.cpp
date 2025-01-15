@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "IComWorld.hpp"
 
 #define IW4X_COMMAP_VERSION 0

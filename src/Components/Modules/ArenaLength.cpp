@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "ArenaLength.hpp"
 
 namespace Components

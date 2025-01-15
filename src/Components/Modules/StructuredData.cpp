@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "StructuredData.hpp"
 
 namespace Components

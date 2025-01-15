@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 #include "lPrecomp.hpp"
 
 namespace Components::BotLib

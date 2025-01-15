@@ -1,4 +1,3 @@
-#include <STDInclude.hpp>
 
 namespace Utils::Thread
 {
