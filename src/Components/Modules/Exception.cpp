@@ -291,29 +291,33 @@ namespace Components
 			SetMiniDumpType(true, false);
 		}
 
-		HANDLE dumpfile = CreateFileA(filename, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-		MINIDUMP_EXCEPTION_INFORMATION ex = { GetCurrentThreadId(), ExceptionInfo, FALSE };
-
-		if (!MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dumpfile, static_cast<MINIDUMP_TYPE>(MiniDumpType), &ex, nullptr, nullptr))
+		HANDLE dumpFile = INVALID_HANDLE_VALUE;
+		if ((dumpFile = CreateFileA(filename, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr)) != INVALID_HANDLE_VALUE)
 		{
-			MessageBoxA(nullptr, Utils::String::Format("There was an error creating the minidump ({})! Hit OK to close the program.", Utils::GetLastWindowsError()), "ERROR", MB_OK | MB_ICONERROR);
-			#ifdef _DEBUG
-			OutputDebugStringA("Failed to create new minidump!");
-			Utils::OutputDebugLastError();
-			#endif
-			TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
+			MINIDUMP_EXCEPTION_INFORMATION ex = { GetCurrentThreadId(), ExceptionInfo, FALSE };
+			if (MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dumpFile, static_cast<MINIDUMP_TYPE>(MiniDumpType), &ex, nullptr, nullptr))
+			{
+				const auto code = ExceptionInfo->ExceptionRecord->ExceptionCode;
+				const auto address = reinterpret_cast<std::uintptr_t>(ExceptionInfo->ExceptionRecord->ExceptionAddress);
+
+				std::wstring message = Exception::GetErrorMessage(std::format("Error: 0x{:X} at 0x{:X}", code, address));
+				std::wstring title = Utils::String::Convert(std::format("Fatal error (0x{:X}) at 0x{:X}", code, address));
+				std::string crashDump = std::format("file:\\\\{}\\minidumps", (*Game::fs_basepath)->current.string);
+				Exception::DisplayErrorMessage(title, message, crashDump);
+
+				TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
+				return EXCEPTION_CONTINUE_SEARCH;
+			}
 		}
 
-		const auto code = ExceptionInfo->ExceptionRecord->ExceptionCode;
-		const auto address = reinterpret_cast<std::uintptr_t>(ExceptionInfo->ExceptionRecord->ExceptionAddress);
+		MessageBoxA(nullptr, Utils::String::Format("There was an error creating the minidump ({})! Hit OK to close the program.", Utils::GetLastWindowsError()), "ERROR", MB_OK | MB_ICONERROR);
 
-		std::wstring message = Exception::GetErrorMessage(std::format("Error: 0x{:X} at 0x{:X}", code, address));
-		std::wstring title = Utils::String::Convert(std::format("Fatal error (0x{:X}) at 0x{:X}", code, address));
-		std::string crashDump = std::format("file:\\\\{}\\minidumps", (*Game::fs_basepath)->current.string);
-		Exception::DisplayErrorMessage(title, message, crashDump);
+		#ifdef _DEBUG
+		OutputDebugStringA("Failed to create new minidump!");
+		Utils::OutputDebugLastError();
+		#endif
 
 		TerminateProcess(GetCurrentProcess(), ExceptionInfo->ExceptionRecord->ExceptionCode);
-
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
 
