@@ -314,7 +314,7 @@ namespace Components
 
 			const auto yaw = Game::Scr_GetFloat(0);
 			const auto maxDist = ent->client->ps.perks[1] & 8
-				? static_cast<int>((*aim_automelee_range)->current.value) : static_cast<int>((*perk_extendedMeleeRange)->current.value);
+				? static_cast<int>((*perk_extendedMeleeRange)->current.value) : static_cast<int>((*aim_automelee_range)->current.value);
 			const auto dist = std::clamp<int>(static_cast<int>(Game::Scr_GetFloat(1)), std::numeric_limits<unsigned char>::min(), maxDist);
 
 			g_botai[entref.entnum].meleeYaw = yaw;
