@@ -16,6 +16,8 @@
 namespace Game
 {
 #endif
+	constexpr std::size_t MAX_GENTITIES = 2048;
+	constexpr std::size_t ENTITYNUM_NONE = MAX_GENTITIES - 1;
 
 	typedef float vec_t;
 	typedef vec_t vec2_t[2];
@@ -9656,7 +9658,7 @@ namespace Game
 		float lockOnRegionHeight;
 	};
 
-	constexpr auto AIM_TARGET_INVALID = 2047u; // MAX_GENTITIES - 1
+	constexpr auto AIM_TARGET_INVALID = MAX_GENTITIES - 1;
 	struct AimScreenTarget
 	{
 		int entIndex;
