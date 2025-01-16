@@ -13,11 +13,11 @@ namespace Components
 {
 	constexpr std::size_t MAX_NAME_LENGTH = 16;
 
+	Game::dvar_t** Bots::aim_automelee_range = reinterpret_cast<Game::dvar_t**>(0x7A2F98);
+	Game::dvar_t** Bots::perk_extendedMeleeRange = reinterpret_cast<Game::dvar_t**>(0x7BDD60);
+
 	const Game::dvar_t* Bots::sv_randomBotNames;
 	const Game::dvar_t* Bots::sv_replaceBots;
-
-	Dvar::Var Bots::AimAutoMeleeRange;
-	Dvar::Var Bots::PerkExtendedMeleeRange;
 
 	std::size_t Bots::BotDataIndex;
 
@@ -314,7 +314,7 @@ namespace Components
 
 			const auto yaw = Game::Scr_GetFloat(0);
 			const auto maxDist = ent->client->ps.perks[1] & 8
-				? static_cast<int>(PerkExtendedMeleeRange.get<float>()) : static_cast<int>(AimAutoMeleeRange.get<float>());
+				? static_cast<int>((*aim_automelee_range)->current.value) : static_cast<int>((*perk_extendedMeleeRange)->current.value);
 			const auto dist = std::clamp<int>(static_cast<int>(Game::Scr_GetFloat(1)), std::numeric_limits<unsigned char>::min(), maxDist);
 
 			g_botai[entref.entnum].meleeYaw = yaw;
@@ -602,9 +602,6 @@ namespace Components
 
 		sv_randomBotNames = Game::Dvar_RegisterBool("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
 		sv_replaceBots = Game::Dvar_RegisterBool("sv_replaceBots", false, Game::DVAR_NONE, "Test clients will be replaced by connecting players when the server is full.");
-
-		AimAutoMeleeRange = Dvar::Var("aim_automelee_range");
-		PerkExtendedMeleeRange = Dvar::Var("perk_extendedMeleeRange");
 		
 		Scheduler::OnGameInitialized(UpdateBotNames, Scheduler::Pipeline::MAIN);
 
