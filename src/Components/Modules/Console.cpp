@@ -1,8 +1,6 @@
 #include "Console.hpp"
 #include "TextRenderer.hpp"
 
-#include "Terminus_4.49.1.ttf.hpp"
-
 #include <version.hpp>
 
 #ifdef MOUSE_MOVED
@@ -48,8 +46,6 @@ namespace Components
 #endif
 	HBRUSH Console::ForegroundBrush = CreateSolidBrush(TextColor);
 	HBRUSH Console::BackgroundBrush = CreateSolidBrush(BackgroundColor);
-
-	HANDLE Console::CustomConsoleFont;
 
 	std::thread Console::ConsoleThread;
 
@@ -436,19 +432,6 @@ namespace Components
 		RefreshOutput();
 	}
 
-	HFONT CALLBACK Console::ReplaceFont([[maybe_unused]] int cHeight, int cWidth, int cEscapement, int cOrientation, [[maybe_unused]] int cWeight, DWORD bItalic, DWORD bUnderline,
-	                                    DWORD bStrikeOut, DWORD iCharSet, [[maybe_unused]] DWORD iOutPrecision, DWORD iClipPrecision, [[maybe_unused]] DWORD iQuality,
-	                                    [[maybe_unused]] DWORD iPitchAndFamily, [[maybe_unused]] LPCSTR pszFaceName)
-	{
-		HFONT font = CreateFontA(12, cWidth, cEscapement, cOrientation, 700, bItalic,
-		                         bUnderline, bStrikeOut, iCharSet, OUT_RASTER_PRECIS,
-		                         iClipPrecision, NONANTIALIASED_QUALITY, 0x31,
-		                         "Terminus (TTF)"
-		);
-
-		return font;
-	}
-
 	void Console::GetWindowPos(HWND hWnd, int* x, int* y)
 	{
 		HWND hWndParent = GetParent(hWnd);
@@ -628,15 +611,6 @@ namespace Components
 		Utils::Hook::Set<std::uint32_t>(0x42895D, 423); // Reduce window height
 		Utils::Hook::Set<std::uint32_t>(0x428AC0, 597); // Reduce input width
 		Utils::Hook::Set<std::uint32_t>(0x428AED, 596); // Reduce output width
-
-		DWORD fontsInstalled;
-		CustomConsoleFont = AddFontMemResourceEx(const_cast<void*>(reinterpret_cast<const void*>(Font::Terminus::DATA)), Font::Terminus::LENGTH, 0, &fontsInstalled);
-
-		if (fontsInstalled > 0)
-		{
-			Utils::Hook::Nop(0x428A44, 6);
-			Utils::Hook(0x428A44, ReplaceFont, HOOK_CALL).install()->quick();
-		}
 
 		Utils::Hook::Nop(0x42892D, 6);
 		Utils::Hook(0x42892D, RegisterClassHook, HOOK_CALL).install()->quick();

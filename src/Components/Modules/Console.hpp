@@ -36,8 +36,6 @@ namespace Components
 		static HBRUSH ForegroundBrush;
 		static HBRUSH BackgroundBrush;
 
-		static HANDLE CustomConsoleFont;
-
 		static char LineBuffer[1024];
 		static char LineBuffer2[1024];
 		static int LineBufferIndex;
@@ -84,7 +82,6 @@ namespace Components
 		static LRESULT CALLBACK ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, unsigned int lParam);
 		static ATOM CALLBACK RegisterClassHook(WNDCLASSA* lpWndClass);
 		static BOOL CALLBACK ResizeChildWindow(HWND hwndChild, LPARAM lParam);
-		static HFONT CALLBACK ReplaceFont(int cHeight, int cWidth, int cEscapement, int cOrientation, int cWeight, DWORD bItalic, DWORD bUnderline, DWORD bStrikeOut, DWORD iCharSet, DWORD iOutPrecision, DWORD iClipPrecision, DWORD iQuality, DWORD iPitchAndFamily, LPCSTR pszFaceName);
 		static void ApplyConsoleStyle();
 		static void GetWindowPos(HWND hWnd, int* x, int* y);
 		static void Sys_PrintStub();
