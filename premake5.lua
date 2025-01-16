@@ -250,13 +250,12 @@ workspace "iw4x"
 
 		dependencies.imports()
 
-        -- Pre-build
-        local cwd = os.getcwd()
-        prebuildcommands {
-            "cd " .. _MAIN_SCRIPT_DIR,
-            "tools\\premake5 generate-buildinfo",
-            "cd " .. cwd,
-        }
+		-- Pre-build
+		prebuildcommands {
+			"pushd %{_MAIN_SCRIPT_DIR}",
+			"\"" .. path.getabsolute(_PREMAKE_COMMAND) .. "\" generate-buildinfo",
+			"popd",
+		}
 
 		-- Post-build
 		if _OPTIONS["copy-to"] then
