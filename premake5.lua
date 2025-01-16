@@ -1,3 +1,5 @@
+require("premake", ">=5.0.0-beta2")
+
 -- Quote the given string input as a C string
 function cstrquote(value)
 	if value == nil then
