@@ -57,8 +57,6 @@ namespace Game
 	typedef void(*G_DebugLineWithDuration_t)(const float* start, const float* end, const float* color, int depthTest, int duration);
 	extern G_DebugLineWithDuration_t G_DebugLineWithDuration;
 
-	constexpr std::size_t MAX_GENTITIES = 2048;
-	constexpr std::size_t ENTITYNUM_NONE = MAX_GENTITIES - 1;
 	extern gentity_s* g_entities;
 	extern bool* g_quitRequested;
 
