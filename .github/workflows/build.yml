@@ -35,7 +35,9 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Generate project files
-        run: tools/premake5 vs2022
+        env:
+          PREMAKE_NO_PROMPT: 1
+        run: ./generate.bat
 
       - name: Set up problem matching
         uses: ammaraskar/msvc-problem-matcher@master
