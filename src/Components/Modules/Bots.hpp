@@ -15,6 +15,9 @@ namespace Components
 		static const Game::dvar_t* sv_randomBotNames;
 		static const Game::dvar_t* sv_replaceBots;
 
+		static Dvar::Var AimAutoMeleeRange;
+		static Dvar::Var PerkExtendedMeleeRange;
+
 		static std::size_t BotDataIndex;
 
 		static std::vector<botData> RemoteBotNames;
