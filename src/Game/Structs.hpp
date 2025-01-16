@@ -9656,7 +9656,7 @@ namespace Game
 		float lockOnRegionHeight;
 	};
 
-	constexpr auto AIM_TARGET_INVALID = 0x3FF;
+	constexpr auto AIM_TARGET_INVALID = 2047u; // MAX_GENTITIES - 1
 	struct AimScreenTarget
 	{
 		int entIndex;
