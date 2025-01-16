@@ -12,11 +12,11 @@ namespace Components
 	private:
 		using botData = std::pair<std::string, std::string>;
 
+		static Game::dvar_t** aim_automelee_range;
+		static Game::dvar_t** perk_extendedMeleeRange;
+
 		static const Game::dvar_t* sv_randomBotNames;
 		static const Game::dvar_t* sv_replaceBots;
-
-		static Dvar::Var AimAutoMeleeRange;
-		static Dvar::Var PerkExtendedMeleeRange;
 
 		static std::size_t BotDataIndex;
 
