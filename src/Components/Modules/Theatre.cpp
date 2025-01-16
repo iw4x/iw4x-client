@@ -358,7 +358,7 @@ namespace Components
 			{
 				Logger::Print("Deleting old demo {}\n", files[i]);
 				FileSystem::_DeleteFile("demos", files[i]);
-				FileSystem::_DeleteFile("demos", std::format("%s.json", files[i]));
+				FileSystem::_DeleteFile("demos", std::format("{}.json", files[i]));
 			}
 
 			Command::Execute(Utils::String::VA("record auto_%lld", std::time(nullptr)), true);
