@@ -205,6 +205,21 @@ namespace Components
 		Game::Scr_AddBool(Game::SV_IsTestClient(ent->s.number) != 0);
 	}
 
+	bool Bots::BG_HasPerk(const unsigned int* perks, const unsigned int perkIndex)
+	{
+		assert(perks);
+		AssertIn(perkIndex, Game::PERK_COUNT);
+	
+		const std::size_t arrayIndex = perkIndex >> 5;
+		AssertIn(arrayIndex, Game::PERK_ARRAY_COUNT);
+	
+		constexpr std::size_t BIT_MASK_SIZE = 31; // 0x1F
+		const auto bitPos = perkIndex & BIT_MASK_SIZE;
+		const auto bitMask = 1 << bitPos;
+	
+		return perks[arrayIndex] & bitMask;
+	}
+
 	void Bots::AddScriptMethods()
 	{
 		GSC::Script::AddMethMultiple(GScr_isTestClient, false, {"IsTestClient", "IsBot"}); // Usage: self IsTestClient();
