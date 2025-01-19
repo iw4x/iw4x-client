@@ -1706,7 +1706,8 @@ namespace Game
 		PWF_DISABLE_WEAPON_PICKUP = 1 << 16
 	};
 
-	enum perksEnum {
+	enum perksEnum
+	{
 		PERK_JAMRADAR = 0x0,
 		PERK_ACCURACY = 0x1,
 		PERK_FASTRELOAD = 0x2,
