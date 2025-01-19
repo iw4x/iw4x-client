@@ -30,6 +30,7 @@ namespace Components
 		static void Spawn(unsigned int count);
 
 		static void GScr_isTestClient(Game::scr_entref_t entref);
+		static bool BG_HasPerk(const unsigned int* perks, const unsigned int perkIndex);
 		static void AddScriptMethods();
 
 		static void BotAiAction(Game::client_s* cl);
