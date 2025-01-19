@@ -327,13 +327,29 @@ namespace Components
 				return;
 			}
 
+			if (!(*perk_extendedMeleeRange))
+			{
+				Game::Scr_Error("BotMeleeParams: perk_extendedMeleeRange is not registered!");
+				return;
+			}
+			
+			if (!(*aim_automelee_range))
+			{
+				Game::Scr_Error("BotMeleeParams: aim_automelee_range is not registered!");
+				return;
+			}
+			
 			const auto yaw = Game::Scr_GetFloat(0);
-			const auto maxDist = ent->client->ps.perks[1] & 8
-				? static_cast<int>((*perk_extendedMeleeRange)->current.value) : static_cast<int>((*aim_automelee_range)->current.value);
-			const auto dist = std::clamp<int>(static_cast<int>(Game::Scr_GetFloat(1)), std::numeric_limits<unsigned char>::min(), maxDist);
-
+			const auto dist = static_cast<int>(Game::Scr_GetFloat(1));
+			constexpr auto minDist = static_cast<int>(std::numeric_limits<unsigned char>::min());
+			const bool isExtendedMelee = BG_HasPerk(ent->client->ps.perks, Game::PERK_EXTENDEDMELEE);
+			const auto maxDist = isExtendedMelee
+				? static_cast<int>((*perk_extendedMeleeRange)->current.value)
+				: static_cast<int>((*aim_automelee_range)->current.value);
+			const auto meleeDist = std::clamp<int>(dist, minDist, maxDist);
+			
 			g_botai[entref.entnum].meleeYaw = yaw;
-			g_botai[entref.entnum].meleeDist = static_cast<int8_t>(dist);
+			g_botai[entref.entnum].meleeDist = static_cast<int8_t>(meleeDist);
 			g_botai[entref.entnum].active = true;
 		});
 
