@@ -1748,6 +1748,8 @@ namespace Game
 		PERK_UNKNOWN = 0x24,
 	};
 
+	constexpr std::size_t PERK_ARRAY_COUNT = 2;
+
 	struct playerState_s
 	{
 		int commandTime;
