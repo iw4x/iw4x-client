@@ -4,20 +4,6 @@ namespace Main
 	{
 		Utils::Cryptography::Initialize();
 		Components::Loader::Initialize();
-
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		if (Components::Loader::IsPerformingUnitTests())
-		{
-			auto result = (Components::Loader::PerformUnitTests() ? 0 : -1);
-			Components::Loader::Uninitialize();
-			ExitProcess(result);
-		}
-#else
-		if (Components::Flags::HasFlag("tests"))
-		{
-			Components::Logger::Print("Unit tests are disabled outside the debug environment!\n");
-		}
-#endif
 	}
 
 	void Uninitialize()

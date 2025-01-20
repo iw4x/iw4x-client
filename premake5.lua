@@ -56,11 +56,6 @@ newoption {
 }
 
 newoption {
-	trigger = "force-unit-tests",
-	description = "Always compile unit tests."
-}
-
-newoption {
 	trigger = "disable-binary-check",
 	description = "Do not perform integrity checks on the exe."
 }
@@ -207,10 +202,7 @@ workspace "iw4x"
 		linkoptions {"/IGNORE:4702", "/LTCG"}
 		defines {"NDEBUG"}
 		flags {"FatalCompileWarnings", "FatalLinkWarnings"}
-
-		if not _OPTIONS["force-unit-tests"] then
-			rtti ("Off")
-		end
+		rtti ("Off")
 	filter {}
 
 	filter "configurations:Debug"
@@ -236,9 +228,6 @@ workspace "iw4x"
 		}
 
 		-- Debug flags
-		if _OPTIONS["force-unit-tests"] then
-			defines {"FORCE_UNIT_TESTS"}
-		end
 		if _OPTIONS["disable-binary-check"] then
 			defines {"DISABLE_BINARY_CHECK"}
 		end

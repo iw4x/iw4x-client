@@ -762,7 +762,7 @@ namespace Components
 
 	void Console::FreeNativeConsole()
 	{
-		if (!Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")) && !Loader::IsPerformingUnitTests())
+		if (!Flags::HasFlag("stdout") && (!Dedicated::IsEnabled() || Flags::HasFlag("console")))
 		{
 			FreeConsole();
 		}
@@ -913,9 +913,6 @@ namespace Components
 			Scheduler::Loop(RefreshStatus, Scheduler::Pipeline::MAIN);
 		}
 
-		// Code below is not necessary when performing unit tests!
-		if (Loader::IsPerformingUnitTests()) return;
-
 		// External console
 		if (Flags::HasFlag("stdout"))
 		{
@@ -969,7 +966,7 @@ namespace Components
 			Utils::Hook(0x43D570, Error, HOOK_JUMP).install()->quick();
 			Utils::Hook(0x4859A5, Input, HOOK_CALL).install()->quick();
 		}
-		else if(!Loader::IsPerformingUnitTests())
+		else
 		{
 			FreeConsole();
 		}

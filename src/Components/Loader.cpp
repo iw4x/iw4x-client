@@ -208,10 +208,7 @@ namespace Components
 		for (auto& component : Components)
 		{
 #ifdef DEBUG
-			if (!IsPerformingUnitTests())
-			{
-				Logger::Print("Unregister component: {}\n", component->getName());
-			}
+			Logger::Print("Unregister component: {}\n", component->getName());
 #endif
 			delete component;
 		}
@@ -253,45 +250,12 @@ namespace Components
 		}
 	}
 
-	bool Loader::PerformUnitTests()
-	{
-		bool result = true;
-
-		Logger::Print("Performing unit tests for components:\n");
-
-		for (const auto& component : Components)
-		{
-#if defined(FORCE_UNIT_TESTS)
-			Logger::Debug("Testing '{}'...\n", component->getName());
-#endif
-			auto startTime = std::chrono::high_resolution_clock::now();
-			auto testRes = component->unitTest();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
-			Logger::Print("Test done ({}ms): {}\n\n", duration, (testRes ? "Success" : "Error"));
-			result &= testRes;
-		}
-
-		return result;
-	}
-
-	bool Loader::IsPerformingUnitTests()
-	{
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-		return Flags::HasFlag("tests");
-#else
-		return false;
-#endif
-	}
-
 	void Loader::Register(Component* component)
 	{
 		if (component)
 		{
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
-			if (!IsPerformingUnitTests())
-			{
-				Logger::Print("Component registered: {}\n", component->getName());
-			}
+#if defined(DEBUG)
+			Logger::Print("Component registered: {}\n", component->getName());
 #endif
 			Components.push_back(component);
 		}
