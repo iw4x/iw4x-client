@@ -5,7 +5,7 @@
 namespace Components
 {
 	int StartupMessages::TotalMessages = -1;
-	std::list<std::string> StartupMessages::MessageList;
+	std::list<std::tuple<std::string, std::string>> StartupMessages::MessageList;
 
 	Dvar::Var StartupMessages::UIStartupMessage;
 	Dvar::Var StartupMessages::UIStartupMessageTitle;
@@ -22,26 +22,36 @@ namespace Components
 
 		UIScript::Add("nextStartupMessage", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			if (MessageList.empty()) return;
-
-			if (TotalMessages < 1)
-			{
-				TotalMessages = static_cast<int>(MessageList.size());
-			}
-
-			const auto& message = MessageList.front();
-
-			UIStartupMessage.set(message);
-			UIStartupMessageTitle.set(std::format("Messages ({}/{})", TotalMessages - MessageList.size(), TotalMessages));
-			UIStartupNextButtonText.set(MessageList.empty() ? "Close" : "Next");
-			Game::Cbuf_AddText(0, "openmenu startup_messages\n");
-
-			MessageList.pop_front();
+				StartupMessages::Show();
 		});
+	}
+
+	void StartupMessages::Show()
+	{
+		if (MessageList.empty()) return;
+
+		if (TotalMessages < 1)
+		{
+			TotalMessages = static_cast<int>(MessageList.size());
+		}
+
+		const auto& message = MessageList.front();
+
+		UIStartupMessage.set(std::get<1>(message));
+		UIStartupMessageTitle.set(std::format("{} ({}/{})", std::get<0>(message), TotalMessages - static_cast<int>(MessageList.size()) + 1, TotalMessages));
+		UIStartupNextButtonText.set(MessageList.size() <= 1 ? "Close" : "Next");
+
+		MessageList.pop_front();
+		Command::Execute("openmenu startup_messages", false);
 	}
 
 	void StartupMessages::AddMessage(const std::string& message)
 	{
-		MessageList.push_back(message);
+		MessageList.push_back(std::make_tuple("Messages", message));
+	}
+
+	void StartupMessages::AddMessage(const std::string& message, const std::string& title)
+	{
+		MessageList.push_back(std::make_tuple(title, message));
 	}
 }
