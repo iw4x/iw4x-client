@@ -6,6 +6,7 @@ namespace Components
 	std::mutex Changelog::Mutex;
 	std::vector<std::string> Changelog::Lines;
 
+	// Called from News.cpp
 	void Changelog::SetChangelog(const std::string& changelog)
 	{
 		std::lock_guard _(Mutex);

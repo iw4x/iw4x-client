@@ -2,10 +2,17 @@
 #include "Events.hpp"
 #include "StartupMessages.hpp"
 
+/*
+  "StartupMessages::Show()" is initially called by the "checkFirstLaunch" UIScript in News.cpp,
+  which is called from main_text.menu once the main menu loads.
+  Multiple messages can be added using StartupMessages::AddMessage(message, [overload] title)
+  Messages are shown in the order they were added.
+*/
+
 namespace Components
 {
 	int StartupMessages::TotalMessages = -1;
-	std::list<std::tuple<std::string, std::string>> StartupMessages::MessageList;
+	std::list<std::tuple<std::string, std::string>> StartupMessages::MessageList; // (title, message)
 
 	Dvar::Var StartupMessages::UIStartupMessage;
 	Dvar::Var StartupMessages::UIStartupMessageTitle;
@@ -18,6 +25,7 @@ namespace Components
 			UIStartupMessage = Dvar::Register<const char*>("ui_startupMessage", "", Game::DVAR_NONE, "");
 			UIStartupMessageTitle = Dvar::Register<const char*>("ui_startupMessageTitle", "", Game::DVAR_NONE, "");
 			UIStartupNextButtonText = Dvar::Register<const char*>("ui_startupNextButtonText", "", Game::DVAR_NONE, "");
+			AddMessage("test");
 		});
 
 		UIScript::Add("nextStartupMessage", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
@@ -28,18 +36,22 @@ namespace Components
 
 	void StartupMessages::Show()
 	{
-		if (MessageList.empty()) return;
+		if (MessageList.empty())
+			return;
 
+		int MessageListSize = static_cast<int>(MessageList.size());
 		if (TotalMessages < 1)
-		{
-			TotalMessages = static_cast<int>(MessageList.size());
-		}
+			TotalMessages = MessageListSize;
 
-		const auto& message = MessageList.front();
+		const auto& [title, body] = MessageList.front();
 
-		UIStartupMessage.set(std::get<1>(message));
-		UIStartupMessageTitle.set(std::format("{} ({}/{})", std::get<0>(message), TotalMessages - static_cast<int>(MessageList.size()) + 1, TotalMessages));
-		UIStartupNextButtonText.set(MessageList.size() <= 1 ? "Close" : "Next");
+		const int MessageIndex = TotalMessages - MessageListSize + 1;
+		const std::string formattedTitle = std::format("{} ({}/{})", title, MessageIndex, TotalMessages);
+		const std::string nextButtonText = (MessageListSize <= 1) ? "Close" : "Next";
+
+		UIStartupMessage.set(body);
+		UIStartupMessageTitle.set(formattedTitle);
+		UIStartupNextButtonText.set(nextButtonText);
 
 		MessageList.pop_front();
 		Command::Execute("openmenu startup_messages", false);
@@ -47,11 +59,11 @@ namespace Components
 
 	void StartupMessages::AddMessage(const std::string& message)
 	{
-		MessageList.push_back(std::make_tuple("Messages", message));
+		AddMessage(message, "Messages");
 	}
 
 	void StartupMessages::AddMessage(const std::string& message, const std::string& title)
 	{
-		MessageList.push_back(std::make_tuple(title, message));
+		MessageList.emplace_back(title, message);
 	}
 }
