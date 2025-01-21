@@ -25,7 +25,6 @@ namespace Components
 			UIStartupMessage = Dvar::Register<const char*>("ui_startupMessage", "", Game::DVAR_NONE, "");
 			UIStartupMessageTitle = Dvar::Register<const char*>("ui_startupMessageTitle", "", Game::DVAR_NONE, "");
 			UIStartupNextButtonText = Dvar::Register<const char*>("ui_startupNextButtonText", "", Game::DVAR_NONE, "");
-			AddMessage("test");
 		});
 
 		UIScript::Add("nextStartupMessage", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
