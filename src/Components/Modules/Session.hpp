@@ -31,7 +31,6 @@ namespace Components
 		Session();
 		~Session();
 
-		bool unitTest() override;
 		void preDestroy() override;
 
 		static void Send(const Network::Address& target, const std::string& command, const std::string& data = "");

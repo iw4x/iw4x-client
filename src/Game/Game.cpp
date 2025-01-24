@@ -20,6 +20,8 @@ namespace Game
 	gentity_s* g_entities = reinterpret_cast<gentity_s*>(0x18835D8);
 	bool* g_quitRequested = reinterpret_cast<bool*>(0x649FB61);
 
+	char(*g_cmdlineCopy)[1024] = reinterpret_cast<char(*)[1024]>(0x1AD7AB0);
+
 	NetField* clientStateFields = reinterpret_cast<Game::NetField*>(0x741E40);
 	size_t clientStateFieldsCount = Utils::Hook::Get<size_t>(0x7433C8);
 

@@ -67,8 +67,9 @@ namespace Components
 	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, int size)
 	{
 		assert(*Game::fs_gameDirVar);
-
-		if (!std::strcmp((*Game::fs_gameDirVar)->current.string, "mods/"))
+	
+		const auto modsFolder = Utils::String::ToLower((*Game::fs_gameDirVar)->current.string);
+		if (modsFolder.starts_with("mods/"))
 		{
 			folder = (*Game::fs_gameDirVar)->current.string;
 		}

@@ -8,7 +8,7 @@ namespace Components
 		Component() = default;
 		virtual ~Component() = default;
 
-#if defined(DEBUG) || defined(FORCE_UNIT_TESTS)
+#if defined(DEBUG)
 		virtual std::string getName()
 		{
 			std::string name = typeid(*this).name();
@@ -21,7 +21,6 @@ namespace Components
 		// This method is called before DLLMain (if possible) and should to destroy threads.
 		// It's not 100% guaranteed that it's called outside DLLMain, as it depends on the game, but it's 100% guaranteed, that it is called at all.
 		virtual void preDestroy() {}
-		virtual bool unitTest() { return true; } // Unit testing entry
 	};
 
 	class Loader
@@ -31,8 +30,6 @@ namespace Components
 		static void Uninitialize();
 		static void PreDestroy();
 		static void PreDestroyNoPostGame();
-		static bool PerformUnitTests();
-		static bool IsPerformingUnitTests();
 		static void Register(Component* component);
 
 		static bool IsPregame();

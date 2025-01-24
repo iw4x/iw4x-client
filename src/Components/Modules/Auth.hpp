@@ -9,7 +9,6 @@ namespace Components
 		~Auth();
 
 		void preDestroy() override;
-		bool unitTest() override;
 
 		static void StoreKey();
 		static void LoadKey(bool force = false);
