@@ -5,18 +5,6 @@
 
 namespace Components
 {
-	bool News::unitTest()
-	{
-		if (!std::strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFAULT))
-		{
-			Logger::Print("Failed to fetch motd!\n");
-			return false;
-		}
-
-		Logger::Print("Successfully fetched motd");
-		return true;
-	}
-
 	const char* News::GetNewsText()
 	{
 		return Localization::Get("MPUI_MOTD_TEXT");
@@ -51,15 +39,12 @@ namespace Components
 		Utils::Hook::Nop(0x6388BB, 2); // skip the "if (item->text[0] == '@')" localize check
 		Utils::Hook(0x6388C1, GetNewsText, HOOK_CALL).install()->quick();
 
-		if (!Loader::IsPerformingUnitTests())
-		{
-			Changelog::LoadChangelog();
+		Changelog::LoadChangelog();
 
-			const auto data = Utils::Cache::GetFile("/info/motd/plain");
+		const auto data = Utils::Cache::GetFile("/info/motd/plain");
 
-			if (!data.empty())
-				Localization::Set("MPUI_MOTD_TEXT", data);
-		}
+		if (!data.empty())
+			Localization::Set("MPUI_MOTD_TEXT", data);
 	}
 
 	void News::preDestroy()

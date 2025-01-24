@@ -11,8 +11,6 @@ namespace Components
 
 		static nlohmann::json to_json();
 
-		bool unitTest() override;
-
 	private:
 		class MapRotationParseError : public std::runtime_error
 		{
