@@ -512,10 +512,15 @@ namespace Components
 
 	RawMouse::~RawMouse()
 	{
-		// Passing NULL to this function allows the cursor to move anywhere on the screen.
-		// We need to call this in the destructor because the cursor is a shared resource.
-		// This means that the cursor would remain clipped to the game window even after
-		// the game has been closed (and until something else was clicked).
+		// Cursor is a shared resource. When the game window is
+		// destroyed, one might assume that the cursor
+		// automatically becomes unclipped. This is not the
+		// case—the cursor remains in a clipped state, locked to
+		// the bounds of the now-nonexistent game window until
+		// we explicitly relinquish control.
+		//
+		// https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-clipcursor#remarks
+		//
 		ClipCursor(NULL);
 	}
 }
