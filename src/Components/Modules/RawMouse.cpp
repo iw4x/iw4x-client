@@ -377,12 +377,13 @@ namespace Components
 
 	BOOL RawMouse::IN_RecenterMouse()
 	{
-		RECT clientRect;
+		RECT clientRect{ };
+		HWND window = Window::GetWindow();
 
-		GetClientRect(Window::GetWindow(), &clientRect);
+		GetClientRect(window, &clientRect);
 
-		ClientToScreen(Window::GetWindow(), std::bit_cast<POINT*>(&clientRect.left));
-		ClientToScreen(Window::GetWindow(), std::bit_cast<POINT*>(&clientRect.right));
+		ClientToScreen(window, std::bit_cast<POINT*>(&clientRect.left));
+		ClientToScreen(window, std::bit_cast<POINT*>(&clientRect.right));
 
 		return ClipCursor(&clientRect);
 	}
@@ -507,5 +508,10 @@ namespace Components
 
 		Window::OnWndMessage(WM_INPUT, OnRawInput);
 		Window::OnCreate(IN_RawMouse_Init);
+	}
+
+	RawMouse::~RawMouse()
+	{
+		ClipCursor(NULL);
 	}
 }
