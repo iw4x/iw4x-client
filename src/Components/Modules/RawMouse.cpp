@@ -359,10 +359,10 @@ namespace Components
 		R_AutoPriority = Dvar::Var("r_autopriority");
 		R_FullScreen = Dvar::Var(0x069F0DA0);
 
-#if true
+	#if true
 		// https://github.com/iw4x/iw4x-client/issues/177
 		M_RawInput.set(false);
-#endif
+	#endif
 
 	}
 
@@ -512,6 +512,10 @@ namespace Components
 
 	RawMouse::~RawMouse()
 	{
+		// Passing NULL to this function allows the cursor to move anywhere on the screen.
+		// We need to call this in the destructor because the cursor is a shared resource.
+		// This means that the cursor would remain clipped to the game window even after
+		// the game has been closed (and until something else was clicked).
 		ClipCursor(NULL);
 	}
 }
