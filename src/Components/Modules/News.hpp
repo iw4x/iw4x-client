@@ -9,7 +9,6 @@ namespace Components
 		News();
 
 		void preDestroy() override;
-		bool unitTest() override;
 
 	private:
 		static std::optional<std::string> ExtractStringByMemberName(const rapidjson::Document& document, const std::string& memberName);

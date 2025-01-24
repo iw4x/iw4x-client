@@ -38,7 +38,7 @@ namespace Components
 	{
 		static const auto shouldPrint = []() -> bool
 			{
-				return Flags::HasFlag("stdout") || Loader::IsPerformingUnitTests();
+				return Flags::HasFlag("stdout");
 			}();
 
 			if (shouldPrint)
@@ -458,11 +458,6 @@ namespace Components
 
 		Utils::Hook(0x5F67AE, LSP_LogString_Stub, HOOK_CALL).install()->quick(); // Scr_LogString
 		Utils::Hook(0x5F67EE, LSP_LogStringAboutUser_Stub, HOOK_CALL).install()->quick(); // ScrCmd_LogString_Stub
-
-		if (Loader::IsPerformingUnitTests())
-		{
-			Utils::Hook(Game::Com_Printf, Print_Stub, HOOK_JUMP).install()->quick();
-		}
 
 		Events::OnSVInit(AddServerCommands);
 		Events::OnDvarInit([]

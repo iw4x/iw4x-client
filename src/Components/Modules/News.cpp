@@ -29,18 +29,6 @@
 
 namespace Components
 {
-	bool News::unitTest()
-	{
-		if (!std::strcmp(Localization::Get("MPUI_MOTD_TEXT"), NEWS_MOTD_DEFAULT))
-		{
-			Logger::Print("Failed to fetch motd!\n");
-			return false;
-		}
-
-		Logger::Print("Successfully fetched motd");
-		return true;
-	}
-
 	const char* News::GetNewsText()
 	{
 		return Localization::Get("MPUI_MOTD_TEXT");
@@ -142,32 +130,29 @@ namespace Components
 		Utils::Hook::Nop(0x6388BB, 2); // skip the "if (item->text[0] == '@')" localize check
 		Utils::Hook(0x6388C1, GetNewsText, HOOK_CALL).install()->quick();
 
-		if (!Loader::IsPerformingUnitTests())
-		{
-			const auto result = Utils::Cache::GetFile("/info");
-			if (result.empty())
-				return;
+		const auto result = Utils::Cache::GetFile("/info");
+		if (result.empty())
+			return;
 
-			rapidjson::Document jsonDocument{};
-			const rapidjson::ParseResult parseResult = jsonDocument.Parse(result);
+		rapidjson::Document jsonDocument{};
+		const rapidjson::ParseResult parseResult = jsonDocument.Parse(result);
 
-			if (!parseResult || !jsonDocument.IsObject())
-				return;
+		if (!parseResult || !jsonDocument.IsObject())
+			return;
 
-			auto motd = ExtractStringByMemberName(jsonDocument, "motd");
-			auto changelog = ExtractStringByMemberName(jsonDocument, "changelog");
+		auto motd = ExtractStringByMemberName(jsonDocument, "motd");
+		auto changelog = ExtractStringByMemberName(jsonDocument, "changelog");
 
-			if (!motd.has_value())
-				motd = NEWS_MOTD_DEFAULT;
+		if (!motd.has_value())
+			motd = NEWS_MOTD_DEFAULT;
 
-			if (!changelog.has_value())
-				changelog = "Changelog could not be retrieved.";
+		if (!changelog.has_value())
+			changelog = "Changelog could not be retrieved.";
 
-			Localization::Set("MPUI_MOTD_TEXT", motd.value());
-			Changelog::SetChangelog(changelog.value());
+		Localization::Set("MPUI_MOTD_TEXT", motd.value());
+		Changelog::SetChangelog(changelog.value());
 
-			ProcessPopmenus(jsonDocument);
-		}
+		ProcessPopmenus(jsonDocument);
 	}
 
 	void News::preDestroy()

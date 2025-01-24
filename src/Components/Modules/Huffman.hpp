@@ -7,8 +7,6 @@ namespace Components
 	public:
 		Huffman();
 
-		bool unitTest() override;
-
 		static inline bool isInitialized;
 	};
 }

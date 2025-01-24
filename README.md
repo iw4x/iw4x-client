@@ -54,14 +54,12 @@ To use the `iw4x.dll`, you must have a valid Modern Warfare 2 installation with 
 |:----------------------------|:-----------------------------------------------|
 | `--copy-to=PATH`            | Optional, copy the DLL to a custom folder after build, define the path here if wanted. |
 | `--copy-pdb`                | Copy debug information for binaries as well to the path given via --copy-to. |
-| `--force-unit-tests`        | Always compile unit tests.                     |
 | `--disable-binary-check`    | Do not perform integrity checks on the exe. |
 
 ## Command line arguments
 
 | Argument                | Description                                    |
 |:------------------------|:-----------------------------------------------|
-| `-tests`                | Perform unit tests.                            |
 | `-entries`              | Print to the console a list of every asset as they are loaded from zonefiles. |
 | `-stdout`               | Redirect all logging output to the terminal iw4x is started from, or if there is none, creates a new terminal window to write log information in. |
 | `-console`              | Allow the game to display its own separate interactive console window. |

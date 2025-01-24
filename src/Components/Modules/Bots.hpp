@@ -12,6 +12,9 @@ namespace Components
 	private:
 		using botData = std::pair<std::string, std::string>;
 
+		static Game::dvar_t** aim_automelee_range;
+		static Game::dvar_t** perk_extendedMeleeRange;
+
 		static const Game::dvar_t* sv_randomBotNames;
 		static const Game::dvar_t* sv_replaceBots;
 
@@ -27,6 +30,7 @@ namespace Components
 		static void Spawn(unsigned int count);
 
 		static void GScr_isTestClient(Game::scr_entref_t entref);
+		static bool BG_HasPerk(const unsigned int* perks, const unsigned int perkIndex);
 		static void AddScriptMethods();
 
 		static void BotAiAction(Game::client_s* cl);

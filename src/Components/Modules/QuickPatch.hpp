@@ -7,8 +7,6 @@ namespace Components
 	public:
 		QuickPatch();
 
-		bool unitTest() override;
-
 		static void UnlockStats();
 
 	private:
