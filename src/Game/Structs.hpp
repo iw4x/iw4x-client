@@ -16,6 +16,8 @@
 namespace Game
 {
 #endif
+	constexpr std::size_t MAX_GENTITIES = 2048;
+	constexpr std::size_t ENTITYNUM_NONE = MAX_GENTITIES - 1;
 
 	typedef float vec_t;
 	typedef vec_t vec2_t[2];
@@ -1703,6 +1705,50 @@ namespace Game
 		// IW5 flags backported
 		PWF_DISABLE_WEAPON_PICKUP = 1 << 16
 	};
+
+	enum perksEnum
+	{
+		PERK_JAMRADAR = 0x0,
+		PERK_ACCURACY = 0x1,
+		PERK_FASTRELOAD = 0x2,
+		PERK_RATEOFFIRE = 0x3,
+		PERK_EXTRABREATH = 0x4,
+		PERK_EXTRABP = 0x5,
+		PERK_GRENADEDEATH = 0x6,
+		PERK_PISTOLDEATH = 0x7,
+		PERK_QUIETMOVE = 0x8,
+		PERK_PARABOLIC = 0x9,
+		PERK_LONGERSPRINT = 0xA,
+		PERK_DETECTEXPLOSIVE = 0xB,
+		PERK_EXPOSEENEMY = 0xC,
+		PERK_BULLETDMG = 0xD,
+		PERK_EXTRAAMMO = 0xE,
+		PERK_TWOPRIMARIES = 0xF,
+		PERK_ARMORVEST = 0x10,
+		PERK_FRAGGRENADE = 0x11,
+		PERK_SPECIALGRENADE = 0x12,
+		PERK_FASTMANTLE = 0x13,
+		PERK_JUMPDIVE = 0x14,
+		PERK_EXPLOSIVEBULLETS = 0x15,
+		PERK_SCAVENGER = 0x16,
+		PERK_EXTENDEDMAGS = 0x17,
+		PERK_LIGHTWEIGHT = 0x18,
+		PERK_MARATHON = 0x19,
+		PERK_QUICKDRAW = 0x1A,
+		PERK_COLDBLOODED = 0x1B,
+		PERK_HEARTBREAKER = 0x1C,
+		PERK_SELECTIVEHEARING = 0x1D,
+		PERK_FASTSNIPE = 0x1E,
+		PERK_IMPROVEDEXTRABREATH = 0x1F,
+		PERK_SPYGAME = 0x20,
+		PERK_AUTOMANTLE = 0x21,
+		PERK_FASTSPRINTRECOVERY = 0x22,
+		PERK_EXTENDEDMELEE = 0x23,
+		PERK_COUNT = 0x24,
+		PERK_UNKNOWN = 0x24,
+	};
+
+	constexpr std::size_t PERK_ARRAY_COUNT = 2;
 
 	struct playerState_s
 	{
@@ -9656,7 +9702,7 @@ namespace Game
 		float lockOnRegionHeight;
 	};
 
-	constexpr auto AIM_TARGET_INVALID = 0x3FF;
+	constexpr auto AIM_TARGET_INVALID = MAX_GENTITIES - 1;
 	struct AimScreenTarget
 	{
 		int entIndex;

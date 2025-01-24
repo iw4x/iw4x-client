@@ -13,6 +13,9 @@ namespace Components
 {
 	constexpr std::size_t MAX_NAME_LENGTH = 16;
 
+	Game::dvar_t** Bots::aim_automelee_range = reinterpret_cast<Game::dvar_t**>(0x7A2F98);
+	Game::dvar_t** Bots::perk_extendedMeleeRange = reinterpret_cast<Game::dvar_t**>(0x7BDD60);
+
 	const Game::dvar_t* Bots::sv_randomBotNames;
 	const Game::dvar_t* Bots::sv_replaceBots;
 
@@ -202,6 +205,21 @@ namespace Components
 		Game::Scr_AddBool(Game::SV_IsTestClient(ent->s.number) != 0);
 	}
 
+	bool Bots::BG_HasPerk(const unsigned int* perks, const unsigned int perkIndex)
+	{
+		assert(perks);
+		AssertIn(perkIndex, Game::PERK_COUNT);
+	
+		const std::size_t arrayIndex = perkIndex >> 5;
+		AssertIn(arrayIndex, Game::PERK_ARRAY_COUNT);
+	
+		constexpr std::size_t BIT_MASK_SIZE = 31; // 0x1F
+		const auto bitPos = perkIndex & BIT_MASK_SIZE;
+		const auto bitMask = 1 << bitPos;
+	
+		return perks[arrayIndex] & bitMask;
+	}
+
 	void Bots::AddScriptMethods()
 	{
 		GSC::Script::AddMethMultiple(GScr_isTestClient, false, {"IsTestClient", "IsBot"}); // Usage: self IsTestClient();
@@ -309,11 +327,29 @@ namespace Components
 				return;
 			}
 
+			if (!(*perk_extendedMeleeRange))
+			{
+				Game::Scr_Error("BotMeleeParams: perk_extendedMeleeRange is not registered!");
+				return;
+			}
+			
+			if (!(*aim_automelee_range))
+			{
+				Game::Scr_Error("BotMeleeParams: aim_automelee_range is not registered!");
+				return;
+			}
+			
 			const auto yaw = Game::Scr_GetFloat(0);
-			const auto dist = std::clamp<int>(static_cast<int>(Game::Scr_GetFloat(1)), std::numeric_limits<unsigned char>::min(), std::numeric_limits<unsigned char>::max());
-
+			const auto dist = static_cast<int>(Game::Scr_GetFloat(1));
+			constexpr auto minDist = static_cast<int>(std::numeric_limits<unsigned char>::min());
+			const bool isExtendedMelee = BG_HasPerk(ent->client->ps.perks, Game::PERK_EXTENDEDMELEE);
+			const auto maxDist = isExtendedMelee
+				? static_cast<int>((*perk_extendedMeleeRange)->current.value)
+				: static_cast<int>((*aim_automelee_range)->current.value);
+			const auto meleeDist = std::clamp<int>(dist, minDist, maxDist);
+			
 			g_botai[entref.entnum].meleeYaw = yaw;
-			g_botai[entref.entnum].meleeDist = static_cast<int8_t>(dist);
+			g_botai[entref.entnum].meleeDist = static_cast<int8_t>(meleeDist);
 			g_botai[entref.entnum].active = true;
 		});
 
@@ -597,7 +633,7 @@ namespace Components
 
 		sv_randomBotNames = Game::Dvar_RegisterBool("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
 		sv_replaceBots = Game::Dvar_RegisterBool("sv_replaceBots", false, Game::DVAR_NONE, "Test clients will be replaced by connecting players when the server is full.");
-
+		
 		Scheduler::OnGameInitialized(UpdateBotNames, Scheduler::Pipeline::MAIN);
 
 		Network::OnClientPacket("getbotsResponse", [](const Network::Address& address, const std::string& data)
