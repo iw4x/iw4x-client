@@ -6,20 +6,19 @@ namespace Components
 	std::mutex Changelog::Mutex;
 	std::vector<std::string> Changelog::Lines;
 
-	void Changelog::LoadChangelog()
+	// Called from News.cpp
+	void Changelog::SetChangelog(const std::string& changelog)
 	{
 		std::lock_guard _(Mutex);
 		Lines.clear();
 
-		const auto data = Utils::Cache::GetFile("/info/changelog/plain");
-
-		if (data.empty())
+		if (changelog.empty())
 		{
 			Lines.emplace_back("^1Unable to get changelog.");
 			return;
 		}
 
-		auto buffer = Utils::String::Split(data, '\n');
+		auto buffer = Utils::String::Split(changelog, '\n');
 		for (auto& line : buffer)
 		{
 			Utils::String::Replace(line, "\r", "");
