@@ -393,6 +393,49 @@ namespace Components
 		return dvar->domain.enumeration.strings[dvar->current.integer];
 	}
 
+	bool Dvar::CanEditCheatProtectedDvar(int flags)
+	{
+		// Allow the host to override cheat protected dvars
+		if (((flags & Game::DVAR_CHEAT) == Game::DVAR_CHEAT) && (*Game::sv_running && (*Game::sv_running)->current.enabled))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	__declspec(naked) void Dvar::Dvar_IsCheatProtected_Stub() // Guessed name
+	{
+		__asm
+		{
+			push eax
+			pushad
+
+			push ecx // flags
+			call CanEditCheatProtectedDvar
+			add esp, 0x4
+
+			mov [esp + 0x20], eax
+			popad
+			pop eax
+
+			test al, al
+			jnz can_edit
+
+			// Call the original function and leave
+			push 0x64767D // Return address
+			push 0x646510 // Dvar_IsCheatProtected_Stub
+			ret
+
+		can_edit:
+			// When Dvar_IsCheatProtected_Stub returns 0 the game will allow us to change the dvar
+			xor eax, eax
+
+			push 0x64767D // Return address
+			ret
+		}
+	}
+
 	Dvar::Dvar()
 	{
 		// set flags of cg_drawFPS to archive
@@ -521,6 +564,9 @@ namespace Components
 		// For debugging
 		Utils::Hook(0x6483FA, Dvar_RegisterVariant_Stub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x648438, Dvar_RegisterVariant_Stub, HOOK_JUMP).install()->quick();
+
+		// Allow host to edit cheat protected dvars
+		Utils::Hook(0x647678, Dvar_IsCheatProtected_Stub, HOOK_JUMP).install()->quick(); // Dvar_SetVariant
 
 		// Fix crash
 		Utils::Hook(0x4B7120, Dvar_EnumToString_Stub, HOOK_JUMP).install()->quick();

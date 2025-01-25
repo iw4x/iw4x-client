@@ -402,6 +402,8 @@ namespace Game
 
 	huffman_t* msgHuff = reinterpret_cast<huffman_t*>(0x1CB9EC0);
 
+	bool* isCheatOverride = reinterpret_cast<bool*>(0x6444351);
+
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{
 		if (!stringtable || !stringtable->values || row >= stringtable->rowCount || column >= stringtable->columnCount) return "";

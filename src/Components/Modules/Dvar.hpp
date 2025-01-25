@@ -57,5 +57,8 @@ namespace Components
 		static void Dvar_RegisterVariant_Stub();
 
 		static const char* Dvar_EnumToString_Stub(const Game::dvar_t* dvar);
+
+		static bool CanEditCheatProtectedDvar(int flags);
+		static void Dvar_IsCheatProtected_Stub();
 	};
 }
