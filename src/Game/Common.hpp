@@ -80,12 +80,17 @@ namespace Game
 
 	extern int* com_errorPrintsCount;
 
+	extern int* com_consoleLogOpenFailed;
 	extern int* errorcode;
+
+	extern int* opening_qconsole;
 
 	extern char* Com_GetParseThreadInfo();
 	extern void Com_SetParseNegativeNumbers(int parse);
 
 	extern const char* Com_LoadInfoString_FastFile(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer);
+
+	extern char* Com_GetCommandLine();
 }
 
 #define Com_InitThreadData()                                                             \

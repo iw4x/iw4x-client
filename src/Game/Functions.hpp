@@ -767,6 +767,8 @@ namespace Game
 
 	extern huffman_t* msgHuff;
 
+	extern const char* logFileName;
+
 	constexpr auto MAX_MSGLEN = 0x20000;
 
 	ScreenPlacement* ScrPlace_GetFullPlacement();

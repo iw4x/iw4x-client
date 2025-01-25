@@ -40,6 +40,8 @@ namespace Utils
 
 	bool HasIntersection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
 
+	std::string GetTime();
+
 	template <typename T>
 	void RotLeft(T& object, std::size_t bits)
 	{

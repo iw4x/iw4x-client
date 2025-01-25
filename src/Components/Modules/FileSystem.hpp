@@ -109,6 +109,9 @@ namespace Components
 		static const char* Sys_HomePath_Hk();
 		static const char* Sys_Cwd_Hk();
 
+		static bool FileWrapper_Rotate(const char* ospath);
+		static bool FileRotate(const std::string& filename);
+
 	private:
 		static std::mutex Mutex;
 		static std::recursive_mutex FSMutex;

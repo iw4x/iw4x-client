@@ -85,6 +85,8 @@ namespace Game
 
 	extern searchpath_s** fs_searchpaths;
 
+	extern char* fs_gamedir;
+
 	extern int FS_FOpenFileReadCurrentThread(const char* filename, int* file);
 
 	extern void FS_AddLocalizedGameDirectory(const char* path, const char* dir);
