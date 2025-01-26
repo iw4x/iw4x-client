@@ -1,6 +1,7 @@
+#include "Vote.hpp"
+
 #include "ClientCommand.hpp"
 #include "MapRotation.hpp"
-#include "Vote.hpp"
 #include "Events.hpp"
 
 using namespace Utils::String;

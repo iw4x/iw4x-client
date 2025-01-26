@@ -1,6 +1,5 @@
-
-#include "Events.hpp"
 #include "UIFeeder.hpp"
+#include "Events.hpp"
 
 namespace Components
 {

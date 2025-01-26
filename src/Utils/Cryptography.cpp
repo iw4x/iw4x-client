@@ -1,5 +1,6 @@
-
 /// http://www.opensource.apple.com/source/CommonCrypto/CommonCrypto-55010/Source/libtomcrypt/doc/libTomCryptDoc.pdf
+
+#include "Cryptography.hpp"
 
 namespace Utils
 {

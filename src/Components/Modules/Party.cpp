@@ -1,12 +1,12 @@
 #include <Utils/InfoString.hpp>
 
+#include "Party.hpp"
 #include "Auth.hpp"
 #include "Download.hpp"
 #include "Friends.hpp"
 #include "Gamepad.hpp"
 #include "ModList.hpp"
 #include "Node.hpp"
-#include "Party.hpp"
 #include "ServerList.hpp"
 #include "Stats.hpp"
 #include "TextRenderer.hpp"

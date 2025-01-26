@@ -1,3 +1,4 @@
+#include "Cache.hpp"
 #include "WebIO.hpp"
 
 namespace Utils

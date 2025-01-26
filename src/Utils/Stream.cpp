@@ -1,3 +1,4 @@
+#include "Stream.hpp"
 
 namespace Utils
 {

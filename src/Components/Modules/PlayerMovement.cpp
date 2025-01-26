@@ -1,7 +1,5 @@
-
-#include "Events.hpp"
 #include "PlayerMovement.hpp"
-
+#include "Events.hpp"
 #include "GSC/Script.hpp"
 
 namespace Components

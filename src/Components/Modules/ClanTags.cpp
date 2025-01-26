@@ -1,4 +1,3 @@
-
 #include "ClanTags.hpp"
 #include "Events.hpp"
 #include "PlayerName.hpp"

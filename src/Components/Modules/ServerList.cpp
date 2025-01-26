@@ -1,11 +1,11 @@
 #include <Utils/InfoString.hpp>
 #include <Utils/WebIO.hpp>
 
+#include "ServerList.hpp"
 #include "Discovery.hpp"
 #include "Events.hpp"
 #include "Node.hpp"
 #include "Party.hpp"
-#include "ServerList.hpp"
 #include "TextRenderer.hpp"
 #include "Toast.hpp"
 #include "UIFeeder.hpp"

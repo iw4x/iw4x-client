@@ -1,3 +1,4 @@
+#include "SteamMasterServerUpdater.hpp"
 
 STEAM_IGNORE_WARNINGS_START
 

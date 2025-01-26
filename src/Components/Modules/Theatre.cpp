@@ -1,4 +1,3 @@
-
 #include "Theatre.hpp"
 #include "UIFeeder.hpp"
 

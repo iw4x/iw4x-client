@@ -1,3 +1,4 @@
+#include "Script.hpp"
 
 namespace Game
 {

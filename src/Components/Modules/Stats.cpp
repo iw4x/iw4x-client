@@ -1,5 +1,5 @@
-#include "ServerCommands.hpp"
 #include "Stats.hpp"
+#include "ServerCommands.hpp"
 
 #include "GSC/Script.hpp"
 

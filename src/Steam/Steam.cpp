@@ -1,3 +1,5 @@
+#include "Steam.hpp"
+
 #include "Components/Modules/StartupMessages.hpp"
 
 namespace Steam

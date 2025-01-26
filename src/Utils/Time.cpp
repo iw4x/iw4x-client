@@ -1,3 +1,4 @@
+#include "Time.hpp"
 
 namespace Utils::Time
 {

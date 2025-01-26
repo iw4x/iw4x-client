@@ -1,3 +1,4 @@
+#include "Functions.hpp"
 
 // Unsorted function definitions
 namespace Game

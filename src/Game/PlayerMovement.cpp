@@ -1,3 +1,4 @@
+#include "PlayerMovement.hpp"
 
 namespace Game
 {

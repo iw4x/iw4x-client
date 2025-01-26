@@ -1,3 +1,4 @@
+#include "Singleton.hpp"
 #include "ConnectProtocol.hpp"
 #include "Console.hpp"
 

@@ -1,4 +1,3 @@
-
 #include "Updater.hpp"
 #include "Scheduler.hpp"
 #include "version.hpp"

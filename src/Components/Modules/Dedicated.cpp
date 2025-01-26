@@ -1,5 +1,6 @@
 #include <Utils/InfoString.hpp>
 
+#include "Dedicated.hpp"
 #include "CardTitles.hpp"
 #include "ClanTags.hpp"
 #include "Events.hpp"

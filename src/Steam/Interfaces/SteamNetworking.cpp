@@ -1,3 +1,4 @@
+#include "SteamNetworking.hpp"
 
 STEAM_IGNORE_WARNINGS_START
 
