@@ -1,4 +1,4 @@
-
+#include "Rumble.hpp"
 #include "ConfigStrings.hpp"
 #include "Events.hpp"
 

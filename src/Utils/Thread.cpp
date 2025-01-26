@@ -1,3 +1,4 @@
+#include "Thread.hpp"
 
 namespace Utils::Thread
 {

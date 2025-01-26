@@ -1,3 +1,4 @@
+#include "SteamFriends.hpp"
 
 using namespace Components;
 

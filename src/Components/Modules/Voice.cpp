@@ -1,7 +1,6 @@
-
+#include "Voice.hpp"
 #include "Chat.hpp"
 #include "Events.hpp"
-#include "Voice.hpp"
 
 namespace Components
 {

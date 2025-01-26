@@ -1,4 +1,4 @@
-
+#include "Renderer.hpp"
 #include "Events.hpp"
 
 namespace Components

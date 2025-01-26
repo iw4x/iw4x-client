@@ -1,4 +1,3 @@
-
 #include "IXModel.hpp"
 
 namespace Assets

@@ -1,11 +1,10 @@
-
 #pragma warning(push)
 #pragma warning(disable: 4100)
 #include <proto/friends.pb.h>
 #pragma warning(pop)
 
-#include "Events.hpp"
 #include "Friends.hpp"
+#include "Events.hpp"
 #include "Materials.hpp"
 #include "Node.hpp"
 #include "Party.hpp"

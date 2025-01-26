@@ -1,6 +1,5 @@
 #include "DualSenseGamepad.hpp"
 
-
 bool Components::GamepadControls::DualSenseGamePadAPI::PlugIn(uint8_t index)
 {
 	dirty = true;

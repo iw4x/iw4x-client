@@ -1,3 +1,4 @@
+#include "Zone.hpp"
 
 namespace Game
 {

@@ -1,6 +1,5 @@
-
-#include "Console.hpp"
 #include "Exception.hpp"
+#include "Console.hpp"
 #include "Window.hpp"
 #include "Party.hpp"
 #include "TextRenderer.hpp"
@@ -115,10 +114,10 @@ namespace Components
 
 			std::string serverInfo = std::format(R"(
 				Server Info:
-				Type: Dedicated Server							
+				Type: Dedicated Server
 				IW4x Version: {}
 				Server Name: {}
-				IP Address: {}					
+				IP Address: {}
 				Gametype: {}
 				Map Name: {}
 				Mod Name: {})",

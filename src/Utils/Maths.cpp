@@ -1,3 +1,4 @@
+#include "Maths.hpp"
 
 namespace Utils::Maths
 {

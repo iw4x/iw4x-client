@@ -1,9 +1,9 @@
 #include <Utils/InfoString.hpp>
 
+#include "ServerInfo.hpp"
 #include "Friends.hpp"
 #include "Gamepad.hpp"
 #include "Party.hpp"
-#include "ServerInfo.hpp"
 #include "ServerList.hpp"
 #include "UIFeeder.hpp"
 #include "Voice.hpp"

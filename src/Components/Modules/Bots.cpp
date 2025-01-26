@@ -1,4 +1,3 @@
-
 #include "Bots.hpp"
 #include "ClanTags.hpp"
 #include "Events.hpp"
@@ -209,14 +208,14 @@ namespace Components
 	{
 		assert(perks);
 		AssertIn(perkIndex, Game::PERK_COUNT);
-	
+
 		const std::size_t arrayIndex = perkIndex >> 5;
 		AssertIn(arrayIndex, Game::PERK_ARRAY_COUNT);
-	
+
 		constexpr std::size_t BIT_MASK_SIZE = 31; // 0x1F
 		const auto bitPos = perkIndex & BIT_MASK_SIZE;
 		const auto bitMask = 1 << bitPos;
-	
+
 		return perks[arrayIndex] & bitMask;
 	}
 
@@ -332,13 +331,13 @@ namespace Components
 				Game::Scr_Error("BotMeleeParams: perk_extendedMeleeRange is not registered!");
 				return;
 			}
-			
+
 			if (!(*aim_automelee_range))
 			{
 				Game::Scr_Error("BotMeleeParams: aim_automelee_range is not registered!");
 				return;
 			}
-			
+
 			const auto yaw = Game::Scr_GetFloat(0);
 			const auto dist = static_cast<int>(Game::Scr_GetFloat(1));
 			constexpr auto minDist = static_cast<int>(std::numeric_limits<unsigned char>::min());
@@ -347,7 +346,7 @@ namespace Components
 				? static_cast<int>((*perk_extendedMeleeRange)->current.value)
 				: static_cast<int>((*aim_automelee_range)->current.value);
 			const auto meleeDist = std::clamp<int>(dist, minDist, maxDist);
-			
+
 			g_botai[entref.entnum].meleeYaw = yaw;
 			g_botai[entref.entnum].meleeDist = static_cast<int8_t>(meleeDist);
 			g_botai[entref.entnum].active = true;
@@ -633,7 +632,7 @@ namespace Components
 
 		sv_randomBotNames = Game::Dvar_RegisterBool("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
 		sv_replaceBots = Game::Dvar_RegisterBool("sv_replaceBots", false, Game::DVAR_NONE, "Test clients will be replaced by connecting players when the server is full.");
-		
+
 		Scheduler::OnGameInitialized(UpdateBotNames, Scheduler::Pipeline::MAIN);
 
 		Network::OnClientPacket("getbotsResponse", [](const Network::Address& address, const std::string& data)
