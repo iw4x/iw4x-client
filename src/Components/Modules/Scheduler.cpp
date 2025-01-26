@@ -5,8 +5,7 @@ constexpr bool COND_END = true;
 
 namespace Components
 {
-	std::thread Scheduler::Thread;
-	volatile bool Scheduler::Kill = false;
+	std::jthread Scheduler::Thread;
 	Scheduler::TaskPipeline Scheduler::Pipelines[static_cast<std::underlying_type_t<Pipeline>>(Pipeline::COUNT)];
 
 	void Scheduler::TaskPipeline::add(Task&& task)
@@ -158,9 +157,9 @@ namespace Components
 
 	Scheduler::Scheduler()
 	{
-		Thread = Utils::Thread::CreateNamedThread("Async Scheduler", []
+		Thread = Utils::Thread::CreateNamedThread("Async Scheduler", [](std::stop_token st) -> void
 		{
-			while (!Kill)
+			while (!st.stop_requested())
 			{
 				Execute(Pipeline::ASYNC);
 				std::this_thread::sleep_for(10ms);
@@ -184,10 +183,6 @@ namespace Components
 
 	void Scheduler::preDestroy()
 	{
-		Kill = true;
-		if (Thread.joinable())
-		{
-			Thread.join();
-		}
+		Thread.request_stop();
 	}
 }

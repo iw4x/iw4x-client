@@ -184,13 +184,12 @@ namespace Components
 
 		static void Com_Quitf_t();
 
-		static void CommandThreadCallback();
+		static void CommandThreadCallback(std::stop_token st);
 
 		static bool MainThreadInterrupted;
 		static DWORD InterruptingThreadId;
 
-		static volatile bool CommandThreadTerminate;
-		static std::thread CommandThread;
+		static std::jthread CommandThread;
 		static iw4of::api ExporterAPI;
 		static std::string DumpingZone;
 	};

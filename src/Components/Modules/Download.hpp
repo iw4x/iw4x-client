@@ -97,7 +97,7 @@ namespace Components
 		};
 
 		static ClientDownload CLDownload;
-		static std::thread ServerThread;
+		static std::jthread ServerThread;
 		static volatile bool Terminate;
 		static bool ServerRunning;
 

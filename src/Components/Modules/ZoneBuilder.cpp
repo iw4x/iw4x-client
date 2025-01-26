@@ -19,8 +19,7 @@ namespace Components
 	bool ZoneBuilder::MainThreadInterrupted;
 	DWORD ZoneBuilder::InterruptingThreadId;
 
-	volatile bool ZoneBuilder::CommandThreadTerminate = false;
-	std::thread ZoneBuilder::CommandThread;
+	std::jthread ZoneBuilder::CommandThread;
 	iw4of::api ZoneBuilder::ExporterAPI(GetExporterAPIParams());
 	std::string ZoneBuilder::DumpingZone{};
 
@@ -922,11 +921,11 @@ namespace Components
 		ExitProcess(0);
 	}
 
-	void ZoneBuilder::CommandThreadCallback()
+	void ZoneBuilder::CommandThreadCallback(std::stop_token st)
 	{
 		Com_InitThreadData();
 
-		while (!ZoneBuilder::CommandThreadTerminate)
+		while (!st.stop_requested())
 		{
 			ZoneBuilder::AssumeMainThreadRole();
 			Utils::Hook::Call<void(int, int)>(0x4E2C80)(0, 0); // Cbuf_Execute
@@ -1646,10 +1645,6 @@ namespace Components
 
 	ZoneBuilder::~ZoneBuilder()
 	{
-		ZoneBuilder::CommandThreadTerminate = true;
-		if (ZoneBuilder::CommandThread.joinable())
-		{
-			ZoneBuilder::CommandThread.join();
-		}
+		ZoneBuilder::CommandThread.request_stop();
 	}
 }

@@ -53,8 +53,7 @@ namespace Components
 			void mergeCallbacks();
 		};
 
-		static volatile bool Kill;
-		static std::thread Thread;
+		static std::jthread Thread;
 		static TaskPipeline Pipelines[];
 
 		static void Execute(Pipeline type);

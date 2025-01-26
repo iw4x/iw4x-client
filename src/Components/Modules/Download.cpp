@@ -26,7 +26,7 @@ namespace Components
 
 	Download::ClientDownload Download::CLDownload;
 
-	std::thread Download::ServerThread;
+	std::jthread Download::ServerThread;
 	volatile bool Download::Terminate;
 	bool Download::ServerRunning;
 
@@ -832,12 +832,11 @@ namespace Components
 				});
 
 				ServerRunning = true;
-				Terminate = false;
-				ServerThread = Utils::Thread::CreateNamedThread("Mongoose", []() -> void
+				ServerThread = Utils::Thread::CreateNamedThread("Mongoose", [](std::stop_token st) -> void
 				{
 					Com_InitThreadData();
 
-					while (!Terminate)
+					while (!st.stop_requested())
 					{
 						mg_mgr_poll(&Mgr, 1000);
 					}
@@ -876,11 +875,7 @@ namespace Components
 
 	void Download::preDestroy()
 	{
-		Terminate = true;
-		if (ServerThread.joinable())
-		{
-			ServerThread.join();
-		}
+		ServerThread.request_stop();
 
 		if (!Dedicated::IsEnabled())
 		{
