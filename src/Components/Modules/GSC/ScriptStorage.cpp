@@ -1,4 +1,3 @@
-
 #include "ScriptStorage.hpp"
 #include "Script.hpp"
 

@@ -1,4 +1,4 @@
-
+#include "Logger.hpp"
 #include "Branding.hpp"
 #include "Console.hpp"
 #include "Events.hpp"

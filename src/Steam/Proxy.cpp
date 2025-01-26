@@ -1,3 +1,5 @@
+#include "Proxy.hpp"
+
 #include <udis86.h>
 
 namespace Steam

@@ -1,3 +1,4 @@
+#include "Flags.hpp"
 
 namespace Components
 {

@@ -2,8 +2,8 @@
 
 #include <proto/party.pb.h>
 
-#include "Party.hpp"
 #include "Playlist.hpp"
+#include "Party.hpp"
 
 namespace Components
 {

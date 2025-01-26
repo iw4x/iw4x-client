@@ -1,6 +1,5 @@
-
-#include "Events.hpp"
 #include "MapRotation.hpp"
+#include "Events.hpp"
 #include "Party.hpp"
 
 namespace Components

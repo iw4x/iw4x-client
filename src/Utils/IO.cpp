@@ -1,3 +1,4 @@
+#include "IO.hpp"
 
 namespace Utils::IO
 {

@@ -1,4 +1,3 @@
-
 #include "Script.hpp"
 #include "String.hpp"
 

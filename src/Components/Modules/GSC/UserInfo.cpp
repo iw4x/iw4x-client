@@ -2,8 +2,8 @@
 
 #include <Components/Modules/Events.hpp>
 
-#include "Script.hpp"
 #include "UserInfo.hpp"
+#include "Script.hpp"
 
 namespace Components::GSC
 {

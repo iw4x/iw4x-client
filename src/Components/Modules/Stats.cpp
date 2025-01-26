@@ -1,5 +1,5 @@
-#include "ServerCommands.hpp"
 #include "Stats.hpp"
+#include "ServerCommands.hpp"
 
 #include "GSC/Script.hpp"
 
@@ -67,7 +67,7 @@ namespace Components
 	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, int size)
 	{
 		assert(*Game::fs_gameDirVar);
-	
+
 		const auto modsFolder = Utils::String::ToLower((*Game::fs_gameDirVar)->current.string);
 		if (modsFolder.starts_with("mods/"))
 		{

@@ -1,3 +1,4 @@
+#include "AssetHandler.hpp"
 #include "FastFiles.hpp"
 #include "Weapon.hpp"
 

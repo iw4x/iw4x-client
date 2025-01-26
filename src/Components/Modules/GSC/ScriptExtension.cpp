@@ -1,4 +1,3 @@
-
 #include <Components/Modules/Events.hpp>
 
 #include "ScriptExtension.hpp"

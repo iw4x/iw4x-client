@@ -1,6 +1,5 @@
-
-#include "Events.hpp"
 #include "Lean.hpp"
+#include "Events.hpp"
 
 namespace Components
 {

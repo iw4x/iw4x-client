@@ -1,3 +1,4 @@
+#include "UIScript.hpp"
 
 namespace Components
 {

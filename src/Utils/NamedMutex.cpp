@@ -1,3 +1,4 @@
+#include "NamedMutex.hpp"
 
 namespace Utils
 {

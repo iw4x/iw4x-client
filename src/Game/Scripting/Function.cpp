@@ -1,3 +1,4 @@
+#include "Function.hpp"
 
 namespace Scripting
 {

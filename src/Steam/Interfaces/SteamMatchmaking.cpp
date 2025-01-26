@@ -1,3 +1,5 @@
+#include "SteamMatchmaking.hpp"
+
 #include <Components/Modules/Party.hpp>
 
 STEAM_IGNORE_WARNINGS_START

@@ -1,5 +1,6 @@
 #include <Utils/Compression.hpp>
 
+#include "ZoneBuilder.hpp"
 #include "Console.hpp"
 #include "FastFiles.hpp"
 

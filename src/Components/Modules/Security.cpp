@@ -1,5 +1,4 @@
 #include "Security.hpp"
-
 #include "Huffman.hpp"
 
 namespace Components

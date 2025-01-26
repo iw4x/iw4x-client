@@ -1,3 +1,4 @@
+#include "StackIsolation.hpp"
 
 namespace Scripting
 {

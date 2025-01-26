@@ -1,5 +1,5 @@
-#include "Gamepad.hpp"
 #include "RawMouse.hpp"
+#include "Gamepad.hpp"
 #include "Window.hpp"
 
 namespace Components

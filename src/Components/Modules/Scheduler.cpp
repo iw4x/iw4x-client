@@ -1,3 +1,4 @@
+#include "Scheduler.hpp"
 
 constexpr bool COND_CONTINUE = false;
 constexpr bool COND_END = true;

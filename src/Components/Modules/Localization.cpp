@@ -1,3 +1,4 @@
+#include "Localization.hpp"
 #include "ArenaLength.hpp"
 
 namespace Components

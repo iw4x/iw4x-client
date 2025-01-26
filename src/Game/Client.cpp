@@ -1,3 +1,4 @@
+#include "Client.hpp"
 
 namespace Game
 {

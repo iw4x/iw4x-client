@@ -1,3 +1,4 @@
+#include "Command.hpp"
 
 namespace Components
 {

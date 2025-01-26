@@ -1,3 +1,4 @@
+#include "Hooking.hpp"
 
 namespace Utils
 {

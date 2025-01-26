@@ -1,3 +1,4 @@
+#include "Library.hpp"
 
 namespace Utils
 {

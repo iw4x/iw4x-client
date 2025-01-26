@@ -1,6 +1,5 @@
-
-#include "Events.hpp"
 #include "StartupMessages.hpp"
+#include "Events.hpp"
 
 /*
   "StartupMessages::Show()" is initially called by the "checkFirstLaunch" UIScript in News.cpp,
