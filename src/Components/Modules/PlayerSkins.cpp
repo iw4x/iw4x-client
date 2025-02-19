@@ -404,9 +404,113 @@ namespace Components
 		return skin.enableBody ? bodiesScriptStrings[skin.bodyIndex] : bodiesScriptStrings[0];
 	}
 
+	static int highest = 0;
+	static bool initialized = false;
+	struct MemoryNode
+	{
+	  unsigned int padding[3];
+	};
+
+	constexpr auto MT_NODE_SIZE = 12;
+	
+	struct __declspec(align(128)) scrMemTreeGlob_t
+	{
+	  MemoryNode nodes[65536];
+	  unsigned int nodeBits[2048];
+	  unsigned int sizeBits[5];
+	  unsigned int head[17];
+	  unsigned int backtrackAmount[17];
+	  int totalAlloc;
+	  int totalAllocBuckets;
+	};
+	
+	struct $119B815E6C15BED54461C272BD343858
+	{
+	  unsigned __int32 refCount : 16;
+	  unsigned __int32 user : 8;
+	  unsigned __int32 byteLen : 8;
+	};
+
+	union $156C516D3E6908D9990BD5CCD794911D
+	{
+	  $119B815E6C15BED54461C272BD343858 __s0;
+	  volatile int data;
+	};
+
+	struct __declspec(align(4)) RefString
+	{
+	  $156C516D3E6908D9990BD5CCD794911D ___u0;
+	  char str[1];
+	};
+
+
+	const char * PlayerSkins::SL_ConvertToString(int a1)
+	{
+		Game::scrMemTreePub_t* tree = reinterpret_cast<Game::scrMemTreePub_t*>(0x1DC2200);
+
+		RefString* buff = reinterpret_cast<RefString*>(&tree->mt_buffer[a1 * MT_NODE_SIZE]);
+
+		const char * str = Game::SL_ConvertToString(static_cast<Game::scr_string_t>(a1));
+
+		assert(buff->str == str);
+
+		if(initialized){
+			for (size_t i = 0; i < ARRAYSIZE(PlayerSkins::headsScriptStrings); i++)
+			{
+				const char* n = Game::SL_ConvertToString(PlayerSkins::headsScriptStrings[i]);
+				assert(n);
+			}
+
+			for (size_t i = 0; i < ARRAYSIZE(PlayerSkins::bodiesScriptStrings); i++)
+			{
+				const char* n = Game::SL_ConvertToString(PlayerSkins::bodiesScriptStrings[i]);
+				assert(n);
+			}
+		}
+
+		if (a1 > highest)
+		{
+			std::ofstream output("test_refcount.txt" , std::ofstream::out | std::ofstream::trunc);
+
+			Logger::Print("========================\n");
+			highest = a1;
+
+			for (size_t i = 0; i < a1; i++)
+			{
+				RefString* ref = reinterpret_cast<RefString*>(&tree->mt_buffer[i * MT_NODE_SIZE]);
+				const char* str = ref->str;
+
+				output << std::format("{} => [{}] (refcount: {}  user: {})\n", i, str== nullptr ? "<NULLPTR>" : str, static_cast<int>(ref->___u0.__s0.refCount), static_cast<int>(ref->___u0.__s0.user));
+				//Logger::Print("{} => [{}] (refcount: {}  user: {})\n", i, str== nullptr ? "<NULLPTR>" : str, static_cast<int>(ref->___u0.__s0.refCount), static_cast<int>(ref->___u0.__s0.user));
+			}
+			
+			output.flush();
+			Logger::Print("========================\n");
+
+		}
+
+		return str;
+	}
+
+	void PlayerSkins::RegisterSkins()
+	{
+		CheckForbiddenHeadBodyCombinations();
+		RegisterConstantStrings();
+		RefreshPlayerSkinFromDvars();
+
+		initialized = true;
+
+		// Idk what this is, but pass it through
+		Utils::Hook::Call<void()>(0x4199D0)();
+	}
 
 	PlayerSkins::PlayerSkins()
 	{
+		//Utils::Hook(0x4C5ECC, SL_ConvertToString, HOOK_CALL).install()->quick();
+		//Utils::Hook(0x4C5ED6, SL_ConvertToString, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x4A76AC, RegisterSkins, HOOK_CALL).install()->quick();
+
 		currentSkin = {};
 		currentSkin.enableBody = 1;
 		currentSkin.enableHead = 1;
@@ -417,9 +521,7 @@ namespace Components
 
 		Components::Scheduler::OnGameInitialized([]() {
 
-			CheckForbiddenHeadBodyCombinations();
-			RegisterConstantStrings();
-			RefreshPlayerSkinFromDvars();
+
 			}, Components::Scheduler::Pipeline::SERVER
 		);
 

@@ -54,6 +54,9 @@ namespace Components
 		static Game::scr_string_t GetHeadName(const Skin& skin);
 		static Game::scr_string_t GetBodyName(const Skin& skin);
 
+		static void RegisterSkins();
+
 		static Skin currentSkin;
+		static const char* SL_ConvertToString(int a1);
 	};
 }
