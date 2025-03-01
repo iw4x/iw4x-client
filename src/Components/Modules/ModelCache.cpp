@@ -80,6 +80,19 @@ namespace Components
 		
 		assert(std::accumulate(found.begin(), found.end(), 0u) == found.size());
 
+		for (auto& netfield : Game::netfields)
+		{
+			static_assert(offsetof(Game::entityState_s, index) == 144);
+		
+			if (netfield.offset == offsetof(Game::entityState_s, index) && (netfield.name == "index"sv || netfield.name == "index.item"sv))
+			{
+				// Some of the bit lengths for these index fields are already 15
+				assert(netfield.bits <= 15);
+				
+				Utils::Hook::Set(&netfield.bits, std::max(15u, newBitLength));
+			}
+		}
+		
 		// Reallocate G_ModelIndex
 		Utils::Hook::Set(0x420654 + 3, ModelCache::cached_models_reallocated);
 		Utils::Hook::Set(0x43BCE4 + 3, ModelCache::cached_models_reallocated);
