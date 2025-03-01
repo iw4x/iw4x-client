@@ -35,40 +35,50 @@ namespace Components
 
 	ModelCache::ModelCache()
 	{
+		static constexpr std::array<std::string_view, 9> fieldsToUpdate
+		{
+			// clientState
+			"modelindex",
+			"attachModelIndex[0]",
+			"attachModelIndex[1]",
+			"attachModelIndex[2]",
+			"attachModelIndex[3]",
+			"attachModelIndex[4]",
+			"attachModelIndex[5]",
+		
+			// playerState
+			"viewmodelIndex",
+		
+			// entityState
+			"lerp.u.scriptMover.xModelIndex"
+		};
+		
 		// To push the model limit we need to update the network protocol because it uses custom integer size
 		// (currently 9 bits per model, not enough)
-		const auto oldBitLength = static_cast<size_t>(std::floor(std::log2(BASE_GMODEL_COUNT - 1)) + 1);
-		const auto newBitLength = static_cast<size_t>(std::floor(std::log2(G_MODELINDEX_LIMIT - 1)) + 1);
-
-		assert(oldBitLength == 9);
-
-		if (oldBitLength != newBitLength)
+		static constexpr auto oldBitLength = static_cast<size_t>(std::bit_width(static_cast<size_t>(BASE_GMODEL_COUNT - 1)));
+		static constexpr auto newBitLength = static_cast<size_t>(std::bit_width(static_cast<size_t>(G_MODELINDEX_LIMIT - 1)));
+		static_assert(oldBitLength == 9 && newBitLength == 12);
+		
+		std::array<bool, fieldsToUpdate.size()> found{};
+		
+		for (auto& netfield : Game::netfields)
 		{
-			static const std::unordered_set<std::string> fieldsToUpdate = {
-				"modelindex",
-				"attachModelIndex[0]",
-				"attachModelIndex[1]",
-				"attachModelIndex[2]",
-				"attachModelIndex[3]",
-				"attachModelIndex[4]",
-				"attachModelIndex[5]",
-			};
-
-			size_t currentBitOffset = 0;
-
-			for (size_t i = 0; i < Game::clientStateFieldsCount; i++)
+			for (size_t i = 0; i < fieldsToUpdate.size(); ++i)
 			{
-				auto field = & Game::clientStateFields[i];
-
-				if (fieldsToUpdate.contains(field->name))
+				if (!found[i] && netfield.name == fieldsToUpdate[i])
 				{
-					assert(static_cast<size_t>(field->bits) == oldBitLength);
-
-					Utils::Hook::Set(&field->bits, newBitLength);
-					currentBitOffset++;
+					assert(static_cast<size_t>(netfield.bits) == oldBitLength);
+		
+					Utils::Hook::Set(&netfield.bits, newBitLength);
+					found[i] = true;
+		
+					assert(static_cast<size_t>(netfield.bits) == newBitLength);
+					break;
 				}
 			}
 		}
+		
+		assert(std::accumulate(found.begin(), found.end(), 0u) == found.size());
 
 		// Reallocate G_ModelIndex
 		Utils::Hook::Set(0x420654 + 3, ModelCache::cached_models_reallocated);
