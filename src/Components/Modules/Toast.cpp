@@ -92,13 +92,13 @@ namespace Components
 		bHeight += (bHeight % 2);
 
 		// Background
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height - bHeight / 2), bWidth * 1.0f, bHeight * 1.0f, 0, 0, 1.0f, 1.0f, bgColor, *Game::whiteMaterial);
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height - bHeight / 2), bWidth * 1.0f, bHeight * 1.0f, 0, 0, 1.0f, 1.0f, bgColor, Game::sharedUiInfo->assets.whiteMaterial);
 
 		// Border
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 - border), static_cast<float>(height - bHeight / 2 - border), border * 1.0f, bHeight + (border * 2.0f), 0, 0, 1.0f, 1.0f, borderColor, *Game::whiteMaterial); // Left
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + bWidth), static_cast<float>(height - bHeight / 2 - border), border * 1.0f, bHeight + (border * 2.0f), 0, 0, 1.0f, 1.0f, borderColor, *Game::whiteMaterial); // Right
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height - bHeight / 2 - border), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, *Game::whiteMaterial); // Top
-		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height + bHeight / 2), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, *Game::whiteMaterial); // Bottom
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 - border), static_cast<float>(height - bHeight / 2 - border), border * 1.0f, bHeight + (border * 2.0f), 0, 0, 1.0f, 1.0f, borderColor, Game::sharedUiInfo->assets.whiteMaterial); // Left
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2 + bWidth), static_cast<float>(height - bHeight / 2 - border), border * 1.0f, bHeight + (border * 2.0f), 0, 0, 1.0f, 1.0f, borderColor, Game::sharedUiInfo->assets.whiteMaterial); // Right
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height - bHeight / 2 - border), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, Game::sharedUiInfo->assets.whiteMaterial); // Top
+		Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height + bHeight / 2), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, Game::sharedUiInfo->assets.whiteMaterial); // Bottom
 
 		// Image
 		Game::Material* image = toast->image;

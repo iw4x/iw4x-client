@@ -736,7 +736,7 @@ namespace Game
 
 	extern int* g_waitingForKey;
 
-	extern Material** whiteMaterial;
+	extern Game::cgMedia_t* cgMedia;
 
 	extern unsigned long* g_dwTlsIndex;
 

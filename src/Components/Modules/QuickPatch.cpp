@@ -401,7 +401,6 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x478BA2, 0xEB);
 
 		// fs_game fixes
-		Utils::Hook::Nop(0x4A5D74, 2); // remove fs_game profiles
 		Utils::Hook::Set<BYTE>(0x4081FD, 0xEB); // defaultweapon
 
 		// filesystem init default_mp.cfg check

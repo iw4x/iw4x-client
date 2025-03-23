@@ -13,10 +13,14 @@ namespace Components
 		static void UpdateClasses([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
 
 		static void SendStats();
-		static int SaveStats(char* dest, const char* folder, const char* buffer, int size);
 
 		static std::int64_t* GetStatsID();
 
 		static void AddScriptFunctions();
+
+		static void SprintfLiveStorageFilename(char* target, size_t size);
+		static void SprintfLiveStorageFilenameWithFsGame(char* target, size_t size, const char* fsGame);
+		
+		static void MoveOldStatsToNewFolder();
 	};
 }

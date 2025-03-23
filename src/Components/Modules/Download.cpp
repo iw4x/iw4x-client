@@ -342,15 +342,14 @@ namespace Components
 			Scheduler::Once([]
 			{
 				Game::Dvar_SetString(*Game::fs_gameDirVar, mod.data());
-				const_cast<Game::dvar_t*>((*Game::fs_gameDirVar))->modified = true;
 
 				mod.clear();
 
-				Command::Execute("closemenu mod_download_popmenu", false);
+				Command::Execute("closemenu mod_download_popmenu", true);
 
 				if (ModList::cl_modVidRestart.get<bool>())
 				{
-					Command::Execute("vid_restart", false);
+					Command::Execute("vid_restart", true);
 				}
 
 				Command::Execute("reconnect", false);

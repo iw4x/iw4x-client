@@ -204,8 +204,8 @@ namespace Components
 		}
 
 		auto* const scrPlace = Game::ScrPlace_GetActivePlacement(localClientNum);
-		Game::CL_DrawStretchPic(scrPlace, 10.0f, 10.0f, 100.0f, 10.0f, 1, 1, 0.0f, 0.0f, 1.0f, 1.0f, color1, *Game::whiteMaterial);
-		Game::CL_DrawStretchPic(scrPlace, 10.0f, 10.0f, 100.0f * healtha, 10.0f, 1, 1, 0.0f, 0.0f, healtha, 1.0f, color2, *Game::whiteMaterial);
+		Game::CL_DrawStretchPic(scrPlace, 10.0f, 10.0f, 100.0f, 10.0f, 1, 1, 0.0f, 0.0f, 1.0f, 1.0f, color1, Game::cgMedia->whiteMaterial);
+		Game::CL_DrawStretchPic(scrPlace, 10.0f, 10.0f, 100.0f * healtha, 10.0f, 1, 1, 0.0f, 0.0f, healtha, 1.0f, color2, Game::cgMedia->whiteMaterial);
 	}
 
 	void Debug::CG_Debug_DrawFontTest(const int localClientNum)
