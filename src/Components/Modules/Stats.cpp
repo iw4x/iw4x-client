@@ -194,6 +194,20 @@ namespace Components
 		}
 	}
 
+	uint32_t Stats::HashFilename()
+	{
+		return 0xFC30D07E;
+	}
+
+	__declspec(naked) void Stats::HashFilenameStub()
+	{
+		_asm
+		{
+			mov eax, 0xFC30D07E
+			retn
+		}
+	}
+
 	Stats::Stats()
 	{
 		// This UIScript should be added in the onClose code of the cac_popup menu,
@@ -204,6 +218,12 @@ namespace Components
 
 		// Allow playerdata to be changed while connected to a server
 		Utils::Hook::Set<BYTE>(0x4376FD, 0xEB);
+
+		// IW4x stats hashing used to be a constant because fs_game profiles were broken (Steam ID constant, filename constant)
+		// Now they're fixed, and so the hash is no longer constant. This is a problem for backward compatibility
+		// So we overwrite the function used specifically for Steam storage to return always the same hash
+		// The one we used to have our steam ID/filename combination
+		Utils::Hook(0x682DB0, HashFilenameStub, HOOK_JUMP).install()->quick();
 
 		// TODO: Allow playerdata changes in setPlayerData UI script.
 

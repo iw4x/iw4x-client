@@ -22,5 +22,8 @@ namespace Components
 		static void SprintfLiveStorageFilenameWithFsGame(char* target, size_t size, const char* fsGame);
 		
 		static void MoveOldStatsToNewFolder();
+
+		static uint32_t HashFilename();
+		static void HashFilenameStub();
 	};
 }
