@@ -496,7 +496,8 @@ namespace Components
 
 		Utils::Hook(Game::G_LogPrintf, G_LogPrintf_Hk, HOOK_JUMP).install()->quick();
 		Utils::Hook(Game::Com_PrintMessage, PrintMessage_Stub, HOOK_JUMP).install()->quick();
-
+		Utils::Hook(Game::Com_Printf, Print_Stub, HOOK_JUMP).install()->quick();
+	
 		Utils::Hook(0x5F67AE, LSP_LogString_Stub, HOOK_CALL).install()->quick(); // Scr_LogString
 		Utils::Hook(0x5F67EE, LSP_LogStringAboutUser_Stub, HOOK_CALL).install()->quick(); // ScrCmd_LogString_Stub
 
