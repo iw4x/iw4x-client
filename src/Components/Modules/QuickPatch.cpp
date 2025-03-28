@@ -351,8 +351,6 @@ namespace Components
 		// splash logo
 		Utils::Hook::Set<const char*>(0x475F9E, BASEGAME "/images/splash.bmp");
 
-		Utils::Hook::Set<const char*>(0x4876C6, "Successfully read stats data\n");
-
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
 		Utils::Hook::Set<BYTE>(0x45888C, Game::DVAR_CHEAT);
