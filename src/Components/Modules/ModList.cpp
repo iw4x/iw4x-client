@@ -154,6 +154,15 @@ namespace Components
 
 		Utils::Hook(0x62C1A1, StructuredData_GetString, HOOK_CALL).install()->quick();
 
+		// The "IWNET storage" system has a "caching" system that, just assumes any file requested twice
+		//	is identical between the two accesses if less than 500ms elapsed between them
+		// This destroys everything of course, if you mod reload then join a server again
+		// Stats get reloaded except if you do it too fast (<500ms) the new stats file never gets read and loaded
+		//	because IWNet Storage simply assumes it didn't move!
+		// Breaking with a debugger (for more than 500ms) makes the bug disappear.... nasty!
+		// This Nop removes that caching mechanism.
+		Utils::Hook::Nop(0x60A6DB, 6);
+
 
 		ModList::CurrentMod = 0;
 		cl_modVidRestart = Dvar::Register("cl_modVidRestart", true, Game::DVAR_ARCHIVE, "Perform a vid_restart when loading a mod.");
