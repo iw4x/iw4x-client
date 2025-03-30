@@ -8,7 +8,7 @@ namespace Components
 		Party();
 
 		static Network::Address Target();
-		static void Connect(Network::Address target);
+		static void Connect(Network::Address target, bool reconnect = true);
 		static const char* GetLobbyInfo(SteamID lobby, const std::string& key);
 		static void RemoveLobby(SteamID lobby);
 

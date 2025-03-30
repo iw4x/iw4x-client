@@ -39,7 +39,7 @@ namespace Components
 		InitiateClientDownload(map, needPassword, true);
 	}
 
-	void Download::InitiateClientDownload(const std::string& mod, bool needPassword, bool map)
+	void Download::InitiateClientDownload(const std::string& mod, bool needPassword, bool map, bool reconnect)
 	{
 		if (CLDownload.running_) return;
 
@@ -69,6 +69,7 @@ namespace Components
 		CLDownload.isMap_ = map;
 		CLDownload.mod_ = mod;
 		CLDownload.terminateThread_ = false;
+		CLDownload.reconnect_ = reconnect;
 		CLDownload.totalBytes_ = 0;
 		CLDownload.lastTimeStamp_ = 0;
 		CLDownload.downBytes_ = 0;
@@ -339,7 +340,7 @@ namespace Components
 		else
 		{
 			// Run this on the main thread
-			Scheduler::Once([]
+			Scheduler::Once([download]
 			{
 				Game::Dvar_SetString(*Game::fs_gameDirVar, mod.data());
 
@@ -353,9 +354,12 @@ namespace Components
 					Logger::Print("Restarting video...\n");
 					Command::Execute("vid_restart");
 				}
-				
-				Logger::Print("Reconnecting to server...\n");
-				Command::Execute("reconnect");
+
+				if (download->reconnect_)
+				{
+					Logger::Print("Reconnecting to server...\n");
+					Command::Execute("reconnect");
+				}
 			}, Scheduler::Pipeline::MAIN);
 		}
 	}
