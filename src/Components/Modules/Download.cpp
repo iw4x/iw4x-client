@@ -341,27 +341,37 @@ namespace Components
 		{
 			// Run this on the main thread
 			Scheduler::Once([download]
-			{
-				Game::Dvar_SetString(*Game::fs_gameDirVar, mod.data());
-
-				Logger::Print("Mod {} downloaded!\n", mod);
-				mod.clear();
-
-				Command::Execute("closemenu mod_download_popmenu");
-
-				if (ModList::cl_modVidRestart.get<bool>())
 				{
-					Logger::Print("Restarting video...\n");
-					Command::Execute("vid_restart");
-				}
+					Game::Dvar_SetString(*Game::fs_gameDirVar, mod.data());
 
-				if (download->reconnect_)
-				{
-					Logger::Print("Reconnecting to server...\n");
-					Command::Execute("reconnect");
-				}
-			}, Scheduler::Pipeline::MAIN);
-		}
+					auto stat_file = (*Game::fs_basepath)->current.string + "\\players\\"s + mod + "\\iw4x.stat"s;
+					bool stat_exists = Utils::IO::FileExists(stat_file);
+
+					Logger::Print("Mod {} downloaded!\n", mod);
+					mod.clear();
+
+					Command::Execute("closemenu mod_download_popmenu");
+
+					if (!stat_exists)
+					{
+						Logger::Print("Opening stats menu...\n");
+						Command::Execute("openmenu stats_mod_warning");
+					}
+					else {
+						if (ModList::cl_modVidRestart.get<bool>())
+						{
+							Logger::Print("Restarting video...\n");
+							Command::Execute("vid_restart");
+						}
+
+						if (download->reconnect_)
+						{
+							Logger::Print("Reconnecting to server...\n");
+							Command::Execute("reconnect");
+						}
+					}
+				}, Scheduler::Pipeline::MAIN);
+			}
 	}
 
 	void Download::DownloadProgress(FileDownload* fDownload, std::size_t bytes)
