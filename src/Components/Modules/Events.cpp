@@ -217,20 +217,26 @@ namespace Components
 
 	void __declspec(naked) Events::CL_Disconnect_Stub()
 	{
+		static const DWORD original = 0x40354D;
+
 		__asm
 		{
-			pushad;
-			push bx;
-			call CL_Disconnect_Hk;
-			pop bx;
-			popad;
+			// original code first
+			je end
 
-			// Original code
-			pop edi;
-			pop esi;
-			pop ebp;
-			pop ebx;
-			retn;
+			push [esp + 4]
+			call original
+			add esp, 4
+
+			// Once all is done, call our hook
+			pushad
+			push bx
+			call CL_Disconnect_Hk
+			pop bx
+			popad
+
+			end:
+				retn
 		}
 	}
 	
@@ -378,6 +384,6 @@ namespace Components
 
 		Utils::Hook(0x4B5422, UI_Init_Hk, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x403727, CL_Disconnect_Stub, HOOK_JUMP).install()->quick(); // CL_Disconnect but later
+		Utils::Hook(0x403547, CL_Disconnect_Stub, HOOK_JUMP).install()->quick(); // CL_Disconnect but at the very end, whether we were connected or not
 	}
 }
