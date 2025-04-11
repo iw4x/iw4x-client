@@ -1013,12 +1013,12 @@ namespace Components
 		Logger::Print(" --------------------------------------------------------------------------------\n");
 		Logger::Print(" IW4x ZoneBuilder - {}\n", REVISION_STR);
 		Logger::Print(" Commands:\n");
-		Logger::Print("\t-buildmod [mod name]: Build a mod.ff from the source located in zone_source/mod_name.csv\n");
-		Logger::Print("\t-buildzone [zone]: Builds a zone from a csv located in zone_source\n");
-		Logger::Print("\t-dumpzone [zone]: Loads and dump the specified zone in userraw/dump\n");
-		Logger::Print("\t-verifyzone [zone]: loads and verifies the specified zone\n");
-		Logger::Print("\t-listassets [assettype]: lists all loaded assets of the specified type\n");
-		Logger::Print("\t-quit: quits the program\n");
+		Logger::Print("\t\u2022 buildmod [mod name]: Build a mod.ff from the source located in zone_source/mod_name.csv\n");
+		Logger::Print("\t\u2022 buildzone [zone]: Builds a zone from a csv located in zone_source\n");
+		Logger::Print("\t\u2022 dumpzone [zone]: Loads and dump the specified zone in userraw/dump\n");
+		Logger::Print("\t\u2022 verifyzone [zone]: Loads and verifies the specified zone\n");
+		Logger::Print("\t\u2022 listassets [assettype]: Lists all loaded assets of the specified type\n");
+		Logger::Print("\t\u2022 quit: Quits the program\n");
 		Logger::Print(" --------------------------------------------------------------------------------\n");
 
 		// now run main loop until quit
