@@ -383,7 +383,7 @@ namespace Components
 
 			Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
 
-			const auto url = std::format("http://iw4x.getserve.rs/v1/servers/iw4x?protocol={}", PROTOCOL);
+			const auto url = std::format("http://iw4x.dev/v1/servers/iw4x?protocol={}", PROTOCOL);
 			const auto reply = Utils::WebIO("IW4x", url).setTimeout(5000)->get();
 			if (reply.empty())
 			{
