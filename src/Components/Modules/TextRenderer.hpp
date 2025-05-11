@@ -18,12 +18,12 @@ namespace Components
 		TEXT_COLOR_SERVER = 11, // using that color in infostrings (e.g. your name) fails, ';' is an illegal character!
 
 		TEXT_COLOR_REAL_PINK = 12,
-		TEXT_COLOR_ORANGE = 13,
+		TEXT_COLOR_REAL_YELLOW = 13,
 		TEXT_COLOR_DARK_PURPLE = 14,
 		TEXT_COLOR_TEAL = 15,
 		TEXT_COLOR_INVALIDCHAR = 16, // 16 = @, can't be typed ingame
 		TEXT_COLOR_OLIVE = 17,
-		TEXT_COLOR_GRAY = 18,
+		TEXT_COLOR_BLURPLE = 18,
 		TEXT_COLOR_PURE_RED = 19,
 		TEXT_COLOR_PURE_GREEN = 20,
 		TEXT_COLOR_PURE_BLUE = 21,

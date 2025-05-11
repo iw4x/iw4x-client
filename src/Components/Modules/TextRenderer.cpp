@@ -24,12 +24,12 @@ namespace Components
 		ColorRgb(255, 255, 255),    // TEXT_COLOR_SERVER
 
 		ColorRgb(200, 75, 200),     // TEXT_COLOR_REAL_PINK
-		ColorRgb(255, 165, 0),      // TEXT_COLOR_ORANGE
+		ColorRgb(255, 240, 20),     // TEXT_COLOR_REAL_YELLOW
 		ColorRgb(128, 0, 128),      // TEXT_COLOR_DARK_PURPLE
 		ColorRgb(20, 180, 180),     // TEXT_COLOR_TEAL
 		ColorRgb(255, 255, 255),    // TEXT_COLOR_INVALIDCHAR 16 = @, can't be typed ingame
 		ColorRgb(60, 75, 35),       // TEXT_COLOR_OLIVE
-		ColorRgb(128, 128, 128),    // TEXT_COLOR_GRAY
+		ColorRgb(93, 23, 255),      // TEXT_COLOR_BLURPLE
 		ColorRgb(255, 0, 0),        // TEXT_COLOR_PURE_RED
 		ColorRgb(0, 255, 0),        // TEXT_COLOR_PURE_GREEN
 		ColorRgb(0, 0, 255),        // TEXT_COLOR_PURE_BLUE
@@ -57,12 +57,12 @@ namespace Components
 		ColorRgb(255, 255, 255),    // TEXT_COLOR_SERVER
 
 		ColorRgb(200, 75, 200),     // TEXT_COLOR_REAL_PINK
-		ColorRgb(255, 165, 0),      // TEXT_COLOR_ORANGE
+		ColorRgb(255, 240, 20),     // TEXT_COLOR_REAL_YELLOW
 		ColorRgb(128, 0, 128),      // TEXT_COLOR_DARK_PURPLE
 		ColorRgb(20, 180, 180),     // TEXT_COLOR_TEAL
 		ColorRgb(255, 255, 255),    // TEXT_COLOR_INVALIDCHAR 16 = @, can't be typed ingame
 		ColorRgb(60, 75, 35),       // TEXT_COLOR_OLIVE
-		ColorRgb(128, 128, 128),    // TEXT_COLOR_GRAY
+		ColorRgb(93, 23, 255),      // TEXT_COLOR_BLURPLE
 		ColorRgb(255, 0, 0),        // TEXT_COLOR_PURE_RED
 		ColorRgb(0, 255, 0),        // TEXT_COLOR_PURE_GREEN
 		ColorRgb(0, 0, 255),        // TEXT_COLOR_PURE_BLUE
