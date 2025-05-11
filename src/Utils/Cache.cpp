@@ -5,7 +5,7 @@ namespace Utils
 	const char* Cache::Urls[] =
 	{
 		"https://raw.githubusercontent.com/iw4x/iw4x-cache",
-		"https://iw4x.getserve.rs/v1",
+		"https://iw4x.dev/v1",
 	};
 
 	std::string Cache::ValidUrl;
