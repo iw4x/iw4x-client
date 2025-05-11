@@ -344,15 +344,15 @@ namespace Components
 				{
 					Game::Dvar_SetString(*Game::fs_gameDirVar, mod.data());
 
-					auto stat_file = (*Game::fs_basepath)->current.string + "\\players\\"s + mod + "\\iw4x.stat"s;
-					bool stat_exists = Utils::IO::FileExists(stat_file);
+					auto statFile = (*Game::fs_basepath)->current.string + "\\players\\"s + mod + "\\iw4x.stat"s;
+					bool statFileExists = Utils::IO::FileExists(statFile);
 
 					Logger::Print("Mod {} downloaded!\n", mod);
 					mod.clear();
 
 					Command::Execute("closemenu mod_download_popmenu");
 
-					if (!stat_exists)
+					if (!statFileExists)
 					{
 						Logger::Print("Opening stats menu...\n");
 						Command::Execute("openmenu stats_mod_warning");

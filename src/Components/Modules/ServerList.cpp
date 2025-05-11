@@ -1001,7 +1001,7 @@ namespace Components
 				}
 			});
 
-		UIScript::Add("LoadMod", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
+		UIScript::Add("DownloadServerMod", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 			{
 				auto* serverInfo = GetServer(CurrentServer);
 				if (serverInfo)
