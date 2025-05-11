@@ -35,7 +35,7 @@ namespace Components
 		MessagePrint(channel, std::string{ buf });
 	}
 
-	void Logger::MessagePrint(const int channel, const std::string& msg)
+	void Logger::MessagePrint(int channel, const std::string& msg)
 	{
 		static const auto shouldPrint = []() -> bool
 		{
@@ -44,9 +44,10 @@ namespace Components
 
 			if (shouldPrint)
 			{
-				(void)std::fputs(msg.data(), stdout);
-				(void)std::fflush(stdout);
-				return;
+				if (channel == Game::CON_CHANNEL_LOGFILEONLY)
+				{
+					channel = Game::CON_CHANNEL_DONT_FILTER;
+				}
 			}
 
 #ifdef _DEBUG
@@ -247,7 +248,7 @@ namespace Components
 			push esi
 			mov esi, [esp + 0Ch]
 
-			push 4AA835h
+			push 4AA835h // Com_PrintMessage
 			ret
 		}
 	}
