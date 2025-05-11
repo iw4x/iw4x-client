@@ -27,7 +27,7 @@ namespace Components
 		std::string motd;
 		DWORD joinTime;
 		bool valid;
-		bool reconnect;
+		bool downloadOnly;
 		int matchType;
 
 		Utils::InfoString info;
@@ -60,7 +60,7 @@ namespace Components
 		return Container.target;
 	}
 
-	void Party::Connect(Network::Address target, bool reconnect)
+	void Party::Connect(Network::Address target, bool downloadOnly)
 	{
 		Node::Add(target);
 
@@ -69,7 +69,7 @@ namespace Components
 		Container.joinTime = Game::Sys_Milliseconds();
 		Container.target = target;
 		Container.challenge = Utils::Cryptography::Rand::GenerateChallenge();
-		Container.reconnect = reconnect;
+		Container.downloadOnly = downloadOnly;
 
 		Network::SendCommand(Container.target, "getinfo", Container.challenge);
 
@@ -533,7 +533,7 @@ namespace Components
 					else if (!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
 					{
 						Command::Execute("closemenu popup_reconnectingtoparty");
-						Download::InitiateClientDownload(info.get("fs_game"), info.get("isPrivate") == "1"s, false, Container.reconnect);
+						Download::InitiateClientDownload(info.get("fs_game"), info.get("isPrivate") == "1"s, false, Container.downloadOnly);
 					}
 					else if ((*Game::fs_gameDirVar)->current.string[0] != '\0' && info.get("fs_game").empty())
 					{

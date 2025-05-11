@@ -39,7 +39,7 @@ namespace Components
 		InitiateClientDownload(map, needPassword, true);
 	}
 
-	void Download::InitiateClientDownload(const std::string& mod, bool needPassword, bool map, bool reconnect)
+	void Download::InitiateClientDownload(const std::string& mod, bool needPassword, bool map, bool downloadOnly)
 	{
 		if (CLDownload.running_) return;
 
@@ -69,7 +69,7 @@ namespace Components
 		CLDownload.isMap_ = map;
 		CLDownload.mod_ = mod;
 		CLDownload.terminateThread_ = false;
-		CLDownload.reconnect_ = reconnect;
+		CLDownload.downloadOnly_ = downloadOnly;
 		CLDownload.totalBytes_ = 0;
 		CLDownload.lastTimeStamp_ = 0;
 		CLDownload.downBytes_ = 0;
@@ -364,7 +364,7 @@ namespace Components
 							Command::Execute("vid_restart");
 						}
 
-						if (download->reconnect_)
+						if (!download->downloadOnly_)
 						{
 							Logger::Print("Reconnecting to server...\n");
 							Command::Execute("reconnect");

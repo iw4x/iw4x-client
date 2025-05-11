@@ -30,13 +30,13 @@ namespace Components
 		class ClientDownload
 		{
 		public:
-			ClientDownload(bool isMap = false, bool reconnect = true) : running_(false), valid_(false), terminateThread_(false), isMap_(isMap), reconnect_(reconnect), totalBytes_(0), downBytes_(0), lastTimeStamp_(0), timeStampBytes_(0) {}
+			ClientDownload(bool isMap = false, bool downloadOnly = false) : running_(false), valid_(false), terminateThread_(false), isMap_(isMap), downloadOnly_(downloadOnly), totalBytes_(0), downBytes_(0), lastTimeStamp_(0), timeStampBytes_(0) {}
 			~ClientDownload() { this->clear(); }
 
 			bool running_;
 			bool valid_;
 			bool terminateThread_;
-			bool reconnect_;
+			bool downloadOnly_;
 			bool isMap_;
 			bool isPrivate_;
 			Network::Address target_;
