@@ -1006,7 +1006,7 @@ namespace Components
 				auto* serverInfo = GetServer(CurrentServer);
 				if (serverInfo)
 				{
-					Party::Connect(serverInfo->addr, false);
+					Party::Connect(serverInfo->addr, true);
 				}
 			});
 

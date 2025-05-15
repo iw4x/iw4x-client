@@ -14,7 +14,7 @@ namespace Components
 
 		void preDestroy() override;
 
-		static void InitiateClientDownload(const std::string& mod, bool needPassword, bool map = false, bool reconnect = true);
+		static void InitiateClientDownload(const std::string& mod, bool needPassword, bool map = false, bool downloadOnly = false);
 		static void InitiateMapDownload(const std::string& map, bool needPassword);
 
 		static void ReplyError(mg_connection* connection, int code, std::string messageOverride = {});

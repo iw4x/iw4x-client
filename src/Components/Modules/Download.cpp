@@ -352,7 +352,7 @@ namespace Components
 
 					Command::Execute("closemenu mod_download_popmenu");
 
-					if (!statFileExists)
+					if (!statFileExists && !download->downloadOnly_)
 					{
 						Logger::Print("Opening stats menu...\n");
 						Command::Execute("openmenu stats_mod_warning");
