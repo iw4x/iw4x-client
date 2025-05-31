@@ -22,6 +22,23 @@ namespace Components
 		ColorRgb(255, 255, 255),    // TEXT_COLOR_ALLIES
 		ColorRgb(255, 255, 255),    // TEXT_COLOR_RAINBOW
 		ColorRgb(255, 255, 255),    // TEXT_COLOR_SERVER
+
+		ColorRgb(200, 75, 200),     // TEXT_COLOR_REAL_PINK
+		ColorRgb(255, 240, 20),     // TEXT_COLOR_REAL_YELLOW
+		ColorRgb(128, 0, 128),      // TEXT_COLOR_DARK_PURPLE
+		ColorRgb(20, 180, 180),     // TEXT_COLOR_TEAL
+		ColorRgb(255, 255, 255),    // TEXT_COLOR_INVALIDCHAR 16 = @, can't be typed ingame
+		ColorRgb(60, 75, 35),       // TEXT_COLOR_OLIVE
+		ColorRgb(93, 23, 255),      // TEXT_COLOR_BLURPLE
+		ColorRgb(255, 0, 0),        // TEXT_COLOR_PURE_RED
+		ColorRgb(0, 255, 0),        // TEXT_COLOR_PURE_GREEN
+		ColorRgb(0, 0, 255),        // TEXT_COLOR_PURE_BLUE
+		ColorRgb(128, 0, 0),        // TEXT_COLOR_MAROON
+		ColorRgb(255, 105, 180),    // TEXT_COLOR_HOT_PINK
+		ColorRgb(170, 240, 209),    // TEXT_COLOR_MINT
+		ColorRgb(255, 213, 165),    // TEXT_COLOR_PEACH
+		ColorRgb(187, 231, 151),    // TEXT_COLOR_PASTEL_GREEN
+		ColorRgb(255, 120, 120),    // TEXT_COLOR_LIGHT_RED
 	};
 
 	unsigned TextRenderer::colorTableNew[TEXT_COLOR_COUNT]
@@ -38,6 +55,23 @@ namespace Components
 		ColorRgb(255, 255, 255),    // TEXT_COLOR_ALLIES
 		ColorRgb(255, 255, 255),    // TEXT_COLOR_RAINBOW
 		ColorRgb(255, 255, 255),    // TEXT_COLOR_SERVER
+
+		ColorRgb(200, 75, 200),     // TEXT_COLOR_REAL_PINK
+		ColorRgb(255, 240, 20),     // TEXT_COLOR_REAL_YELLOW
+		ColorRgb(128, 0, 128),      // TEXT_COLOR_DARK_PURPLE
+		ColorRgb(20, 180, 180),     // TEXT_COLOR_TEAL
+		ColorRgb(255, 255, 255),    // TEXT_COLOR_INVALIDCHAR 16 = @, can't be typed ingame
+		ColorRgb(60, 75, 35),       // TEXT_COLOR_OLIVE
+		ColorRgb(93, 23, 255),      // TEXT_COLOR_BLURPLE
+		ColorRgb(255, 0, 0),        // TEXT_COLOR_PURE_RED
+		ColorRgb(0, 255, 0),        // TEXT_COLOR_PURE_GREEN
+		ColorRgb(0, 0, 255),        // TEXT_COLOR_PURE_BLUE
+		ColorRgb(128, 0, 0),        // TEXT_COLOR_MAROON
+		ColorRgb(255, 105, 180),    // TEXT_COLOR_HOT_PINK
+		ColorRgb(170, 240, 209),    // TEXT_COLOR_MINT
+		ColorRgb(255, 213, 165),    // TEXT_COLOR_PEACH
+		ColorRgb(187, 231, 151),    // TEXT_COLOR_PASTEL_GREEN
+		ColorRgb(255, 120, 120),    // TEXT_COLOR_LIGHT_RED
 	};
 
 	unsigned(*TextRenderer::currentColorTable)[TEXT_COLOR_COUNT];
