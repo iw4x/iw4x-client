@@ -16,6 +16,7 @@ namespace Components
 	{
 	public:
 		RawMouse();
+		~RawMouse();
 
 		static void IN_MouseMove();
 

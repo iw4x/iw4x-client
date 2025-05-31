@@ -7,7 +7,7 @@ namespace Components
 	public:
 		Changelog();
 
-		static void LoadChangelog();
+		static void SetChangelog(const std::string& changelog);
 
 	private:
 		static std::mutex Mutex;

@@ -256,4 +256,21 @@ namespace Utils
 	{
 		return !(base1 + len1 <= base2 || base2 + len2 <= base1);
 	}
+
+	std::string GetTime()
+	{
+		// Get the current time
+		std::time_t currentTime = std::time(nullptr);
+
+		std::tm* localTime = std::localtime(&currentTime);
+		if (!localTime)
+		{
+			return "Failed to get local time";
+		}
+
+		std::ostringstream timeStream;
+		timeStream << std::put_time(localTime, "%c");
+
+		return timeStream.str();
+	}
 }

@@ -35,10 +35,10 @@ namespace Components
 				Game::MSG_WriteString(&msg, "stats");
 
 				// get stat buffer
-				char *statbuffer = nullptr;
+				char* statbuffer = nullptr;
 				if (Utils::Hook::Call<int(int)>(0x444CA0)(0))
 				{
-					statbuffer = &Utils::Hook::Call<char *(int)>(0x4C49F0)(0)[1240 * i];
+					statbuffer = &Utils::Hook::Call<char* (int)>(0x4C49F0)(0)[1240 * i];
 				}
 
 				// Client port?
@@ -64,63 +64,148 @@ namespace Components
 		SendStats();
 	}
 
-	int Stats::SaveStats(char* dest, const char* folder, const char* buffer, int size)
-	{
-		assert(*Game::fs_gameDirVar);
-	
-		const auto modsFolder = Utils::String::ToLower((*Game::fs_gameDirVar)->current.string);
-		if (modsFolder.starts_with("mods/"))
-		{
-			folder = (*Game::fs_gameDirVar)->current.string;
-		}
-
-		return Utils::Hook::Call<int(char*, const char*, const char*, int)>(0x426450)(dest, folder, buffer, size);
-	}
-
 	void Stats::AddScriptFunctions()
 	{
 		GSC::Script::AddMethod("GetStat", [](const Game::scr_entref_t entref)
-		{
-			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
-			const auto index = Game::Scr_GetInt(0);
-
-			if (index < 0 || index > 3499)
 			{
-				Game::Scr_ParamError(0, Utils::String::VA("GetStat: invalid index %i", index));
-			}
+				const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+				const auto index = Game::Scr_GetInt(0);
 
-			if (ent->client->sess.connected <= Game::CON_DISCONNECTED)
-			{
-				Game::Scr_Error("GetStat: called on a disconnected player");
-			}
+				if (index < 0 || index > 3499)
+				{
+					Game::Scr_ParamError(0, Utils::String::VA("GetStat: invalid index %i", index));
+				}
 
-			Game::Scr_AddInt(Game::SV_GetClientStat(ent->s.number, index));
-		});
+				if (ent->client->sess.connected <= Game::CON_DISCONNECTED)
+				{
+					Game::Scr_Error("GetStat: called on a disconnected player");
+				}
+
+				Game::Scr_AddInt(Game::SV_GetClientStat(ent->s.number, index));
+			});
 
 		GSC::Script::AddMethod("SetStat", [](const Game::scr_entref_t entref)
+			{
+				const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+
+				const auto iNumParms = Game::Scr_GetNumParam();
+				if (iNumParms != 2)
+				{
+					Game::Scr_Error(Utils::String::VA("GetStat: takes 2 arguments, got %u.", iNumParms));
+				}
+
+				const auto index = Game::Scr_GetInt(0);
+				if (index < 0 || index > 3499)
+				{
+					Game::Scr_ParamError(0, Utils::String::VA("setstat: invalid index %i", index));
+				}
+
+				const auto value = Game::Scr_GetInt(1);
+				if (index < 2000 && (value < 0 || value > 255))
+				{
+					Game::Scr_ParamError(1, Utils::String::VA("setstat: index %i is a byte value, and you're trying to set it to %i", index, value));
+				}
+
+				Game::SV_SetClientStat(ent->s.number, index, value);
+			});
+	}
+
+	void Stats::SprintfLiveStorageFilename(char* target, size_t size)
+	{
+		const auto fsGame = (*Game::fs_gameDirVar)->current.string;
+
+		if (*fsGame)
 		{
-			const auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+			SprintfLiveStorageFilenameWithFsGame(target, size, fsGame);
+		}
+		else
+		{
+			constexpr auto STATS_FILE = "iw4x.stat";
+			const auto length = strnlen(STATS_FILE, size);
+			std::strncpy(target, STATS_FILE, length);
 
-			const auto iNumParms = Game::Scr_GetNumParam();
-			if (iNumParms != 2)
+			if (length < size)
 			{
-				Game::Scr_Error(Utils::String::VA("GetStat: takes 2 arguments, got %u.", iNumParms));
+				target[length] = '\x00';
 			}
+		}
+	}
 
-			const auto index = Game::Scr_GetInt(0);
-			if (index < 0 || index > 3499)
+	
+	void Stats::SprintfLiveStorageFilenameWithFsGame(char* target, size_t size, const char* fsGame)
+	{
+		size_t fsGameLength = strnlen(fsGame, size);
+
+		constexpr auto baseStatName = BASEGAME ".stat";
+		const size_t baseStatNameLength = strnlen(baseStatName, 16);
+
+		std::memcpy(target, fsGame, fsGameLength);
+
+		// +1 for / and +1 for null terminator
+		if (fsGameLength + baseStatNameLength + 1 + 1 > size)
+		{
+			std::memcpy(&target[size - baseStatNameLength - 1], baseStatName, baseStatNameLength);
+			target[size - baseStatNameLength - 2] = '\\';
+			target[size - 1] = '\x00';
+		}
+		else
+		{
+			const auto lastPosition = fsGameLength + 1 + baseStatNameLength;
+			assert(lastPosition < size);
+
+			target[fsGameLength] = '\\';
+			std::memcpy(&target[fsGameLength + 1], baseStatName, baseStatNameLength);
+			target[lastPosition] = '\x00';
+		}	
+	}
+
+	// Old iw4x versions used to write stats in the mods directory. Now we do it like CoD4 does - player directory.
+	void Stats::MoveOldStatsToNewFolder()
+	{
+		const auto basePath = (*Game::fs_basepath)->current.string + "\\mods"s;
+
+		auto modFolders = FileSystem::GetSysFileList(basePath, "", true);
+		
+		constexpr size_t statsDirLength = 32;
+		char statsDirName[statsDirLength]; // 32 is how big the game allocates it normally
+
+		for (auto modName : modFolders)
+		{
+			const auto fsName = "mods\\"s + modName;
+
+			SprintfLiveStorageFilenameWithFsGame(statsDirName, statsDirLength, fsName.data());
+
+			const auto newFileName = statsDirName;
+			const auto newFile = FileSystem::File(newFileName);
+			if (!newFile.exists())
 			{
-				Game::Scr_ParamError(0, Utils::String::VA("setstat: invalid index %i", index));
+				const auto oldFilePath = basePath + "\\" + modName + "\\iw4x.stat";
+				if (Utils::IO::FileExists(oldFilePath))
+				{
+					if (Utils::IO::WriteFile(
+						(*Game::fs_basepath)->current.string + "\\players\\"s + newFileName,
+						Utils::IO::ReadFile(oldFilePath)
+					))
+					{
+						Utils::IO::RemoveFile(oldFilePath);
+					}
+				}
 			}
+		}
+	}
 
-			const auto value = Game::Scr_GetInt(1);
-			if (index < 2000 && (value < 0 || value > 255))
-			{
-				Game::Scr_ParamError(1, Utils::String::VA("setstat: index %i is a byte value, and you're trying to set it to %i", index, value));
-			}
+	uint32_t Stats::HashFilename()
+	{
+		return 0xFC30D07E;
+	}
 
-			Game::SV_SetClientStat(ent->s.number, index, value);
-		});
+	__declspec(naked) void Stats::HashFilenameStub()
+	{
+		_asm
+		{
+			mov eax, 0xFC30D07E
+			retn
+		}
 	}
 
 	Stats::Stats()
@@ -134,10 +219,18 @@ namespace Components
 		// Allow playerdata to be changed while connected to a server
 		Utils::Hook::Set<BYTE>(0x4376FD, 0xEB);
 
+		// IW4x stats hashing used to be a constant because fs_game profiles were broken (Steam ID constant, filename constant)
+		// Now they're fixed, and so the hash is no longer constant. This is a problem for backward compatibility
+		// So we overwrite the function used specifically for Steam storage to return always the same hash
+		// The one we used to have our steam ID/filename combination
+		Utils::Hook(0x682DB0, HashFilenameStub, HOOK_JUMP).install()->quick();
+
 		// TODO: Allow playerdata changes in setPlayerData UI script.
 
 		// Rename stat file
-		Utils::Hook::SetString(0x71C048, "iw4x.stat");
+		Utils::Hook::SetString(0x71C048, "%s");
+		Utils::Hook(0x4A5D85, SprintfLiveStorageFilename, HOOK_CALL).install()->quick(); // Non-Modded
+		Utils::Hook(0x4A5D9D, SprintfLiveStorageFilename, HOOK_CALL).install()->quick(); // Modded
 
 		// Patch stats steamid
 		Utils::Hook::Nop(0x682EBF, 20);
@@ -145,43 +238,48 @@ namespace Components
 
 		Utils::Hook(0x682EBF, GetStatsID, HOOK_CALL).install()->quick();
 		Utils::Hook(0x6830B1, GetStatsID, HOOK_CALL).install()->quick();
-		//Utils::Hook::Set<BYTE>(0x68323A, 0xEB);
 
+		// Set custom class names even when FS_Game is active
+		Utils::Hook::Nop(0x4B091B, 2);
+		Utils::Hook::Nop(0x60A48D, 2);
+		Utils::Hook::Nop(0x479A20, 2);
+		
 		// Never use remote stat saving
 		Utils::Hook::Set<BYTE>(0x682F39, 0xEB);
 
 		// Don't create stat backup
 		Utils::Hook::Nop(0x402CE6, 2);
 
-		// Write stats to mod folder if a mod is loaded
-		Utils::Hook(0x682F7B, SaveStats, HOOK_CALL).install()->quick();
-
 		AddScriptFunctions();
 
 		// Skip silly Com_Error (LiveStorage_SetStat)
 		Utils::Hook::Set<BYTE>(0x4CC5F9, 0xEB);
 
+		Scheduler::Once([](){
+			MoveOldStatsToNewFolder();
+		}, Components::Scheduler::Pipeline::MAIN);
+
 		// 'M' Seems to be used on Xbox only for parsing platform specific ranks
 		ServerCommands::OnCommand('M', [](const Command::Params* params)
-		{
-			const auto* arg1 = params->get(1);
-			const auto* arg2 = params->get(2);
+			{
+				const auto* arg1 = params->get(1);
+				const auto* arg2 = params->get(2);
 
-			Game::LiveStorage_SetStat(Game::CL_ControllerIndexFromClientNum(0), std::atoi(arg1), std::atoi(arg2));
-			return true;
-		});
+				Game::LiveStorage_SetStat(Game::CL_ControllerIndexFromClientNum(0), std::atoi(arg1), std::atoi(arg2));
+				return true;
+			});
 
 		Command::Add("statGet", [](const Command::Params* params)
-		{
-			if (params->size() < 2)
 			{
-				Logger::Print("statget usage: statget <index>\n");
-				return;
-			}
+				if (params->size() < 2)
+				{
+					Logger::Print("statget usage: statget <index>\n");
+					return;
+				}
 
-			const auto index = std::strtol(params->get(1), nullptr, 0);
-			const auto stat = Game::LiveStorage_GetStat(0, index);
-			Logger::Print(Game::CON_CHANNEL_SYSTEM, "Stat {}: {}\n", index, stat);
-		});
+				const auto index = std::strtol(params->get(1), nullptr, 0);
+				const auto stat = Game::LiveStorage_GetStat(0, index);
+				Logger::Print(Game::CON_CHANNEL_SYSTEM, "Stat {}: {}\n", index, stat);
+			});
 	}
 }

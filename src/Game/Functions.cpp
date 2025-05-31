@@ -372,7 +372,7 @@ namespace Game
 
 	int* g_waitingForKey = reinterpret_cast<int*>(0x63A50FC);
 
-	Material** whiteMaterial = reinterpret_cast<Material**>(0x8EE4B8);
+	Game::cgMedia_t* cgMedia = reinterpret_cast<Game::cgMedia_t*>(0x8EE4B8);
 
 	unsigned long* g_dwTlsIndex = reinterpret_cast<unsigned long*>(0x66D94A8);
 
@@ -401,6 +401,8 @@ namespace Game
 	bool* s_havePlaylists = reinterpret_cast<bool*>(0x1AD3680);
 
 	huffman_t* msgHuff = reinterpret_cast<huffman_t*>(0x1CB9EC0);
+
+	const char* logFileName = reinterpret_cast<const char*>(0x730130);
 
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{

@@ -31,6 +31,8 @@ namespace Game
 
 	searchpath_s** fs_searchpaths = reinterpret_cast<searchpath_s**>(0x63D96E0);
 
+	char* fs_gamedir = reinterpret_cast<char*>(0x63D0BB8);
+
 	int FS_FOpenFileReadCurrentThread(const char* filename, int* file)
 	{
 		if (GetCurrentThreadId() == *reinterpret_cast<DWORD*>(0x1CDE7FC))

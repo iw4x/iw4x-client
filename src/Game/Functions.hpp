@@ -736,7 +736,7 @@ namespace Game
 
 	extern int* g_waitingForKey;
 
-	extern Material** whiteMaterial;
+	extern Game::cgMedia_t* cgMedia;
 
 	extern unsigned long* g_dwTlsIndex;
 
@@ -766,6 +766,8 @@ namespace Game
 	extern bool* s_havePlaylists;
 
 	extern huffman_t* msgHuff;
+
+	extern const char* logFileName;
 
 	constexpr auto MAX_MSGLEN = 0x20000;
 

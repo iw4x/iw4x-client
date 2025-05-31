@@ -378,6 +378,65 @@ namespace Components
 		return Utils::Hook::Call<Game::HunkUser*(int, const char*, bool, int)>(0x430E90)(maxSize, name, fixed, type);
 	}
 
+	bool FileSystem::FileWrapper_Rotate(const char* ospath)
+	{
+		constexpr auto MAX_BACKUPS = 20;
+
+		std::string renamedPath;
+
+		std::optional<int> oldestIndex;
+		auto currentIndex = 0;
+		std::filesystem::file_time_type oldestime{};
+
+		// Check if the original file exists
+		if (!Utils::IO::FileExists(ospath))
+		{
+			return true; // Return true if the file does not exist (no file to rotate)
+		}
+
+		for (; currentIndex < MAX_BACKUPS; ++currentIndex)
+		{
+			renamedPath = std::format("{0}.{1:03}", ospath, currentIndex);
+
+			if (!Utils::IO::FileExists(renamedPath))
+			{
+				break; // Stop if an available slot is found
+			}
+
+			auto time = std::filesystem::last_write_time(renamedPath);
+			if (!oldestIndex.has_value() || time < oldestime)
+			{
+				oldestime = time;
+				oldestIndex = currentIndex;
+			}
+		}
+
+		if (currentIndex == MAX_BACKUPS)
+		{
+			renamedPath = std::format("{0}.{1:03}", ospath, *oldestIndex);
+			Utils::IO::RemoveFile(renamedPath); // Remove the oldest backup file
+		}
+		else
+		{
+			renamedPath = std::format("{0}.{1:03}", ospath, currentIndex);
+		}
+
+		// Rename the original file to the selected backup slot
+		std::error_code ec;
+		std::filesystem::rename(ospath, renamedPath, ec);
+
+		return !ec;
+	}
+
+	bool FileSystem::FileRotate(const std::string& filename)
+	{
+		std::array<char, MAX_OSPATH> ospath{};
+
+		const auto* basepath = (*Game::fs_homepath)->current.string;
+		Game::FS_BuildOSPath(basepath, Game::fs_gamedir, filename.c_str(), ospath.data());
+		return FileWrapper_Rotate(ospath.data());
+	}
+
 	FileSystem::FileSystem()
 	{
 		// Thread safe file system interaction

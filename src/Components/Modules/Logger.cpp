@@ -1,4 +1,5 @@
 
+#include "Branding.hpp"
 #include "Console.hpp"
 #include "Events.hpp"
 
@@ -34,18 +35,19 @@ namespace Components
 		MessagePrint(channel, std::string{ buf });
 	}
 
-	void Logger::MessagePrint(const int channel, const std::string& msg)
+	void Logger::MessagePrint(int channel, const std::string& msg)
 	{
 		static const auto shouldPrint = []() -> bool
-			{
-				return Flags::HasFlag("stdout");
-			}();
+		{
+			return Flags::HasFlag("stdout");
+		}();
 
 			if (shouldPrint)
 			{
-				(void)std::fputs(msg.data(), stdout);
-				(void)std::fflush(stdout);
-				return;
+				if (channel == Game::CON_CHANNEL_LOGFILEONLY)
+				{
+					channel = Game::CON_CHANNEL_DONT_FILTER;
+				}
 			}
 
 #ifdef _DEBUG
@@ -119,33 +121,33 @@ namespace Components
 	void Logger::PrintFail2BanInternal(const std::string_view& fmt, std::format_args&& args)
 	{
 		static const auto shouldPrint = []() -> bool
-			{
-				return Flags::HasFlag("fail2ban");
-			}();
+		{
+			return Flags::HasFlag("fail2ban");
+		}();
 
-			if (!shouldPrint)
-			{
-				return;
-			}
+		if (!shouldPrint)
+		{
+			return;
+		}
 
-			auto msg = std::vformat(fmt, args);
+		auto msg = std::vformat(fmt, args);
 
-			static auto log_next_time_stamp = true;
-			if (log_next_time_stamp)
-			{
-				auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-				// Convert to local time
-				std::tm timeInfo = *std::localtime(&now);
+		static auto log_next_time_stamp = true;
+		if (log_next_time_stamp)
+		{
+			auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+			// Convert to local time
+			std::tm timeInfo = *std::localtime(&now);
 
-				std::ostringstream ss;
-				ss << std::put_time(&timeInfo, "%Y-%m-%d %H:%M:%S ");
+			std::ostringstream ss;
+			ss << std::put_time(&timeInfo, "%Y-%m-%d %H:%M:%S ");
 
-				msg.insert(0, ss.str());
-			}
+			msg.insert(0, ss.str());
+		}
 
-			log_next_time_stamp = (msg.find('\n') != std::string::npos);
+		log_next_time_stamp = (msg.find('\n') != std::string::npos);
 
-			Utils::IO::WriteFile(IW4x_fail2ban_location.get<std::string>(), msg, true);
+		Utils::IO::WriteFile(IW4x_fail2ban_location.get<std::string>(), msg, true);
 	}
 
 	void Logger::Frame()
@@ -233,21 +235,21 @@ namespace Components
 			popad
 			ret
 
-			returnPrint :
+		returnPrint:
 			pushad
 
-				push 0 // gLog
-				push[esp + 2Ch] // data
-				call NetworkLog
-				add esp, 8h
+			push 0 // gLog
+			push[esp + 2Ch] // data
+			call NetworkLog
+			add esp, 8h
 
-				popad
+			popad
 
-				push esi
-				mov esi, [esp + 0Ch]
+			push esi
+			mov esi, [esp + 0Ch]
 
-				push 4AA835h
-				ret
+			push 4AA835h // Com_PrintMessage
+			ret
 		}
 	}
 
@@ -438,6 +440,44 @@ namespace Components
 		}
 	}
 
+	void Logger::Com_OpenLogFile_Stub()
+	{
+		// 16 should be enough as realistically someone will probably not run as many servers
+		// the code below will try 16 times to find an open slot between any of the 'backup' slots
+		constexpr auto MAX_LOGFILE_CREATE_ATTEMPTS = 16;
+
+		std::string logfile;
+
+		if (!Game::Sys_IsMainThread() || *Game::opening_qconsole)
+		{
+			return;
+		}
+
+		*Game::opening_qconsole = true;
+
+		for (auto i = 0; i < MAX_LOGFILE_CREATE_ATTEMPTS; ++i)
+		{
+			logfile = (i == 0) ? Game::logFileName : std::format("{0}.{1:03}", Game::logFileName, i);
+
+			if (!FileSystem::FileRotate(logfile))
+			{
+				continue;
+			}
+
+			*Game::logfile = Game::FS_FOpenTextFileWrite(logfile.c_str());
+			if (*Game::logfile)
+			{
+				Game::Com_Printf(Game::CON_CHANNEL_SYSTEM, "\'%s\'\n", Game::Com_GetCommandLine());
+				const auto time = Utils::GetTime();
+				Game::Com_Printf(Game::CON_CHANNEL_SYSTEM, "Build %s. Logfile opened on %s\n", Branding::GetBuildNumber(), time.c_str());
+				break; // Stop attempting further backups
+			}
+		}
+
+		*Game::opening_qconsole = false;
+		*Game::com_consoleLogOpenFailed = *Game::logfile == 0;
+	}
+
 	Logger::Logger()
 	{
 		// Print sound aliases errors
@@ -451,11 +491,14 @@ namespace Components
 
 		Utils::Hook(0x642139, BuildOSPath_Stub, HOOK_JUMP).install()->quick();
 
+		Utils::Hook(0x60A9A3, Com_OpenLogFile_Stub, HOOK_CALL).install()->quick();
+
 		Scheduler::Loop(Frame, Scheduler::Pipeline::SERVER);
 
 		Utils::Hook(Game::G_LogPrintf, G_LogPrintf_Hk, HOOK_JUMP).install()->quick();
 		Utils::Hook(Game::Com_PrintMessage, PrintMessage_Stub, HOOK_JUMP).install()->quick();
-
+		Utils::Hook(Game::Com_Printf, Print_Stub, HOOK_JUMP).install()->quick();
+	
 		Utils::Hook(0x5F67AE, LSP_LogString_Stub, HOOK_CALL).install()->quick(); // Scr_LogString
 		Utils::Hook(0x5F67EE, LSP_LogStringAboutUser_Stub, HOOK_CALL).install()->quick(); // ScrCmd_LogString_Stub
 

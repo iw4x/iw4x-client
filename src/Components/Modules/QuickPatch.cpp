@@ -351,8 +351,6 @@ namespace Components
 		// splash logo
 		Utils::Hook::Set<const char*>(0x475F9E, BASEGAME "/images/splash.bmp");
 
-		Utils::Hook::Set<const char*>(0x4876C6, "Successfully read stats data\n");
-
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
 		Utils::Hook::Set<BYTE>(0x45888C, Game::DVAR_CHEAT);
@@ -401,7 +399,6 @@ namespace Components
 		Utils::Hook::Set<BYTE>(0x478BA2, 0xEB);
 
 		// fs_game fixes
-		Utils::Hook::Nop(0x4A5D74, 2); // remove fs_game profiles
 		Utils::Hook::Set<BYTE>(0x4081FD, 0xEB); // defaultweapon
 
 		// filesystem init default_mp.cfg check
@@ -423,7 +420,7 @@ namespace Components
 		// intro stuff
 		Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
 		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset the intro dvar
-		Utils::Hook::Set<const char*>(0x60BED2, "unskippablecinematic IW_logo\n");
+		Utils::Hook::Set<const char*>(0x60BED2, "cinematic IW_logo\n");
 		Utils::Hook::Set<const char*>(0x51C2A4, "%s\\" BASEGAME "\\video\\%s.bik");
 		Utils::Hook::Set<DWORD>(0x51C2C2, 0x78A0AC);
 

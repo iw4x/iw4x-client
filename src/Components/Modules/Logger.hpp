@@ -150,5 +150,7 @@ namespace Components
 		static void LSP_LogStringAboutUser_Stub(int localControllerIndex, std::uint64_t xuid, const char* string);
 
 		static void AddServerCommands();
+
+		static void Com_OpenLogFile_Stub();
 	};
 }

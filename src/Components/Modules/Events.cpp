@@ -9,6 +9,7 @@ namespace Components
 	Utils::Concurrency::Container<Events::Callback> Events::ClientInitTasks_;
 	Utils::Concurrency::Container<Events::Callback> Events::ServerInitTasks_;
 	Utils::Concurrency::Container<Events::Callback> Events::DvarInitTasks_;
+	Utils::Concurrency::Container<Events::CLDisconnectCallback> Events::CL_DisconnectedTask_;
 	Utils::Concurrency::Container<Events::Callback> Events::NetworkInitTasks_;
 	Utils::Concurrency::Container<Events::Callback> Events::CGameInitTasks_;
 	Utils::Concurrency::Container<Events::Callback> Events::UIInitTasks_;
@@ -35,6 +36,14 @@ namespace Components
 	void Events::OnSteamDisconnect(const std::function<void()>& callback)
 	{
 		SteamDisconnectTasks_.access([&callback](Callback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
+	}
+
+	void Events::OnCLDisconnected(const std::function<void(bool)>& callback)
+	{
+		CL_DisconnectedTask_.access([&callback](CLDisconnectCallback& tasks)
 		{
 			tasks.emplace_back(callback);
 		});
@@ -149,6 +158,8 @@ namespace Components
 		Utils::Hook::Call<void()>(0x467CC0)(); // LiveSteam_Client_SteamDisconnect
 	}
 
+
+
 	void Events::Scr_ShutdownSystem_Hk(unsigned char sys)
 	{
 		ShutdownSystemTasks_.access([](Callback& tasks)
@@ -202,6 +213,42 @@ namespace Components
 			popad
 			ret
 		}
+	}
+
+	void __declspec(naked) Events::CL_Disconnect_Stub()
+	{
+		static const DWORD original = 0x40354D;
+
+		__asm
+		{
+			// original code first
+			je end
+
+			push [esp + 4]
+			call original
+			add esp, 4
+
+			// Once all is done, call our hook
+			pushad
+			push bx
+			call CL_Disconnect_Hk
+			pop bx
+			popad
+
+			end:
+				retn
+		}
+	}
+	
+	void Events::CL_Disconnect_Hk(bool wasConnected)
+	{
+		CL_DisconnectedTask_.access([&](CLDisconnectCallback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func(wasConnected);
+			}
+		});
 	}
 
 	void Events::CL_KeyMove(Game::usercmd_s* cmd)
@@ -336,5 +383,7 @@ namespace Components
 		Utils::Hook(0x4FD4D4, NET_OpenSocks_Hk, HOOK_JUMP).install()->quick(); // NET_OpenIP
 
 		Utils::Hook(0x4B5422, UI_Init_Hk, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x403547, CL_Disconnect_Stub, HOOK_JUMP).install()->quick(); // CL_Disconnect but at the very end, whether we were connected or not
 	}
 }

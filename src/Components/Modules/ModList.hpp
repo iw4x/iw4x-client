@@ -19,6 +19,8 @@ namespace Components
 
 		static void ClearMods();
 
+		static CHAR* StructuredData_GetString(Game::StructuredDataLookup* lookup, Game::StructuredDataBuffer* buffer);
+
 		static unsigned int GetItemCount();
 		static const char* GetItemText(unsigned int index, int column);
 		static void Select(unsigned int index);

@@ -359,10 +359,10 @@ namespace Components
 		R_AutoPriority = Dvar::Var("r_autopriority");
 		R_FullScreen = Dvar::Var(0x069F0DA0);
 
-#if true
+	#if true
 		// https://github.com/iw4x/iw4x-client/issues/177
 		M_RawInput.set(false);
-#endif
+	#endif
 
 	}
 
@@ -377,12 +377,13 @@ namespace Components
 
 	BOOL RawMouse::IN_RecenterMouse()
 	{
-		RECT clientRect;
+		RECT clientRect{ };
+		HWND window = Window::GetWindow();
 
-		GetClientRect(Window::GetWindow(), &clientRect);
+		GetClientRect(window, &clientRect);
 
-		ClientToScreen(Window::GetWindow(), std::bit_cast<POINT*>(&clientRect.left));
-		ClientToScreen(Window::GetWindow(), std::bit_cast<POINT*>(&clientRect.right));
+		ClientToScreen(window, std::bit_cast<POINT*>(&clientRect.left));
+		ClientToScreen(window, std::bit_cast<POINT*>(&clientRect.right));
 
 		return ClipCursor(&clientRect);
 	}
@@ -507,5 +508,19 @@ namespace Components
 
 		Window::OnWndMessage(WM_INPUT, OnRawInput);
 		Window::OnCreate(IN_RawMouse_Init);
+	}
+
+	RawMouse::~RawMouse()
+	{
+		// Cursor is a shared resource. When the game window is
+		// destroyed, one might assume that the cursor
+		// automatically becomes unclipped. This is not the
+		// case—the cursor remains in a clipped state, locked to
+		// the bounds of the now-nonexistent game window until
+		// we explicitly relinquish control.
+		//
+		// https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-clipcursor#remarks
+		//
+		ClipCursor(NULL);
 	}
 }

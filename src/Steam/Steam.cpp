@@ -125,7 +125,6 @@ namespace Steam
 #ifdef _DEBUG
 				OutputDebugStringA("Steam proxy not initialized properly");
 #endif
-				Components::StartupMessages::AddMessage("Warning:\nUnable to connect to Steam. Steam features will be unavailable");
 			}
 			else
 			{

@@ -9,6 +9,7 @@ namespace Components
 		using ClientConnectCallback = std::vector<std::function<void(Game::client_s* cl)>>;
 		using ClientCallback = std::vector<std::function<void(int clientNum)>>;
 		using ClientCmdCallback = std::vector<std::function<void(Game::usercmd_s* cmd)>>;
+		using CLDisconnectCallback = std::vector<std::function<void(bool wasConnected)>>;
 
 		Events();
 
@@ -20,6 +21,9 @@ namespace Components
 
 		// Client side
 		static void OnSteamDisconnect(const std::function<void()>& callback);
+
+		// Client side - called at the VERY END of CL_Disconnect
+		static void OnCLDisconnected(const std::function<void(bool)>& callback);
 
 		static void OnVMShutdown(const std::function<void()>& callback);
 
@@ -55,6 +59,7 @@ namespace Components
 		static Utils::Concurrency::Container<Callback> NetworkInitTasks_;
 		static Utils::Concurrency::Container<Callback> CGameInitTasks_;
 		static Utils::Concurrency::Container<Callback> UIInitTasks_;
+		static Utils::Concurrency::Container<CLDisconnectCallback> CL_DisconnectedTask_;
 
 		// For speed this one does not use concurrency container. Be careful
 		static ClientCmdCallback ClientCmdButtonsTasks_;
@@ -65,9 +70,11 @@ namespace Components
 		static void SteamDisconnect_Hk();
 		static void Scr_ShutdownSystem_Hk(unsigned char sys);
 		static void CL_InitOnceForAllClients_HK();
+		static void CL_Disconnect_Hk(bool wasConnected);
 
 		static void CL_CmdButtons(Game::usercmd_s* cmd);
 		static void CL_CmdButtons_Stub();
+		static void CL_Disconnect_Stub();
 		static void CL_KeyMove(Game::usercmd_s* cmd);
 		static void CL_KeyMove_Stub();
 		static void SV_Init_Hk();
