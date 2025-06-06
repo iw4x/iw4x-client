@@ -533,12 +533,6 @@ namespace Game
 	typedef void(*IN_MouseMove_t)();
 	extern IN_MouseMove_t IN_MouseMove;
 
-	typedef void(*IN_MouseEvent_t)(int flags);
-	extern IN_MouseEvent_t IN_MouseEvent;
-
-	typedef void(*IN_Frame_t)();
-	extern IN_Frame_t IN_Frame;
-
 	typedef void(*IN_Init_t)();
 	extern IN_Init_t IN_Init;
 
