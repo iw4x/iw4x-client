@@ -101,7 +101,7 @@ namespace Components
 			}
 
 			Network::Address address(params->get(1));
-			const auto hash = std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&address.getIP().bytes[0]));
+			const auto hash = std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(address.getIP().bytes));
 
 			if (address.isValid() && std::ranges::find(RConAddresses, hash) == RConAddresses.end())
 			{
@@ -250,7 +250,7 @@ namespace Components
 
 		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data)
 		{
-			const auto hash = std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&address.getIP().bytes[0]));
+			const auto hash = std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(address.getIP().bytes));
 			if (!RConAddresses.empty() && std::ranges::find(RConAddresses, hash) == RConAddresses.end())
 			{
 				return;
@@ -274,7 +274,7 @@ namespace Components
 
 		Network::OnClientPacket("rconSafe", [](const Network::Address& address, [[maybe_unused]] const std::string& data) -> void
 		{
-			const auto hash = std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&address.getIP().bytes[0]));
+			const auto hash = std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(address.getIP().bytes));
 			if (!RConAddresses.empty() && std::ranges::find(RConAddresses, hash) == RConAddresses.end())
 			{
 				return;
