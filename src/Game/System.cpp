@@ -26,14 +26,6 @@ namespace Game
 	Sys_OutOfMemErrorInternal_t Sys_OutOfMemErrorInternal = Sys_OutOfMemErrorInternal_t(0x4B2E60);
 	Sys_QuitAndStartProcess_t Sys_QuitAndStartProcess = Sys_QuitAndStartProcess_t(0x45FCF0);
 
-	Sys_QueEvent_t Sys_QueEvent = Sys_QueEvent_t(0x497DE0);
-
-	void Sys_QueEvents(int time, int type, int value2, int ptrLength, void* ptr)
-	{
-		Sys_QueEvent(time, type, value2, TRUE, ptrLength, ptr);
-		Sys_QueEvent(time, type, value2, FALSE, ptrLength, ptr);
-	}
-
 	char(*sys_exitCmdLine)[1024] = reinterpret_cast<char(*)[1024]>(0x649FB68);
 	char(*sys_cmdline)[1024] = reinterpret_cast<char(*)[1024]>(0x649F760);
 
