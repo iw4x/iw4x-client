@@ -81,6 +81,11 @@ namespace Components
 
 		if (GetForegroundWindow() == Window::GetWindow())
 		{
+			if (r_fullscreen.get<bool>())
+			{
+				IN_ClampMouseMove();
+			}
+
 			static auto oldX = 0, oldY = 0;
 
 			auto dx = MouseRawX - oldX;
@@ -97,14 +102,11 @@ namespace Components
 			ScreenToClient(Window::GetWindow(), &curPos);
 
 			Gamepad::OnMouseMove(curPos.x, curPos.y, dx, dy);
-
 			auto recenterMouse = Game::CL_MouseEvent(curPos.x, curPos.y, dx, dy);
-
-			ClipCursor(NULL);
 
 			if (recenterMouse)
 			{
-				RawMouse::IN_RecenterMouse();
+				Game::IN_RecenterMouse();
 			}
 		}
 	}
@@ -131,18 +133,6 @@ namespace Components
 		IN_RawMouse_Init();
 	}
 
-	BOOL RawMouse::IN_RecenterMouse()
-	{
-		RECT clientRect;
-
-		GetClientRect(Window::GetWindow(), &clientRect);
-
-		ClientToScreen(Window::GetWindow(), std::bit_cast<POINT*>(&clientRect.left));
-		ClientToScreen(Window::GetWindow(), std::bit_cast<POINT*>(&clientRect.right));
-
-		return ClipCursor(&clientRect);
-	}
-
 	void RawMouse::IN_MouseMove()
 	{
 		if (M_RawInput.get<bool>())
@@ -162,9 +152,6 @@ namespace Components
 
 		Utils::Hook(0x467C03, IN_Init, HOOK_CALL).install()->quick();
 		Utils::Hook(0x64D095, IN_Init, HOOK_JUMP).install()->quick();
-
-		Utils::Hook(0x473517, IN_RecenterMouse, HOOK_CALL).install()->quick();
-		Utils::Hook(0x64C520, IN_RecenterMouse, HOOK_CALL).install()->quick();
 
 		M_RawInput = Dvar::Register<bool>("m_rawinput", true, Game::DVAR_ARCHIVE, "Use raw mouse input, Improves accuracy & has better support for higher polling rates");
 
