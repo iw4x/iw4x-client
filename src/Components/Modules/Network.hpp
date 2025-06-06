@@ -92,6 +92,6 @@ struct std::hash<Components::Network::Address>
 {
 	std::size_t operator()(const Components::Network::Address& x) const noexcept
 	{
-		return std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&x.getIP().bytes[0])) ^ std::hash<std::uint16_t>()(x.getPort());
+		return std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(x.getIP().bytes)) ^ std::hash<std::uint16_t>()(x.getPort());
 	}
 };
