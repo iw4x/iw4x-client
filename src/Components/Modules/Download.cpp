@@ -39,7 +39,7 @@ namespace Components
 		InitiateClientDownload(map, needPassword, true);
 	}
 
-	void Download::InitiateClientDownload(const std::string& mod, bool needPassword, bool map)
+	void Download::InitiateClientDownload(const std::string& mod, bool needPassword, bool map, bool downloadOnly)
 	{
 		if (CLDownload.running_) return;
 
@@ -69,6 +69,7 @@ namespace Components
 		CLDownload.isMap_ = map;
 		CLDownload.mod_ = mod;
 		CLDownload.terminateThread_ = false;
+		CLDownload.downloadOnly_ = downloadOnly;
 		CLDownload.totalBytes_ = 0;
 		CLDownload.lastTimeStamp_ = 0;
 		CLDownload.downBytes_ = 0;
@@ -339,25 +340,38 @@ namespace Components
 		else
 		{
 			// Run this on the main thread
-			Scheduler::Once([]
-			{
-				Game::Dvar_SetString(*Game::fs_gameDirVar, mod.data());
-
-				Logger::Print("Mod {} downloaded!\n", mod);
-				mod.clear();
-
-				Command::Execute("closemenu mod_download_popmenu");
-
-				if (ModList::cl_modVidRestart.get<bool>())
+			Scheduler::Once([download]
 				{
-					Logger::Print("Restarting video...\n");
-					Command::Execute("vid_restart");
-				}
-				
-				Logger::Print("Reconnecting to server...\n");
-				Command::Execute("reconnect");
-			}, Scheduler::Pipeline::MAIN);
-		}
+					Game::Dvar_SetString(*Game::fs_gameDirVar, mod.data());
+
+					auto statFile = (*Game::fs_basepath)->current.string + "\\players\\"s + mod + "\\iw4x.stat"s;
+					bool statFileExists = Utils::IO::FileExists(statFile);
+
+					Logger::Print("Mod {} downloaded!\n", mod);
+					mod.clear();
+
+					Command::Execute("closemenu mod_download_popmenu");
+
+					if (!statFileExists && !download->downloadOnly_)
+					{
+						Logger::Print("Opening stats menu...\n");
+						Command::Execute("openmenu stats_mod_warning");
+					}
+					else {
+						if (ModList::cl_modVidRestart.get<bool>())
+						{
+							Logger::Print("Restarting video...\n");
+							Command::Execute("vid_restart");
+						}
+
+						if (!download->downloadOnly_)
+						{
+							Logger::Print("Reconnecting to server...\n");
+							Command::Execute("reconnect");
+						}
+					}
+				}, Scheduler::Pipeline::MAIN);
+			}
 	}
 
 	void Download::DownloadProgress(FileDownload* fDownload, std::size_t bytes)

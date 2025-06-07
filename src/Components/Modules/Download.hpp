@@ -14,7 +14,7 @@ namespace Components
 
 		void preDestroy() override;
 
-		static void InitiateClientDownload(const std::string& mod, bool needPassword, bool map = false);
+		static void InitiateClientDownload(const std::string& mod, bool needPassword, bool map = false, bool downloadOnly = false);
 		static void InitiateMapDownload(const std::string& map, bool needPassword);
 
 		static void ReplyError(mg_connection* connection, int code, std::string messageOverride = {});
@@ -30,12 +30,13 @@ namespace Components
 		class ClientDownload
 		{
 		public:
-			ClientDownload(bool isMap = false) : running_(false), valid_(false), terminateThread_(false), isMap_(isMap), totalBytes_(0), downBytes_(0), lastTimeStamp_(0), timeStampBytes_(0) {}
+			ClientDownload(bool isMap = false, bool downloadOnly = false) : running_(false), valid_(false), terminateThread_(false), isMap_(isMap), downloadOnly_(downloadOnly), totalBytes_(0), downBytes_(0), lastTimeStamp_(0), timeStampBytes_(0) {}
 			~ClientDownload() { this->clear(); }
 
 			bool running_;
 			bool valid_;
 			bool terminateThread_;
+			bool downloadOnly_;
 			bool isMap_;
 			bool isPrivate_;
 			Network::Address target_;
