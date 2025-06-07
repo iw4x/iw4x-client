@@ -231,6 +231,12 @@ namespace Components
 			return false;
 		}
 
+		if (Party::IsEnabled() && Dvar::Var("party_host").get<bool>())
+		{
+			Logger::Warning(Game::CON_CHANNEL_SERVER, "Not performing map rotation as we are hosting a lobby server!\n");
+			return false;
+		}
+
 		return true;
 	}
 
