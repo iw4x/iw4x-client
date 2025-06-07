@@ -217,16 +217,23 @@ namespace Components
 
 	bool MapRotation::ShouldRotate()
 	{
-		if (!Dedicated::IsEnabled() && SVDontRotate.get<bool>())
+		if (!Dedicated::IsEnabled() && Dvar::Var("party_host").get<bool>())
+		{
+			Logger::Warning(Game::CON_CHANNEL_SERVER, "Not performing map rotation as we are hosting a party!\n");
+			SVDontRotate.set(true);
+			return false;
+		}
+
+		if (Dedicated::IsEnabled() && SVDontRotate.get<bool>())
 		{
 			Logger::Print(Game::CON_CHANNEL_SERVER, "Not performing map rotation as sv_dontRotate is true\n");
-			SVDontRotate.set(false);
+			SVDontRotate.set(true);
 			return false;
 		}
 
 		if (Party::IsEnabled() && Dvar::Var("party_host").get<bool>())
 		{
-			Logger::Warning(Game::CON_CHANNEL_SERVER, "Not performing map rotation as we are hosting a party!\n");
+			Logger::Warning(Game::CON_CHANNEL_SERVER, "Not performing map rotation as we are hosting a lobby server!\n");
 			return false;
 		}
 
