@@ -25,3 +25,10 @@ trim_trailing_whitespace = true
 #
 [*.{[Mm][Dd],[Mm][Kk][Dd],[Mm][Dd][Oo][Ww][Nn],[Mm][Kk][Dd][Oo][Ww][Nn],[Mm][Aa][Rr][Kk][Dd][Oo][Ww][Nn]}]
 trim_trailing_whitespace = false
+
+# Shell scripts should always use LF line endings, as required by
+# Unix-like environments. CRLF endings, which are typical of Windows, will
+# refuse to execute when a script is interpreted by /bin/sh or similar shells.
+#
+[*.sh]
+end_of_line = lf
