@@ -110,28 +110,30 @@ namespace Steam
 
 		if (!flag.has_value())
 		{
-			flag = Components::Flags::HasFlag("nosteam");
+			flag = Components::Flags::HasFlag("steam");
 		}
 
-		return !flag.value();
+		return flag.value();
 	}
 
 	extern "C"
 	{
 		bool SteamAPI_Init()
 		{
-			Proxy::SetGame(10190);
+			if (Steam::Enabled()) {
+				Proxy::SetGame(10190);
 
-			if (!Proxy::Inititalize())
-			{
+				if (!Proxy::Inititalize())
+				{
 #ifdef _DEBUG
-				OutputDebugStringA("Steam proxy not initialized properly");
+					OutputDebugStringA("Steam proxy not initialized properly");
 #endif
-			}
-			else
-			{
-				Proxy::SetMod("IW4x: Modern Warfare 2");
-				Proxy::RunGame();
+				}
+				else
+				{
+					Proxy::SetMod("IW4x: Modern Warfare 2");
+					Proxy::RunGame();
+				}
 			}
 
 			return true;
