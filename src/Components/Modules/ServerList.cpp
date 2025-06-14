@@ -1,11 +1,11 @@
 #include <Utils/InfoString.hpp>
 #include <Utils/WebIO.hpp>
 
-#include "ServerList.hpp"
 #include "Discovery.hpp"
 #include "Events.hpp"
 #include "Node.hpp"
 #include "Party.hpp"
+#include "ServerList.hpp"
 #include "TextRenderer.hpp"
 #include "Toast.hpp"
 #include "UIFeeder.hpp"
@@ -204,7 +204,7 @@ namespace Components
 
 		if (tempList.empty())
 		{
-			Refresh(UIScript::Token(), info);
+			Refresh(false);
 		}
 		else
 		{
@@ -238,7 +238,7 @@ namespace Components
 
 		if (refresh)
 		{
-			Refresh(UIScript::Token(), info);
+			Refresh(false);
 			return;
 		}
 
@@ -353,7 +353,7 @@ namespace Components
 		Logger::Print("Response from the master server was successfully parsed. We got {} servers\n", count);
 	}
 
-	void ServerList::Refresh([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
+	void ServerList::Refresh(bool is_retry)
 	{
 		Dvar::Var("ui_serverSelected").set(false);
 
@@ -383,13 +383,20 @@ namespace Components
 
 			Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
 
-			const auto url = std::format("http://iw4x.dev/v1/servers/iw4x?protocol={}", PROTOCOL);
+			const auto host = is_retry ? "nocf.iw4x.dev" : "iw4x.dev";
+			const auto url = std::format("http://{}/v1/servers/iw4x?protocol={}", host, PROTOCOL);
 			const auto reply = Utils::WebIO("IW4x", url).setTimeout(5000)->get();
-			if (reply.empty())
+			if (reply.empty() && is_retry)
 			{
 				Logger::Print("Response from {} was empty or the request timed out. Using the Node System\n", url);
 				Toast::Show("cardicon_headshot", "^1Error", std::format("Could not get a response from {}. Using the Node System", url), 5000);
 				UseMasterServer = false;
+				return;
+			}
+			else if (reply.empty()) {
+				Logger::Print("Couldn't reach main server, retrying backup server\n");
+				Toast::Show("cardicon_headshot", "^1Error", std::format("Could not get a response from {}. Retrying backup server", url), 5000);
+				Refresh(true);
 				return;
 			}
 
@@ -932,14 +939,14 @@ namespace Components
 		Events::OnDvarInit([]
 			{
 				UIServerSelected = Dvar::Register<bool>("ui_serverSelected", false,
-				Game::DVAR_NONE, "Whether a server has been selected in the serverlist");
-		UIServerSelectedMap = Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan",
-			Game::DVAR_NONE, "Map of the selected server");
+					Game::DVAR_NONE, "Whether a server has been selected in the serverlist");
+				UIServerSelectedMap = Dvar::Register<const char*>("ui_serverSelectedMap", "mp_afghan",
+					Game::DVAR_NONE, "Map of the selected server");
 
-		NETServerQueryLimit = Dvar::Register<int>("net_serverQueryLimit", 1,
-			1, 10, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server queries per frame");
-		NETServerFrames = Dvar::Register<int>("net_serverFrames", 30,
-			1, 60, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server query frames per second");
+				NETServerQueryLimit = Dvar::Register<int>("net_serverQueryLimit", 1,
+					1, 10, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server queries per frame");
+				NETServerFrames = Dvar::Register<int>("net_serverFrames", 30,
+					1, 60, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server query frames per second");
 			});
 
 		// Fix ui_netsource dvar
@@ -990,7 +997,9 @@ namespace Components
 		UIScript::Add("UpdateFilter", RefreshVisibleList);
 		UIScript::Add("RefreshFilter", UpdateVisibleList);
 
-		UIScript::Add("RefreshServers", Refresh);
+		UIScript::Add("RefreshServers", [](const UIScript::Token&, const Game::uiInfo_s*) {
+			ServerList::Refresh(false);
+			});
 
 		UIScript::Add("JoinServer", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 			{
