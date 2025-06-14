@@ -156,7 +156,6 @@ namespace Utils
 		auto* exeBaseName = std::wcsrchr(binaryPath, L'\\');
 		exeBaseName[0] = L'\0';
 
-		// Make the game work without the AlterWare launcher
 		SetCurrentDirectoryW(binaryPath);
 	}
 
