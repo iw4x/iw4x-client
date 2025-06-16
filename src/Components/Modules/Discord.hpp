@@ -7,7 +7,7 @@ namespace Components
 	public:
 		Discord();
 
-		static std::string GetDiscordServerLink() { return "https://discord.gg/2ETE8engZM"; }
+		static std::string GetDiscordServerLink() { return "https://iw4x.dev/discord"; }
 
 		void preDestroy() override;
 
