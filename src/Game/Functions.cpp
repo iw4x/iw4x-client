@@ -156,6 +156,8 @@ namespace Game
 	R_FlushSun_t R_FlushSun = R_FlushSun_t(0x53FB50);
 	R_SortWorldSurfaces_t R_SortWorldSurfaces = R_SortWorldSurfaces_t(0x53DC10);
 
+	RMesg_SendMessages_t RMesg_SendMessages = RMesg_SendMessages_t(0x49CC30);
+
 	GetMemory_t GetMemory = GetMemory_t(0x4E67B0);
 	GetClearedMemory_t GetClearedMemory = GetClearedMemory_t(0x422E70);
 	PS_CreatePunctuationTable_t PS_CreatePunctuationTable = PS_CreatePunctuationTable_t(0x4E6950);

@@ -22,13 +22,22 @@ namespace Components
 	class JoinContainer
 	{
 	public:
+		enum MatchType : int32_t {
+			NO_MATCH = 0,
+			PARTY_LOBBY = 1,
+			DEDICATED_MATCH = 2,
+			PRIVATE_PARTY = 3,
+
+			COUNT
+		};
+
 		Network::Address target;
 		std::string challenge;
 		std::string motd;
 		DWORD joinTime;
 		bool valid;
 		bool downloadOnly;
-		int matchType;
+		MatchType matchType;
 
 		Utils::InfoString info;
 
@@ -202,7 +211,19 @@ namespace Components
 			mov eax, 0;
 			retn;
 		}
+	}	
+	
+	void SV_SpawnServer_Com_SyncThreads_Hook()
+	{
+		Game::Com_SyncThreads(); // Com_SyncThreads
+
+		// Whenever the game starts a server,
+		// RMsg_SendMessages so that everybody gets the PartyGo message!
+		// (Otherwise Com_Try_Block doesn't send it until we're done loading, which times out some people)
+		Game::RMesg_SendMessages();
 	}
+
+
 
 	Party::Party()
 	{
@@ -319,6 +340,10 @@ namespace Components
 		Utils::Hook::Xor<DWORD>(0x4261A1, Game::DVAR_LATCH);
 		Utils::Hook::Xor<DWORD>(0x4D376D, Game::DVAR_LATCH);
 		Utils::Hook::Xor<DWORD>(0x5E3789, Game::DVAR_LATCH);
+
+		// Synchronize / Send network messages when the server starts so that clients can load the game with us
+		// Otherwise they timeout while the host load
+		Utils::Hook(0x5B34D0, SV_SpawnServer_Com_SyncThreads_Hook, HOOK_CALL).install()->quick();
 
 		Command::Add("connect", [](const Command::Params* params)
 		{
@@ -445,20 +470,30 @@ namespace Components
 
 			// Set matchtype
 			// 0 - No match, connecting not possible
-			// 1 - Party, use Steam_JoinLobby to connect
-			// 2 - Match, use CL_ConnectFromParty to connect
-
-			if (PartyEnable.get<bool>() && Dvar::Var("party_host").get<bool>()) // Party hosting
+			// PARTY_LOBBY - Party, use Steam_JoinLobby to connect
+			// DEDICATED_MATCH - Match, use CL_ConnectFromParty to connect
+			// PRIVATE_PARTY - Private party, use Steam_JoinLobby to connect (same as party? Kept separated for now)
+			bool partyHost = Dvar::Var("party_host").get<bool>();
+			if (partyHost) // Party hosting
 			{
-				info.set("matchtype", "1");
+				if (PartyEnable.get<bool>())
+				{
+					// Public party
+					info.set("matchtype", std::to_string(JoinContainer::MatchType::PARTY_LOBBY));
+				}
+				else
+				{
+					// Private party
+					info.set("matchtype", std::to_string(JoinContainer::MatchType::PRIVATE_PARTY));
+				}
 			}
 			else if (Dvar::Var("sv_running").get<bool>()) // Match hosting
 			{
-				info.set("matchtype", "2");
+				info.set("matchtype",  std::to_string(JoinContainer::MatchType::DEDICATED_MATCH));
 			}
 			else
 			{
-				info.set("matchtype", "0");
+				info.set("matchtype",  std::to_string(JoinContainer::MatchType::NO_MATCH));
 			}
 
 			info.set("wwwDownload", (Download::SV_wwwDownload.get<bool>() ? "1" : "0"));
@@ -480,7 +515,7 @@ namespace Components
 					Container.valid = false;
 					Container.info = info;
 
-					Container.matchType = std::strtol(info.get("matchtype").data(), nullptr, 10);
+					Container.matchType = static_cast<JoinContainer::MatchType>(std::strtol(info.get("matchtype").data(), nullptr, 10));
 					auto securityLevel = std::strtoul(info.get("securityLevel").data(), nullptr, 10);
 					bool isUsermap = !info.get("usermaphash").empty();
 					auto usermapHash = std::strtoul(info.get("usermaphash").data(), nullptr, 10);
@@ -508,11 +543,11 @@ namespace Components
 						Command::Execute("closemenu popup_reconnectingtoparty");
 						Auth::IncreaseSecurityLevel(securityLevel, "reconnect");
 					}
-					else if (!Container.matchType)
+					else if (Container.matchType == JoinContainer::MatchType::NO_MATCH)
 					{
 						ConnectError("Server is not hosting a match.");
 					}
-					else if (Container.matchType > 2 || Container.matchType < 0)
+					else if (Container.matchType >= JoinContainer::MatchType::COUNT || Container.matchType < JoinContainer::MatchType::NO_MATCH)
 					{
 						ConnectError("Invalid join response: Unknown matchtype");
 					}
@@ -552,52 +587,68 @@ namespace Components
 						if (!Maps::CheckMapInstalled(Container.info.get("mapname"), true)) return;
 
 						Container.motd = TextRenderer::StripMaterialTextIcons(info.get("sv_motd"));
-
-						if (Container.matchType == 1) // Party
+						
+						switch(Container.matchType)
 						{
-							// Send playlist request
-							Container.requestTime = Game::Sys_Milliseconds();
-							Container.awaitingPlaylist = true;
-							Network::SendCommand(Container.target, "getplaylist", Dvar::Var("password").get<std::string>());
+							case JoinContainer::MatchType::DEDICATED_MATCH:
+								{
+									int clients;
+									int maxClients;
+									std::string version;
 
-							// This is not a safe method
-							// TODO: Fix actual error!
-							if (Game::CL_IsCgameInitialized())
-							{
-								Command::Execute("disconnect", true);
-							}
-						}
-						else if (Container.matchType == 2) // Match
-						{
-							int clients;
-							int maxClients;
-							std::string version;
+									try
+									{
+										clients = std::stoi(Container.info.get("clients"));
+										maxClients = std::stoi(Container.info.get("sv_maxclients"));
+										version = Container.info.get("version");
+									}
+									catch ([[maybe_unused]] const std::exception& ex)
+									{
+										ConnectError("Invalid info string");
+										return;
+									}
 
-							try
-							{
-								clients = std::stoi(Container.info.get("clients"));
-								maxClients = std::stoi(Container.info.get("sv_maxclients"));
-								version = Container.info.get("version");
-							}
-							catch ([[maybe_unused]] const std::exception& ex)
-							{
-								ConnectError("Invalid info string");
-								return;
-							}
+									if (clients >= maxClients)
+									{
+										ConnectError("@EXE_SERVERISFULL");
+									}
+									else
+									{
+										Dvar::Var("xblive_privateserver").set(true);
+										ServerVersion.set(version);
+										Game::Menus_CloseAll(Game::uiContext);
 
-							if (clients >= maxClients)
-							{
-								ConnectError("@EXE_SERVERISFULL");
-							}
-							else
-							{
-								Dvar::Var("xblive_privateserver").set(true);
-								ServerVersion.set(version);
-								Game::Menus_CloseAll(Game::uiContext);
+										Game::_XSESSION_INFO hostInfo;
+										Game::CL_ConnectFromParty(0, &hostInfo, *Container.target.get(), 0, 0, Container.info.get("mapname").data(), Container.info.get("gametype").data());
+									}
+								}
 
-								Game::_XSESSION_INFO hostInfo;
-								Game::CL_ConnectFromParty(0, &hostInfo, *Container.target.get(), 0, 0, Container.info.get("mapname").data(), Container.info.get("gametype").data());
-							}
+								break;
+
+							case JoinContainer::MatchType::PARTY_LOBBY:
+								{
+									// Send playlist request
+									Container.requestTime = Game::Sys_Milliseconds();
+									Container.awaitingPlaylist = true;
+									Network::SendCommand(Container.target, "getplaylist", Dvar::Var("password").get<std::string>());
+
+									// This is not a safe method
+									// TODO: Fix actual error!
+									if (Game::CL_IsCgameInitialized())
+									{
+										Command::Execute("disconnect", true);
+									}
+								}
+
+								break;
+
+							
+
+							case JoinContainer::MatchType::PRIVATE_PARTY:
+								{
+									PlaylistContinue();
+								}
+								break;
 						}
 					}
 				}
