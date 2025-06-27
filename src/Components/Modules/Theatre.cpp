@@ -369,7 +369,7 @@ namespace Components
 	void Theatre::SV_SpawnServer_Stub()
 	{
 		StopRecording();
-		Utils::Hook::Call<void()>(0x464A60)(); // Com_SyncThreads
+		Game::Com_SyncThreads();
 	}
 
 	void Theatre::StopRecording()

@@ -74,6 +74,9 @@ namespace Game
 	typedef char* (*Com_LoadInfoString_t)(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer);
 	extern Com_LoadInfoString_t Com_LoadInfoString;
 
+	typedef void (*Com_SyncThreads_t)();
+	extern Com_SyncThreads_t Com_SyncThreads;
+
 	extern int* com_frameTime;
 
 	extern int* com_fixedConsolePosition;

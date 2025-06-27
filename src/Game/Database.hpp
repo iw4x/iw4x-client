@@ -90,6 +90,9 @@ namespace Game
 	typedef void(*DB_ReleaseXAssetHandler_t)(XAssetHeader header);
 	extern DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers;
 
+	typedef void(*RMesg_SendMessages_t)();
+	extern RMesg_SendMessages_t RMesg_SendMessages;
+
 	extern XAssetHeader* DB_XAssetPool;
 	extern unsigned int* g_poolSize;
 
