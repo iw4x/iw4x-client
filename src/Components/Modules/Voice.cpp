@@ -11,6 +11,7 @@ namespace Components
 	bool Voice::S_PlayerMute[Game::MAX_CLIENTS];
 
 	const Game::dvar_t* Voice::sv_voice;
+	const Game::dvar_t* Voice::sv_alltalk;
 
 	bool Voice::SV_VoiceEnabled()
 	{
@@ -139,10 +140,47 @@ namespace Components
 			auto* ent = &Game::g_entities[otherPlayer];
 			auto* client = ent->client;
 
-			if (ent->r.isInUse && client && (client->sess.sessionState == Game::SESS_STATE_INTERMISSION || OnSameTeam(talker, ent) || talker->client->sess.cs.team == Game::TEAM_FREE) &&
-				(ent->client->sess.sessionState == talker->client->sess.sessionState || (ent->client->sess.sessionState == Game::SESS_STATE_DEAD || talker->client->sess.sessionState == Game::SESS_STATE_DEAD) &&
-					(*Game::g_deadChat)->current.enabled) && (talker != ent) && !SV_ServerHasClientMuted(talker->s.number))
-			{
+			bool shouldSendVoicePacket = false;
+
+			if (ent->r.isInUse && client) {
+				bool canCommunicate = false;
+
+				if (client->sess.sessionState == Game::SESS_STATE_INTERMISSION) {
+					canCommunicate = true;
+				}
+				else if (OnSameTeam(talker, ent)) {
+					canCommunicate = true;
+				}
+				else if (talker->client->sess.cs.team == Game::TEAM_FREE) {
+					canCommunicate = true;
+				}
+				else if (sv_alltalk->current.enabled) {
+					canCommunicate = true;
+				}
+
+				if (canCommunicate) {
+					bool sessionStatesCompatible = false;
+
+					if (ent->client->sess.sessionState == talker->client->sess.sessionState) {
+						sessionStatesCompatible = true;
+					}
+					else if ((ent->client->sess.sessionState == Game::SESS_STATE_DEAD ||
+						talker->client->sess.sessionState == Game::SESS_STATE_DEAD) &&
+						(*Game::g_deadChat)->current.enabled) {
+						sessionStatesCompatible = true;
+					}
+					else if (sv_alltalk->current.enabled) {
+						sessionStatesCompatible = true;
+					}
+
+					bool isNotSelf = (talker != ent);
+					bool isNotMuted = !SV_ServerHasClientMuted(talker->s.number);
+
+					shouldSendVoicePacket = sessionStatesCompatible && isNotSelf && isNotMuted;
+				}
+			}
+
+			if (shouldSendVoicePacket) {
 				SV_QueueVoicePacket(talker->s.number, otherPlayer, voicePacket);
 			}
 		}
@@ -423,5 +461,6 @@ namespace Components
 		Utils::Hook(0x43F460, CL_MutePlayer_Hk, HOOK_JUMP).install()->quick();
 
 		sv_voice = Game::Dvar_RegisterBool("sv_voice", false, Game::DVAR_NONE, "Use server side voice communications");
+		sv_alltalk = Game::Dvar_RegisterBool("sv_alltalk", false, Game::DVAR_NONE, "Allow talking across teams");
 	}
 }

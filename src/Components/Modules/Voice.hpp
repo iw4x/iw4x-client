@@ -24,6 +24,7 @@ namespace Components
 		static bool S_PlayerMute[Game::MAX_CLIENTS];
 
 		static const Game::dvar_t* sv_voice;
+		static const Game::dvar_t* sv_alltalk;
 
 		static void SV_WriteVoiceDataToClient(int clientNum, Game::msg_t* msg);
 		static void SV_SendClientVoiceData(Game::client_s* client);
