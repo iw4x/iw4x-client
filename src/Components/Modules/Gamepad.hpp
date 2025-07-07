@@ -199,8 +199,5 @@ namespace Components
 		static void GetTriggerFeedbackForEquipment(const Game::playerState_s* playerState, bool primary, GamepadControls::GamepadAPI::TriggerFeedback& feedback);
 
 		static void UpdateForceFeedback(GamepadControls::Controller& api);
-
-		std::atomic<bool> run;
-		std::thread gamepadRefreshThread;
 	};
 }
