@@ -1,5 +1,6 @@
 #include "Gamepad.hpp"
 #include "RawMouse.hpp"
+#include "Window.hpp"
 
 namespace Components
 {
@@ -313,8 +314,19 @@ namespace Components
 		AssertIn(localClientNum, Game::MAX_GPAD_COUNT);
 
 		auto& gamePad = gamePads[localClientNum];
-		std::lock_guard _(gamePadStateMutexes[localClientNum]);
 
+		std::unique_lock lock(gamePadStateMutexes[localClientNum], std::try_to_lock);
+
+		// If we cannot acquire the lock, then assume the current state is correct.
+		//
+		// That is, it's primarily used to detect whether a gamepad is present or
+		// usable. While a stale state may briefly persist if another thread holds
+		// the lock, that is preferable to blocking here. Gamepad presence is
+		// expected to stabilize quickly, and timely feedback is more important than
+		// precision in this path.
+		//
+		if (!lock.owns_lock())
+			return gamePad.get_enabled();
 
 		return gamePad.get_enabled() ||
 			gamePad.PlugIn(static_cast<uint8_t>(portIndex));
@@ -1324,12 +1336,19 @@ namespace Components
 
 	void Gamepad::GPad_UpdateAll()
 	{
-		GPad_RefreshAll();
-
 		for (auto localClientNum = 0; localClientNum < Game::MAX_GPAD_COUNT; ++localClientNum)
 		{
 			const auto& gamePad = gamePads[localClientNum];
-			std::lock_guard _(gamePadStateMutexes[localClientNum]);
+
+			std::unique_lock lock(gamePadStateMutexes[localClientNum], std::try_to_lock);
+
+			// If the lock is held, skip this gamepad and defer to the main
+			// thread's state. The main thread is responsible for real-time input
+			// processing, and we avoid introducing contention or latency here. Any
+			// missed updates will be picked up in the next frame.
+			//
+			if (!lock.owns_lock())
+				continue;
 
 			if (!gamePad.get_enabled())
 			{
@@ -1346,7 +1365,7 @@ namespace Components
 				gamePads[localClientNum].UpdateState();
 			}
 
-			gamePads[localClientNum].PushUpdates(); // We call them both together now because we update from another thread anyway
+			gamePads[localClientNum].PushUpdates();
 
 			gamePadDataReady[localClientNum] = true;
 		}
@@ -1373,6 +1392,12 @@ namespace Components
 	{
 		if (!gpad_enabled.get<bool>())
 			return;
+
+		// Update input state for all enabled gamepads, but do not poll for new
+		// connections or disconnections. Note that we assumes the current set of
+		// gamepads is stable for the duration of the frame.
+		//
+		GPad_UpdateAll();
 
 		const auto time = Game::Sys_Milliseconds();
 
@@ -2008,7 +2033,7 @@ namespace Components
 		api.SetForceFeedback(triggerFeedbacks[LEFT], triggerFeedbacks[RIGHT]);
 	}
 
-	Gamepad::Gamepad() : run(true)
+	Gamepad::Gamepad()
 	{
 		if (ZoneBuilder::IsEnabled())
 		{
@@ -2078,38 +2103,23 @@ namespace Components
 		// Add gamepad inputs to user commands if it is enabled
 		Utils::Hook(0x5A6DAE, CL_MouseMove_Stub, HOOK_CALL).install()->quick();
 
-		// Refresh gamepads on a separate thread to prevent IO latency from
-		// breaking up framerate This is never a problem at 30~60 fps (which the
-		// game is made for) but becomes a problem above 300+... Some users like
-		// their game at 300 hZ so let's handle it
+		// Register a callback to handle gamepad device changes reported by the
+		// Window subsystem. That is, detect gamepad hotplug events without relying
+		// on periodic polling.
+		//
+		Window::OnDeviceChange([](WPARAM wParam, LPARAM)
 		{
-			gamepadRefreshThread = std::thread([this]()
-			{
-				constexpr auto INPUT_THREAD_REFRESH_RATE = 120; // hZ for input refresh rate
-				constexpr auto INPUT_THREAD_TICK_TIME_MS = 1000 / INPUT_THREAD_REFRESH_RATE;
+			if (wParam == GIDC_ARRIVAL || wParam == GIDC_REMOVAL)
+				GPad_RefreshAll();
+		});
 
-				while (run.load(std::memory_order_relaxed))
-				{
-					const auto startTime = std::chrono::steady_clock::now();
-					const auto elapsed = std::chrono::steady_clock::now() - startTime;
-					const auto remainingTime = std::chrono::milliseconds(INPUT_THREAD_TICK_TIME_MS) - elapsed;
-
-					GPad_UpdateAll();
-
-					if (remainingTime > std::chrono::milliseconds(0))
-						std::this_thread::sleep_for(remainingTime);
-					else
-						std::this_thread::yield();
-				}
-			});
-		}
+		// Perform an initial scan to detect any gamepads already connected
+		// before any device change notifications are received.
+		//
+		GPad_RefreshAll();
 	}
 
 	Gamepad::~Gamepad()
 	{
-		run.store(false, std::memory_order_relaxed);
-
-		if (gamepadRefreshThread.joinable())
-			gamepadRefreshThread.join();
 	}
 }

@@ -10,6 +10,7 @@ namespace Components
 	BOOL Window::CursorVisible = TRUE;
 	std::unordered_map<UINT, Utils::Slot<Window::WndProcCallback>> Window::WndMessageCallbacks;
 	Utils::Signal<Window::CreateCallback> Window::CreateSignals;
+	Utils::Signal<Window::DeviceChangeCallback> Window::DeviceChangeSignals;
 
 	int Window::Width()
 	{
@@ -72,6 +73,11 @@ namespace Components
 	void Window::OnWndMessage(UINT Msg, Utils::Slot<Window::WndProcCallback> callback)
 	{
 		WndMessageCallbacks.emplace(Msg, callback);
+	}
+
+	void Window::OnDeviceChange(Utils::Slot<Window::DeviceChangeCallback> callback)
+	{
+		DeviceChangeSignals.connect(callback);
 	}
 
 	void Window::OnCreate(Utils::Slot<CreateCallback> callback)
@@ -148,6 +154,16 @@ namespace Components
 
 	BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	{
+		// Handle raw input device change events.
+		//
+		// Note that we delegate handling to DeviceChangeSignals(), which interprets
+		// the event and performs any necessary updates to the gamepad state.
+		//
+		if (Msg == WM_INPUT_DEVICE_CHANGE)
+		{
+			DeviceChangeSignals(wParam, lParam);
+		}
+
 		if (const auto cb = WndMessageCallbacks.find(Msg); cb != WndMessageCallbacks.end())
 		{
 			return cb->second(lParam, wParam);
@@ -211,6 +227,31 @@ namespace Components
 		{
 			Window::ApplyCursor();
 			return TRUE;
+		});
+
+		// Register for raw input device notifications when the window is created.
+		//
+		// This allows the system to notify us when a gamepad is connected or
+		// disconnected, without requiring explicit polling. We request
+		// notifications specifically for gamepad-class HID devices.
+		//
+		Window::OnCreate([]()
+		{
+			RAWINPUTDEVICE rid{};
+			rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
+			rid.usUsage = HID_USAGE_GENERIC_GAMEPAD;
+			rid.dwFlags = RIDEV_DEVNOTIFY;
+			rid.hwndTarget = Window::MainWindow;
+
+			if (!RegisterRawInputDevices(&rid, 1, sizeof(rid)))
+			{
+				// Some systems may reject usage-specific registration. In that case,
+				// fall back to receiving notifications for all devices within the
+				// generic desktop page. We lose precision but still receive updates.
+				//
+				rid.usUsage = 0x00;
+				RegisterRawInputDevices(&rid, 1, sizeof(rid));
+			}
 		});
 
 		Window::EnableDpiAwareness();
