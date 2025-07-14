@@ -1,6 +1,7 @@
 #include "RawMouse.hpp"
 #include "Gamepad.hpp"
 #include "Window.hpp"
+#include "Logger.hpp"
 
 namespace Components
 {
@@ -49,30 +50,69 @@ namespace Components
 		}
 	}
 
-	BOOL RawMouse::OnRawInput(LPARAM lParam, WPARAM)
+	LRESULT RawMouse::OnRawInput(LPARAM lParam, WPARAM)
 	{
-		auto dwSize = sizeof(RAWINPUT);
-		static BYTE lpb[sizeof(RAWINPUT)];
+		// The LPARAM contains a handle to a RAWINPUT structure, which we access in
+		// two stages:
+		//
+		//   1. First, we query the size of the input data via GetRawInputData()
+		//      with a null buffer. This allows us to allocate an appropriately
+		//      sized buffer for the actual data payload.
+		//
+		//   2. Then, we call GetRawInputData() again to retrieve the full RAWINPUT
+		//      structure into that buffer.
+		//
+		// This two-step process is necessary because the size of the input data may
+		// vary depending on device type and driver configuration, and cannot be
+		// safely predicted in advance. This behavior is documented in the WinAPI,
+		// and we have also encountered it in practice; see:
+		//
+		//   https://github.com/iw4x/iw4x-client/pull/297
+		//
+		// There, failing to query the size beforehand led to buffer overruns or
+		// data truncation on certain hardware configurations.
 
-		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+		UINT dwSize = 0;
 
-		auto* raw = reinterpret_cast<RAWINPUT*>(lpb);
+		if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, nullptr, &dwSize, sizeof(RAWINPUTHEADER)) == (UINT)-1)
+		{
+			Logger::Warning(Game::CON_CHANNEL_SYSTEM, "WinAPI: GetRawInputData failed: {}\n", GetLastError());
+			return 0;
+		}
+
+		// Note that a zero-size payload is technically valid (though unexpected)
+		// and implies there is no data to process.
+		//
+		if (dwSize == 0)
+			return 0;
+
+		std::vector<BYTE> buffer(dwSize);
+
+		if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, buffer.data(), &dwSize, sizeof(RAWINPUTHEADER)) == (UINT)-1)
+		{
+			Logger::Warning(Game::CON_CHANNEL_SYSTEM, "WinAPI: GetRawInputData failed: {}\n", GetLastError());
+			return 0;
+		}
+
+		RAWINPUT* raw = reinterpret_cast<RAWINPUT *>(buffer.data());
+
 		if (raw->header.dwType == RIM_TYPEMOUSE)
 		{
-			// Is there's really absolute mouse on earth?
-			if (raw->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
+			const auto& mouse = raw->data.mouse;
+
+			if (mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
 			{
-				MouseRawX = raw->data.mouse.lLastX;
-				MouseRawY = raw->data.mouse.lLastY;
+				MouseRawX = mouse.lLastX;
+				MouseRawY = mouse.lLastY;
 			}
 			else
 			{
-				MouseRawX += raw->data.mouse.lLastX;
-				MouseRawY += raw->data.mouse.lLastY;
+				MouseRawX += mouse.lLastX;
+				MouseRawY += mouse.lLastY;
 			}
 		}
 
-		return TRUE;
+		return 0;
 	}
 
 	void RawMouse::IN_RawMouseMove()
