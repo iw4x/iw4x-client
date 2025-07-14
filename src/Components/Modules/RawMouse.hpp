@@ -14,7 +14,7 @@ namespace Components
 		static int MouseRawX, MouseRawY;
 
 		static void IN_ClampMouseMove();
-		static BOOL OnRawInput(LPARAM lParam, WPARAM);
+		static LRESULT OnRawInput(LPARAM lParam, WPARAM);
 		static void IN_RawMouseMove();
 		static void IN_RawMouse_Init();
 		static void IN_Init();
