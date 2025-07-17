@@ -3,6 +3,9 @@
 // Unsorted function definitions
 namespace Game
 {
+	__security_init_cookie_t __security_init_cookie = __security_init_cookie_t(0x06CA062);
+	__tmainCRTStartup_t __tmainCRTStartup = __tmainCRTStartup_t(0x06BAA2F);
+
 	AngleVectors_t AngleVectors = AngleVectors_t(0x4691A0);
 
 	Cbuf_AddServerText_f_t Cbuf_AddServerText_f = Cbuf_AddServerText_f_t(0x4BB9B0);
