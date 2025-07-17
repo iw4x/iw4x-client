@@ -3,6 +3,12 @@
 // Unsorted function definitions
 namespace Game
 {
+	typedef void(__cdecl* __security_init_cookie_t)(void);
+	extern __security_init_cookie_t __security_init_cookie;
+
+	typedef int(* __tmainCRTStartup_t)(void);
+	extern __tmainCRTStartup_t __tmainCRTStartup;
+
 	typedef void(*AngleVectors_t)(float* angles, float* forward, float* right, float* up);
 	extern AngleVectors_t AngleVectors;
 
