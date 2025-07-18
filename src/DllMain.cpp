@@ -37,6 +37,29 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 	{
 		SetProcessDEPPolicy(PROCESS_DEP_ENABLE);
 
+		// Under normal circumstances, a DLL is unloaded via FreeLibrary once its
+		// reference count reaches zero. This is acceptable for auxiliary libraries
+		// but unsuitable for modules like ours, which embed deeply into the host
+		// process.
+		//
+		// To prevent FreeLibrary call on our module, whether accidental or
+		// deliberate, we informs the Windows loader that our module is a permanent
+		// part of the process.
+		//
+		HMODULE mod;
+		if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_PIN |
+															 GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+													 reinterpret_cast<LPCTSTR>(DllMain), &mod) == 0)
+		{
+			MessageBoxA(nullptr,
+									"Failed to mark iw4x module as permanent. For support, please "
+									"visit https://iw4x.dev/install",
+									"ERROR",
+									MB_ICONERROR
+			);
+			return FALSE;
+		}
+
 #ifndef DISABLE_BINARY_CHECK
 		const auto* binary = reinterpret_cast<const char*>(0x6F9358);
 		if (!binary || std::memcmp(binary, BASEGAME_NAME, 14) != 0)
