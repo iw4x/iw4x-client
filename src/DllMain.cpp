@@ -31,7 +31,7 @@ namespace Main
 	}
 }
 
-BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReserved*/)
+BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID lpvReserved)
 {
 	if (fdwReason == DLL_PROCESS_ATTACH)
 	{
@@ -56,6 +56,27 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
 	}
 	else if (fdwReason == DLL_PROCESS_DETACH)
 	{
+		// For `DLL_PROCESS_DETACH`, the `lpReserved` parameter is used to
+		// determine the context:
+		//
+		//   - `lpReserved == nullptr` when `FreeLibrary()` is called.
+		//   - `lpReserved != nullptr` when the process is being terminated.
+		//
+		// When `FreeLibrary()` is called, worker threads remain alive. That is,
+		// runtime's state is consistent, and executing proper shutdown is
+		// acceptable.
+		//
+		// When process is terminated, worker threads have either exited or been
+		// forcefully terminated by the OS, leaving only the shutdown thread.
+		// This situation leave runtime in an inconsistent state.
+		//
+		// Hence, proper cleanup should only be attempted when `FreeLibrary()`
+		// is called. Otherwise, the process should rely on the OS to reclaim
+		// resources.
+		//
+		if (lpvReserved != nullptr)
+			return TRUE;
+
 		Main::Uninitialize();
 	}
 
