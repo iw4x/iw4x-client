@@ -274,13 +274,11 @@ namespace Components
 				Utils::String::Replace(zone, "_load", "");
 			}
 
-#ifdef DEBUG
 			// Only check for usermaps on our working directory
 			if (Utils::IO::FileExists(std::format("usermaps\\{}\\{}.ff", zone, filename)))
 			{
 				return Utils::String::Format("usermaps\\{}\\", zone);
 			}
-#endif
 		}
 
 		Utils::Merge(&paths, FastFiles::ZonePaths);

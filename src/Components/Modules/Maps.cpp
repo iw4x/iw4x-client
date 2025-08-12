@@ -854,13 +854,13 @@ namespace Components
 		Utils::Hook(0x51B46A, Maps::LoadRawSun, HOOK_CALL).install()->quick();
 
 		// Intercept map loading for usermap initialization
-		//Utils::Hook(0x6245E3, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
-		//Utils::Hook(0x62493E, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
-		//Utils::Hook(0x42CF58, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-		//Utils::Hook(0x487CDD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-		//Utils::Hook(0x4CA3E9, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-		//Utils::Hook(0x5A9D51, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-		//Utils::Hook(0x5B34DD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x6245E3, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x62493E, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x42CF58, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x487CDD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4CA3E9, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A9D51, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5B34DD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 
 		Command::Add("delayReconnect", []()
 			{
