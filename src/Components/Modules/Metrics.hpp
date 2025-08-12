@@ -90,7 +90,7 @@ namespace Components
 				if (entity->client)
 				{
 					name = entity->client->sess.cs.name;
-					const char* guid = Utils::Hook::Call<const char*(int index)>(0x4477A0)(entity->client->sess.cs.clientIndex);
+					const char* guid = Utils::Hook::Call<const char* (int index)>(0x4477A0)(entity->client->sess.cs.clientIndex);
 					size_t length = strnlen(guid, sizeof(playerGuid));
 					std::memcpy(playerGuid, guid, length);
 
@@ -119,7 +119,7 @@ namespace Components
 				std::memcpy(this->position, position, sizeof(position));
 			};
 
-			Position(){};
+			Position() {};
 		};
 
 		struct Angles : public SerializableData
@@ -133,7 +133,7 @@ namespace Components
 				std::memcpy(this->angles, angles, sizeof(angles));
 			};
 
-			Angles(){};
+			Angles() {};
 		};
 
 		struct PlayerEntity : public Player
@@ -193,7 +193,7 @@ namespace Components
 
 			virtual std::string GetType() override { return "PlayerDamaged"; };
 		};
-		
+
 
 		Metrics();
 
@@ -208,6 +208,21 @@ namespace Components
 		static void CopyPackets();
 
 		static void Main();
-	
+
+		static bool BG_HasPerk(const unsigned int* perks, const Game::perksEnum perkIndex)
+		{
+			assert(perks);
+			AssertIn(perkIndex, Game::PERK_COUNT);
+
+			const std::size_t arrayIndex = perkIndex >> 5;
+			AssertIn(arrayIndex, Game::PERK_ARRAY_COUNT);
+
+			constexpr std::size_t BIT_MASK_SIZE = 31; // 0x1F
+			const auto bitPos = perkIndex & BIT_MASK_SIZE;
+			const auto bitMask = 1 << bitPos;
+
+			return perks[arrayIndex] & bitMask;
+		}
+
 	};
 }

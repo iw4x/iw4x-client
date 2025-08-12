@@ -37,20 +37,4 @@ namespace Game
 
 	typedef Game::WeaponCompleteDef*(*BG_GetWeaponCompleteDef_t)(unsigned int weaponIndex);
 	extern BG_GetWeaponCompleteDef_t BG_GetWeaponCompleteDef;
-
-	
-	bool BG_HasPerk(const unsigned int* perks, const Game::perksEnum perkIndex)
-	{
-		assert(perks);
-		AssertIn(perkIndex, Game::PERK_COUNT);
-
-		const std::size_t arrayIndex = perkIndex >> 5;
-		AssertIn(arrayIndex, Game::PERK_ARRAY_COUNT);
-
-		constexpr std::size_t BIT_MASK_SIZE = 31; // 0x1F
-		const auto bitPos = perkIndex & BIT_MASK_SIZE;
-		const auto bitMask = 1 << bitPos;
-
-		return perks[arrayIndex] & bitMask;
-	}
 }

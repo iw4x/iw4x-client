@@ -2,8 +2,6 @@
 
 #include "Metrics.hpp"
 
-
-
 namespace Components
 {
 	rapidjson::Value Metrics::packetsBeingSent[MAX_PACKETS_AT_ONCE]{};
@@ -72,7 +70,7 @@ namespace Components
 			std::vector<std::string> specialties{};
 			for (size_t i = 0; i < Game::perksEnum::PERK_COUNT; i++)
 			{
-				//if (Game::BG_HasPerk(this->perks, static_cast<Game::perksEnum>(i)))
+				if (BG_HasPerk(this->perks, static_cast<Game::perksEnum>(i)))
 				{
 					// 0x795B00 => perk names
 					const char* perkName = *reinterpret_cast<const char**>(0x795B00 + i * sizeof(const char*));
