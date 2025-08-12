@@ -814,6 +814,8 @@ namespace Game
 
 	int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType);
 
+	unsigned int GetHashCode(const char* str, size_t len);
+
 	void I_strncpyz_s(char* dest, std::size_t destsize, const char* src, std::size_t count);
 	void I_strcpy(char* dest, std::size_t destsize, const char* src);
 

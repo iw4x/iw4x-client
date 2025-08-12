@@ -231,7 +231,7 @@ namespace Game
 	Touch_Item_t Touch_Item = Touch_Item_t(0x44FA20);
 
 	Add_Ammo_t Add_Ammo = Add_Ammo_t(0x4E1480);
-  
+
 	ClientUserinfoChanged_t ClientUserinfoChanged = ClientUserinfoChanged_t(0x445240);
 
 	player_die_t player_die = player_die_t(0x42BC70);
@@ -397,7 +397,7 @@ namespace Game
 	bool* s_havePlaylists = reinterpret_cast<bool*>(0x1AD3680);
 
 	huffman_t* msgHuff = reinterpret_cast<huffman_t*>(0x1CB9EC0);
-	
+
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{
 		if (!stringtable || !stringtable->values || row >= stringtable->rowCount || column >= stringtable->columnCount) return "";
@@ -464,6 +464,22 @@ namespace Game
 		return hash;
 	}
 
+	unsigned int GetHashCode(const char* str, size_t len)
+	{
+		if (len >= 0x100)
+		{
+			return (len >> 2) % (0x6FFF) + 1;
+		}
+
+		unsigned int hash = 0;
+		while (len)
+		{
+			hash = *str++ + 31 * hash;
+			--len;
+		}
+		return hash % (0x6FFF) + 1;
+	}
+
 	void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count)
 	{
 		if (Components::Dvar::Var("r_loadForRenderer").get<bool>())
@@ -498,7 +514,7 @@ namespace Game
 		(*out)[1] = *reinterpret_cast<float*>(&v3);
 	}
 
-	void MatrixVecMultiply(const float (& mulMat)[3][3], const vec3_t& mulVec, vec3_t& solution)
+	void MatrixVecMultiply(const float(&mulMat)[3][3], const vec3_t& mulVec, vec3_t& solution)
 	{
 		vec3_t res;
 		res[0] = mulMat[0][0] * mulVec[0] + mulMat[1][0] * mulVec[1] + mulMat[2][0] * mulVec[2];
@@ -646,7 +662,7 @@ namespace Game
 		v[7][1] = halfSize[1];
 		v[7][2] = halfSize[2];
 
-		for(auto& vec : v)
+		for (auto& vec : v)
 		{
 			QuatRot(&vec, quat);
 			vec[0] += center[0];
@@ -777,7 +793,7 @@ namespace Game
 			mov ecx, 590390h
 			mov eax, [esp + 28h]
 			call ecx
-			mov [esp + 20h], eax
+			mov[esp + 20h], eax
 			popad
 			pop eax
 
@@ -796,7 +812,7 @@ namespace Game
 			mov ecx, 0x5755A0
 			call ecx
 
-			mov [esp + 0x20], eax
+			mov[esp + 0x20], eax
 			popad
 			pop eax
 
@@ -809,7 +825,7 @@ namespace Game
 		__asm
 		{
 			pushad
-			push [esp + 28h]
+			push[esp + 28h]
 			mov eax, [esp + 28h]
 
 			mov ecx, 53F990h
@@ -870,7 +886,7 @@ namespace Game
 
 			mov eax, [esp + 2Ch]
 			mov edi, [esp + 28h]
-			push [esp + 24h]
+			push[esp + 24h]
 
 			mov ebx, 5112C0h
 			call ebx
@@ -890,10 +906,10 @@ namespace Game
 
 			mov eax, [esp + 24h] // image
 			mov edi, [esp + 28h] // width
-			push [esp + 38h]     // format
-			push [esp + 38h]     // flags
-			push [esp + 38h]     // depth
-			push [esp + 38h]     // height
+			push[esp + 38h]     // format
+			push[esp + 38h]     // flags
+			push[esp + 38h]     // depth
+			push[esp + 38h]     // height
 
 			mov ecx, 54AF50h
 			call ecx
@@ -1034,20 +1050,20 @@ namespace Game
 			pushad
 
 			mov eax, [esp + 0x08 + 0x24] // maxLength
-			push [esp + 0x2C + 0x24] // resultDecayTimeElapsed
-			push [esp + 0x2C + 0x24] // resultDecaying
-			push [esp + 0x2C + 0x24] // resultMaxLength
-			push [esp + 0x2C + 0x24] // resultRandSeed
-			push [esp + 0x2C + 0x24] // resultDrawRandChar
-			push [esp + 0x2C + 0x24] // fxDecayDuration
-			push [esp + 0x2C + 0x24] // fxDecayStartTime
-			push [esp + 0x2C + 0x24] // fxLetterTime
-			push [esp + 0x2C + 0x24] // fxBirthTime
-			push [esp + 0x28 + 0x24] // text
+			push[esp + 0x2C + 0x24] // resultDecayTimeElapsed
+			push[esp + 0x2C + 0x24] // resultDecaying
+			push[esp + 0x2C + 0x24] // resultMaxLength
+			push[esp + 0x2C + 0x24] // resultRandSeed
+			push[esp + 0x2C + 0x24] // resultDrawRandChar
+			push[esp + 0x2C + 0x24] // fxDecayDuration
+			push[esp + 0x2C + 0x24] // fxDecayStartTime
+			push[esp + 0x2C + 0x24] // fxLetterTime
+			push[esp + 0x2C + 0x24] // fxBirthTime
+			push[esp + 0x28 + 0x24] // text
 			mov ebx, 0x535050
 			call ebx
 			add esp, 0x28
-			mov [esp + 0x20],eax
+			mov[esp + 0x20], eax
 
 			popad
 			pop eax
@@ -1063,13 +1079,13 @@ namespace Game
 
 			mov eax, [esp + 0x4 + 0x20] // material
 			mov edx, [esp + 0x20 + 0x20] // glyph
-			push [esp + 0x24 + 0x20] // color
-			push [esp + 0x20 + 0x20] // cosAngle
-			push [esp + 0x20 + 0x20] // sinAngle
-			push [esp + 0x20 + 0x20] // h
-			push [esp + 0x20 + 0x20] // w
-			push [esp + 0x20 + 0x20] // y
-			push [esp + 0x20 + 0x20] // x
+			push[esp + 0x24 + 0x20] // color
+			push[esp + 0x20 + 0x20] // cosAngle
+			push[esp + 0x20 + 0x20] // sinAngle
+			push[esp + 0x20 + 0x20] // h
+			push[esp + 0x20 + 0x20] // w
+			push[esp + 0x20 + 0x20] // y
+			push[esp + 0x20 + 0x20] // x
 
 			mov ecx, 0x534E20
 			call ecx
@@ -1087,17 +1103,17 @@ namespace Game
 			pushad
 
 			mov eax, [esp + 0x4 + 0x20] // material
-			push [esp + 0x30 + 0x20] // color
-			push [esp + 0x30 + 0x20] // cosAngle
-			push [esp + 0x30 + 0x20] // sinAngle
-			push [esp + 0x30 + 0x20] // t1
-			push [esp + 0x30 + 0x20] // s1
-			push [esp + 0x30 + 0x20] // t0
-			push [esp + 0x30 + 0x20] // s0
-			push [esp + 0x30 + 0x20] // h
-			push [esp + 0x30 + 0x20] // w
-			push [esp + 0x30 + 0x20] // y
-			push [esp + 0x30 + 0x20] // x
+			push[esp + 0x30 + 0x20] // color
+			push[esp + 0x30 + 0x20] // cosAngle
+			push[esp + 0x30 + 0x20] // sinAngle
+			push[esp + 0x30 + 0x20] // t1
+			push[esp + 0x30 + 0x20] // s1
+			push[esp + 0x30 + 0x20] // t0
+			push[esp + 0x30 + 0x20] // s0
+			push[esp + 0x30 + 0x20] // h
+			push[esp + 0x30 + 0x20] // w
+			push[esp + 0x30 + 0x20] // y
+			push[esp + 0x30 + 0x20] // x
 			mov ebx, 0x5310F0
 			call ebx
 			add esp, 0x2C
@@ -1118,7 +1134,7 @@ namespace Game
 			mov ecx, [esp + 0x8 + 0x24] // colorB
 			mov ebx, 0x5353C0
 			call ebx
-			mov [esp + 0x20], eax
+			mov[esp + 0x20], eax
 
 			popad
 			pop eax
@@ -1130,7 +1146,7 @@ namespace Game
 	{
 		__asm
 		{
-			mov eax, [esp+0x4]
+			mov eax, [esp + 0x4]
 			mov ebx, 0x569950
 			call ebx
 			retn
@@ -1158,12 +1174,12 @@ namespace Game
 
 			mov eax, [esp + 0x24 + 0x4] // fieldNum
 			mov ecx, [esp + 0x24 + 0x8] // token
-			push [esp + 0x24 + 0xC] // settings
+			push[esp + 0x24 + 0xC] // settings
 			call ApplyTokenToField_Func
 			add esp, 0x4
 
 			movzx eax, al // Zero extend eax
-			mov [esp + 0x20], eax
+			mov[esp + 0x20], eax
 			popad
 			pop eax
 

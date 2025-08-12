@@ -224,6 +224,19 @@ namespace Components
 
 	void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name)
 	{
+		if (type == Game::ASSET_TYPE_XMODEL && name[0] != ',')
+		{
+			const auto xmodel = asset.model;
+			for (size_t i = 0; i < xmodel->numBones; i++)
+			{
+				// Some models from MW3 are not properly built from iw5xport
+				if (xmodel->partClassification[i] < 0 || xmodel->partClassification[i] >= Game::hitLocation_t::HITLOC_NUM)
+				{
+					xmodel->partClassification[i] = static_cast<uint8_t>(Game::hitLocation_t::HITLOC_TORSO_UPR);
+					//xmodel->partClassification[i]  = std::clamp(xmodel->partClassification[i], static_cast<uint8_t>(Game::hitLocation_t::HITLOC_NONE), static_cast<uint8_t>( Game::hitLocation_t::HITLOC_SHIELD));
+				}
+			}
+		}
 
 		if (*Game::com_developer && (*Game::com_developer)->current.enabled)
 		{

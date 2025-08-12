@@ -24,7 +24,8 @@ namespace Components
 
 		static Skin GetSkin() { return currentSkin; };
 
-		static void GScr_GetPlayerSkin(Game::gentity_s* entRef);
+		static void GScr_GetPlayerHead(Game::gentity_s* entRef);
+		static void GScr_GetPlayerBody(Game::gentity_s* entRef);
 
 	private:
 		static const std::string heads[];
@@ -48,15 +49,16 @@ namespace Components
 		static void CheckForbiddenHeadBodyCombinations();
 		static void RegisterConstantStrings();
 
+		static void CheckStrings();
+
 		static void Info_SetValueForKey(const char* infoString, const char* key, const char* data);
 
 		static bool HasAuthorizedBoneCount(const Skin& skin, std::string& err);
 		static Game::scr_string_t GetHeadName(const Skin& skin);
 		static Game::scr_string_t GetBodyName(const Skin& skin);
-
-		static void RegisterSkins();
+		
+		static bool GetPlayerSkinInternal(Game::gentity_s* entRef, OUT Game::scr_string_t& head, OUT Game::scr_string_t& body);
 
 		static Skin currentSkin;
-		static const char* SL_ConvertToString(int a1);
 	};
 }

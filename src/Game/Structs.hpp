@@ -385,7 +385,7 @@ namespace Game
 
 		SURF_TYPE_COUNT
 	};
-	
+
 	constexpr std::size_t PERK_ARRAY_COUNT = 2;
 
 	enum perksEnum
@@ -6645,9 +6645,71 @@ namespace Game
 		XAnim_s* anims;
 	};
 
+	struct MemoryNode
+	{
+		unsigned int padding[3];
+	};
+
+	struct __declspec(align(128)) scrMemTreeGlob_t
+	{
+		MemoryNode nodes[65536];
+		unsigned int nodeBits[2048];
+		unsigned int sizeBits[5];
+		unsigned int head[17];
+		unsigned int backtrackAmount[17];
+		int totalAlloc;
+		int totalAllocBuckets;
+	};
+	
+
+	enum hashStatus_t
+	{
+	  HASH_STAT_FREE = 0x0,
+	  HASH_STAT_MOVABLE = 0x10000,
+	  HASH_STAT_HEAD = 0x20000,
+	  HASH_STAT_MASK = 0x30000,
+	};
+
+	union $FA152364550AB5CDF6142CD3B51D5E84
+	{
+	  unsigned int prev;
+	  unsigned int strIndex;
+	};
+
+	struct HashEntry
+	{
+	  unsigned int status_next;
+	  $FA152364550AB5CDF6142CD3B51D5E84 u;
+	};
+
+	struct __declspec(align(128)) scrStringGlob_t
+	{
+	  HashEntry hashTable[28672];
+	  bool inited;
+	  HashEntry *nextFreeEntry;
+	};
+	
+	struct $119B815E6C15BED54461C272BD343858
+	{
+	  unsigned __int32 refCount : 16;
+	  unsigned __int32 user : 8;
+	  unsigned __int32 byteLen : 8;
+	};
+
+	union $156C516D3E6908D9990BD5CCD794911D
+	{
+	  $119B815E6C15BED54461C272BD343858 __s0;
+	  volatile int data;
+	};
+
+	struct __declspec(align(4)) RefString
+	{
+	  $156C516D3E6908D9990BD5CCD794911D ___u0;
+	  char str[1];
+	};
 	struct scrMemTreePub_t
 	{
-		char* mt_buffer;
+		scrMemTreeGlob_t* mt_buffer;
 	};
 
 	struct scrAnimPub_t
