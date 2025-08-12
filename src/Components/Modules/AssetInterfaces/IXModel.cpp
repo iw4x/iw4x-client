@@ -889,6 +889,19 @@ namespace Assets
 		}
 	}
 
+	void IXModel::ValidatePartClassification(Game::XModel* xmodel)
+	{
+		for (size_t i = 0; i < xmodel->numBones; i++)
+		{
+			// Some models from MW3 are not properly built from iw5xport
+			if (xmodel->partClassification[i] < 0 || xmodel->partClassification[i] >= Game::hitLocation_t::HITLOC_NUM)
+			{
+				// In doubt we add a hit location for upper torso because this is where we do a lot of bone modifications
+				// Clamping could result in some parts being treated as HITLOC_SHIELD so we do this instead
+				xmodel->partClassification[i] = static_cast<uint8_t>(Game::hitLocation_t::HITLOC_TORSO_UPR);
+			}
+		}
+	}
 
 	void IXModel::ConvertPlayerModelFromSingleplayerToMultiplayer(Game::XModel* model, Utils::Memory::Allocator& allocator)
 	{
@@ -1009,6 +1022,7 @@ namespace Assets
 
 
 				RebuildPartBits(model);
+				ValidatePartClassification(model);
 			}
 		}
 	}

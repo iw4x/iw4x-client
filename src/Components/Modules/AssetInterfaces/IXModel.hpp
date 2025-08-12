@@ -25,5 +25,6 @@ namespace Assets
 
 		static void SetBoneTrans(Game::XModel* model, uint8_t boneIndex, bool baseMat, float x, float y, float z);
 		static void SetBoneQuaternion(Game::XModel* model, uint8_t boneIndex, bool baseMat, float x, float y, float z, float w);
+		static void ValidatePartClassification(Game::XModel* model);
 	};
 }
