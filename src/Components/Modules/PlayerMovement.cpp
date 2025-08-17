@@ -389,6 +389,9 @@ namespace Components
 		Utils::Hook(0x570020, PM_CrashLand_Stub, HOOK_CALL).install()->quick(); // Vec3Scale
 		Utils::Hook(0x4E9889, Jump_Check_Stub, HOOK_JUMP).install()->quick();
 
+		// No clipping on barriers
+		Utils::Hook(0x4CFF5C, PMoveSingle_Stub, HOOK_CALL).install()->quick(); // Pmove
+
 		GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
 
 		RegisterMovementDvars();
