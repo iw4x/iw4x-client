@@ -18,6 +18,7 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::BGBunnyHopAuto;
 	const Game::dvar_t* PlayerMovement::PlayerDuckedSpeedScale;
 	const Game::dvar_t* PlayerMovement::PlayerProneSpeedScale;
+	const Game::dvar_t* PlayerMovement::PMDisableBarrierClips;
 
 	void PlayerMovement::PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask)
 	{
@@ -270,6 +271,20 @@ namespace Components
 		return PlayerSpectateSpeedScale;
 	}
 
+	void PlayerMovement::PMoveSingle_Stub(Game::pmove_s* pm)
+	{
+		if (PMDisableBarrierClips && PMDisableBarrierClips->current.enabled)
+		{
+			if (pm)
+			{
+				pm->tracemask &= ~0x10000;
+				pm->tracemask |= 0x400;
+			}
+		}
+
+		Game::PMoveSingle(pm);
+	}
+
 	void PlayerMovement::RegisterMovementDvars()
 	{
 		PlayerDuckedSpeedScale = Game::Dvar_RegisterFloat("player_duckedSpeedScale",
@@ -310,6 +325,9 @@ namespace Components
 
 		BGClimbAnything = Game::Dvar_RegisterBool("bg_climbAnything",
 			false, Game::DVAR_CODINFO, "Treat any surface as a ladder");
+
+		PMDisableBarrierClips = Game::Dvar_RegisterBool("pm_disableBarrierClips",
+			false, Game::DVAR_CHEAT | Game::DVAR_CODINFO, "Disable collision clips on barriers");
 	}
 
 	PlayerMovement::PlayerMovement()
