@@ -18,7 +18,7 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::BGBunnyHopAuto;
 	const Game::dvar_t* PlayerMovement::PlayerDuckedSpeedScale;
 	const Game::dvar_t* PlayerMovement::PlayerProneSpeedScale;
-	const Game::dvar_t* PlayerMovement::PMDisableBarrierClips;
+	const Game::dvar_t* PlayerMovement::BGDisableBarrierClips;
 
 	void PlayerMovement::PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask)
 	{
@@ -273,7 +273,7 @@ namespace Components
 
 	void PlayerMovement::PMoveSingle_Stub(Game::pmove_s* pm)
 	{
-		if (PMDisableBarrierClips && PMDisableBarrierClips->current.enabled)
+		if (BGDisableBarrierClips && BGDisableBarrierClips->current.enabled)
 		{
 			if (pm)
 			{
@@ -326,8 +326,8 @@ namespace Components
 		BGClimbAnything = Game::Dvar_RegisterBool("bg_climbAnything",
 			false, Game::DVAR_CODINFO, "Treat any surface as a ladder");
 
-		PMDisableBarrierClips = Game::Dvar_RegisterBool("pm_disableBarrierClips",
-			false, Game::DVAR_CHEAT | Game::DVAR_CODINFO, "Disable collision clips on barriers");
+		BGDisableBarrierClips = Game::Dvar_RegisterBool("bg_disableBarrierClips",
+			false, Game::DVAR_CODINFO, "Disable player collision with out of bound barriers");
 	}
 
 	PlayerMovement::PlayerMovement()
@@ -390,7 +390,7 @@ namespace Components
 		Utils::Hook(0x4E9889, Jump_Check_Stub, HOOK_JUMP).install()->quick();
 
 		// No clipping on barriers
-		Utils::Hook(0x4CFF5C, PMoveSingle_Stub, HOOK_CALL).install()->quick(); // Pmove
+		Utils::Hook(0x4CFF5C, PMoveSingle_Stub, HOOK_CALL).install()->quick(); // PMoveSingle call inside PMove
 
 		GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
 
