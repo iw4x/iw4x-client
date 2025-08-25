@@ -275,11 +275,9 @@ namespace Components
 	{
 		if (BGDisableBarrierClips && BGDisableBarrierClips->current.enabled)
 		{
-			if (pm)
-			{
-				pm->tracemask &= ~0x10000;
-				pm->tracemask |= 0x400;
-			}
+			assert(pm);
+			pm->tracemask &= ~0x10000;
+			pm->tracemask |= 0x400;
 		}
 
 		Game::PMoveSingle(pm);
