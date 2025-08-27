@@ -2,6 +2,9 @@
 #include "Events.hpp"
 #include "GSC/Script.hpp"
 
+constexpr int MASK_PLAYER_CLIP = 0x10000;
+constexpr int MASK_BARRIER_CLIP = 0x400;
+
 namespace Components
 {
 	const Game::dvar_t* PlayerMovement::BGRocketJump;
@@ -275,9 +278,11 @@ namespace Components
 	{
 		if (BGDisableBarrierClips && BGDisableBarrierClips->current.enabled)
 		{
-			assert(pm);
-			pm->tracemask &= ~0x10000;
-			pm->tracemask |= 0x400;
+			if (pm != nullptr)
+			{
+				pm->tracemask &= ~MASK_PLAYER_CLIP;
+				pm->tracemask |= MASK_BARRIER_CLIP;
+			}
 		}
 
 		Game::PMoveSingle(pm);
