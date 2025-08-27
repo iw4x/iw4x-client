@@ -56,6 +56,7 @@ namespace Components
 
 		static void RegisterMovementDvars();
 
-		static void PMoveSingle_Stub(Game::pmove_s* pm);
+		static void PmoveSingle_Stub(Game::pmove_s* pm);
+		static void PM_CheckLadderMove_Stub(Game::pmove_s* pm, Game::pml_t* pml);
 	};
 }

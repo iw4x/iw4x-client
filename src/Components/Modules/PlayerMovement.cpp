@@ -274,11 +274,11 @@ namespace Components
 		return PlayerSpectateSpeedScale;
 	}
 
-	void PlayerMovement::PMoveSingle_Stub(Game::pmove_s* pm)
+	void PlayerMovement::PmoveSingle_Stub(Game::pmove_s* pm)
 	{
 		if (BGDisableBarrierClips && BGDisableBarrierClips->current.enabled)
 		{
-			if (pm != nullptr)
+			if (pm != nullptr && (pm->ps->pm_flags & Game::PMF_LADDER) == 0)
 			{
 				pm->tracemask &= ~MASK_PLAYER_CLIP;
 				pm->tracemask |= MASK_BARRIER_CLIP;
@@ -286,6 +286,28 @@ namespace Components
 		}
 
 		Game::PMoveSingle(pm);
+	}
+
+
+	void PlayerMovement::PM_CheckLadderMove_Stub(Game::pmove_s* pm, Game::pml_t* pml)
+	{
+		const auto should_fix_ladders = (
+			BGDisableBarrierClips && 
+			BGDisableBarrierClips->current.enabled && 
+			pm != nullptr
+		);
+
+		if (should_fix_ladders)
+		{
+			pm->tracemask |= MASK_PLAYER_CLIP;
+		}
+
+		Game::PM_CheckLadderMove(pm, pml);
+
+		if (should_fix_ladders && (pm->ps->pm_flags & Game::PMF_LADDER) == 0)
+		{
+			pm->tracemask &= ~MASK_PLAYER_CLIP;
+		}
 	}
 
 	void PlayerMovement::RegisterMovementDvars()
@@ -392,8 +414,9 @@ namespace Components
 		Utils::Hook(0x570020, PM_CrashLand_Stub, HOOK_CALL).install()->quick(); // Vec3Scale
 		Utils::Hook(0x4E9889, Jump_Check_Stub, HOOK_JUMP).install()->quick();
 
-		// No clipping on barriers
-		Utils::Hook(0x4CFF5C, PMoveSingle_Stub, HOOK_CALL).install()->quick(); // PMoveSingle call inside PMove
+		// Disable player collision with out of bound barriers 
+		Utils::Hook(0x4CFF5C, PmoveSingle_Stub, HOOK_CALL).install()->quick(); 			// single PmoveSingle call inside Pmove
+		Utils::Hook(0x574AF4, PM_CheckLadderMove_Stub, HOOK_CALL).install()->quick(); 	// single PM_CheckLadderMove call inside PmoveSingle
 
 		GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
 
