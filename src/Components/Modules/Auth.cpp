@@ -18,13 +18,13 @@ namespace Components
 
 	std::vector<std::uint64_t> Auth::BannedUids =
 	{
-		// No longer necessary
 		0xf4d2c30b712ac6e3,
 		0xf7e33c4081337fa3,
 		0x6f5597f103cc50e9,
 		0xecd542eee54ffccf,
 		0xA46B84C54694FD5B,
 		0xECD542EEE54FFCCF,
+		0x759096E09CB2BECF,
 	};
 
 	bool Auth::HasAccessToReservedSlot;
