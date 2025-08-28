@@ -148,6 +148,10 @@ namespace Game
 
 	Playlist_ParsePlaylists_t Playlist_ParsePlaylists = Playlist_ParsePlaylists_t(0x4295A0);
 
+	PMoveSingle_t PMoveSingle = PMoveSingle_t(0x5743E0);
+
+	PM_CheckLadderMove_t PM_CheckLadderMove = PM_CheckLadderMove_t(0x573D00);
+
 	R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = R_AddCmdDrawStretchPic_t(0x509770);
 	R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = R_AllocStaticIndexBuffer_t(0x51E7A0);
 	R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = R_Cinematic_StartPlayback_Now_t(0x51C5B0);
