@@ -1,12 +1,3 @@
-// Rename sections
-#ifndef DEBUG
-#pragma comment(linker, "/merge:.text=.UPX0")
-#pragma comment(linker, "/merge:.data=.UPX1")
-#pragma comment(linker, "/merge:.rdata=.UPX2")
-#pragma comment(linker, "/merge:.tls=.UPX3")
-#pragma comment(linker, "/merge:.gfids=.UPX4")
-#endif
-
 #pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 // Do necessary assertions here
