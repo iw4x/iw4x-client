@@ -2,6 +2,9 @@
 #include "Events.hpp"
 #include "GSC/Script.hpp"
 
+constexpr int MASK_PLAYER_CLIP = 0x10000;
+constexpr int MASK_BARRIER_CLIP = 0x400;
+
 namespace Components
 {
 	const Game::dvar_t* PlayerMovement::BGRocketJump;
@@ -18,6 +21,7 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::BGBunnyHopAuto;
 	const Game::dvar_t* PlayerMovement::PlayerDuckedSpeedScale;
 	const Game::dvar_t* PlayerMovement::PlayerProneSpeedScale;
+	const Game::dvar_t* PlayerMovement::BGDisableBarrierClips;
 
 	void PlayerMovement::PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask)
 	{
@@ -270,6 +274,42 @@ namespace Components
 		return PlayerSpectateSpeedScale;
 	}
 
+	void PlayerMovement::PmoveSingle_Stub(Game::pmove_s* pm)
+	{
+		if (BGDisableBarrierClips && BGDisableBarrierClips->current.enabled)
+		{
+			if (pm != nullptr && (pm->ps->pm_flags & Game::PMF_LADDER) == 0)
+			{
+				pm->tracemask &= ~MASK_PLAYER_CLIP;
+				pm->tracemask |= MASK_BARRIER_CLIP;
+			}
+		}
+
+		Game::PMoveSingle(pm);
+	}
+
+
+	void PlayerMovement::PM_CheckLadderMove_Stub(Game::pmove_s* pm, Game::pml_t* pml)
+	{
+		const auto should_fix_ladders = (
+			BGDisableBarrierClips && 
+			BGDisableBarrierClips->current.enabled && 
+			pm != nullptr
+		);
+
+		if (should_fix_ladders)
+		{
+			pm->tracemask |= MASK_PLAYER_CLIP;
+		}
+
+		Game::PM_CheckLadderMove(pm, pml);
+
+		if (should_fix_ladders && (pm->ps->pm_flags & Game::PMF_LADDER) == 0)
+		{
+			pm->tracemask &= ~MASK_PLAYER_CLIP;
+		}
+	}
+
 	void PlayerMovement::RegisterMovementDvars()
 	{
 		PlayerDuckedSpeedScale = Game::Dvar_RegisterFloat("player_duckedSpeedScale",
@@ -310,6 +350,9 @@ namespace Components
 
 		BGClimbAnything = Game::Dvar_RegisterBool("bg_climbAnything",
 			false, Game::DVAR_CODINFO, "Treat any surface as a ladder");
+
+		BGDisableBarrierClips = Game::Dvar_RegisterBool("bg_disableBarrierClips",
+			false, Game::DVAR_CODINFO, "Disable player collision with out of bound barriers");
 	}
 
 	PlayerMovement::PlayerMovement()
@@ -370,6 +413,10 @@ namespace Components
 
 		Utils::Hook(0x570020, PM_CrashLand_Stub, HOOK_CALL).install()->quick(); // Vec3Scale
 		Utils::Hook(0x4E9889, Jump_Check_Stub, HOOK_JUMP).install()->quick();
+
+		// Disable player collision with out of bound barriers 
+		Utils::Hook(0x4CFF5C, PmoveSingle_Stub, HOOK_CALL).install()->quick(); 			// single PmoveSingle call inside Pmove
+		Utils::Hook(0x574AF4, PM_CheckLadderMove_Stub, HOOK_CALL).install()->quick(); 	// single PM_CheckLadderMove call inside PmoveSingle
 
 		GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
 

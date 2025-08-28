@@ -374,6 +374,12 @@ namespace Game
 	typedef void(*Playlist_ParsePlaylists_t)(const char* data);
 	extern Playlist_ParsePlaylists_t Playlist_ParsePlaylists;
 
+	typedef void(*PMoveSingle_t)(pmove_s* pm);
+	extern PMoveSingle_t PMoveSingle;
+
+	typedef void(*PM_CheckLadderMove_t)(pmove_s* pm, pml_t* pml);
+	extern PM_CheckLadderMove_t PM_CheckLadderMove;
+
 	typedef Font_s*(*R_RegisterFont_t)(const char* asset, int safe);
 	extern R_RegisterFont_t R_RegisterFont;
 
