@@ -781,7 +781,7 @@ namespace Components
 	{
 		if (Game::Scr_GetNumParam() != 2)
 		{
-			Game::Scr_Error("GetMapArenaInfo: Needs az map name and a field name!");
+			Game::Scr_Error("GetMapArenaInfo: Needs a map name and a field name!");
 			return;
 		}
 
@@ -943,7 +943,7 @@ namespace Components
 		// gsc: GetMapArenaInfo(mapName, fieldName)
 		Components::GSC::Script::AddFunction(
 			"GetMapArenaInfo",
-			GSCr_GetMapArenaInfo 
+			GSCr_GetMapArenaInfo
 		);
 
 		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
