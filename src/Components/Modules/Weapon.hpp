@@ -14,10 +14,12 @@ namespace Components
 		static const int WEAPON_LIMIT = 2400;
 
 		static const int ADDED_WEAPONS = WEAPON_LIMIT - BASEGAME_WEAPON_LIMIT;
+		static const Game::dvar_t* BGMW3Swapping;
 
 	private:
 		static const Game::dvar_t* BGWeaponOffHandFix;
 		static const Game::dvar_t* CGRecoilMultiplier;
+
 
 		static Game::WeaponCompleteDef* LoadWeaponCompleteDef(const char* name);
 		static void PatchLimit();
