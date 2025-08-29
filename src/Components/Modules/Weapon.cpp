@@ -6,6 +6,7 @@ namespace Components
 {
 	const Game::dvar_t* Weapon::BGWeaponOffHandFix;
 	const Game::dvar_t* Weapon::CGRecoilMultiplier;
+	const Game::dvar_t* Weapon::BGMW3Swapping;
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
@@ -520,6 +521,32 @@ namespace Components
 		GSC::Script::AddMethod("FreezeControlsAllowLook", PlayerCmd_FreezeControlsAllowLook);
 	}
 
+
+	typedef void (*PM_Weapon_t)(Game::pmove_s* pm, Game::pml_t* pml);
+	PM_Weapon_t PM_Weapon = reinterpret_cast<PM_Weapon_t>(0x44C380);
+	;
+
+	void PM_Weapon_stub(Game::pmove_s* pm, Game::pml_t* pml)
+	{
+		if (Weapon::BGMW3Swapping->current.enabled)
+		{
+			int state = pm->ps->weapState[0x0].weaponState;
+			if (pm->cmd.weapon == pm->ps->weapCommon.weapon &&
+				(state == Game::WEAPON_DROPPING ||
+					state == Game::WEAPON_DROPPING_QUICK ||
+					state == Game::WEAPON_DROPPING_ALT))
+			{
+				for (int index = 0; index < 2; index++)
+				{
+					pm->ps->weapState[index].weaponState = 1;
+					pm->ps->weapState[index].weaponTime = Game::BG_GetWeaponDef(pm->ps->weapCommon.weapon)->quickRaiseTime;
+					pm->ps->weapState[index].weapAnim = 20;
+				}
+			}
+		}
+		PM_Weapon(pm, pml);
+	}
+
 	Weapon::Weapon()
 	{
 		PatchLimit();
@@ -544,6 +571,12 @@ namespace Components
 		// Weapon swap fix
 		Utils::Hook::Nop(0x4B3670, 5);
 		Utils::Hook(0x57B4F0, LoadNoneWeaponHookStub, HOOK_JUMP).install()->quick();
+
+		//Alternate Weapon Swapping Mechanics
+		BGMW3Swapping = Game::Dvar_RegisterBool("bg_mw3Swapping", false, Game::DVAR_CODINFO, "Enables Weapon Swapping mechnics from the iw5/iw6 engine");
+		Utils::Hook(0x574960, PM_Weapon_stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x574B69, PM_Weapon_stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x574AB2, PM_Weapon_stub, HOOK_CALL).install()->quick();
 
 		// Clear weapons independently from fs_game
 		Utils::Hook::Nop(0x452C1D, 2);
