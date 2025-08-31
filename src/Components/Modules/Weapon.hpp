@@ -43,5 +43,7 @@ namespace Components
 		static void PlayerCmd_FreezeControlsAllowLook(Game::scr_entref_t entref);
 
 		static void AddScriptMethods();
+
+		static void PM_Weapon_stub(Game::pmove_s* pm, Game::pml_t* pml);
 	};
 }

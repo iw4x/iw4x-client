@@ -151,6 +151,7 @@ namespace Game
 	PMoveSingle_t PMoveSingle = PMoveSingle_t(0x5743E0);
 
 	PM_CheckLadderMove_t PM_CheckLadderMove = PM_CheckLadderMove_t(0x573D00);
+	PM_Weapon_t PM_Weapon = PM_Weapon_t(0x44C380);
 
 	R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = R_AddCmdDrawStretchPic_t(0x509770);
 	R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = R_AllocStaticIndexBuffer_t(0x51E7A0);
