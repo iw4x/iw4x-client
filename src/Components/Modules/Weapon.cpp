@@ -6,6 +6,7 @@ namespace Components
 {
 	const Game::dvar_t* Weapon::BGWeaponOffHandFix;
 	const Game::dvar_t* Weapon::CGRecoilMultiplier;
+	const Game::dvar_t* Weapon::BGDisableDoubleTaps;
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
@@ -520,6 +521,31 @@ namespace Components
 		GSC::Script::AddMethod("FreezeControlsAllowLook", PlayerCmd_FreezeControlsAllowLook);
 	}
 
+	void Weapon::PM_Weapon_stub(Game::pmove_s* pm, Game::pml_t* pml)
+	{
+		if (BGDisableDoubleTaps && BGDisableDoubleTaps->current.enabled)
+		{
+			if (pm && pm->ps)
+			{
+				if (pm->cmd.weapon == pm->ps->weapCommon.weapon &&
+					(pm->ps->weapState[Game::WEAPON_HAND_RIGHT].weaponState == Game::WEAPON_DROPPING
+						|| pm->ps->weapState[Game::WEAPON_HAND_RIGHT].weaponState == Game::WEAPON_DROPPING_QUICK
+						|| pm->ps->weapState[Game::WEAPON_HAND_RIGHT].weaponState == Game::WEAPON_DROPPING_ALT))
+				{
+					// change each hand's weapon data
+					for (int index = 0; index < Game::NUM_WEAPON_HANDS; index++)
+					{
+						pm->ps->weapState[index].weaponState = Game::WEAPON_RAISING;
+						pm->ps->weapState[index].weaponTime = Game::BG_GetWeaponDef(pm->ps->weapCommon.weapon)->quickRaiseTime;
+						pm->ps->weapState[index].weapAnim = Game::WEAP_ANIM_QUICK_DROP;
+					}
+				}
+			}
+		}
+
+		Game::PM_Weapon(pm, pml);
+	}
+
 	Weapon::Weapon()
 	{
 		PatchLimit();
@@ -544,6 +570,12 @@ namespace Components
 		// Weapon swap fix
 		Utils::Hook::Nop(0x4B3670, 5);
 		Utils::Hook(0x57B4F0, LoadNoneWeaponHookStub, HOOK_JUMP).install()->quick();
+
+		// MW3-style weapon swapping mechanics
+		BGDisableDoubleTaps = Game::Dvar_RegisterBool("bg_disableDoubleTaps", false, Game::DVAR_CODINFO, "Enables MW3-style weapon swapping mechanics");
+		Utils::Hook(0x574960, PM_Weapon_stub, HOOK_CALL).install()->quick(); // PmoveSingle
+		Utils::Hook(0x574B69, PM_Weapon_stub, HOOK_CALL).install()->quick(); // ^
+		Utils::Hook(0x574AB2, PM_Weapon_stub, HOOK_CALL).install()->quick(); // ^
 
 		// Clear weapons independently from fs_game
 		Utils::Hook::Nop(0x452C1D, 2);

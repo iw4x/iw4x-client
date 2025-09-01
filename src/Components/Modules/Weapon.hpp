@@ -14,10 +14,12 @@ namespace Components
 		static const int WEAPON_LIMIT = 2400;
 
 		static const int ADDED_WEAPONS = WEAPON_LIMIT - BASEGAME_WEAPON_LIMIT;
+		static const Game::dvar_t* BGDisableDoubleTaps;
 
 	private:
 		static const Game::dvar_t* BGWeaponOffHandFix;
 		static const Game::dvar_t* CGRecoilMultiplier;
+
 
 		static Game::WeaponCompleteDef* LoadWeaponCompleteDef(const char* name);
 		static void PatchLimit();
@@ -41,5 +43,7 @@ namespace Components
 		static void PlayerCmd_FreezeControlsAllowLook(Game::scr_entref_t entref);
 
 		static void AddScriptMethods();
+
+		static void PM_Weapon_stub(Game::pmove_s* pm, Game::pml_t* pml);
 	};
 }
