@@ -6,7 +6,7 @@ namespace Components
 {
 	const Game::dvar_t* Weapon::BGWeaponOffHandFix;
 	const Game::dvar_t* Weapon::CGRecoilMultiplier;
-	const Game::dvar_t* Weapon::BGMW3Swapping;
+	const Game::dvar_t* Weapon::BGDisableDoubleTaps;
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
@@ -523,7 +523,7 @@ namespace Components
 
 	void Weapon::PM_Weapon_stub(Game::pmove_s* pm, Game::pml_t* pml)
 	{
-		if (BGMW3Swapping && BGMW3Swapping->current.enabled)
+		if (BGDisableDoubleTaps && BGDisableDoubleTaps->current.enabled)
 		{
 			if (pm && pm->ps)
 			{
@@ -572,7 +572,7 @@ namespace Components
 		Utils::Hook(0x57B4F0, LoadNoneWeaponHookStub, HOOK_JUMP).install()->quick();
 
 		// MW3-style weapon swapping mechanics
-		BGMW3Swapping = Game::Dvar_RegisterBool("bg_mw3Swapping", false, Game::DVAR_CODINFO, "Enables MW3-style weapon swapping mechanics");
+		BGDisableDoubleTaps = Game::Dvar_RegisterBool("BG_DisableDoubleTaps", false, Game::DVAR_CODINFO, "Enables MW3-style weapon swapping mechanics");
 		Utils::Hook(0x574960, PM_Weapon_stub, HOOK_CALL).install()->quick(); // PmoveSingle
 		Utils::Hook(0x574B69, PM_Weapon_stub, HOOK_CALL).install()->quick(); // ^
 		Utils::Hook(0x574AB2, PM_Weapon_stub, HOOK_CALL).install()->quick(); // ^
