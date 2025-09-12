@@ -13,7 +13,6 @@ namespace Components
 		const Game::dvar_t* cl_updateAvailable;
 
 		constexpr auto* GITHUB_REMOTE_URL = "https://api.github.com/repos/iw4x/iw4x-client/releases/latest";
-		constexpr auto* INSTALL_GUIDE_REMOTE_URL = "https://iw4x.dev/install";
 
 		void CheckForUpdate()
 		{
@@ -87,8 +86,8 @@ namespace Components
 				return;
 			}
 
-			// No launcher was found on the system, time to tell them to download it from GitHub
-			Utils::OpenUrl(INSTALL_GUIDE_REMOTE_URL);
+			// No launcher was found on the system
+			Logger::Print("No launcher found - cannot auto-update\n");
 		});
 	}
 }

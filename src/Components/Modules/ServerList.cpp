@@ -353,7 +353,7 @@ namespace Components
 		Logger::Print("Response from the master server was successfully parsed. We got {} servers\n", count);
 	}
 
-	void ServerList::Refresh(bool is_retry)
+	void ServerList::Refresh(bool)
 	{
 		Dvar::Var("ui_serverSelected").set(false);
 
@@ -375,37 +375,8 @@ namespace Components
 		}
 		else if (IsOnlineList())
 		{
-			const auto masterPort = (*Game::com_masterPort)->current.unsignedInt;
-			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
-
-			RefreshContainer.awatingList = true;
-			RefreshContainer.awaitTime = Game::Sys_Milliseconds();
-
 			Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
-
-			const auto host = is_retry ? "nocf.iw4x.dev" : "iw4x.dev";
-			const auto url = std::format("http://{}/v1/servers/iw4x?protocol={}", host, PROTOCOL);
-			const auto reply = Utils::WebIO("IW4x", url).setTimeout(5000)->get();
-			if (reply.empty() && is_retry)
-			{
-				Logger::Print("Response from {} was empty or the request timed out. Using the Node System\n", url);
-				Toast::Show("cardicon_headshot", "^1Error", std::format("Could not get a response from {}. Using the Node System", url), 5000);
-				UseMasterServer = false;
-				return;
-			}
-			else if (reply.empty()) {
-				Logger::Print("Couldn't reach main server, retrying backup server\n");
-				Toast::Show("cardicon_headshot", "^1Error", std::format("Could not get a response from {}. Retrying backup server", url), 5000);
-				Refresh(true);
-				return;
-			}
-
-			RefreshContainer.awatingList = false;
-
-			ParseNewMasterServerResponse(reply);
-
-			// TODO: Figure out what to do with this. Leave it to avoid breaking other code
-			RefreshContainer.host = Network::Address(std::format("{}:{}", masterServerName, masterPort));
+			UseMasterServer = false;
 		}
 		else if (IsFavouriteList())
 		{
@@ -986,7 +957,7 @@ namespace Components
 			});
 
 		// Set default masterServerName + port and save it
-		Utils::Hook::Set<const char*>(0x60AD92, "dp.iw4x.dev");
+		Utils::Hook::Set<const char*>(0x60AD92, "localhost");
 		Utils::Hook::Set<std::uint8_t>(0x60AD90, Game::DVAR_NONE); // masterServerName
 		Utils::Hook::Set<std::uint8_t>(0x60ADC6, Game::DVAR_NONE); // masterPort
 
