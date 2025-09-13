@@ -375,8 +375,32 @@ namespace Components
 		}
 		else if (IsOnlineList())
 		{
+			const auto masterPort = (*Game::com_masterPort)->current.unsignedInt;
+			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
+
+			RefreshContainer.awatingList = true;
+			RefreshContainer.awaitTime = Game::Sys_Milliseconds();
+
 			Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
-			UseMasterServer = false;
+
+			const auto host = "147.135.10.99:8080";
+			const auto url = std::format("http://{}/v1/servers/iw4x?protocol={}", host, PROTOCOL);
+			const auto reply = Utils::WebIO("IW4x", url).setTimeout(5000)->get();
+
+			if (reply.empty())
+			{
+				Logger::Print("Respone from {} was empty or the request timed out, falling back to node system.\n", url);
+				Toast::Show("cardicon_headshot", "^1Error", std::format("Could not get a response from {}, falling back to node system.\n", url), 5000);
+				UseMasterServer = false;
+				return;
+			}
+
+			RefreshContainer.awatingList = false;
+
+			ParseNewMasterServerResponse(reply);
+
+			// TODO: Figure out what to do with this. Leave it to avoid breaking other code
+			RefreshContainer.host = Network::Address(std::format("{}:{}", masterServerName, masterPort));
 		}
 		else if (IsFavouriteList())
 		{
@@ -957,7 +981,7 @@ namespace Components
 			});
 
 		// Set default masterServerName + port and save it
-		Utils::Hook::Set<const char*>(0x60AD92, "localhost");
+		Utils::Hook::Set<const char*>(0x60AD92, "147.135.10.99");
 		Utils::Hook::Set<std::uint8_t>(0x60AD90, Game::DVAR_NONE); // masterServerName
 		Utils::Hook::Set<std::uint8_t>(0x60ADC6, Game::DVAR_NONE); // masterPort
 
