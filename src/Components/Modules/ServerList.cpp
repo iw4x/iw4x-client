@@ -204,7 +204,7 @@ namespace Components
 
 		if (tempList.empty())
 		{
-			Refresh(false);
+			Refresh();
 		}
 		else
 		{
@@ -238,7 +238,7 @@ namespace Components
 
 		if (refresh)
 		{
-			Refresh(false);
+			Refresh();
 			return;
 		}
 
@@ -383,7 +383,7 @@ namespace Components
 
 			Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
 
-			const auto host = "147.135.10.99:8080";
+			const auto host = "iw4x.io";
 			const auto url = std::format("http://{}/v1/servers/iw4x?protocol={}", host, PROTOCOL);
 			const auto reply = Utils::WebIO("IW4x", url).setTimeout(5000)->get();
 
@@ -981,7 +981,7 @@ namespace Components
 			});
 
 		// Set default masterServerName + port and save it
-		Utils::Hook::Set<const char*>(0x60AD92, "147.135.10.99");
+		Utils::Hook::Set<const char*>(0x60AD92, "dp.iw4x.io");
 		Utils::Hook::Set<std::uint8_t>(0x60AD90, Game::DVAR_NONE); // masterServerName
 		Utils::Hook::Set<std::uint8_t>(0x60ADC6, Game::DVAR_NONE); // masterPort
 
@@ -993,8 +993,8 @@ namespace Components
 		UIScript::Add("RefreshFilter", UpdateVisibleList);
 
 		UIScript::Add("RefreshServers", [](const UIScript::Token&, const Game::uiInfo_s*) {
-			ServerList::Refresh(false);
-			});
+			ServerList::Refresh();
+		});
 
 		UIScript::Add("JoinServer", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 			{

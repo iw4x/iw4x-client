@@ -13,6 +13,7 @@ namespace Components
 		const Game::dvar_t* cl_updateAvailable;
 
 		constexpr auto* GITHUB_REMOTE_URL = "https://api.github.com/repos/iw4x/iw4x-client/releases/latest";
+		constexpr auto* INSTALL_GUIDE_REMOTE_URL = "https://iw4x.io/install";
 
 		void CheckForUpdate()
 		{
