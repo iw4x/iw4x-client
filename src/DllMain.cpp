@@ -44,7 +44,7 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID lpvReserve
 			MessageBoxA(nullptr,
 			            "Failed to load game binary.\n"
 			            "You did not install the iw4x-rawfiles!\n"
-			            "Please use the iw4x to run the game. For support, please visit https://iw4x.io/install",
+			            "For support, please visit https://iw4x.io/install",
 			            "ERROR",
 			            MB_ICONERROR
 			);

@@ -353,7 +353,7 @@ namespace Components
 		Logger::Print("Response from the master server was successfully parsed. We got {} servers\n", count);
 	}
 
-	void ServerList::Refresh(bool)
+	void ServerList::Refresh()
 	{
 		Dvar::Var("ui_serverSelected").set(false);
 
