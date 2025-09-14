@@ -117,7 +117,7 @@ namespace Components
 
 		UIScript::Add("visitWebsite", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 		{
-			// Website URL removed - no longer available
+			Utils::OpenUrl("https://iw4x.io");
 		});
 
 		Localization::Set("MPUI_CHANGELOG_TEXT", "Loading...");
