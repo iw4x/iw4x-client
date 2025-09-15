@@ -446,6 +446,74 @@ EOF
   fi
 }
 
+generate_vscode_config ()
+{
+  diag "info: generating VSCode configuration..."
+
+  local workspace_folder=$(pwd)
+
+  if ! test -d ".vscode"; then
+    run mkdir -p .vscode
+  fi
+
+	local msvc_version=""
+  if test -d "$msvc_install_dir/vc/tools/msvc"; then
+    msvc_version=$(ls "$msvc_install_dir/vc/tools/msvc" | sort -V | tail -n 1)
+  fi
+
+  local sdk_version=""
+  if test -d "$msvc_install_dir/kits/10/Include"; then
+    sdk_version=$(ls "$msvc_install_dir/kits/10/Include" | grep -E '^10\.' | sort -V | tail -n 1)
+  fi
+
+  # Fallback to known versions if version detection fails
+	#
+  if test -z "$msvc_version"; then
+    msvc_version="14.44.35207"
+    diag "warning: could not detect MSVC version, using fallback: $msvc_version"
+  else
+    diag "info: detected MSVC version: $msvc_version"
+  fi
+
+  if test -z "$sdk_version"; then
+    sdk_version="10.0.26100.0"
+    diag "warning: could not detect Windows SDK version, using fallback: $sdk_version"
+  else
+    diag "info: detected Windows SDK version: $sdk_version"
+  fi
+
+  cat > .vscode/c_cpp_properties.json << EOF
+{
+	"configurations": [
+		{
+			"name": "Linux",
+			"includePath": [
+				"\${default}",
+				"$msvc_install_dir/vc/tools/msvc/$msvc_version/atlmfc/include",
+				"$msvc_install_dir/vc/tools/msvc/$msvc_version/include",
+				"$msvc_install_dir/kits/10/Include/$sdk_version/shared",
+				"$msvc_install_dir/kits/10/Include/$sdk_version/ucrt",
+				"$msvc_install_dir/kits/10/Include/$sdk_version/um",
+				"$msvc_install_dir/kits/10/Include/$sdk_version/winrt",
+				"\${workspaceFolder}/**"
+			],
+			"defines": [],
+			"cStandard": "c23",
+			"cppStandard": "c++23",
+			"intelliSenseMode": "windows-msvc-x86",
+			"forcedInclude": [
+				"$workspace_folder/src/STDInclude.hpp"
+			]
+		}
+	],
+	"version": 4
+}
+EOF
+
+  diag "info: VSCode configuration generated at .vscode/c_cpp_properties.json"
+  diag "info: Using MSVC installation directory: $msvc_install_dir"
+}
+
 strip_premake_build_commands ()
 {
   diag "info: creating stripped premake5 configuration..."
@@ -475,6 +543,7 @@ generate_build_files ()
   fi
 
   generate_buildinfo
+  generate_vscode_config
   strip_premake_build_commands
 
   run wine tools/premake5.exe --file=premake5-linux.lua vs2022
@@ -526,9 +595,14 @@ install ()
     diag "This will:"
     if test "$skip_submodules" != true; then
     diag "  1. Update git submodules"
-    fi
+    diag "  2. Generate VSCode configuration"
+    diag "  3. Regenerate Visual Studio solution files"
+    diag "  4. Build IW4x client using existing MSBuild"
+    else
+    diag "  1. Generate VSCode configuration"
     diag "  2. Regenerate Visual Studio solution files"
     diag "  3. Build IW4x client using existing MSBuild"
+    fi
     diag
     diag "To force full setup instead, use --force-full-setup option."
     diag
@@ -565,14 +639,32 @@ install ()
   diag "This will:"
   if test "$skip_deps" != true; then
   diag "  1. Install system dependencies (wine, python3, msitools, etc.)"
-  fi
   diag "  2. Set up Wine environment and install wine-mono"
   diag "  3. Download and install MSVC toolchain via msvc-wine"
   if test "$skip_submodules" != true; then
   diag "  4. Update git submodules"
-  fi
+  diag "  5. Generate VSCode configuration"
+  diag "  6. Generate Visual Studio solution files"
+  diag "  7. Build IW4x client"
+  else
+  diag "  4. Generate VSCode configuration"
   diag "  5. Generate Visual Studio solution files"
   diag "  6. Build IW4x client"
+  fi
+  else
+  diag "  1. Set up Wine environment and install wine-mono"
+  diag "  2. Download and install MSVC toolchain via msvc-wine"
+  if test "$skip_submodules" != true; then
+  diag "  3. Update git submodules"
+  diag "  4. Generate VSCode configuration"
+  diag "  5. Generate Visual Studio solution files"
+  diag "  6. Build IW4x client"
+  else
+  diag "  3. Generate VSCode configuration"
+  diag "  4. Generate Visual Studio solution files"
+  diag "  5. Build IW4x client"
+  fi
+  fi
   diag
 
   if test "$clean" = true; then
