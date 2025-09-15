@@ -100,10 +100,7 @@ body:
     id: console-output
     attributes:
       label: Console output or error messages
-      description: |
-        ```
-        Paste any relevant console output or error messages here
-        ```
+      description: Paste any relevant console output or error messages here.
       render: shell
 
   - type: textarea
