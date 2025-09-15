@@ -1,19 +1,81 @@
+# Pull Request
+
+## Summary
 **What does this PR do?**
+Provide a concise description of the changes and the problem this PR solves.
 
-Thanks for the contribution! Please provide a concise description of the problem this request solves.
+**Related Issues:**
+- Closes #(issue number)
+- Related to #(issue number)
+- Fixes #(issue number)
 
-**How does this PR change IW4x's behaviour?**
+## Technical Details
+**How does this PR change IW4x's behavior?**
+Describe any changes to game mechanics, user interface, or system behavior.
 
-Are there any breaking changes? Will any existing behaviour change?
-Specify the new expected behaviour if this PR adds a new gameplay feature or alters an existing game mechanic. You may provide an image or video showing the changes.
+**Breaking changes:**
+List any breaking changes and migration steps if applicable.
 
-**Anything else we should know?**
+**Performance impact:**
+Describe any performance implications (positive or negative).
 
-Add any other context about your changes here.
+## Testing
+**How has this been tested?**
+- [ ] Manual testing
+- [ ] Tested with multiple game modes
+- [ ] Tested on different hardware configurations
+- [ ] Tested with various mods/custom content
 
-**Did you check all the boxes?**
+**Test environment:**
+- OS: (e.g., Windows 10/11)
+- Hardware: (CPU, GPU, RAM if relevant)
 
-- [ ] Focus on a single fix or feature; remove any unrelated formatting or code changes
-- [ ] Mention any [related issues](https://github.com/iw4x/iw4x-client/issues) (put `closes #XXXX` in comment to auto-close issue when PR is merged)
-- [ ] Follow our [coding conventions](https://github.com/iw4x/iw4x-client/blob/master/CODESTYLE.md)
-- [ ] Minimize the number of commits
+**Test results:**
+Describe the testing performed and results obtained.
+
+## Screenshots/Videos
+If applicable, add screenshots or videos demonstrating the changes.
+
+## Code Quality
+**Code review checklist:**
+- [ ] Code follows the [coding conventions](https://github.com/iw4x/iw4x-client/blob/master/CODESTYLE.md)
+- [ ] Self-review of code completed
+- [ ] Code is properly commented
+- [ ] No debug code or temporary changes left in
+- [ ] No unnecessary formatting changes
+- [ ] Commit messages are clear and descriptive
+
+**Security considerations:**
+- [ ] No hardcoded credentials or sensitive data
+- [ ] Input validation implemented where necessary
+- [ ] No obvious security vulnerabilities introduced
+
+## Compatibility
+**Backward compatibility:**
+- [ ] This change is backward compatible
+- [ ] This change may break compatibility (breaking changes documented above)
+- [ ] This change only affects development/build process
+
+**Mod compatibility:**
+- [ ] No impact on existing mods
+- [ ] May affect specific mods (documented above)
+- [ ] Improves mod compatibility
+
+## Additional Notes
+**Dependencies:**
+List any new dependencies or changes to existing ones.
+
+**Future work:**
+Mention any follow-up work or related PRs planned.
+
+**Reviewer notes:**
+Any specific areas where you'd like focused review or have concerns.
+
+## Final Checklist
+- [ ] PR focuses on a single fix or feature
+- [ ] All related issues are mentioned
+- [ ] Coding conventions followed
+- [ ] Number of commits minimized (squashed if necessary)
+- [ ] PR title and description are clear and descriptive
+- [ ] All tests pass locally
+- [ ] Ready for review

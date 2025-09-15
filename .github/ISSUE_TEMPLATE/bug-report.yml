@@ -1,0 +1,139 @@
+name: Bug Report
+description: Report a bug with IW4x
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to reproduce the behavior
+      description: |
+        1. Go to '...'
+        2. Click on '....'
+        3. See error
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: frequency
+    attributes:
+      label: How often does this occur?
+      options:
+        - label: Always
+        - label: Sometimes
+        - label: Rarely
+        - label: Only once
+
+  - type: input
+    id: iw4x-version
+    attributes:
+      label: IW4x Version
+      description: Run `iw4x.exe -version` or check in-game console. Please make sure you're using the latest version from the develop branch.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: operating-system
+    attributes:
+      label: Operating System
+      options:
+        - label: Windows 10
+        - label: Windows 11
+        - label: "Other:"
+
+  - type: input
+    id: hardware-cpu
+    attributes:
+      label: CPU
+
+  - type: input
+    id: hardware-gpu
+    attributes:
+      label: GPU
+
+  - type: input
+    id: hardware-ram
+    attributes:
+      label: RAM
+
+  - type: checkboxes
+    id: crash-occurred
+    attributes:
+      label: Did IW4x crash?
+      options:
+        - label: "Yes"
+        - label: "No"
+
+  - type: input
+    id: crash-address
+    attributes:
+      label: Crash address
+      description: (from crash dialog - text form, not screenshot)
+
+  - type: textarea
+    id: minidump-file
+    attributes:
+      label: Minidump file
+      description: (attach if available)
+
+  - type: textarea
+    id: error-message
+    attributes:
+      label: Error message
+      description: (exact text)
+
+  - type: textarea
+    id: console-output
+    attributes:
+      label: Console output or error messages
+      description: |
+        ```
+        Paste any relevant console output or error messages here
+        ```
+      render: shell
+
+  - type: textarea
+    id: mods-content
+    attributes:
+      label: Mods or custom content
+      description: List any mods, custom maps, or other modifications you have installed.
+
+  - type: textarea
+    id: screenshots-videos
+    attributes:
+      label: Screenshots/Videos
+      description: If applicable, add screenshots or videos to help explain your problem.
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional information
+      description: Add any other context about the problem here.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I am using the latest version of IW4x from the develop branch
+          required: true
+        - label: I have read the documentation and troubleshooting guides
+          required: true
+        - label: I have provided all the requested information above
+          required: true

@@ -2,7 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: Discord Server
     url: https://discord.gg/2ETE8engZM
-    about: Please ask and answer support questions here.
-  - name: AlterWare Forum
-    url: https://forum.alterware.dev/
-    about: Find guides and ask questions here.
+    about: Join our community for real-time support and troubleshooting help
