@@ -10,11 +10,16 @@ function boost.setup()
 	if not os.isfile(versionFile) then
 		print("setting up Boost headers...")
 
+		local submoduleResult = os.execute('git submodule update --init --recursive deps/boost')
+		if submoduleResult ~= 0 then
+			print("warning: git submodule update failed, continuing anyway...")
+		end
+
 		if os.host() == "windows" then
 			local bootstrapScript = path.join(boostPath, "bootstrap.bat")
 			if os.isfile(bootstrapScript) then
 				print("running bootstrap.bat...")
-				local result = os.execute('cd /d "' .. boostPath .. '" && bootstrap.bat')
+				local result = os.execute('cd /d "' .. boostPath .. '" && call bootstrap.bat')
 				if result == 0 then
 					local b2Path = path.join(boostPath, "b2.exe")
 					if os.isfile(b2Path) then
