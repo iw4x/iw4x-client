@@ -169,6 +169,11 @@ newaction {
 
 dependencies.load()
 
+-- Setup boost headers during generation
+if boost and boost.setup then
+	boost.setup()
+end
+
 workspace "iw4x"
 	startproject "iw4x"
 	location "./build"

@@ -518,11 +518,11 @@ strip_premake_build_commands ()
 {
   diag "info: creating stripped premake5 configuration..."
 
-  # Strip lines 242-249 (pre-build) and 250-268 (post-build)
+  # Strip lines 247-274 (pre-build and post-build commands)
   #
   # NOTE: Update if changing anything in premake5.lua!
   #
-  sed '242,268d' premake5.lua > premake5-linux.lua
+  sed '247,274d' premake5.lua > premake5-linux.lua
 }
 
 cleanup_premake_temp_files ()

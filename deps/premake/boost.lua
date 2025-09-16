@@ -2,6 +2,58 @@ boost = {
 	source = path.join(dependencies.basePath, "boost"),
 }
 
+function boost.setup()
+	-- Setup boost headers during premake generation
+	local boostPath = boost.source
+	local versionFile = path.join(boostPath, "boost", "version.hpp")
+
+	if not os.isfile(versionFile) then
+		print("setting up Boost headers...")
+
+		if os.host() == "windows" then
+			local bootstrapScript = path.join(boostPath, "bootstrap.bat")
+			if os.isfile(bootstrapScript) then
+				print("running bootstrap.bat...")
+				local result = os.execute('cd /d "' .. boostPath .. '" && bootstrap.bat')
+				if result == 0 then
+					local b2Path = path.join(boostPath, "b2.exe")
+					if os.isfile(b2Path) then
+						print("Running b2.exe headers...")
+						os.execute('cd /d "' .. boostPath .. '" && b2.exe headers')
+					else
+						print("warning: b2.exe not found after bootstrap")
+					end
+				else
+					print("error: bootstrap.bat failed")
+				end
+			else
+				print("error: bootstrap.bat not found at " .. bootstrapScript)
+			end
+		else
+			local bootstrapScript = path.join(boostPath, "bootstrap.bat")
+			if os.isfile(bootstrapScript) then
+				print("running bootstrap.bat with wine...")
+				local result = os.execute('cd "' .. boostPath .. '" && wine bootstrap.bat')
+				if result == 0 then
+					local b2Path = path.join(boostPath, "b2.exe")
+					if os.isfile(b2Path) then
+						print("running b2.exe headers with wine...")
+						os.execute('cd "' .. boostPath .. '" && wine b2.exe headers')
+					else
+						print("warning: b2.exe not found after bootstrap")
+					end
+				else
+					print("error: bootstrap.bat failed with wine")
+				end
+			else
+				print("error: bootstrap.bat not found at " .. bootstrapScript)
+			end
+		end
+	else
+		print("boost headers already set up")
+	end
+end
+
 function boost.import()
 	links {"boost"}
 	boost.includes()
@@ -36,11 +88,6 @@ function boost.project()
 			path.join(boost.source, "bootstrap.bat"),
 			path.join(boost.source, "Jamroot"),
 		}
-
-		filter "platforms:Win32"
-			prebuildcommands {
-        [[cd /d "$(ProjectDir)..\deps\boost" && if not exist boost\version.hpp call bootstrap.bat && if exist b2.exe b2.exe headers]],
-			}
 
 		warnings "Off"
 end
