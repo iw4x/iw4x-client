@@ -47,3 +47,6 @@
 [submodule "deps/dualsense-windows"]
 	path = deps/dualsense-windows
 	url = https://github.com/Ohjurot/DualSense-Windows.git
+[submodule "deps/boost"]
+	path = deps/boost
+	url = https://github.com/boostorg/boost.git
