@@ -39,10 +39,8 @@ function boost.project()
 
 		filter "platforms:Win32"
 			prebuildcommands {
-				"cd /d \"$(ProjectDir)..\\deps\\boost\" && if not exist boost\\version.hpp (bootstrap.bat && if exist b2.exe (b2.exe headers))",
+        [[cd /d "$(ProjectDir)..\deps\boost" && if not exist boost\version.hpp call bootstrap.bat && if exist b2.exe b2.exe headers]],
 			}
-
-		filter {}
 
 		warnings "Off"
 end
