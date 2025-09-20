@@ -3,11 +3,9 @@ name: Build
 on:
   push:
     branches:
-      - "*"
+      - "main"
+      - "develop"
   pull_request:
-    branches:
-      - "*"
-    types: [opened, synchronize, reopened]
 
 concurrency:
   group: ${{ github.ref }}
