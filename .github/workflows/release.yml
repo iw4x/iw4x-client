@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - r[0-9]+
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  create-release:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v5
+        - uses: ncipollo/release-action@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            draft: true
+            allowUpdates: true
+            omitBodyDuringUpdate: true
+
+  build-release:
+    name: Build release binaries
+    runs-on: windows-2022
+    steps:
+      - name: Check out files
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Generate project files
+        run: tools/premake5 vs2022
+
+      - name: Build release binaries
+        run: msbuild /m /v:minimal /p:Configuration=Release /p:Platform=Win32 build/iw4x.sln
+
+      - name: Upload release binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: iw4x-release
+          path: |
+            build/bin/Win32/Release/iw4x.dll
+            build/bin/Win32/Release/iw4x.pdb
+
+  release:
+    needs:
+      - create-release
+      - build-release
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v5
+      - name: Prepare release tool
+        run: |
+          wget -Orelease-tool.tar.gz https://github.com/iw4x/launcher/releases/latest/download/release-tool-x86_64-unknown-linux-gnu.tar.gz
+          tar -xvf release-tool.tar.gz
+          chmod +x release-tool
+      - name: Create release information
+        run: |
+          mkdir -p ./launcher-files
+          mv -v iw4x-release/iw4x.dll launcher-files/iw4x.dll
+          ./release-tool ./launcher-files
+      - uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          artifacts: "launcher-files/*,iw4x-release/*"
+          artifactErrorsFailBuild: true
+          allowUpdates: true
+          draft: true
+          omitBodyDuringUpdate: true
+          omitDraftDuringUpdate: true
