@@ -59,6 +59,9 @@ jobs:
       contents: write
     steps:
       - uses: actions/download-artifact@v5
+        with:
+          name: iw4x-release
+          path: iw4x-release
       - name: Prepare release tool
         run: |
           wget -O release-tool.tar.gz https://github.com/iw4x/launcher/releases/latest/download/release-tool-x86_64-unknown-linux-gnu.tar.gz
