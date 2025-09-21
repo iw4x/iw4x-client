@@ -61,7 +61,7 @@ jobs:
       - uses: actions/download-artifact@v5
       - name: Prepare release tool
         run: |
-          wget -Orelease-tool.tar.gz https://github.com/iw4x/launcher/releases/latest/download/release-tool-x86_64-unknown-linux-gnu.tar.gz
+          wget -O release-tool.tar.gz https://github.com/iw4x/launcher/releases/latest/download/release-tool-x86_64-unknown-linux-gnu.tar.gz
           tar -xvf release-tool.tar.gz
           chmod +x release-tool
       - name: Create release information
