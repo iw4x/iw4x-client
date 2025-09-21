@@ -10,20 +10,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  verify-tag-is-correct:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out files
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify the tag matches the commit count
+        run: |
+          EXPECTED_TAG="r$(git rev-list --count HEAD)"
+          ACTUAL_TAG="${{ github.ref_name }}"
+          ([[ "$EXPECTED_TAG" == "$ACTUAL_TAG" ]] && echo "Tag $ACTUAL_TAG is correct!") || (echo "Tag is wrong! Expected $EXPECTED_TAG." && exit 1)
+
   create-release:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v5
-        - uses: ncipollo/release-action@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            draft: true
-            allowUpdates: true
-            omitBodyDuringUpdate: true
+    needs:
+      - verify-tag-is-correct
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          allowUpdates: true
+          omitBodyDuringUpdate: true
 
   build-release:
-    name: Build release binaries
+    needs:
+      - verify-tag-is-correct
     runs-on: windows-2022
     steps:
       - name: Check out files
