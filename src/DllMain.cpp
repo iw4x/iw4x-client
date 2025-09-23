@@ -10,11 +10,6 @@ namespace Main
 		Components::Loader::Initialize();
 	}
 
-	void Uninitialize()
-	{
-		Components::Loader::Uninitialize();
-	}
-
  	int EntryPoint()
   {
 		// /GS security cookie must be initialized before any exception-handling
@@ -76,8 +71,6 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID lpvReserve
 		//
 		if (lpvReserved != nullptr)
 			return TRUE;
-
-		Main::Uninitialize();
 	}
 
 	return TRUE;

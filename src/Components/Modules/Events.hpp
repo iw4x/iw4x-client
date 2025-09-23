@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Events : public Component
+	class Events
 	{
 	public:
 		using Callback = std::vector<std::function<void()>>;

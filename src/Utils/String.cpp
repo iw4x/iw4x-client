@@ -15,8 +15,7 @@ namespace Utils::String
 		va_start(ap, fmt);
 
 		const char* result;
-		if (Components::Loader::IsUninitializing()) result = globalProvider.get(fmt, ap);
-		else result = provider.get(fmt, ap);
+		result = provider.get(fmt, ap);
 
 		va_end(ap);
 		return result;

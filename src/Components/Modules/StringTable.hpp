@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class StringTable : public Component
+	class StringTable
 	{
 	public:
 		StringTable();

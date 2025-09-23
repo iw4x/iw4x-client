@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Branding : public Component
+	class Branding
 	{
 	public:
 		Branding();

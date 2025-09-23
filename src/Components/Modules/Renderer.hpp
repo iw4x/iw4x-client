@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Renderer : public Component
+	class Renderer
 	{
 	public:
 		typedef void(BackendCallback)(IDirect3DDevice9*);

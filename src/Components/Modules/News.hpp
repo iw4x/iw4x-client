@@ -3,12 +3,10 @@
 
 namespace Components
 {
-	class News : public Component
+	class News
 	{
 	public:
 		News();
-
-		void preDestroy() override;
 
 	private:
 		static std::optional<std::string> ExtractStringByMemberName(const rapidjson::Document& document, const std::string& memberName);

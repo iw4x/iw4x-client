@@ -2,12 +2,10 @@
 
 namespace Components
 {
-	class Singleton : public Component
+	class Singleton
 	{
 	public:
 		Singleton();
-
-		void preDestroy() override;
 
 		static bool IsFirstInstance();
 

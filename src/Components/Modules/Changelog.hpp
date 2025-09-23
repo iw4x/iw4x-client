@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Changelog : public Component
+	class Changelog
 	{
 	public:
 		Changelog();

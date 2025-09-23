@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Party : public Component
+	class Party
 	{
 	public:
 		Party();

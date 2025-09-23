@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class StartupMessages : public Component
+	class StartupMessages
 	{
 	public:
 		StartupMessages();

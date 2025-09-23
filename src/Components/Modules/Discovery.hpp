@@ -2,12 +2,11 @@
 
 namespace Components
 {
-	class Discovery : public Component
+	class Discovery
 	{
 	public:
 		Discovery();
 
-		void preDestroy() override;
 
 		static void Perform();
 

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Threading : public Component
+	class Threading
 	{
 	public:
 		Threading();

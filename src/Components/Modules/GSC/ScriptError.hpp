@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class ScriptError : public Component
+	class ScriptError
 	{
 	public:
 		ScriptError();

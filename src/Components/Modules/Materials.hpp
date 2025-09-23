@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Materials : public Component
+	class Materials
 	{
 	public:
 		Materials();

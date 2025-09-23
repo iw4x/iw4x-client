@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Network : public Component
+	class Network
 	{
 	public:
 		class Address

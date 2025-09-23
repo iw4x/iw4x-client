@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class PlayerName : public Component
+	class PlayerName
 	{
 	public:
 		PlayerName();

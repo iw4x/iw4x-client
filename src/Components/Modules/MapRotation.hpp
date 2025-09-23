@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class MapRotation : public Component
+	class MapRotation
 	{
 	public:
 		MapRotation();

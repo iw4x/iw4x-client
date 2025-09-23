@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class FileSystem : public Component
+	class FileSystem
 	{
 	public:
 		class AbstractFile

@@ -5,7 +5,7 @@
 
 namespace Components
 {
-	class Console : public Component
+	class Console
 	{
 	public:
 		Console();

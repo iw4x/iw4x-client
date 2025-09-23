@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Playlist : public Component
+	class Playlist
 	{
 	public:
 		typedef void(*Callback)();

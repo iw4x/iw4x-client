@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Bans : public Component
+	class Bans
 	{
 	public:
 		using banEntry = std::pair<SteamID, Game::netIP_t>;

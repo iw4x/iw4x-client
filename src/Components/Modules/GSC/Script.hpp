@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class Script : public Component
+	class Script
 	{
 	public:
 		Script();

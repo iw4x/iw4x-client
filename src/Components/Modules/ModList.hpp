@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class ModList : public Component
+	class ModList
 	{
 	public:
 		ModList();

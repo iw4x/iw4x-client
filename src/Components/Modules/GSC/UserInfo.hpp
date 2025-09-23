@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class UserInfo : public Component
+	class UserInfo
 	{
 	public:
 		UserInfo();

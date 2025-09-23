@@ -70,196 +70,99 @@
 #include "Modules/Vote.hpp"
 #include "Modules/Weapon.hpp"
 #include "Modules/Window.hpp"
-
 #include "Modules/BotLib/lPrecomp.hpp"
 
 namespace Components
 {
-	bool Loader::Pregame = true;
-	bool Loader::Postgame = false;
-	bool Loader::Uninitializing = false;
-	std::vector<Component*> Loader::Components;
-
-	bool Loader::IsPregame()
-	{
-		return Pregame;
-	}
-
-	bool Loader::IsPostgame()
-	{
-		return Postgame;
-	}
-
-	bool Loader::IsUninitializing()
-	{
-		return Uninitializing;
-	}
-
 	void Loader::Initialize()
 	{
-		Pregame = true;
-		Postgame = false;
-		Uninitializing = false;
 		Utils::Memory::GetAllocator()->clear();
 
-		// High priority
-		Register(new Singleton());
-
-		Register(new Auth());
-		Register(new Command());
-		Register(new Dvar());
-		Register(new Exception()); // Install our exception handler as early as possible to get better debug dumps from startup crashes
-		Register(new IPCPipe());
-		Register(new Network());
-		Register(new Logger());
-		Register(new UIScript());
-		Register(new ZoneBuilder());
-
-		Register(new ConfigStrings()); // Needs to be there early !! Before modelcache & weapons
-
-		Register(new ArenaLength());
-		Register(new AssetHandler());
-		Register(new Bans());
-		Register(new Bots());
-		Register(new Branding());
-		Register(new Bullet());
-		Register(new CardTitles());
-		Register(new Ceg());
-		Register(new Changelog());
-		Register(new Chat());
-		Register(new ClanTags());
-		Register(new ClientCommand());
-		Register(new ConnectProtocol());
-		Register(new Console());
-		Register(new D3D9Ex());
-		Register(new Debug());
-		Register(new Dedicated());
-		Register(new Discord());
-		Register(new Discovery());
-		Register(new Download());
-		Register(new Elevators());
-		Register(new Events());
-		Register(new FastFiles());
-		Register(new FileSystem());
-		Register(new Friends());
-		Register(new Gamepad());
-		Register(new Rumble());
-		Register(new Huffman());
-		Register(new Lean());
-		Register(new Localization());
-		Register(new MapDump());
-		Register(new MapRotation());
-		Register(new Maps());
-		Register(new Materials());
-		Register(new Menus());
-		Register(new ModList());
-		Register(new ModelCache());
-		Register(new ModelSurfs());
-		Register(new NetworkDebug());
-		Register(new News());
-		Register(new Node());
-		Register(new Party());
-		Register(new PlayerMovement());
-		Register(new PlayerName());
-		Register(new Playlist());
-		Register(new QuickPatch());
-		Register(new RawFiles());
-		Register(new RawMouse());
-		Register(new RCon());
-		Register(new Renderer());
-		Register(new Scheduler());
-		Register(new Security());
-		Register(new ServerCommands());
-		Register(new ServerInfo());
-		Register(new ServerList());
-		Register(new Session());
-		Register(new SlowMotion());
-		Register(new StartupMessages());
-		Register(new Stats());
-		Register(new StringTable());
-		Register(new StructuredData());
-		Register(new TextRenderer());
-		Register(new Theatre());
-		Register(new Threading());
-		Register(new Toast());
-		Register(new UIFeeder());
-		Register(new Updater());
-		Register(new VisionFile());
-		Register(new Voice());
-		Register(new Vote());
-		Register(new Weapon());
-		Register(new Window());
-		Register(new Zones());
-
-		Register(new GSC::GSC());
-
-		Register(new BotLib::lPrecomp());
-
-		Pregame = false;
-
-		// Make sure preDestroy is called when the game shuts down
-		Scheduler::OnGameShutdown(PreDestroy);
-	}
-
-	void Loader::Uninitialize()
-	{
-		Uninitializing = true;
-		PreDestroyNoPostGame();
-
-		std::reverse(Components.begin(), Components.end());
-		for (auto& component : Components)
-		{
-#ifdef DEBUG
-			Logger::Print("Unregister component: {}\n", component->getName());
-#endif
-			delete component;
-		}
-
-		Components.clear();
-		Utils::Memory::GetAllocator()->clear();
-		Uninitializing = false;
-	}
-
-	void Loader::PreDestroy()
-	{
-		if (!Postgame)
-		{
-			Postgame = true;
-
-			auto components = Components;
-
-			std::reverse(components.begin(), components.end());
-			for (auto& component : components)
-			{
-				component->preDestroy();
-			}
-		}
-	}
-
-	void Loader::PreDestroyNoPostGame()
-	{
-		if (!Postgame)
-		{
-			auto components = Components;
-
-			std::reverse(components.begin(), components.end());
-			for (auto& component : components)
-			{
-				component->preDestroy();
-			}
-
-			Postgame = true;
-		}
-	}
-
-	void Loader::Register(Component* component)
-	{
-		if (component)
-		{
-#if defined(DEBUG)
-			Logger::Print("Component registered: {}\n", component->getName());
-#endif
-			Components.push_back(component);
-		}
+		static Singleton s{};
+		static Auth Auth_{};
+		static Command Command_{};
+		static Dvar Dvar_{};
+		static Exception Exception_{};
+		static IPCPipe IPCPipe_{};
+		static Network Network_{};
+		static Logger Logger_{};
+		static UIScript UIScript_{};
+		static ZoneBuilder ZoneBuilder_{};
+		static ConfigStrings ConfigStrings_{};
+		static ArenaLength ArenaLength_{};
+		static AssetHandler AssetHandler_{};
+		static Bans Bans_{};
+		static Bots Bots_{};
+		static Branding Branding_{};
+		static Bullet Bullet_{};
+		static CardTitles CardTitles_{};
+		static Ceg Ceg_{};
+		static Changelog Changelog_{};
+		static Chat Chat_{};
+		static ClanTags ClanTags_{};
+		static ClientCommand ClientCommand_{};
+		static ConnectProtocol ConnectProtocol_{};
+		static Console Console_{};
+		static D3D9Ex D3D9Ex_{};
+		static Debug Debug_{};
+		static Dedicated Dedicated_{};
+		static Discord Discord_{};
+		static Discovery Discovery_{};
+		static Download Download_{};
+		static Elevators Elevators_{};
+		static Events Events_{};
+		static FastFiles FastFiles_{};
+		static FileSystem FileSystem_{};
+		static Friends Friends_{};
+		static Gamepad Gamepad_{};
+		static Rumble Rumble_{};
+		static Huffman Huffman_{};
+		static Lean Lean_{};
+		static Localization Localization_{};
+		static MapDump MapDump_{};
+		static MapRotation MapRotation_{};
+		static Maps Maps_{};
+		static Materials Materials_{};
+		static Menus Menus_{};
+		static ModList ModList_{};
+		static ModelCache ModelCache_{};
+		static ModelSurfs ModelSurfs_{};
+		static NetworkDebug NetworkDebug_{};
+		static News News_{};
+		static Node Node_{};
+		static Party Party_{};
+		static PlayerMovement PlayerMovement_{};
+		static PlayerName PlayerName_{};
+		static Playlist Playlist_{};
+		static QuickPatch QuickPatch_{};
+		static RawFiles RawFiles_{};
+		static RawMouse RawMouse_{};
+		static RCon RCon_{};
+		static Renderer Renderer_{};
+		static Scheduler Scheduler_{};
+		static Security Security_{};
+		static ServerCommands ServerCommands_{};
+		static ServerInfo ServerInfo_{};
+		static ServerList ServerList_{};
+		static Session Session_{};
+		static SlowMotion SlowMotion_{};
+		static StartupMessages StartupMessages_{};
+		static Stats Stats_{};
+		static StringTable StringTable_{};
+		static StructuredData StructuredData_{};
+		static TextRenderer TextRenderer_{};
+		static Theatre Theatre_{};
+		static Threading Threading_{};
+		static Toast Toast_{};
+		static UIFeeder UIFeeder_{};
+		static Updater Updater_{};
+		static VisionFile VisionFile_{};
+		static Voice Voice_{};
+		static Vote Vote_{};
+		static Weapon Weapon_{};
+		static Window Window_{};
+		static Zones Zones_{};
+		static GSC::GSC GSC_{};
+		static BotLib::lPrecomp BotLib_{};
 	}
 }

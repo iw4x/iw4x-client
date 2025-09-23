@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class SlowMotion : public Component
+	class SlowMotion
 	{
 	public:
 		SlowMotion();

@@ -7,7 +7,7 @@
 
 namespace Components
 {
-	class Zones : public Component
+	class Zones
 	{
 	public:
 		struct FileData

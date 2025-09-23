@@ -10,7 +10,7 @@
 
 namespace Components
 {
-	class Gamepad : public Component
+	class Gamepad
 	{
 		struct ControllerMenuKeyMapping
 		{

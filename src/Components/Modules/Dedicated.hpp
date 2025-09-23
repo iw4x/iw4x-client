@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Dedicated : public Component
+	class Dedicated
 	{
 	public:
 		Dedicated();

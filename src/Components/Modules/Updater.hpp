@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Updater : public Component
+	class Updater
 	{
 	public:
 		Updater();

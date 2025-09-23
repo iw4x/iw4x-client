@@ -10,7 +10,7 @@
 
 namespace Components
 {
-	class ZoneBuilder : public Component
+	class ZoneBuilder
 	{
 	public:
 		class Zone

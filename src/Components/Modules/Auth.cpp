@@ -663,7 +663,7 @@ namespace Components
 				});
 		}
 
-		UIScript::Add("security_increase_cancel", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
+		UIScript::Add("security_increase_cancel", [](const UIScript::Token&, [[maybe_unused]] const Game::uiInfo_s* info)
 			{
 				TokenContainer.cancel = true;
 				Logger::Print("Token incrementation process canceled!\n");
@@ -673,16 +673,5 @@ namespace Components
 	Auth::~Auth()
 	{
 		StoreKey();
-	}
-
-	void Auth::preDestroy()
-	{
-		TokenContainer.cancel = true;
-		TokenContainer.generating = false;
-
-		if (TokenContainer.thread.joinable())
-		{
-			TokenContainer.thread.join();
-		}
 	}
 }

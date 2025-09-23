@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class ServerList : public Component
+	class ServerList
 	{
 	public:
 		typedef int(SortCallback)(const void*, const void*);
@@ -31,8 +31,6 @@ namespace Components
 		};
 
 		ServerList();
-
-		void preDestroy() override;
 
 		static void Refresh();
 		static void RefreshVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);

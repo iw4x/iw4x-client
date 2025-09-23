@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Maps : public Component
+	class Maps
 	{
 	public:
 		class UserMapContainer

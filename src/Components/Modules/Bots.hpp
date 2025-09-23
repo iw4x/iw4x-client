@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Bots : public Component
+	class Bots
 	{
 	public:
 		Bots();

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Security : public Component
+	class Security
 	{
 	public:
 		Security();

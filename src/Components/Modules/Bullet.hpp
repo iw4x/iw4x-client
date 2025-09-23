@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Bullet : public Component
+	class Bullet
 	{
 	public:
 		Bullet();

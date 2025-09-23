@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class UIFeeder : public Component
+	class UIFeeder
 	{
 	public:
 		typedef Utils::Slot<unsigned int()> GetItemCount_t;

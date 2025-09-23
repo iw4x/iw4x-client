@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class IO : public Component
+	class IO
 	{
 	public:
 		IO();

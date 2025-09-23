@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class UIScript : public Component
+	class UIScript
 	{
 	public:
 		UIScript();

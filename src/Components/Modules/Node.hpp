@@ -6,7 +6,7 @@
 
 namespace Components
 {
-	class Node : public Component
+	class Node
 	{
 	public:
 		class Data
@@ -34,7 +34,6 @@ namespace Components
 		};
 
 		Node();
-		void preDestroy() override;
 
 		static void Add(const Network::Address& address);
 		static std::vector<Entry> GetNodes();

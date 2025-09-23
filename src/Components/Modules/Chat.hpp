@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Chat : public Component
+	class Chat
 	{
 		static constexpr auto FONT_ICON_CHAT_WIDTH_CALCULATION_MULTIPLIER = 2.0f;
 	public:

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Rumble : public Component
+	class Rumble
 	{
 
 	public:

@@ -2,13 +2,11 @@
 
 namespace Components
 {
-	class Auth : public Component
+	class Auth
 	{
 	public:
 		Auth();
 		~Auth();
-
-		void preDestroy() override;
 
 		static void StoreKey();
 		static void LoadKey(bool force = false);

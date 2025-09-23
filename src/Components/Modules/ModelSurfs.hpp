@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class ModelSurfs : public Component
+	class ModelSurfs
 	{
 	public:
 		ModelSurfs();

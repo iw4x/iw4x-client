@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class AssetHandler : public Component
+	class AssetHandler
 	{
 	public:
 		class IAsset

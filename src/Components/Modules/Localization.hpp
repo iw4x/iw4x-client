@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Localization : public Component
+	class Localization
 	{
 	public:
 		Localization();

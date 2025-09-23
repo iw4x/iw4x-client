@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class VisionFile : public Component
+	class VisionFile
 	{
 	public:
 		VisionFile();

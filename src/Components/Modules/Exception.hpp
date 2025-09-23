@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Exception : public Component
+	class Exception
 	{
 	public:
 		Exception();

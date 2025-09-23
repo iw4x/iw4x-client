@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Voice : public Component
+	class Voice
 	{
 	public:
 		Voice();

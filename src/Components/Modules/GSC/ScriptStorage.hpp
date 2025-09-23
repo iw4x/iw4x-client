@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class ScriptStorage : public Component
+	class ScriptStorage
 	{
 	public:
 		ScriptStorage();

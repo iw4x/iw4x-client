@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class ClanTags : public Component
+	class ClanTags
 	{
 	public:
 		static constexpr std::size_t MAX_CLAN_NAME_LENGTH = 5;

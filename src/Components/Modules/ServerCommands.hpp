@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class ServerCommands : public Component
+	class ServerCommands
 	{
 	public:
 		ServerCommands();

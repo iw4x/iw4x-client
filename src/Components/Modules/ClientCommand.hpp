@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class ClientCommand : public Component
+	class ClientCommand
 	{
 	public:
 		ClientCommand();

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class ServerInfo : public Component
+	class ServerInfo
 	{
 	public:
 		ServerInfo();

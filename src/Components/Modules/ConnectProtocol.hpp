@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class ConnectProtocol : public Component
+	class ConnectProtocol
 	{
 	public:
 		ConnectProtocol();

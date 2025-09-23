@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Stats : public Component
+	class Stats
 	{
 	public:
 		Stats();
@@ -20,7 +20,7 @@ namespace Components
 
 		static void SprintfLiveStorageFilename(char* target, size_t size);
 		static void SprintfLiveStorageFilenameWithFsGame(char* target, size_t size, const char* fsGame);
-		
+
 		static void MoveOldStatsToNewFolder();
 
 		static uint32_t HashFilename();

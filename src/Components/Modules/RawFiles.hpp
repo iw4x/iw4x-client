@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class RawFiles : public Component
+	class RawFiles
 	{
 	public:
 		RawFiles();

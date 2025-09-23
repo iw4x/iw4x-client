@@ -92,15 +92,4 @@ namespace Components
 			}
 		});
 	}
-
-	void Discovery::preDestroy()
-	{
-		IsPerforming = false;
-		IsTerminating = true;
-
-		if (Thread.joinable())
-		{
-			Thread.join();
-		}
-	}
 }

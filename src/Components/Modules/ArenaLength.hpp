@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class ArenaLength : public Component
+	class ArenaLength
 	{
 	public:
 		ArenaLength();

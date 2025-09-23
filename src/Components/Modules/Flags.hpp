@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Flags : public Component
+	class Flags
 	{
 	public:
 		static bool HasFlag(const std::string& flag);

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Command : public Component
+	class Command
 	{
 	public:
 		static_assert(sizeof(Game::cmd_function_s) == 0x18);

@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class Field : public Component
+	class Field
 	{
 	public:
 		Field();

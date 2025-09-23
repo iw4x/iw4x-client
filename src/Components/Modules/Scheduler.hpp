@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Scheduler : public Component
+	class Scheduler
 	{
 	public:
 		enum class Pipeline : int
@@ -17,8 +17,6 @@ namespace Components
 		};
 
 		Scheduler();
-
-		void preDestroy() override;
 
 		static void Schedule(const std::function<bool()>& callback, Pipeline type,
 			std::chrono::milliseconds delay = 0ms);

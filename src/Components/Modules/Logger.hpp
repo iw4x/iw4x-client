@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Logger : public Component
+	class Logger
 	{
 	public:
 		Logger();

@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class QuickPatch : public Component
+	class QuickPatch
 	{
 	public:
 		QuickPatch();

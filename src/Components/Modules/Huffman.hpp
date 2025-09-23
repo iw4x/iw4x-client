@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Huffman : public Component
+	class Huffman
 	{
 	public:
 		Huffman();

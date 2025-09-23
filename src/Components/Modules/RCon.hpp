@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class RCon : public Component
+	class RCon
 	{
 	public:
 		RCon();

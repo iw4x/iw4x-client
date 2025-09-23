@@ -181,13 +181,4 @@ namespace Components
 		// Sys_Quit
 		Utils::Hook(0x4D697A, SysSetBlockSystemHotkeys_Hk, HOOK_CALL).install()->quick();
 	}
-
-	void Scheduler::preDestroy()
-	{
-		Kill = true;
-		if (Thread.joinable())
-		{
-			Thread.join();
-		}
-	}
 }

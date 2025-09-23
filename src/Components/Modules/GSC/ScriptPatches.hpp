@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class ScriptPatches : public Component
+	class ScriptPatches
 	{
 	public:
 		ScriptPatches();

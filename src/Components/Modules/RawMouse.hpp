@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class RawMouse : public Component
+	class RawMouse
 	{
 	public:
 		RawMouse();

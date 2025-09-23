@@ -4,7 +4,7 @@
 
 namespace Components
 {
-	class ModelCache : public Component
+	class ModelCache
 	{
 	public:
 		static const int BASE_GMODEL_COUNT = 512;

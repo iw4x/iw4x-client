@@ -6,13 +6,12 @@ struct mg_http_message;
 
 namespace Components
 {
-	class Download : public Component
+	class Download
 	{
 	public:
 		Download();
 		~Download();
 
-		void preDestroy() override;
 
 		static void InitiateClientDownload(const std::string& mod, bool needPassword, bool map = false, bool downloadOnly = false);
 		static void InitiateMapDownload(const std::string& map, bool needPassword);

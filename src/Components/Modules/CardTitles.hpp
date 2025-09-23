@@ -39,7 +39,7 @@ namespace Components
 		std::uint8_t _padding[8];
 	};
 
-	class CardTitles : public Component
+	class CardTitles
 	{
 	public:
 		AssertOffset(Game::PlayerCardData, Game::PlayerCardData::name, 0x1C);

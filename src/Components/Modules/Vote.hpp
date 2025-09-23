@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Vote : public Component
+	class Vote
 	{
 	public:
 		Vote();

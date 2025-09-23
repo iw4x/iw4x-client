@@ -2,7 +2,7 @@
 
 namespace Components::BotLib
 {
-	class lPrecomp : public Component
+	class lPrecomp
 	{
 	public:
 		lPrecomp();

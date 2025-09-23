@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Window : public Component
+	class Window
 	{
 	public:
 		typedef BOOL(WndProcCallback)(WPARAM wParam, LPARAM lParam);

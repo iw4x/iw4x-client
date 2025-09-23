@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Toast : public Component
+	class Toast
 	{
 	public:
 		Toast();

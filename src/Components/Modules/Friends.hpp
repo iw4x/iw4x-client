@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Friends : public Component
+	class Friends
 	{
 	public:
 		Friends();

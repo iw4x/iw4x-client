@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class StructuredData : public Component
+	class StructuredData
 	{
 	public:
 		enum PlayerDataType

@@ -4,7 +4,7 @@
 
 namespace Components
 {
-	class Weapon : public Component
+	class Weapon
 	{
 	public:
 		Weapon();

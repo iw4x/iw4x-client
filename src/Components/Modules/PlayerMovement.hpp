@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class PlayerMovement : public Component
+	class PlayerMovement
 	{
 	public:
 		PlayerMovement();

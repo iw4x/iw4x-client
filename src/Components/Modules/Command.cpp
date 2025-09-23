@@ -82,15 +82,6 @@ namespace Components
 
 	void Command::AddSV(const char* name, const commandCallback& callback)
 	{
-		if (Loader::IsPregame())
-		{
-			MessageBoxA(nullptr, "Registering server commands in pregame state is illegal!", nullptr, MB_ICONERROR);
-#ifdef _DEBUG
-			__debugbreak();
-#endif
-			return;
-		}
-
 		const auto command = Utils::String::ToLower(name);
 
 		if (!FunctionMapSV.contains(command))

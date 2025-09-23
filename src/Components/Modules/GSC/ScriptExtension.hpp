@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class ScriptExtension : public Component
+	class ScriptExtension
 	{
 	public:
 		ScriptExtension();

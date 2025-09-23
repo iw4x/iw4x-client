@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Dvar : public Component
+	class Dvar
 	{
 	public:
 		class Var

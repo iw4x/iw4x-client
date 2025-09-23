@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Theatre : public Component
+	class Theatre
 	{
 	public:
 		Theatre();

@@ -2,14 +2,12 @@
 
 namespace Components
 {
-	class Discord : public Component
+	class Discord
 	{
 	public:
 		Discord();
 
 		static std::string GetDiscordServerLink() { return "https://iw4x.io/discord"; }
-
-		void preDestroy() override;
 
 	private:
 		static bool Initialized_;

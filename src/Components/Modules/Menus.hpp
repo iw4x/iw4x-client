@@ -4,12 +4,10 @@
 
 namespace Components
 {
-	class Menus : public Component
+	class Menus
 	{
 	public:
 		Menus();
-
-		void preDestroy() override;
 
 		static void Add(const std::string& menu);
 

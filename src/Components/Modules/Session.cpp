@@ -203,13 +203,4 @@ namespace Components
 
 		Session::SignatureKey.free();
 	}
-
-	void Session::preDestroy()
-	{
-		Session::Terminate = true;
-		if (Session::Thread.joinable())
-		{
-			Session::Thread.join();
-		}
-	}
 }

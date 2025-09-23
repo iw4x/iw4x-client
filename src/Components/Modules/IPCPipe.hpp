@@ -60,12 +60,10 @@ namespace Components
 		static void ReceiveThread(Pipe* pipe);
 	};
 
-	class IPCPipe : public Component
+	class IPCPipe
 	{
 	public:
 		IPCPipe();
-
-		void preDestroy() override;
 
 		static bool Write(const std::string& command, const std::string& data);
 		static void On(const std::string& command, const Utils::Slot<Pipe::PacketCallback>& callback);

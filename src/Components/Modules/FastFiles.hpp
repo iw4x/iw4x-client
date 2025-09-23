@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class FastFiles : public Component
+	class FastFiles
 	{
 	public:
 		FastFiles();

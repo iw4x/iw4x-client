@@ -6,7 +6,7 @@
 
 namespace Components
 {
-	class ConfigStrings : public Component
+	class ConfigStrings
 	{
 	public:
 		static const int BASEGAME_MAX_CONFIGSTRINGS = Game::MAX_CONFIGSTRINGS;

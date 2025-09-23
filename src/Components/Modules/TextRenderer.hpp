@@ -57,7 +57,7 @@ namespace Components
 		return colorChar - '0';
 	}
 
-	class TextRenderer : public Component
+	class TextRenderer
 	{
 	public:
 		static constexpr auto STRING_BUFFER_SIZE_BIG = 1024;

@@ -890,19 +890,7 @@ namespace Components
 		}
 	}
 
-	void Download::preDestroy()
-	{
-		Terminate = true;
-		if (ServerThread.joinable())
-		{
-			ServerThread.join();
-		}
 
-		if (!Dedicated::IsEnabled())
-		{
-			CLDownload.clear();
-		}
-	}
 
 	bool Download::ClientDownload::File::allowed() const
 	{

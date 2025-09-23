@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class Int64 : public Component
+	class Int64
 	{
 	public:
 		Int64();

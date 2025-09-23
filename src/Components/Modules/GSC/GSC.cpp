@@ -14,15 +14,15 @@ namespace Components::GSC
 {
 	GSC::GSC()
 	{
-		Loader::Register(new Field());
-		Loader::Register(new Int64());
-		Loader::Register(new IO());
-		Loader::Register(new Script());
-		Loader::Register(new ScriptError());
-		Loader::Register(new ScriptExtension());
-		Loader::Register(new ScriptPatches());
-		Loader::Register(new ScriptStorage());
-		Loader::Register(new String());
-		Loader::Register(new UserInfo());
+		static Field Field_{};
+		static Int64 Int64_{};
+		static IO IO_{};
+		static Script Script_{};
+		static ScriptError ScriptError_{};
+		static ScriptExtension ScriptExtension_{};
+		static ScriptPatches ScriptPatches_{};
+		static ScriptStorage ScriptStorage_{};
+		static String String_{};
+		static UserInfo UserInfo_{};
 	}
 }

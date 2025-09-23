@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Lean : public Component
+	class Lean
 	{
 	public:
 		Lean();

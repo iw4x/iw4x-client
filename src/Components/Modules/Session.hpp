@@ -8,7 +8,7 @@
 
 namespace Components
 {
-	class Session : public Component
+	class Session
 	{
 	public:
 		class Packet
@@ -30,8 +30,6 @@ namespace Components
 
 		Session();
 		~Session();
-
-		void preDestroy() override;
 
 		static void Send(const Network::Address& target, const std::string& command, const std::string& data = "");
 		static void Handle(const std::string& packet, const Network::networkCallback& callback);

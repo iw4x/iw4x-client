@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class D3D9Ex : public Component
+	class D3D9Ex
 	{
 	public:
 		D3D9Ex();

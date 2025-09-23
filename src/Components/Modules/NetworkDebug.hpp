@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class NetworkDebug : public Component
+	class NetworkDebug
 	{
 	public:
 		NetworkDebug();

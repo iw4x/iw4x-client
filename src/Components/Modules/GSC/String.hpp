@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class String : public Component
+	class String
 	{
 	public:
 		String();

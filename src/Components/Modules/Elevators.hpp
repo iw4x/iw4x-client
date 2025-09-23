@@ -2,7 +2,7 @@
 
 namespace Components
 {
-	class Elevators : public Component
+	class Elevators
 	{
 	public:
 		Elevators();

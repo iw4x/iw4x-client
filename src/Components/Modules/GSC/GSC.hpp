@@ -2,7 +2,7 @@
 
 namespace Components::GSC
 {
-	class GSC : public Component
+	class GSC
 	{
 	public:
 		GSC();
