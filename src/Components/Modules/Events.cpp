@@ -230,16 +230,16 @@ namespace Components
 
 			// Once all is done, call our hook
 			pushad
-			push bx
+			push ebx
 			call CL_Disconnect_Hk
-			pop bx
+			add esp, 0x4
 			popad
 
 			end:
 				retn
 		}
 	}
-	
+
 	void Events::CL_Disconnect_Hk(bool wasConnected)
 	{
 		CL_DisconnectedTask_.access([&](CLDisconnectCallback& tasks)
