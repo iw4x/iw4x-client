@@ -751,16 +751,16 @@ namespace Components
 		{
 			pushad;
 
-			push bx
-				push[esp + 0x20 + 0x28 + 0x2] // weapon
-				push esi // cent
-				push ebp
+			push ebx
+			push[esp + 0x20 + 0x28 + 0x4] // weapon
+			push esi // cent
+			push ebp
 
-				call CG_FireWeapon_Rumble
+			call CG_FireWeapon_Rumble
 
-				add esp, 0x4 * 3 + 0x2
+			add esp, 0x4 * 4
 
-				popad;
+			popad;
 
 			// OG code
 			sub esp, 0x10;
