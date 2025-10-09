@@ -4,6 +4,7 @@
 namespace Components
 {
 	Dvar::Var Bullet::BGSurfacePenetration;
+	Dvar::Var Bullet::DebugRiotShield;
 	Game::dvar_t* Bullet::BGBulletRange;
 
 	float Bullet::ContactPointSave[3];
@@ -93,20 +94,22 @@ namespace Components
 		Game::AntilagClientStore antiLag_Backup;
 		AntiLag::G_AntiLagRewindClientPos(attacker, gameTime, &antiLag_Backup);
 
-#ifdef DEBUG_RIOT_SHIELD
-		float tmp[3];
+		if (DebugRiotShield.get<bool>())
+		{
+			float tmp[3];
 
-		Game::G_DebugStar(ContactPointSave, ColorYellow);
+			Game::G_DebugStar(ContactPointSave, ColorYellow);
 
-		tmp[0] = (CalcRicochetSave[0] * 100.0f) + VCSave[0];
-		tmp[1] = (CalcRicochetSave[1] * 100.0f) + VCSave[1];
-		tmp[2] = (CalcRicochetSave[2] * 100.0f) + VCSave[1];
+			tmp[0] = (CalcRicochetSave[0] * 100.0f) + VCSave[0];
+			tmp[1] = (CalcRicochetSave[1] * 100.0f) + VCSave[1];
+			tmp[2] = (CalcRicochetSave[2] * 100.0f) + VCSave[1];
 
-		Game::G_DebugLineWithDuration(VCSave, tmp, ColorOrange, 1, 100);
-		Game::G_DebugStar(tmp, ColorBlue);
+			Game::G_DebugLineWithDuration(VCSave, tmp, ColorOrange, 1, 100);
+			Game::G_DebugStar(tmp, ColorBlue);
 
-		spread = 0;
-#endif
+			spread = 0;
+		}
+
 		uint32_t perks[2] = { 0,0 };
 
 		if (attacker->client) {
@@ -203,6 +206,8 @@ namespace Components
 			0.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO, "Set to a value greater than 0 to override the surface penetration depth");
 		BGBulletRange = Game::Dvar_RegisterFloat("bg_bulletRange", 8192.0f,
 			0.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO, "Max range used when calculating the bullet end position");
+		DebugRiotShield = Dvar::Register<bool>("debugRiotShield", false,
+			Game::DVAR_CODINFO, "Toggle riot shield debug visualization");
 
 		Utils::Hook(0x4F6980, BG_GetSurfacePenetrationDepthStub, HOOK_JUMP).install()->quick();
 
@@ -219,13 +224,14 @@ namespace Components
 		std::memset(VCSave, 0, sizeof(float[3]));
 		std::memset(CalcRicochetSave, 0, sizeof(float[3]));
 
-#ifdef DEBUG_RIOT_SHIELD
-		Utils::Hook(0x5D5B00, BulletRicochet_Stub, HOOK_JUMP).install()->quick();
-		Utils::Hook::Nop(0x5D5B00 + 5, 3);
+		if (DebugRiotShield.get<bool>())
+		{
+			Utils::Hook(0x5D5B00, BulletRicochet_Stub, HOOK_JUMP).install()->quick();
+			Utils::Hook::Nop(0x5D5B00 + 5, 3);
 
-		Utils::Hook(0x5D5BBA, CalcRicochet_Stub, HOOK_CALL).install()->quick();
+			Utils::Hook(0x5D5BBA, CalcRicochet_Stub, HOOK_CALL).install()->quick();
 
-		Utils::Hook(0x5D5BD7, _VectorMA_Stub, HOOK_CALL).install()->quick();
-#endif
+			Utils::Hook(0x5D5BD7, _VectorMA_Stub, HOOK_CALL).install()->quick();
+		}
 	}
 }

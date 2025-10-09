@@ -9,6 +9,7 @@ namespace Components
 
 	private:
 		static Dvar::Var BGSurfacePenetration;
+		static Dvar::Var DebugRiotShield;
 		// Can't use Var class inside assembly stubs
 		static Game::dvar_t* BGBulletRange;
 
