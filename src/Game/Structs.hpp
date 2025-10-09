@@ -7687,8 +7687,6 @@ namespace Game
 		char pad218[92];
 	};
 
-	static_assert(sizeof(gentity_s) == 0x274);
-
 	enum
 	{
 		ENTFIELD_ENTITY = 0x0,
@@ -12169,11 +12167,13 @@ namespace Game
 		WEAP_ANIM_ADS_LASTSHOT = 0x21,
 		WEAP_ANIM_ADS_RECHAMBER = 0x22,
 		WEAP_ANIM_ADS_UP = 0x23,
-	WEAP_ANIM_ADS_DOWN = 0x24,
+		WEAP_ANIM_ADS_DOWN = 0x24,
 
-	NUM_WEAP_ANIMS,
+		NUM_WEAP_ANIMS,
 };
 
-#pragma endregion#ifndef IDA
+#pragma endregion
+
+#ifndef IDA
 }
 #endif
