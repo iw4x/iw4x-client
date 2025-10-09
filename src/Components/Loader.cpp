@@ -2,6 +2,7 @@
 
 #include "Loader.hpp"
 
+#include "Modules/AntiLag.hpp"
 #include "Modules/ArenaLength.hpp"
 #include "Modules/Auth.hpp"
 #include "Modules/Bans.hpp"
@@ -34,6 +35,7 @@
 #include "Modules/MapDump.hpp"
 #include "Modules/MapRotation.hpp"
 #include "Modules/Materials.hpp"
+#include "Modules/Melee.hpp"
 #include "Modules/ModList.hpp"
 #include "Modules/ModelCache.hpp"
 #include "Modules/ModelSurfs.hpp"
@@ -117,6 +119,7 @@ namespace Components
 
 		Register(new ConfigStrings()); // Needs to be there early !! Before modelcache & weapons
 
+		Register(new AntiLag());
 		Register(new ArenaLength());
 		Register(new AssetHandler());
 		Register(new Bans());
@@ -151,6 +154,7 @@ namespace Components
 		Register(new MapRotation());
 		Register(new Maps());
 		Register(new Materials());
+		Register(new Melee());
 		Register(new Menus());
 		Register(new ModList());
 		Register(new ModelCache());
