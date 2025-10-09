@@ -181,10 +181,7 @@ namespace Components
 
 		Game::AntilagClientStore antilagStore;
 
-		// i have no idea why it is dereferencing attachModelNames - thats what its actually pointing in this structure...
-		// the structure itself can be wrong. throwingDelay equals negative numbers like -67
-		// 05.12.24 UPD: Caball009 made a PR with fixed gentity_s struct, so this line below starts to point at "missile->entData.missile.antilagTimeOffset"
-		int32_t throwingDelay = *reinterpret_cast<int32_t*>(&missile->attachModelNames[10]);
+		int32_t throwingDelay = missile->entData.missile.antilagTimeOffset;
 
 		if (!AntiLag::IsDisabled() && AntiLag::IsDebugging()) {
 			Logger::Debug("G_RunMissile: at tick {}, level.time {}\n", Game::level->time + throwingDelay, Game::level->time);
