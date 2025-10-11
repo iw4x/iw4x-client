@@ -35,7 +35,7 @@ namespace Components
 		static int BaselineSnapshotMsgOff;
 
 		static void WriteBaseline();
-		static void StoreBaseline(PBYTE snapshotMsg);
+		static void StoreBaseline(Game::msg_t* snapshotMsg);
 
 		static void LoadDemos([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
 		static void DeleteDemo([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
