@@ -40,7 +40,7 @@ namespace Components
 
 	void Theatre::StoreBaseline(Game::msg_t* snapshotMsg)
 	{
-		if (Game::clientConnections->demoplaying)
+		if (!Game::clientConnections->demoplaying)
 		{
 			// Store offset and length
 			BaselineSnapshotMsgLen = snapshotMsg->cursize;
