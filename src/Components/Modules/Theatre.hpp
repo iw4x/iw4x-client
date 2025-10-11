@@ -44,6 +44,7 @@ namespace Components
 		static unsigned int GetDemoCount();
 		static const char* GetDemoText(unsigned int item, int column);
 		static void SelectDemo(unsigned int index);
+		static bool AdjustTimeDelta();
 
 		static void GamestateWriteStub(Game::msg_t* msg, char byte);
 		static void RecordGamestateStub();

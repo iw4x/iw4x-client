@@ -115,12 +115,38 @@ namespace Components
 		}
 	}
 
+	bool Theatre::AdjustTimeDelta()
+	{
+		if (Game::clientConnections->demoplaying)
+		{
+			auto& clientActive = Game::clients[0];
+			assert(clientActive.serverTime > 0);
+			assert(clientActive.snap.serverTime > 0);
+
+			if (clientActive.serverTime + 1000 < clientActive.snap.serverTime)
+			{
+				// don't wait for the game to catch up if there's large gap in server times between snapshots
+				// this makes it unnecessary to use the 'demoback' command at the start of a demo
+				clientActive.serverTimeDelta = clientActive.snap.serverTime - Game::cls->realtime;
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
 	__declspec(naked) void Theatre::AdjustTimeDeltaStub()
 	{
 		__asm
 		{
-			mov eax, 0xA5EA0C  // clientConnections.demoplaying
-			mov eax, [eax]
+			push eax
+			pushad
+			call AdjustTimeDelta
+			mov[esp + 20h], eax
+			popad
+			pop eax
+
 			test al, al
 			jz continue
 
