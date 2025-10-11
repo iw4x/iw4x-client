@@ -38,14 +38,17 @@ namespace Components
 		Game::FS_WriteToDemo(&sequence, 4, Game::clientConnections->demofile);
 	}
 
-	void Theatre::StoreBaseline(PBYTE snapshotMsg)
+	void Theatre::StoreBaseline(Game::msg_t* snapshotMsg)
 	{
-		// Store offset and length
-		BaselineSnapshotMsgLen = *reinterpret_cast<int*>(snapshotMsg + 20);
-		BaselineSnapshotMsgOff = *reinterpret_cast<int*>(snapshotMsg + 28) - 7;
+		if (Game::clientConnections->demoplaying)
+		{
+			// Store offset and length
+			BaselineSnapshotMsgLen = snapshotMsg->cursize;
+			BaselineSnapshotMsgOff = snapshotMsg->readcount - 2; // to account for clSnapshot_t deltaNum and snapFlags
 
-		// Copy to our snapshot buffer
-		std::memcpy(BaselineSnapshot, *reinterpret_cast<DWORD**>(snapshotMsg + 8), *reinterpret_cast<DWORD*>(snapshotMsg + 20));
+			// Copy to our snapshot buffer
+			std::memcpy(BaselineSnapshot, snapshotMsg->data, snapshotMsg->cursize);
+		}
 	}
 
 	__declspec(naked) void Theatre::BaselineStoreStub()
@@ -69,8 +72,10 @@ namespace Components
 		Game::msg_t buf;
 
 		Game::MSG_Init(&buf, bufData, sizeof(bufData));
+		Game::MSG_WriteByte(&buf, Game::svc_snapshot);
+		Game::MSG_WriteLong(&buf, Game::clients[0].snap.serverTime);
 		Game::MSG_WriteData(&buf, &BaselineSnapshot[BaselineSnapshotMsgOff], BaselineSnapshotMsgLen - BaselineSnapshotMsgOff);
-		Game::MSG_WriteByte(&buf, 6);
+		Game::MSG_WriteByte(&buf, Game::svc_EOF);
 
 		const auto compressedSize = Utils::Huffman::Compress(buf.data, cmpData, buf.cursize, sizeof(cmpData));
 		const auto fileCompressedSize = compressedSize + 4;
