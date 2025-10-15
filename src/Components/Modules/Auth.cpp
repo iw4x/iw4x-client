@@ -114,10 +114,6 @@ namespace Components
 			return;
 		}
 
-		if (Steam::Enabled() && !Friends::IsInvisible() && !Dvar::Var("cl_anonymous").get<bool>() && Steam::Proxy::SteamUser_)
-		{
-			infostr.set("realsteamId", Utils::String::VA("%llX", Steam::Proxy::SteamUser_->GetSteamID().bits));
-		}
 
 		// Build new connect string
 		connectString.clear();
