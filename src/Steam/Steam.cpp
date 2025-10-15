@@ -120,22 +120,6 @@ namespace Steam
 	{
 		bool SteamAPI_Init()
 		{
-			if (Steam::Enabled()) {
-				Proxy::SetGame(10190);
-
-				if (!Proxy::Inititalize())
-				{
-#ifdef _DEBUG
-					OutputDebugStringA("Steam proxy not initialized properly");
-#endif
-				}
-				else
-				{
-					Proxy::SetMod("IW4x: Modern Warfare 2");
-					Proxy::RunGame();
-				}
-			}
-
 			return true;
 		}
 
@@ -152,12 +136,10 @@ namespace Steam
 		void SteamAPI_RunCallbacks()
 		{
 			Callbacks::RunCallbacks();
-			Proxy::RunFrame();
 		}
 
 		void SteamAPI_Shutdown()
 		{
-			Proxy::Uninititalize();
 			Callbacks::Uninitialize();
 		}
 

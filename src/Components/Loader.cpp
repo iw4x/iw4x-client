@@ -26,7 +26,6 @@
 #include "Modules/Events.hpp"
 #include "Modules/Exception.hpp"
 #include "Modules/FastFiles.hpp"
-#include "Modules/Friends.hpp"
 #include "Modules/Gamepad.hpp"
 #include "Modules/Huffman.hpp"
 #include "Modules/IPCPipe.hpp"
@@ -141,7 +140,6 @@ namespace Components
 		Register(new Events());
 		Register(new FastFiles());
 		Register(new FileSystem());
-		Register(new Friends());
 		Register(new Gamepad());
 		Register(new Rumble());
 		Register(new Huffman());
