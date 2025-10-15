@@ -5,7 +5,6 @@
 #include "Auth.hpp"
 #include "Bans.hpp"
 #include "Bots.hpp"
-#include "Friends.hpp"
 #include "Toast.hpp"
 
 namespace Components
