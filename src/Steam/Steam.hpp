@@ -56,6 +56,8 @@ typedef void* unknown_ret;
 #include "Interfaces/SteamRemoteStorage.hpp"
 #include "Interfaces/SteamMasterServerUpdater.hpp"
 
+#include "Proxy.hpp"
+
 namespace Steam
 {
 	class Callbacks

@@ -15,6 +15,7 @@ namespace Steam
 		virtual bool GetCSERIPPort(unsigned int *unIP, unsigned short *usPort);
 		virtual unsigned char GetCurrentBatteryPower();
 		virtual unsigned int GetAppID();
+		virtual void SetOverlayNotificationPosition(int eNotificationPosition);
 		virtual bool IsAPICallCompleted(unsigned __int64 hSteamAPICall, bool *pbFailed);
 		virtual int GetAPICallFailureReason(unsigned __int64 hSteamAPICall);
 		virtual bool GetAPICallResult(unsigned __int64 hSteamAPICall, void *pCallback, int cubCallback, int iCallbackExpected, bool *pbFailed);

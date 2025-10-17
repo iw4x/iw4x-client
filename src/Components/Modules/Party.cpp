@@ -3,6 +3,7 @@
 #include "Party.hpp"
 #include "Auth.hpp"
 #include "Download.hpp"
+#include "Friends.hpp"
 #include "Gamepad.hpp"
 #include "ModList.hpp"
 #include "Node.hpp"
@@ -654,6 +655,7 @@ namespace Components
 			}
 
 			ServerList::Insert(address, info);
+			Friends::UpdateServer(address, info.get("hostname"), info.get("mapname"));
 		});
 	}
 }

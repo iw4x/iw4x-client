@@ -1,4 +1,5 @@
 #include "Dvar.hpp"
+#include "Friends.hpp"
 #include "TextRenderer.hpp"
 
 namespace Components
@@ -225,11 +226,22 @@ namespace Components
 				else
 				{
 					lastValidName = name;
+					Friends::UpdateName();
 				}
 			}, Scheduler::Pipeline::CLIENT, 3s); // Don't need to do this every frame
 		}
 
 		std::string username = "Unknown Soldier";
+
+		if (Steam::Proxy::SteamFriends)
+		{
+			const char* steamName = Steam::Proxy::SteamFriends->GetPersonaName();
+
+			if (steamName && *steamName)
+			{
+				username = steamName;
+			}
+		}
 
 		Name = Register<const char*>(dvarName, username.data(), flags | Game::DVAR_ARCHIVE, description);
 		return Name.get<Game::dvar_t*>();
