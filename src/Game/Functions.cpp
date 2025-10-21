@@ -29,6 +29,8 @@ namespace Game
 	CG_GetTeamName_t CG_GetTeamName = CG_GetTeamName_t(0x4B6210);
 	CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString = CG_SetupWeaponConfigString_t(0x4BD520);
 
+	CL_GetSnapshot_t CL_GetSnapshot = CL_GetSnapshot_t(0x46B7C0);
+
 	Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
 	Cmd_AddServerCommand_t Cmd_AddServerCommand = Cmd_AddServerCommand_t(0x4DCE00);
 	Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = Cmd_ExecuteSingleCommand_t(0x609540);

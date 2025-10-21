@@ -66,6 +66,9 @@ namespace Game
 	typedef void(*CG_SetupWeaponConfigString_t)(int localClientNum, unsigned int weapIndex);
 	extern CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString;
 
+	typedef int(*CL_GetSnapshot_t)(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot);
+	extern CL_GetSnapshot_t CL_GetSnapshot;
+
 	typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function), cmd_function_s* allocedCmd, int isKey);
 	extern Cmd_AddCommand_t Cmd_AddCommand;
 
