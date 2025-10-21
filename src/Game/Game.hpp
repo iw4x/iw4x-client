@@ -63,8 +63,7 @@ namespace Game
 	extern char(*g_cmdlineCopy)[1024];
 
 	// This does not belong anywhere else
-	extern NetField* clientStateFields;
-	extern size_t clientStateFieldsCount;
+	extern std::span<NetField> netfields;
 	extern MssLocal* milesGlobal;
 	extern WinVars_t* g_wv;
 
