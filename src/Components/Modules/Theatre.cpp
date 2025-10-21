@@ -1,5 +1,289 @@
 #include "Theatre.hpp"
+#include "Game/SteamScrambledData.hpp"
 #include "UIFeeder.hpp"
+#include "Weapon.hpp"
+
+namespace
+{
+	enum SnapshotFixType
+	{
+		SNAPSHOT_FIX_NONE,
+		SNAPSHOT_FIX_RETAIL,
+		SNAPSHOT_FIX_STEAM
+	};
+
+	void UpdateWeaponSelection(Game::cg_s& cg, const Game::snapshot_s& snapshot)
+	{
+		if (static_cast<unsigned int>(cg.weaponSelect) != snapshot.ps.weapCommon.weapon)
+		{
+			// change ammo counter and ammo clip counter
+			cg.weaponSelect = snapshot.ps.weapCommon.weapon;
+
+			// show weapon name
+			cg.weaponSelectTime = snapshot.serverTime;
+		}
+	}
+
+	void UpdateAmmoIndices(Game::snapshot_s& snapshot)
+	{
+		for (unsigned int i = 0; i < std::size(snapshot.ps.weaponsEquipped); ++i)
+		{
+			const auto index = snapshot.ps.weaponsEquipped[i];
+			if (index)
+			{
+				const auto* weaponDef = Game::BG_GetWeaponDef(index);
+
+				// fix ammo indices to prevent the ammo from showing up empty
+				snapshot.ps.weapCommon.ammoInClip[i].clipIndex = weaponDef->iClipIndex;
+				snapshot.ps.weapCommon.ammoNotInClip[i].ammoType = weaponDef->iAmmoIndex;
+			}
+		}
+	}
+
+	void FixSnapshotDataForSteam(Game::snapshot_s& snapshot)
+	{
+		for (auto& elem : snapshot.ps.hud.archival)
+		{
+			if (elem.type == Game::HE_TYPE_FREE)
+			{
+				break;
+			}
+
+			if (elem.type >= Game::HE_TYPE_MAPNAME)
+			{
+				// Steam version misses HE_TYPE_MAPNAME and HE_TYPE_GAMETYPE
+				elem.type = static_cast<Game::he_type_t>(elem.type + 2);
+			}
+		}
+
+		for (auto& elem : snapshot.ps.hud.current)
+		{
+			if (elem.type == Game::HE_TYPE_FREE)
+			{
+				break;
+			}
+
+			if (elem.type >= Game::HE_TYPE_MAPNAME)
+			{
+				// Steam version misses HE_TYPE_MAPNAME and HE_TYPE_GAMETYPE
+				elem.type = static_cast<Game::he_type_t>(elem.type + 2);
+			}
+		}
+
+		static constexpr auto BASEGAME_WEAPON_LIMIT = Components::Weapon::BASEGAME_WEAPON_LIMIT;
+		static constexpr auto STEAM_WEAPON_LIMIT = 1400;
+
+		for (auto i = 0; i < std::ssize(snapshot.entities) && i < snapshot.numEntities; ++i)
+		{
+			auto& ent = snapshot.entities[i];
+
+			if (ent.eType == Game::ET_ITEM || ent.eType == Game::ET_MISSILE || ent.eType == Game::ET_TURRET)
+			{
+				if (ent.index.item >= STEAM_WEAPON_LIMIT)
+				{
+					const auto weapIdx = ent.index.item % STEAM_WEAPON_LIMIT;
+					const auto weapModel = ent.index.item / STEAM_WEAPON_LIMIT;
+
+					// Steam version uses a limit of 1400 weapons
+					// this has to fixed in some way to prevent the game from crashing
+					ent.index.item = weapIdx + weapModel * BASEGAME_WEAPON_LIMIT;
+				}
+			}
+			else if (ent.eType == Game::ET_EVENTS + Game::EV_OBITUARY)
+			{
+				const auto val = ((ent.un1.eventParm2 << 8) | ent.eventParm);
+
+				if (val >= STEAM_WEAPON_LIMIT)
+				{
+					// Steam version uses a limit of 1400 weapons
+					// this has to fixed in some way to prevent the game from crashing
+					ent.un1.eventParm2 = BASEGAME_WEAPON_LIMIT / 256;
+					ent.eventParm = (val - (STEAM_WEAPON_LIMIT - BASEGAME_WEAPON_LIMIT)) - (ent.un1.eventParm2 * 256);
+				}
+			}
+		}
+	}
+
+	template <SnapshotFixType type>
+	int CL_GetSnapshotStub(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot)
+	{
+		const auto result = Game::CL_GetSnapshot(localClientNum, snapshotNumber, snapshot);
+
+		if (Game::clientConnections->demoplaying)
+		{
+			UpdateWeaponSelection(Game::cgArray[localClientNum], *snapshot);
+
+			if constexpr (type == SNAPSHOT_FIX_RETAIL || type == SNAPSHOT_FIX_STEAM)
+			{
+				UpdateAmmoIndices(*snapshot);
+
+				if constexpr (type == SNAPSHOT_FIX_STEAM)
+				{
+					FixSnapshotDataForSteam(*snapshot);
+				}
+			}
+		}
+
+		return result;
+	}
+
+	inline auto curScrambledDataPtr = scrambledData;
+	void UpdateScrambleBuffer(unsigned int index)
+	{
+		const auto* ptr = (scrambledData + 16 * (index % 25099));
+		curScrambledDataPtr = ptr;
+	}
+
+	template <unsigned int count, bool descramble>
+		requires (count == 1 || count == 2 || count == 4)
+	int MSG_ReadBytes(Game::msg_t* msg)
+	{
+		if (msg->readcount + count > static_cast<unsigned int>(msg->cursize))
+		{
+			msg->overflowed = 1;
+			return -1;
+		}
+
+		int val{};
+		std::memcpy(&val, &msg->data[msg->readcount], count);
+
+		if constexpr (descramble)
+		{
+			if (msg->readcount < 16)
+			{
+				int scrambledVal{};
+
+				if constexpr (count == 1)
+				{
+					std::memcpy(&scrambledVal, &curScrambledDataPtr[msg->readcount & 15], count);
+					val = (val - scrambledVal) & 0xFF;
+				}
+				else if constexpr (count == 2)
+				{
+					std::memcpy(&scrambledVal, &curScrambledDataPtr[msg->readcount & 14], count);
+					val = (val - scrambledVal) & 0xFFFF;
+				}
+				else
+				{
+					std::memcpy(&scrambledVal, &curScrambledDataPtr[msg->readcount & 12], count);
+					val = (val - scrambledVal) & 0xFFFF'FFFF;
+				}
+			}
+		}
+
+		msg->readcount += count;
+		return val;
+	}
+
+	void FixStringForSteam(char* string)
+	{
+		if (string[1] != ' ' && string[1] != '\0')
+		{
+			return;
+		}
+
+		if (string[0] < 'A' || string[0] > 'z')
+		{
+			return;
+		}
+
+		static constexpr const char STRING_TYPES[]
+		{
+			// 'X' is a case that does nothing
+			// 'b' is the scoreboard (sb) identifier and is replaced with 'X'
+			// as Steam sb strings use a different format and sb is irrelevant for demos anyway
+
+		  // ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		    "EFGHIJXLXNOXQRSTUVWXhiXXXX"
+		    "XXXXXX"
+		  // abcdefghijklmnopqrstuvwxyz
+		    "aXcdefgklmnopqrstuvwxyABCD"
+		};
+
+		string[0] = STRING_TYPES[string[0] - 'A'];
+	}
+
+	const char* MSG_ReadString(Game::msg_t* msg, char* string, unsigned int maxChars)
+	{
+		for (unsigned int i = 0; ; ++i)
+		{
+			auto val = MSG_ReadBytes<1, true>(msg);
+			if (val == -1)
+			{
+				val = 0;
+			}
+			if (i < maxChars)
+			{
+				string[i] = static_cast<char>((val == 146) ? 39 : val);
+			}
+			if (val == 0)
+			{
+				break;
+			}
+		}
+
+		FixStringForSteam(string);
+
+		string[maxChars - 1] = 0;
+		return string;
+	}
+
+	int MSG_ReadByteStub(Game::msg_t* msg)
+	{
+		const auto svcType = MSG_ReadBytes<1, true>(msg);
+
+		switch (svcType)
+		{
+		case 0:
+			return Game::svc_ops_e::svc_snapshot;
+		case 1:
+			return Game::svc_ops_e::svc_serverCommand;
+		case 2:
+			return Game::svc_ops_e::svc_gamestate;
+		case 4:
+			return Game::svc_ops_e::svc_matchdata;
+		case 5:
+			return Game::svc_ops_e::svc_EOF;
+		case 3:
+			return Game::svc_ops_e::svc_configstring; // for CL_ParseGamestate
+		default:
+			// trigger warning for illegible message type in CL_ParseServerMessage
+			return -1;
+		}
+	}
+
+	int MSG_ReadLongStub1(Game::msg_t* msg)
+	{
+		const auto reliableAcknowledge = MSG_ReadBytes<4, false>(msg);
+
+		UpdateScrambleBuffer(reliableAcknowledge);
+		return reliableAcknowledge;
+	}
+
+	int MSG_ReadLongStub2(Game::msg_t* msg)
+	{
+		const auto serverCommandSequence = MSG_ReadBytes<4, true>(msg);
+
+		UpdateScrambleBuffer(Game::clientConnections->reliableAcknowledge + (serverCommandSequence << 8));
+		return serverCommandSequence;
+	}
+
+	int MSG_ReadLongStub3(Game::msg_t* msg)
+	{
+		const auto serverTime = MSG_ReadBytes<4, true>(msg);
+
+		UpdateScrambleBuffer(serverTime / 50);
+		return serverTime;
+	}
+
+	int MSG_ReadLongStub4(Game::msg_t* msg)
+	{
+		const auto serverCommandSequence = MSG_ReadBytes<4, true>(msg);
+
+		UpdateScrambleBuffer(serverCommandSequence);
+		return serverCommandSequence;
+	}
+}
 
 namespace Components
 {
@@ -24,30 +308,6 @@ namespace Components
 			{ "length", length },
 			{ "timestamp", std::to_string(timeStamp) },
 		};
-	}
-
-	void Theatre::UpdateWeaponSelection(Game::cg_s& cg, const Game::snapshot_s& snapshot)
-	{
-		if (static_cast<unsigned int>(cg.weaponSelect) != snapshot.ps.weapCommon.weapon)
-		{
-			// change ammo counter and ammo clip counter
-			cg.weaponSelect = snapshot.ps.weapCommon.weapon;
-
-			// show weapon name
-			cg.weaponSelectTime = snapshot.serverTime;
-		}
-	}
-
-	int Theatre::CL_GetSnapshotStub(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot)
-	{
-		const auto result = Game::CL_GetSnapshot(localClientNum, snapshotNumber, snapshot);
-
-		if (Game::clientConnections->demoplaying)
-		{
-			UpdateWeaponSelection(Game::cgArray[localClientNum], *snapshot);
-		}
-
-		return result;
 	}
 
 	void Theatre::GamestateWriteStub(Game::msg_t* msg, char byte)
@@ -445,7 +705,33 @@ namespace Components
 		CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games");
 		CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
 
-		Utils::Hook(0x5950A8, CL_GetSnapshotStub, HOOK_CALL).install()->quick();
+		if (Flags::HasFlag("steamdemo"))
+		{
+			Utils::Hook(0x4C1C20, MSG_ReadBytes<1, true>, HOOK_JUMP).install()->quick(); // MSG_ReadByte
+			Utils::Hook(0x40BDD0, MSG_ReadBytes<2, true>, HOOK_JUMP).install()->quick(); // MSG_ReadShort
+			Utils::Hook(0x4C9550, MSG_ReadBytes<4, true>, HOOK_JUMP).install()->quick(); // MSG_ReadLong
+			Utils::Hook(0x47A530, MSG_ReadString, HOOK_JUMP).install()->quick();         // MSG_ReadString
+
+			Utils::Hook(0x4A9F76, MSG_ReadByteStub, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
+			Utils::Hook(0x5AC347, MSG_ReadByteStub, HOOK_CALL).install()->quick(); // CL_ParseGamestate
+			Utils::Hook(0x5AC5FC, MSG_ReadByteStub, HOOK_CALL).install()->quick(); // CL_ParseGamestate
+
+			Utils::Hook(0x5A9C9F, MSG_ReadLongStub1, HOOK_CALL).install()->quick(); // CL_ReadDemoNetworkPacket
+			Utils::Hook(0x5AC28D, MSG_ReadLongStub2, HOOK_CALL).install()->quick(); // CL_ParseGamestate
+			Utils::Hook(0x5ABD7C, MSG_ReadLongStub3, HOOK_CALL).install()->quick(); // CL_ParseSnapshot
+			Utils::Hook(0x5AC778, MSG_ReadLongStub4, HOOK_CALL).install()->quick(); // CL_ParseCommandString
+
+			Utils::Hook(0x5950A8, CL_GetSnapshotStub<SNAPSHOT_FIX_STEAM>, HOOK_CALL).install()->quick();
+		}
+		else if (Flags::HasFlag("retaildemo"))
+		{
+			Utils::Hook(0x5950A8, CL_GetSnapshotStub<SNAPSHOT_FIX_RETAIL>, HOOK_CALL).install()->quick();
+		}
+		else
+		{
+			Utils::Hook(0x5950A8, CL_GetSnapshotStub<SNAPSHOT_FIX_NONE>, HOOK_CALL).install()->quick();
+		}
+
 		Utils::Hook(0x5A8370, GamestateWriteStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A85D2, RecordGamestateStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5ABE36, BaselineStoreStub, HOOK_JUMP).install()->quick();
