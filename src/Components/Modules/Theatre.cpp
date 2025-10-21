@@ -26,6 +26,30 @@ namespace Components
 		};
 	}
 
+	void Theatre::UpdateWeaponSelection(Game::cg_s& cg, const Game::snapshot_s& snapshot)
+	{
+		if (static_cast<unsigned int>(cg.weaponSelect) != snapshot.ps.weapCommon.weapon)
+		{
+			// change ammo counter and ammo clip counter
+			cg.weaponSelect = snapshot.ps.weapCommon.weapon;
+
+			// show weapon name
+			cg.weaponSelectTime = snapshot.serverTime;
+		}
+	}
+
+	int Theatre::CL_GetSnapshotStub(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot)
+	{
+		const auto result = Game::CL_GetSnapshot(localClientNum, snapshotNumber, snapshot);
+
+		if (Game::clientConnections->demoplaying)
+		{
+			UpdateWeaponSelection(Game::cgArray[localClientNum], *snapshot);
+		}
+
+		return result;
+	}
+
 	void Theatre::GamestateWriteStub(Game::msg_t* msg, char byte)
 	{
 		Game::MSG_WriteLong(msg, 0);
@@ -421,6 +445,7 @@ namespace Components
 		CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games");
 		CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
 
+		Utils::Hook(0x5950A8, CL_GetSnapshotStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A8370, GamestateWriteStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5A85D2, RecordGamestateStub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5ABE36, BaselineStoreStub, HOOK_JUMP).install()->quick();

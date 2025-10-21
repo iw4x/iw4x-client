@@ -46,6 +46,9 @@ namespace Components
 		static void SelectDemo(unsigned int index);
 		static bool AdjustTimeDelta();
 
+		static int CL_GetSnapshotStub(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot);
+		static void UpdateWeaponSelection(Game::cg_s& cg, const Game::snapshot_s& snapshot);
+
 		static void GamestateWriteStub(Game::msg_t* msg, char byte);
 		static void RecordGamestateStub();
 		static void BaselineStoreStub();
