@@ -35,6 +35,12 @@ namespace Components
 
 	ModelCache::ModelCache()
 	{
+		if (Flags::HasFlag("steamdemo") || Flags::HasFlag("retaildemo") || Flags::HasFlag("iw4x_legacydemo"))
+		{
+			// don't patch the netfields because it breaks demo compatibility
+			return;
+		}
+
 		// To push the model limit we need to update the network protocol because it uses custom integer size
 		// (currently 9 bits per model, not enough)
 		const auto oldBitLength = static_cast<size_t>(std::floor(std::log2(BASE_GMODEL_COUNT - 1)) + 1);
