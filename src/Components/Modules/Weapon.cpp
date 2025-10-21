@@ -548,7 +548,11 @@ namespace Components
 
 	Weapon::Weapon()
 	{
-		PatchLimit();
+		if (!Flags::HasFlag("steamdemo") && !Flags::HasFlag("retaildemo"))
+		{
+			// Steam version uses a limit of 1400 weapons and other clients use the default limit of 1200 weapons
+			PatchLimit();
+		}
 
 		// BG_LoadWEaponCompleteDef_FastFile
 		Utils::Hook(0x57B650, LoadWeaponCompleteDef, HOOK_JUMP).install()->quick();
