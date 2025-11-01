@@ -235,12 +235,24 @@ namespace Components
 	void Node::Synchronize()
 	{
 		std::lock_guard _(Mutex);
+
+		int sentRequests = 0;
+		const int maxRequestsPerSync = ServerList::NETServerQueryLimit.get<int>() * 3; // Send more on manual refresh
+
 		for (auto& node : Nodes)
 		{
-			{
-				node.reset();
-			}
+			node.reset();
+
+			// Issue the request immediately for live nodes.
+			//
+			// Note that we want to permits a higher immediate burst than the
+    	// steady-state RunFrame() throttle.
+			//
+			if (!node.isDead() && sentRequests < maxRequestsPerSync)
+				node.sendRequest(), ++sentRequests;
 		}
+
+		Logger::Print("Synchronized {} nodes\n", sentRequests);
 	}
 
 	void Node::HandleResponse(const Network::Address& address, const std::string& data)
