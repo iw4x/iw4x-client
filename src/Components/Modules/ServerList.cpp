@@ -375,6 +375,17 @@ namespace Components
 		}
 		else if (IsOnlineList())
 		{
+			const auto* alwaysUseNodes = Game::Dvar_FindVar("net_alwaysUseNodes");
+
+			if (alwaysUseNodes && alwaysUseNodes->current.enabled)
+			{
+				UseMasterServer = false;
+				Logger::Print("net_alwaysUseNodes is enabled, using node system\n");
+				Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers from nodes...", 3000);
+				Node::Synchronize();
+				return;
+			}
+
 			const auto masterPort = (*Game::com_masterPort)->current.unsignedInt;
 			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
 

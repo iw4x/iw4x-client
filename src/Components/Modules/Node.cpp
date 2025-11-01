@@ -15,6 +15,7 @@ namespace Components
 	bool Node::WasIngame = false;
 
 	const Game::dvar_t* Node::net_natFix;
+	const Game::dvar_t* Node::net_alwaysUseNodes;
 
 	bool Node::Entry::isValid() const
 	{
@@ -183,7 +184,7 @@ namespace Components
 
 		if (!Dedicated::IsEnabled())
 		{
-			if (ServerList::UseMasterServer) return; // don't run node frame if master server is active
+			if (ServerList::UseMasterServer && !net_alwaysUseNodes->current.enabled) return; // don't run node frame if master server is active
 
 			if (Game::CL_GetLocalClientConnectionState(0) != Game::CA_DISCONNECTED)
 			{
@@ -265,7 +266,7 @@ namespace Components
 
 		if (list.isnode() && (!list.port() || list.port() == address.getPort()))
 		{
-			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && !ServerList::UseMasterServer && list.protocol() == PROTOCOL)
+			if (!Dedicated::IsEnabled() && ServerList::IsOnlineList() && (!ServerList::UseMasterServer || net_alwaysUseNodes->current.enabled) && list.protocol() == PROTOCOL)
 			{
 #ifdef NODE_SYSTEM_DEBUG
 				Logger::Debug("Inserting {} into the serverlist", address.getString());
@@ -402,6 +403,7 @@ namespace Components
 		}
 
 		net_natFix = Game::Dvar_RegisterBool("net_natFix", false, 0, "Fix node registration for certain firewalls/routers");
+		net_alwaysUseNodes = Game::Dvar_RegisterBool("net_alwaysUseNodes", false, Game::DVAR_ARCHIVE, "Always use node system instead of master server");
 
 		Scheduler::Loop([]
 			{

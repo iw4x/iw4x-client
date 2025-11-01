@@ -47,6 +47,7 @@ namespace Components
 		static bool WasIngame;
 
 		static const Game::dvar_t* net_natFix;
+		static const Game::dvar_t* net_alwaysUseNodes;
 
 		static void HandleResponse(const Network::Address& address, const std::string& data);
 
