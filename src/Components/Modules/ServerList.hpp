@@ -28,6 +28,7 @@ namespace Components
 			bool svRunning;
 			bool aimassist;
 			bool voice;
+			std::time_t lastSeen;
 		};
 
 		ServerList();
@@ -60,6 +61,7 @@ namespace Components
 		static Dvar::Var UIServerSelectedMap;
 		static Dvar::Var NETServerQueryLimit;
 		static Dvar::Var NETServerFrames;
+		static Dvar::Var NETServerDeadTimeout;
 
 	private:
 		enum class Column : int
@@ -79,6 +81,7 @@ namespace Components
 		};
 
 		static constexpr auto* FavouriteFile = "players/favourites.json";
+		static constexpr auto* ServerCacheFile = "players/server_cache.json";
 
 #pragma pack(push, 1)
 		union MasterEntry
@@ -118,9 +121,6 @@ namespace Components
 			bool awatingList;
 			int awaitTime;
 
-			int sentCount;
-			int sendCount;
-
 			Network::Address host;
 			std::vector<ServerContainer> servers;
 			std::recursive_mutex mutex;
@@ -142,8 +142,12 @@ namespace Components
 		static void StoreFavourite(const std::string& server);
 		static void RemoveFavourite(const std::string& server);
 
-		static ServerInfo* GetServer(unsigned int index);
+		static void LoadServerCache();
+		static void SaveServerCache();
+		static void RemoveDeadServers();
+		static void HeartbeatServers();
 
+		static ServerInfo* GetServer(unsigned int index);
 		static bool CompareVersion(const std::string& version1, const std::string& version2);
 		static bool IsServerDuplicate(const std::vector<ServerInfo>* list, const ServerInfo& server);
 
