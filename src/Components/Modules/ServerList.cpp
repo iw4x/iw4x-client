@@ -1063,6 +1063,20 @@ namespace Components
 		static Utils::Time::Interval cacheSaveInterval;
 		static Utils::Time::Interval heartbeatInterval;
 		static Utils::Time::Interval deadServerCheckInterval;
+		static bool wasOpen = false;
+
+		// Skip update processing when the browser view is inactive.
+		//
+		if (!IsServerListOpen ())
+		{
+			std::lock_guard _ (RefreshContainer.mutex);
+
+			if (!RefreshContainer.servers.empty ())
+				RefreshContainer.servers.clear ();
+
+			wasOpen = false;
+			return;
+		}
 
 		const auto interval = static_cast<int>(1000.0f / static_cast<float>(NETServerFrames.get<int>()));
 
