@@ -361,9 +361,6 @@ namespace Components
 
 		const bool hasCachedServers = list && !list->empty ();
 
-		if (!hasCachedServers && list)
-			list->clear ();
-
 		if (!hasCachedServers)
 			VisibleList.clear ();
 
