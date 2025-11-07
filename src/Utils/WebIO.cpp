@@ -290,7 +290,7 @@ namespace Utils
 			finalHeaders.append("\r\n");
 		}
 
-		if (HttpSendRequestA(this->hFile_, finalHeaders.data(), finalHeaders.size(), const_cast<char*>(body.data()), body.size() + 1) == FALSE)
+		if (HttpSendRequestA(this->hFile_, finalHeaders.data(), finalHeaders.size(), const_cast<char*>(body.data()), body.size()) == FALSE)
 		{
 			return {};
 		}
