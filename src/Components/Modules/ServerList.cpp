@@ -210,8 +210,6 @@ namespace Components
 		}
 		else
 		{
-			list->clear();
-
 			std::lock_guard _(RefreshContainer.mutex);
 
 			for (const auto& server : tempList)
