@@ -800,16 +800,21 @@ namespace Components
 		std::lock_guard _(RefreshContainer.mutex);
 
 		Container::ServerContainer c;
-		c.sent 	 = false;
+		c.sent   = false;
 		c.target = address;
 
+		auto alreadyInserted = false;
 		for (auto& s : RefreshContainer.servers)
 		{
 			if (s.target == c.target)
-				return;
+			{
+				alreadyInserted = true;
+				break;
+			}
 		}
 
-		RefreshContainer.servers.push_back(c);
+		if (!alreadyInserted)
+			RefreshContainer.servers.push_back(c);
 	}
 
 	void ServerList::Insert(const Network::Address& address, const Utils::InfoString& info)
