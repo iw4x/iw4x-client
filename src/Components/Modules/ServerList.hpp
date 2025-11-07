@@ -118,7 +118,7 @@ namespace Components
 				Network::Address target;
 			};
 
-			bool awatingList;
+			bool awaitingList;
 			int awaitTime;
 			bool needsInitialRefresh;
 
