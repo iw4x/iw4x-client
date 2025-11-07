@@ -120,6 +120,7 @@ namespace Components
 
 			bool awatingList;
 			int awaitTime;
+			bool needsInitialRefresh;
 
 			Network::Address host;
 			std::vector<ServerContainer> servers;

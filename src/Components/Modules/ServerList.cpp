@@ -223,7 +223,10 @@ namespace Components
 
 	void ServerList::RefreshVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
-		RefreshVisibleListInternal(UIScript::Token(), info);
+		Scheduler::Once([info] ()
+		{
+			RefreshVisibleListInternal(UIScript::Token (), info);
+		}, Scheduler::Pipeline::CLIENT);
 	}
 
 	void ServerList::RefreshVisibleListInternal([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info, bool refresh)
@@ -369,6 +372,14 @@ namespace Components
 		{
 			std::lock_guard _(RefreshContainer.mutex);
 			RefreshContainer.servers.clear();
+
+			// Record that the visible set must be rebuilt after the first discovery
+			// pass when starting without a cache. Note that in this situation the
+			// browser has no prior ordering or selection state, so the initial
+			// snapshot must drive the first stable view.
+			//
+			if (!hasCachedServers && IsOnlineList ())
+				RefreshContainer.needsInitialRefresh = true;
 		}
 
 		if (IsOfflineList())
@@ -377,6 +388,9 @@ namespace Components
 		}
 		else if (IsOnlineList())
 		{
+			// Warms the list early and lets the first discovery cycle reconcile
+			// cached state with the actual network view.
+			//
 			if (hasCachedServers && list)
 			{
 				for (const auto& server : *list)
@@ -515,7 +529,10 @@ namespace Components
 		auto* list = GetList();
 		if (list) list->clear();
 
-		RefreshVisibleListInternal(UIScript::Token(), nullptr);
+		Scheduler::Once([] ()
+		{
+			RefreshVisibleListInternal(UIScript::Token (), nullptr);
+		}, Scheduler::Pipeline::CLIENT);
 	}
 
 	void ServerList::LoadFavourties()
@@ -750,7 +767,10 @@ namespace Components
 			// only occurs during those cycles, which guarantees that a scheduled
 			// cache write will follow in the same frame or shortly thereafter.
 			//
-			RefreshVisibleListInternal (UIScript::Token (), nullptr);
+			Scheduler::Once([] ()
+			{
+				RefreshVisibleListInternal(UIScript::Token (), nullptr);
+			}, Scheduler::Pipeline::CLIENT);
 		}
 	}
 
@@ -909,14 +929,27 @@ namespace Components
 			{
 				if (auto* l = GetList (); l != nullptr)
 				{
-					// NOTE: The visible list is not refreshed here. Recomputing
-					// visibility on each heartbeat causes the browser to re-sort while
-					// player counts fluctuate, which makes entries appear to "jump"
-					// during normal activity. Dead-server pruning remains the only path
-					// that triggers a refresh.
+					// NOTE: The visible list is not refreshed here during normal
+					// operation. Recomputing visibility on each heartbeat causes the
+					// browser to re-sort while player counts fluctuate, which makes
+					// entries appear to "jump" during normal activity.
+					//
+					// ... Well, turn out that during initial discovery, the browser is
+					// still forming its first stable view, so entries must be allowed to
+					// surface incrementally as responses arrive.
 					//
 					if (!found && !IsServerDuplicate (l, server))
+					{
 						l->push_back (server);
+
+						if (RefreshContainer.needsInitialRefresh)
+						{
+							Scheduler::Once([]()
+							{
+								RefreshVisibleListInternal(UIScript::Token(), nullptr);
+							}, Scheduler::Pipeline::CLIENT);
+						}
+					}
 				}
 			}
 		}
@@ -1100,6 +1133,9 @@ namespace Components
 
 		const auto challenge = Utils::Cryptography::Rand::GenerateChallenge();
 		auto requestLimit = NETServerQueryLimit.get<int>();
+
+		bool hadPendingRequests = false;
+
 		for (std::size_t i = 0; i < RefreshContainer.servers.size() && requestLimit > 0; ++i)
 		{
 			auto* server = &RefreshContainer.servers[i];
@@ -1108,11 +1144,29 @@ namespace Components
 			// Found server we can send a request to
 			server->sent = true;
 			requestLimit--;
+			hadPendingRequests = true;
 
 			server->sendTime = Game::Sys_Milliseconds();
 			server->challenge = challenge;
 
 			Network::SendCommand(server->target, "getinfo", server->challenge);
+		}
+
+		// If the list is populated and no requests remain pending, then the
+		// discovery phase has produced a stable snapshot. That is, the flag is
+		// lowered and the on-disk cache may be written.
+		//
+		if (RefreshContainer.needsInitialRefresh && !hadPendingRequests)
+		{
+			auto* l (GetList ());
+
+			if (l != nullptr && !l->empty ())
+			{
+				RefreshContainer.needsInitialRefresh = false;
+
+				if (IsOnlineList ())
+					SaveServerCache ();
+			}
 		}
 
 		UpdateVisibleInfo();
@@ -1129,7 +1183,10 @@ namespace Components
 
 		Game::Dvar_SetInt(*Game::ui_netSource, source);
 
-		RefreshVisibleListInternal(UIScript::Token(), nullptr, true);
+		Scheduler::Once([]()
+		{
+			RefreshVisibleListInternal(UIScript::Token(), nullptr);
+		}, Scheduler::Pipeline::CLIENT);
 	}
 
 	void ServerList::UpdateGameType()
@@ -1143,7 +1200,10 @@ namespace Components
 
 		Game::Dvar_SetInt(*Game::ui_joinGametype, gametype);
 
-		RefreshVisibleListInternal(UIScript::Token(), nullptr);
+		Scheduler::Once([]()
+		{
+			RefreshVisibleListInternal(UIScript::Token(), nullptr);
+		}, Scheduler::Pipeline::CLIENT);
 	}
 
 	void ServerList::UpdateVisibleInfo()
