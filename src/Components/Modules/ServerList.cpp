@@ -1078,6 +1078,25 @@ namespace Components
 			return;
 		}
 
+		// Re-entry into the browser must clears accumulated idle time of existing
+		// entries to avoid classifying them as dead upon return.
+		//
+		//
+		if (!wasOpen)
+		{
+			wasOpen = true;
+
+			auto* l (GetList ());
+
+			if (l != nullptr && !l->empty ())
+			{
+				const auto now (std::time (nullptr));
+
+				for (auto& s: *l)
+					s.lastSeen = now;
+			}
+		}
+
 		const auto interval = static_cast<int>(1000.0f / static_cast<float>(NETServerFrames.get<int>()));
 
 		if (!frameLimit.elapsed(std::chrono::milliseconds(interval)))
