@@ -884,49 +884,31 @@ namespace Components
 			auto* list = GetList();
 			if (!list) return;
 
-			std::size_t k = 0;
-			for (auto j = list->begin(); j != list->end(); ++k)
+			bool found (false);
+			for (auto& s: *list)
 			{
-				if (j->addr == address)
+				if (s.addr == address)
 				{
-					j = list->erase(j);
-				}
-				else
-				{
-					++j;
-				}
-			}
-
-			// Also remove from visible list
-			for (auto j = VisibleList.begin(); j != VisibleList.end();)
-			{
-				if (*j == k)
-				{
-					j = VisibleList.erase(j);
-				}
-				else
-				{
-					++j;
+					// Update entry in-place to retain list position.
+					//
+					s = server;
+					found = true;
+					break;
 				}
 			}
 
 			if (info.get("gamename") == "IW4"s && server.matchType)
 			{
-				auto* lList = GetList();
-				if (lList)
+				if (auto* l = GetList (); l != nullptr)
 				{
-					if (!IsServerDuplicate(lList, server))
-					{
-						lList->push_back(server);
-
-						// NOTE: The visible list is not refreshed here. Recomputing
-						// visibility on each heartbeat causes the browser to re-sort while
-						// player counts fluctuate, which makes entries appear to "jump"
-						// during normal activity. Dead-server pruning remains the only path
-						// that triggers a refresh.
-						//
-						// RefreshVisibleListInternal(UIScript::Token(), nullptr);
-					}
+					// NOTE: The visible list is not refreshed here. Recomputing
+					// visibility on each heartbeat causes the browser to re-sort while
+					// player counts fluctuate, which makes entries appear to "jump"
+					// during normal activity. Dead-server pruning remains the only path
+					// that triggers a refresh.
+					//
+					if (!found && !IsServerDuplicate (l, server))
+						l->push_back (server);
 				}
 			}
 		}
