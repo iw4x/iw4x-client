@@ -420,7 +420,7 @@ namespace Components
 
 					if (reply.empty())
 					{
-						Logger::Print("Respone from {} was empty or the request timed out, falling back to node system.\n", url);
+						Logger::Print("Response from {} was empty or the request timed out, falling back to node system.\n", url);
 						Toast::Show("cardicon_headshot", "^1Error", std::format("Could not get a response from {}, falling back to node system.\n", url), 5000);
 						UseMasterServer = false;
 						return;
