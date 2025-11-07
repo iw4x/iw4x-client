@@ -397,7 +397,7 @@ namespace Components
 			const auto masterPort = (*Game::com_masterPort)->current.unsignedInt;
 			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
 
-			RefreshContainer.awatingList = true;
+			RefreshContainer.awaitingList = true;
 			RefreshContainer.awaitTime = Game::Sys_Milliseconds();
 
 			if (!hasCachedServers)
@@ -415,7 +415,7 @@ namespace Components
 				{
 					{
 						std::lock_guard _(RefreshContainer.mutex);
-						RefreshContainer.awatingList = false;
+						RefreshContainer.awaitingList = false;
 					}
 
 					if (reply.empty())
@@ -1140,18 +1140,18 @@ namespace Components
 
 		std::lock_guard _(RefreshContainer.mutex);
 
-		if (RefreshContainer.awatingList)
+		if (RefreshContainer.awaitingList)
 		{
 			// Stop counting if we are out of the server browser menu
 			if (!IsServerListOpen())
 			{
-				RefreshContainer.awatingList = false;
+				RefreshContainer.awaitingList = false;
 			}
 
 			// Check if we haven't got a response within 5 seconds
 			if (Game::Sys_Milliseconds() - RefreshContainer.awaitTime > 5000)
 			{
-				RefreshContainer.awatingList = false;
+				RefreshContainer.awaitingList = false;
 				Logger::Print("We haven't received a response from the master within {} seconds!\n", (Game::Sys_Milliseconds() - RefreshContainer.awaitTime) / 1000);
 
 				UseMasterServer = false;
@@ -1312,7 +1312,7 @@ namespace Components
 			{
 				if (RefreshContainer.host != address) return; // Only parse from host we sent to
 
-				RefreshContainer.awatingList = false;
+				RefreshContainer.awaitingList = false;
 
 				std::lock_guard _(RefreshContainer.mutex);
 
@@ -1460,7 +1460,7 @@ namespace Components
 	void ServerList::preDestroy()
 	{
 		std::lock_guard _(RefreshContainer.mutex);
-		RefreshContainer.awatingList = false;
+		RefreshContainer.awaitingList = false;
 		RefreshContainer.servers.clear();
 	}
 }
