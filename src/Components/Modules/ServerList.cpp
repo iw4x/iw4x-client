@@ -649,7 +649,10 @@ namespace Components
 
 		// Recompute visibility after population.
 		//
-		RefreshVisibleListInternal (UIScript::Token (), nullptr);
+		Scheduler::Once([]()
+		{
+			RefreshVisibleListInternal(UIScript::Token(), nullptr);
+		}, Scheduler::Pipeline::CLIENT);
 
 		Logger::Print ("loaded {} servers from cache\n", list->size ());
 	}
