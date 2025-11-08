@@ -110,7 +110,7 @@ namespace Steam
 		{
       Proxy::SetGame(10190);
 
-      if (!Proxy::Inititalize())
+      if (!Proxy::Initialize())
       {
 #ifdef _DEBUG
         OutputDebugStringA("Steam proxy not initialized properly");
@@ -143,7 +143,7 @@ namespace Steam
 
 		void SteamAPI_Shutdown()
 		{
-			Proxy::Uninititalize();
+			Proxy::UnInitialize();
 			Callbacks::Uninitialize();
 		}
 

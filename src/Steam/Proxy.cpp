@@ -371,12 +371,12 @@ namespace Steam
 			{
 				Proxy::SteamPipe = nullptr;
 				Proxy::SteamUser = nullptr;
-				Proxy::Uninititalize();
+				Proxy::UnInitialize();
 			}
 		});
 	}
 
-	bool Proxy::Inititalize()
+	bool Proxy::Initialize()
 	{
 		const auto directoy = Proxy::GetSteamDirectory();
 		if (directoy.empty()) return false;
@@ -442,7 +442,7 @@ namespace Steam
 		return true;
 	}
 
-	void Proxy::Uninititalize()
+	void Proxy::UnInitialize()
 	{
 		if(Proxy::WatchGuard.get_id() != std::this_thread::get_id() && Proxy::WatchGuard.joinable())
 		{

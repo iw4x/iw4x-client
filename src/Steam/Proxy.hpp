@@ -272,8 +272,8 @@ namespace Steam
 	class Proxy
 	{
 	public:
-		static bool Inititalize();
-		static void Uninititalize();
+		static bool Initialize();
+		static void UnInitialize();
 
 		static void SetGame(uint32_t appId);
 		static void RunGame();
