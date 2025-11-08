@@ -109,8 +109,6 @@ namespace Steam
 		static std::recursive_mutex Mutex;
 	};
 
-	bool Enabled();
-
 	STEAM_EXPORT bool SteamAPI_Init();
 	STEAM_EXPORT void SteamAPI_RegisterCallResult(Callbacks::Base* result, uint64_t call);
 	STEAM_EXPORT void SteamAPI_RegisterCallback(Callbacks::Base* handler, int callback);

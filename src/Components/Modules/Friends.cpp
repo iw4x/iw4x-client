@@ -140,7 +140,7 @@ namespace Components
 
 	void Friends::UpdateState()
 	{
-		if (Friends::CLAnonymous.get<bool>() || Friends::IsInvisible() || !Steam::Enabled())
+		if (Friends::CLAnonymous.get<bool>() || Friends::IsInvisible())
 		{
 			return;
 		}
@@ -236,7 +236,7 @@ namespace Components
 
 	void Friends::SetPresence(const std::string& key, const std::string& value)
 	{
-		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamUtils && !Friends::CLAnonymous.get<bool>() && !Friends::IsInvisible() && Steam::Enabled())
+		if (Steam::Proxy::ClientFriends && Steam::Proxy::SteamUtils && !Friends::CLAnonymous.get<bool>() && !Friends::IsInvisible())
 		{
 			Friends::SetRawPresence(key.data(), value.data());
 		}
@@ -679,7 +679,7 @@ namespace Components
 				Friends::InitialState = Steam::Proxy::SteamFriends->GetFriendPersonaState(Steam::Proxy::SteamUser_->GetSteamID());
 			}
 
-			if (Friends::CLAnonymous.get<bool>() || Friends::IsInvisible() || !Steam::Enabled())
+			if (Friends::CLAnonymous.get<bool>() || Friends::IsInvisible())
 			{
 				if (Steam::Proxy::ClientFriends)
 				{
