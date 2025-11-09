@@ -89,7 +89,7 @@ namespace
 					ent.index.item = weapIdx + weapModel * BASEGAME_WEAPON_LIMIT;
 				}
 			}
-			else if (ent.eType == Game::ET_EVENTS + Game::EV_OBITUARY)
+			else if (ent.eType == static_cast<int>(Game::ET_EVENTS) + static_cast<int>(Game::EV_OBITUARY))
 			{
 				const auto val = ((ent.un1.eventParm2 << 8) | ent.eventParm);
 
