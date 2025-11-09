@@ -52,49 +52,60 @@ namespace Utils
 
 #pragma region ECC
 
-		ECC::Key ECC::GenerateKey(int bits, const std::string& entropy)
-		{
-			Key key;
+    ECC::Key ECC::GenerateKey(int bits, const std::string& entropy)
+    {
+      Key key;
 
-			ltc_mp = ltm_desc;
+      ltc_mp = ltm_desc;
 
-			if (entropy.empty())
-			{
-				register_prng(&sprng_desc);
-				const auto result = ecc_make_key(nullptr, find_prng("sprng"), bits / 8, key.getKeyPtr());
-				if (result != CRYPT_OK)
-				{
-					Components::Logger::PrintError(Game::conChannel_t::CON_CHANNEL_ERROR, "There was an issue generating a secured random key! Please contact support");
-				}
-			}
-			else
-			{
-				int descriptorIndex = register_prng(&chacha20_prng_desc);
+      if (entropy.empty())
+      {
+        register_prng(&sprng_desc);
+        const auto result = ecc_make_key(nullptr,
+                                         find_prng("sprng"),
+                                         bits / 8,
+                                         key.getKeyPtr());
+        if (result != CRYPT_OK)
+        {
+          Components::Logger::
+            PrintError(Game::conChannel_t::CON_CHANNEL_ERROR,
+                       "There was an issue generating a secured random key! "
+                       "Please " "contact support");
+        }
+      }
+      else
+      {
+        int descriptorIndex = register_prng(&chacha20_prng_desc);
 
-				// allocate state
-				prng_state* state = new prng_state();
+        // allocate state
+        auto state = std::make_unique<prng_state>();
 
-				chacha20_prng_start(state);
+        chacha20_prng_start(state.get());
 
-				chacha20_prng_add_entropy(reinterpret_cast<const unsigned char*>(entropy.data()), entropy.size(), state);
+        chacha20_prng_add_entropy(
+          reinterpret_cast<const unsigned char*>(entropy.data()),
+          entropy.size(),
+          state.get());
 
-				chacha20_prng_ready(state);
+        chacha20_prng_ready(state.get());
 
-				const auto result = ecc_make_key(state, descriptorIndex, bits / 8, key.getKeyPtr());
+        const auto result = ecc_make_key(state.get(),
+				                                 descriptorIndex,
+																				 bits / 8,
+																				 key.getKeyPtr());
 
-				if (result != CRYPT_OK)
-				{
-					Components::Logger::PrintError(Game::conChannel_t::CON_CHANNEL_ERROR, "There was an issue generating your unique player ID! Please contact support");
-				}
+        if (result != CRYPT_OK)
+        {
+          Components::Logger::
+            PrintError(Game::conChannel_t::CON_CHANNEL_ERROR,
+                       "There was an issue generating your unique player ID! "
+                       "Please contact support");
+        }
+      }
+      return key;
+    }
 
-				// Deallocate state
-				delete state;
-			}
-
-			return key;
-		}
-
-		std::string ECC::SignMessage(Key key, const std::string& message)
+    std::string ECC::SignMessage(Key key, const std::string& message)
 		{
 			if (!key.isValid()) return {};
 
