@@ -17,6 +17,8 @@ namespace Components
 		static void SetAspectRatio_Stub();
 		static void SetAspectRatio();
 
+		static Game::dvar_t* Dvar_RegisterFullscreen (const char* dvarName, bool value, unsigned __int16 flags, const char* description);
+
 		static Game::dvar_t* g_antilag;
 		static void ClientEventsFireWeapon_Stub();
 		static void ClientEventsFireWeaponMelee_Stub();
