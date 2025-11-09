@@ -89,6 +89,8 @@ namespace Game
 
 	extern voiceCommunication_t* cl_voiceCommunication;
 
+	extern GfxConfiguration* gfxCfg;
+
 	extern [[nodiscard]] int CL_GetMaxXP();
 	extern [[nodiscard]] clientConnection_t* CL_GetLocalClientConnection(int localClientNum);
 	extern [[nodiscard]] connstate_t CL_GetLocalClientConnectionState(int localClientNum);
