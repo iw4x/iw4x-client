@@ -136,19 +136,12 @@ namespace Components
 		Utils::Hook::Set<float>(0x66E1C78, r_customAspectRatio.get<float>());
 	}
 
-	Game::dvar_t* QuickPatch::Dvar_RegisterFullscreen (const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
-	{
-	  // TODO: R_InitGraphicsApi -> adjust GfxWindowParams for better window dimensions
-	  Utils::Hook::Set<bool> (0x66E1CCC, false); // GfxConfiguration::defaultFullscreen	
-	  return Game::Dvar_RegisterBool (dvarName, false, flags, description);
-	}
-
 	__declspec(naked) void QuickPatch::SetAspectRatio_Stub()
 	{
 		__asm
 		{
 			cmp eax, 4;
-			ja goToDefaultCase;
+			ja goToDefaultCase;	
 			je useCustomRatio;
 
 			// execute switch statement code
@@ -304,6 +297,18 @@ namespace Components
 		return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
 	}
 
+	void QuickPatch::CL_InitRef (Game::GfxConfiguration* config)
+	{
+	  // CL_InitRef() creates a GfxConfiguration with defaultFullscreen set to true.
+	  // This config is passed to R_ConfigureRenderer(), which copies it to the global gfxCfg.
+	  // R_RegisterDvars() then registers "r_fullscreen", using gfxCfg.defaultFullscreen as its default.
+	  // To disable fullscreen on first launch, we override defaultFullscreen before passing the config to R_ConfigureRenderer().
+
+	  config->defaultFullscreen = false;
+
+	  return Utils::Hook::Call<void (const Game::GfxConfiguration * config)> (0x508040)(config); // R_ConfigureRenderer
+	}
+
 	QuickPatch::QuickPatch()
 	{
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
@@ -324,7 +329,7 @@ namespace Components
 		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
 
 		// Disable fullscreen on first launch
-		Utils::Hook (0x519751, QuickPatch::Dvar_RegisterFullscreen, HOOK_CALL).install ()->quick ();
+		Utils::Hook(0x4A6B14, QuickPatch::CL_InitRef, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
 
