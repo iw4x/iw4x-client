@@ -39,6 +39,8 @@ namespace Game
 
 	clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
 
+	GfxConfiguration* gfxCfg = reinterpret_cast<GfxConfiguration*>(0x66E1C90);
+
 	cg_s* cgArray = reinterpret_cast<cg_s*>(0x7F0F78);
 	cgs_t* cgsArray = reinterpret_cast<cgs_t*>(0x7ED3B8);
 	cgEntity_s* cg_entitiesArray = reinterpret_cast<cgEntity_s*>(0x8F3CA8);
