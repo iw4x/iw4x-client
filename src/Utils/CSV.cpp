@@ -106,7 +106,7 @@ namespace Utils
 				continue;
 			}
 
-			if (i < (row.size() - 1) && row[i] == '\\' &&row[i + 1] == '"' && isString) // Handle quotes in strings as \"
+			if (i < (row.size() - 1) && row[i] == '\\' && row[i + 1] == '"' && isString) // Handle quotes in strings as \"
 			{
 				tempStr = '"';
 				++i;
