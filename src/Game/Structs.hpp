@@ -7259,6 +7259,38 @@ namespace Game
 		int fileSizeForPicmip[4];
 	};
 
+	struct GfxConfiguration
+	{
+	  bool inited;
+	  unsigned int maxClientViews;
+	  unsigned int entCount;
+	  unsigned int entnumNone;
+	  unsigned int entnumOrdinaryEnd;
+	  int threadContextCount;
+	  int critSectCount;
+	  int value40;
+	  const char *zoneFiles[7];
+	  bool defaultFullscreen;
+	  unsigned __int16 defaultFullscreenFlags;
+	  int defaultMode;
+	  int value900;
+	  int value450;
+	};
+
+	struct GfxWindowParms
+	{
+	  HWND *hwnd;
+	  int hz;
+	  bool fullscreen;
+	  int x;
+	  int y;
+	  int sceneWidth;
+	  int sceneHeight;
+	  int displayWidth;
+	  int displayHeight;
+	  int aaSamples;
+	};
+
 	enum $1FA877C9772E9F0892A93F52A91453E9
 	{
 		MAPTYPE_NONE = 0x0,
