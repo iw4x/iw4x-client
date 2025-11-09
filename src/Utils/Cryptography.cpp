@@ -70,7 +70,7 @@ namespace Utils
           Components::Logger::
             PrintError(Game::conChannel_t::CON_CHANNEL_ERROR,
                        "There was an issue generating a secured random key! "
-                       "Please " "contact support");
+                       "Please contact support");
         }
       }
       else
