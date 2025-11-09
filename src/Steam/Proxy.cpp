@@ -128,18 +128,20 @@ namespace Steam
 	void Proxy::SetGame(uint32_t appId)
 	{
 		Proxy::AppId = appId;
-		remove("steam_appid.txt");
-	}
 
-	void Proxy::RunGame()
-	{
 		if (!Components::Dedicated::IsEnabled())
 		{
 			SetEnvironmentVariableA("SteamAppId", ::Utils::String::VA("%lu", Proxy::AppId));
 			SetEnvironmentVariableA("SteamGameId", ::Utils::String::VA("%llu", Proxy::AppId & 0xFFFFFF));
 
 			::Utils::IO::WriteFile("steam_appid.txt", ::Utils::String::VA("%lu", Proxy::AppId), false);
+		}
+	}
 
+	void Proxy::RunGame()
+	{
+		if (!Components::Dedicated::IsEnabled())
+		{
 			Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe));
 			clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
 		}
