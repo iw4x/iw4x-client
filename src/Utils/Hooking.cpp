@@ -25,7 +25,7 @@ namespace Utils
 				unsigned int j;
 				for (j = 0; j < strlen(container->mask); ++j)
 				{
-					if (container->mask[j] != '?' &&container->signature[j] != address[j])
+					if (container->mask[j] != '?' && container->signature[j] != address[j])
 					{
 						break;
 					}
