@@ -361,7 +361,15 @@ namespace Components
 
 		const bool hasCachedServers = list && !list->empty ();
 
-		if (!hasCachedServers)
+		// Clear the visible list only when presenting the online view *without*
+		// a populated cache. Favourites and offline entries arrive through their
+		// own asynchronous channels and should retain continuity rather than
+		// flicker in and out of existence.
+		//
+		// In other words: only the online list gets the broom, and only when
+		// it shows up empty-handed.
+		//
+		if (!hasCachedServers && IsOnlineList())
 			VisibleList.clear ();
 
 		{
@@ -373,13 +381,21 @@ namespace Components
 			// browser has no prior ordering or selection state, so the initial
 			// snapshot must drive the first stable view.
 			//
-			if (!hasCachedServers && IsOnlineList ())
+			if (!hasCachedServers)
 				RefreshContainer.needsInitialRefresh = true;
 		}
 
 		if (IsOfflineList())
 		{
 			Discovery::Perform();
+
+			// After LAN discovery completes, rebuild the visible list so that any
+			// newly-found offline servers are surfaced to the UI.
+			//
+			Scheduler::Once([]()
+			{
+				RefreshVisibleListInternal(UIScript::Token(), nullptr);
+			}, Scheduler::Pipeline::CLIENT);
 		}
 		else if (IsOnlineList())
 		{
@@ -434,6 +450,14 @@ namespace Components
 		else if (IsFavouriteList())
 		{
 			LoadFavourties();
+
+			// Same as discovery, that is, after favourites are loaded, rebuild the
+			// visible list to make them surfaced to the UI.
+			//
+			Scheduler::Once([]()
+			{
+				RefreshVisibleListInternal(UIScript::Token(), nullptr);
+			}, Scheduler::Pipeline::CLIENT);
 		}
 	}
 
@@ -820,6 +844,7 @@ namespace Components
 		Container::ServerContainer c;
 		c.sent   = false;
 		c.target = address;
+		c.sourceList = (*Game::ui_netSource)->current.integer;
 
 		auto alreadyInserted = false;
 		for (auto& s : RefreshContainer.servers)
@@ -893,6 +918,23 @@ namespace Components
 			server.gametype = TextRenderer::StripMaterialTextIcons(server.gametype);
 			server.mod = TextRenderer::StripMaterialTextIcons(server.mod);
 
+			// Select the appropriate server list based on the origin of this query.
+			// While the mapping is intentionally explicit rather than "clever", it
+			// also serves as a gentle reminder that magic numbers age poorly.
+			//
+			// Note that an unrecognised source is treated as a logic error rather
+			// than something we try to auto-correct, if the caller is confused,
+			// letting it fail fast is usually kinder to both of us.
+			//
+			std::vector<ServerInfo>* l = nullptr;
+			switch (i->sourceList)
+			{
+				case 0: l = &OfflineList; break;
+				case 1: l = &OnlineList; break;
+				case 2: l = &FavouriteList; break;
+				default: return;
+			}
+
 			// Remove server from queue
 			i = RefreshContainer.servers.erase(i);
 
@@ -903,12 +945,9 @@ namespace Components
 				return;
 			}
 
-			// Check if already inserted and remove
-			auto* list = GetList();
-			if (!list) return;
-
+			// Check if already inserted and update in-place
 			bool found (false);
-			for (auto& s: *list)
+			for (auto& s: *l)
 			{
 				if (s.addr == address)
 				{
@@ -922,28 +961,25 @@ namespace Components
 
 			if (info.get("gamename") == "IW4"s && server.matchType)
 			{
-				if (auto* l = GetList (); l != nullptr)
+				// NOTE: The visible list is not refreshed here during normal
+				// operation. Recomputing visibility on each heartbeat causes the
+				// browser to re-sort while player counts fluctuate, which makes
+				// entries appear to "jump" during normal activity.
+				//
+				// ... Well, turn out that during initial discovery, the browser is
+				// still forming its first stable view, so entries must be allowed to
+				// surface incrementally as responses arrive.
+				//
+				if (!found && !IsServerDuplicate (l, server))
 				{
-					// NOTE: The visible list is not refreshed here during normal
-					// operation. Recomputing visibility on each heartbeat causes the
-					// browser to re-sort while player counts fluctuate, which makes
-					// entries appear to "jump" during normal activity.
-					//
-					// ... Well, turn out that during initial discovery, the browser is
-					// still forming its first stable view, so entries must be allowed to
-					// surface incrementally as responses arrive.
-					//
-					if (!found && !IsServerDuplicate (l, server))
-					{
-						l->push_back (server);
+					l->push_back (server);
 
-						if (RefreshContainer.needsInitialRefresh)
+					if (RefreshContainer.needsInitialRefresh)
+					{
+						Scheduler::Once([]()
 						{
-							Scheduler::Once([]()
-							{
-								RefreshVisibleListInternal(UIScript::Token(), nullptr);
-							}, Scheduler::Pipeline::CLIENT);
-						}
+							RefreshVisibleListInternal(UIScript::Token(), nullptr);
+						}, Scheduler::Pipeline::CLIENT);
 					}
 				}
 			}
@@ -1090,6 +1126,19 @@ namespace Components
 				for (auto& s: *l)
 					s.lastSeen = now;
 			}
+
+			// Rebuild the visible list unconditionally when entering the browser.
+			// That is, whatever state the discovery subsystem believes it is in, the
+			// UI should start from a clean snapshot.
+			//
+			// Note that we also avoid any temptation to "optimize" based on
+			// assumptions about prior activity, which tends to work until the one
+			// time it doesn't.
+			//
+			Scheduler::Once([]()
+			{
+				RefreshVisibleListInternal(UIScript::Token(), nullptr);
+			}, Scheduler::Pipeline::CLIENT);
 		}
 
 		const auto interval = static_cast<int>(1000.0f / static_cast<float>(NETServerFrames.get<int>()));
