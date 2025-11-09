@@ -136,6 +136,13 @@ namespace Components
 		Utils::Hook::Set<float>(0x66E1C78, r_customAspectRatio.get<float>());
 	}
 
+	Game::dvar_t* QuickPatch::Dvar_RegisterFullscreen (const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
+	{
+	  // TODO: R_InitGraphicsApi -> adjust GfxWindowParams for better window dimensions
+	  Utils::Hook::Set<bool> (0x66E1CCC, false); // GfxConfiguration::defaultFullscreen	
+	  return Game::Dvar_RegisterBool (dvarName, false, flags, description);
+	}
+
 	__declspec(naked) void QuickPatch::SetAspectRatio_Stub()
 	{
 		__asm
@@ -315,6 +322,9 @@ namespace Components
 		// Add ultrawide support
 		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
+
+		// Disable fullscreen on first launch
+		Utils::Hook (0x519751, QuickPatch::Dvar_RegisterFullscreen, HOOK_CALL).install ()->quick ();
 
 		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
 
