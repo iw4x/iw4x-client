@@ -927,7 +927,8 @@ namespace Components
 			// letting it fail fast is usually kinder to both of us.
 			//
 			std::vector<ServerInfo>* l = nullptr;
-			switch (i->sourceList)
+			const auto sourceList = i->sourceList;
+			switch (sourceList)
 			{
 				case 0: l = &OfflineList; break;
 				case 1: l = &OnlineList; break;
@@ -974,7 +975,11 @@ namespace Components
 				{
 					l->push_back (server);
 
-					if (RefreshContainer.needsInitialRefresh)
+					// Refresh the visible list only if the newly-arrived server belongs to the
+					// source the UI is currently presenting and we are still in the initial
+					// discovery phase.
+					//
+					if (RefreshContainer.needsInitialRefresh && sourceList == (*Game::ui_netSource)->current.integer)
 					{
 						Scheduler::Once([]()
 						{
