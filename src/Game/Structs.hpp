@@ -15,6 +15,13 @@
 #ifndef IDA
 namespace Game
 {
+	constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
+	constexpr std::size_t MAX_LOCAL_CLIENTS = 1;
+	constexpr std::size_t MAX_CLIENTS = 18;
+
+	constexpr auto MAX_CMD_BUFFER = 0x10000;
+	constexpr auto MAX_CMD_LINE = 0x1000;
+	constexpr auto CMD_MAX_NESTING = 8;
 #endif
 	constexpr std::size_t MAX_GENTITIES = 2048;
 	constexpr std::size_t ENTITYNUM_NONE = MAX_GENTITIES - 1;
@@ -7675,9 +7682,10 @@ namespace Game
 		int useCount;
 		gentity_s* nextFree;
 		int birthTime;
+		char pad210[4];
+		gentity_s** linkedEntity; // used in G_RunMissile, name was guessed
+		char pad218[92];
 	};
-
-	static_assert(sizeof(gentity_s) == 0x274);
 
 	enum
 	{
@@ -11933,6 +11941,57 @@ namespace Game
 		MssStreamReadInfo streamReadInfo[12];
 	};
 
+	struct AntilagClientStore
+	{
+		float realClientAngles[MAX_CLIENTS][3];
+		float realClientPositions[MAX_CLIENTS][3];
+		bool clientMoved[MAX_CLIENTS];
+
+		void Reset()
+		{
+			memset(this, 0, sizeof(AntilagClientStore));
+		}
+	};
+
+	struct BulletTraceResults
+	{
+		trace_t trace;
+		gentity_s* hitEnt;
+		float hitPos[3];
+		bool ignoreHitEnt;
+		int unk40 = 0;
+	};
+
+	static_assert(sizeof(BulletTraceResults) == 0x44);
+
+	struct BulletFireParams
+	{
+		int weaponEntIndex = 0;
+		int ignoreEntIndex = 0;
+		float damageMultiplier = 1;
+		int methodOfDeath = 0;
+		float start[3];
+		float origStart[3];
+		float end[3];
+		float dir[3];
+
+		// this function is inlined in game, game also calls Bullet_GetMethodOfDeath and fills methodOfDeath with its result - we can't due to include errors.
+		void Init(int weaponIndex, weaponParms* wpParms)
+		{
+			this->weaponEntIndex = weaponIndex;
+			this->ignoreEntIndex = weaponIndex;
+			this->damageMultiplier = 1.0f;
+			this->start[0] = wpParms->muzzleTrace[0];
+			this->start[1] = wpParms->muzzleTrace[1];
+			this->start[2] = wpParms->muzzleTrace[2];
+			this->origStart[0] = wpParms->muzzleTrace[0];
+			this->origStart[1] = wpParms->muzzleTrace[1];
+			this->origStart[2] = wpParms->muzzleTrace[2];
+		}
+	};
+
+	static_assert(sizeof(BulletFireParams) == 0x40);
+
 	struct cgMedia_t
 	{
 		Material* whiteMaterial;
@@ -12114,7 +12173,7 @@ namespace Game
 		WEAP_ANIM_ADS_DOWN = 0x24,
 
 		NUM_WEAP_ANIMS,
-	};
+};
 
 #pragma endregion
 
