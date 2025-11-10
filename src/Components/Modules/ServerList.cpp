@@ -381,8 +381,7 @@ namespace Components
 			// browser has no prior ordering or selection state, so the initial
 			// snapshot must drive the first stable view.
 			//
-			if (!hasCachedServers)
-				RefreshContainer.needsInitialRefresh = true;
+			RefreshContainer.needsInitialRefresh = true;
 		}
 
 		if (IsOfflineList())
@@ -598,9 +597,6 @@ namespace Components
 
 	void ServerList::LoadServerCache()
 	{
-		if (!IsOnlineList())
-			return;
-
 		std::string cache (Utils::IO::ReadFile (ServerCacheFile));
 		if (cache.empty ())
 			return;
@@ -634,9 +630,10 @@ namespace Components
 		}
 
 		const auto& servers = root["servers"];
-		auto* list = GetList();
-		if (list == nullptr)
-			return;
+
+		// Always load cache into OnlineList, not the current view's list
+		//
+		auto* list = &OnlineList;
 
 		Logger::Print ("loading {} cached servers...\n", servers.size ());
 
@@ -974,18 +971,15 @@ namespace Components
 				if (!found && !IsServerDuplicate (l, server))
 				{
 					l->push_back (server);
+				}
 
-					// Refresh the visible list only if the newly-arrived server belongs to the
-					// source the UI is currently presenting and we are still in the initial
-					// discovery phase.
-					//
-					if (RefreshContainer.needsInitialRefresh && sourceList == (*Game::ui_netSource)->current.integer)
+				const auto currentSource = (*Game::ui_netSource)->current.integer;
+				if (RefreshContainer.needsInitialRefresh && sourceList == currentSource)
+				{
+					Scheduler::Once([]()
 					{
-						Scheduler::Once([]()
-						{
-							RefreshVisibleListInternal(UIScript::Token(), nullptr);
-						}, Scheduler::Pipeline::CLIENT);
-					}
+						RefreshVisibleListInternal(UIScript::Token(), nullptr);
+					}, Scheduler::Pipeline::CLIENT);
 				}
 			}
 		}
@@ -1238,7 +1232,16 @@ namespace Components
 		// discovery phase has produced a stable snapshot. That is, the flag is
 		// lowered and the on-disk cache may be written.
 		//
-		if (RefreshContainer.needsInitialRefresh && !hadPendingRequests)
+		// ... Actually we must check if there are any pending operations:
+		//
+		// 1. Server query requests in the queue (servers.empty())
+		// 2. Waiting for master server response (awaitingList)
+		//
+		// And only clear the flag and save cache when all operations are complete.
+		//
+		const bool hasAnyPendingRequests = !RefreshContainer.servers.empty() || RefreshContainer.awaitingList;
+
+		if (RefreshContainer.needsInitialRefresh && !hasAnyPendingRequests)
 		{
 			auto* l (GetList ());
 
@@ -1265,9 +1268,36 @@ namespace Components
 
 		Game::Dvar_SetInt(*Game::ui_netSource, source);
 
+		// Handle source transitions. Two conditions are relevant:
+		//
+		// 1. Cache not in flight: issue a normal Refresh() to load the new source.
+		// 2. Cache in flight: allow the cache path to invoke Refresh(), then schedule
+		//    a visible-list rebuild once the load completes.
+		//
 		Scheduler::Once([]()
 		{
-			RefreshVisibleListInternal(UIScript::Token(), nullptr);
+			bool cacheLoading = false;
+			{
+				std::lock_guard _(RefreshContainer.mutex);
+				cacheLoading = RefreshContainer.loadingCache;
+			}
+
+			if (!cacheLoading)
+			{
+				Refresh();
+			}
+			else
+			{
+				// Cache load is in progress. The cache path will invoke Refresh() on
+				// completion, but a visible-list rebuild is still required after a
+				// source change. Delay the rebuild briefly to allow the cache load to
+				// finish.
+				//
+				Scheduler::Once([]()
+				{
+					RefreshVisibleListInternal(UIScript::Token(), nullptr);
+				}, Scheduler::Pipeline::CLIENT, 200ms);
+			}
 		}, Scheduler::Pipeline::CLIENT);
 	}
 
@@ -1342,6 +1372,8 @@ namespace Components
 		FavouriteList.clear();
 		VisibleList.clear();
 
+		RefreshContainer.loadingCache = false;
+
 		Events::OnDvarInit([]
 			{
 				UIServerSelected = Dvar::Register<bool>("ui_serverSelected", false,
@@ -1410,20 +1442,37 @@ namespace Components
 			// Attempt to populate online list from on-disk cache before issuing a
 			// network-driven refresh.
 			//
-			if (IsOnlineList())
+			auto* onlineList = &OnlineList;
+
 			{
-				auto* list = GetList();
-
-				if (list != nullptr && list->empty())
+				std::lock_guard _(RefreshContainer.mutex);
+				if (RefreshContainer.loadingCache)
 				{
-					std::thread([]()
-					{
-						LoadServerCache();
-						Scheduler::Once([]() { ServerList::Refresh(); }, Scheduler::Pipeline::CLIENT);
-					}).detach();
-
-					return; // defer refresh until after the cache load completes
+					return; // cache load already in progress
 				}
+			}
+
+			if (onlineList != nullptr && onlineList->empty())
+			{
+				{
+					std::lock_guard _(RefreshContainer.mutex);
+					RefreshContainer.loadingCache = true;
+				}
+
+				std::thread([]()
+				{
+					LoadServerCache();
+					Scheduler::Once([]()
+					{
+						{
+							std::lock_guard _(RefreshContainer.mutex);
+							RefreshContainer.loadingCache = false;
+						}
+						ServerList::Refresh();
+					}, Scheduler::Pipeline::CLIENT);
+				}).detach();
+
+				return; // defer refresh until after the cache load completes
 			}
 
 			ServerList::Refresh();
