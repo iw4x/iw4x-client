@@ -84,6 +84,9 @@ namespace Game
 	typedef void(*Dvar_Reset_t)(const dvar_t* dvar, DvarSetSource setSource);
 	extern Dvar_Reset_t Dvar_Reset;
 
+	typedef void (*Dvar_ClearModified_t) (const dvar_t* dvar);
+	extern Dvar_ClearModified_t Dvar_ClearModified;
+
 	extern const dvar_t** com_developer;
 	extern const dvar_t** com_developer_script;
 	extern const dvar_t** com_timescale;
@@ -91,6 +94,10 @@ namespace Game
 	extern const dvar_t** sv_running;
 	extern const dvar_t** com_masterServerName;
 	extern const dvar_t** com_masterPort;
+
+	extern const dvar_t** r_mode;
+	extern const dvar_t** vid_xpos;
+	extern const dvar_t** vid_ypos;
 
 	extern const dvar_t** dev_timescale;
 
