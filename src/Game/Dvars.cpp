@@ -20,6 +20,7 @@ namespace Game
 	Dvar_InfoString_Big_t Dvar_InfoString_Big = Dvar_InfoString_Big_t(0x4D98A0);
 	Dvar_SetCommand_t Dvar_SetCommand = Dvar_SetCommand_t(0x4EE430);
 	Dvar_DisplayableValue_t Dvar_DisplayableValue = Dvar_DisplayableValue_t(0x4B5530);
+	Dvar_ClearModified_t Dvar_ClearModified = Dvar_ClearModified_t(0x494290);
 	Dvar_Reset_t Dvar_Reset = Dvar_Reset_t(0x4FEFD0);
 
 	Dvar_SetFromStringByName_t Dvar_SetFromStringByName = Dvar_SetFromStringByName_t(0x4F52E0);
@@ -38,6 +39,10 @@ namespace Game
 	const dvar_t** com_maxFrameTime = reinterpret_cast<const dvar_t**>(0x1AD78F4);
 	const dvar_t** com_masterServerName = reinterpret_cast<const dvar_t**>(0x1AD8F48);
 	const dvar_t** com_masterPort = reinterpret_cast<const dvar_t**>(0x1AD8F30);
+
+	const dvar_t** r_mode	= reinterpret_cast<const dvar_t**>(0x69F0E00);
+	const dvar_t** vid_xpos = reinterpret_cast<const dvar_t**>(0x69F0EA4);
+	const dvar_t** vid_ypos = reinterpret_cast<const dvar_t**>(0x69F0DFC);
 
 	const dvar_t** dev_timescale = reinterpret_cast<const dvar_t**>(0x1AD8F20);
 
