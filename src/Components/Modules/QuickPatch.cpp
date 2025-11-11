@@ -365,7 +365,7 @@ namespace Components
 			}
 		}
 
-		// Set r_mode to the resolution that matches current the monitor.
+		// Set r_mode to the resolution that matches the current monitor.
 		// Note that this dvar is registered with 2 flags: DVAR_ARCHIVE and DVAR_LATCH.
 		// To ensure the change propagates correctly, we use an API call instead of modifying the dvar directly.
 		Game::Dvar_SetInt(r_mode, mode_index);
