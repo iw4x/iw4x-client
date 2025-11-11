@@ -297,16 +297,70 @@ namespace Components
 		return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
 	}
 
-	void QuickPatch::CL_InitRef (Game::GfxConfiguration* config)
+	void QuickPatch::CL_InitRef_Hk (Game::GfxConfiguration* config)
 	{
-	  // CL_InitRef() creates a GfxConfiguration with defaultFullscreen set to true.
-	  // This config is passed to R_ConfigureRenderer(), which copies it to the global gfxCfg.
-	  // R_RegisterDvars() then registers "r_fullscreen", using gfxCfg.defaultFullscreen as its default.
-	  // To disable fullscreen on first launch, we override defaultFullscreen before passing the config to R_ConfigureRenderer().
+		// CL_InitRef() sets `defaultFullscreen` = true in GfxConfiguration.
+		// This config is passed to R_ConfigureRenderer(), which copies it to the global gfxCfg.
+		// R_RegisterDvars() then uses `gfxCfg.defaultFullscreen` as the default value for "r_fullscreen".
 
-	  config->defaultFullscreen = false;
+		// By overriding `defaultFullscreen` before calling R_ConfigureRenderer(),
+		// we can force the game to be in windowed mode on first launch
+		config->defaultFullscreen = false;
 
-	  return Utils::Hook::Call<void (const Game::GfxConfiguration * config)> (0x508040)(config); // R_ConfigureRenderer
+		// Call original R_ConfigureRenderer()
+		return Utils::Hook::Call<void (const Game::GfxConfiguration * config)> (0x508040)(config);
+	}
+
+	void QuickPatch::R_EnumDisplayModes_Hk (unsigned int adapterIndex)
+	{
+		// Call the original R_EnumDisplayModes() to let it register available display modes in r_mode
+		Utils::Hook::Call<void (unsigned int adapterIndex)> (0x506F10)(adapterIndex);
+
+		// Skip code below unless this is the first launch
+		if (Dvar::Var ("g_firstLaunch").get<bool> () == false)
+		{
+			return;
+		}
+
+		// Get the resolution of the monitor that will be used to display the game
+		HMONITOR adapterMonitor ((*Game::d3d9)->GetAdapterMonitor (adapterIndex));
+
+		int monitor_width (0);
+		int monitor_height (0);
+		MONITORINFO mi (sizeof (MONITORINFO));
+
+		if (GetMonitorInfoA (adapterMonitor, &mi))
+		{
+			monitor_width = mi.rcMonitor.right - mi.rcMonitor.left;
+			monitor_height = mi.rcMonitor.bottom - mi.rcMonitor.top;
+		}
+
+		// Match monitor resolution to one of the available r_mode strings
+		Game::dvar_t* r_mode = Game::Dvar_FindVar ("r_mode");
+
+		int mode_width (0);
+		int mode_height (0);
+		int mode_index (r_mode->current.integer); // Game already selected the value it thinks is best
+
+		for (int i = 0; i < r_mode->domain.enumeration.stringCount; i++)
+		{
+			const char* mode = r_mode->domain.enumeration.strings[i];
+
+			if (std::sscanf (mode, "%ix%i", &mode_width, &mode_height) == 2)
+			{
+				if (mode_width == monitor_width && mode_height == monitor_height)
+				{
+					mode_index = i;
+					break;
+				}
+			}
+		}
+
+		// Force r_mode to the resolution matching the monitor and also 
+		// position the window in the top-left corner to simulate fullscreen visually
+		r_mode->current.integer = mode_index;
+		Game::Dvar_FindVar ("vid_xpos")->current.integer = 0;
+		Game::Dvar_FindVar ("vid_ypos")->current.integer = 0;
 	}
 
 	QuickPatch::QuickPatch()
@@ -328,8 +382,9 @@ namespace Components
 		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
 		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
 
-		// Disable fullscreen on first launch
-		Utils::Hook(0x4A6B14, QuickPatch::CL_InitRef, HOOK_CALL).install()->quick();
+		// Disable fullscreen mode on first launch
+		Utils::Hook(0x4A6B14, QuickPatch::CL_InitRef_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x507443, QuickPatch::R_EnumDisplayModes_Hk, HOOK_CALL).install()->quick();
 
 		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
 
