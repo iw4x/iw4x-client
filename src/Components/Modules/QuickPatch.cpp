@@ -299,16 +299,13 @@ namespace Components
 
 	void QuickPatch::CL_InitRef_Hk(Game::GfxConfiguration* config)
 	{
-		// CL_InitRef() initializes a GfxConfiguration with `defaultFullscreen` set to true.
-		// This configuration is passed to R_ConfigureRenderer(), which copies it to the global `gfxCfg` structure.
-		// In R_RegisterDvars(), r_fullscreen is registered using the value from `gfxCfg.defaultFullscreen` as default.
-
-		// By overriding `defaultFullscreen` before R_ConfigureRenderer() calls R_RegisterDvars(),
-		// we can force the game to start in windowed mode on first launch.
+		// CL_InitRef() creates a GfxConfiguration with defaultFullscreen = true,
+		// which r_fullscreen inherits as the default value. We override the field
+		// here to force windowed startup on first launch.
 		config->defaultFullscreen = false;
 
 		// Call original R_ConfigureRenderer()
-		return Utils::Hook::Call<void (const Game::GfxConfiguration * config)>(0x508040)(config);
+		return Utils::Hook::Call<void(Game::GfxConfiguration* config)>(0x508040)(config);
 	}
 
 	void QuickPatch::R_EnumDisplayModes_Hk(unsigned int adapterIndex)
@@ -316,7 +313,7 @@ namespace Components
 		// Call original R_EnumDisplayModes() to let it register and save available display modes in r_mode
 		Utils::Hook::Call<void(unsigned int adapterIndex)>(0x506F10)(adapterIndex);
 
-		if (Dvar::Var ("g_firstLaunch").get<bool> () == false)
+		if (Dvar::Var("g_firstLaunch").get<bool>() == false)
 		{
 			return;
 		}
@@ -328,7 +325,8 @@ namespace Components
 
 		// Get the resolution of the monitor that will be used for the game
 		HMONITOR adapterMonitor = (*Game::d3d9)->GetAdapterMonitor(adapterIndex);
-		MONITORINFO mi (sizeof (MONITORINFO));
+		MONITORINFO mi{};
+		mi.cbSize = sizeof(MONITORINFO);
 
 		if (!GetMonitorInfoA(adapterMonitor, &mi))
 		{
@@ -338,15 +336,13 @@ namespace Components
 		const int monitor_width  = mi.rcMonitor.right  - mi.rcMonitor.left;
 		const int monitor_height = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
-		// Now we can match the monitor resolution to one of the available r_mode strings
-		Game::dvar_t* r_mode = Game::Dvar_FindVar ("r_mode");
+		Game::dvar_t* r_mode = Game::Dvar_FindVar("r_mode");
 
 		if (!r_mode || !r_mode->domain.enumeration.strings || r_mode->domain.enumeration.stringCount <= 0)
 		{
 			return;
 		}
 
-		// game has already selected the mode it believes is best
 		int mode_index  = r_mode->current.integer;
 		int mode_width  = 0;
 		int mode_height = 0;
@@ -365,13 +361,9 @@ namespace Components
 			}
 		}
 
-		// Set r_mode to the resolution that matches the current monitor.
-		// Note that this dvar is registered with 2 flags: DVAR_ARCHIVE and DVAR_LATCH.
-		// To ensure the change propagates correctly, we use an API call instead of modifying the dvar directly.
 		Game::Dvar_SetInt(r_mode, mode_index);
 
-		// Also make sure the window is positioned at the top-left corner.
-		// This will give us a fullscreen-like appearance
+		// Move the window to the top-left corner for a fullscreen-like appearance
 		Game::dvar_t* vid_xpos = Game::Dvar_FindVar("vid_xpos");
 		Game::dvar_t* vid_ypos = Game::Dvar_FindVar("vid_ypos");
 		if (vid_xpos) Game::Dvar_SetInt(vid_xpos, 0);
