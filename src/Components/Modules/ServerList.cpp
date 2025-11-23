@@ -823,8 +823,9 @@ namespace Components
 			if (!queued)
 			{
 				Container::ServerContainer c;
-				c.sent   = false;
-				c.target = s.addr;
+				c.sent       = false;
+				c.target     = s.addr;
+				c.sourceList = 1; // OnlineList
 
 				RefreshContainer.servers.push_back (c);
 			}
