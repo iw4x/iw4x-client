@@ -5,6 +5,16 @@
 
 extern "C"
 {
+	// Enable 'High Performance Graphics'.
+	//
+	// Official documentation states that this mechanism is not supported when
+	// invoked from a DLL. Turn out that in practice, user reports and field
+	// testing indicate that it does actually take effect and is in fact required
+	// for hybrid (Optimus) system. We therefore enable it here despite the
+	// documented limitation.
+	//
+	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+
 	// Libtommath random-source stubs.
 	//
 	// The library probes for a small set of platform RNG providers. On Windows
