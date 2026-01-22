@@ -36,6 +36,9 @@ namespace Components
 	Dvar::Var ServerList::NETServerQueryLimit;
 	Dvar::Var ServerList::NETServerFrames;
 	Dvar::Var ServerList::NETServerDeadTimeout;
+	Dvar::Var ServerList::UIBrowserEnableFilters;
+
+	std::vector<std::string> ServerList::HostnameFilters;
 
 	std::vector<ServerList::ServerInfo>* ServerList::GetList()
 	{
@@ -248,6 +251,7 @@ namespace Components
 		auto ui_browserShowPassword = Dvar::Var("ui_browserShowPassword").get<int>();
 		auto ui_browserMod = Dvar::Var("ui_browserMod").get<int>();
 		auto ui_joinGametype = (*Game::ui_joinGametype)->current.integer;
+		auto ui_browserEnableFilters = UIBrowserEnableFilters.get<bool>();
 
 		for (unsigned int i = 0; i < list->size(); ++i)
 		{
@@ -270,6 +274,9 @@ namespace Components
 
 			// Filter by gametype
 			if (ui_joinGametype > 0 && (ui_joinGametype - 1) < *Game::gameTypeCount && Game::gameTypes[(ui_joinGametype - 1)].gameType != serverInfo->gametype) continue;
+
+			// Filter servers by hostname blocklist
+			if (ui_browserEnableFilters && IsHostnameFiltered(serverInfo->hostname)) continue;
 
 			VisibleList.push_back(i);
 		}
@@ -551,6 +558,349 @@ namespace Components
 		{
 			RefreshVisibleListInternal(UIScript::Token (), nullptr);
 		}, Scheduler::Pipeline::CLIENT);
+	}
+
+	void ServerList::CreateDefaultFiltersFile()
+	{
+		// Default filters for offensive server names
+		//
+		static const std::vector<std::string> defaultFilters = {
+			// Anti-Black slurs
+			//
+			"nigger", "nigga", "negro", "negroid", "nigglet", "nig", "nigg", "nignog",
+			"nagger", "naggers", "knee grow", "kneegers", "dindu", "dindu nuffin",
+			"jogger", "joggers", "coon", "coons", "darkie", "darky", "jigaboo",
+			"jiggaboo", "jigga", "jigg", "sambo", "spook", "spade", "spades",
+			"porch monkey", "jungle bunny", "tar baby", "golliwog", "pickaninny",
+			"picaninny", "mammy", "uncle tom", "house negro", "house nigger",
+			"field nigger", "cotton picker", "moon cricket", "mud shark", "mudshark",
+			"coal burner", "coalburner", "oil driller", "shitskin", "brownie",
+			"ape", "chimp", "chimping", "chimpout", "monkey", "gorilla", "baboon",
+			"orangutan", "ooga booga", "ook", "eek", "we wuz", "wewuz", "kangz",
+			"sheeit", "gibs", "gibsmedat",
+
+			// Antisemitic slurs
+			//
+			"kike", "kyke", "hebe", "heeb", "hymie", "yid", "shylock", "zhid",
+			"zhydy", "oven dodger", "lampshade", "big nose", "hooked nose",
+			"happy merchant", "shekel", "shekels", "goyim", "goy", "schlomo",
+			"shlomo", "globalist", "globalists", "noticer", "noticing", "early life",
+
+			// Anti-Asian slurs
+			//
+			"chink", "chinks", "chinky", "chinaman", "ching chong", "chingchong",
+			"ching chang", "gook", "gooky", "gooks", "slant", "slanty", "slanteye",
+			"slant eye", "zipperhead", "zipper head", "slope", "slopes", "slopehead",
+			"rice nigger", "ricenigger", "yellowskin", "jap", "japs", "nip", "nips",
+			"tojo", "bucktooth", "dog eater", "dogeater", "cat eater", "bat eater",
+			"bat soup", "kung flu", "china virus",
+
+			// Anti-Hispanic slurs
+			///
+			"spic", "spick", "spics", "beaner", "beaners", "wetback", "wet back",
+			"wetbacks", "greaser", "greasers", "border bunny", "border hopper",
+			"border jumper", "taco bender", "taco nigger", "mojado", "sudaca",
+			"oaxaco", "meskin", "messican", "anchor baby",
+
+			// Anti-South Asian/Middle Eastern slurs
+			//
+			"paki", "pakki", "pakkis", "pakis", "curry muncher", "currymuncher",
+			"curry nigger", "currynigger", "dot head", "dothead", "towel head",
+			"towelhead", "raghead", "rag head", "diaper head", "diaperhead",
+			"sand nigger", "sandnigger", "sand monkey", "camel jockey", "cameljockey",
+			"camel fucker", "hajji", "haji", "hadji", "muzzie", "muzzies", "mozzie",
+			"muzzrat", "muzrat", "goat fucker", "goatfucker", "dune coon", "dunecoon",
+			"durka", "durka durka", "ahab", "apu", "pajeet", "streetshitter",
+			"street shitter", "poo in loo", "poo in the loo", "bobs and vagene",
+
+			// Anti-Indigenous slurs
+			//
+			"redskin", "redskins", "injun", "injuns", "squaw", "prairie nigger",
+			"wagon burner", "timber nigger", "casino nigger",
+
+			// Anti-Aboriginal slurs
+			//
+			"abo", "abbo", "abbos", "boong", "boonga", "coonass", "lubra",
+			"petrol sniffer",
+
+			// Anti-White slurs
+			//
+			"cracker", "cracka", "crackers", "honky", "honkey", "honkies",
+			"peckerwood", "redneck", "rednecks", "hillbilly", "white trash",
+			"whitetrash", "trailer trash", "trailer park", "euro trash", "eurotrash",
+			"snow roach", "ice chimp", "cave beast",
+
+			// European ethnic slurs
+			//
+			"wop", "wops", "dago", "dagos", "guinea", "guineas", "guido", "guidos",
+			"greaseball", "greaseballs", "eyetie", "goombah", "polack", "polak",
+			"polacks", "hunky", "bohunk", "kraut", "krauts", "jerry", "jerries",
+			"fritz", "hun", "huns", "squarehead", "frog", "frogs", "frenchie",
+			"surrender monkey", "limey", "limeys", "pom", "poms", "pommy", "rosbif",
+			"fenian", "fenians", "taig", "taigs", "mick", "micks", "paddy", "paddies",
+			"pikey", "pikeys", "gyppo", "gypo", "gippo", "gypsy", "gypsies", "gipsy",
+			"zigeuner", "tzigane",
+
+			// Homophobic slurs
+			//
+			"faggot", "faggots", "fag", "fags", "fagg", "faggy", "fagget", "fagit",
+			"phaggot", "fudge packer", "fudgepacker", "butt pirate", "rump ranger",
+			"ass bandit", "turd burglar", "pillow biter", "shirt lifter",
+			"sausage jockey", "cocksucker", "cock sucker", "cock gobbler",
+			"knob jockey", "homo", "homos", "homosex", "queer", "queers", "queermo",
+			"poof", "poofs", "poofter", "poofters", "ponce", "pansy", "pansies",
+			"fairy", "fairies", "nancy", "nancy boy", "nance", "fruity", "fruitcake",
+			"batty boy", "battyboy", "batty man", "battyman", "chi chi man",
+			"chichi man", "bum boy", "bumboy", "bender", "benders", "woofter",
+			"sodomite", "sodomites", "bugger", "buggers", "buggery",
+			"dyke", "dykes", "dike", "bulldyke", "lesbo", "lesbos", "lezzie",
+			"lezbo", "lezza", "rug muncher", "carpet muncher", "muff diver",
+			"bean flicker",
+
+			// Transphobic slurs
+			//
+			"tranny", "trannies", "trannie", "trannys", "troon", "troons", "trooner",
+			"trooning", "troid", "shemale", "shemales", "she male", "sheboy",
+			"ladyboy", "ladyboys", "lady boy", "heshe", "he she", "shim", "shims",
+			"trap", "traps", "tgirl", "tgirls", "t girl", "newhalf", "futanari",
+			"chick with dick", "chickwithdick", "chicks with dicks", "dickgirl",
+			"dick girl", "man in dress", "man in a dress", "dude in dress",
+			"guy in dress", "its a man", "it is a man", "its a dude", "its a guy",
+			"actually a man", "actually a dude", "actually a guy",
+			"not a woman", "not a real", "not a girl",
+			"attack helicopter", "apache helicopter", "i identify as", "identify as a",
+			"41 percent", "42 percent", "forty one percent", "forty two percent",
+			"an hero", "anhero", "rope yourself", "get the rope", "dilate", "dilating",
+			"have sex incel", "will never be", "never be a woman", "never be a man",
+			"never be female", "never be male", "never pass", "wont pass", "dont pass",
+			"you will never", "ywnbaw", "hon", "hons", "hugbox",
+			"agp", "agps", "autogynephile", "autogynephilia", "hsts", "blanchard",
+			"transsexual", "transexual", "transvestite", "crossdresser", "cross dresser",
+			"sissy", "sissies", "sissyboy", "sissy boy", "femboy", "femboys", "fem boy",
+			"bussy", "boipucci", "boypussy", "mouthfeel",
+			"gender confused", "gender confusion", "gender ideology", "gender madness",
+			"gender woo", "genderist", "transmaxxer", "transmaxxing",
+			"two genders", "2 genders", "only 2 genders", "only two genders",
+			"basic biology", "xx xy", "chromosomes",
+			"trans cult", "trans agenda", "transgender agenda", "transcult",
+			"trans ideology", "trans women arent", "trans men arent",
+			"terf", "terfs", "terfism", "gender critical", "gendercrit",
+			"groomer", "groomers", "grooming", "child groomer", "groom children",
+			"grooming kids",
+
+			// Ableist slurs
+			//
+			"retard", "retards", "retarded", "ree", "reee", "reeee",
+			"tard", "tards", "libtard", "libtards", "conservatard", "trumptard",
+			"demotard", "fucktard", "fucktards", "fagtard", "asstard",
+			"sperg", "spergs", "sperging", "spergout",
+			"spaz", "spazz", "spazzy", "spastic", "spastics", "spacca", "spacker",
+			"mong", "mongs", "mongol", "mongols", "mongoloid", "mongoloids",
+			"mongo", "mongaloid", "downie", "downies", "downs", "potatoe",
+			"window licker", "windowlicker", "helmet", "drooler",
+			"cripple", "cripples", "gimp", "gimpy",
+			"midget", "midgets", "dwarf", "dwarfs", "freak", "freaks", "deformed",
+			"autist", "autists", "autistic", "aspie", "aspies", "assburger",
+			"asperger", "sped", "special ed", "schizo", "schizos", "psycho", "lunatic",
+
+			// Pedophilia accusations
+			//
+			"pedo", "pedos", "pedophile", "pedophiles", "paedo", "paedophile",
+			"nonce", "nonces", "kiddy fiddler", "kiddie fiddler", "child molester",
+			"child rapist", "kid toucher", "diddler", "chester", "chomo",
+
+			// Misogynistic slurs
+			//
+			"whore", "whores", "slut", "sluts", "slutty", "skank", "skanks", "skanky",
+			"thot", "thots", "begone thot", "hoe", "hoes", "hoebag",
+			"cunt", "cunts", "cunty", "bitch", "bitches", "bitchy",
+			"twat", "twats", "twatwaffle",
+			"cum dumpster", "cumdumpster", "cum bucket", "cumbucket", "cum rag",
+			"cumrag", "cum slut", "cumslut", "cum guzzler", "cumguzzler",
+			"cock sleeve", "cock holster", "cock socket", "cock warmer", "sperm bank",
+
+			// Sexual violence
+			//
+			"rape", "raped", "raping", "rapist", "rapey", "rapeable",
+
+			// Suicide/self-harm encouragement
+			//
+			"kill yourself", "kys", "kyll yourself", "neck yourself",
+			"go die", "die slow", "hope you die", "i hope you die",
+			"drink bleach", "eat bleach", "bleach yourself",
+			"jump off", "slit wrists", "cut yourself", "end yourself", "end it",
+			"cancer", "get cancer", "die of cancer", "cancerous",
+			"aids", "get aids", "die of aids",
+
+			// Nazi/white supremacist
+			//
+			"kill all", "exterminate", "genocide", "ethnic cleansing",
+			"gas the", "gas them", "gassed", "gassing",
+			"oven", "ovens", "put in oven", "bake them", "shower", "showers",
+			"holocaust", "holohoax", "holohaux", "holocost", "shoah",
+			"six million", "6 million", "6 gorillion",
+			"auschwitz", "dachau", "treblinka", "birkenau", "zyklon",
+			"hitler", "fuhrer", "fuehrer", "adolf",
+			"heil", "hiel", "seig", "sieg heil", "sieg",
+			"nazi", "nazis", "nazism", "neonazi", "neo nazi",
+			"natsoc", "national socialist", "third reich", "reich",
+			"swastika", "hakenkreuz",
+			"1488", "1352", "1384", "88", "hh", "14 words", "fourteen words",
+			"white power", "whitepower", "white pride", "whitepride",
+			"white is right", "wpww", "rahowa",
+			"kkk", "klan", "klux", "ku klux", "grand wizard",
+			"lynch", "lynching", "hang the", "hanging", "noose", "strange fruit",
+			"race traitor", "race mixing", "race mixer", "miscegenation", "mixing races",
+			"final solution", "day of the rope", "dotr",
+			"untermensch", "subhuman", "subhumans", "mud people", "mudpeople",
+			"race war", "racewar", "rwds",
+			"race realist", "race realism", "racial realist", "hbd",
+			"iq differences", "crime statistics", "despite being",
+			"13 percent", "13 50", "1350",
+			"zog", "zionist", "zionists", "jew world order", "jwo", "nwo",
+			"great replacement", "white genocide",
+			"clown world", "clownworld", "honk honk", "honkler",
+			"fren", "frens", "frenworld",
+			"boogaloo", "big igloo", "big luau",
+			"alphabet people", "degeneracy", "degenerate", "degenerates"
+		};
+
+		nlohmann::json root;
+		root["filters"] = defaultFilters;
+
+		Utils::IO::WriteFile(FiltersFile, root.dump(1, '\t'));
+		Logger::Print("Created default hostname filters file with {} entries\n", defaultFilters.size());
+	}
+
+	void ServerList::LoadFilters()
+	{
+		HostnameFilters.clear();
+
+		// If the file is gone, we recreate it with defaults so the user has a
+		// template to work with.
+		//
+		if (!Utils::IO::FileExists(FiltersFile))
+			CreateDefaultFiltersFile();
+
+		const auto s (Utils::IO::ReadFile(FiltersFile));
+		if (s.empty())
+			return;
+
+		// We are lenient here: if the JSON is malformed, we just log it and
+		// move on with an empty list rather than crashing the game loop.
+		//
+		nlohmann::json j;
+		try
+		{
+			j = nlohmann::json::parse(s);
+		}
+		catch (const nlohmann::json::parse_error& e)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "JSON Parse Error in filters file: {}\n", e.what());
+			return;
+		}
+
+		// Expecting a specific structure {"filters": [...]}. If we get anything
+		// else, we assume the user messed up the config manually.
+		//
+		if (!j.is_object() || !j.contains("filters") || !j["filters"].is_array())
+		{
+			Logger::Print("Filters file is invalid! Expected {\"filters\": [...]}\n");
+			return;
+		}
+
+		const auto& fs (j["filters"]);
+		for (const auto& f : fs)
+		{
+			if (f.is_string())
+			{
+				auto v (f.get<std::string>());
+				if (!v.empty())
+				{
+					// We normalize the rule immediately upon loading. This way, we don't
+					// have to normalize the rule every time we check a hostname, only
+					// the incoming hostname needs normalization.
+					//
+					auto n (NormalizeHostname(v));
+					if (!n.empty())
+						HostnameFilters.push_back(n);
+				}
+			}
+		}
+
+		Logger::Print("Loaded {} hostname filters\n", HostnameFilters.size());
+	}
+
+	std::string ServerList::NormalizeHostname(const std::string& h)
+	{
+		// First, strip the visual noise (colors) and canonicalize case. We operate
+		// on the raw string data to map "visual" characters to their structural
+		// equivalents.
+		//
+		auto s (Utils::String::ToLower(TextRenderer::StripColors(h)));
+
+		std::string r;
+		r.reserve(s.size());
+
+		for (const auto c : s)
+		{
+			// Flatten l33tspeak. We aren't trying to be linguistically perfect; we
+			// just want to crush variants like 's3rv3r' and 'server' into the same
+			// bucket to prevent bypasses.
+			//
+			switch (c)
+			{
+				case '0': r += 'o'; break;
+				case '1': r += 'i'; break;
+				case '3': r += 'e'; break;
+				case '4': r += 'a'; break;
+				case '5': r += 's'; break;
+				case '6': r += 'g'; break;
+				case '7': r += 't'; break;
+				case '8': r += 'b'; break;
+				case '9': r += 'g'; break;
+				case '@': r += 'a'; break;
+				case '$': r += 's'; break;
+				case '!': r += 'i'; break;
+				case '|': r += 'i'; break;
+				case '+': r += 't'; break;
+				default:
+				{
+					// Strip out spaces and special chars entirely. If it's not a letter
+					// (after our digit mapping), it's noise for the filter.
+					//
+					if (std::isalpha(static_cast<unsigned char>(c)))
+						r += c;
+					break;
+				}
+			}
+		}
+
+		return r;
+	}
+
+	bool ServerList::IsHostnameFiltered(const std::string& h)
+	{
+		if (HostnameFilters.empty())
+			return false;
+
+		// We have to pay the cost of normalization here to ensure the input matches
+		// the format of our pre-processed filters.
+		//
+		const auto n (NormalizeHostname(h));
+
+		// A linear scan is acceptable here since the filter list is expected to be
+		// small (human-managed blacklist). If this ever grows to thousands of
+		// entries, we should move to Aho-Corasick or a similar multi-pattern
+		// search.
+		//
+		for (const auto& f : HostnameFilters)
+		{
+			if (n.find(f) != std::string::npos)
+				return true;
+		}
+
+		return false;
 	}
 
 	void ServerList::LoadFavourties()
@@ -1388,6 +1738,8 @@ namespace Components
 					1, 60, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server query frames per second");
 				NETServerDeadTimeout = Dvar::Register<int>("net_serverDeadTimeout", 60,
 					1, 604800, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Seconds after which unresponsive servers are removed from cache");
+				UIBrowserEnableFilters = Dvar::Register<bool>("ui_browserEnableFilters", true,
+					Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Filter servers with offensive hostnames");
 			});
 
 		// Fix ui_netsource dvar
@@ -1434,9 +1786,17 @@ namespace Components
 		// Add server list feeder
 		UIFeeder::Add(2.0f, GetServerCount, GetServerText, SelectServer);
 
+		// Add server list filters
+		LoadFilters();
+
 		// Add required UIScripts
 		UIScript::Add("UpdateFilter", RefreshVisibleList);
 		UIScript::Add("RefreshFilter", UpdateVisibleList);
+		UIScript::Add("ReloadFilters", [](const UIScript::Token&, const Game::uiInfo_s*)
+			{
+				LoadFilters();
+				RefreshVisibleListInternal(UIScript::Token(), nullptr);
+			});
 		UIScript::Add("RefreshServers",
 									[](const UIScript::Token&, const Game::uiInfo_s*)
 		{
