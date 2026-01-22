@@ -810,6 +810,8 @@ namespace Components
 		}
 
 		const auto& fs (j["filters"]);
+		HostnameFilters.reserve(fs.size());
+
 		for (const auto& f : fs)
 		{
 			if (f.is_string())
@@ -823,12 +825,31 @@ namespace Components
 					//
 					auto n (NormalizeHostname(v));
 					if (!n.empty())
+					{
+						// Typically, checking for whole-word matches requires logic to
+						// handle the start/end of the string differently from the middle
+						// (e.g., checking if index==0 or isspace(prev_char)).
+						//
+						// That said, our normalization strategy intentionally converts
+						// *all* structural boundaries (CamelCase splits, underscores, dots,
+						// leet-speak transitions) into spaces.
+						//
+						// So instead here we pad the filter (and the hostname later), to
+						// convert the "Word Boundary Problem" into a simple "Substring
+						// Problem".
+						//
+						{
+							n.insert(0, 1, ' ');
+							n.push_back(' ');
+						}
+
 						HostnameFilters.push_back(n);
+					}
 				}
 			}
 		}
 
-		Logger::Print("Loaded {} hostname filters\n", HostnameFilters.size());
+		Logger::Debug("Loaded {} hostname filters\n", HostnameFilters.size());
 	}
 
 	std::string ServerList::NormalizeHostname(const std::string& h)
@@ -837,10 +858,13 @@ namespace Components
 		// on the raw string data to map "visual" characters to their structural
 		// equivalents.
 		//
-		auto s (Utils::String::ToLower(TextRenderer::StripColors(h)));
+		auto s (TextRenderer::StripColors(h));
 
 		std::string r;
 		r.reserve(s.size());
+
+		int lcr (0);
+		bool sp (true);
 
 		for (const auto c : s)
 		{
@@ -848,33 +872,73 @@ namespace Components
 			// just want to crush variants like 's3rv3r' and 'server' into the same
 			// bucket to prevent bypasses.
 			//
+			// Note also that we treat them as "neutral" regarding the lowercase run.
+			// That is, they don't increment it, but they don't reset it either. The
+			// general idea is to allows "n00bS" to still split if the surrounding
+			// context warrants it.
+			//
 			switch (c)
 			{
-				case '0': r += 'o'; break;
-				case '1': r += 'i'; break;
-				case '3': r += 'e'; break;
-				case '4': r += 'a'; break;
-				case '5': r += 's'; break;
-				case '6': r += 'g'; break;
-				case '7': r += 't'; break;
-				case '8': r += 'b'; break;
-				case '9': r += 'g'; break;
-				case '@': r += 'a'; break;
-				case '$': r += 's'; break;
-				case '!': r += 'i'; break;
-				case '|': r += 'i'; break;
-				case '+': r += 't'; break;
+				case '0': r += 'o'; sp = false; break;
+				case '1': r += 'i'; sp = false; break;
+				case '3': r += 'e'; sp = false; break;
+				case '4': r += 'a'; sp = false; break;
+				case '5': r += 's'; sp = false; break;
+				case '6': r += 'g'; sp = false; break;
+				case '7': r += 't'; sp = false; break;
+				case '8': r += 'b'; sp = false; break;
+				case '9': r += 'g'; sp = false; break;
+				case '@': r += 'a'; sp = false; break;
+				case '$': r += 's'; sp = false; break;
+				case '!': r += 'i'; sp = false; break;
+				case '|': r += 'i'; sp = false; break;
+				case '+': r += 't'; sp = false; break;
 				default:
 				{
-					// Strip out spaces and special chars entirely. If it's not a letter
-					// (after our digit mapping), it's noise for the filter.
-					//
 					if (std::isalpha(static_cast<unsigned char>(c)))
-						r += c;
+					{
+						const bool upper (std::isupper(static_cast<unsigned char>(c)));
+
+						// Heuristic: Only split if we are transitioning from a *stable*
+						// lowercase state (more than 1 char) to uppercase.
+						//
+						// This protects:
+						// 1. "hEllo", "wOrld" (1 char prefix)
+						// 2. "NaMeLeSs" (Alternating caps)
+						//
+						// But still splits:
+						// 1. "NamelessNoobs" (Run of 's' 's' -> 'N')
+						//
+						if (upper)
+						{
+							if (lcr > 1)
+							{
+								r += ' ';
+								sp = true;
+							}
+							lcr = 0;
+						}
+						else
+						{
+							lcr++;
+						}
+
+						r += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+						sp = false;
+					}
+					else if (!sp)
+					{
+						r += ' ';
+						lcr = 0;
+						sp = true;
+					}
 					break;
 				}
 			}
 		}
+
+		if (!r.empty() && r.back() == ' ')
+			r.pop_back();
 
 		return r;
 	}
@@ -889,6 +953,14 @@ namespace Components
 		//
 		const auto n (NormalizeHostname(h));
 
+		// Pad with spaces, see LoadFilters above.
+		//
+		std::string p;
+		p.reserve(n.size() + 2);
+		p += ' ';
+		p += n;
+		p += ' ';
+
 		// A linear scan is acceptable here since the filter list is expected to be
 		// small (human-managed blacklist). If this ever grows to thousands of
 		// entries, we should move to Aho-Corasick or a similar multi-pattern
@@ -896,8 +968,15 @@ namespace Components
 		//
 		for (const auto& f : HostnameFilters)
 		{
-			if (n.find(f) != std::string::npos)
+			// Note: 'f' is already padded (done in LoadFilters). We just check
+			// if the padded filter exists inside our padded hostname.
+			//
+			if (p.find(f) != std::string::npos)
+			{
+				Logger::Debug("hostname filter: '{}' (normalized: '{}') matched rule '{}'\n",
+					             h, n, f);
 				return true;
+			}
 		}
 
 		return false;
