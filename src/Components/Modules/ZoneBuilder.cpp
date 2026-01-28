@@ -919,7 +919,7 @@ namespace Components
 
 	void ZoneBuilder::Com_Quitf_t()
 	{
-		ExitProcess(0);
+		Game::Sys_Quit();
 	}
 
 	void ZoneBuilder::CommandThreadCallback()
