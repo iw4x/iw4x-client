@@ -74,6 +74,9 @@ namespace Game
 	typedef void(*Sys_QuitAndStartProcess_t)(const char*);
 	extern Sys_QuitAndStartProcess_t Sys_QuitAndStartProcess;
 
+	typedef void(*Sys_Quit_t)();
+	extern Sys_Quit_t Sys_Quit;
+
 	extern char(*sys_exitCmdLine)[1024];
 	extern char(*sys_cmdline)[1024];
 
