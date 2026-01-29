@@ -171,8 +171,76 @@ namespace Components
 		}
 	}
 
+	bool Chat::CL_IsMessageFromMutedUser(const std::string& text)
+	{
+		// The server sends text messages indistinctly whether they're team or not, /say or authored
+		// So we have to find the author by name. It's the client approach that induces
+		// the least amount of modifications - anything else would probably need
+		// the server to send more info (e.g. who's talking by XUID)
+		// For client side, see 0x593D6D and 0x593DD7
+		// For server side, see 0x5DF7E5
+
+		const std::string colorlessText = TextRenderer::StripColors(text);
+		const std::string rawText = TextRenderer::StripAllTextIcons(colorlessText);
+
+		// The author delimiter is the first ":" that we find
+		size_t index = rawText.find(':');
+
+		if (index == std::string::npos)
+		{
+			// This is likely a server say or an unfiltered message
+			return false;
+		}
+
+		const std::string authorName = rawText.substr(0, index);
+
+		// Normal messages are like this:  "Louve: Hello!"
+		// But team messages are like this: "(OpFor)Louve: Hello!"
+		// So instead of going through the message hoping to be able to tell apart name from team
+		//	(which could easily abused by renaming yourself (SomeTeamName)YourName)
+		//	we need to go through the muted list and see if the author corresponds to somebody we've muted
+
+		char nameBuffer[64]{};
+		for (size_t i = 0; i < ARRAYSIZE(Game::g_serverSession->dyn.users); i++)
+		{
+			if (Voice::CL_IsPlayerMuted(i))
+			{
+				const auto& user = Game::g_serverSession->dyn.users[i];
+
+				int gotName = Game::CL_GetClientName(0, i, nameBuffer, ARRAYSIZE(nameBuffer));
+				if (gotName)
+				{
+					// We use "ends with" here because we know the Team Name is prefixed
+					std::string rawPlayerName = TextRenderer::StripColors(nameBuffer);
+					if (authorName == rawPlayerName)
+					{
+						// Author name corresponds to player name, so that's the muted user!
+						return true;
+					}
+					else
+					{
+						// The annoying situation where it _could be them_ but there's a TeamName prefix
+						// So what now ? :(
+						// Get both team names from the current game (Can only be (axis name); (allies name); or Spectator i think)
+						// from the current map arena or session info? maybe?
+						// And strip them with a regex before applying the filter?
+						// Could work but what if some dude is named "(Opfor) Abc" and some other guy is named "Abc" and you mute the other guy?
+						// Mh
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
 	void Chat::CG_AddToTeamChat(const char* text)
 	{
+		if (CL_IsMessageFromMutedUser(text))
+		{
+			return; // Skip it, user is muted
+		}
+
 		// Text can only be 150 characters maximum. This is bigger than the teamChatMsgs buffers with 160 characters
 		// Therefore it is not needed to check for buffer lengths
 

@@ -13,6 +13,10 @@ namespace Components
 		static void SV_MuteClient(int muteClientIndex);
 		static void SV_UnmuteClient(int muteClientIndex);
 
+		static bool CL_IsPlayerMuted(int clientIndex) {
+			return CL_IsPlayerMuted_Hk(Game::g_serverSession, 0, clientIndex);
+		};
+
 	private:
 		static constexpr auto MAX_VOICE_PACKET_DATA = 256;
 		static constexpr auto MAX_SERVER_QUEUED_VOICE_PACKETS = 40;
