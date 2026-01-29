@@ -5,7 +5,6 @@
 
 namespace Components
 {
-	bool Discovery::IsTerminating = false;
 	bool Discovery::IsPerforming = false;
 	std::thread Discovery::Thread;
 	std::string Discovery::Challenge;
@@ -26,12 +25,11 @@ namespace Components
 		// An additional thread prevents lags
 		// Not sure if that's the best way though
 		IsPerforming = false;
-		IsTerminating = false;
 		Thread = std::thread([]
 		{
 			Com_InitThreadData();
 
-			while (!IsTerminating)
+			for (;;)
 			{
 				if (IsPerforming)
 				{
@@ -91,16 +89,5 @@ namespace Components
 				ServerList::InsertRequest(address);
 			}
 		});
-	}
-
-	void Discovery::preDestroy()
-	{
-		IsPerforming = false;
-		IsTerminating = true;
-
-		if (Thread.joinable())
-		{
-			Thread.join();
-		}
 	}
 }

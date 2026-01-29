@@ -445,11 +445,4 @@ namespace Components
 				}
 			});
 	}
-
-	void Node::preDestroy()
-	{
-		std::lock_guard _(Mutex);
-		StoreNodes(true);
-		Nodes.clear();
-	}
 }

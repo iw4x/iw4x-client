@@ -34,7 +34,6 @@ namespace Components
 		};
 
 		Node();
-		void preDestroy() override;
 
 		static void Add(const Network::Address& address);
 		static std::vector<Entry> GetNodes();

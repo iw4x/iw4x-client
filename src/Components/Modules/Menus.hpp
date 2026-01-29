@@ -9,8 +9,6 @@ namespace Components
 	public:
 		Menus();
 
-		void preDestroy() override;
-
 		static void Add(const std::string& menu);
 
 		static std::vector<Game::menuDef_t*> LoadMenuByName_Recursive(const std::string& menu);

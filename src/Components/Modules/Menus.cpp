@@ -1587,9 +1587,4 @@ namespace Components
 		Add("ui_mp/stats_mod_warning.menu");
 		Add("ui_mp/theater_menu.menu");
 	}
-
-	void Menus::preDestroy()
-	{
-		// Let Windows handle the memory leaks for you!
-	}
 }

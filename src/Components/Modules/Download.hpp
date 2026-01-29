@@ -10,9 +10,6 @@ namespace Components
 	{
 	public:
 		Download();
-		~Download();
-
-		void preDestroy() override;
 
 		static void InitiateClientDownload(const std::string& mod, bool needPassword, bool map = false, bool downloadOnly = false);
 		static void InitiateMapDownload(const std::string& map, bool needPassword);

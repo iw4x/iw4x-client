@@ -136,14 +136,4 @@ namespace Components
 
 		Initialized_ = true;
 	}
-
-	void Discord::preDestroy()
-	{
-		if (!Initialized_)
-		{
-			return;
-		}
-
-		Discord_Shutdown();
-	}
 }

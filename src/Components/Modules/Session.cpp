@@ -4,9 +4,6 @@
 
 namespace Components
 {
-	volatile bool Session::Terminate;
-	std::thread Session::Thread;
-
 	std::recursive_mutex Session::Mutex;
 	std::unordered_map<Network::Address, Session::Frame> Session::Sessions;
 	std::unordered_map<Network::Address, std::queue<std::shared_ptr<Session::Packet>>> Session::PacketQueue;
@@ -138,12 +135,11 @@ namespace Components
 		Session::SignatureKey = Utils::Cryptography::ECC::GenerateKey(512);
 		//Scheduler::OnFrame(Session::RunFrame);
 
-		Session::Terminate = false;
-		Session::Thread = std::thread([]()
+		Utils::Thread::CreateNamedThread("Session", []()
 		{
 			Com_InitThreadData();
 
-			while (!Session::Terminate)
+			for (;;)
 			{
 				Session::RunFrame();
 				Session::HandleSignatures();
@@ -192,24 +188,5 @@ namespace Components
 			handler->second(address, dataPacket.data());
 		});
 #endif
-	}
-
-	Session::~Session()
-	{
-		std::lock_guard _(Session::Mutex);
-		Session::PacketHandlers.clear();
-		Session::PacketQueue.clear();
-		Session::SignatureQueue = std::queue<std::pair<Network::Address, std::string>>();
-
-		Session::SignatureKey.free();
-	}
-
-	void Session::preDestroy()
-	{
-		Session::Terminate = true;
-		if (Session::Thread.joinable())
-		{
-			Session::Thread.join();
-		}
 	}
 }

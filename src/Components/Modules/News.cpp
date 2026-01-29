@@ -154,8 +154,4 @@ namespace Components
 
 		ProcessPopmenus(jsonDocument);
 	}
-
-	void News::preDestroy()
-	{
-	}
 }
