@@ -7,8 +7,6 @@ namespace Components
 	public:
 		Singleton();
 
-		void preDestroy() override;
-
 		static bool IsFirstInstance();
 
 	private:

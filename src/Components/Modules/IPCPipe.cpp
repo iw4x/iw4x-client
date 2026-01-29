@@ -226,10 +226,4 @@ namespace Components
 			Write("ping", {});
 		});
 	}
-
-	void IPCPipe::preDestroy()
-	{
-		ServerPipe.destroy();
-		ClientPipe.destroy();
-	}
 }

@@ -18,8 +18,6 @@ namespace Components
 
 		Scheduler();
 
-		void preDestroy() override;
-
 		static void Schedule(const std::function<bool()>& callback, Pipeline type,
 			std::chrono::milliseconds delay = 0ms);
 		static void Loop(const std::function<void()>& callback, Pipeline type,

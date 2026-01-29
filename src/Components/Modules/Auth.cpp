@@ -656,20 +656,4 @@ namespace Components
 				Logger::Print("Token incrementation process canceled!\n");
 			});
 	}
-
-	Auth::~Auth()
-	{
-		StoreKey();
-	}
-
-	void Auth::preDestroy()
-	{
-		TokenContainer.cancel = true;
-		TokenContainer.generating = false;
-
-		if (TokenContainer.thread.joinable())
-		{
-			TokenContainer.thread.join();
-		}
-	}
 }

@@ -65,8 +65,6 @@ namespace Components
 	public:
 		IPCPipe();
 
-		void preDestroy() override;
-
 		static bool Write(const std::string& command, const std::string& data);
 		static void On(const std::string& command, const Utils::Slot<Pipe::PacketCallback>& callback);
 

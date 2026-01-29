@@ -29,16 +29,11 @@ namespace Components
 		};
 
 		Session();
-		~Session();
-
-		void preDestroy() override;
 
 		static void Send(const Network::Address& target, const std::string& command, const std::string& data = "");
 		static void Handle(const std::string& packet, const Network::networkCallback& callback);
 
 	private:
-		static volatile bool Terminate;
-		static std::thread Thread;
 		static std::recursive_mutex Mutex;
 		static std::unordered_map<Network::Address, Frame> Sessions;
 		static std::unordered_map<Network::Address, std::queue<std::shared_ptr<Packet>>> PacketQueue;

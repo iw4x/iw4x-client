@@ -1999,11 +1999,4 @@ namespace Components
 		// Add frame callback
 		Scheduler::Loop(Frame, Scheduler::Pipeline::CLIENT);
 	}
-
-	void ServerList::preDestroy()
-	{
-		std::lock_guard _(RefreshContainer.mutex);
-		RefreshContainer.awaitingList = false;
-		RefreshContainer.servers.clear();
-	}
 }
