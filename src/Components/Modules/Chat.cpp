@@ -205,8 +205,6 @@ namespace Components
 		{
 			if (Voice::CL_IsPlayerMuted(i))
 			{
-				const auto& user = Game::g_serverSession->dyn.users[i];
-
 				int gotName = Game::CL_GetClientName(0, i, nameBuffer, ARRAYSIZE(nameBuffer));
 				if (gotName)
 				{
