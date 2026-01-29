@@ -185,7 +185,9 @@ namespace Components
 	{
 		// Do not use NET_OutOfBandPrint. It only supports non-binary data!
 
+		// Pre-reserve to avoid reallocation
 		std::string rawData;
+		rawData.reserve(4 + data.size());
 		rawData.append("\xFF\xFF\xFF\xFF", 4);
 		rawData.append(data);
 
@@ -215,7 +217,10 @@ namespace Components
 		// Use space as separator (possible separators are '\n', ' ').
 		// Though, our handler only needs exactly 1 char as separator and doesn't care which char it is.
 		// EDIT: Most 3rd party tools expect a line break, so let's use that instead!
+
+		// Pre-reserve to avoid reallocations (4 bytes header + command + newline + data)
 		std::string packet;
+		packet.reserve(command.size() + 1 + data.size());
 		packet.append(command);
 		packet.push_back('\n');
 		packet.append(data);
