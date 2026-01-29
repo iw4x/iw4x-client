@@ -47,5 +47,7 @@ namespace Components
 		static int GetCallbackReturn();
 		static int ChatCallback(Game::gentity_s* self, const char* codePos, const char* message, int mode);
 		static void AddScriptFunctions();
+
+		static bool CL_IsMessageFromMutedUser(const std::string& txt);
 	};
 }
