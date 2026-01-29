@@ -188,7 +188,7 @@ namespace Components
 
 		if (index == std::string::npos)
 		{
-			// This is likely a server say or an unfiltered message
+			// This is likely a server say or an unauthored message
 			return false;
 		}
 
@@ -210,7 +210,6 @@ namespace Components
 				int gotName = Game::CL_GetClientName(0, i, nameBuffer, ARRAYSIZE(nameBuffer));
 				if (gotName)
 				{
-					// We use "ends with" here because we know the Team Name is prefixed
 					std::string rawPlayerName = TextRenderer::StripColors(nameBuffer);
 					if (authorName == rawPlayerName)
 					{
