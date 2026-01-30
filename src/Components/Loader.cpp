@@ -43,6 +43,7 @@
 #include "Modules/Party.hpp"
 #include "Modules/PlayerMovement.hpp"
 #include "Modules/PlayerName.hpp"
+#include "Modules/RandomName.hpp"
 #include "Modules/Playlist.hpp"
 #include "Modules/QuickPatch.hpp"
 #include "Modules/RawFiles.hpp"
@@ -147,6 +148,7 @@ namespace Components
 		Register(new Party());
 		Register(new PlayerMovement());
 		Register(new PlayerName());
+		Register(new RandomName());
 		Register(new Playlist());
 		Register(new QuickPatch());
 		Register(new RawFiles());

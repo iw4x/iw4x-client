@@ -1681,7 +1681,7 @@ namespace Components
 		aim_slowdown_yaw_scale_ads = Dvar::Var("aim_slowdown_yaw_scale_ads");
 		aim_lockon_enabled = Dvar::Var("aim_lockon_enabled");
 		aim_lockon_deflection = Dvar::Var("aim_lockon_deflection");
-		aim_lockon_pitch_strength = Dvar::Register<float>("aim_lockon_pitch_strength", 0.6f, 0, 1, Game::DVAR_CHEAT, "The amount of aim assistance given by the target lock on (pitch)");
+		aim_lockon_pitch_strength = Dvar::Register<float>("aim_lockon_pitch_strength", 0.6f, 0, 1, Game::DVAR_NONE, "The amount of aim assistance given by the target lock on (pitch)");
 		aim_lockon_strength = Dvar::Var("aim_lockon_strength");
 	}
 

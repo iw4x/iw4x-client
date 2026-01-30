@@ -1,4 +1,5 @@
 #include "Dvar.hpp"
+#include "Events.hpp"
 #include "Friends.hpp"
 #include "TextRenderer.hpp"
 
@@ -350,9 +351,7 @@ namespace Components
 
 	void Dvar::OnRegisterVariant([[maybe_unused]] Game::dvar_t* dvar)
 	{
-#ifdef _DEBUG
-		dvar->flags &= ~Game::DVAR_CHEAT;
-#endif
+		dvar->flags &= ~Game::DVAR_NONE;
 	}
 
 	__declspec(naked) void Dvar::Dvar_RegisterVariant_Stub()
@@ -399,19 +398,19 @@ namespace Components
 		Utils::Hook::Or<std::uint8_t>(0x4F8F69, Game::DVAR_ARCHIVE);
 
 		// un-cheat camera_thirdPersonCrosshairOffset and add archive flags
-		Utils::Hook::Xor<std::uint8_t>(0x447B41, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
+		Utils::Hook::Xor<std::uint8_t>(0x447B41, Game::DVAR_NONE | Game::DVAR_ARCHIVE);
 
 		// un-cheat cg_fov and add archive flags
-		Utils::Hook::Xor<std::uint8_t>(0x4F8E35, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
+		Utils::Hook::Xor<std::uint8_t>(0x4F8E35, Game::DVAR_NONE | Game::DVAR_ARCHIVE);
 
 		// un-cheat cg_fovscale and add archive flags
-		Utils::Hook::Xor<std::uint8_t>(0x4F8E68, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
+		Utils::Hook::Xor<std::uint8_t>(0x4F8E68, Game::DVAR_NONE | Game::DVAR_ARCHIVE);
 
 		// un-cheat cg_fovMin and add archive flags
-		Utils::Hook::Xor<std::uint8_t>(0x4F8E9D, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
+		Utils::Hook::Xor<std::uint8_t>(0x4F8E9D, Game::DVAR_NONE | Game::DVAR_ARCHIVE);
 
 		// un-cheat cg_debugInfoCornerOffset and add archive flags
-		Utils::Hook::Xor<std::uint8_t>(0x4F8FC2, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
+		Utils::Hook::Xor<std::uint8_t>(0x4F8FC2, Game::DVAR_NONE | Game::DVAR_ARCHIVE);
 
 		// un-cheat cg_drawGun
 		Utils::Hook::Set<std::uint8_t>(0x4F8DC6, Game::DVAR_NONE);
@@ -456,28 +455,28 @@ namespace Components
 		Utils::Hook::Set<float*>(0x408078, &volume);
 
 		// un-cheat ui_showList
-		Utils::Hook::Xor<std::uint8_t>(0x6310DC, Game::DVAR_CHEAT);
+		Utils::Hook::Xor<std::uint8_t>(0x6310DC, Game::DVAR_NONE);
 
 		// un-cheat ui_debugMode
-		Utils::Hook::Xor<std::uint8_t>(0x6312DE, Game::DVAR_CHEAT);
+		Utils::Hook::Xor<std::uint8_t>(0x6312DE, Game::DVAR_NONE);
 
 		// un-cheat jump_slowdownEnable
-		Utils::Hook::Xor<std::uint32_t>(0x4EFABE, Game::DVAR_CHEAT);
+		Utils::Hook::Xor<std::uint32_t>(0x4EFABE, Game::DVAR_NONE);
 
 		// un-cheat jump_height
-		Utils::Hook::Xor<std::uint32_t>(0x4EFA5C, Game::DVAR_CHEAT);
+		Utils::Hook::Xor<std::uint32_t>(0x4EFA5C, Game::DVAR_NONE);
 
 		// un-cheat player_breath_fire_delay
-		Utils::Hook::Xor<std::uint32_t>(0x448646, Game::DVAR_CHEAT);
+		Utils::Hook::Xor<std::uint32_t>(0x448646, Game::DVAR_NONE);
 
 		// un-cheat player_breath_gasp_scale
-		Utils::Hook::Xor<std::uint32_t>(0x448678, Game::DVAR_CHEAT);
+		Utils::Hook::Xor<std::uint32_t>(0x448678, Game::DVAR_NONE);
 
 		// un-cheat player_breath_gasp_lerp
-		Utils::Hook::Xor<std::uint32_t>(0x4486E4, Game::DVAR_CHEAT);
+		Utils::Hook::Xor<std::uint32_t>(0x4486E4, Game::DVAR_NONE);
 
 		// un-cheat player_breath_gasp_time
-		Utils::Hook::Xor<std::uint32_t>(0x448612, Game::DVAR_CHEAT);
+		Utils::Hook::Xor<std::uint32_t>(0x448612, Game::DVAR_NONE);
 
 		// Hook dvar 'name' registration
 		Utils::Hook(0x40531C, Dvar_RegisterName, HOOK_CALL).install()->quick();
@@ -494,8 +493,8 @@ namespace Components
 		// un-cheat safeArea_* and add archive flags
 		Utils::Hook::Xor<std::uint32_t>(0x42E3F5, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_horizontal
 		Utils::Hook::Xor<std::uint32_t>(0x42E423, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_vertical
-		Utils::Hook::Xor<std::uint8_t>(0x42E398, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE); //safeArea_horizontal
-		Utils::Hook::Xor<std::uint8_t>(0x42E3C4, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE); //safeArea_vertical
+		Utils::Hook::Xor<std::uint8_t>(0x42E398, Game::DVAR_NONE | Game::DVAR_ARCHIVE); //safeArea_horizontal
+		Utils::Hook::Xor<std::uint8_t>(0x42E3C4, Game::DVAR_NONE | Game::DVAR_ARCHIVE); //safeArea_vertical
 
 		// Don't allow setting cheat protected dvars via menus
 		Utils::Hook(0x63C897, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
@@ -524,5 +523,15 @@ namespace Components
 
 		// Fix crash
 		Utils::Hook(0x4B7120, Dvar_EnumToString_Stub, HOOK_JUMP).install()->quick();
+
+		// Allow changing sv_cheats by removing write protection
+		Scheduler::Once([]
+		{
+			if (*Game::sv_cheats)
+			{
+				const_cast<Game::dvar_t*>(*Game::sv_cheats)->flags &= ~(Game::DVAR_ROM | Game::DVAR_INIT | Game::DVAR_CHEAT | Game::DVAR_LATCH);
+				Logger::Print("sv_cheats write protection removed\n");
+			}
+		}, Scheduler::Pipeline::MAIN);
 	}
 }
