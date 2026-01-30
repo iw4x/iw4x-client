@@ -440,12 +440,28 @@ namespace Components
 
 	void Maps::PrepareUsermap(const char* mapname)
 	{
+		// Handle the redundant call scenario first.
+		//
+		// It appears that this function is called a second time during fastfile
+		// loading. If we are already holding a valid IWD for this map, we must
+		// return immediately. Proceeding would cause us to free the IWD we just
+		// loaded.
+		//
+		if (Maps::UserMap.isValid() && Maps::UserMap.getName() == mapname)
+			return;
+
+		// If we are here, we are either starting up or switching contexts. In
+		// either case, we need to tear down any previous state before loading the
+		// new one.
+		//
 		if (Maps::UserMap.isValid())
 		{
 			Maps::UserMap.freeIwd();
 			Maps::UserMap.clear();
 		}
 
+		// Now set up the new map.
+		//
 		if (Maps::IsUserMap(mapname))
 		{
 			Maps::UserMap = Maps::UserMapContainer(mapname);
@@ -453,6 +469,8 @@ namespace Components
 		}
 		else
 		{
+			// If the mapname isn't valid, we leave the state cleared.
+			//
 			Maps::UserMap.clear();
 		}
 	}
