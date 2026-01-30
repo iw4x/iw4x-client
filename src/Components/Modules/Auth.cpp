@@ -327,12 +327,7 @@ namespace Components
 
 	std::string Auth::GetGUIDFilePath()
 	{
-		const auto appdata = Components::FileSystem::GetAppdataPath();
-		Utils::IO::CreateDir(appdata.string());
-
-		const auto guidPath = appdata / "guid.dat";
-
-		return guidPath.string();
+		return "players/guid.dat";
 	}
 
 	void ClientConnectFailedStub(Game::netsrc_t sock, Game::netadr_t adr, const char* data)
