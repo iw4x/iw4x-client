@@ -94,8 +94,9 @@ namespace Components::ViewModelFxSetup
 		GSC::Script::AddMethod("setanim", [](Game::scr_entref_t entref)
 		{
 			auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
-			if (!ent)
+			if (!ent || !ent->client)
 				return;
+
 
 			int anim = Game::Scr_GetInt(0);
 
