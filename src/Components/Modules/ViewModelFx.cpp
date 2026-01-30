@@ -41,7 +41,7 @@ namespace Components::ViewModelFxSetup
 			if (!Game::DObjGetBoneIndex(reinterpret_cast<int>(dobj), tagName, &boneIdx))
 			{
 				Game::Scr_Error(Utils::String::VA(
-					"PlayViewmodelFX(): clientNum '%d' does not have bone '%s'",
+					"PlayViewmodelFX(): clientNum '%s' does not have bone '%s'",
 					clientNum,
 					Game::SL_ConvertToString(tagName)
 				));
@@ -91,10 +91,21 @@ namespace Components::ViewModelFxSetup
 			}
 		});
 
+		GSC::Script::AddMethod("setanim", [](Game::scr_entref_t entref)
+		{
+			auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
+			if (!ent)
+				return;
+
+			int anim = Game::Scr_GetInt(0);
+
+			for (int i = 0; i < 2; i++)
+				ent->client->ps.weapState[i].weapAnim = anim;
+		});
+	}
 
 	Setup::Setup()
 	{
 		Add_GSC_Functions();
 	}
 }
-
