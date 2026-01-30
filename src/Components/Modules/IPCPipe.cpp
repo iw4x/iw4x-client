@@ -65,7 +65,7 @@ namespace Components
 		if (INVALID_HANDLE_VALUE != this->pipe && this->pipe)
 		{
 			this->threadAttached = true;
-			this->thread = std::thread(ReceiveThread, this);
+			this->thread = std::jthread(ReceiveThread, this);
 
 			Logger::Print("Pipe successfully created\n");
 			return true;

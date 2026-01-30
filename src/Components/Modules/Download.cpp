@@ -26,7 +26,7 @@ namespace Components
 
 	Download::ClientDownload Download::CLDownload;
 
-	std::thread Download::ServerThread;
+	std::jthread Download::ServerThread;
 	volatile bool Download::Terminate;
 	bool Download::ServerRunning;
 
@@ -76,7 +76,7 @@ namespace Components
 		CLDownload.timeStampBytes_ = 0;
 		CLDownload.isPrivate_ = needPassword;
 		CLDownload.target_ = Party::Target();
-		CLDownload.thread_ = std::thread(ModDownloader, &CLDownload);
+		CLDownload.thread_ = std::jthread(ModDownloader, &CLDownload);
 	}
 
 	bool Download::ParseModList(ClientDownload* download, const std::string& list)

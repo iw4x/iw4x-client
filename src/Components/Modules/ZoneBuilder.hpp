@@ -190,7 +190,7 @@ namespace Components
 		static DWORD InterruptingThreadId;
 
 		static volatile bool CommandThreadTerminate;
-		static std::thread CommandThread;
+		static std::jthread CommandThread;
 		static iw4of::api ExporterAPI;
 		static std::string DumpingZone;
 	};

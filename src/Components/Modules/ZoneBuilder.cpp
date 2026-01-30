@@ -20,7 +20,7 @@ namespace Components
 	DWORD ZoneBuilder::InterruptingThreadId;
 
 	volatile bool ZoneBuilder::CommandThreadTerminate = false;
-	std::thread ZoneBuilder::CommandThread;
+	std::jthread ZoneBuilder::CommandThread;
 	iw4of::api ZoneBuilder::ExporterAPI(GetExporterAPIParams());
 	std::string ZoneBuilder::DumpingZone{};
 

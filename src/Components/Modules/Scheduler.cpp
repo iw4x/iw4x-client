@@ -5,7 +5,7 @@ constexpr bool COND_END = true;
 
 namespace Components
 {
-	std::thread Scheduler::Thread;
+	std::jthread Scheduler::Thread;
 	volatile bool Scheduler::Kill = false;
 	Scheduler::TaskPipeline Scheduler::Pipelines[static_cast<std::underlying_type_t<Pipeline>>(Pipeline::COUNT)];
 
