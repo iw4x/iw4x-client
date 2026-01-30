@@ -41,7 +41,7 @@ namespace Components::ViewModelFxSetup
 			if (!Game::DObjGetBoneIndex(reinterpret_cast<int>(dobj), tagName, &boneIdx))
 			{
 				Game::Scr_Error(Utils::String::VA(
-					"PlayViewmodelFX(): clientNum '%s' does not have bone '%s'",
+					"PlayViewmodelFX(): clientNum '%d' does not have bone '%s'",
 					clientNum,
 					Game::SL_ConvertToString(tagName)
 				));
