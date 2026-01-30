@@ -235,6 +235,8 @@ namespace Game
 	Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire = Weapon_RocketLauncher_Fire_t(0x424680);
 	Bullet_Fire_t Bullet_Fire = Bullet_Fire_t(0x4402C0);
 
+	IN_Frame_t IN_Frame = IN_Frame_t(0x475E10);
+	IN_MouseEvent_t IN_MouseEvent = IN_MouseEvent_t(0x4C84D0);
 	IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
 
 	IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);

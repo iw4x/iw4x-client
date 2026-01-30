@@ -77,6 +77,9 @@ namespace Game
 	typedef void(*Sys_Quit_t)();
 	extern Sys_Quit_t Sys_Quit;
 
+	typedef void(*Sys_QueEvent_t)(int time, int type, int value, int value2, int ptrLength, void* ptr);
+	extern Sys_QueEvent_t Sys_QueEvent;
+
 	extern char(*sys_exitCmdLine)[1024];
 	extern char(*sys_cmdline)[1024];
 
@@ -89,6 +92,8 @@ namespace Game
 	extern bool Sys_TryEnterCriticalSection(CriticalSection critSect);
 
 	extern HANDLE Sys_OpenFileReliable(const char* filename);
+
+	extern void Sys_QueEvents(int time, int type, int value2, int ptrLength, void* ptr);
 
 	class Sys
 	{
