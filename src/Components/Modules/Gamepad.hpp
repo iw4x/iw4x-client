@@ -86,6 +86,14 @@ namespace Components
 		static Dvar::Var gpad_menu_scroll_delay_rest;
 		static Dvar::Var gpad_rumble;
 		static Dvar::Var gpad_use_hold_time;
+		static Dvar::Var gpad_button_release_delay_enabled;
+		static Dvar::Var gpad_button_release_delay;
+		static Dvar::Var gpad_button_release_delay_scale;
+
+		static unsigned buttonPressedTime[Game::MAX_GPAD_COUNT][Game::K_LAST_KEY];
+		static bool buttonPendingRelease[Game::MAX_GPAD_COUNT][Game::K_LAST_KEY];
+
+		static unsigned GetButtonReleaseDelay(int localClientNum);
 		static Dvar::Var gpad_lockon_enabled;
 		static Dvar::Var gpad_slowdown_enabled;
 		static Dvar::Var input_viewSensitivity;
