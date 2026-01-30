@@ -1,4 +1,5 @@
 #include "Dvar.hpp"
+#include "Events.hpp"
 #include "Friends.hpp"
 #include "TextRenderer.hpp"
 
@@ -522,5 +523,15 @@ namespace Components
 
 		// Fix crash
 		Utils::Hook(0x4B7120, Dvar_EnumToString_Stub, HOOK_JUMP).install()->quick();
+
+		// Allow changing sv_cheats by removing write protection
+		Scheduler::Once([]
+		{
+			if (*Game::sv_cheats)
+			{
+				const_cast<Game::dvar_t*>(*Game::sv_cheats)->flags &= ~(Game::DVAR_ROM | Game::DVAR_INIT | Game::DVAR_CHEAT | Game::DVAR_LATCH);
+				Logger::Print("sv_cheats write protection removed\n");
+			}
+		}, Scheduler::Pipeline::MAIN);
 	}
 }
