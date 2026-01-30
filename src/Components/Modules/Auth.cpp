@@ -521,70 +521,7 @@ namespace Components
 	// A somewhat hardware tied 48 bit value
 	std::string Auth::GetMachineEntropy()
 	{
-		std::string entropy{};
-		DWORD volumeID;
-		if (GetVolumeInformationA("C:\\",
-			NULL,
-			NULL,
-			&volumeID,
-			NULL,
-			NULL,
-			NULL,
-			NULL
-		))
-		{
-			// Drive info
-			entropy += std::to_string(volumeID);
-		}
-
-		// MAC Address
-		{
-			unsigned long outBufLen = 0;
-			DWORD dwResult = GetAdaptersInfo(NULL, &outBufLen);
-			if (dwResult == ERROR_BUFFER_OVERFLOW)  // This is what we're expecting
-			{
-				// Now allocate a structure of the required size.
-				PIP_ADAPTER_INFO pIpAdapterInfo = reinterpret_cast<PIP_ADAPTER_INFO>(malloc(outBufLen));
-				dwResult = GetAdaptersInfo(pIpAdapterInfo, &outBufLen);
-				if (dwResult == ERROR_SUCCESS)
-				{
-					while (pIpAdapterInfo)
-					{
-						switch (pIpAdapterInfo->Type)
-						{
-							case IF_TYPE_IEEE80211:
-							case MIB_IF_TYPE_ETHERNET:
-							{
-
-								std::string macAddress{};
-								for (size_t i = 0; i < ARRAYSIZE(pIpAdapterInfo->Address); i++)
-								{
-									entropy += std::to_string(pIpAdapterInfo->Address[i]);
-								}
-
-								break;
-							}
-						}
-
-						pIpAdapterInfo = pIpAdapterInfo->Next;
-					}
-				}
-
-				// Free before going next because clearly this is not working
-				free(pIpAdapterInfo);
-			}
-
-		}
-
-		if (entropy.empty())
-		{
-			// ultimate fallback
-			return std::to_string(Utils::Cryptography::Rand::GenerateLong());
-		}
-		else
-		{
-			return entropy;
-		}
+		return std::to_string(Utils::Cryptography::Rand::GenerateLong());
 	}
 
 	Auth::Auth()
