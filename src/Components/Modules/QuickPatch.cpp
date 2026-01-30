@@ -430,7 +430,7 @@ namespace Components
 
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
-		Utils::Hook::Set<BYTE>(0x45888C, Game::DVAR_CHEAT);
+		Utils::Hook::Set<BYTE>(0x45888C, Game::DVAR_NONE);
 
 		// increase font sizes for chat on higher resolutions
 		static float float13 = 13.0f;
