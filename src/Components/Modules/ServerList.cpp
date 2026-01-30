@@ -427,7 +427,7 @@ namespace Components
 				Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
 			}
 
-			std::thread([masterServerName, masterPort]()
+			std::jthread([masterServerName, masterPort]()
 			{
 				const auto host = "master.iw4x.io";
 				const auto url = std::format("http://{}/v1/servers/iw4x?protocol={}", host, PROTOCOL);
@@ -1899,7 +1899,7 @@ namespace Components
 					RefreshContainer.loadingCache = true;
 				}
 
-				std::thread([]()
+				std::jthread([]()
 				{
 					LoadServerCache();
 					Scheduler::Once([]()

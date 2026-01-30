@@ -45,7 +45,7 @@ namespace Components
 		static bool HasConsole;
 		static bool SkipShutdown;
 
-		static std::thread ConsoleThread;
+		static std::jthread ConsoleThread;
 
 		static Game::SafeArea OriginalSafeArea;
 

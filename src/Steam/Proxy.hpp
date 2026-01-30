@@ -353,7 +353,7 @@ namespace Steam
 
 		static HANDLE Process;
 		static HANDLE CancelHandle;
-		static std::thread WatchGuard;
+		static std::jthread WatchGuard;
 
 		static std::recursive_mutex CallMutex;
 		static std::vector<CallContainer> Calls;

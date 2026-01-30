@@ -438,7 +438,7 @@ namespace Components
 			Command::Execute("openmenu security_increase_popmenu", true);
 
 			// Start thread
-			TokenContainer.thread = std::thread([&level]()
+			TokenContainer.thread = std::jthread([&level]()
 				{
 					TokenContainer.generating = true;
 					TokenContainer.hashes = 0;

@@ -51,7 +51,7 @@ namespace Components
 
 	HANDLE Console::CustomConsoleFont;
 
-	std::thread Console::ConsoleThread;
+	std::jthread Console::ConsoleThread;
 
 	Game::SafeArea Console::OriginalSafeArea;
 
@@ -775,7 +775,7 @@ namespace Components
 
 	void Console::ShowAsyncConsole()
 	{
-		ConsoleThread = std::thread(ConsoleRunner);
+		ConsoleThread = std::jthread(ConsoleRunner);
 	}
 
 	Game::dvar_t* Console::RegisterConColor(const char* dvarName, float r, float g, float b, float a, float min, float max, unsigned __int16 flags, const char* description)

@@ -11,7 +11,7 @@ namespace Components
 
 	private:
 		static bool IsPerforming;
-		static std::thread Thread;
+		static std::jthread Thread;
 		static std::string Challenge;
 
 		static Dvar::Var NetDiscoveryPortRangeMin;

@@ -45,7 +45,7 @@ namespace Components
 		std::map<std::string, Utils::Slot<PacketCallback>> packetCallbacks;
 
 		HANDLE pipe;
-		std::thread thread;
+		std::jthread thread;
 		bool threadAttached;
 
 		Type type;

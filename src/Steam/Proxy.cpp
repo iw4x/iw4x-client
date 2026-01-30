@@ -24,7 +24,7 @@ namespace Steam
 
 	HANDLE Proxy::Process = nullptr;
 	HANDLE Proxy::CancelHandle = nullptr;
-	std::thread Proxy::WatchGuard;
+	std::jthread Proxy::WatchGuard;
 
 	uint32_t Proxy::AppId = 0;
 
@@ -361,7 +361,7 @@ namespace Steam
 		Proxy::Process = OpenProcess(SYNCHRONIZE, FALSE, pid);
 		if (!Proxy::Process) return;
 
-		Proxy::WatchGuard = std::thread([]()
+		Proxy::WatchGuard = std::jthread([]()
 		{
 			HANDLE handles[] = { Proxy::Process, Proxy::CancelHandle };
 
