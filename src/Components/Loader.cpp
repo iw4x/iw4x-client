@@ -73,6 +73,7 @@
 #include "Modules/Sound.hpp"
 
 #include "Modules/BotLib/lPrecomp.hpp"
+#include "Modules/ViewModelFxSetup.hpp"
 
 namespace Components
 {
@@ -182,6 +183,7 @@ namespace Components
 		Register(new GSC::GSC());
 
 		Register(new BotLib::lPrecomp());
+		Register(new ViewModelFxSetup::Setup());
 
 		Pregame = false;
 	}
