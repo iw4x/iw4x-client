@@ -420,6 +420,7 @@ namespace Game
 	CG_WeaponDObjHandle_t CG_WeaponDObjHandle = reinterpret_cast<CG_WeaponDObjHandle_t>(0x41DB70);
 	CG_StopBoltedEffect_t CG_StopBoltedEffect = reinterpret_cast<CG_StopBoltedEffect_t>(0x44C230);
 
+
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{
 		if (!stringtable || !stringtable->values || row >= stringtable->rowCount || column >= stringtable->columnCount) return "";
