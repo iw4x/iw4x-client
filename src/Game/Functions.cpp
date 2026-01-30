@@ -415,6 +415,11 @@ namespace Game
 
 	const char* logFileName = reinterpret_cast<const char*>(0x730130);
 
+	DObjGetBoneIndex_t DObjGetBoneIndex = reinterpret_cast<DObjGetBoneIndex_t>(0x504F20);
+	Com_GetClientDObj_t Com_GetClientDObj = reinterpret_cast<Com_GetClientDObj_t>(0x41FF50);
+	CG_WeaponDObjHandle_t CG_WeaponDObjHandle = reinterpret_cast<CG_WeaponDObjHandle_t>(0x41DB70);
+	CG_StopBoltedEffect_t CG_StopBoltedEffect = reinterpret_cast<CG_StopBoltedEffect_t>(0x44C230);
+
 	const char* TableLookup(StringTable* stringtable, int row, int column)
 	{
 		if (!stringtable || !stringtable->values || row >= stringtable->rowCount || column >= stringtable->columnCount) return "";
