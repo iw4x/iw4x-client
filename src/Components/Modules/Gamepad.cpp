@@ -194,6 +194,7 @@ namespace Components
 	Dvar::Var Gamepad::gpad_button_release_delay_enabled;
 	Dvar::Var Gamepad::gpad_button_release_delay;
 	Dvar::Var Gamepad::gpad_button_release_delay_scale;
+	Dvar::Var Gamepad::gpad_button_release_delay_sprint_only;
 	Dvar::Var Gamepad::gpad_lockon_enabled;
 	Dvar::Var Gamepad::gpad_slowdown_enabled;
 	Dvar::Var Gamepad::input_viewSensitivity;
@@ -1546,11 +1547,23 @@ namespace Components
 			// lie to the server and pretend the button is still held down.
 			//
 			auto delay (GetButtonReleaseDelay (i));
+			auto so (gpad_button_release_delay_sprint_only.get<bool> ());
 
 			for (const auto& m : buttonList)
 			{
 				auto k (m.code);
 				auto b (m.padButton);
+
+				// If "sprint only" is enabled, then we don't introduce artificial lag
+				// to shooting or menu navigation.
+				//
+				auto apply (delay > 0);
+				if (apply && so)
+				{
+					const auto* s (Game::playerKeys [i].keys [k].binding);
+					apply = s && (std::strcmp (s, "+sprint") == 0 ||
+												std::strcmp (s, "+breath_sprint") == 0);
+				}
 
 				if (g.IsButtonPressed (b))
 				{
@@ -1567,7 +1580,7 @@ namespace Components
 					//
 					auto dur (t - buttonPressedTime [i][k]);
 
-					if (dur >= delay)
+					if (!apply || dur >= delay)
 					{
 						CL_GamepadButtonEventForPort (i, k, Game::GPAD_BUTTON_RELEASED, t);
 					}
@@ -1598,7 +1611,7 @@ namespace Components
 					//
 					auto dur (t - buttonPressedTime [i][k]);
 
-					if (dur >= delay)
+					if (!apply || dur >= delay)
 					{
 						buttonPendingRelease [i][k] = false;
 						CL_GamepadButtonEventForPort (i, k, Game::GPAD_BUTTON_RELEASED, t);
@@ -1834,6 +1847,8 @@ namespace Components
 			"Minimum button release delay (ms). Auto-scales with ping using gpad_button_release_delay_scale.");
 		gpad_button_release_delay_scale = Dvar::Register<float>("gpad_button_release_delay_scale", 3.5f, 0.0f, 10.0f, Game::DVAR_ARCHIVE,
 			"Multiplier for ping-based release delay (delay = ping * scale). Set to 0 to use fixed gpad_button_release_delay value.");
+		gpad_button_release_delay_sprint_only = Dvar::Register<bool>("gpad_button_release_delay_sprint_only", true, Game::DVAR_ARCHIVE,
+			"Only apply release delay to sprint button. Set to false to apply delay to all buttons.");
 		gpad_lockon_enabled = Dvar::Register<bool>("gpad_lockon_enabled", true, Game::DVAR_ARCHIVE, "Game pad lockon aim assist enabled");
 		gpad_slowdown_enabled = Dvar::Register<bool>("gpad_slowdown_enabled", true, Game::DVAR_ARCHIVE, "Game pad slowdown aim assist enabled");
 
