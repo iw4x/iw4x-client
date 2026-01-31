@@ -325,6 +325,13 @@ namespace Components
     ToggleRawInput (false);
     ResetMouseRawEvents ();
 
+    // Clear all key and button states to prevent stuck inputs (firing, ADS,
+    // etc.) when alt-tabbing while holding mouse buttons. We uses the
+    // engine's own state clearing mechanism here so let's pray that it
+    // properly releases both PlayerKeyState and kbutton_t states.
+    //
+    Game::Key_ClearStates (0);
+
     // Drop priority to save CPU when we aren't the active window.
     //
     if (R_AutoPriority.get<Game::dvar_t*> () && R_AutoPriority.get<bool> ())
