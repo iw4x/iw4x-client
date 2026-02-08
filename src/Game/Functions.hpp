@@ -48,6 +48,18 @@ namespace Game
 	typedef const DObj*(*CG_GetBoneIndex_t)(int localClientNum, unsigned int boneName, char* boneIndex);
 	extern CG_GetBoneIndex_t CG_GetBoneIndex;
 
+	typedef int(__cdecl* DObjGetBoneIndex_t)(int a1, int a2, unsigned char* a3);
+	extern DObjGetBoneIndex_t DObjGetBoneIndex;
+
+	typedef DObj* (__cdecl* Com_GetClientDObj_t)(int handle, int localClientNum);
+	extern Com_GetClientDObj_t Com_GetClientDObj;
+
+	typedef int(__cdecl* CG_WeaponDObjHandle_t)(int hand);
+	extern CG_WeaponDObjHandle_t CG_WeaponDObjHandle;
+
+	typedef char* (__cdecl* CG_StopBoltedEffect_t)(int localClientNum, int effectHandle, int dobjHandle, int tagName);
+	extern CG_StopBoltedEffect_t CG_StopBoltedEffect;
+
 	typedef void(*CG_ScoresDown_f_t)();
 	extern CG_ScoresDown_f_t CG_ScoresDown_f;
 
