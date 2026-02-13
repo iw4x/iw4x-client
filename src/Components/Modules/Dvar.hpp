@@ -14,7 +14,7 @@ namespace Components
 			Var(DWORD ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {}
 			Var(const std::string& dvarName);
 
-			template<typename T> T get();
+			template<typename T> T get()  const;
 
 			void set(const char* string);
 			void set(const std::string& string);

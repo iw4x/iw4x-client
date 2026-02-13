@@ -6650,7 +6650,7 @@ namespace Game
 		unsigned int padding[3];
 	};
 
-	struct __declspec(align(128)) scrMemTreeGlob_t
+	struct scrMemTreeGlob_t
 	{
 		MemoryNode nodes[65536];
 		unsigned int nodeBits[2048];
@@ -6682,7 +6682,7 @@ namespace Game
 	  $FA152364550AB5CDF6142CD3B51D5E84 u;
 	};
 
-	struct __declspec(align(128)) scrStringGlob_t
+	struct scrStringGlob_t
 	{
 	  HashEntry hashTable[28672];
 	  bool inited;

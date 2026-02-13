@@ -471,6 +471,15 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x60B279, CLIENT_CONFIG);
 		Utils::Hook::Set<const char*>(0x60BBD4, CLIENT_CONFIG);
 
+		// allow up to 4096 MB of ram instead of 2048
+		constexpr uint32_t MAX_RAM_MEGABYTES = 4096;
+		Utils::Hook::Set<uint32_t>(0x4EB6C0 + 1, MAX_RAM_MEGABYTES);
+		Utils::Hook::Set<uint32_t>(0x4B16A2 + 1, MAX_RAM_MEGABYTES);
+		Utils::Hook::Set<uint32_t>(0x4B169A + 2, MAX_RAM_MEGABYTES);
+		Utils::Hook::Set<uint32_t>(0x4B15DE + 1, MAX_RAM_MEGABYTES);
+		Utils::Hook::Set<uint32_t>(0x4B15D6 + 2, MAX_RAM_MEGABYTES);
+		
+
 		// Disable profile system
 //		Utils::Hook::Nop(0x60BEB1, 5);          // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.
 //		Utils::Hook::Nop(0x60BEB8, 5);          // GamerProfile_LogInProfile

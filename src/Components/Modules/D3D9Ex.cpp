@@ -3,6 +3,7 @@
 
 namespace Components
 {
+#if OVERRIDE_DX9
 	Dvar::Var D3D9Ex::RUseD3D9Ex;
 
 #pragma region D3D9Device
@@ -744,14 +745,34 @@ namespace Components
 
 		return Direct3DCreate9(sdk);
 	}
+#endif
+	typedef IDirect3D9*(__stdcall* DXVKCreate9Stub_t)(UINT sdk);
+	IDirect3D9* CALLBACK Direct3DCreate9Stub(UINT sdk)
+	{
+		HINSTANCE hGetProcIDDLL = LoadLibraryEx(".\\dxvk9.dll", NULL, NULL);
+		if (hGetProcIDDLL)
+		{
+			DXVKCreate9Stub_t dxvkCreate = reinterpret_cast<DXVKCreate9Stub_t>(GetProcAddress(hGetProcIDDLL, "Direct3DCreate9"));
+			if (dxvkCreate)
+			{
+				return dxvkCreate(sdk);
+			}
+		}
+
+		return Direct3DCreate9(sdk);
+	}
 
 	D3D9Ex::D3D9Ex()
 	{
+		Utils::Hook::Set(0x6D74D0, Direct3DCreate9Stub);
+
+#if OVERRIDE_DX9
 		if (Dedicated::IsEnabled()) return;
 
 		RUseD3D9Ex = Dvar::Register<bool>("r_useD3D9Ex", false, Game::DVAR_ARCHIVE, "Use extended d3d9 interface!");
 
 		// Hook Interface creation
 		Utils::Hook::Set(0x6D74D0, Direct3DCreate9Stub);
+#endif
 	}
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#define OVERRIDE_DX9 0
+
 namespace Components
 {
 	class D3D9Ex : public Component
@@ -8,6 +10,7 @@ namespace Components
 		D3D9Ex();
 
 	private:
+#if OVERRIDE_DX9
 		class D3D9Device : public IDirect3DDevice9
 		{
 		public:
@@ -169,5 +172,6 @@ namespace Components
 		static Dvar::Var RUseD3D9Ex;
 
 		static IDirect3D9* CALLBACK Direct3DCreate9Stub(UINT sdk);
+#endif
 	};
 }

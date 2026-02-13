@@ -17,12 +17,12 @@ namespace Components
 		}
 	}
 
-	template <> Game::dvar_t* Dvar::Var::get()
+	template <> Game::dvar_t* Dvar::Var::get() const
 	{
 		return this->dvar_;
 	}
 
-	template <> const char* Dvar::Var::get()
+	template <> const char* Dvar::Var::get() const
 	{
 		if (!this->dvar_)
 		{
@@ -40,7 +40,7 @@ namespace Components
 		return "";
 	}
 
-	template <> int Dvar::Var::get()
+	template <> int Dvar::Var::get() const
 	{
 		if (!this->dvar_)
 		{
@@ -55,7 +55,7 @@ namespace Components
 		return 0;
 	}
 
-	template <> unsigned int Dvar::Var::get()
+	template <> unsigned int Dvar::Var::get() const
 	{
 		if (!this->dvar_)
 		{
@@ -70,7 +70,7 @@ namespace Components
 		return 0;
 	}
 
-	template <> float Dvar::Var::get()
+	template <> float Dvar::Var::get() const
 	{
 		if (!this->dvar_)
 		{
@@ -85,7 +85,7 @@ namespace Components
 		return 0.f;
 	}
 
-	template <> bool Dvar::Var::get()
+	template <> bool Dvar::Var::get() const
 	{
 		if (!this->dvar_)
 		{
@@ -100,7 +100,7 @@ namespace Components
 		return false;
 	}
 
-	template <> std::string Dvar::Var::get()
+	template <> std::string Dvar::Var::get() const
 	{
 		return this->get<const char*>();
 	}

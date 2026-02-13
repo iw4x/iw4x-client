@@ -293,13 +293,25 @@ namespace Components
 
 					if (!_stricmp(token.string, "loadmenu"))
 					{
-						Game::PC_ReadTokenHandle(handle, &token);
-
-						const auto loadedMenu = LoadMenuByName_Recursive(Utils::String::VA("ui_mp\\%s.menu", token.string));
-
-						for (const auto& loaded : loadedMenu)
+						if (Game::PC_ReadTokenHandle(handle, &token) && token.string[0] == '{')
 						{
-							menus.emplace_back(loaded);
+							Game::PC_ReadTokenHandle(handle, &token);
+
+							const auto loadedMenu = LoadMenuByName_Recursive(Utils::String::VA("ui_mp\\%s.menu", token.string));
+
+							for (const auto& loaded : loadedMenu)
+							{
+								menus.emplace_back(loaded);
+							}
+
+							if (Game::PC_ReadTokenHandle(handle, &token) && token.string[0] == '}')
+							{
+								// OK
+							}
+							else {
+								Components::Logger::PrintError(Game::CON_CHANNEL_UI, "LoadMenu call is missing '}' terminator\n");
+								break;
+							}
 						}
 					}
 					else if (!_stricmp(token.string, "menudef"))

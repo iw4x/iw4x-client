@@ -149,12 +149,20 @@ namespace Components
 		"body_prague_civ_male_fff",
 		"body_russian_president",
 		"body_forest_tf141_ghost",
-		"", // available
+		"body_london_cop", 
 		"body_chemwar_russian_assault_cc",
 		"body_chemwar_russian_assault_c",
 		"body_russian_naval_assault_ff",
 		"body_juggernaut_nohelmet",
-		"body_doctor"
+		"body_doctor",
+		"body_hero_truck_delta_snow",
+		"body_fso_suit_advisor",
+		"body_fso_vest_a",
+		"body_fso_vest_b",
+		"body_fso_vest_c_dirty",
+		"body_fso_vest_d_dirty",
+		"body_russian_prisoner_a",
+		"body_russian_prisoner_b"
 	};
 
 	Game::scr_string_t PlayerSkins::headsScriptStrings[ARRAYSIZE(PlayerSkins::heads)]{};
