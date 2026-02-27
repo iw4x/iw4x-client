@@ -597,7 +597,7 @@ namespace Components
 		Utils::Hook(0x578F52, JavelinResetHook_Stub, HOOK_JUMP).install()->quick();
 
 		CGRecoilMultiplier = Game::Dvar_RegisterFloat("cg_recoilMultiplier",
-			1.0f, 0.0f, 1000.0f, Game::DVAR_CHEAT,
+			1.0f, 0.0f, 1000.0f, Game::DVAR_NONE,
 			"The scale applied to the player recoil when firing");
 		Utils::Hook(0x44D90B, BG_WeaponFireRecoil_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x4FB2D7, BG_WeaponFireRecoil_Stub, HOOK_CALL).install()->quick();

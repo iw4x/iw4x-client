@@ -313,20 +313,20 @@ namespace Components
 	void PlayerMovement::RegisterMovementDvars()
 	{
 		PlayerDuckedSpeedScale = Game::Dvar_RegisterFloat("player_duckedSpeedScale",
-			0.65f, 0.0f, 5.0f, Game::DVAR_CHEAT,
+			0.65f, 0.0f, 5.0f, Game::DVAR_NONE,
 			"The scale applied to the player speed when ducking");
 
 		PlayerProneSpeedScale = Game::Dvar_RegisterFloat("player_proneSpeedScale",
-			0.15f, 0.0f, 5.0f, Game::DVAR_CHEAT,
+			0.15f, 0.0f, 5.0f, Game::DVAR_NONE,
 			"The scale applied to the player speed when crawling");
 
 		// 3arc naming convention
 		CGUfoScaler = Game::Dvar_RegisterFloat("cg_ufo_scaler",
-			6.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT,
+			6.0f, 0.001f, 1000.0f, Game::DVAR_NONE,
 			"The speed at which ufo camera moves");
 
 		CGNoclipScaler = Game::Dvar_RegisterFloat("cg_noclip_scaler",
-			3.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT,
+			3.0f, 0.001f, 1000.0f, Game::DVAR_NONE,
 			"The speed at which noclip camera moves");
 
 		BGDisableLandingSlowdown = Game::Dvar_RegisterBool("bg_disableLandingSlowdown",

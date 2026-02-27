@@ -19,7 +19,7 @@ namespace Components
 
 	ClientCommand::CheatsScopedLock::~CheatsScopedLock()
 	{
-		CheatsEnabled = false;
+		CheatsEnabled = true;
 	}
 
 	bool ClientCommand::CheatsOk(const Game::gentity_s* ent)
@@ -524,7 +524,7 @@ namespace Components
 		// Hook call to ClientCommand in SV_ExecuteClientCommand so we may add custom commands
 		Utils::Hook(0x6259FA, ClientCommandStub, HOOK_CALL).install()->quick();
 
-		CheatsEnabled = false;
+		CheatsEnabled = true;
 
 		AddCheatCommands();
 		AddScriptFunctions();

@@ -55,16 +55,6 @@ namespace Components
 				Game::CL_SelectStringTableEntryInDvar_f();
 				return;
 			}
-
-			constexpr auto disallowedFlags = (Game::DVAR_CHEAT | Game::DVAR_INIT
-				| Game::DVAR_ROM | Game::DVAR_EXTERNAL | Game::DVAR_LATCH);
-
-			// If it's a dvar check that it does not have disallowed flags
-			if ((dvar->flags & disallowedFlags) != 0)
-			{
-				Logger::Debug("CL_SelectStringTableEntryInDvar_f: parameter is a protected dvar");
-				return;
-			}
 		}
 
 		Game::CL_SelectStringTableEntryInDvar_f();
