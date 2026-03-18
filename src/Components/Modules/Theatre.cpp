@@ -702,7 +702,16 @@ namespace Components
 
 	int Theatre::CL_FirstSnapshot_Stub()
 	{
-		if (CLAutoRecord.get<bool>() && !Game::clientConnections->demoplaying)
+		if (Game::clientConnections->demoplaying)
+		{
+			auto* sv_cheats = const_cast<Game::dvar_t*>(*Game::sv_cheats);
+			if (!sv_cheats->current.enabled)
+			{
+				sv_cheats->current.enabled = true;
+				sv_cheats->modified = true;
+			}
+		}
+		else if (CLAutoRecord.get<bool>())
 		{
 			std::vector<std::string> files;
 			auto demos = FileSystem::GetFileList("demos/", "dm_13");
@@ -724,7 +733,24 @@ namespace Components
 				FileSystem::_DeleteFile("demos", std::format("{}.json", files[i]));
 			}
 
-			Command::Execute(Utils::String::VA("record auto_%lld", std::time(nullptr)), true);
+			// Set attempt count to 50 to give the game ample opportunity to catch up,
+			// though it is expected to succeed on the first attempt
+			Scheduler::Schedule([syncAttempts = 50]() mutable
+			{
+				const auto serverCommandSequence = Game::clientConnections->serverCommandSequence;
+				const auto lastExecutedServerCommand = Game::clientConnections->lastExecutedServerCommand;
+
+				// Allow the game to catch up with the execution of the command strings in case they modify the game state strings,
+				// otherwise the demo may not contain all necessary game state strings
+				if (lastExecutedServerCommand == serverCommandSequence || --syncAttempts < 0)
+				{
+					const auto timestamp = static_cast<long long>(std::time(nullptr));
+					Command::Execute(Utils::String::VA("record auto_%lld", timestamp), true);
+					return true;
+				}
+
+				return false;
+			}, Scheduler::Pipeline::MAIN);
 		}
 
 		return Utils::Hook::Call<int()>(0x42BBB0)(); // DB_GetLoadedFlags
