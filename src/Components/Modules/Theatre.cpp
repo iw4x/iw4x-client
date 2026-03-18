@@ -653,7 +653,16 @@ namespace Components
 
 	int Theatre::CL_FirstSnapshot_Stub()
 	{
-		if (CLAutoRecord.get<bool>() && !Game::clientConnections->demoplaying)
+		if (Game::clientConnections->demoplaying)
+		{
+			auto* sv_cheats = const_cast<Game::dvar_t*>(*Game::sv_cheats);
+			if (!sv_cheats->current.enabled)
+			{
+				sv_cheats->current.enabled = true;
+				sv_cheats->modified = true;
+			}
+		}
+		else if (CLAutoRecord.get<bool>())
 		{
 			std::vector<std::string> files;
 			auto demos = FileSystem::GetFileList("demos/", "dm_13");
