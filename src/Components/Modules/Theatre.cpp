@@ -675,6 +675,8 @@ namespace Components
 				FileSystem::_DeleteFile("demos", std::format("{}.json", files[i]));
 			}
 
+			// Set attempt count to 50 to give the game ample opportunity to catch up,
+			// though it is expected to succeed on the first attempt
 			Scheduler::Schedule([syncAttempts = 50]() mutable
 			{
 				const auto serverCommandSequence = Game::clientConnections->serverCommandSequence;
