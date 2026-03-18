@@ -27,6 +27,9 @@ namespace Game
 	typedef const char* (*CopyStringInternal_t)(const char* str);
 	extern CopyStringInternal_t CopyStringInternal;
 
+	typedef void(*CG_ExecuteNewServerCommands_t)(int localClientNum, int latestSequence);
+	extern CG_ExecuteNewServerCommands_t CG_ExecuteNewServerCommands;
+
 	typedef void(*CG_DrawDisconnect_t)(int localClientNum);
 	extern CG_DrawDisconnect_t CG_DrawDisconnect;
 

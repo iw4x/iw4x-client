@@ -283,6 +283,55 @@ namespace
 		UpdateScrambleBuffer(serverCommandSequence);
 		return serverCommandSequence;
 	}
+
+	template <bool STEAM_DEMO>
+	void CL_ReadDemoNetworkPacketStub(int localClientNum)
+	{
+		assert(Game::clientConnections->demoplaying);
+
+		auto* clc = Game::clientConnections;
+		auto* cgs = Game::cgsArray;
+
+		const auto serverCommandSequence = clc->serverCommandSequence;
+		const auto lastExecutedServerCommand = clc->lastExecutedServerCommand;
+
+		// Check if the command string backlog is equal to or greater than half the size of command string buffer (128 / 2 = 64)
+		// and execute them now to make room for new command strings without overwriting unprocessed ones
+		// likely to happen when fast forwarding, very likely when rewinding
+		if (lastExecutedServerCommand + std::ssize(clc->serverCommands) / 2 <= serverCommandSequence)
+		{
+			if (lastExecutedServerCommand == 0)
+			{
+				// Update the old server command sequences, otherwise we may be executing old server commands when rewinding
+				// this would ignore command strings if they were to be included in the gamestate message
+				clc->lastExecutedServerCommand = serverCommandSequence;
+				cgs->serverCommandSequence = serverCommandSequence;
+
+				// Reset the viewmodel otherwise it may be hidden for a short while when rewinding
+				auto* cg = Game::cgArray;
+				cg->landTime = 0;
+			}
+			else
+			{
+				for (auto i = lastExecutedServerCommand + 1; i <= serverCommandSequence; ++i)
+				{
+					static constexpr auto mapRestart = (STEAM_DEMO) ? 'x' : 'B';
+					if (clc->serverCommands[i & 127][0] == mapRestart)
+					{
+						// Ignoring fast restart commands, because they crash in CG_ClearEntityFxHandles,
+						// because Game::cgArray->snap is a nullptr when rewinding
+						// they also appear to cause crashes when fast forwarding
+						clc->serverCommands[i & 127][0] = '\0';
+					}
+				}
+
+				Game::CG_ExecuteNewServerCommands(localClientNum, serverCommandSequence);
+			}
+
+			assert(cgs->serverCommandSequence == clc->serverCommandSequence
+				&& clc->lastExecutedServerCommand == clc->serverCommandSequence);
+		}
+	}
 }
 
 namespace Components
@@ -731,14 +780,20 @@ namespace Components
 			Utils::Hook(0x5AC778, MSG_ReadLongStub4, HOOK_CALL).install()->quick(); // CL_ParseCommandString
 
 			Utils::Hook(0x5950A8, CL_GetSnapshotStub<SNAPSHOT_FIX_STEAM>, HOOK_CALL).install()->quick();
+
+			Utils::Hook(0x5A9CE8, CL_ReadDemoNetworkPacketStub<true>, HOOK_JUMP).install()->quick();
 		}
 		else if (Flags::HasFlag("retaildemo"))
 		{
 			Utils::Hook(0x5950A8, CL_GetSnapshotStub<SNAPSHOT_FIX_RETAIL>, HOOK_CALL).install()->quick();
+
+			Utils::Hook(0x5A9CE8, CL_ReadDemoNetworkPacketStub<false>, HOOK_JUMP).install()->quick();
 		}
 		else
 		{
 			Utils::Hook(0x5950A8, CL_GetSnapshotStub<SNAPSHOT_FIX_NONE>, HOOK_CALL).install()->quick();
+
+			Utils::Hook(0x5A9CE8, CL_ReadDemoNetworkPacketStub<false>, HOOK_JUMP).install()->quick();
 		}
 
 		Utils::Hook(0x5A8370, GamestateWriteStub, HOOK_CALL).install()->quick();
