@@ -285,7 +285,7 @@ namespace
 	}
 
 	template <bool STEAM_DEMO>
-	void CL_ReadDemoNetworkPacketStub(int localClientNum)
+	void CL_ReadDemoNetworkPacketStub()
 	{
 		assert(Game::clientConnections->demoplaying);
 
@@ -325,7 +325,7 @@ namespace
 					}
 				}
 
-				Game::CG_ExecuteNewServerCommands(localClientNum, serverCommandSequence);
+				Game::CG_ExecuteNewServerCommands(0, serverCommandSequence);
 			}
 
 			assert(cgs->serverCommandSequence == clc->serverCommandSequence
