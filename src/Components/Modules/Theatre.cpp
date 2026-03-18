@@ -742,7 +742,8 @@ namespace Components
 				// otherwise the demo may not contain all necessary game state strings
 				if (lastExecutedServerCommand == serverCommandSequence || --syncAttempts < 0)
 				{
-					Command::Execute(Utils::String::VA("record auto_%lld", std::time(nullptr)), true);
+					const auto timestamp = static_cast<long long>(std::time(nullptr));
+					Command::Execute(Utils::String::VA("record auto_%lld", timestamp), true);
 					return true;
 				}
 
