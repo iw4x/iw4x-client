@@ -1,28 +1,41 @@
 #!/bin/sh
 
-usage="Usage: $0 [-h|--help] [<options>] [<build-config>]"
+usage="Usage: $0 [-h|--help] [<options>] [<config>]"
 
-wine_mono_ver="10.1.0"
-wine_mono_url="https://dl.winehq.org/wine/wine-mono"
-msvc_wine_repo="https://github.com/mstorsjo/msvc-wine.git"
+# Default URLs and versions for the external toolchains.
+#
+mn_ver="11.0.0"
+mn_url="https://dl.winehq.org/wine/wine-mono"
+mw_url="https://github.com/mstorsjo/msvc-wine.git"
 
-msvc_cache_dir="/tmp/msvc"
-msvc_install_dir="$HOME/.msvc"
-wine_prefix="$HOME/.wine"
-build_config="Debug"
+# Default cache and installation directories.
+#
+ca_dir="/tmp/msvc"
+mi_dir="$HOME/.msvc"
+wn_dir="$HOME/.wine"
+
+# Build configuration (Debug or Release).
+#
+cfg="Debug"
 
 owd="$(pwd)"
 prog="$0"
 
 fail ()
 {
-  cd "$owd"
+  cd "$owd" || true
   exit 1
 }
 
+# Print diagnostics to stderr.
+#
 diag ()
 {
-  echo "$*" 1>&2
+  if test $# -eq 0; then
+    echo 1>&2
+  else
+    echo "$*" 1>&2
+  fi
 }
 
 error ()
@@ -31,16 +44,24 @@ error ()
   fail
 }
 
+# Execute a command and fail if it returns a non-zero exit status.
+#
+# Note that this function will execute a command with arguments that contain
+# spaces but it will not print them as quoted (and neither does set -x).
+#
 run ()
 {
-  diag "+ $@"
+  diag "+ $*"
   "$@"
-  if test "$?" -ne "0"; then
+  if test "$?" -ne 0; then
     fail
   fi
 }
 
-check_cmd ()
+# Check whether the specified command exists. If the hint is provided, print it
+# alongside the error.
+#
+check_cmd () # <cmd> [<hint>]
 {
   if ! command -v "$1" >/dev/null 2>&1; then
     diag "error: unable to execute $1: command not found"
@@ -51,51 +72,16 @@ check_cmd ()
   fi
 }
 
-get_package_manager ()
-{
-  if command -v apt >/dev/null 2>&1; then
-    echo "apt"
-  elif command -v dnf >/dev/null 2>&1; then
-    echo "dnf"
-  elif command -v yum >/dev/null 2>&1; then
-    echo "yum"
-  elif command -v pacman >/dev/null 2>&1; then
-    echo "pacman"
-  else
-    echo ""
-  fi
-}
-
-get_install_cmd ()
-{
-  case "$1" in
-    apt)
-      echo "sudo apt install -y"
-      ;;
-    dnf)
-      echo "sudo dnf install -y"
-      ;;
-    yum)
-      echo "sudo yum install -y"
-      ;;
-    pacman)
-      echo "sudo pacman -S --noconfirm"
-      ;;
-    *)
-      echo ""
-      ;;
-  esac
-}
-
 yes=
 clean=
-skip_deps=
-skip_submodules=
-debug=true
-verbose=
-force_full_setup=
-timeout=300
-connect_timeout=30
+deps=true
+submods=true
+verb=
+force=
+to=300
+cto=30
+
+bcfg=
 
 while test $# -ne 0; do
   case "$1" in
@@ -103,21 +89,23 @@ while test $# -ne 0; do
       diag
       diag "$usage"
       diag "Options:"
-      diag "  --yes                 Do not ask for confirmation before starting."
-      diag "  --clean               Clean build environment before starting."
-      diag "  --skip-deps           Skip system dependency installation."
-      diag "  --skip-submodules     Skip git submodule update."
-      diag "  --release             Build release configuration instead of debug."
-      diag "  --verbose             Enable verbose output."
-      diag "  --force-full-setup    Force full Wine/MSVC setup even if MSBuild is available."
-      diag "  --msvc-cache <dir>    MSVC download cache directory (/tmp/msvc by default)."
-      diag "  --msvc-install <dir>  MSVC installation directory (~/.msvc by default)."
-      diag "  --wine-prefix <dir>   Wine prefix directory (~/.wine by default)."
-      diag "  --timeout <sec>       Network operations timeout in seconds (300 by default)."
+      diag "  --yes               Don't ask for confirmation before starting."
+      diag "  --clean             Remove existing wine and msvc installations before starting."
+      diag "  --no-deps           Don't install system dependencies."
+      diag "  --no-submodules     Don't update git submodules."
+      diag "  --force             Perform a full bootstrap even if the environment is ready."
+      diag "  --verbose           Print commands before they are executed."
+      diag "  --cache-dir <dir>   Directory to cache downloaded msvc components (/tmp/msvc by default)."
+      diag "  --msvc-dir <dir>    Directory to install the msvc toolchain (~/.msvc by default)."
+      diag "  --wine-dir <dir>    Directory to use for the wine prefix (~/.wine by default)."
+      diag "  --timeout <sec>     Network operations timeout in seconds (300 by default)."
       diag
-      diag "This script requires root privileges to install system packages."
+      diag "By default this script will build the debug configuration."
       diag
-      diag "Supported build configurations: Debug, Release"
+      diag "If the package manager requires root permissions to install system"
+      diag "dependencies, sudo(1) will be used by default."
+      diag
+      diag "Note also that <options> must come before the <config> argument."
       diag
       exit 0
       ;;
@@ -129,49 +117,44 @@ while test $# -ne 0; do
       clean=true
       shift
       ;;
-    --skip-deps)
-      skip_deps=true
+    --no-deps)
+      deps=
       shift
       ;;
-    --skip-submodules)
-      skip_submodules=true
+    --no-submodules)
+      submods=
       shift
       ;;
-    --release)
-      debug=false
-      build_config="Release"
+    --force)
+      force=true
       shift
       ;;
     --verbose)
-      verbose=true
+      verb=true
       shift
       ;;
-    --force-full-setup)
-      force_full_setup=true
-      shift
-      ;;
-    --msvc-cache)
+    --cache-dir)
       shift
       if test $# -eq 0; then
-        error "MSVC cache directory expected after --msvc-cache; run $prog -h for details"
+        error "directory expected after --cache-dir; run $prog -h for details"
       fi
-      msvc_cache_dir="$1"
+      ca_dir="$1"
       shift
       ;;
-    --msvc-install)
+    --msvc-dir)
       shift
       if test $# -eq 0; then
-        error "MSVC install directory expected after --msvc-install; run $prog -h for details"
+        error "directory expected after --msvc-dir; run $prog -h for details"
       fi
-      msvc_install_dir="$1"
+      mi_dir="$1"
       shift
       ;;
-    --wine-prefix)
+    --wine-dir)
       shift
       if test $# -eq 0; then
-        error "Wine prefix directory expected after --wine-prefix; run $prog -h for details"
+        error "directory expected after --wine-dir; run $prog -h for details"
       fi
-      wine_prefix="$1"
+      wn_dir="$1"
       shift
       ;;
     --timeout)
@@ -179,20 +162,20 @@ while test $# -ne 0; do
       if test $# -eq 0; then
         error "value in seconds expected after --timeout; run $prog -h for details"
       fi
-      timeout="$1"
+      to="$1"
       shift
       ;;
     -*)
       diag "error: unknown option '$1'"
-      diag "  info: run '$prog -h' for usage"
+      diag "  info: run 'sh $prog -h' for usage"
       fail
       ;;
     *)
-      build_config="$1"
+      bcfg="$1"
       shift
       if test $# -ne 0; then
-        diag "error: unexpected argument '$@'"
-        diag "  info: options must come before the <build-config> argument"
+        diag "error: unexpected argument '$1'"
+        diag "  info: options must come before the <config> argument"
         fail
       fi
       break
@@ -200,483 +183,411 @@ while test $# -ne 0; do
   esac
 done
 
-case "$build_config" in
-  Debug|Release)
-    ;;
-  *)
-    error "invalid build configuration '$build_config' (must be Debug or Release)"
-    ;;
-esac
+if test -n "$bcfg"; then
+  case "$bcfg" in
+    debug|Debug)     cfg="Debug"   ;;
+    release|Release) cfg="Release" ;;
+    *)
+      error "invalid build configuration '$bcfg' (expected debug or release)"
+      ;;
+  esac
+fi
 
-if test "$verbose" = true; then
+if test "$verb" = true; then
   set -x
 fi
 
-prompt_continue ()
+# Unless --yes was specified, ask the user whether to continue.
+#
+prompt ()
 {
   while test -z "$yes"; do
-    printf "Continue? [y/n] " 1>&2
-    read yes
+    printf "Continue? [Y/n] " 1>&2
+    read -r yes
     case "$yes" in
-      y|Y) yes=true ;;
-      n|N) fail     ;;
-        *) yes=     ;;
+      y|Y|"") yes=true ;;
+      n|N)    fail     ;;
+      *)      yes=     ;;
     esac
   done
 }
 
-check_msbuild_available ()
+# Download the specified file.
+#
+download () # <url> [<out-file>]
 {
-  if test "$force_full_setup" = true; then
+  if test -n "$2"; then
+    run curl -fL --connect-timeout "$cto" --max-time "$to" --progress-bar -o "$2" "$1"
+  else
+    run curl -fL --connect-timeout "$cto" --max-time "$to" --progress-bar -O "$1"
+  fi
+}
+
+# Figure out if we need to bootstrap or if we can use the fast path. We consider
+# the environment ready if both Wine and MSVC are present, and MSBuild is
+# available in the expected location.
+#
+check_env ()
+{
+  if test "$force" = true; then
     return 1
   fi
 
-  if ! test -d "$wine_prefix"; then
+  if ! test -d "$wn_dir" || ! test -d "$mi_dir"; then
     return 1
   fi
 
-  if ! test -d "$msvc_install_dir"; then
+  if ! test -f "$mi_dir/bin/x86/msbuild.exe"; then
     return 1
   fi
-
-  msbuild_path="$msvc_install_dir/bin/x86/msbuild.exe"
-  if ! test -f "$msbuild_path"; then
-    return 1
-  fi
-
-  # Normally we'd check whether MSBuild runs correctly, but its output
-  # buffering makes that trickier than it should be. So for now, we'll
-  # assume it works.
 
   return 0
 }
 
-download ()
+sys_deps ()
 {
-  if test -n "$2"; then
-    run curl -fL --connect-timeout "$connect_timeout" --max-time "$timeout" --progress-bar -o "$2" "$1"
-  else
-    run curl -fL --connect-timeout "$connect_timeout" --max-time "$timeout" --progress-bar -O "$1"
-  fi
-}
-
-install_dependencies ()
-{
-  if test "$skip_deps" = true; then
-    diag "info: skipping system dependency installation"
+  if test -z "$deps"; then
     return
   fi
 
-  diag "info: detecting package manager..."
+  diag "info: detecting package manager"
 
-  pkg_mgr="$(get_package_manager)"
-  if test -z "$pkg_mgr"; then
-    error "unable to detect package manager (apt, dnf, yum, pacman)"
+  # Probe the system for known package managers.
+  #
+  pm=
+  if   command -v dnf >/dev/null 2>&1; then pm=dnf
+  elif command -v yum >/dev/null 2>&1; then pm=yum
+  elif command -v apt >/dev/null 2>&1; then pm=apt
+  elif command -v pacman >/dev/null 2>&1; then pm=pacman
   fi
 
-  install_cmd="$(get_install_cmd "$pkg_mgr")"
-  if test -z "$install_cmd"; then
-    error "unable to determine package installation command for $pkg_mgr"
+  if test -z "$pm"; then
+    error "unable to detect package manager (dnf, yum, apt, pacman)"
   fi
 
-  diag "info: detected package manager: $pkg_mgr"
+  diag "info: using package manager $pm"
 
-  case "$pkg_mgr" in
-    apt)
-      packages="wine python3 msitools ca-certificates winbind git curl build-essential"
-      ;;
+  case "$pm" in
     dnf|yum)
-      packages="wine python3 msitools ca-certificates samba-winbind git curl gcc gcc-c++ make"
+      cmd="sudo $pm install -y"
+      pkgs="wine python3 msitools ca-certificates samba-winbind git curl gcc gcc-c++ make"
+      ;;
+		apt)
+      cmd="sudo apt install -y"
+      pkgs="wine python3 msitools ca-certificates winbind git curl build-essential"
       ;;
     pacman)
-      packages="wine python msitools ca-certificates samba git curl base-devel"
+      cmd="sudo pacman -S --noconfirm"
+      pkgs="wine python msitools ca-certificates samba git curl base-devel"
       ;;
   esac
 
-  diag "info: installing system dependencies..."
-  run $install_cmd $packages
+  diag "info: installing system dependencies"
+
+  # Deliberate unquoted expansion for command word splitting.
+  #
+	# shellcheck disable=SC2086
+  run $cmd $pkgs
 }
 
-setup_wine ()
+wine_setup ()
 {
-  diag "info: setting up Wine environment..."
+  diag "info: setting up wine environment"
 
-  export WINEPREFIX="$wine_prefix"
+  export WINEPREFIX="$wn_dir"
   export WINEDLLOVERRIDES="mscoree,mshtml="
 
-  if ! test -d "$wine_prefix"; then
-    diag "info: initializing Wine prefix at $wine_prefix"
+  if ! test -d "$wn_dir"; then
+    diag "info: initializing wine prefix at $wn_dir/"
     run wineboot --init
   fi
 
-  wine_mono_msi="wine-mono-$wine_mono_ver-x86.msi"
-  wine_mono_url_full="$wine_mono_url/$wine_mono_ver/$wine_mono_msi"
+  mmsi="wine-mono-$mn_ver-x86.msi"
+  murl="$mn_url/$mn_ver/$mmsi"
 
-  if ! test -f "/tmp/$wine_mono_msi"; then
-    diag "info: downloading wine-mono $wine_mono_ver..."
-    download "$wine_mono_url_full" "/tmp/$wine_mono_msi"
+  if ! test -f "/tmp/$mmsi"; then
+    diag "info: downloading wine-mono $mn_ver"
+    download "$murl" "/tmp/$mmsi"
   else
     diag "info: using cached wine-mono installer"
   fi
 
-  diag "info: installing wine-mono..."
-  run msiexec /i "/tmp/$wine_mono_msi" /quiet
+  diag "info: installing wine-mono"
+  run msiexec /i "/tmp/$mmsi" /quiet
 }
 
-setup_msvc ()
+msvc_setup ()
 {
-  diag "info: setting up MSVC toolchain..."
+  diag "info: setting up msvc toolchain"
 
   if ! test -d "msvc-wine"; then
-    diag "info: cloning msvc-wine repository..."
-    run git clone "$msvc_wine_repo" msvc-wine
+    run git clone "$mw_url" msvc-wine
   else
-    diag "info: updating msvc-wine repository..."
+    # We suppress the directory change warning here because our run wrapper
+    # already guarantees that the script fails if the cd command returns a
+    # non-zero exit status.
+    #
+    # shellcheck disable=SC2164
     run cd msvc-wine
     run git pull
+    # shellcheck disable=SC2164
     run cd "$owd"
   fi
 
+  # shellcheck disable=SC2164
   run cd msvc-wine
 
-  if ! test -d "$msvc_install_dir"; then
-    diag "info: downloading MSVC toolchain to $msvc_cache_dir..."
-    run mkdir -p "$msvc_cache_dir"
-    run python3 ./vsdownload.py --accept-license --cache "$msvc_cache_dir" --dest "$msvc_install_dir"
+  # We use vsdownload.py to acquire the toolchain components directly from
+  # Microsoft's servers, caching them to avoid redownloads.
+  #
+  if ! test -d "$mi_dir"; then
+    diag "info: downloading msvc toolchain to $ca_dir/"
+    run mkdir -p "$ca_dir"
+    run python3 ./vsdownload.py --accept-license --cache "$ca_dir" --dest "$mi_dir"
   else
-    diag "info: MSVC toolchain already installed at $msvc_install_dir"
+    diag "info: msvc toolchain already present at $mi_dir/"
   fi
 
-  diag "info: installing MSVC into Wine prefix..."
-  run ./install.sh "$msvc_install_dir"
+  diag "info: installing msvc into wine prefix"
+  run ./install.sh "$mi_dir"
 
+  # shellcheck disable=SC2164
   run cd "$owd"
 }
 
-update_submodules ()
+gen_info ()
 {
-  if test "$skip_submodules" = true; then
-    diag "info: skipping git submodule update"
+  diag "info: generating build information"
+
+  rev="$(git rev-list --count HEAD 2>/dev/null | tr -d '\n')"
+  br="$(git branch --show-current 2>/dev/null | tr -d '\n')"
+
+  # Try to extract the current git branch name. First we attempt the modern
+  # --show-current. If that fails (for example, on older git versions), we
+  # fallback to parsing the decoration from git show.
+  #
+  # If you are unfamiliar with sed, this substitution might look cryptic. Let's
+  # break down exactly what 's/.*,.*, \([^)]*\).*/\1/p' does:
+  #
+  # 1. By default, sed prints every line it reads to the screen whether it
+  #    matched a search pattern or not. The '-n' flag tells it to stay quiet and
+  #    suppress this default output.
+  #
+	# 2. 's/FIND/REPLACE/p' tells sed to search, replace, and then print ('p')
+  #    only if the substitution is successful.
+  #
+	# 3. In the FIND pattern, '.*,.*, ' uses the greedy '.*' to consume everything
+  #    up to a comma, then another comma, followed by a space. This skips past
+  #    the initial branch decorations.
+  #
+	# 4. '\(' and '\)' create a capture group. Inside it, '[^)]*' means "match any
+  #    sequence of characters as long as they are not a closing bracket".
+  #
+	# 5. The final '.*' simply consumes the rest of the line.
+	#
+  # 6. Finally, the '\1' in the REPLACE section tells sed to replace the entire
+  #    matched line with whatever text was caught inside our first capture
+  #    group.
+  #
+  if test -z "$br"; then
+    br="$(git show -s --pretty=%d HEAD 2>/dev/null | sed -n 's/.*,.*, \([^)]*\).*/\1/p' | tr -d '\n')"
+  fi
+
+  if test -z "$br"; then
+    br="develop"
+  fi
+
+  over="(none)"
+  if test -f "src/version.h"; then
+    over="$(grep "#define REVISION " src/version.h 2>/dev/null | awk '{print $3}' | tr -d '\n')"
+    if test -z "$over"; then
+      over="(none)"
+    fi
+  fi
+
+  if test "$over" = "$rev"; then
+    diag "info: version information is up to date"
     return
   fi
 
-  diag "info: updating git submodules..."
-  run git submodule update --init --recursive
-}
+  diag "info: updating version $over -> $rev ($br)"
 
-get_revision_number ()
-{
-  git rev-list --count HEAD 2>/dev/null | tr -d '\n'
-}
-
-get_branch_name ()
-{
-  local branch_name
-
-  branch_name=$(git branch --show-current 2>/dev/null | tr -d '\n')
-
-  if test -z "$branch_name"; then
-    branch_name=$(git show -s --pretty=%d HEAD 2>/dev/null | sed -n 's/.*,.*, \([^)]*\).*/\1/p' | tr -d '\n')
-  fi
-
-  if test -z "$branch_name"; then
-    branch_name="develop"
-  fi
-
-  echo "$branch_name"
-}
-
-generate_buildinfo ()
-{
-  diag "info: generating build information..."
-
-  local rev_number=$(get_revision_number)
-  local branch_name=$(get_branch_name)
-  local old_version="(none)"
-
-  diag "info: detected branch: $branch_name"
-  diag "info: detected revision: $rev_number"
-
-  if test -f "src/version.h"; then
-    old_version=$(grep "#define REVISION " src/version.h 2>/dev/null | awk '{print $3}' | tr -d '\n')
-    if test -z "$old_version"; then
-      old_version="(none)"
-    fi
-  fi
-
-  if test "$old_version" != "$rev_number"; then
-    diag "info: updating version $old_version -> $rev_number"
-
-    cat > src/version.h << EOF
-/*
- * Automatically generated by bootstrap script.
- * Do not touch!
- */
-
-#define GIT_BRANCH "$branch_name"
-
-// Revision definition
-#define REVISION $rev_number
-#define REVISION_STR "r$rev_number"
-
+  cat > src/version.h << EOF
+/* Automatically generated by bootstrap script. Do not touch! */
+#define GIT_BRANCH "$br"
+#define REVISION $rev
+#define REVISION_STR "r$rev"
 EOF
-    if test "$branch_name" = "develop"; then
-      cat >> src/version.h << EOF
-// Branch-specific definitions
-#define EXPERIMENTAL_BUILD
-EOF
-    fi
 
-    # Generate version.hpp
-    cat > src/version.hpp << EOF
-/*
- * Automatically generated by bootstrap script.
- * Do not touch!
- *
- * This file exists for reasons of complying with our coding standards.
- *
- * The Resource Compiler will ignore any content from C++ header files if they're not from STDInclude.hpp.
- * That's the reason why we now place all version info in version.h instead.
- */
+  if test "$br" = "develop"; then
+    echo "#define EXPERIMENTAL_BUILD" >> src/version.h
+  fi
 
+  cat > src/version.hpp << EOF
+/* Automatically generated by bootstrap script. Do not touch! */
 #include "version.h"
 EOF
-  else
-    diag "info: version information up to date"
-  fi
 }
 
-generate_vscode_config ()
+# Generate the VSCode configuration so IntelliSense works out of the box.
+#
+# Note that we need to figure out the exact versions of msvc and the Windows SDK
+# installed in the prefix. If multiple versions are present, we pick the latest
+# one by sorting the directory names as versions.
+#
+gen_vscode ()
 {
-  diag "info: generating VSCode configuration..."
+  diag "info: generating vscode configuration"
 
-  local workspace_folder=$(pwd)
+  run mkdir -p .vscode
 
-  if ! test -d ".vscode"; then
-    run mkdir -p .vscode
-  fi
+  mv="14.44.35207"
+  sv="10.0.26100.0"
 
-	local msvc_version=""
-  if test -d "$msvc_install_dir/vc/tools/msvc"; then
-    msvc_version=$(ls "$msvc_install_dir/vc/tools/msvc" | sort -V | tail -n 1)
-  fi
-
-  local sdk_version=""
-  if test -d "$msvc_install_dir/kits/10/Include"; then
-    sdk_version=$(ls "$msvc_install_dir/kits/10/Include" | grep -E '^10\.' | sort -V | tail -n 1)
-  fi
-
-  # Fallback to known versions if version detection fails
+  # We rely on GNU sort -V to correctly order the semantic version directories.
 	#
-  if test -z "$msvc_version"; then
-    msvc_version="14.44.35207"
-    diag "warning: could not detect MSVC version, using fallback: $msvc_version"
-  else
-    diag "info: detected MSVC version: $msvc_version"
+  # Also it's safe to use ls here because MSVC version folders are guaranteed to
+  # only contain alphanumeric characters and dots.
+  #
+  if test -d "$mi_dir/vc/tools/msvc"; then
+    # shellcheck disable=SC2012
+    v="$(ls "$mi_dir/vc/tools/msvc" | sort -V | tail -n 1)"
+    if test -n "$v"; then mv="$v"; fi
   fi
 
-  if test -z "$sdk_version"; then
-    sdk_version="10.0.26100.0"
-    diag "warning: could not detect Windows SDK version, using fallback: $sdk_version"
-  else
-    diag "info: detected Windows SDK version: $sdk_version"
+  if test -d "$mi_dir/kits/10/Include"; then
+    # shellcheck disable=SC2010,SC2012
+    v="$(ls "$mi_dir/kits/10/Include" | grep -E '^10\.' | sort -V | tail -n 1)"
+    if test -n "$v"; then sv="$v"; fi
   fi
 
   cat > .vscode/c_cpp_properties.json << EOF
 {
-	"configurations": [
+	"configurations":[
 		{
 			"name": "Linux",
-			"includePath": [
+			"includePath":[
 				"\${default}",
-				"$msvc_install_dir/vc/tools/msvc/$msvc_version/atlmfc/include",
-				"$msvc_install_dir/vc/tools/msvc/$msvc_version/include",
-				"$msvc_install_dir/kits/10/Include/$sdk_version/shared",
-				"$msvc_install_dir/kits/10/Include/$sdk_version/ucrt",
-				"$msvc_install_dir/kits/10/Include/$sdk_version/um",
-				"$msvc_install_dir/kits/10/Include/$sdk_version/winrt",
+				"$mi_dir/vc/tools/msvc/$mv/atlmfc/include",
+				"$mi_dir/vc/tools/msvc/$mv/include",
+				"$mi_dir/kits/10/Include/$sv/shared",
+				"$mi_dir/kits/10/Include/$sv/ucrt",
+				"$mi_dir/kits/10/Include/$sv/um",
+				"$mi_dir/kits/10/Include/$sv/winrt",
 				"\${workspaceFolder}/**"
 			],
-			"defines": [],
+			"defines":[],
 			"cStandard": "c23",
 			"cppStandard": "c++23",
 			"intelliSenseMode": "windows-msvc-x86",
-			"forcedInclude": [
-				"$workspace_folder/src/STDInclude.hpp"
+			"forcedInclude":[
+				"$owd/src/STDInclude.hpp"
 			]
 		}
 	],
 	"version": 4
 }
 EOF
-
-  diag "info: VSCode configuration generated at .vscode/c_cpp_properties.json"
-  diag "info: Using MSVC installation directory: $msvc_install_dir"
 }
 
-strip_premake_build_commands ()
+gen_bbuild ()
 {
-  diag "info: creating stripped premake5 configuration..."
-
-  # Strip lines 242-249 (pre-build) and 250-268 (post-build)
-  #
-  # NOTE: Update if changing anything in premake5.lua!
-  #
-  sed '242,268d' premake5.lua > premake5-linux.lua
-}
-
-cleanup_premake_temp_files ()
-{
-  diag "info: cleaning up temporary premake files..."
-
-  if test -f "premake5-linux.lua"; then
-    run rm -f premake5-linux.lua
-  fi
-}
-
-generate_build_files ()
-{
-  diag "info: generating build files..."
+  diag "info: generating build files"
 
   if ! test -f "tools/premake5.exe"; then
     error "premake5 executable not found in tools/ directory"
   fi
 
-  generate_buildinfo
-  generate_vscode_config
-  strip_premake_build_commands
+  # Strip pre-build and post-build commands, as they will fail under Linux/Wine.
+  #
+  # If you are unfamiliar with sed, what it does is use range deletions
+  # (/start/,/end/d) to remove entire blocks of text. Specifically, it searches
+  # for lines starting with 'prebuildcommands' or 'postbuildcommands' (ignoring
+  # any leading whitespace) and deletes everything up to and including the next
+  # line that starts with a closing brace '}'.
+  #
+  sed '/^[[:space:]]*prebuildcommands/,/^[[:space:]]*}/d; /^[[:space:]]*postbuildcommands/,/^[[:space:]]*}/d' premake5.lua > premake5-linux.lua
 
-  run wine tools/premake5.exe --file=premake5-linux.lua vs2022
-
-  cleanup_premake_temp_files
+  run wine tools/premake5.exe --file=premake5-linux.lua vs2026
+  run rm -f premake5-linux.lua
 }
 
-build_project ()
+compile ()
 {
-  diag "info: building IW4x client ($build_config configuration)..."
+  diag "info: building IW4x client ($cfg)"
 
-  solution_file="build/iw4x.sln"
-  if ! test -f "$solution_file"; then
-    error "solution file $solution_file not found; generation may have failed"
+  sln="build/iw4x.sln"
+  if ! test -f "$sln"; then
+    error "solution file $sln not found"
   fi
 
-  msbuild_args="/p:Configuration=$build_config"
-  if test "$verbose" = true; then
-    msbuild_args="$msbuild_args /verbosity:detailed"
+  args="/p:Configuration=$cfg"
+  if test "$verb" = true; then
+    args="$args /verbosity:detailed"
   fi
 
-  run "$msvc_install_dir/bin/x86/msbuild.exe" "$solution_file" $msbuild_args
+  # Deliberate unquoted expansion for msbuild argument word splitting.
+	#
+  # shellcheck disable=SC2086
+  run "$mi_dir/bin/x86/msbuild.exe" "$sln" $args
 }
 
-clean_environment ()
+build ()
 {
-  if test "$clean" = true; then
-    diag "info: cleaning build environment..."
-    run rm -rf build/
-    run rm -rf msvc-wine/
-    run rm -rf "$wine_prefix"
-    run rm -rf "$msvc_install_dir"
-    run rm -f /tmp/wine-mono-*.msi
+  diag
+  diag "-------------------------------------------------------------------------"
+  diag
+  diag "About to perform fast path build of IW4x client."
+  diag
+  diag "Build configuration: $cfg"
+  diag "Wine prefix:         $wn_dir/"
+  diag "MSVC install dir:    $mi_dir/"
+  diag
+  diag "To perform a from-scratch bootstrap, specify the --force option."
+  diag
+  prompt
+
+  if test -n "$submods"; then
+    diag "info: updating git submodules"
+    run git submodule update --init --recursive
   fi
-}
 
-install ()
-{
-  if check_msbuild_available; then
-    diag
-    diag "-------------------------------------------------------------------------"
-    diag
-    diag "MSBuild environment detected! Using fast path."
-    diag
-    diag "Build configuration: $build_config"
-    diag "Existing Wine prefix: $wine_prefix"
-    diag "Existing MSVC dir:    $msvc_install_dir"
-    diag
-    diag "This will:"
-    if test "$skip_submodules" != true; then
-    diag "  1. Update git submodules"
-    diag "  2. Generate VSCode configuration"
-    diag "  3. Regenerate Visual Studio solution files"
-    diag "  4. Build IW4x client using existing MSBuild"
-    else
-    diag "  1. Generate VSCode configuration"
-    diag "  2. Regenerate Visual Studio solution files"
-    diag "  3. Build IW4x client using existing MSBuild"
-    fi
-    diag
-    diag "To force full setup instead, use --force-full-setup option."
-    diag
-
-    prompt_continue
-
-    update_submodules
-    generate_build_files
-    build_project
-
-    diag
-    diag "-------------------------------------------------------------------------"
-    diag
-    diag "Successfully rebuilt IW4x client using fast path!"
-    diag
-    diag "Build configuration: $build_config"
-    diag "Output files can be found in: build/"
-    diag
-    diag "Build time was significantly reduced by reusing existing environment."
-    diag
-    return
-  fi
+  gen_info
+  gen_vscode
+  gen_bbuild
+  compile
 
   diag
   diag "-------------------------------------------------------------------------"
   diag
-  diag "About to bootstrap IW4x build environment on Linux (full setup)."
+  diag "Build configuration: $cfg"
+  diag "Output directory:    $owd/build/"
   diag
-  diag "Build configuration: $build_config"
-  diag "Wine prefix:         $wine_prefix"
-  diag "MSVC install dir:    $msvc_install_dir"
-  diag "MSVC cache dir:      $msvc_cache_dir"
+}
+
+bootstrap ()
+{
   diag
-  diag "This will:"
-  if test "$skip_deps" != true; then
-  diag "  1. Install system dependencies (wine, python3, msitools, etc.)"
-  diag "  2. Set up Wine environment and install wine-mono"
-  diag "  3. Download and install MSVC toolchain via msvc-wine"
-  if test "$skip_submodules" != true; then
-  diag "  4. Update git submodules"
-  diag "  5. Generate VSCode configuration"
-  diag "  6. Generate Visual Studio solution files"
-  diag "  7. Build IW4x client"
-  else
-  diag "  4. Generate VSCode configuration"
-  diag "  5. Generate Visual Studio solution files"
-  diag "  6. Build IW4x client"
-  fi
-  else
-  diag "  1. Set up Wine environment and install wine-mono"
-  diag "  2. Download and install MSVC toolchain via msvc-wine"
-  if test "$skip_submodules" != true; then
-  diag "  3. Update git submodules"
-  diag "  4. Generate VSCode configuration"
-  diag "  5. Generate Visual Studio solution files"
-  diag "  6. Build IW4x client"
-  else
-  diag "  3. Generate VSCode configuration"
-  diag "  4. Generate Visual Studio solution files"
-  diag "  5. Build IW4x client"
-  fi
-  fi
+  diag "-------------------------------------------------------------------------"
   diag
+  diag "About to bootstrap IW4x build environment and compile client."
+  diag
+  diag "Build configuration: $cfg"
+  diag "Wine prefix:         $wn_dir/"
+  diag "MSVC install dir:    $mi_dir/"
+  diag
+  if test "$clean" = true; then
+  diag "WARNING: --clean option will remove existing wine and msvc installations."
+  diag
+  fi
+  prompt
 
   if test "$clean" = true; then
-    diag "WARNING: --clean option will remove existing Wine prefix and MSVC installation."
-    diag
+    diag "info: cleaning build environment"
+    run rm -rf build/ msvc-wine/ "$wn_dir" "$mi_dir" /tmp/wine-mono-*.msi
   fi
 
-  prompt_continue
-
-  clean_environment
-
-  install_dependencies
+  sys_deps
 
   check_cmd wine "install wine package for your distribution"
   check_cmd git "install git package for your distribution"
@@ -684,31 +595,38 @@ install ()
   check_cmd python3 "install python3 package for your distribution"
   check_cmd msiexec "wine installation may be incomplete"
 
-  setup_wine
-  setup_msvc
-  update_submodules
-  generate_build_files
-  build_project
+  wine_setup
+  msvc_setup
+
+  if test -n "$submods"; then
+    diag "info: updating git submodules"
+    run git submodule update --init --recursive
+  fi
+
+  gen_info
+  gen_vscode
+  gen_bbuild
+  compile
 
   diag
   diag "-------------------------------------------------------------------------"
   diag
-  diag "Successfully built IW4x client!"
+  diag "Build configuration: $cfg"
+  diag "Output directory:    $owd/build/"
   diag
-  diag "Build configuration: $build_config"
-  diag "Output files can be found in: build/"
+  diag "To rebuild, change to $owd/ and run:"
   diag
-  if test "$build_config" = "Debug"; then
-    diag "Debug build completed. Use this for development and debugging."
-  else
-    diag "Release build completed. This is optimized for production use."
-  fi
-  diag
-  diag "To rebuild in the future, you can run:"
-  diag "  $prog --yes $build_config"
-  diag "or manually with:"
-  diag "  wine \"$msvc_install_dir/bin/x86/msbuild.exe\" build/iw4x.sln /p:Configuration=$build_config"
+  diag "  sh $prog $(echo "$cfg" | tr '[:upper:]' '[:lower:]')"
   diag
 }
 
-install
+main ()
+{
+  if check_env; then
+    build
+  else
+    bootstrap
+  fi
+}
+
+main
