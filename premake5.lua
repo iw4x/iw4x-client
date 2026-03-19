@@ -190,7 +190,10 @@ workspace "iw4x"
 	warnings "Extra"
 	characterset "ASCII"
 
-	flags {"NoIncrementalLink", "NoMinimalRebuild", "MultiProcessorCompile", "No64BitChecks"}
+	incrementallink "Off"
+	minimalrebuild "Off"
+	multiprocessorcompile "On"
+	enable64bitchecks "Off"
 
 	filter "platforms:Win*"
 		defines {"_WINDOWS", "WIN32"}
@@ -201,7 +204,7 @@ workspace "iw4x"
 		buildoptions {"/GL"}
 		linkoptions {"/IGNORE:4702", "/LTCG"}
 		defines {"NDEBUG"}
-		flags {"FatalCompileWarnings", "FatalLinkWarnings"}
+		fatalwarnings { "all" }
 		rtti ("Off")
 	filter {}
 
