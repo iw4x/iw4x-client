@@ -217,6 +217,8 @@ namespace Components
 				InsertRequest(server.addr);
 			}
 		}
+
+		Toast::Show("cardicon_headshot", "Server Browser", "Servers refreshed", 3000);
 	}
 
 	void ServerList::RefreshVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
@@ -1476,6 +1478,7 @@ namespace Components
 				return; // defer refresh until after the cache load completes
 			}
 
+			Toast::Show("cardicon_headshot", "Server Browser", "Servers refreshed", 3000);
 			ServerList::Refresh();
 		});
 
