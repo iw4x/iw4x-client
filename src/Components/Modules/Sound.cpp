@@ -8,6 +8,8 @@ namespace Components
   constexpr auto f_ini (0x6015D0); 	// ds init
   constexpr auto f_log (0x402500); 	// logger
 
+	constexpr auto v_loop (0x4A23EB); // voice loop.
+
   const char err[] ("Error: Failed to create DirectSound play buffer\n");
 
 	// The original implementation has a nasty bug in the failure path: if the
@@ -97,9 +99,39 @@ namespace Components
 		}
 	}
 
+	// The engine's voice initialization loop blindly stores the result in an
+	// array without checking if the allocation actually succeeded. If we returned
+	// 0 above, it poisons the array with null pointers, which later causes a
+	// divide-by-zero exception in the Miles MP3 decoder. *Sigh*
+	//
+	__declspec (naked) void Sound::Loop ()
+	{
+		__asm
+		{
+			test eax, eax
+			jz   fail_init
+
+			mov  dword ptr ds:[esi], eax
+			add  esi, 4
+
+			push v_loop
+			ret
+
+		fail_init:
+			// If we hit a null pointer, the audio buffer creation failed so we must
+			// abort the loop and return false to the caller.
+			//
+			xor  al, al
+			pop  esi
+			add  esp, 8
+			ret
+		}
+	}
+
   Sound::
   Sound ()
   {
     Utils::Hook (0x0463A80, Sound::Init, HOOK_JUMP).install ()->quick ();
+		Utils::Hook (0x04A23E6, Sound::Loop, HOOK_JUMP).install ()->quick ();
   }
 }

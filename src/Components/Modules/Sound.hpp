@@ -8,6 +8,7 @@ namespace Components
 		Sound();
 
 	private:
-		static int Init();
+		static int  Init();
+		static void Loop();
 	};
 }
