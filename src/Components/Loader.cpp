@@ -18,6 +18,7 @@
 #include "Modules/Console.hpp"
 #include "Modules/ConfigStrings.hpp"
 #include "Modules/D3D9Ex.hpp"
+#include "Modules/D3D11/D3D11.hpp"
 #include "Modules/Debug.hpp"
 #include "Modules/Discord.hpp"
 #include "Modules/Discovery.hpp"
@@ -118,7 +119,8 @@ namespace Components
 		Register(new ClientCommand());
 		Register(new ConnectProtocol());
 		Register(new Console());
-		Register(new D3D9Ex());
+		//Register(new D3D9Ex());
+		Register(new D3D11());
 		Register(new Debug());
 		Register(new Dedicated());
 		Register(new Discord());

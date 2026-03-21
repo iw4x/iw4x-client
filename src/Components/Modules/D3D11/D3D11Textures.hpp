@@ -26,8 +26,9 @@ namespace D3D11
 		STDMETHOD(GetPresentParameters)(THIS_ D3DPRESENT_PARAMETERS* pPresentationParameters) override;
 
 		ID3D11Texture2D* GetRenderTarget() const { return m_renderTarget.Get(); }
-		DXGI_FORMAT GetViewFormat() const { return m_desc.BufferDesc.Format; }
+		DXGI_FORMAT GetFormat() const { return m_desc.BufferDesc.Format; }
 		HRESULT TestCooperativeLevel();
+		void TestBind();
 	private:
 		std::atomic<ULONG> m_refCount;
 
@@ -42,7 +43,7 @@ namespace D3D11
 	class D3D11Texture : public IDirect3DTexture9
 	{
 	public:
-		D3D11Texture(D3D11Context* d3d11Context, UINT Width, UINT Height, UINT Levels, DWORD Usage, D3DFORMAT Format, UINT MultiSampleCount = 1, DWORD MultisampleQuality = 0);
+		D3D11Texture(D3D11Context* d3d11Context, UINT Width, UINT Height, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool);
 		virtual ~D3D11Texture();
 
 		/*** IUnknown methods ***/
@@ -77,30 +78,25 @@ namespace D3D11
 
 		/*** D3D11Texture methods ***/
 		ID3D11Texture2D* GetResource() const { return m_pID3D11Texture2D.Get(); };
-		ID3D11ShaderResourceView* GetShaderResourceView(bool srgb);
+		ID3D11ShaderResourceView* GetShaderResourceView();
 		const D3D11_TEXTURE2D_DESC& GetDesc() const { return m_desc; }
-		DXGI_FORMAT GetViewFormat() const { return m_viewFormat; }
 	private:
 		std::atomic<ULONG> m_refCount;
 
 		D3D11Context* m_d3dCtx;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_pID3D11Texture2D;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pID3D11ShaderResourceView;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pID3D11ShaderResourceViewsRGB;
 		D3D11Surface* m_surface = nullptr; // for RT/DST
 
 		D3D11_TEXTURE2D_DESC m_desc;
-		DXGI_FORMAT m_viewFormat;
-		D3DFORMAT m_d3d9Format;
 		size_t m_formatSize;
-		uint32_t m_blockSize;
 		std::vector<std::vector<uint8_t>> m_texturesData;
 	};
 
 	class D3D11VolumeTexture : public IDirect3DVolumeTexture9
 	{
 	public:
-		D3D11VolumeTexture(D3D11Context* d3d11Context, UINT Width, UINT Height, UINT Depth, UINT Levels, DWORD Usage, D3DFORMAT Format);
+		D3D11VolumeTexture(D3D11Context* d3d11Context, UINT Width, UINT Height, UINT Depth, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool);
 		virtual ~D3D11VolumeTexture() = default;
 
 		/*** IUnknown methods ***/
@@ -134,26 +130,23 @@ namespace D3D11
 		STDMETHOD(AddDirtyBox)(THIS_ CONST D3DBOX* pDirtyBox) override;
 
 		/*** D3D11VolumeTexture methods ***/
-		ID3D11Texture3D* GetResource() const { return m_pID3D11Texture3D.Get(); };
-		ID3D11ShaderResourceView* GetShaderResourceView(bool srgb);
+		ID3D11ShaderResourceView* GetShaderResourceView();
 	private:
 		std::atomic<ULONG> m_refCount;
 
 		D3D11Context* m_d3dCtx;
 		Microsoft::WRL::ComPtr<ID3D11Texture3D> m_pID3D11Texture3D;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pID3D11ShaderResourceView;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pID3D11ShaderResourceViewsRGB;
 
 		D3D11_TEXTURE3D_DESC m_desc;
 		size_t m_formatSize;
-		uint32_t m_blockSize;
 		std::vector<uint8_t> m_textureData;
 	};
 
 	class D3D11CubeTexture : public IDirect3DCubeTexture9
 	{
 	public:
-		D3D11CubeTexture(D3D11Context* d3d11Context, UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format);
+		D3D11CubeTexture(D3D11Context* d3d11Context, UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool);
 		virtual ~D3D11CubeTexture() = default;
 
 		/*** IUnknown methods ***/
@@ -187,19 +180,16 @@ namespace D3D11
 		STDMETHOD(AddDirtyRect)(THIS_ D3DCUBEMAP_FACES FaceType, CONST RECT* pDirtyRect) override;
 
 		/*** D3D11CubeTexture methods ***/
-		ID3D11Texture2D* GetResource() const { return m_pID3D11Texture2D.Get(); };
-		ID3D11ShaderResourceView* GetShaderResourceView(bool srgb);
+		ID3D11ShaderResourceView* GetShaderResourceView();
 	private:
 		std::atomic<ULONG> m_refCount;
 
 		D3D11Context* m_d3dCtx;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_pID3D11Texture2D;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pID3D11ShaderResourceView;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pID3D11ShaderResourceViewsRGB;
 
 		D3D11_TEXTURE2D_DESC m_desc;
 		size_t m_formatSize;
-		uint32_t m_blockSize;
 		std::array<std::vector<std::vector<uint8_t>>, 6> m_texturesData;
 	};
 
@@ -234,26 +224,15 @@ namespace D3D11
 		STDMETHOD(ReleaseDC)(THIS_ HDC hdc) override;
 
 		/*** D3D11Surface methods ***/
-		ID3D11RenderTargetView* GetRTV(bool srgb) const {
-			if (srgb && m_pID3D11RenderTargetViewSRGB.Get() != nullptr)
-				return m_pID3D11RenderTargetViewSRGB.Get();
-			return m_pID3D11RenderTargetView.Get();
-		}
+		ID3D11RenderTargetView* GetRTV() const { return m_pID3D11RenderTargetView.Get(); }
 		ID3D11DepthStencilView* GetDSV() const { return m_pID3D11DepthStencilView.Get(); }
-		ID3D11Texture2D* GetResource() const { return m_parentTexture ? m_parentTexture->GetResource() : nullptr; }
-
-		// tmp, to refacto alongside the m_parentTexture stuff
-		UINT GetWidth() const { return m_d3d9Desc.Width; }
-		UINT GetHeight() const { return m_d3d9Desc.Height; }
 	private:
 		std::atomic<ULONG> m_refCount;
 
 		D3D11Context* m_d3dCtx;
 		D3D11Texture* m_parentTexture; // need a way to do the same with swapchain, union????
-		D3DSURFACE_DESC m_d3d9Desc;
 
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pID3D11RenderTargetView;
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pID3D11RenderTargetViewSRGB;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_pID3D11DepthStencilView;
 	};
 }
