@@ -68,6 +68,14 @@
 #include <hidsdi.h>
 #pragma comment(lib, "Hid.lib")
 
+#pragma warning(push)
+#pragma warning(disable: 4005)
+#include <wrl/client.h>
+#include <d3d11.h>
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+#include <mojoshader.h>
+#pragma warning(pop)
 
 // Ignore the warnings
 #pragma warning(push)
