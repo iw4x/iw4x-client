@@ -516,7 +516,7 @@ compile ()
 {
   diag "info: building IW4x client ($cfg)"
 
-  sln="build/iw4x.sln"
+  sln="build/iw4x.slnx"
   if ! test -f "$sln"; then
     error "solution file $sln not found"
   fi
