@@ -2,22 +2,23 @@
 
 namespace Components
 {
-  constexpr auto g_en  (0x1AA4908); // global enable flag
-  constexpr auto g_cf  (0x79B174); 	// config value
-  constexpr auto f_new (0x454E40); 	// allocator
-  constexpr auto f_ini (0x6015D0); 	// ds init
-  constexpr auto f_log (0x402500); 	// logger
+	constexpr auto g_en  (0x1AA4908); // global enable flag
+	constexpr auto ppDS8 (0x1AA490C); // global DirectSound8 interface pointer
+	constexpr auto g_cf  (0x79B174);  // config value
+	constexpr auto f_new (0x454E40);  // allocator
+	constexpr auto f_ini (0x6015D0);  // ds init
+	constexpr auto f_log (0x402500);  // logger
 
 	constexpr auto v_loop (0x4A23EB); // voice loop.
 
-  const char err[] ("Error: Failed to create DirectSound play buffer\n");
+	const char err[] ("Error: Failed to create DirectSound play buffer\n");
 
 	// The original implementation has a nasty bug in the failure path: if the
-  // DirectSound buffer creation fails, it attempts to clean up by calling
-  // Release() on the interface pointer. The problem is that if creation failed,
-  // the interface pointer is uninitialized, causing an immediate access
-  // violation when trying to read the vtable.
-  //
+	// DirectSound buffer creation fails, it attempts to clean up by calling
+	// Release() on the interface pointer. The problem is that if creation failed,
+	// the interface pointer is uninitialized, causing an immediate access
+	// violation when trying to read the vtable.
+	//
 	__declspec (naked) int Sound::Init ()
 	{
 		__asm
@@ -34,26 +35,39 @@ namespace Components
 			mov  esi, eax
 
 			test esi, esi
-			jnz  alloc_ok
+			jnz  ok
 			pop  esi
 			ret
 
-		alloc_ok:
-      // Note that we explicitly load ECX/EAX to match the register state
-      // for `f_ini`.
+		ok:
+			push edi
+
+			// Check if DirectSound8 device was actually initialized.
 			//
-			mov  ecx, dword ptr ds:[esi+38h]
-			mov  eax, dword ptr ds:[esi+2Ch]
-			mov  eax, dword ptr ds:g_cf
-			push edi
+			// Note that since ppDS8 is a pointer-to-pointer, we need to dereference
+			// it twice. First to check the outer pointer, and then to verify the
+			// actual interface pointer isn't null.
+			//
+			mov  eax, dword ptr ds:[ppDS8]
+			test eax, eax
+			jz   fail_e
 
-			push eax
-			mov  dword ptr ds:[esi+8], eax
+			mov  eax, dword ptr ds:[eax]
+			test eax, eax
+			jz   fail_e
 
+			// Push stack arguments first, then set up eax/ecx for the usercall.
+			//
+			mov  edx, dword ptr ds:[g_cf]
+			push edx                       	 // Arg 4
+			mov  dword ptr ds:[esi+8], edx
 			lea  edi, [esi+4]
-			push edi
-			mov  eax, f_ini
-			call eax
+			push edi                         // Arg 3: LPDIRECTSOUNDBUFFER *.
+			mov  ecx, dword ptr ds:[esi+38h] // Arg 2
+			mov  eax, dword ptr ds:[esi+2Ch] // Arg 1
+
+			mov  edx, f_ini
+			call edx
 			add  esp, 8
 
 			test eax, eax
@@ -65,36 +79,36 @@ namespace Components
 			call eax
 			add  esp, 8
 
-			// CRASH FIX:
-			//
-			// The original code blindly dereferences [EDI] (the buffer pointer) to
-      // find the Release() vfunc. But if f_ini failed, [EDI] is likely a
-      // invalid pointer. We check it first.
+			// Handle clean-up crash. The original code blindly dereferences the
+			// buffer pointer to find the Release() vfunc. But if the init failed, the
+			// pointer is likely invalid.
 			//
 			mov  eax, dword ptr ds:[edi]
 			test eax, eax
-			jz   fail_clean
+			jz   fail_c
 
-			// It's valid, so we release the interface.
+			// It's valid, so we release the interface. Release() is usually at
+			// offset 8 in IUnknown.
 			//
 			mov  ecx, dword ptr ds:[eax]
-			mov  edx, dword ptr ds:[ecx+8] // Release() is usually at offset 8 in IUnknown
+			mov  edx, dword ptr ds:[ecx+8]
 			push eax
 			call edx
 
-		fail_clean:
+		fail_c:
 			// Otherwise, we zero out the slot and bail out.
 			//
-			mov dword ptr ds:[edi], 0
-			pop edi
-			xor eax, eax
-			pop esi
+			mov  dword ptr ds:[edi], 0
+		fail_e:
+			pop  edi
+			xor  eax, eax
+			pop  esi
 			ret
 
 		success:
-			pop edi
-			mov eax, esi
-			pop esi
+			pop  edi
+			mov  eax, esi
+			pop  esi
 			ret
 		}
 	}
@@ -128,10 +142,10 @@ namespace Components
 		}
 	}
 
-  Sound::
-  Sound ()
-  {
-    Utils::Hook (0x0463A80, Sound::Init, HOOK_JUMP).install ()->quick ();
+	Sound::
+	Sound ()
+	{
+		Utils::Hook (0x0463A80, Sound::Init, HOOK_JUMP).install ()->quick ();
 		Utils::Hook (0x04A23E6, Sound::Loop, HOOK_JUMP).install ()->quick ();
-  }
+	}
 }
