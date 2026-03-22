@@ -13,12 +13,21 @@ namespace Components
 
 	const char err[] ("Error: Failed to create DirectSound play buffer\n");
 
-	// The original implementation has a nasty bug in the failure path: if the
-	// DirectSound buffer creation fails, it attempts to clean up by calling
-	// Release() on the interface pointer. The problem is that if creation failed,
-	// the interface pointer is uninitialized, causing an immediate access
-	// violation when trying to read the vtable.
-	//
+	// Patch a few bugs in the engine's DirectSound buffer initialization.
+  //
+  // First, we prevent a crash inside the init function by making sure
+  // the global DirectSound8 interface is actually initialized before
+  // we attempt to use it.
+  //
+  // Second, we fix a register overwrite bug. The original code clobbers
+  // the first argument in eax with the global config value right before
+  // the usercall.
+  //
+  // Finally, we fix a cleanup crash in the failure path. If the buffer
+  // creation fails, the engine unconditionally calls Release() on an
+  // uninitialized pointer. This results in an access violation when
+  // trying to read the vtable.
+  //
 	__declspec (naked) int Sound::Init ()
 	{
 		__asm
