@@ -1,4 +1,5 @@
 #include <STDInclude.hpp>
+#include "Screenshot.hpp"
 #include "MapDump.hpp"
 
 namespace Components
@@ -363,8 +364,9 @@ namespace Components
 				return image;
 			}
 
-			std::string _name = Utils::String::VA("raw/mapdump/%s/textures/%s.png", this->world_->baseName, image->name);
-			D3DXSaveTextureToFileA(_name.data(), D3DXIFF_PNG, image->texture.map, nullptr);
+			std::string _name = Utils::String::VA("raw/mapdump/%s/textures/%s.tga", this->world_->baseName, image->name);
+
+			Screenshot::SaveTextureToFile(_name, image->texture.map);
 
 			return image;
 		}
@@ -390,17 +392,17 @@ namespace Components
 			this->material_.append("Ka 1.0000 1.0000 1.0000\n");
 			this->material_.append("Kd 1.0000 1.0000 1.0000\n");
 			this->material_.append("illum 1\n");
-			this->material_.append(Utils::String::VA("map_Ka textures/%s.png\n", colorMap->name));
-			this->material_.append(Utils::String::VA("map_Kd textures/%s.png\n", colorMap->name));
+			this->material_.append(Utils::String::VA("map_Ka textures/%s.tga\n", colorMap->name));
+			this->material_.append(Utils::String::VA("map_Kd textures/%s.tga\n", colorMap->name));
 
 			if (specularMap)
 			{
-				this->material_.append(Utils::String::VA("map_Ks textures/%s.png\n", specularMap->name));
+				this->material_.append(Utils::String::VA("map_Ks textures/%s.tga\n", specularMap->name));
 			}
 
 			if (normalMap)
 			{
-				this->material_.append(Utils::String::VA("bump textures/%s.png\n", normalMap->name));
+				this->material_.append(Utils::String::VA("bump textures/%s.tga\n", normalMap->name));
 			}
 		}
 
@@ -434,7 +436,7 @@ namespace Components
 
 	MapDump::MapDump()
 	{
-		Command::Add("dumpmap", []()
+		Command::Add("dump_map_obj", []()
 		{
 			if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
 			{
