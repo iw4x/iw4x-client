@@ -1,10 +1,8 @@
 #include <STDInclude.hpp>
 #include "D3D9Ex.hpp"
-#include "D3D11/D3D11Adapters.hpp"
 
 namespace Components
 {
-	Dvar::Var D3D9Ex::RUseD3D11;
 	Dvar::Var D3D9Ex::RUseD3D12;
 	Dvar::Var D3D9Ex::RUseDXVK;
 
@@ -752,14 +750,6 @@ namespace Components
 		}
 #endif
 
-		// DX11
-		if (RUseD3D11.get<bool>())
-		{
-			D3D11::DXGI* DXGIFactory = new D3D11::DXGI();
-			DXGIFactory->AddRef();
-			return DXGIFactory;
-		}
-
 		// DX12
 		if (RUseD3D12.get<bool>())
 		{
@@ -797,7 +787,6 @@ namespace Components
 	{
 		if (Dedicated::IsEnabled()) return;
 
-		RUseD3D11 = Dvar::Register<bool>("r_useD3D11", false, Game::DVAR_ARCHIVE, "Use iw4x D3D11 translation layer");
 		RUseD3D12 = Dvar::Register<bool>("r_useD3D9on12", false, Game::DVAR_ARCHIVE, "Use Microsoft D3D9on12 to translate D3D9 into DX12 calls");
 		RUseDXVK = Dvar::Register<bool>("r_useDXVK", true, Game::DVAR_ARCHIVE, "Use DXVK to translate D3D9 into Vulkan calls");
 

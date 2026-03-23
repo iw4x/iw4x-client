@@ -14,6 +14,8 @@
 #include <shellapi.h>
 #include <wininet.h>
 #include <d3d9.h>
+#include <d3d12.h>
+#include <d3d9on12.h>
 #include <aclapi.h>
 #include <psapi.h>
 #include <tlhelp32.h>
@@ -46,9 +48,6 @@
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
-
-#include <d3dx9tex.h>
-#pragma comment(lib, "D3dx9.lib")
 
 #include <XInput.h>
 #pragma comment (lib, "xinput.lib")
@@ -152,6 +151,7 @@ using namespace std::literals;
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "d3d9.lib")
+#pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "Wininet.lib")
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "Urlmon.lib")
