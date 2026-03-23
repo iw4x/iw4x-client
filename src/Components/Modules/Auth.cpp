@@ -545,33 +545,36 @@ namespace Components
 			{
 				// Now allocate a structure of the required size.
 				PIP_ADAPTER_INFO pIpAdapterInfo = reinterpret_cast<PIP_ADAPTER_INFO>(malloc(outBufLen));
-				dwResult = GetAdaptersInfo(pIpAdapterInfo, &outBufLen);
-				if (dwResult == ERROR_SUCCESS)
+				if (pIpAdapterInfo)
 				{
-					while (pIpAdapterInfo)
+					PIP_ADAPTER_INFO pOriginal = pIpAdapterInfo;
+					dwResult = GetAdaptersInfo(pIpAdapterInfo, &outBufLen);
+					if (dwResult == ERROR_SUCCESS)
 					{
-						switch (pIpAdapterInfo->Type)
+						while (pIpAdapterInfo)
 						{
-							case IF_TYPE_IEEE80211:
-							case MIB_IF_TYPE_ETHERNET:
+							switch (pIpAdapterInfo->Type)
 							{
-
-								std::string macAddress{};
-								for (size_t i = 0; i < ARRAYSIZE(pIpAdapterInfo->Address); i++)
+								case IF_TYPE_IEEE80211:
+								case MIB_IF_TYPE_ETHERNET:
 								{
-									entropy += std::to_string(pIpAdapterInfo->Address[i]);
+
+									std::string macAddress{};
+									for (size_t i = 0; i < ARRAYSIZE(pIpAdapterInfo->Address); i++)
+									{
+										entropy += std::to_string(pIpAdapterInfo->Address[i]);
+									}
+
+									break;
 								}
-
-								break;
 							}
+
+							pIpAdapterInfo = pIpAdapterInfo->Next;
 						}
-
-						pIpAdapterInfo = pIpAdapterInfo->Next;
 					}
-				}
 
-				// Free before going next because clearly this is not working
-				free(pIpAdapterInfo);
+					free(pOriginal);
+				}
 			}
 
 		}
