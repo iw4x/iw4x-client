@@ -4,6 +4,7 @@
 #include "CardTitles.hpp"
 #include "ClanTags.hpp"
 #include "Events.hpp"
+#include "Friends.hpp"
 #include "Party.hpp"
 #include "ServerCommands.hpp"
 
@@ -299,7 +300,7 @@ namespace Components
 					PlayerGuids[client][0].bits = std::strtoull(params->get(2 * client + 1), nullptr, 16);
 					PlayerGuids[client][1].bits = std::strtoull(params->get(2 * client + 2), nullptr, 16);
 
-					if (Steam::Proxy::SteamFriends && PlayerGuids[client][1].bits != 0)
+					if (Steam::Proxy::SteamFriends && PlayerGuids[client][1].bits != 0 && !Friends::IsInvisible() && !Friends::CLAnonymous.get<bool>())
 					{
 						Steam::Proxy::SteamFriends->SetPlayedWith(PlayerGuids[client][1]);
 					}
