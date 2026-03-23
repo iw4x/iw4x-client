@@ -3,6 +3,9 @@
 
 namespace Components
 {
+	Dvar::Var D3D9Ex::RUseD3D12;
+	Dvar::Var D3D9Ex::RUseDXVK;
+
 #if OVERRIDE_DX9
 	Dvar::Var D3D9Ex::RUseD3D9Ex;
 
@@ -733,8 +736,11 @@ namespace Components
 
 #pragma endregion
 
+#endif
+
 	IDirect3D9* CALLBACK D3D9Ex::Direct3DCreate9Stub(UINT sdk)
 	{
+#if OVERRIDE_DX9
 		if (RUseD3D9Ex.get<bool>())
 		{
 			IDirect3D9Ex* test = nullptr;
@@ -742,20 +748,35 @@ namespace Components
 
 			return (new D3D9(test));
 		}
-
-		return Direct3DCreate9(sdk);
-	}
 #endif
-	typedef IDirect3D9*(__stdcall* DXVKCreate9Stub_t)(UINT sdk);
-	IDirect3D9* CALLBACK Direct3DCreate9Stub(UINT sdk)
-	{
-		HINSTANCE hGetProcIDDLL = LoadLibraryEx(".\\dxvk9.dll", NULL, NULL);
-		if (hGetProcIDDLL)
+
+		// DX12
+		if (RUseD3D12.get<bool>())
 		{
-			DXVKCreate9Stub_t dxvkCreate = reinterpret_cast<DXVKCreate9Stub_t>(GetProcAddress(hGetProcIDDLL, "Direct3DCreate9"));
-			if (dxvkCreate)
+			D3D9ON12_ARGS dArgs{};
+			ID3D12Device* d3d12 = NULL;
+
+			if (ERROR_SUCCESS == D3D12CreateDevice(NULL, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&d3d12)))
 			{
-				return dxvkCreate(sdk);
+				ZeroMemory(&dArgs, sizeof(D3D9ON12_ARGS));
+				dArgs.Enable9On12 = TRUE;
+				dArgs.pD3D12Device = d3d12;
+				return Direct3DCreate9On12(sdk, &dArgs, 1);
+			}
+		}
+
+		// VK
+		if (RUseDXVK.get<bool>())
+		{
+		typedef IDirect3D9* (__stdcall* DXVKCreate9Stub_t)(UINT sdk);
+			HINSTANCE hGetProcIDDLL = LoadLibraryEx(".\\dxvk9.dll", NULL, NULL);
+			if (hGetProcIDDLL)
+			{
+				DXVKCreate9Stub_t dxvkCreate = reinterpret_cast<DXVKCreate9Stub_t>(GetProcAddress(hGetProcIDDLL, "Direct3DCreate9"));
+				if (dxvkCreate)
+				{
+					return dxvkCreate(sdk);
+				}
 			}
 		}
 
@@ -764,15 +785,17 @@ namespace Components
 
 	D3D9Ex::D3D9Ex()
 	{
-		Utils::Hook::Set(0x6D74D0, Direct3DCreate9Stub);
+		if (Dedicated::IsEnabled()) return;
+
+		RUseD3D12 = Dvar::Register<bool>("r_useD3D9on12", false, Game::DVAR_ARCHIVE, "Use Microsoft D3D9on12 to translate D3D9 into DX12 calls");
+		RUseDXVK = Dvar::Register<bool>("r_useDXVK", true, Game::DVAR_ARCHIVE, "Use DXVK to translate D3D9 into Vulkan calls");
 
 #if OVERRIDE_DX9
-		if (Dedicated::IsEnabled()) return;
 
 		RUseD3D9Ex = Dvar::Register<bool>("r_useD3D9Ex", false, Game::DVAR_ARCHIVE, "Use extended d3d9 interface!");
 
+#endif
 		// Hook Interface creation
 		Utils::Hook::Set(0x6D74D0, Direct3DCreate9Stub);
-#endif
 	}
 }
