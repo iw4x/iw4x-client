@@ -488,7 +488,8 @@ namespace Assets
 		std::map<std::string, std::string> parentsToRestore{};
 		for (uint8_t i = model->numRootBones; i < model->numBones; i++)
 		{
-			parentsToRestore[Game::SL_ConvertToString(model->boneNames[i])] = GetParentOfBone(model, i);
+			std::string n = Game::SL_ConvertToString(model->boneNames[i]);
+  		parentsToRestore[n] = GetParentOfBone(model, i);
 		}
 
 		const uint8_t newBoneCount = model->numBones + 1;
