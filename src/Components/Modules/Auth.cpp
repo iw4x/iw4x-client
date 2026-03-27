@@ -544,36 +544,30 @@ namespace Components
 			if (dwResult == ERROR_BUFFER_OVERFLOW)  // This is what we're expecting
 			{
 				// Now allocate a structure of the required size.
-				PIP_ADAPTER_INFO pIpAdapterInfo = reinterpret_cast<PIP_ADAPTER_INFO>(malloc(outBufLen));
+				auto pIpAdapterInfo = std::unique_ptr<IP_ADAPTER_INFO, decltype(&free)>(
+					reinterpret_cast<PIP_ADAPTER_INFO>(malloc(outBufLen)), free);
 				if (pIpAdapterInfo)
 				{
-					PIP_ADAPTER_INFO pOriginal = pIpAdapterInfo;
-					dwResult = GetAdaptersInfo(pIpAdapterInfo, &outBufLen);
+					dwResult = GetAdaptersInfo(pIpAdapterInfo.get(), &outBufLen);
 					if (dwResult == ERROR_SUCCESS)
 					{
-						while (pIpAdapterInfo)
+						for (auto* adapter = pIpAdapterInfo.get(); adapter; adapter = adapter->Next)
 						{
-							switch (pIpAdapterInfo->Type)
+							switch (adapter->Type)
 							{
 								case IF_TYPE_IEEE80211:
 								case MIB_IF_TYPE_ETHERNET:
 								{
-
-									std::string macAddress{};
-									for (size_t i = 0; i < ARRAYSIZE(pIpAdapterInfo->Address); i++)
+									for (UINT i = 0; i < adapter->AddressLength; i++)
 									{
-										entropy += std::to_string(pIpAdapterInfo->Address[i]);
+										entropy += std::to_string(adapter->Address[i]);
 									}
 
 									break;
 								}
 							}
-
-							pIpAdapterInfo = pIpAdapterInfo->Next;
 						}
 					}
-
-					free(pOriginal);
 				}
 			}
 
