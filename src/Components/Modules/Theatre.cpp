@@ -778,7 +778,7 @@ namespace Components
 		AssertOffset(Game::clientConnection_t, serverMessageSequence, 0x2013C);
 
 		CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games");
-		CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
+		CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 100, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
 
 		if (Flags::HasFlag("steamdemo"))
 		{
