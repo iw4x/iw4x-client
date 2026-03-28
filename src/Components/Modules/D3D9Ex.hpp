@@ -10,6 +10,11 @@ namespace Components
 		D3D9Ex();
 
 	private:
+		static Dvar::Var RUseD3D12;
+		static Dvar::Var RUseDXVK;
+
+		static IDirect3D9* CALLBACK Direct3DCreate9Stub(UINT sdk);
+
 #if OVERRIDE_DX9
 		class D3D9Device : public IDirect3DDevice9
 		{
@@ -170,8 +175,6 @@ namespace Components
 		};
 
 		static Dvar::Var RUseD3D9Ex;
-
-		static IDirect3D9* CALLBACK Direct3DCreate9Stub(UINT sdk);
 #endif
 	};
 }

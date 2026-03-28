@@ -51,6 +51,7 @@
 #include "Modules/RawMouse.hpp"
 #include "Modules/RCon.hpp"
 #include "Modules/Rumble.hpp"
+#include "Modules/Screenshot.hpp"
 #include "Modules/Security.hpp"
 #include "Modules/ServerCommands.hpp"
 #include "Modules/ServerInfo.hpp"
@@ -192,6 +193,8 @@ namespace Components
 		Register(new Weapon());
 		Register(new Window());
 		Register(new Zones());
+
+		Register(new Screenshot());
 
 		Register(new GSC::GSC());
 

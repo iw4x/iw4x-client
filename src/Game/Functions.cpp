@@ -155,6 +155,7 @@ namespace Game
 	R_TextHeight_t R_TextHeight = R_TextHeight_t(0x505770);
 	R_FlushSun_t R_FlushSun = R_FlushSun_t(0x53FB50);
 	R_SortWorldSurfaces_t R_SortWorldSurfaces = R_SortWorldSurfaces_t(0x53DC10);
+	R_ErrorDescription_t R_ErrorDescription = R_ErrorDescription_t(0x6D0926);
 
 	GetMemory_t GetMemory = GetMemory_t(0x4E67B0);
 	GetClearedMemory_t GetClearedMemory = GetClearedMemory_t(0x422E70);

@@ -395,6 +395,9 @@ namespace Game
 	typedef GfxWorld*(*R_SortWorldSurfaces_t)();
 	extern R_SortWorldSurfaces_t R_SortWorldSurfaces;
 
+	typedef const char* (*R_ErrorDescription_t)(HRESULT error);
+	extern R_ErrorDescription_t R_ErrorDescription;
+
 	typedef void* (*GetMemory_t)(unsigned int size);
 	extern GetMemory_t GetMemory;
 
