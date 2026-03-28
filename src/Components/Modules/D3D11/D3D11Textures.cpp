@@ -1,8 +1,7 @@
 #include <STDInclude.hpp>
+#include "D3D11Utils.hpp"
 #include "D3D11Textures.hpp"
 #include "D3D11.hpp"
-#include "D3D11Adapters.hpp"
-#include "D3D11Utils.hpp"
 
 #pragma region D3D11Surface
 D3D11::D3D11Surface::D3D11Surface(D3D11Context* ctx, D3D11Texture* parent) : m_refCount(0), m_d3dCtx(ctx), m_parentTexture(parent)
@@ -194,10 +193,8 @@ D3D11::D3D11SwapChain::D3D11SwapChain(D3D11Context* ctx, D3DPRESENT_PARAMETERS* 
 	m_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	m_desc.Flags = 0;
 
-	if (!pPresentationParameters->Windowed) {
-		SetWindowPos(pPresentationParameters->hDeviceWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-		ShowWindow(pPresentationParameters->hDeviceWindow, SW_SHOWMAXIMIZED);
-	}
+	SetWindowPos(pPresentationParameters->hDeviceWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+	ShowWindow(pPresentationParameters->hDeviceWindow, SW_SHOWMAXIMIZED);
 
 	ctx->GetDXGI()->GetFactory()->CreateSwapChain(
 		ctx->GetDevice(),

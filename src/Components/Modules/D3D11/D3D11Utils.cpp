@@ -3,10 +3,7 @@
 
 void D3D11::UnpackD3DCOLOR(D3DCOLOR D3D9Color, FLOAT* D3D11Color)
 {
-	D3D11Color[0] = float((D3D9Color >> 16) & 0xFF) / 0xFF;
-	D3D11Color[1] = float((D3D9Color >>  8) & 0xFF) / 0xFF;
-	D3D11Color[2] = float((D3D9Color >>  0) & 0xFF) / 0xFF;
-	D3D11Color[3] = float((D3D9Color >> 24) & 0xFF) / 0xFF;
+
 }
 
 size_t D3D11::GetFormatSize(DXGI_FORMAT Format)

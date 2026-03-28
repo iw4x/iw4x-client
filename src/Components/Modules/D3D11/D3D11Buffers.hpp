@@ -7,7 +7,7 @@ namespace D3D11
 	class D3D11VertexBuffer : public IDirect3DVertexBuffer9
 	{
 	public:
-		D3D11VertexBuffer(D3D11Context* d3d11Context, UINT Length, DWORD Usage);
+		D3D11VertexBuffer(D3D11Context* d3d11Context, UINT Length, DWORD Usage, DWORD FV);
 		virtual ~D3D11VertexBuffer() = default;
 
 		/*** IUnknown methods ***/
@@ -36,9 +36,8 @@ namespace D3D11
 		std::atomic<ULONG> m_refCount;
 
 		D3D11Context* m_d3dCtx;
-		CD3D11_BUFFER_DESC m_desc;
+		DWORD m_usage;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_pID3D11Buffer;
-		std::vector<uint8_t> m_data;
 	};
 
 	class D3D11IndexBuffer : public IDirect3DIndexBuffer9
@@ -73,8 +72,7 @@ namespace D3D11
 		std::atomic<ULONG> m_refCount;
 
 		D3D11Context* m_d3dCtx;
-		CD3D11_BUFFER_DESC m_desc;
+		DWORD m_usage;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_pID3D11Buffer;
-		std::vector<uint8_t> m_data;
 	};
 }
