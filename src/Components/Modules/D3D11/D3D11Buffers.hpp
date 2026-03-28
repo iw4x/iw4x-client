@@ -7,7 +7,7 @@ namespace D3D11
 	class D3D11VertexBuffer : public IDirect3DVertexBuffer9
 	{
 	public:
-		D3D11VertexBuffer(D3D11Context* d3d11Context, UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool);
+		D3D11VertexBuffer(D3D11Context* d3d11Context, UINT Length, DWORD Usage, DWORD FV);
 		virtual ~D3D11VertexBuffer() = default;
 
 		/*** IUnknown methods ***/
@@ -43,7 +43,7 @@ namespace D3D11
 	class D3D11IndexBuffer : public IDirect3DIndexBuffer9
 	{
 	public:
-		D3D11IndexBuffer(D3D11Context* d3d11Context, UINT Length, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool);
+		D3D11IndexBuffer(D3D11Context* d3d11Context, UINT Length, DWORD Usage, D3DFORMAT Format);
 		virtual ~D3D11IndexBuffer() = default;
 
 		/*** IUnknown methods ***/

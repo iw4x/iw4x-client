@@ -13,7 +13,7 @@
 // D3DUSAGE_WRITEONLY
 
 #pragma region D3D11VertexBuffer
-D3D11::D3D11VertexBuffer::D3D11VertexBuffer(D3D11Context* ctx, UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool) : m_refCount(0), m_d3dCtx(ctx), m_usage(Usage)
+D3D11::D3D11VertexBuffer::D3D11VertexBuffer(D3D11Context* ctx, UINT Length, DWORD Usage, DWORD FVF) : m_refCount(0), m_d3dCtx(ctx), m_usage(Usage)
 {
 	CD3D11_BUFFER_DESC desc(
 		Length,
@@ -108,7 +108,7 @@ HRESULT D3D11::D3D11VertexBuffer::GetDesc(D3DVERTEXBUFFER_DESC* pDesc)
 #pragma endregion
 
 #pragma region D3D11IndexBuffer
-D3D11::D3D11IndexBuffer::D3D11IndexBuffer(D3D11Context* ctx, UINT Length, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool) : m_refCount(0), m_d3dCtx(ctx)
+D3D11::D3D11IndexBuffer::D3D11IndexBuffer(D3D11Context* ctx, UINT Length, DWORD Usage, D3DFORMAT Format) : m_refCount(0), m_d3dCtx(ctx), m_usage(Usage)
 {
 	CD3D11_BUFFER_DESC desc(
 		Length,

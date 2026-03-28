@@ -147,6 +147,16 @@ D3D11::D3D11Context::D3D11Context(DXGI* dxgi, IDXGIAdapter* adapter, D3DPRESENT_
 
 	m_swapChain = new D3D11SwapChain(this, pPresentationParameters);
 	m_swapChain->AddRef();
+
+	CD3D11_BUFFER_DESC cbDesc(
+		sizeof(float) * 4,
+		D3D11_BIND_CONSTANT_BUFFER,
+		D3D11_USAGE_DEFAULT
+	);
+	m_pID3D11Device->CreateBuffer(&cbDesc, NULL, m_cbAlphaTest.ReleaseAndGetAddressOf());
+	
+	for (int i = 0; i < 16; i++)
+		m_samplersDesc[i] = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
 }
 
 HRESULT D3D11::D3D11Context::QueryInterface(REFIID riid, void** ppvObj)
@@ -277,7 +287,7 @@ void D3D11::D3D11Context::GetGammaRamp(UINT iSwapChain, D3DGAMMARAMP* pRamp)
 
 HRESULT D3D11::D3D11Context::CreateTexture(UINT Width, UINT Height, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DTexture9** ppTexture, HANDLE* pSharedHandle)
 {
-	auto d3d11Tex = new D3D11Texture(this, Width, Height, Levels, Usage, Format, Pool);
+	auto d3d11Tex = new D3D11Texture(this, Width, Height, Levels, Usage, Format);
 	d3d11Tex->AddRef();
 	*ppTexture = d3d11Tex;
 	return D3D_OK;
@@ -285,7 +295,7 @@ HRESULT D3D11::D3D11Context::CreateTexture(UINT Width, UINT Height, UINT Levels,
 
 HRESULT D3D11::D3D11Context::CreateVolumeTexture(UINT Width, UINT Height, UINT Depth, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DVolumeTexture9** ppVolumeTexture, HANDLE* pSharedHandle)
 {
-	auto d3d11Tex = new D3D11VolumeTexture(this, Width, Height, Depth, Levels, Usage, Format, Pool);
+	auto d3d11Tex = new D3D11VolumeTexture(this, Width, Height, Depth, Levels, Usage, Format);
 	d3d11Tex->AddRef();
 	*ppVolumeTexture = d3d11Tex;
 	return D3D_OK;
@@ -293,7 +303,7 @@ HRESULT D3D11::D3D11Context::CreateVolumeTexture(UINT Width, UINT Height, UINT D
 
 HRESULT D3D11::D3D11Context::CreateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9** ppCubeTexture, HANDLE* pSharedHandle)
 {
-	auto d3d11Tex = new D3D11CubeTexture(this, EdgeLength, Levels, Usage, Format, Pool);
+	auto d3d11Tex = new D3D11CubeTexture(this, EdgeLength, Levels, Usage, Format);
 	d3d11Tex->AddRef();
 	*ppCubeTexture = d3d11Tex;
 	return D3D_OK;
@@ -301,7 +311,7 @@ HRESULT D3D11::D3D11Context::CreateCubeTexture(UINT EdgeLength, UINT Levels, DWO
 
 HRESULT D3D11::D3D11Context::CreateVertexBuffer(UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool, IDirect3DVertexBuffer9** ppVertexBuffer, HANDLE* pSharedHandle)
 {
-	auto d3d11VB = new D3D11VertexBuffer(this, Length, Usage, FVF, Pool);
+	auto d3d11VB = new D3D11VertexBuffer(this, Length, Usage, FVF);
 	d3d11VB->AddRef();
 	*ppVertexBuffer = d3d11VB;
 	return D3D_OK;
@@ -309,7 +319,7 @@ HRESULT D3D11::D3D11Context::CreateVertexBuffer(UINT Length, DWORD Usage, DWORD 
 
 HRESULT D3D11::D3D11Context::CreateIndexBuffer(UINT Length, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DIndexBuffer9** ppIndexBuffer, HANDLE* pSharedHandle)
 {
-	auto d3d11IB = new D3D11IndexBuffer(this, Length, Usage, Format, Pool);
+	auto d3d11IB = new D3D11IndexBuffer(this, Length, Usage, Format);
 	d3d11IB->AddRef();
 	*ppIndexBuffer = d3d11IB;
 	return D3D_OK;
@@ -317,14 +327,18 @@ HRESULT D3D11::D3D11Context::CreateIndexBuffer(UINT Length, DWORD Usage, D3DFORM
 
 HRESULT D3D11::D3D11Context::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Lockable, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
 {
-	auto d3d11Texture = new D3D11Texture(this, Width, Height, 1, D3DUSAGE_RENDERTARGET, Format, D3DPOOL_DEFAULT);
+	UINT MultisampleCount = MultiSample;
+	if (MultisampleCount == 0) MultisampleCount = 1;
+	auto d3d11Texture = new D3D11Texture(this, Width, Height, 1, D3DUSAGE_RENDERTARGET, Format, MultisampleCount, MultisampleQuality);
 	d3d11Texture->GetSurfaceLevel(0, ppSurface);
 	return D3D_OK;
 }
 
 HRESULT D3D11::D3D11Context::CreateDepthStencilSurface(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Discard, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle)
 {
-	auto d3d11Texture = new D3D11Texture(this, Width, Height, 1, D3DUSAGE_DEPTHSTENCIL, Format, D3DPOOL_DEFAULT);
+	UINT MultisampleCount = MultiSample;
+	if (MultisampleCount == 0) MultisampleCount = 1;
+	auto d3d11Texture = new D3D11Texture(this, Width, Height, 1, D3DUSAGE_DEPTHSTENCIL, Format, MultisampleCount, MultisampleQuality);
 	d3d11Texture->GetSurfaceLevel(0, ppSurface);
 	return D3D_OK;
 }
@@ -336,7 +350,23 @@ HRESULT D3D11::D3D11Context::UpdateSurface(IDirect3DSurface9* pSourceSurface, CO
 
 HRESULT D3D11::D3D11Context::UpdateTexture(IDirect3DBaseTexture9* pSourceTexture, IDirect3DBaseTexture9* pDestinationTexture)
 {
-	NOT_IMPLEMENTED_WARNING
+	const std::lock_guard<std::mutex> lock(m_mutex);
+
+	ID3D11Resource* srcRes;
+	switch (pSourceTexture->GetType()) {
+	case D3DRTYPE_TEXTURE:			srcRes = ((D3D11Texture*)pSourceTexture)->GetResource(); break;
+	case D3DRTYPE_VOLUMETEXTURE:	srcRes = ((D3D11VolumeTexture*)pSourceTexture)->GetResource(); break;
+	case D3DRTYPE_CUBETEXTURE:		srcRes = ((D3D11CubeTexture*)pSourceTexture)->GetResource(); break;
+	}
+	ID3D11Resource* dstRes;
+	switch (pDestinationTexture->GetType()) {
+	case D3DRTYPE_TEXTURE:			dstRes = ((D3D11Texture*)pDestinationTexture)->GetResource(); break;
+	case D3DRTYPE_VOLUMETEXTURE:	dstRes = ((D3D11VolumeTexture*)pDestinationTexture)->GetResource(); break;
+	case D3DRTYPE_CUBETEXTURE:		dstRes = ((D3D11CubeTexture*)pDestinationTexture)->GetResource(); break;
+	}
+	m_pID3D11DeviceContext->CopySubresourceRegion(dstRes, 0, 0, 0, 0, srcRes, 0, NULL);
+
+	return D3D_OK;
 }
 
 HRESULT D3D11::D3D11Context::GetRenderTargetData(IDirect3DSurface9* pRenderTarget, IDirect3DSurface9* pDestSurface)
@@ -351,7 +381,28 @@ HRESULT D3D11::D3D11Context::GetFrontBufferData(UINT iSwapChain, IDirect3DSurfac
 
 HRESULT D3D11::D3D11Context::StretchRect(IDirect3DSurface9* pSourceSurface, CONST RECT* pSourceRect, IDirect3DSurface9* pDestSurface, CONST RECT* pDestRect, D3DTEXTUREFILTERTYPE Filter)
 {
-	NOT_IMPLEMENTED_WARNING
+	assert(!pSourceRect);
+	assert(!pDestRect);
+
+	const std::lock_guard<std::mutex> lock(m_mutex);
+
+	ID3D11Texture2D* src = ((D3D11Surface*)pSourceSurface)->GetResource();
+	if (!src) src = m_swapChain->GetRenderTarget();
+	ID3D11Texture2D* dst = ((D3D11Surface*)pDestSurface)->GetResource();
+	if (!dst) dst = m_swapChain->GetRenderTarget();
+
+	m_pID3D11DeviceContext->ResolveSubresource(
+		dst, 0,
+		src, 0,
+		DXGI_FORMAT_B8G8R8A8_UNORM);
+	/*m_pID3D11DeviceContext->CopySubresourceRegion(
+		dst, 0,
+		0, 0, 0,
+		src, 0,
+		nullptr
+	);*/
+
+	return D3D_OK;
 }
 
 HRESULT D3D11::D3D11Context::ColorFill(IDirect3DSurface9* pSurface, CONST RECT* pRect, D3DCOLOR color)
@@ -368,6 +419,23 @@ HRESULT D3D11::D3D11Context::SetRenderTarget(DWORD RenderTargetIndex, IDirect3DS
 {
 	m_currentRenderTargets[RenderTargetIndex] = (D3D11Surface*)pRenderTarget;
 	m_currentTargetsDirty = true;
+
+	if (RenderTargetIndex == 0 && m_currentRenderTargets[RenderTargetIndex]) {
+		m_viewport.TopLeftX = 0.5f;
+		m_viewport.TopLeftY = 0.5f;
+		m_viewport.Width = m_currentRenderTargets[0]->GetWidth();
+		m_viewport.Height = m_currentRenderTargets[0]->GetHeight();
+		m_viewport.MinDepth = 0;
+		m_viewport.MaxDepth = 1;
+		m_viewportDirty = true;
+
+		m_scissor.left = 0;
+		m_scissor.top = 0;
+		m_scissor.right = m_currentRenderTargets[0]->GetWidth();
+		m_scissor.bottom = m_currentRenderTargets[0]->GetHeight();
+		m_scissorDirty = true;
+	}
+
 	return D3D_OK;
 }
 
@@ -391,31 +459,41 @@ HRESULT D3D11::D3D11Context::GetDepthStencilSurface(IDirect3DSurface9** ppZStenc
 HRESULT D3D11::D3D11Context::BeginScene()
 {
 	const std::lock_guard<std::mutex> lock(m_mutex);
-	m_swapChain->TestBind();
 
-	ID3D11RenderTargetView* rtv[4] = { NULL, NULL, NULL, NULL};
-	int numTargets = 4;
-	for (int i = 0; i < 4; i++) {
-		if (!m_currentRenderTargets[i]) {
-			numTargets = i;
-			break;
-		}
+	D3DPRESENT_PARAMETERS param;
+	m_swapChain->GetPresentParameters(&param);
+	auto m_screenViewport = CD3D11_VIEWPORT(
+		0.5f,
+		0.5f,
+		param.BackBufferWidth,
+		param.BackBufferHeight
+	);
+	m_pID3D11DeviceContext->RSSetViewports(1, &m_screenViewport);
 
-		rtv[i] = m_currentRenderTargets[i]->GetRTV();
-	}
+	D3D11_RECT rect = {
+		0, 0, param.BackBufferWidth, param.BackBufferHeight
+	};
+	m_pID3D11DeviceContext->RSSetScissorRects(1, &rect);
 
-	if (m_currentDepthStencilTarget) {
-		m_pID3D11DeviceContext->OMSetRenderTargets(numTargets, rtv, m_currentDepthStencilTarget->GetDSV());
-	}
-	else {
-		m_pID3D11DeviceContext->OMSetRenderTargets(numTargets, rtv, NULL);
-	}
-	NOT_IMPLEMENTED_WARNING
+	// dx9 seems to not reset binding between frame? i had some weird glitch with texture not binded at the start of the frame
+	/*for (int i = 0; i < 16; i++) {
+		m_textures[i] = nullptr;
+		m_srvs[i] = nullptr;
+		m_sRGBTexture[i] = false;
+	}*/
+	m_texturesDirty = 0xFF;
+	m_samplersDirty = 0xFF;
+	m_currentRasterizerDesc.MultisampleEnable = true;
+	m_currentRasterizerDesc.AntialiasedLineEnable = true;
+
+	m_pID3D11DeviceContext->PSSetConstantBuffers(1, 1, m_cbAlphaTest.GetAddressOf());
+
+	return D3D_OK;
 }
 
 HRESULT D3D11::D3D11Context::EndScene()
 {
-	NOT_IMPLEMENTED_WARNING
+	return D3D_OK;
 }
 
 HRESULT D3D11::D3D11Context::Clear(DWORD Count, CONST D3DRECT* pRects, DWORD Flags, D3DCOLOR Color, float Z, DWORD Stencil)
@@ -426,12 +504,12 @@ HRESULT D3D11::D3D11Context::Clear(DWORD Count, CONST D3DRECT* pRects, DWORD Fla
 
 	if ((Flags & D3DCLEAR_TARGET) != 0) {
 		float color[4] = {
-			float((Color >> 24) & 0xFF) / 0xFF,
 			float((Color >> 16) & 0xFF) / 0xFF,
 			float((Color >> 8) & 0xFF) / 0xFF,
-			float((Color) & 0xFF) / 0xFF
+			float((Color) & 0xFF) / 0xFF,
+			float((Color >> 24) & 0xFF) / 0xFF
 		};
-		m_pID3D11DeviceContext->ClearRenderTargetView(m_currentRenderTargets[0]->GetRTV(), color);
+		m_pID3D11DeviceContext->ClearRenderTargetView(m_currentRenderTargets[0]->GetRTV(m_sRGBWrite), color);
 	}
 	if ((Flags & (D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL)) != 0) {
 		m_pID3D11DeviceContext->ClearDepthStencilView(m_currentDepthStencilTarget->GetDSV(), Flags >> 1, Z, Stencil);
@@ -457,7 +535,17 @@ HRESULT D3D11::D3D11Context::MultiplyTransform(D3DTRANSFORMSTATETYPE State, CONS
 
 HRESULT D3D11::D3D11Context::SetViewport(CONST D3DVIEWPORT9* pViewport)
 {
-	NOT_IMPLEMENTED_WARNING
+	m_viewport = CD3D11_VIEWPORT(
+		pViewport->X + 0.5f,
+		pViewport->Y + 0.5f,
+		pViewport->Width,
+		pViewport->Height,
+		pViewport->MinZ,
+		pViewport->MaxZ
+	);
+	m_viewportDirty = true;
+
+	return D3D_OK;
 }
 
 HRESULT D3D11::D3D11Context::GetViewport(D3DVIEWPORT9* pViewport)
@@ -507,13 +595,25 @@ HRESULT D3D11::D3D11Context::GetClipPlane(DWORD Index, float* pPlane)
 
 HRESULT D3D11::D3D11Context::SetRenderState(D3DRENDERSTATETYPE State, DWORD Value)
 {
-	bool depthStencilDirty;
-	bool rasterizerDirty;
-	bool blendDirty;
 	bool renderTargetsDirty;
 
+#define RAST_BREAK m_currentRasterizerStateDirty = true; break;
 #define DEPTH_BREAK m_currentDSStateDirty = true; break;
+#define BLEND_BREAK m_currentBlendStateDirty = true; break;
 	switch (State) {
+		/** Rasterizer State **/
+		case D3DRS_FILLMODE:
+			m_currentRasterizerDesc.FillMode = D3DFILLMODEToD3D11_FILL_MODE((D3DFILLMODE)Value); RAST_BREAK
+		case D3DRS_CULLMODE:
+			m_currentRasterizerDesc.CullMode = D3DCULLToD3D11_CULL_MODE((D3DCULL)Value); RAST_BREAK
+		case D3DRS_SCISSORTESTENABLE:
+			m_currentRasterizerDesc.ScissorEnable = Value; RAST_BREAK
+		case D3DRS_SLOPESCALEDEPTHBIAS:
+			m_currentRasterizerDesc.SlopeScaledDepthBias = ((float&)Value); RAST_BREAK
+		case D3DRS_DEPTHBIAS:
+			m_currentRasterizerDesc.DepthBias = ((float(1 << 24) - 1) * ((float&)Value)); RAST_BREAK
+
+		/** Depth Stencil State **/
 		case D3DRS_ZENABLE:
 			m_currentDSDesc.DepthEnable = Value; DEPTH_BREAK
 		case D3DRS_ZWRITEENABLE:
@@ -547,39 +647,48 @@ HRESULT D3D11::D3D11Context::SetRenderState(D3DRENDERSTATETYPE State, DWORD Valu
 			m_currentDSDesc.BackFace.StencilPassOp = D3DSTENCILOPToD3D11_STENCIL_OP((D3DSTENCILOP)Value); DEPTH_BREAK
 		case D3DRS_CCW_STENCILFUNC:
 			m_currentDSDesc.BackFace.StencilFunc = D3DCMPFUNCToD3D11_COMPARISON_FUNC((D3DCMPFUNC)Value); DEPTH_BREAK
-			break;
-		case D3DRS_FILLMODE:
-		case D3DRS_CULLMODE:
-		case D3DRS_SCISSORTESTENABLE:
-		case D3DRS_SLOPESCALEDEPTHBIAS:
-		case D3DRS_DEPTHBIAS:
-			rasterizerDirty = true;
-			break;
-		case D3DRS_SRCBLEND:
-		case D3DRS_DESTBLEND:
-		case D3DRS_ALPHABLENDENABLE:
-		case D3DRS_COLORWRITEENABLE:
-		case D3DRS_BLENDOP:
-		case D3DRS_COLORWRITEENABLE1:
-		case D3DRS_COLORWRITEENABLE2:
-		case D3DRS_COLORWRITEENABLE3:
-		case D3DRS_BLENDFACTOR:
-		case D3DRS_SEPARATEALPHABLENDENABLE:
-		case D3DRS_SRCBLENDALPHA:
-		case D3DRS_DESTBLENDALPHA:
-		case D3DRS_BLENDOPALPHA:
-			blendDirty = true;
-			break;
-		case D3DRS_SRGBWRITEENABLE:
-			renderTargetsDirty = true;
-			break;
 
+		/** Blend State **/
+		case D3DRS_SRCBLEND:
+			m_currentBlendDesc.RenderTarget[0].SrcBlend = D3DBLENDToD3D11_BLEND((D3DBLEND)Value); BLEND_BREAK
+		case D3DRS_DESTBLEND:
+			m_currentBlendDesc.RenderTarget[0].DestBlend = D3DBLENDToD3D11_BLEND((D3DBLEND)Value); BLEND_BREAK
+		case D3DRS_ALPHABLENDENABLE:
+			m_currentBlendDesc.RenderTarget[0].BlendEnable = Value; BLEND_BREAK
+		case D3DRS_COLORWRITEENABLE:
+			m_currentBlendDesc.RenderTarget[0].RenderTargetWriteMask = Value; BLEND_BREAK
+		case D3DRS_BLENDOP:
+			m_currentBlendDesc.RenderTarget[0].BlendOp = D3DBLENDOPToD3D11_BLEND_OP((D3DBLENDOP)Value); BLEND_BREAK
+		case D3DRS_BLENDFACTOR:
+			m_currentBlendFactor = Value; BLEND_BREAK
+		case D3DRS_SEPARATEALPHABLENDENABLE:
+			assert(Value);
+			BLEND_BREAK
+		case D3DRS_SRCBLENDALPHA:
+			m_currentBlendDesc.RenderTarget[0].SrcBlendAlpha = D3DBLENDToD3D11_BLEND((D3DBLEND)Value, true); BLEND_BREAK
+		case D3DRS_DESTBLENDALPHA:
+			m_currentBlendDesc.RenderTarget[0].DestBlendAlpha = D3DBLENDToD3D11_BLEND((D3DBLEND)Value, true); BLEND_BREAK
+		case D3DRS_BLENDOPALPHA:
+			m_currentBlendDesc.RenderTarget[0].BlendOpAlpha = D3DBLENDOPToD3D11_BLEND_OP((D3DBLENDOP)Value); BLEND_BREAK
+
+		case D3DRS_SRGBWRITEENABLE:
+			m_sRGBWrite = Value;
+			m_currentTargetsDirty = true;
+			break;
 
 		case D3DRS_ALPHAREF:
-		case D3DRS_ALPHATESTENABLE:
-		case D3DRS_ALPHAFUNC:
-			OutputDebugStringA("[WARNING] D3DRS_ALPHAXXX not implemented!\n");
+			m_alphaRef = (Value / 255.0f);
+			m_alphaTestDirty = true;
 			break;
+		case D3DRS_ALPHATESTENABLE:
+			m_alphaTestEnable = Value;
+			m_alphaTestDirty = true;
+			break;
+		case D3DRS_ALPHAFUNC:
+			m_alphaFunc = D3DCMPFUNCToD3D11_COMPARISON_FUNC((D3DCMPFUNC)Value);
+			m_alphaTestDirty = true;
+			break;
+
 		default:
 			NOT_IMPLEMENTED;
 			break;
@@ -624,21 +733,8 @@ HRESULT D3D11::D3D11Context::GetTexture(DWORD Stage, IDirect3DBaseTexture9** ppT
 
 HRESULT D3D11::D3D11Context::SetTexture(DWORD Stage, IDirect3DBaseTexture9* pTexture)
 {
-	ID3D11ShaderResourceView* srv = nullptr;
-	if (pTexture) {
-		switch (pTexture->GetType()) {
-		case D3DRTYPE_TEXTURE: srv = ((D3D11Texture*)pTexture)->GetShaderResourceView(); break;
-		case D3DRTYPE_VOLUMETEXTURE:srv = ((D3D11VolumeTexture*)pTexture)->GetShaderResourceView(); break;
-		case D3DRTYPE_CUBETEXTURE:srv = ((D3D11CubeTexture*)pTexture)->GetShaderResourceView(); break;
-		}
-	}
-
-	const std::lock_guard<std::mutex> lock(m_mutex);
-	m_pID3D11DeviceContext->PSSetShaderResources(
-		Stage,
-		1,
-		&srv
-	);
+	m_textures[Stage] = pTexture;
+	m_texturesDirty |= (1 << Stage);
 	return D3D_OK;
 }
 
@@ -659,7 +755,69 @@ HRESULT D3D11::D3D11Context::GetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE 
 
 HRESULT D3D11::D3D11Context::SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 {
-	//NOT_IMPLEMENTED_WARNING
+	if (Type == D3DSAMP_SRGBTEXTURE) {
+		if (m_sRGBTexture[Sampler] != Value) {
+			m_sRGBTexture[Sampler] = Value;
+			m_texturesDirty |= (1 << Sampler);
+		}
+		return D3D_OK;
+	}
+
+	m_samplersDirty |= (1 << Sampler);
+	switch (Type) {
+	case D3DSAMP_ADDRESSU:
+		m_samplersDesc[Sampler].AddressU = D3DTEXTUREADDRESSToD3D11_TEXTURE_ADDRESS_MODE((D3DTEXTUREADDRESS)Value);
+		break;
+	case D3DSAMP_ADDRESSV:
+		m_samplersDesc[Sampler].AddressV = D3DTEXTUREADDRESSToD3D11_TEXTURE_ADDRESS_MODE((D3DTEXTUREADDRESS)Value);
+		break;
+	case D3DSAMP_ADDRESSW:
+		m_samplersDesc[Sampler].AddressW = D3DTEXTUREADDRESSToD3D11_TEXTURE_ADDRESS_MODE((D3DTEXTUREADDRESS)Value);
+		break;
+	case D3DSAMP_BORDERCOLOR:
+		m_samplersDesc[Sampler].BorderColor[0] = float((m_currentBlendFactor >> 16) & 0xFF) / 0xFF;
+		m_samplersDesc[Sampler].BorderColor[1] = float((m_currentBlendFactor >> 8) & 0xFF) / 0xFF;
+		m_samplersDesc[Sampler].BorderColor[2] = float((m_currentBlendFactor) & 0xFF) / 0xFF;
+		m_samplersDesc[Sampler].BorderColor[3] = float((m_currentBlendFactor >> 24) & 0xFF) / 0xFF;
+		break;
+	case D3DSAMP_MAGFILTER:
+		if (Value == D3DTEXF_ANISOTROPIC)
+			m_samplersDesc[Sampler].Filter = D3D11_FILTER_ANISOTROPIC;
+		else {
+			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x40);
+			if (Value == D3DTEXF_LINEAR)
+				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter | 0x04);
+			else
+				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x04);
+		}
+		break;
+	case D3DSAMP_MINFILTER:
+		if (Value == D3DTEXF_ANISOTROPIC)
+			m_samplersDesc[Sampler].Filter = D3D11_FILTER_ANISOTROPIC;
+		else {
+			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x40);
+			if (Value == D3DTEXF_LINEAR)
+				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter | 0x10);
+			else
+				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x10);
+		}
+		break;
+	case D3DSAMP_MIPFILTER:
+		if (Value == D3DTEXF_ANISOTROPIC)
+			m_samplersDesc[Sampler].Filter = D3D11_FILTER_ANISOTROPIC;
+		else {
+			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x40);
+			if (Value == D3DTEXF_LINEAR)
+				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter | 0x01);
+			else
+				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x01);
+		}
+		break;
+	case D3DSAMP_MIPMAPLODBIAS:	m_samplersDesc[Sampler].MipLODBias = std::clamp(((float&)Value), -16.0f, 15.99f); break;
+	case D3DSAMP_MAXMIPLEVEL:	m_samplersDesc[Sampler].MaxLOD = Value; break;
+	case D3DSAMP_MAXANISOTROPY:	m_samplersDesc[Sampler].MaxAnisotropy = std::clamp((UINT)Value, 0u, 16u); break;
+	default: NOT_IMPLEMENTED;
+	}
 	return D3D_OK;
 }
 
@@ -690,7 +848,9 @@ HRESULT D3D11::D3D11Context::GetCurrentTexturePalette(UINT* PaletteNumber)
 
 HRESULT D3D11::D3D11Context::SetScissorRect(CONST RECT* pRect)
 {
-	NOT_IMPLEMENTED_WARNING
+	m_scissor = *pRect;
+	m_scissorDirty = true;
+	return D3D_OK;
 }
 
 HRESULT D3D11::D3D11Context::GetScissorRect(RECT* pRect)
@@ -739,7 +899,10 @@ HRESULT D3D11::D3D11Context::DrawIndexedPrimitive(D3DPRIMITIVETYPE PrimitiveType
 	default: NOT_IMPLEMENTED;
 	}
 	ApplyInternalState();
-	m_pID3D11DeviceContext->IASetPrimitiveTopology(topology);
+	if (m_lastTopology != topology) {
+		m_pID3D11DeviceContext->IASetPrimitiveTopology(topology);
+		m_lastTopology = topology;
+	}
 	m_pID3D11DeviceContext->DrawIndexed(indexCount, startIndex, BaseVertexIndex);
 
 	return D3D_OK;
@@ -788,7 +951,7 @@ HRESULT D3D11::D3D11Context::GetVertexDeclaration(IDirect3DVertexDeclaration9** 
 
 HRESULT D3D11::D3D11Context::SetFVF(DWORD FVF)
 {
-	NOT_IMPLEMENTED_WARNING
+	NOT_IMPLEMENTED_ERROR
 }
 
 HRESULT D3D11::D3D11Context::GetFVF(DWORD* pFVF)
@@ -996,24 +1159,214 @@ HRESULT D3D11::D3D11Context::CreateQuery(D3DQUERYTYPE Type, IDirect3DQuery9** pp
 
 void D3D11::D3D11Context::ApplyInternalState()
 {
+	if (m_viewportDirty) {
+		m_pID3D11DeviceContext->RSSetViewports(1, &m_viewport);
+		m_viewportDirty = false;
+	}
+	if (m_scissorDirty) {
+		m_pID3D11DeviceContext->RSSetScissorRects(1, &m_scissor);
+		m_scissorDirty = false;
+	}
+
 	if (m_currentPSDirty) {
 		MOJOSHADER_d3d11BindShaders(m_mojoshaderCtx, nullptr, m_currentPS->GetMojoshader());
-		m_currentPSDirty = true;
+		m_currentPSDirty = false;
 	}
 
 	if (m_currentVSDirty) {
 		MOJOSHADER_d3d11BindShaders(m_mojoshaderCtx, m_currentVS->GetMojoshader(), nullptr);
 		auto inputLayout = m_currentVS->Compile(m_currentInputLayout);
 		m_pID3D11DeviceContext->IASetInputLayout(inputLayout);
-		m_currentVSDirty = true;
+		m_currentVSDirty = false;
+	}
+
+	if (m_alphaTestDirty) {
+		float alphaSettings[4];
+		switch (m_alphaFunc)
+		{
+		case D3D11_COMPARISON_LESS:
+			// Shader will evaluate: clip((a < x) ? z : w)
+			alphaSettings[0] = 1;
+			alphaSettings[1] = m_alphaRef - (0.5f / 255.0f);
+			alphaSettings[2] = 1;
+			alphaSettings[3] = -1;
+			break;
+
+		case D3D11_COMPARISON_LESS_EQUAL:
+			// Shader will evaluate: clip((a < x) ? z : w)
+			alphaSettings[0] = 1;
+			alphaSettings[1] = m_alphaRef + (0.5f / 255.0f);
+			alphaSettings[2] = 1;
+			alphaSettings[3] = -1;
+			break;
+
+		case D3D11_COMPARISON_GREATER_EQUAL:
+			// Shader will evaluate: clip((a < x) ? z : w)
+			alphaSettings[0] = 1;
+			alphaSettings[1] = m_alphaRef - (0.5f / 255.0f);
+			alphaSettings[2] = -1;
+			alphaSettings[3] = 1;
+			break;
+
+		case D3D11_COMPARISON_GREATER:
+			// Shader will evaluate: clip((a < x) ? z : w)
+			alphaSettings[0] = 1;
+			alphaSettings[1] = m_alphaRef + (0.5f / 255.0f);
+			alphaSettings[2] = -1;
+			alphaSettings[3] = 1;
+			break;
+
+		case D3D11_COMPARISON_EQUAL:
+			// Shader will evaluate: clip((abs(a - x) < y) ? z : w)
+			alphaSettings[0] = 2;
+			alphaSettings[1] = m_alphaRef;
+			alphaSettings[2] = 1;
+			alphaSettings[3] = -1;
+			break;
+
+		case D3D11_COMPARISON_NOT_EQUAL:
+			// Shader will evaluate: clip((abs(a - x) < y) ? z : w)
+			alphaSettings[0] = 2;
+			alphaSettings[1] = m_alphaRef;
+			alphaSettings[2] = -1;
+			alphaSettings[3] = 1;
+			break;
+
+		case D3D11_COMPARISON_NEVER:
+			// Shader will evaluate: clip((a < x) ? z : w)
+			alphaSettings[0] = 1;
+			alphaSettings[1] = 0;
+			alphaSettings[2] = -1;
+			alphaSettings[3] = -1;
+			break;
+
+		case D3D11_COMPARISON_ALWAYS:
+			// Shader will evaluate: clip((a < x) ? z : w)
+			alphaSettings[0] = 1;
+			alphaSettings[1] = 0;
+			alphaSettings[2] = 1;
+			alphaSettings[3] = 1;
+			break;
+		}
+		if(!m_alphaTestEnable)
+			alphaSettings[0] = 0;
+
+		m_pID3D11DeviceContext->UpdateSubresource(m_cbAlphaTest.Get(), 0, NULL, alphaSettings, 0, 0);
+		m_alphaTestDirty = false;
 	}
 
 	MOJOSHADER_d3d11UnmapUniformBufferMemory(m_mojoshaderCtx);
 	MOJOSHADER_d3d11ProgramReady(m_mojoshaderCtx, m_currentInputLayout->GetHash());
 
 	if (m_currentTargetsDirty) {
-		
-		//m_pID3D11DeviceContext->OMSetRenderTargets(1, NULL, NULL);
+		ID3D11RenderTargetView* rtv[4] = { NULL, NULL, NULL, NULL };
+		bool depthSameSize = true;
+		for (int i = 0; i < 4; i++) {
+			if (!m_currentRenderTargets[i])
+				continue;
+
+			rtv[i] = m_currentRenderTargets[i]->GetRTV(m_sRGBWrite);
+
+			if (m_currentDepthStencilTarget) {
+				if (m_currentDepthStencilTarget->GetWidth() != m_currentRenderTargets[i]->GetWidth() ||
+					m_currentDepthStencilTarget->GetHeight() != m_currentRenderTargets[i]->GetHeight())
+					depthSameSize = false;
+			}
+		}
+
+		ID3D11DepthStencilView* dsv = nullptr;
+
+		if (m_currentDepthStencilTarget && depthSameSize)
+			dsv = m_currentDepthStencilTarget->GetDSV();
+		m_pID3D11DeviceContext->OMSetRenderTargets(4, rtv, dsv);
+
+		m_currentTargetsDirty = false;
+	}
+
+	if (m_texturesDirty) {
+		int firstUpdate = 16;
+		int lastUpdate = -1;
+
+		for (int i = 0; i < 16; i++) {
+			if ((m_texturesDirty >> i) & 1) {
+				firstUpdate = std::min(firstUpdate, i);
+				lastUpdate = std::max(lastUpdate, i);
+
+				bool isSamplerCmp = (m_samplersDesc[i].ComparisonFunc != D3D11_COMPARISON_NEVER);
+				if (m_textures[i]) {
+					switch (m_textures[i]->GetType()) {
+					case D3DRTYPE_TEXTURE:
+					{
+						D3D11Texture* d3d11Tex = (D3D11Texture*)m_textures[i];
+						m_srvs[i] = d3d11Tex->GetShaderResourceView(m_sRGBTexture[i]);
+
+						if (d3d11Tex->GetViewFormat() == DXGI_FORMAT_R24_UNORM_X8_TYPELESS) {
+							if (!isSamplerCmp) {
+								m_samplersDesc[i].Filter = (D3D11_FILTER)(m_samplersDesc[i].Filter | 0x80);
+								m_samplersDesc[i].ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+								m_samplersDirty |= (1 << i);
+							}
+							isSamplerCmp = false;
+						}
+						break;
+					}
+					case D3DRTYPE_VOLUMETEXTURE:
+						m_srvs[i] = ((D3D11VolumeTexture*)m_textures[i])->GetShaderResourceView(m_sRGBTexture[i]);
+						break;
+					case D3DRTYPE_CUBETEXTURE:
+						m_srvs[i] = ((D3D11CubeTexture*)m_textures[i])->GetShaderResourceView(m_sRGBTexture[i]);
+						break;
+					}
+				}
+				else {
+					m_srvs[i] = nullptr;
+				}
+				if (isSamplerCmp) {
+					m_samplersDesc[i].Filter = (D3D11_FILTER)(m_samplersDesc[i].Filter & ~0x80);
+					m_samplersDesc[i].ComparisonFunc = D3D11_COMPARISON_NEVER;
+					m_samplersDirty |= (1 << i);
+				}
+			}
+		}
+
+		m_pID3D11DeviceContext->PSSetShaderResources(
+			firstUpdate,
+			lastUpdate - firstUpdate + 1,
+			m_srvs + firstUpdate
+		);
+
+		m_texturesDirty = 0;
+	}
+
+	if (m_samplersDirty) {
+		for (int i = 0; i < 16; i++) {
+			if ((m_samplersDirty >> i) & 1) {
+				size_t hash = HashState(&m_samplersDesc[i]);
+
+				if (!m_samplersCache.contains(hash)) {
+					m_pID3D11Device->CreateSamplerState(
+						&m_samplersDesc[i],
+						m_samplersCache[hash].ReleaseAndGetAddressOf()
+					);
+				}
+				m_pID3D11DeviceContext->PSSetSamplers(i, 1, m_samplersCache[hash].GetAddressOf());
+			}
+		}
+		m_samplersDirty = 0;
+	}
+
+	if (m_currentRasterizerStateDirty) {
+		size_t hash = HashState(&m_currentRasterizerDesc);
+
+		if (!m_rasterizerStateCache.contains(hash)) {
+			m_pID3D11Device->CreateRasterizerState(
+				&m_currentRasterizerDesc,
+				m_rasterizerStateCache[hash].ReleaseAndGetAddressOf()
+			);
+		}
+		m_pID3D11DeviceContext->RSSetState(m_rasterizerStateCache[hash].Get());
+
+		m_currentRasterizerStateDirty = false;
 	}
 
 	if (m_currentDSStateDirty) {
@@ -1027,6 +1380,25 @@ void D3D11::D3D11Context::ApplyInternalState()
 		}
 		m_pID3D11DeviceContext->OMSetDepthStencilState(m_depthStencilStateCache[hash].Get(), m_currentStencilRef);
 		m_currentDSStateDirty = false;
+	}
+
+	if (m_currentBlendStateDirty) {
+		size_t hash = HashState(&m_currentBlendDesc);
+
+		if (!m_blendStateCache.contains(hash)) {
+			m_pID3D11Device->CreateBlendState(
+				&m_currentBlendDesc,
+				m_blendStateCache[hash].ReleaseAndGetAddressOf()
+			);
+		}
+		float factor[4] = {
+			float((m_currentBlendFactor >> 16) & 0xFF) / 0xFF,
+			float((m_currentBlendFactor >> 8) & 0xFF) / 0xFF,
+			float((m_currentBlendFactor) & 0xFF) / 0xFF,
+			float((m_currentBlendFactor >> 24) & 0xFF) / 0xFF
+		};
+		m_pID3D11DeviceContext->OMSetBlendState(m_blendStateCache[hash].Get(), factor, 0xffffffff);
+		m_currentBlendStateDirty = false;
 	}
 }
 
@@ -1152,9 +1524,10 @@ HRESULT WINAPI D3D11::DXGI::EnumAdapterModes(UINT Adapter, D3DFORMAT Format, UIN
 HRESULT WINAPI D3D11::DXGI::GetAdapterDisplayMode(UINT Adapter, D3DDISPLAYMODE* pMode)
 {
 	*pMode = {};
-	pMode->Width = m_adapters[Adapter].m_modes[0].Width;
-	pMode->Height = m_adapters[Adapter].m_modes[0].Height;
-	pMode->RefreshRate = static_cast<UINT>(m_adapters[Adapter].m_modes[0].RefreshRate.Numerator / m_adapters[Adapter].m_modes[0].RefreshRate.Denominator);
+	uint32_t modeIdx = m_adapters[Adapter].m_modes.size() - 1;
+	pMode->Width = m_adapters[Adapter].m_modes[modeIdx].Width;
+	pMode->Height = m_adapters[Adapter].m_modes[modeIdx].Height;
+	pMode->RefreshRate = static_cast<UINT>(m_adapters[Adapter].m_modes[modeIdx].RefreshRate.Numerator / m_adapters[Adapter].m_modes[modeIdx].RefreshRate.Denominator);
 	pMode->Format = D3DFMT_X8R8G8B8;
 	return D3D_OK;
 }
@@ -1229,7 +1602,6 @@ HRESULT WINAPI D3D11::DXGI::GetDeviceCaps(UINT Adapter, D3DDEVTYPE DeviceType, D
 		D3DPMISCCAPS_CLIPTLVERTS |
 		D3DPMISCCAPS_TSSARGTEMP |
 		D3DPMISCCAPS_BLENDOP |
-		D3DPMISCCAPS_INDEPENDENTWRITEMASKS |
 		D3DPMISCCAPS_PERSTAGECONSTANT |
 		D3DPMISCCAPS_MRTPOSTPIXELSHADERBLENDING |
 		D3DPMISCCAPS_MRTINDEPENDENTBITDEPTHS |
@@ -1314,7 +1686,6 @@ HRESULT WINAPI D3D11::DXGI::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HW
 	D3D11Context->AddRef();
 	*ppReturnedDeviceInterface = D3D11Context;
 
-	// This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut
 	m_pIDXGIFactory->MakeWindowAssociation(pPresentationParameters->hDeviceWindow, DXGI_MWA_NO_ALT_ENTER);
 
 	return D3D_OK;

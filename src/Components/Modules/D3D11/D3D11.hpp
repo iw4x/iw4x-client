@@ -181,40 +181,80 @@ namespace D3D11 {
 		// - a ID3D11DeviceContext for the command buffer
 		Microsoft::WRL::ComPtr<ID3D11Device> m_pID3D11Device;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pID3D11DeviceContext;
+		DXGI* m_dxgi;
+		D3D11SwapChain* m_swapChain;
 
-		std::unordered_map<size_t, D3D11InputLayout*> m_inputLayoutCache;
-		D3D11InputLayout* m_currentInputLayout;
-		bool m_currentInputLayoutDirty = true;
-
-		MOJOSHADER_d3d11Context* m_mojoshaderCtx;
-		float* m_vsf = nullptr;
-		int* m_vsi = nullptr;
-		unsigned char* m_vsb = nullptr;
-		float* m_psf = nullptr;
-		int* m_psi = nullptr;
-		unsigned char* m_psb = nullptr;
-
-		D3D11VertexShader* m_currentVS;
-		bool m_currentVSDirty = true;
-
-		D3D11PixelShader* m_currentPS;
-		bool m_currentPSDirty = true;
+		D3D11_VIEWPORT m_viewport;
+		bool m_viewportDirty = true;
+		RECT m_scissor;
+		bool m_scissorDirty = true;
 
 		D3D11Surface* m_currentRenderTargets[D3D_MAX_SIMULTANEOUS_RENDERTARGETS] = {};
 		D3D11Surface* m_currentDepthStencilTarget = nullptr;
 		bool m_currentTargetsDirty = true;
+		bool m_sRGBWrite = true;
 
+		/*******************/
+		/** Shader stuffs **/
+		/*******************/
+		MOJOSHADER_d3d11Context* m_mojoshaderCtx;
+
+		/** Vertex Shader registers **/
+		D3D11VertexShader* m_currentVS;
+		bool m_currentVSDirty = true;
+		float* m_vsf = nullptr;
+		int* m_vsi = nullptr;
+		unsigned char* m_vsb = nullptr;
+
+		/** Pixel Shader registers + CB for alpha testing emulation **/
+		D3D11PixelShader* m_currentPS;
+		bool m_currentPSDirty = true;
+		float* m_psf = nullptr;
+		int* m_psi = nullptr;
+		unsigned char* m_psb = nullptr;
+		D3D11_COMPARISON_FUNC m_alphaFunc;
+		float m_alphaRef;
+		bool m_alphaTestEnable;
+		bool m_alphaTestDirty = true;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_cbAlphaTest;
+
+		/** Texture binding **/
+		IDirect3DBaseTexture9* m_textures[16] = {};
+		ID3D11ShaderResourceView* m_srvs[16] = {};
+		bool m_sRGBTexture[16] = {};
+		uint16_t m_texturesDirty = 0xFF;
+
+		/***********************/
+		/** DX11 state caches **/
+		/***********************/
+
+		/** Input Layout cache **/
+		std::unordered_map<size_t, D3D11InputLayout*> m_inputLayoutCache;
+		D3D11InputLayout* m_currentInputLayout;
+		bool m_currentInputLayoutDirty = true;
+		D3D11_PRIMITIVE_TOPOLOGY m_lastTopology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+
+		/** Samplers cache **/
+		std::unordered_map<size_t, Microsoft::WRL::ComPtr<ID3D11SamplerState>> m_samplersCache;
+		D3D11_SAMPLER_DESC m_samplersDesc[16] = {};
+		uint16_t m_samplersDirty = 0xFF;
+
+		/** Rasterizer State cache **/
+		std::unordered_map<size_t, Microsoft::WRL::ComPtr<ID3D11RasterizerState>> m_rasterizerStateCache;
+		D3D11_RASTERIZER_DESC m_currentRasterizerDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+		bool m_currentRasterizerStateDirty = true;
+
+		/** Blend State cache **/
+		std::unordered_map<size_t, Microsoft::WRL::ComPtr<ID3D11BlendState>> m_blendStateCache;
+		D3D11_BLEND_DESC m_currentBlendDesc = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
+		bool m_currentBlendStateDirty = true;
+		uint32_t m_currentBlendFactor = 0;
+
+		/** Depth Stencil State cache **/
 		std::unordered_map<size_t, Microsoft::WRL::ComPtr<ID3D11DepthStencilState>> m_depthStencilStateCache;
 		D3D11_DEPTH_STENCIL_DESC m_currentDSDesc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
 		bool m_currentDSStateDirty = true;
 		UINT m_currentStencilRef = 0;
-
-		D3D11_BLEND_DESC currentBlendDesc;
-		D3D11_RASTERIZER_DESC currentRasterizerDesc;
-		D3D11_SAMPLER_DESC currentSamplerDesc;
-
-		DXGI* m_dxgi;
-		D3D11SwapChain* m_swapChain;
 	};
 
 	// In D3D9 there is one monitor per adapter, it is no longer the case in D3D11,
