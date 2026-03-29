@@ -46,4 +46,4 @@
 	url = https://github.com/Ohjurot/DualSense-Windows.git
 [submodule "deps/mojoshader"]
 	path = deps/mojoshader
-	url = https://github.com/icculus/mojoshader.git
+	url = https://github.com/Togimaro/mojoshader.git
