@@ -544,14 +544,13 @@ namespace Components
 			if (dwResult == ERROR_BUFFER_OVERFLOW)  // This is what we're expecting
 			{
 				// Now allocate a structure of the required size.
-				auto pIpAdapterInfo = std::unique_ptr<IP_ADAPTER_INFO, decltype(&free)>(
-					reinterpret_cast<PIP_ADAPTER_INFO>(malloc(outBufLen)), free);
-				if (pIpAdapterInfo)
+				std::vector<std::uint8_t> buffer(outBufLen);
+				auto* pIpAdapterInfo = reinterpret_cast<PIP_ADAPTER_INFO>(buffer.data());
 				{
-					dwResult = GetAdaptersInfo(pIpAdapterInfo.get(), &outBufLen);
+					dwResult = GetAdaptersInfo(pIpAdapterInfo, &outBufLen);
 					if (dwResult == ERROR_SUCCESS)
 					{
-						for (auto* adapter = pIpAdapterInfo.get(); adapter; adapter = adapter->Next)
+						for (auto* adapter = pIpAdapterInfo; adapter; adapter = adapter->Next)
 						{
 							switch (adapter->Type)
 							{
