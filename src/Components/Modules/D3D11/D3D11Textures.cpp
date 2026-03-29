@@ -178,39 +178,30 @@ HRESULT D3D11::D3D11Surface::ReleaseDC(HDC hdc)
 D3D11::D3D11SwapChain::D3D11SwapChain(D3D11Context* ctx, D3DPRESENT_PARAMETERS* pPresentationParameters) : m_refCount(0), m_d3dCtx(ctx), m_params(*pPresentationParameters)
 {
 	m_desc = {};
-	m_desc.Width = pPresentationParameters->BackBufferWidth;
-	m_desc.Height = pPresentationParameters->BackBufferHeight;
-	m_desc.Format = D3DFORMAT_to_DXGI_FORMAT(pPresentationParameters->BackBufferFormat);
+	m_desc.BufferDesc.Width = pPresentationParameters->BackBufferWidth;
+	m_desc.BufferDesc.Height = pPresentationParameters->BackBufferHeight;
+	m_desc.BufferDesc.RefreshRate = { 0, 0 };
+	m_desc.BufferDesc.Format = D3DFORMAT_to_DXGI_FORMAT(pPresentationParameters->BackBufferFormat);
+	m_desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	m_desc.BufferDesc.Scaling = DXGI_MODE_SCALING_CENTERED;
 	m_desc.SampleDesc.Count = pPresentationParameters->MultiSampleType;
 	if (m_desc.SampleDesc.Count == 0) m_desc.SampleDesc.Count = 1;
 	m_desc.SampleDesc.Quality = pPresentationParameters->MultiSampleQuality;
 	m_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	m_desc.BufferCount = pPresentationParameters->BackBufferCount + 1;
-	m_desc.Scaling = DXGI_SCALING_STRETCH;
+	m_desc.BufferCount = pPresentationParameters->BackBufferCount;
+	m_desc.OutputWindow = pPresentationParameters->hDeviceWindow;
+	m_desc.Windowed = true;
 	m_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-	m_desc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 	m_desc.Flags = 0;
-
-	DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsSwapChainDesc = {};
-	fsSwapChainDesc.Windowed = TRUE;
 
 	if (!pPresentationParameters->Windowed) {
 		SetWindowPos(pPresentationParameters->hDeviceWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 		ShowWindow(pPresentationParameters->hDeviceWindow, SW_SHOWMAXIMIZED);
 	}
 
-	auto dxgiFactory = ctx->GetDXGI()->GetFactory();
-	Microsoft::WRL::ComPtr<IDXGIFactory2> factory4;
-	HRESULT hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), &factory4);
-	if (FAILED(hr))
-		m_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-
-	hr = ctx->GetDXGI()->GetFactory()->CreateSwapChainForHwnd(
+	ctx->GetDXGI()->GetFactory()->CreateSwapChain(
 		ctx->GetDevice(),
-		pPresentationParameters->hDeviceWindow,
 		&m_desc,
-		&fsSwapChainDesc,
-		nullptr,
 		m_swapChain.ReleaseAndGetAddressOf()
 	);
 
