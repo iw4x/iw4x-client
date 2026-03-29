@@ -5,7 +5,6 @@ mojoshader = {
 
 function mojoshader.import()
 	links {"mojoshader"}
-	dxsdk.import()
 	mojoshader.includes()
 end
 
@@ -17,8 +16,6 @@ function mojoshader.includes()
 	defines {
 		"MOJOSHADER_NO_VERSION_INCLUDE"
 	}
-
-	dxsdk.includes()
 end
 
 function mojoshader.project()

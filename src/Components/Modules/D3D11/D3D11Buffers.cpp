@@ -13,16 +13,20 @@
 // D3DUSAGE_WRITEONLY
 
 #pragma region D3D11VertexBuffer
-D3D11::D3D11VertexBuffer::D3D11VertexBuffer(D3D11Context* ctx, UINT Length, DWORD Usage, DWORD FVF) : m_refCount(0), m_d3dCtx(ctx), m_usage(Usage)
+D3D11::D3D11VertexBuffer::D3D11VertexBuffer(D3D11Context* ctx, UINT Length, DWORD Usage) : m_refCount(0), m_d3dCtx(ctx)
 {
-	CD3D11_BUFFER_DESC desc(
+	m_desc = CD3D11_BUFFER_DESC(
 		Length,
-		D3D11_BIND_VERTEX_BUFFER,
-		D3D11_USAGE_DYNAMIC,
-		D3D11_CPU_ACCESS_WRITE
-	);
+		D3D11_BIND_VERTEX_BUFFER);
 
-	m_d3dCtx->GetDevice()->CreateBuffer(&desc, NULL, m_pID3D11Buffer.ReleaseAndGetAddressOf());
+	if (Usage & D3DUSAGE_DYNAMIC) {
+		m_desc.Usage = D3D11_USAGE_DYNAMIC;
+		m_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	} else {
+		m_data.resize(Length);
+	}
+
+	m_d3dCtx->GetDevice()->CreateBuffer(&m_desc, NULL, m_pID3D11Buffer.ReleaseAndGetAddressOf());
 }
 
 /*** IUnknown methods ***/
@@ -80,25 +84,48 @@ D3DRESOURCETYPE D3D11::D3D11VertexBuffer::GetType()
 /*** IDirect3DVertexBuffer9 methods ***/
 HRESULT D3D11::D3D11VertexBuffer::Lock(UINT OffsetToLock, UINT SizeToLock, void** ppbData, DWORD Flags)
 {
-	const std::lock_guard<std::mutex> lock(m_d3dCtx->m_mutex);
-	D3D11_MAPPED_SUBRESOURCE mapped = {};
-	HRESULT res = m_d3dCtx->GetDeviceContext()->Map(
-		m_pID3D11Buffer.Get(),
-		0,
-		D3D11_MAP_WRITE_DISCARD,
-		0,
-		&mapped
-	);
-	*ppbData = ((uint8_t*)mapped.pData) + OffsetToLock;
+	if (m_desc.Usage == D3D11_USAGE_DYNAMIC) {
+		const std::lock_guard<std::mutex> lock(m_d3dCtx->m_mutex);
+		D3D11_MAP mapType = D3D11_MAP_WRITE;
+		if (Flags == D3DLOCK_NOOVERWRITE)
+			mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
+		else if (Flags == D3DLOCK_DISCARD)
+			mapType = D3D11_MAP_WRITE_DISCARD;
+		else
+			NOT_IMPLEMENTED;
+		D3D11_MAPPED_SUBRESOURCE mapped = {};
+		HRESULT res = m_d3dCtx->GetDeviceContext()->Map(
+			m_pID3D11Buffer.Get(),
+			0,
+			mapType,
+			0,
+			&mapped
+		);
+		*ppbData = ((uint8_t*)mapped.pData) + OffsetToLock;
+	}
+	else {
+		*ppbData = m_data.data() + OffsetToLock;
+	}
 	return D3D_OK;
 }
 HRESULT D3D11::D3D11VertexBuffer::Unlock()
 {
 	const std::lock_guard<std::mutex> lock(m_d3dCtx->m_mutex);
-	m_d3dCtx->GetDeviceContext()->Unmap(
-		m_pID3D11Buffer.Get(),
-		0
-	);
+	if (m_desc.Usage == D3D11_USAGE_DYNAMIC) {
+		m_d3dCtx->GetDeviceContext()->Unmap(
+			m_pID3D11Buffer.Get(),
+			0
+		);
+	} else {
+		m_d3dCtx->GetDeviceContext()->UpdateSubresource(
+			m_pID3D11Buffer.Get(),
+			0,
+			NULL,
+			m_data.data(),
+			0,
+			0
+		);
+	}
 	return D3D_OK;
 }
 HRESULT D3D11::D3D11VertexBuffer::GetDesc(D3DVERTEXBUFFER_DESC* pDesc)
@@ -108,16 +135,22 @@ HRESULT D3D11::D3D11VertexBuffer::GetDesc(D3DVERTEXBUFFER_DESC* pDesc)
 #pragma endregion
 
 #pragma region D3D11IndexBuffer
-D3D11::D3D11IndexBuffer::D3D11IndexBuffer(D3D11Context* ctx, UINT Length, DWORD Usage, D3DFORMAT Format) : m_refCount(0), m_d3dCtx(ctx), m_usage(Usage)
+D3D11::D3D11IndexBuffer::D3D11IndexBuffer(D3D11Context* ctx, UINT Length, DWORD Usage, D3DFORMAT Format) : m_refCount(0), m_d3dCtx(ctx)
 {
-	CD3D11_BUFFER_DESC desc(
+	m_desc = CD3D11_BUFFER_DESC(
 		Length,
-		D3D11_BIND_INDEX_BUFFER,
-		D3D11_USAGE_DYNAMIC,
-		D3D11_CPU_ACCESS_WRITE
+		D3D11_BIND_INDEX_BUFFER
 	);
 
-	m_d3dCtx->GetDevice()->CreateBuffer(&desc, NULL, m_pID3D11Buffer.ReleaseAndGetAddressOf());
+	if (Usage & D3DUSAGE_DYNAMIC) {
+		m_desc.Usage = D3D11_USAGE_DYNAMIC;
+		m_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	}
+	else {
+		m_data.resize(Length);
+	}
+
+	m_d3dCtx->GetDevice()->CreateBuffer(&m_desc, NULL, m_pID3D11Buffer.ReleaseAndGetAddressOf());
 }
 
 /*** IUnknown methods ***/
@@ -175,25 +208,49 @@ D3DRESOURCETYPE D3D11::D3D11IndexBuffer::GetType()
 /*** IDirect3DIndexBuffer9 methods ***/
 HRESULT D3D11::D3D11IndexBuffer::Lock(UINT OffsetToLock, UINT SizeToLock, void** ppbData, DWORD Flags)
 {
-	const std::lock_guard<std::mutex> lock(m_d3dCtx->m_mutex);
-	D3D11_MAPPED_SUBRESOURCE mapped = {};
-	HRESULT res = m_d3dCtx->GetDeviceContext()->Map(
-		m_pID3D11Buffer.Get(),
-		0,
-		D3D11_MAP_WRITE_DISCARD,
-		0,
-		&mapped
-	);
-	*ppbData = ((uint8_t*)mapped.pData) + OffsetToLock;
+	if (m_desc.Usage == D3D11_USAGE_DYNAMIC) {
+		const std::lock_guard<std::mutex> lock(m_d3dCtx->m_mutex);
+		D3D11_MAP mapType = D3D11_MAP_WRITE;
+		if (Flags == D3DLOCK_NOOVERWRITE)
+			mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
+		else if (Flags == D3DLOCK_DISCARD)
+			mapType = D3D11_MAP_WRITE_DISCARD;
+		else
+			NOT_IMPLEMENTED;
+		D3D11_MAPPED_SUBRESOURCE mapped = {};
+		HRESULT res = m_d3dCtx->GetDeviceContext()->Map(
+			m_pID3D11Buffer.Get(),
+			0,
+			mapType,
+			0,
+			&mapped
+		);
+		*ppbData = ((uint8_t*)mapped.pData) + OffsetToLock;
+	}
+	else {
+		*ppbData = m_data.data() + OffsetToLock;
+	}
 	return D3D_OK;
 }
 HRESULT D3D11::D3D11IndexBuffer::Unlock()
 {
 	const std::lock_guard<std::mutex> lock(m_d3dCtx->m_mutex);
-	m_d3dCtx->GetDeviceContext()->Unmap(
-		m_pID3D11Buffer.Get(),
-		0
-	);
+	if (m_desc.Usage == D3D11_USAGE_DYNAMIC) {
+		m_d3dCtx->GetDeviceContext()->Unmap(
+			m_pID3D11Buffer.Get(),
+			0
+		);
+	}
+	else {
+		m_d3dCtx->GetDeviceContext()->UpdateSubresource(
+			m_pID3D11Buffer.Get(),
+			0,
+			NULL,
+			m_data.data(),
+			0,
+			0
+		);
+	}
 	return D3D_OK;
 }
 HRESULT D3D11::D3D11IndexBuffer::GetDesc(D3DINDEXBUFFER_DESC* pDesc)

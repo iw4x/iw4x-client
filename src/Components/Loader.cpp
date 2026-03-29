@@ -133,8 +133,7 @@ namespace Components
 		Register(new ClientCommand());
 		Register(new ConnectProtocol());
 		Register(new Console());
-		//Register(new D3D9Ex());
-		Register(new D3D11());
+		Register(new D3D9Ex());
 		Register(new Debug());
 		Register(new Dedicated());
 		Register(new Discord());

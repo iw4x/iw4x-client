@@ -10,6 +10,7 @@ namespace Components
 		D3D9Ex();
 
 	private:
+		static Dvar::Var RUseD3D11;
 		static Dvar::Var RUseD3D12;
 		static Dvar::Var RUseDXVK;
 
