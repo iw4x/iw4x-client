@@ -443,6 +443,12 @@ namespace Components
 		// remove archive flags for sv_hostname
 		Utils::Hook::Xor<std::uint32_t>(0x4D3786, Game::DVAR_ARCHIVE);
 
+		// remove all flags for r_drawSun
+		Utils::Hook::Set<std::uint8_t>(0x51a239, Game::DVAR_NONE);
+
+		// remove all flags for r_specular
+		Utils::Hook::Set<std::uint8_t>(0x519c39, Game::DVAR_NONE);
+
 		// remove write protection from fs_game
 		Utils::Hook::Xor<std::uint32_t>(0x6431EA, Game::DVAR_INIT);
 
