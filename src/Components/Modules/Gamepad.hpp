@@ -22,6 +22,8 @@ namespace Components
 		{
 			Game::GpadAxesGlob axes;
 			unsigned nextScrollTime;
+			unsigned scrollHoldStartTime;
+			int scrollHoldKey;
 
 			GamePadGlobals();
 		};
@@ -84,6 +86,8 @@ namespace Components
 		static Dvar::Var gpad_buttonConfig;
 		static Dvar::Var gpad_menu_scroll_delay_first;
 		static Dvar::Var gpad_menu_scroll_delay_rest;
+		static Dvar::Var gpad_menu_scroll_delay_min;
+		static Dvar::Var gpad_menu_scroll_accel_time;
 		static Dvar::Var gpad_rumble;
 		static Dvar::Var gpad_use_hold_time;
 		static Dvar::Var gpad_button_release_delay_enabled;

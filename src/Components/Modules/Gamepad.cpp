@@ -190,6 +190,8 @@ namespace Components
 	Dvar::Var Gamepad::gpad_buttonConfig;
 	Dvar::Var Gamepad::gpad_menu_scroll_delay_first;
 	Dvar::Var Gamepad::gpad_menu_scroll_delay_rest;
+	Dvar::Var Gamepad::gpad_menu_scroll_delay_min;
+	Dvar::Var Gamepad::gpad_menu_scroll_accel_time;
 	Dvar::Var Gamepad::gpad_rumble;
 	Dvar::Var Gamepad::gpad_use_hold_time;
 	Dvar::Var Gamepad::gpad_button_release_delay_enabled;
@@ -227,7 +229,9 @@ namespace Components
 
 	Gamepad::GamePadGlobals::GamePadGlobals()
 		: axes{},
-		nextScrollTime(0)
+		nextScrollTime(0),
+		scrollHoldStartTime(0),
+		scrollHoldKey(0)
 	{
 		for (auto& virtualAxis : axes.virtualAxes)
 		{
@@ -1059,6 +1063,7 @@ namespace Components
 
 		if (!down)
 		{
+			gamePadGlobal.scrollHoldKey = 0;
 			return;
 		}
 
@@ -1067,6 +1072,11 @@ namespace Components
 		{
 			if (key == scrollButton)
 			{
+				if (gamePadGlobal.scrollHoldKey != key)
+				{
+					gamePadGlobal.scrollHoldStartTime = time;
+					gamePadGlobal.scrollHoldKey = key;
+				}
 				gamePadGlobal.nextScrollTime = scrollDelayFirst + time;
 				return;
 			}
@@ -1185,6 +1195,8 @@ namespace Components
 		{
 			const int scrollDelayFirst = gpad_menu_scroll_delay_first.get<int>();
 			const int scrollDelayRest = gpad_menu_scroll_delay_rest.get<int>();
+			const int scrollDelayMin = gpad_menu_scroll_delay_min.get<int>();
+			const int accelTime = gpad_menu_scroll_accel_time.get<int>();
 
 			for (const auto menuScrollButton : menuScrollButtonList)
 			{
@@ -1198,7 +1210,14 @@ namespace Components
 
 					if (time > gamePadGlobal.nextScrollTime)
 					{
-						gamePadGlobal.nextScrollTime = time + scrollDelayRest;
+						auto delay = scrollDelayRest;
+						if (accelTime > 0 && scrollDelayRest > scrollDelayMin)
+						{
+							const auto elapsed = static_cast<int>(time - gamePadGlobal.scrollHoldStartTime);
+							const auto t = std::min(elapsed, accelTime);
+							delay = scrollDelayRest - (scrollDelayRest - scrollDelayMin) * t / accelTime;
+						}
+						gamePadGlobal.nextScrollTime = time + delay;
 						return false;
 					}
 					break;
@@ -1842,6 +1861,10 @@ namespace Components
 		gpad_menu_scroll_delay_first = Dvar::Register<int>("gpad_menu_scroll_delay_first", 420, 0, 1000, Game::DVAR_ARCHIVE, "Menu scroll key-repeat delay, for the first repeat, in milliseconds");
 		gpad_menu_scroll_delay_rest = Dvar::Register<int>("gpad_menu_scroll_delay_rest", 210, 0, 1000, Game::DVAR_ARCHIVE,
 			"Menu scroll key-repeat delay, for repeats after the first, in milliseconds");
+		gpad_menu_scroll_delay_min = Dvar::Register<int>("gpad_menu_scroll_delay_min", 50, 0, 1000, Game::DVAR_ARCHIVE,
+			"Menu scroll key-repeat delay at maximum acceleration, in milliseconds");
+		gpad_menu_scroll_accel_time = Dvar::Register<int>("gpad_menu_scroll_accel_time", 1500, 0, 5000, Game::DVAR_ARCHIVE,
+			"Time in milliseconds for menu scroll to reach maximum speed");
 		gpad_rumble = Dvar::Register<bool>("gpad_rumble", true, Game::DVAR_ARCHIVE, "Enable game pad rumble");
 
 		GamepadControls::Controller::InitializeDvars();
