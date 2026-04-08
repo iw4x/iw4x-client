@@ -141,7 +141,7 @@ namespace Components
 		__asm
 		{
 			cmp eax, 4;
-			ja goToDefaultCase;	
+			ja goToDefaultCase;
 			je useCustomRatio;
 
 			// execute switch statement code
@@ -287,6 +287,81 @@ namespace Components
 		}
 	}
 
+	// Fix out-of-bounds crash at 0x42854A
+	//
+	// The problem here is that vehicle playerIndex is packed and transmitted as a
+  // 5-bit field, which naturally allows for values up to 31 whereas the client
+  // array is strictly bounded by MAX_CLIENTS (18).
+	//
+	// https://github.com/iw4x/iw4x-client/issues/285#issuecomment-3458190361
+  //
+  // For whatever reason, the original implementation blindly uses this received
+  // value as a direct array index, and so we (in some situation) end up with an
+  // out-of-bounds memory read/write.
+	//
+	// NOTE:
+	//
+	// This is a tentative fix intended to finally address the issue. It may or may
+	// not fully resolve the problem depending on underlying conditions not yet
+	// accounted for.
+
+	__declspec(naked) void QuickPatch::VehicleFx_PlayerIndexCheck_Stub()
+	{
+		__asm
+		{
+			mov ecx, [esi + 0x38]
+			cmp ecx, 18
+			jb validIndex
+
+			test eax, eax
+			jmp done
+
+		validIndex:
+			imul ecx, ecx, 0x52C
+			cmp eax, [ecx + 0x8E77CC]
+
+		done:
+			push 0x428555
+			ret
+		}
+	}
+
+	__declspec(naked) void QuickPatch::VehicleCl_SetPlayerIndex_UpdateEntity_Stub()
+	{
+		__asm
+		{
+			cmp eax, 18
+			jb updateValid
+			xor eax, eax
+
+		updateValid:
+			mov [ebx + 0x38], eax
+			lea edi, [ebx + 0x1C]
+
+			push 0x679EAC
+			ret
+		}
+	}
+
+	__declspec(naked) void QuickPatch::VehicleCl_SetPlayerIndex_ResetEntity_Stub()
+	{
+		__asm
+		{
+			cmp ecx, 18
+			jb resetValid
+			xor ecx, ecx
+
+		resetValid:
+			mov [esi + 0x38], ecx
+
+			mov eax, 0x402500             // Com_DPrintf (args already on stack)
+			call eax
+
+			push 0x679E34
+			ret
+		}
+	}
+
 	Game::dvar_t* QuickPatch::Dvar_RegisterConMinicon(const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
 	{
 #ifdef _DEBUG
@@ -384,6 +459,14 @@ namespace Components
 		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
 		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeapon_Stub, HOOK_JUMP).install()->quick();
 		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMelee_Stub, HOOK_JUMP).install()->quick();
+
+		// Fix vehicle playerIndex out-of-bounds crash (0x42854A)
+		Utils::Hook(0x428541, QuickPatch::VehicleFx_PlayerIndexCheck_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x428546, 12);
+		Utils::Hook(0x679EA6, QuickPatch::VehicleCl_SetPlayerIndex_UpdateEntity_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x679EAB, 1);
+		Utils::Hook(0x679E2C, QuickPatch::VehicleCl_SetPlayerIndex_ResetEntity_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook::Nop(0x679E31, 3);
 
 		// Add ultrawide support
 		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
