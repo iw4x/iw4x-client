@@ -1072,7 +1072,7 @@ namespace Components
 		{
 			if (key == scrollButton)
 			{
-				if (gamePadGlobal.scrollHoldKey != key)
+				if (key >= Game::K_DPAD_UP && key <= Game::K_DPAD_RIGHT && gamePadGlobal.scrollHoldKey != key)
 				{
 					gamePadGlobal.scrollHoldStartTime = time;
 					gamePadGlobal.scrollHoldKey = key;
@@ -1211,7 +1211,7 @@ namespace Components
 					if (time > gamePadGlobal.nextScrollTime)
 					{
 						auto delay = scrollDelayRest;
-						if (accelTime > 0 && scrollDelayRest > scrollDelayMin)
+						if (key >= Game::K_DPAD_UP && key <= Game::K_DPAD_RIGHT && accelTime > 0 && scrollDelayRest > scrollDelayMin)
 						{
 							const auto elapsed = static_cast<int>(time - gamePadGlobal.scrollHoldStartTime);
 							const auto t = std::min(elapsed, accelTime);
