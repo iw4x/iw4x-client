@@ -44,6 +44,13 @@ namespace Components
 				double hashPMS = (TokenContainer.hashes * 1.0) / diff;
 				double requiredHashes = std::pow(2, TokenContainer.targetLevel + 1) - TokenContainer.hashes;
 				mseconds = requiredHashes / hashPMS;
+
+				// Pad the estimate. We don't want the timer to just sit at 00:00:00
+				// while we are still working. Note that a slightly overestimated ETA is
+				// generally preferable to appearing stuck for players.
+				//
+				mseconds += 2 * 60 * 1000;
+
 				if (mseconds < 0) mseconds = 0;
 			}
 
