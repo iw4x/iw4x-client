@@ -1,4 +1,5 @@
 #include "ModList.hpp"
+#include "Dedicated.hpp"
 #include "Events.hpp"
 #include "UIFeeder.hpp"
 
@@ -190,6 +191,13 @@ namespace Components
 
 			if (Components::Flags::HasFlag("disable-mod-unloading"))
 			{
+				return;
+			}
+
+			if (*Game::fs_gameDirVar != nullptr && *(*Game::fs_gameDirVar)->current.string != '\0')
+			{
+				// Preserve an explicitly selected mod during the startup/devmap CL_Disconnect
+				// path so the following FS_Startup keeps the same fs_game search path.
 				return;
 			}
 
