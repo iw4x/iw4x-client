@@ -234,6 +234,16 @@ namespace Components
 					const auto* namePtr = Game::PartyHost_GetMemberName(reinterpret_cast<Game::PartyData*>(0x1081C00), i);
 					if (!namePtr || !*namePtr) continue;
 
+					if (Game::svs_clients[i].header.state >= Game::CS_ACTIVE &&
+						  Game::svs_clients[i].gentity && Game::svs_clients[i].gentity->client)
+					{
+						const auto client = Game::svs_clients[i].gentity->client;
+						const auto team = client->sess.cs.team;
+
+						if (Game::svs_clients[i].bIsTestClient)
+							continue;
+					}
+
 					name = namePtr;
 				}
 

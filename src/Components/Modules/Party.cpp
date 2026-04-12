@@ -211,8 +211,8 @@ namespace Components
 			mov eax, 0;
 			retn;
 		}
-	}	
-	
+	}
+
 	void SV_SpawnServer_Com_SyncThreads_Hook()
 	{
 		Game::Com_SyncThreads(); // Com_SyncThreads
@@ -425,7 +425,29 @@ namespace Components
 			{
 				maxClientCount = *Game::party_maxplayers ? (*Game::party_maxplayers)->current.integer : 18;
 				effectiveClientCount = Game::PartyHost_CountMembers(Game::g_lobbyData);
-			}
+
+        for (std::size_t i = 0; i < std::min (static_cast<std::size_t> (maxClientCount), Game::MAX_CLIENTS); ++i)
+        {
+          if (Game::svs_clients[i].header.state < Game::CS_ACTIVE)
+            continue;
+
+          if (!Game::svs_clients[i].gentity ||
+              !Game::svs_clients[i].gentity->client)
+            continue;
+
+          const auto client = Game::svs_clients[i].gentity->client;
+          const auto team = client->sess.cs.team;
+
+          if (Game::svs_clients[i].bIsTestClient)
+          {
+            ++botCount;
+            --effectiveClientCount;
+          }
+        }
+
+        if (effectiveClientCount < 0)
+          effectiveClientCount = 0;
+      }
 
 			Utils::InfoString info;
 			info.set("challenge", Utils::ParseChallenge(data));
@@ -587,7 +609,7 @@ namespace Components
 						if (!Maps::CheckMapInstalled(Container.info.get("mapname"), true)) return;
 
 						Container.motd = TextRenderer::StripMaterialTextIcons(info.get("sv_motd"));
-						
+
 						switch(Container.matchType)
 						{
 							case JoinContainer::MatchType::DEDICATED_MATCH:
@@ -642,7 +664,7 @@ namespace Components
 
 								break;
 
-							
+
 
 							case JoinContainer::MatchType::PRIVATE_PARTY:
 								{
