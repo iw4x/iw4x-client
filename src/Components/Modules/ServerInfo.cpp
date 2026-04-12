@@ -240,7 +240,7 @@ namespace Components
 						const auto client = Game::svs_clients[i].gentity->client;
 						const auto team = client->sess.cs.team;
 
-						if (Game::svs_clients[i].bIsTestClient)
+						if (Game::svs_clients[i].bIsTestClient || team == Game::TEAM_SPECTATOR)
 							continue;
 					}
 
