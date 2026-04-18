@@ -78,6 +78,7 @@ namespace Components
 		static int ComputeHorizontalIntent(int forwardSpeed, int rightSpeed);
 		static void ApplyStockSprintStrafeScale(Game::pmove_s* pm);
 
+		static void CL_KeyMove_SprintBit_Stub();
 		static void PM_SprintStartInterferingButtons_Stub();
 		static void PM_SprintEndingButtons_Stub();
 		static void PM_WalkMove_SprintStrafeStub();

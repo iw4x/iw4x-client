@@ -403,13 +403,8 @@ namespace Components
 	int PlayerMovement::ComputeHorizontalIntent(int forwardSpeed, int rightSpeed)
 	{
 		if (!BGOmnimovement || !BGOmnimovement->current.enabled)
-		{
 			return forwardSpeed;
-		}
-
-		const auto f = forwardSpeed < 0 ? -forwardSpeed : forwardSpeed;
-		const auto r = rightSpeed < 0 ? -rightSpeed : rightSpeed;
-		return f > r ? f : r;
+		return std::max(std::abs(forwardSpeed), std::abs(rightSpeed));
 	}
 
 	// Stock PM_WalkMove behavior: rightmove *= player_sprintStrafeSpeedScale while sprinting
@@ -431,8 +426,45 @@ namespace Components
 			return;
 		}
 
-		pm->cmd.rightmove = static_cast<char>(
-			static_cast<float>(pm->cmd.rightmove) * dvar->current.value);
+		float scaled = static_cast<float>(pm->cmd.rightmove) * dvar->current.value;
+		pm->cmd.rightmove = static_cast<char>(std::clamp(scaled, -127.0f, 127.0f));
+	}
+
+	// Allow the sprint bit to be written to cmd.buttons when the back key is
+	// held. Stock CL_KeyMove skips the sprint-bit update whenever the back
+	// kbutton's active flag is set, which is what prevents sprint from
+	// starting backward even after our PM_UpdateSprint hooks pass.
+	__declspec(naked) void PlayerMovement::CL_KeyMove_SprintBit_Stub()
+	{
+		__asm
+		{
+			// Check the value of BGOmnimovement
+			push eax
+			mov eax, BGOmnimovement
+			test eax, eax
+			jz doStock
+			cmp byte ptr [eax + 0x10], 0
+			jz doStock
+			pop eax
+
+			// Bypass the back-active check, fall through to the sprint kbutton block
+			push 0x5A6061
+			ret
+
+		doStock:
+			pop eax
+
+			// Original: cmp byte ptr [esi+4Ch], 0; jnz loc_5A6084
+			cmp byte ptr [esi + 0x4C], 0
+			jnz stockSkip
+
+			push 0x5A6061
+			ret
+
+		stockSkip:
+			push 0x5A6084
+			ret
+		}
 	}
 
 	// Replace the sprint-start gate's forwardmove argument with max(|forwardmove|, |rightmove|)
@@ -440,6 +472,8 @@ namespace Components
 	{
 		__asm
 		{
+			pushfd
+			push eax
 			push ecx
 			push edx
 
@@ -455,6 +489,8 @@ namespace Components
 
 			pop edx
 			pop ecx
+			pop eax
+			popfd
 
 			// Jump into the original function
 			push 0x56ED10
@@ -467,6 +503,8 @@ namespace Components
 	{
 		__asm
 		{
+			pushfd
+			push eax
 			push ecx
 
 			// ComputeHorizontalIntent(forwardmove, rightmove)
@@ -480,6 +518,8 @@ namespace Components
 			mov edx, eax
 
 			pop ecx
+			pop eax
+			popfd
 
 			// Jump into the original function
 			push 0x56ED80
@@ -509,6 +549,7 @@ namespace Components
 			pop eax
 
 			// Apply the original rightmove scaling
+			push eax
 			push ecx
 			push edx
 			push edi
@@ -516,6 +557,7 @@ namespace Components
 			add esp, 4
 			pop edx
 			pop ecx
+			pop eax
 
 			push 0x573289
 			ret
@@ -723,17 +765,20 @@ namespace Components
 			test al, al
 			jge stockSkip
 
-			// Original: v9 *= (player_backSpeedScale + 1) * 0.5
+			// FPU entry: ST0 = 0.5, ST1 = 1.0 (leftovers from the strafe blend
+			// at 0x573881..0x573890). Reproduce: v9 *= (backScale + 1) * 0.5.
 			mov eax, dword ptr ds:[0x7ADC44]
-			fld dword ptr [eax + 0x10]
-			faddp st(2), st
-			fmulp st(1), st
-			fmul dword ptr [esp]
-			fstp dword ptr [esp]
+			fld dword ptr [eax + 0x10]  // push backScale; FPU: backScale, 0.5, 1.0
+			faddp st(2), st             // ST(2) += backScale; FPU: 0.5, 1+backScale
+			fmulp st(1), st             // multiply; FPU: (1+backScale)*0.5
+			fmul dword ptr [esp]        // FPU: v9 * (1+backScale) * 0.5
+			fstp dword ptr [esp]        // store, pop; FPU: empty
 			push 0x5738E6
 			ret
 
 		stockSkip:
+			// Tail-jump to 0x5738E2, which runs "fstp st(1); fstp st" to pop
+			// the two FPU leftovers before falling into loc_5738E6.
 			push 0x5738E2
 			ret
 		}
@@ -951,6 +996,9 @@ namespace Components
 
 		// Console-style sprint hold (opt-in via bg_sprintIgnoreRepress)
 		Utils::Hook(0x56EF59, PM_UpdateSprint_RepressCallStub, HOOK_JUMP).install()->quick();
+
+		// Omnimovement - allow sprint bit to be set when pressing back
+		Utils::Hook(0x5A605B, CL_KeyMove_SprintBit_Stub, HOOK_JUMP).install()->quick();
 
 		// Omnimovement - sprint gate widening
 		Utils::Hook(0x56EFBF, PM_SprintStartInterferingButtons_Stub, HOOK_CALL).install()->quick();
