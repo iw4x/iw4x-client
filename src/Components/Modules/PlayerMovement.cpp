@@ -24,6 +24,11 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::BGDisableBarrierClips;
 	const Game::dvar_t* PlayerMovement::BGLadderFixedInput;
 	const Game::dvar_t* PlayerMovement::BGSprintIgnoreRepress;
+	const Game::dvar_t* PlayerMovement::BGOmnimovement;
+	const Game::dvar_t* PlayerMovement::BGDive;
+	const Game::dvar_t* PlayerMovement::BGOmnimovementDive;
+
+	Game::dvar_t** PlayerMovement::player_sprintStrafeSpeedScale = reinterpret_cast<Game::dvar_t**>(0x7ADCEC);
 
 	void PlayerMovement::PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask)
 	{
@@ -393,6 +398,423 @@ namespace Components
 		}
 	}
 
+	// Omnimovement
+
+	int PlayerMovement::ComputeHorizontalIntent(int forwardSpeed, int rightSpeed)
+	{
+		if (!BGOmnimovement || !BGOmnimovement->current.enabled)
+		{
+			return forwardSpeed;
+		}
+
+		const auto f = forwardSpeed < 0 ? -forwardSpeed : forwardSpeed;
+		const auto r = rightSpeed < 0 ? -rightSpeed : rightSpeed;
+		return f > r ? f : r;
+	}
+
+	// Stock PM_WalkMove behavior: rightmove *= player_sprintStrafeSpeedScale while sprinting
+	void PlayerMovement::ApplyStockSprintStrafeScale(Game::pmove_s* pm)
+	{
+		if (!pm || !pm->ps)
+		{
+			return;
+		}
+
+		if ((pm->ps->pm_flags & Game::PMF_SPRINTING) == 0)
+		{
+			return;
+		}
+
+		const auto* dvar = *player_sprintStrafeSpeedScale;
+		if (!dvar)
+		{
+			return;
+		}
+
+		pm->cmd.rightmove = static_cast<char>(
+			static_cast<float>(pm->cmd.rightmove) * dvar->current.value);
+	}
+
+	// Replace the sprint-start gate's forwardmove argument with max(|forwardmove|, |rightmove|)
+	__declspec(naked) void PlayerMovement::PM_SprintStartInterferingButtons_Stub()
+	{
+		__asm
+		{
+			push ecx
+			push edx
+
+			// ComputeHorizontalIntent(forwardmove, rightmove)
+			movsx eax, byte ptr [ebp + 0x1F]
+			push eax
+			push esi
+			call ComputeHorizontalIntent
+			add esp, 8
+
+			// Substitute esi (forwardSpeed) with the horizontal-intent magnitude
+			mov esi, eax
+
+			pop edx
+			pop ecx
+
+			// Jump into the original function
+			push 0x56ED10
+			ret
+		}
+	}
+
+	// Replace the sprint-end gate's forwardmove argument with max(|forwardmove|, |rightmove|)
+	__declspec(naked) void PlayerMovement::PM_SprintEndingButtons_Stub()
+	{
+		__asm
+		{
+			push ecx
+
+			// ComputeHorizontalIntent(forwardmove, rightmove)
+			movsx eax, byte ptr [ebp + 0x1F]
+			push eax
+			push edx
+			call ComputeHorizontalIntent
+			add esp, 8
+
+			// Substitute edx (forwardSpeed) with the horizontal-intent magnitude
+			mov edx, eax
+
+			pop ecx
+
+			// Jump into the original function
+			push 0x56ED80
+			ret
+		}
+	}
+
+	// Skip the player_sprintStrafeSpeedScale attenuation in PM_WalkMove while sprinting
+	__declspec(naked) void PlayerMovement::PM_WalkMove_SprintStrafeStub()
+	{
+		__asm
+		{
+			// Check the value of BGOmnimovement
+			push eax
+			mov eax, BGOmnimovement
+			test eax, eax
+			jz doStock
+			cmp byte ptr [eax + 0x10], 0
+			jz doStock
+			pop eax
+
+			// Bypass the attenuation
+			push 0x573289
+			ret
+
+		doStock:
+			pop eax
+
+			// Apply the original rightmove scaling
+			push ecx
+			push edx
+			push edi
+			call ApplyStockSprintStrafeScale
+			add esp, 4
+			pop edx
+			pop ecx
+
+			push 0x573289
+			ret
+		}
+	}
+
+	// Widen the PM_SetMovementDir clamp from +/-90 to +/-127 at the prone/ladder branch
+	__declspec(naked) void PlayerMovement::PM_SetMovementDir_ClampProneLadder_Stub()
+	{
+		__asm
+		{
+			// Check the value of BGOmnimovement
+			push edx
+			mov edx, BGOmnimovement
+			test edx, edx
+			jz stockClamp
+			cmp byte ptr [edx + 0x10], 0
+			jz stockClamp
+			pop edx
+
+			// Wide clamp: +/-127
+			cmp eax, 127
+			jle doneWide
+			xor eax, eax
+			test ecx, ecx
+			setle al
+			sub eax, 1
+			and eax, 254
+			add eax, -127
+			mov ecx, eax
+		doneWide:
+			push 0x443421
+			ret
+
+		stockClamp:
+			pop edx
+
+			// Original clamp: +/-90
+			cmp eax, 90
+			jle doneStock
+			xor eax, eax
+			test ecx, ecx
+			setle al
+			sub eax, 1
+			and eax, 180
+			add eax, -90
+			mov ecx, eax
+		doneStock:
+			push 0x443421
+			ret
+		}
+	}
+
+	// Widen the PM_SetMovementDir clamp from +/-90 to +/-127 at the generic branch
+	__declspec(naked) void PlayerMovement::PM_SetMovementDir_ClampGeneric_Stub()
+	{
+		__asm
+		{
+			// Check the value of BGOmnimovement
+			push edx
+			mov edx, BGOmnimovement
+			test edx, edx
+			jz stockClamp
+			cmp byte ptr [edx + 0x10], 0
+			jz stockClamp
+			pop edx
+
+			// Wide clamp: +/-127
+			cmp eax, 127
+			jle doneWide
+			xor eax, eax
+			test ecx, ecx
+			setle al
+			sub eax, 1
+			and eax, 254
+			add eax, -127
+			mov ecx, eax
+		doneWide:
+			push 0x4435C3
+			ret
+
+		stockClamp:
+			pop edx
+
+			// Original clamp: +/-90
+			cmp eax, 90
+			jle doneStock
+			xor eax, eax
+			test ecx, ecx
+			setle al
+			sub eax, 1
+			and eax, 180
+			add eax, -90
+			mov ecx, eax
+		doneStock:
+			push 0x4435C3
+			ret
+		}
+	}
+
+	// Force PM_SetStrafeCondition to "not strafing" while sprinting so the forward-run anim plays
+	__declspec(naked) void PlayerMovement::PM_SetStrafeCondition_Stub()
+	{
+		__asm
+		{
+			// Check the value of BGOmnimovement
+			push eax
+			mov eax, BGOmnimovement
+			test eax, eax
+			jz doStock
+			cmp byte ptr [eax + 0x10], 0
+			jz doStock
+
+			// Only override while PMF_SPRINTING is set
+			mov eax, [esi]
+			test dword ptr [eax + 0xC], 0x4000
+			jz doStock
+			pop eax
+
+			// BG_SetConditionValue(ps->clientNum, 7, 0, 0)
+			mov eax, [esi]
+			push 0
+			push 0
+			push 7
+			push dword ptr [eax + 0x104]
+			mov eax, BG_SetConditionValueAddr
+			call eax
+			add esp, 0x10
+			ret
+
+		doStock:
+			pop eax
+
+			// Original function body
+			sub esp, 0xC
+			movsx eax, byte ptr [esi + 0x1F]
+			push 0x571617
+			ret
+		}
+	}
+
+	// Bypass the specialty_jumpdive perk check at the top of Jump_CheckDive
+	__declspec(naked) void PlayerMovement::Jump_CheckDive_PerkGate_Stub()
+	{
+		__asm
+		{
+			// Check the value of BGDive
+			push eax
+			mov eax, BGDive
+			test eax, eax
+			jz doStock
+			cmp byte ptr [eax + 0x10], 0
+			jz doStock
+			pop eax
+
+			// Skip the perk check
+			push 0x56D7C5
+			ret
+
+		doStock:
+			pop eax
+
+			// Original perk check
+			test dword ptr [esi + 0x428], 0x100000
+			jnz perkPresent
+
+			// Original fail: no perk, return false
+			xor al, al
+			add esp, 0x6C
+			ret
+
+		perkPresent:
+			push 0x56D7C5
+			ret
+		}
+	}
+
+	// Skip the player_backSpeedScale attenuation on diagonal backward sprint
+	__declspec(naked) void PlayerMovement::PM_GetMaxSpeed_BackDiagonal_Stub()
+	{
+		__asm
+		{
+			// Check the value of BGOmnimovement
+			push eax
+			mov eax, BGOmnimovement
+			test eax, eax
+			jz doStock
+			cmp byte ptr [eax + 0x10], 0
+			jz doStock
+
+			// Only skip while sprinting; walking backward keeps the penalty
+			mov eax, [esp + 0x10]    // a3 = isSprinting, shifted by push eax
+			test eax, eax
+			jz doStock
+			pop eax
+
+			// Bypass the attenuation; 0x5738E2 pops the FPU leftovers
+			push 0x5738E2
+			ret
+
+		doStock:
+			pop eax
+
+			// Skip if forwardmove >= 0
+			test al, al
+			jge stockSkip
+
+			// Original: v9 *= (player_backSpeedScale + 1) * 0.5
+			mov eax, dword ptr ds:[0x7ADC44]
+			fld dword ptr [eax + 0x10]
+			faddp st(2), st
+			fmulp st(1), st
+			fmul dword ptr [esp]
+			fstp dword ptr [esp]
+			push 0x5738E6
+			ret
+
+		stockSkip:
+			push 0x5738E2
+			ret
+		}
+	}
+
+	// Skip the player_backSpeedScale attenuation on pure backward sprint
+	__declspec(naked) void PlayerMovement::PM_GetMaxSpeed_BackPure_Stub()
+	{
+		__asm
+		{
+			// Check the value of BGOmnimovement
+			push eax
+			mov eax, BGOmnimovement
+			test eax, eax
+			jz doStock
+			cmp byte ptr [eax + 0x10], 0
+			jz doStock
+
+			// Only skip while sprinting; walking backward keeps the penalty
+			mov eax, [esp + 0x10]
+			test eax, eax
+			jz doStock
+			pop eax
+
+			// Bypass the attenuation
+			push 0x5738E6
+			ret
+
+		doStock:
+			pop eax
+
+			// Skip if forwardmove >= 0
+			test al, al
+			jge stockSkip
+
+			// Original: v9 *= player_backSpeedScale
+			mov edx, dword ptr ds:[0x7ADC44]
+			fld dword ptr [edx + 0x10]
+			fmul dword ptr [esp]
+			fstp dword ptr [esp]
+			push 0x5738E6
+			ret
+
+		stockSkip:
+			push 0x5738E6
+			ret
+		}
+	}
+
+	// Skip the 0.3x backward-dive attenuation so backward dives launch at full perk_diveVelocity
+	__declspec(naked) void PlayerMovement::Jump_CheckDive_BackDiveVelocity_Stub()
+	{
+		__asm
+		{
+			// Check the value of BGOmnimovementDive
+			push eax
+			mov eax, BGOmnimovementDive
+			test eax, eax
+			jz doStock
+			cmp byte ptr [eax + 0x10], 0
+			jz doStock
+			pop eax
+
+			// Bypass the attenuation, keep ST0 unchanged
+			push 0x56D81C
+			ret
+
+		doStock:
+			pop eax
+
+			// Original: fmul 0.3, then round-trip through single precision
+			fmul dword ptr ds:[0x71FE18]
+			sub esp, 4
+			fstp dword ptr [esp]
+			fld dword ptr [esp]
+			add esp, 4
+			push 0x56D81C
+			ret
+		}
+	}
+
 	void PlayerMovement::RegisterMovementDvars()
 	{
 		PlayerDuckedSpeedScale = Game::Dvar_RegisterFloat("player_duckedSpeedScale",
@@ -443,12 +865,27 @@ namespace Components
 		BGSprintIgnoreRepress = Game::Dvar_RegisterBool("bg_sprintIgnoreRepress",
 			false, Game::DVAR_SYSTEMINFO,
 			"Ignore sprint-key re-presses while already sprinting (matches console behaviour)");
+
+		BGOmnimovement = Game::Dvar_RegisterBool("bg_omnimovement",
+			false, Game::DVAR_CODINFO,
+			"Toggle omnidirectional sprint (sprint in any direction)");
+
+		BGDive = Game::Dvar_RegisterBool("bg_dive",
+			false, Game::DVAR_CODINFO,
+			"Toggle dive-to-prone (bypasses specialty_jumpdive perk requirement)");
+
+		BGOmnimovementDive = Game::Dvar_RegisterBool("bg_omnimovementDive",
+			false, Game::DVAR_CODINFO,
+			"Disable the backward-dive attenuation (requires bg_dive or specialty_jumpdive perk)");
 	}
 
 	PlayerMovement::PlayerMovement()
 	{
 		AssertOffset(Game::playerState_s, eFlags, 0xB0);
 		AssertOffset(Game::playerState_s, pm_flags, 0xC);
+		AssertOffset(Game::pmove_s, cmd, 0x4);
+		AssertOffset(Game::usercmd_s, forwardmove, 0x1A);
+		AssertOffset(Game::usercmd_s, rightmove, 0x1B);
 
 		Events::OnDvarInit([]
 		{
@@ -514,6 +951,30 @@ namespace Components
 
 		// Console-style sprint hold (opt-in via bg_sprintIgnoreRepress)
 		Utils::Hook(0x56EF59, PM_UpdateSprint_RepressCallStub, HOOK_JUMP).install()->quick();
+
+		// Omnimovement - sprint gate widening
+		Utils::Hook(0x56EFBF, PM_SprintStartInterferingButtons_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x56EF29, PM_SprintEndingButtons_Stub, HOOK_CALL).install()->quick();
+
+		// Full-speed lateral sprint
+		Utils::Hook(0x573262, PM_WalkMove_SprintStrafeStub, HOOK_JUMP).install()->quick();
+
+		// Widen the movementDir clamp for remote anim
+		Utils::Hook(0x443408, PM_SetMovementDir_ClampProneLadder_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x4435AA, PM_SetMovementDir_ClampGeneric_Stub, HOOK_JUMP).install()->quick();
+
+		// Forward-run anim during sprint
+		Utils::Hook(0x571610, PM_SetStrafeCondition_Stub, HOOK_JUMP).install()->quick();
+
+		// Full-speed backward sprint
+		Utils::Hook(0x573893, PM_GetMaxSpeed_BackDiagonal_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5738A9, PM_GetMaxSpeed_BackPure_Stub, HOOK_JUMP).install()->quick();
+
+		// Dive unlock
+		Utils::Hook(0x56D7B3, Jump_CheckDive_PerkGate_Stub, HOOK_JUMP).install()->quick();
+
+		// Full-velocity backward dive
+		Utils::Hook(0x56D80E, Jump_CheckDive_BackDiveVelocity_Stub, HOOK_JUMP).install()->quick();
 
 		GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
 

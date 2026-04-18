@@ -30,6 +30,14 @@ namespace Components
 		static const Game::dvar_t* BGLadderFixedInput;
 		static const Game::dvar_t* BGSprintIgnoreRepress;
 
+		// Omnimovement
+		static const Game::dvar_t* BGOmnimovement;
+		static const Game::dvar_t* BGDive;
+		static const Game::dvar_t* BGOmnimovementDive;
+
+		static Game::dvar_t** player_sprintStrafeSpeedScale;
+		static constexpr DWORD BG_SetConditionValueAddr = 0x41FF10;
+
 		static void PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask);
 		static void PM_PlayerDuckedSpeedScaleStub();
 		static void PM_PlayerProneSpeedScaleStub();
@@ -65,5 +73,24 @@ namespace Components
 		static float* PM_LadderMove_RightVector_Hk(float* source, const float* ladderNormal, float* pmlRight);
 
 		static void PM_UpdateSprint_RepressCallStub();
+
+		// Omnimovement helpers and stubs.
+		static int ComputeHorizontalIntent(int forwardSpeed, int rightSpeed);
+		static void ApplyStockSprintStrafeScale(Game::pmove_s* pm);
+
+		static void PM_SprintStartInterferingButtons_Stub();
+		static void PM_SprintEndingButtons_Stub();
+		static void PM_WalkMove_SprintStrafeStub();
+
+		static void PM_SetMovementDir_ClampProneLadder_Stub();
+		static void PM_SetMovementDir_ClampGeneric_Stub();
+
+		static void PM_SetStrafeCondition_Stub();
+
+		static void Jump_CheckDive_PerkGate_Stub();
+
+		static void PM_GetMaxSpeed_BackDiagonal_Stub();
+		static void PM_GetMaxSpeed_BackPure_Stub();
+		static void Jump_CheckDive_BackDiveVelocity_Stub();
 	};
 }
