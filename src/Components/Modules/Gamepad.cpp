@@ -181,6 +181,7 @@ namespace Components
 	unsigned Gamepad::buttonPressedTime[Game::MAX_GPAD_COUNT][Game::K_LAST_KEY]{};
 	unsigned Gamepad::buttonReleaseTime[Game::MAX_GPAD_COUNT][Game::K_LAST_KEY]{};
 	bool Gamepad::buttonPendingRelease[Game::MAX_GPAD_COUNT][Game::K_LAST_KEY]{};
+	bool Gamepad::buttonCommandSuppressed[Game::MAX_GPAD_COUNT][Game::K_LAST_KEY]{};
 
 	Dvar::Var Gamepad::gpad_enabled;
 	Dvar::Var Gamepad::gpad_present;
@@ -1294,6 +1295,12 @@ namespace Components
 
 			if (keyBinding)
 			{
+				if (ShouldSuppressControllerActionWhileAds(localClientNum, key, keyBinding))
+				{
+					buttonCommandSuppressed[localClientNum][key] = true;
+					return;
+				}
+
 				if (keyBinding[0] == '+')
 				{
 					sprintf_s(cmd, "%s %i %i\n", keyBinding, key, time);
@@ -1307,6 +1314,12 @@ namespace Components
 		}
 		else
 		{
+			if (buttonCommandSuppressed[localClientNum][key])
+			{
+				buttonCommandSuppressed[localClientNum][key] = false;
+				return;
+			}
+
 			if (keyBinding && keyBinding[0] == '+')
 			{
 				sprintf_s(cmd, "-%s %i %i\n", &keyBinding[1], key, time);
@@ -1352,6 +1365,45 @@ namespace Components
 		// is our configured floor m.
 		//
 		return std::min (std::max (m, d), 2000u);
+	}
+
+	bool Gamepad::IsSprintBreathBinding(const char* binding)
+	{
+		if (!binding)
+		{
+			return false;
+		}
+
+		return std::strcmp(binding, "+sprint") == 0
+			|| std::strcmp(binding, "+speed") == 0
+			|| std::strcmp(binding, "+holdbreath") == 0
+			|| std::strcmp(binding, "+breath_sprint") == 0
+			|| std::strcmp(binding, "+melee_breath") == 0;
+	}
+
+	bool Gamepad::ShouldSuppressControllerActionWhileAds(const int localClientNum, const int key, const char* binding)
+	{
+		AssertIn(localClientNum, Game::STATIC_MAX_LOCAL_CLIENTS);
+
+		if (key != Game::K_BUTTON_LSTICK || !IsSprintBreathBinding(binding))
+		{
+			return false;
+		}
+
+		const auto& playerState = Game::clients[localClientNum].snap.ps;
+		if (playerState.weapCommon.fWeaponPosFrac <= 0.0f)
+		{
+			return false;
+		}
+
+		const auto viewModelWeaponIndex = Game::BG_GetViewModelWeaponIndex(&playerState);
+		if (!viewModelWeaponIndex)
+		{
+			return false;
+		}
+
+		const auto* weaponDef = Game::BG_GetWeaponDef(viewModelWeaponIndex);
+		return weaponDef && weaponDef->weapClass != Game::WEAPCLASS_SNIPER;
 	}
 
 	void

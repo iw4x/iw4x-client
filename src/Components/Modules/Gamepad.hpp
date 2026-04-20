@@ -99,8 +99,11 @@ namespace Components
 		static unsigned buttonPressedTime[Game::MAX_GPAD_COUNT][Game::K_LAST_KEY];
 		static unsigned buttonReleaseTime[Game::MAX_GPAD_COUNT][Game::K_LAST_KEY];
 		static bool buttonPendingRelease[Game::MAX_GPAD_COUNT][Game::K_LAST_KEY];
+		static bool buttonCommandSuppressed[Game::MAX_GPAD_COUNT][Game::K_LAST_KEY];
 
 		static unsigned GetButtonReleaseDelay(int localClientNum);
+		static bool IsSprintBreathBinding(const char* binding);
+		static bool ShouldSuppressControllerActionWhileAds(int localClientNum, int key, const char* binding);
 		static Dvar::Var gpad_lockon_enabled;
 		static Dvar::Var gpad_slowdown_enabled;
 		static Dvar::Var input_viewSensitivity;
