@@ -318,24 +318,24 @@ namespace Components
 	{
 		__asm
 		{
-			push eax
+			// Fall back to stock if dvar is null or disabled
 			mov eax, BGLadderFixedInput
+			test eax, eax
+			jz stockPath
 			cmp byte ptr [eax + 0x10], 1
-			pop eax
+			jne stockPath
 
-			je classicMode
-
-			// Game's code: fld pml->forward[2]; fadd 0.25
-			fld dword ptr [ebp + 0x8]
-			fadd qword ptr ds:[0x70D1E8]
-			push 0x573FF8
-			ret
-
-		classicMode:
 			// Force v18 = 1.0 and skip the ±1 clamp
 			fld1
 			fstp dword ptr [esp + 0xC]
 			push 0x574034
+			ret
+
+		stockPath:
+			// Game's code: fld pml->forward[2]; fadd 0.25
+			fld dword ptr [ebp + 0x8]
+			fadd qword ptr ds:[0x70D1E8]
+			push 0x573FF8
 			ret
 		}
 	}
@@ -350,7 +350,7 @@ namespace Components
 			const float lx = ladderNormal[0];
 			const float ly = ladderNormal[1];
 			const float len2 = lx * lx + ly * ly;
-			const float invLen = (len2 > 0.0f) ? (1.0f / std::sqrt(len2)) : 1.0f;
+			const float invLen = (len2 > 0.0f) ? (1.0f / std::sqrtf(len2)) : 1.0f;
 			pmlRight[0] = -ly * invLen;
 			pmlRight[1] =  lx * invLen;
 			pmlRight[2] = 0.0f;
