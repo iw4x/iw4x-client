@@ -22,6 +22,7 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::PlayerDuckedSpeedScale;
 	const Game::dvar_t* PlayerMovement::PlayerProneSpeedScale;
 	const Game::dvar_t* PlayerMovement::BGDisableBarrierClips;
+	const Game::dvar_t* PlayerMovement::BGLadderFixedInput;
 
 	void PlayerMovement::PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask)
 	{
@@ -310,6 +311,55 @@ namespace Components
 		}
 	}
 
+	// Replaces PM_LadderMove's pitch-scaled climb multiplier
+	// (v18 = clamp((forward[2] + 0.25) * 2.5, -1, +1)) at 0x573FEF with a
+	// constant 1.0 so vertical wishvel becomes 0.5 * cmdScale * forwardmove.
+	__declspec(naked) void PlayerMovement::PM_LadderMove_PitchStub()
+	{
+		__asm
+		{
+			push eax
+			mov eax, BGLadderFixedInput
+			cmp byte ptr [eax + 0x10], 1
+			pop eax
+
+			je classicMode
+
+			// Game's code: fld pml->forward[2]; fadd 0.25
+			fld dword ptr [ebp + 0x8]
+			fadd qword ptr ds:[0x70D1E8]
+			push 0x573FF8
+			ret
+
+		classicMode:
+			// Force v18 = 1.0 and skip the ±1 clamp
+			fld1
+			fstp dword ptr [esp + 0xC]
+			push 0x574034
+			ret
+		}
+	}
+
+	// Replaces the camera-relative right-vector projection inside PM_LadderMove
+	// (Vec3ProjectOnPlane at 0x4C3130, single call site at 0x574061) with the
+	// ladder-locked form: pml->right = (-Ly, Lx, 0) / |L_xy|.
+	float* PlayerMovement::PM_LadderMove_RightVector_Hk(float* source, const float* ladderNormal, float* pmlRight)
+	{
+		if (BGLadderFixedInput && BGLadderFixedInput->current.enabled)
+		{
+			const float lx = ladderNormal[0];
+			const float ly = ladderNormal[1];
+			const float len2 = lx * lx + ly * ly;
+			const float invLen = (len2 > 0.0f) ? (1.0f / std::sqrt(len2)) : 1.0f;
+			pmlRight[0] = -ly * invLen;
+			pmlRight[1] =  lx * invLen;
+			pmlRight[2] = 0.0f;
+			return source; // match the original helper's return-first-arg contract
+		}
+
+		return Utils::Hook::Call<float*(float*, const float*, float*)>(0x4C3130)(source, ladderNormal, pmlRight);
+	}
+
 	void PlayerMovement::RegisterMovementDvars()
 	{
 		PlayerDuckedSpeedScale = Game::Dvar_RegisterFloat("player_duckedSpeedScale",
@@ -353,6 +403,9 @@ namespace Components
 
 		BGDisableBarrierClips = Game::Dvar_RegisterBool("bg_disableBarrierClips",
 			false, Game::DVAR_CODINFO, "Disable player collision with out of bound barriers");
+
+		BGLadderFixedInput = Game::Dvar_RegisterBool("bg_ladderFixedInput",
+			false, Game::DVAR_CODINFO, "Make ladder climb and strafe independent of view angle");
 	}
 
 	PlayerMovement::PlayerMovement()
@@ -414,9 +467,13 @@ namespace Components
 		Utils::Hook(0x570020, PM_CrashLand_Stub, HOOK_CALL).install()->quick(); // Vec3Scale
 		Utils::Hook(0x4E9889, Jump_Check_Stub, HOOK_JUMP).install()->quick();
 
-		// Disable player collision with out of bound barriers 
+		// Disable player collision with out of bound barriers
 		Utils::Hook(0x4CFF5C, PmoveSingle_Stub, HOOK_CALL).install()->quick(); 			// single PmoveSingle call inside Pmove
 		Utils::Hook(0x574AF4, PM_CheckLadderMove_Stub, HOOK_CALL).install()->quick(); 	// single PM_CheckLadderMove call inside PmoveSingle
+
+		// View-independent ladder controls (opt-in via bg_ladderFixedInput)
+		Utils::Hook(0x573FEF, PM_LadderMove_PitchStub, HOOK_JUMP).install()->quick();       // pitch-scaled climb rate block
+		Utils::Hook(0x574061, PM_LadderMove_RightVector_Hk, HOOK_CALL).install()->quick();  // camera-relative right-vector projection
 
 		GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
 
