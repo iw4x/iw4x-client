@@ -23,6 +23,7 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::PlayerProneSpeedScale;
 	const Game::dvar_t* PlayerMovement::BGDisableBarrierClips;
 	const Game::dvar_t* PlayerMovement::BGLadderFixedInput;
+	const Game::dvar_t* PlayerMovement::BGSprintIgnoreRepress;
 
 	void PlayerMovement::PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask)
 	{
@@ -360,6 +361,38 @@ namespace Components
 		return Utils::Hook::Call<float*(float*, const float*, float*)>(0x4C3130)(source, ladderNormal, pmlRight);
 	}
 
+	// Disables PM_UpdateSprint's PC-only sprint re-press cancel when enabled.
+	// Otherwise keeps the original behavior.
+	__declspec(naked) void PlayerMovement::PM_UpdateSprint_RepressCallStub()
+	{
+		__asm
+		{
+			push eax
+			pushfd
+
+			mov eax, BGSprintIgnoreRepress
+			test eax, eax
+			jz stockPath                     // null during early init
+			cmp byte ptr [eax + 0x10], 1     // dvar_t.current.enabled
+			jne stockPath
+
+			// Enabled: skip end-sprint call AND sprintButtonUpRequired write.
+			popfd
+			pop eax
+			push 0x56EF64
+			ret
+
+		stockPath:
+			popfd
+			pop eax
+			mov ecx, ebp
+			mov eax, edi
+			push 0x56EF5E
+			push 0x56ECD0
+			ret
+		}
+	}
+
 	void PlayerMovement::RegisterMovementDvars()
 	{
 		PlayerDuckedSpeedScale = Game::Dvar_RegisterFloat("player_duckedSpeedScale",
@@ -406,6 +439,10 @@ namespace Components
 
 		BGLadderFixedInput = Game::Dvar_RegisterBool("bg_ladderFixedInput",
 			false, Game::DVAR_SYSTEMINFO, "Make ladder climb and strafe independent of view angle");
+
+		BGSprintIgnoreRepress = Game::Dvar_RegisterBool("bg_sprintIgnoreRepress",
+			false, Game::DVAR_SYSTEMINFO,
+			"Ignore sprint-key re-presses while already sprinting (matches console behaviour)");
 	}
 
 	PlayerMovement::PlayerMovement()
@@ -474,6 +511,9 @@ namespace Components
 		// View-independent ladder controls (opt-in via bg_ladderFixedInput)
 		Utils::Hook(0x573FEF, PM_LadderMove_PitchStub, HOOK_JUMP).install()->quick();       // pitch-scaled climb rate block
 		Utils::Hook(0x574061, PM_LadderMove_RightVector_Hk, HOOK_CALL).install()->quick();  // camera-relative right-vector projection
+
+		// Console-style sprint hold (opt-in via bg_sprintIgnoreRepress)
+		Utils::Hook(0x56EF59, PM_UpdateSprint_RepressCallStub, HOOK_JUMP).install()->quick();
 
 		GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
 
