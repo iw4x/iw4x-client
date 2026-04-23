@@ -405,7 +405,7 @@ namespace Components
 			false, Game::DVAR_CODINFO, "Disable player collision with out of bound barriers");
 
 		BGLadderFixedInput = Game::Dvar_RegisterBool("bg_ladderFixedInput",
-			false, Game::DVAR_CODINFO, "Make ladder climb and strafe independent of view angle");
+			false, Game::DVAR_SYSTEMINFO, "Make ladder climb and strafe independent of view angle");
 	}
 
 	PlayerMovement::PlayerMovement()
