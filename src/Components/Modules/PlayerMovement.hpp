@@ -28,6 +28,7 @@ namespace Components
 		static const Game::dvar_t* PlayerProneSpeedScale;
 		static const Game::dvar_t* BGDisableBarrierClips;
 		static const Game::dvar_t* BGLadderFixedInput;
+		static const Game::dvar_t* BGSprintIgnoreRepress;
 
 		static void PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask);
 		static void PM_PlayerDuckedSpeedScaleStub();
@@ -62,5 +63,7 @@ namespace Components
 
 		static void PM_LadderMove_PitchStub();
 		static float* PM_LadderMove_RightVector_Hk(float* source, const float* ladderNormal, float* pmlRight);
+
+		static void PM_UpdateSprint_RepressCallStub();
 	};
 }
