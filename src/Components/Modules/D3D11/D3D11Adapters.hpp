@@ -43,11 +43,11 @@ namespace D3D11 {
 		HMONITOR WINAPI GetAdapterMonitor(UINT Adapter) override;
 		HRESULT  WINAPI CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface) override;
 
-		IDXGIFactory* GetFactory() { return m_pIDXGIFactory.Get(); }
+		IDXGIFactory2* GetFactory() { return m_pIDXGIFactory.Get(); }
 	private:
 		std::atomic<ULONG> m_refCount;
 
-		Microsoft::WRL::ComPtr<IDXGIFactory> m_pIDXGIFactory;
+		Microsoft::WRL::ComPtr<IDXGIFactory2> m_pIDXGIFactory;
 
 		std::vector<D3D11Adapter> m_adapters;
 	};

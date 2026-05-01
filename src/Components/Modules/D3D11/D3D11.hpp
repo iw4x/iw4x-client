@@ -255,5 +255,7 @@ namespace D3D11 {
 		D3D11_DEPTH_STENCIL_DESC m_currentDSDesc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
 		bool m_currentDSStateDirty = true;
 		UINT m_currentStencilRef = 0;
+
+		static Components::Dvar::Var RGPUValidator;
 	};
 }

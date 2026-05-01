@@ -71,6 +71,7 @@
 #pragma warning(disable: 4005)
 #include <wrl/client.h>
 #include <d3d11.h>
+#include <dxgi1_6.h>
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 #include <mojoshader.h>

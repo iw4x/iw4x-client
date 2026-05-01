@@ -120,10 +120,15 @@ HRESULT D3D11::D3D11Query::GetData(void* pData, DWORD dwSize, DWORD dwGetDataFla
 #pragma endregion
 
 #pragma region D3D11Context
+Components::Dvar::Var D3D11::D3D11Context::RGPUValidator;
+
 D3D11::D3D11Context::D3D11Context(DXGI* dxgi, IDXGIAdapter* adapter, D3DPRESENT_PARAMETERS* pPresentationParameters) : m_dxgi(dxgi), m_refCount(0)
 {
+	RGPUValidator = Components::Dvar::Register<bool>("r_GPUValidator", false, Game::DVAR_ARCHIVE, "Create the gpu device in debug mode (DX11 only for now but could be useful for other backend in the future)");
+
 	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-	//creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
+	if (RGPUValidator.get<bool>())
+		creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 
 	D3D_FEATURE_LEVEL featureLevels[] = {
 		D3D_FEATURE_LEVEL_11_0
@@ -180,6 +185,8 @@ ULONG D3D11::D3D11Context::Release()
 HRESULT D3D11::D3D11Context::TestCooperativeLevel()
 {
 	HRESULT res = m_swapChain->TestCooperativeLevel();
+	if (res == DXGI_ERROR_DEVICE_REMOVED || res == DXGI_ERROR_DEVICE_RESET)
+		return D3DERR_DEVICENOTRESET;
 	// can be:
 	// D3DERR_DEVICELOST, D3DERR_DEVICENOTRESET, D3DERR_DRIVERINTERNALERROR
 	return D3D_OK;
@@ -187,7 +194,7 @@ HRESULT D3D11::D3D11Context::TestCooperativeLevel()
 
 UINT D3D11::D3D11Context::GetAvailableTextureMem()
 {
-	return 4096; // hardcoded 4Go VRAM, need to implement for real
+	return 1024; // hardcoded 4Go VRAM, need to implement for real
 }
 
 HRESULT D3D11::D3D11Context::EvictManagedResources()
@@ -724,7 +731,8 @@ HRESULT D3D11::D3D11Context::GetClipStatus(D3DCLIPSTATUS9* pClipStatus)
 
 HRESULT D3D11::D3D11Context::GetTexture(DWORD Stage, IDirect3DBaseTexture9** ppTexture)
 {
-	NOT_IMPLEMENTED_ERROR
+	*ppTexture = m_textures[Stage];
+	return D3D_OK;
 }
 
 HRESULT D3D11::D3D11Context::SetTexture(DWORD Stage, IDirect3DBaseTexture9* pTexture)
@@ -760,6 +768,21 @@ HRESULT D3D11::D3D11Context::SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE 
 	}
 
 	m_samplersDirty |= (1 << Sampler);
+	if (Type >= D3DSAMP_MAGFILTER && Type <= D3DSAMP_MIPFILTER) {
+		if (Value == D3DTEXF_ANISOTROPIC) { // if min, mag or mip is set to aniso we 
+			m_samplersDesc[Sampler].Filter = D3D11_FILTER_ANISOTROPIC; // 0x40 + minmagmip linear
+			return D3D_OK;
+		}
+
+		// There is only one aniso setting possible and D3DSAMP_MIPFILTER + D3DTEXF_ANISOTROPIC is undefined behavior
+		// We ignore mip settings if we are in anisotropic filtering for now.
+		// We could loose some potential info here, especilaly if the game update the sampler state in a different order
+		if(Type == D3DSAMP_MIPFILTER && m_samplersDesc[Sampler].Filter == D3D11_FILTER_ANISOTROPIC)
+			return D3D_OK;
+
+		m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x40); // remove aniso flag
+	}
+
 	switch (Type) {
 	case D3DSAMP_ADDRESSU:
 		m_samplersDesc[Sampler].AddressU = D3DTEXTUREADDRESSToD3D11_TEXTURE_ADDRESS_MODE((D3DTEXTUREADDRESS)Value);
@@ -774,37 +797,22 @@ HRESULT D3D11::D3D11Context::SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE 
 		UnpackD3DCOLOR(Value, m_samplersDesc[Sampler].BorderColor);
 		break;
 	case D3DSAMP_MAGFILTER:
-		if (Value == D3DTEXF_ANISOTROPIC)
-			m_samplersDesc[Sampler].Filter = D3D11_FILTER_ANISOTROPIC;
-		else {
-			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x40);
-			if (Value == D3DTEXF_LINEAR)
-				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter | 0x04);
-			else
-				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x04);
-		}
+		if (Value == D3DTEXF_LINEAR)
+			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter | 0x04);
+		else
+			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x04);
 		break;
 	case D3DSAMP_MINFILTER:
-		if (Value == D3DTEXF_ANISOTROPIC)
-			m_samplersDesc[Sampler].Filter = D3D11_FILTER_ANISOTROPIC;
-		else {
-			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x40);
-			if (Value == D3DTEXF_LINEAR)
-				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter | 0x10);
-			else
-				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x10);
-		}
+		if (Value == D3DTEXF_LINEAR)
+			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter | 0x10);
+		else
+			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x10);
 		break;
 	case D3DSAMP_MIPFILTER:
-		if (Value == D3DTEXF_ANISOTROPIC)
-			m_samplersDesc[Sampler].Filter = D3D11_FILTER_ANISOTROPIC;
-		else {
-			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x40);
-			if (Value == D3DTEXF_LINEAR)
-				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter | 0x01);
-			else
-				m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x01);
-		}
+		if (Value == D3DTEXF_LINEAR)
+			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter | 0x01);
+		else
+			m_samplersDesc[Sampler].Filter = (D3D11_FILTER)(m_samplersDesc[Sampler].Filter & ~0x01);
 		break;
 	case D3DSAMP_MIPMAPLODBIAS:	m_samplersDesc[Sampler].MipLODBias = std::clamp(((float&)Value), -16.0f, 15.99f); break;
 	case D3DSAMP_MAXMIPLEVEL:	m_samplersDesc[Sampler].MaxLOD = Value; break;

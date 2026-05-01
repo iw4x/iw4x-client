@@ -51,7 +51,7 @@ HRESULT D3D11::D3D11Adapter::GetIdentifier(D3DADAPTER_IDENTIFIER9* pIdentifier)
 
 D3D11::DXGI::DXGI() : m_refCount(0)
 {
-	CreateDXGIFactory(IID_PPV_ARGS(m_pIDXGIFactory.ReleaseAndGetAddressOf()));
+	CreateDXGIFactory1(IID_PPV_ARGS(m_pIDXGIFactory.ReleaseAndGetAddressOf()));
 
 	UINT globalIdx = 0;
 	UINT adapterId = 0;

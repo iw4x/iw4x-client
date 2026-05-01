@@ -26,15 +26,15 @@ namespace D3D11
 		STDMETHOD(GetPresentParameters)(THIS_ D3DPRESENT_PARAMETERS* pPresentationParameters) override;
 
 		ID3D11Texture2D* GetRenderTarget() const { return m_renderTarget.Get(); }
-		DXGI_FORMAT GetViewFormat() const { return m_desc.BufferDesc.Format; }
+		DXGI_FORMAT GetViewFormat() const { return m_desc.Format; }
 		HRESULT TestCooperativeLevel();
 	private:
 		std::atomic<ULONG> m_refCount;
 
 		D3D11Context* m_d3dCtx;
 		D3DPRESENT_PARAMETERS m_params;
-		DXGI_SWAP_CHAIN_DESC m_desc;
-		Microsoft::WRL::ComPtr<IDXGISwapChain> m_swapChain;
+		DXGI_SWAP_CHAIN_DESC1 m_desc;
+		Microsoft::WRL::ComPtr<IDXGISwapChain1> m_swapChain;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_renderTarget;
 		D3D11Surface* m_backBuffers;
 	};
