@@ -15,6 +15,8 @@ namespace Components
 
 		static void CL_SanitizeClanName();
 
+		static void SetClanName(const char* name);
+
 	private:
 		static const Game::dvar_t* ClanName;
 
