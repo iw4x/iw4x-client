@@ -252,13 +252,20 @@ namespace Components
 
 		if (type == Game::XAssetType::ASSET_TYPE_MAP_ENTS)
 		{
-			if (Flags::HasFlag("dump"))
+			std::string entitiesFilename = name;
+
+			if (entitiesFilename.starts_with("maps/mp/maps/mp") && entitiesFilename.ends_with(".d3dbsp.d3dbsp"))
 			{
-				Utils::IO::WriteFile(Utils::String::VA("raw/%s.ents", name.data()), asset.mapEnts->entityString, true);
+				// As of 2026 some MW3 maps have been built with this strange clipmap name, likely an artifact of IW5xport.
+				// It is not problematic in itself but it breaks overrides via ents files
+				// We can hotfix it here until one day where we re-build and re-ship every MW3 maps with additional fixes
+				const auto prefixLength = "maps/mp/"s.size();
+				const auto suffixLength = ".d3dbsp"s.size();
+				entitiesFilename = entitiesFilename.substr(prefixLength, entitiesFilename.size() - prefixLength - suffixLength);
 			}
 
 			static std::string mapEntities;
-			FileSystem::File ents(name + ".ents", Game::FS_THREAD_DATABASE);
+			FileSystem::File ents(entitiesFilename + ".ents", Game::FS_THREAD_DATABASE);
 			if (ents.exists())
 			{
 				mapEntities = ents.getBuffer();
