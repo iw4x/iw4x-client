@@ -90,6 +90,7 @@ namespace Components::ViewModelFxSetup
 				Game::CG_StopBoltedEffect(0, 0, tpDObj->entnum, tagName);
 			}
 		});
+	}
 
 	Setup::Setup()
 	{
