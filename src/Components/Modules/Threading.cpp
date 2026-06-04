@@ -215,24 +215,47 @@ namespace Components
 		//
 		timeBeginPeriod(1);
 
-		// Stop the engine from spawning its own server thread so we can maintain
-		// control over the threading model ourselves.
+		// Keep the engine threading model intact.
 		//
-		Utils::Hook::Nop(0x60BEC0, 5);
-		Utils::Hook(0x627049, 0x6271CE, HOOK_JUMP).install()->quick();
-
-		// Disable the blocking server wait so we can drive the cycle.
+		// It may be tempting to make the server frame run through the main frame.
+		// And yes, that does make the control flow look simpler, but only by
+		// removing an engine invariant that the rest of the code still assumes: the
+		// server side is driven by an engine-owned thread.
 		//
-		Utils::Hook::Set<std::uint8_t>(0x4256F0, 0xC3);
-
-		// This dvar sync logic is known to conflict with our manual threading
-		// approach, so we'll just bypass it.
+		// Once that boundary is removed, server code begins to execute as if it
+		// were main-frame code. Some of it will appear to work, which is what makes
+		// this kind of change dangerous. That is, failures are no longer confined
+		// to the wait path and can instead show up later as state being touched
+		// from the wrong side of the engine.
 		//
-		Utils::Hook::Set<std::uint8_t>(0x647781, 0xEB);
+		// So while this module may change how the existing threads wait, it must
+		// not decide that the engine no longer gets a server thread.
+		//
+		// ... Actually, ZoneBuilder is the one known exception. It currently
+		// depends on the collapsed path, so we preserve that behavior there only.
+		// Treat this as a compatibility exception.
+		//
+		if (ZoneBuilder::IsEnabled())
+		{
+			// Stop the engine from spawning its own server thread so we can maintain
+			// control over the threading model ourselves.
+			//
+			Utils::Hook::Nop(0x60BEC0, 5);
+			Utils::Hook(0x627049, 0x6271CE, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x627695, 0x627040, HOOK_CALL).install()->quick();
-		Utils::Hook(0x43D1C7, PacketEventStub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x6272E3, FrameEpilogueStub, HOOK_JUMP).install()->quick();
+			// Disable the blocking server wait so we can drive the cycle.
+			//
+			Utils::Hook::Set<std::uint8_t>(0x4256F0, 0xC3);
+
+			// This dvar sync logic is known to conflict with our manual threading
+			// approach, so we'll just bypass it.
+			//
+			Utils::Hook::Set<std::uint8_t>(0x647781, 0xEB);
+
+			Utils::Hook(0x627695, 0x627040, HOOK_CALL).install()->quick();
+			Utils::Hook(0x43D1C7, PacketEventStub, HOOK_JUMP).install()->quick();
+			Utils::Hook(0x6272E3, FrameEpilogueStub, HOOK_JUMP).install()->quick();
+		}
 
 		// Hijack the appropriate waiter based on whether we are running a dedicated
 		// server or a client.
