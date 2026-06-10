@@ -235,7 +235,7 @@ namespace Components
 		// depends on the collapsed path, so we preserve that behavior there only.
 		// Treat this as a compatibility exception.
 		//
-		if (ZoneBuilder::IsEnabled())
+		if (ZoneBuilder::IsEnabled() || Dedicated::IsEnabled())
 		{
 			// Stop the engine from spawning its own server thread so we can maintain
 			// control over the threading model ourselves.
