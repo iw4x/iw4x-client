@@ -235,6 +235,9 @@ namespace Components
 		// depends on the collapsed path, so we preserve that behavior there only.
 		// Treat this as a compatibility exception.
 		//
+		// ... Actually (#2), the dedicated server path is another legacy with the 
+		// same assumption. 
+		//
 		if (ZoneBuilder::IsEnabled() || Dedicated::IsEnabled())
 		{
 			// Stop the engine from spawning its own server thread so we can maintain
