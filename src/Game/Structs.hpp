@@ -100,6 +100,14 @@ namespace Game
 		ASSET_TYPE_INVALID = -1,
 	};
 
+	enum DB_CloneType : int
+	{
+		DB_CLONE_DEFAULT = 0x0,
+		DB_CLONE_NORMAL = 0x1,
+		DB_CLONE_SWAP = 0x2,
+		DB_CLONE_NORMAL_FROM_DEFAULT = 0x3,
+	};
+
 	enum GfxWarningType
 	{
 		R_WARN_FRONTEND_ENT_LIMIT = 0x0,
