@@ -38,6 +38,29 @@ namespace Components
 
 	Utils::Memory::Allocator Menus::Allocator;
 
+	using MenuDynamicCloneHandler = int(__cdecl*)(Game::XAssetHeader, Game::XAssetHeader, Game::DB_CloneType);
+	const auto DB_DynamicCloneMenu = reinterpret_cast<MenuDynamicCloneHandler>(0x5BAD10);
+
+	// Preserve runtime menu state during replacement, but do not copy item state by index
+	// when the old and new menu layouts differ.
+	int DynamicCloneMenu(const Game::XAssetHeader newHeader, const Game::XAssetHeader existingHeader, const Game::DB_CloneType cloneType)
+	{
+		auto* newMenu = newHeader.menu;
+		auto* existingMenu = existingHeader.menu;
+		if (!newMenu || !existingMenu || newMenu->itemCount == existingMenu->itemCount)
+		{
+			return DB_DynamicCloneMenu(newHeader, existingHeader, cloneType);
+		}
+
+		if (cloneType != Game::DB_CLONE_DEFAULT && cloneType != Game::DB_CLONE_NORMAL_FROM_DEFAULT)
+		{
+			newMenu->cursorItem[0] = existingMenu->cursorItem[0];
+			newMenu->window.dynamicFlags[0] = existingMenu->window.dynamicFlags[0];
+		}
+
+		return 1;
+	}
+
 	Game::KeywordHashEntry<Game::menuDef_t, 128, 3523>** menuParseKeywordHash;
 
 	template <int HASH_COUNT, int HASH_SEED>
@@ -1513,6 +1536,9 @@ namespace Components
 		}
 
 		if (Dedicated::IsEnabled()) return;
+
+		auto* dynamicCloneHandlers = reinterpret_cast<MenuDynamicCloneHandler*>(0x799A08);
+		Utils::Hook::Set(&dynamicCloneHandlers[Game::ASSET_TYPE_MENU], DynamicCloneMenu);
 
 		Menus::InitializeSupportingData();
 
