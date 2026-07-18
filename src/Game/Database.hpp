@@ -90,6 +90,9 @@ namespace Game
 	typedef void(*DB_ReleaseXAssetHandler_t)(XAssetHeader header);
 	extern DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers;
 
+	typedef int(*DB_DynamicCloneXAssetHandler_t)(XAssetHeader, XAssetHeader, DB_CloneType);
+	extern DB_DynamicCloneXAssetHandler_t* DB_DynamicCloneXAssetHandler;
+
 	typedef void(*RMesg_SendMessages_t)();
 	extern RMesg_SendMessages_t RMesg_SendMessages;
 
