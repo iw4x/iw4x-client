@@ -2,6 +2,7 @@
 #include "Field.hpp"
 #include "Int64.hpp"
 #include "IO.hpp"
+#include "ModelResize.hpp"
 #include "Script.hpp"
 #include "ScriptError.hpp"
 #include "ScriptExtension.hpp"
@@ -17,6 +18,7 @@ namespace Components::GSC
 		Loader::Register(new Field());
 		Loader::Register(new Int64());
 		Loader::Register(new IO());
+		Loader::Register(new ModelResize());
 		Loader::Register(new Script());
 		Loader::Register(new ScriptError());
 		Loader::Register(new ScriptExtension());
