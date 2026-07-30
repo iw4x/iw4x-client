@@ -5,6 +5,9 @@ namespace Game
 	SV_AddTestClient_t SV_AddTestClient = SV_AddTestClient_t(0x48AD30);
 	SV_IsTestClient_t SV_IsTestClient = SV_IsTestClient_t(0x4D6E40);
 	SV_GameClientNum_Score_t SV_GameClientNum_Score = SV_GameClientNum_Score_t(0x469AC0);
+	SV_SetBrushModel_t SV_SetBrushModel = SV_SetBrushModel_t(0x466830);
+	SV_UnlinkEntity_t SV_UnlinkEntity = SV_UnlinkEntity_t(0x504210);
+	SV_LinkEntity_t SV_LinkEntity = SV_LinkEntity_t(0x4E0880);
 	SV_GameSendServerCommand_t SV_GameSendServerCommand = SV_GameSendServerCommand_t(0x4BC3A0);
 	SV_SendServerCommand_t SV_SendServerCommand = SV_SendServerCommand_t(0x4255A0);
 	SV_Cmd_TokenizeString_t SV_Cmd_TokenizeString = SV_Cmd_TokenizeString_t(0x4B5780);

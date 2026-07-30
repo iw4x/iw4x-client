@@ -1,4 +1,5 @@
 #include "GSC.hpp"
+#include "Entity.hpp"
 #include "Field.hpp"
 #include "Int64.hpp"
 #include "IO.hpp"
@@ -14,6 +15,7 @@ namespace Components::GSC
 {
 	GSC::GSC()
 	{
+		Loader::Register(new Entity());
 		Loader::Register(new Field());
 		Loader::Register(new Int64());
 		Loader::Register(new IO());

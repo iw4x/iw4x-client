@@ -7506,10 +7506,19 @@ namespace Game
 		unsigned __int16 infoIndex;
 	};
 
+	enum ModelType : unsigned char
+	{
+		MODELTYPE_CAPSULE = 0x0,
+		MODELTYPE_CYLINDER = 0x1,
+		MODELTYPE_DISK = 0x2,
+		MODELTYPE_TRIGGER = 0x3,
+		MODELTYPE_BRUSH = 0x4,
+	};
+
 	struct entityShared_t
 	{
 		char isLinked;
-		char modelType;
+		ModelType modelType;
 		char svFlags;
 		char isInUse;
 		Bounds box;

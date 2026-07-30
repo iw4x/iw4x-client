@@ -11,6 +11,15 @@ namespace Game
 	typedef int(*SV_GameClientNum_Score_t)(int clientID);
 	extern SV_GameClientNum_Score_t SV_GameClientNum_Score;
 
+	typedef int(*SV_SetBrushModel_t)(gentity_s* ent);
+	extern SV_SetBrushModel_t SV_SetBrushModel;
+
+	typedef void(*SV_UnlinkEntity_t)(gentity_s* ent);
+	extern SV_UnlinkEntity_t SV_UnlinkEntity;
+
+	typedef void(*SV_LinkEntity_t)(gentity_s* ent);
+	extern SV_LinkEntity_t SV_LinkEntity;
+
 	typedef void(*SV_GameSendServerCommand_t)(int clientNum, svscmd_type type, const char* text);
 	extern SV_GameSendServerCommand_t SV_GameSendServerCommand;
 
