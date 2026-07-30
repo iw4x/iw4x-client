@@ -692,6 +692,7 @@ namespace Game
 
 	extern SpawnVar* spawnVars;
 	extern MapEnts** marMapEntsPtr;
+	extern clipMap_t* cm;
 
 	extern IDirect3D9** d3d9;
 	extern IDirect3DDevice9** dx_ptr;

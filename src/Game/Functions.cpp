@@ -316,6 +316,7 @@ namespace Game
 
 	SpawnVar* spawnVars = reinterpret_cast<SpawnVar*>(0x1A83DE8);
 	MapEnts** marMapEntsPtr = reinterpret_cast<MapEnts**>(0x112AD34);
+	clipMap_t* cm = reinterpret_cast<clipMap_t*>(0x1AA6480);
 
 	IDirect3D9** d3d9 = reinterpret_cast<IDirect3D9**>(0x66DEF84);
 	IDirect3DDevice9** dx_ptr = reinterpret_cast<IDirect3DDevice9**>(0x66DEF88);
