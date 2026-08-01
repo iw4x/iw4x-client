@@ -20,7 +20,6 @@ namespace Components
 		static const Game::dvar_t* BGWeaponOffHandFix;
 		static const Game::dvar_t* CGRecoilMultiplier;
 
-
 		static Game::WeaponCompleteDef* LoadWeaponCompleteDef(const char* name);
 		static void PatchLimit();
 		static void* LoadNoneWeaponHook();
