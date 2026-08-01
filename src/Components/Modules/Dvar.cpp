@@ -416,8 +416,8 @@ namespace Components
 		// un-cheat cg_drawGun
 		Utils::Hook::Set<std::uint8_t>(0x4F8DC6, Game::DVAR_NONE);
 
-		// un-cheat cg_draw2D
-		Utils::Hook::Set<std::uint8_t>(0x4F8EEE, Game::DVAR_NONE);
+		// re-cheat cg_draw2D to prevent stripping the thermal scope's mask overlay via cg_draw2D 0
+		Utils::Hook::Or<std::uint8_t>(0x4F8EEE, Game::DVAR_CHEAT);
 
 		// un-cheat cg_overheadNamesFarScale
 		Utils::Hook::Set<std::uint8_t>(0x4FA7C4, Game::DVAR_NONE);
