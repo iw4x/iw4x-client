@@ -462,5 +462,16 @@ namespace Components
 
 		sv_voice = Game::Dvar_RegisterBool("sv_voice", false, Game::DVAR_NONE, "Use server side voice communications");
 		sv_alltalk = Game::Dvar_RegisterBool("sv_alltalk", false, Game::DVAR_NONE, "Allow talking across teams");
+	
+		Events::OnSVInit([]()
+		{
+			// Note that setting sv_voice here would override the value from server.cfg
+			// for dedicated servers. So leave it alone in that case.
+			//
+			if (!Dedicated::IsEnabled())
+			{
+				Command::Execute("sv_voice 1", false);
+			}
+		});
 	}
 }
