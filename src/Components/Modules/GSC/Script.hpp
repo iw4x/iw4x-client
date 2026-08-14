@@ -57,5 +57,7 @@ namespace Components::GSC
 		static Game::BuiltinMethod BuiltIn_GetMethodStub(const char** pName, int* type);
 
 		static unsigned int SetExpFogStub();
+		static void AddRefToValueStub(int type, Game::VariableUnion u);
+		static void RemoveRefToValueStub(int type, Game::VariableUnion u);
 	};
 }

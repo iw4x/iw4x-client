@@ -11,6 +11,22 @@ namespace Components::GSC
 	std::unordered_map<std::string, int> Script::ScriptMainHandles;
 	std::unordered_map<std::string, int> Script::ScriptInitHandles;
 
+	namespace
+	{
+		void WarnNullVectorValue(const char* function)
+		{
+			static bool warningPrinted = false;
+			if (warningPrinted)
+			{
+				return;
+			}
+
+			warningPrinted = true;
+			Logger::Warning(Game::CON_CHANNEL_SCRIPT,
+				"Ignoring null script vector in {}.\n", function);
+		}
+	}
+
 	void Script::Scr_LoadGameType_Stub()
 	{
 		for (const auto& handle : ScriptMainHandles)
@@ -300,6 +316,62 @@ namespace Components::GSC
 		return Game::Scr_GetNumParam();
 	}
 
+	void Script::AddRefToValueStub(int type, Game::VariableUnion u)
+	{
+		switch (type)
+		{
+		case Game::VAR_POINTER:
+			Game::AddRefToObject(u.pointerValue);
+			break;
+		case Game::VAR_STRING:
+		case Game::VAR_ISTRING:
+			Game::SL_AddRefToString(u.stringValue);
+			break;
+		case Game::VAR_VECTOR:
+		{
+			if (!u.vectorValue)
+			{
+				WarnNullVectorValue("AddRefToValue");
+				return;
+			}
+
+			const auto* value = reinterpret_cast<const std::uint8_t*>(u.vectorValue);
+			if (value[-1] == 0)
+			{
+				++(*reinterpret_cast<unsigned short*>(const_cast<std::uint8_t*>(value - 4)));
+			}
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+	void Script::RemoveRefToValueStub(int type, Game::VariableUnion u)
+	{
+		switch (type)
+		{
+		case Game::VAR_POINTER:
+			Game::RemoveRefToObject(u.pointerValue);
+			break;
+		case Game::VAR_STRING:
+		case Game::VAR_ISTRING:
+			Game::SL_RemoveRefToString(u.stringValue);
+			break;
+		case Game::VAR_VECTOR:
+			if (!u.vectorValue)
+			{
+				WarnNullVectorValue("RemoveRefToValue");
+				return;
+			}
+
+			Utils::Hook::Call<void(const float*)>(0x4C10F0)(u.vectorValue);
+			break;
+		default:
+			break;
+		}
+	}
+
 	Game::client_s* Script::GetClient(const Game::gentity_s* ent)
 	{
 		assert(ent);
@@ -358,6 +430,8 @@ namespace Components::GSC
 
 
 		Utils::Hook(0x5F41A3, SetExpFogStub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x482740, AddRefToValueStub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x48E170, RemoveRefToValueStub, HOOK_JUMP).install()->quick();
 
 		// Restore IW3's compiler behaviour when dealing with 'overriding builtin function'
 		Utils::Hook::Nop(0x613EDA, 2); // Scr_GetFunction

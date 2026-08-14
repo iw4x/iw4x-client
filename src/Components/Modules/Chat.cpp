@@ -602,25 +602,33 @@ namespace Components
 
 	int Chat::GetCallbackReturn()
 	{
-		if (Game::scrVmPub->inparamcount == 0)
+		const auto returnCount = Game::scrVmPub->inparamcount;
+		if (returnCount == 0)
 		{
 			// Nothing. Let's not mute the player
 			return 1;
 		}
 
 		Game::Scr_ClearOutParams();
-		Game::scrVmPub->outparamcount = Game::scrVmPub->inparamcount;
-		Game::scrVmPub->inparamcount = 0;
 
-		const auto* result = &Game::scrVmPub->top[1 - Game::scrVmPub->outparamcount];
+		const auto* result = &Game::scrVmPub->top[1 - returnCount];
+		auto mute = 1;
 
-		if (result->type != Game::VAR_INTEGER)
+		if (result->type == Game::VAR_INTEGER)
 		{
-			// Garbage was returned
-			return 1;
+			mute = result->u.intValue;
 		}
 
-		return result->u.intValue;
+		for (auto i = 0u; i < returnCount; ++i)
+		{
+			Game::RemoveRefToValue(Game::scrVmPub->top->type, Game::scrVmPub->top->u);
+			Game::scrVmPub->top->type = Game::VAR_UNDEFINED;
+			--Game::scrVmPub->top;
+		}
+
+		Game::scrVmPub->inparamcount = 0;
+
+		return mute;
 	}
 
 	int Chat::ChatCallback(Game::gentity_s* self, const char* codePos, const char* message, int mode)
@@ -636,12 +644,6 @@ namespace Components
 		const auto id = Game::VM_Execute_0(Game::AllocThread(objId), codePos, paramcount);
 
 		const auto result = GetCallbackReturn();
-
-		Game::RemoveRefToValue(Game::scrVmPub->top->type, Game::scrVmPub->top->u);
-
-		Game::scrVmPub->top->type = Game::VAR_UNDEFINED;
-		--Game::scrVmPub->top;
-		--Game::scrVmPub->inparamcount;
 
 		Game::Scr_FreeThread(static_cast<std::uint16_t>(id));
 
