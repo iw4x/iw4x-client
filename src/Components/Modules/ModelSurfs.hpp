@@ -8,6 +8,9 @@ namespace Components
 		ModelSurfs();
 		~ModelSurfs();
 
+		static Game::XModelSurfs* CloneAndScaleSurfaces(const Game::XModelSurfs* source, const std::string& name, float scale);
+		static void UpdateScaledSurfaces(Game::XModelSurfs* target, const Game::XModelSurfs* source, float scale);
+
 	private:
 		static std::unordered_map<void*, IUnknown*> BufferMap;
 		static std::unordered_map<std::string, Game::CModelAllocData*> AllocMap;
