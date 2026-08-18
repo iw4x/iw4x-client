@@ -1,26 +1,35 @@
 #include <Utils/InfoString.hpp>
 
 #include <Components/Modules/Events.hpp>
+#include <Components/Modules/ClanTags.hpp>
 
 #include "UserInfo.hpp"
 #include "Script.hpp"
 
 namespace Components::GSC
 {
-	std::unordered_map<int, UserInfo::userInfoMap> UserInfo::UserInfoOverrides;
+	std::unordered_map<std::uint64_t, UserInfo::userInfoMap> UserInfo::UserInfoOverrides;
+
+	std::uint64_t UserInfo::GetOverrideKey(const int clientNum)
+	{
+		const auto steamID = Game::svs_clients[clientNum].steamID;
+		return steamID != 0 ? steamID : static_cast<std::uint64_t>(clientNum);
+	}
 
 	void UserInfo::SV_GetUserInfo_Stub(int index, char* buffer, int bufferSize)
 	{
 		Utils::Hook::Call<void(int, char*, int)>(0x49A160)(index, buffer, bufferSize);
 
-		Utils::InfoString map(buffer);
+		const auto it = UserInfoOverrides.find(GetOverrideKey(index));
 
-		if (!UserInfoOverrides.contains(index))
+		if (it == UserInfoOverrides.end() || it->second.empty())
 		{
-			UserInfoOverrides[index] = {};
+			return;
 		}
 
-		for (const auto& [key, val] : UserInfoOverrides[index])
+		Utils::InfoString map(buffer);
+
+		for (const auto& [key, val] : it->second)
 		{
 			if (val.empty())
 			{
@@ -38,7 +47,12 @@ namespace Components::GSC
 
 	void UserInfo::ClearClientOverrides(const int clientNum)
 	{
-		UserInfoOverrides[clientNum].clear();
+		const auto steamID = Game::svs_clients[clientNum].steamID;
+
+		if (steamID == 0)
+		{
+			UserInfoOverrides.erase(static_cast<std::uint64_t>(clientNum));
+		}
 	}
 
 	void UserInfo::ClearAllOverrides()
@@ -60,7 +74,7 @@ namespace Components::GSC
 			}
 
 			Logger::Debug("Setting name of {} to {}", ent->s.number, name);
-			UserInfoOverrides[ent->s.number]["name"] = name;
+			UserInfoOverrides[GetOverrideKey(ent->s.number)]["name"] = name;
 			Game::ClientUserinfoChanged(ent->s.number);
 		});
 
@@ -69,7 +83,7 @@ namespace Components::GSC
 			const auto* ent = Script::Scr_GetPlayerEntity(entref);
 
 			Logger::Debug("Resetting name of {}", ent->s.number);
-			UserInfoOverrides[ent->s.number].erase("name");
+			UserInfoOverrides[GetOverrideKey(ent->s.number)].erase("name");
 			Game::ClientUserinfoChanged(ent->s.number);
 		});
 
@@ -85,7 +99,8 @@ namespace Components::GSC
 			}
 
 			Logger::Debug("Setting clanName of {} to {}", ent->s.number, clanName);
-			UserInfoOverrides[ent->s.number]["clanAbbrev"] = clanName;
+			UserInfoOverrides[GetOverrideKey(ent->s.number)]["clanAbbrev"] = clanName;
+			ClanTags::SetClanName(clanName);
 			Game::ClientUserinfoChanged(ent->s.number);
 		});
 
@@ -94,7 +109,8 @@ namespace Components::GSC
 			const auto* ent = Script::Scr_GetPlayerEntity(entref);
 
 			Logger::Debug("Resetting clanName of {}", ent->s.number);
-			UserInfoOverrides[ent->s.number].erase("clanAbbrev");
+			UserInfoOverrides[GetOverrideKey(ent->s.number)].erase("clanAbbrev");
+			ClanTags::SetClanName("");
 			Game::ClientUserinfoChanged(ent->s.number);
 		});
 	}
@@ -106,7 +122,6 @@ namespace Components::GSC
 
 		AddScriptMethods();
 
-		Events::OnVMShutdown(ClearAllOverrides);
 		Events::OnClientDisconnect(ClearClientOverrides);
 	}
 }
