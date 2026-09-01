@@ -111,7 +111,11 @@ namespace Components
 		static void SV_SendClientGameState_Stub(Game::client_s* client, Game::msg_t* msg);
 		static void OnGamestateMessage(Game::client_s* cl, Game::msg_t* msg);
 
-		static void OnClientConnected(Game::client_s* cl);
+		// Closes any demo still open for a slot and starts a fresh one, after a short settle
+		// window. Driven from the gamestate hook, which fires both on connect and on every
+		// map change - so players who stay across a map change get a new demo instead of
+		// silently stopping being recorded.
+		static void RestartRecordingDeferred(int clientNum);
 		static void OnClientDisconnected(int clientNum);
 
 		static void ServerRecordCommand(const Command::Params* params);

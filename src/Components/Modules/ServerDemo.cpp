@@ -142,7 +142,7 @@ namespace Components
 		// Never record bots/test clients. On a bot-filled server this would otherwise spam
 		// one demo file per bot every map (they connect at map start, before any human), which
 		// is pure noise and would also churn through sv_demosKeep and evict real players' demos.
-		// Note: this flag is only reliable once the client has settled - see OnClientConnected.
+		// Note: this flag is only reliable once the client has settled - see RestartRecordingDeferred.
 		if (cl->bIsTestClient)
 		{
 			if (!automatic)
@@ -412,29 +412,38 @@ namespace Components
 		const auto clientNum = static_cast<int>(cl - Game::svs_clients);
 		if (!ValidClientNum(clientNum)) return;
 
+		// Close any demo still open for this slot IMMEDIATELY, before caching the new
+		// gamestate. A gamestate means the client is (re)entering the world, so the previous
+		// recording is finished. Doing this here rather than in the deferred restart matters:
+		// the deferred start runs a second later, and in that window snapshots for the NEW
+		// map would otherwise be appended to the PREVIOUS map's demo.
+		StopRecording(clientNum);
+
 		// Cache unconditionally, whether or not a recording is active yet - auto-record's
 		// settle delay means recording usually starts a moment AFTER gamestate has already
 		// gone out, so this is the only way to still capture it.
 		CachedGamestate[clientNum].assign(msg->data, msg->data + msg->cursize);
+
+		// A gamestate is sent to a client whenever it (re)enters the world - on connect AND
+		// on every map change / map_restart. That makes this the right place to (re)start a
+		// recording, and it fixes a real gap: previously recording only began on connect, so
+		// a player who stayed across a map change was never recorded again. Their old demo
+		// was closed at map end and nothing replaced it.
+		//
+		// Rotate here: close any demo still open for this slot, then start a fresh one for
+		// the new map. Deferred for the same reason as the connect path - client_s::bIsTestClient
+		// and the player's name are not populated yet at this instant.
+		RestartRecordingDeferred(clientNum);
 	}
 
-	void ServerDemo::OnClientConnected(Game::client_s* cl)
+	// Closes any active recording for a slot and starts a new one, after a short settle
+	// window. Safe to call for a client that is not being recorded.
+	void ServerDemo::RestartRecordingDeferred(const int clientNum)
 	{
 		if (!Dedicated::IsRunning()) return;
-		if (!cl) return;
 		if (!SVDemoAutoRecord.get<bool>()) return;
-
-		const auto clientNum = static_cast<int>(cl - Game::svs_clients);
 		if (!ValidClientNum(clientNum)) return;
 
-		// Do NOT decide here whether to record. SV_AddTestClient executes its "connect bot<n>"
-		// command - which is what fires this very callback - and only sets client_s.bIsTestClient
-		// AFTERWARDS, once that connect returns. So at this instant a bot is indistinguishable
-		// from a human: the flag is still 0. Verified by disassembling SV_AddTestClient (0x48AD30):
-		// the connect dispatch happens well before the `bIsTestClient = 1` store at +0x41AF0.
-		//
-		// Defer the decision by a short settle window so the flag (and the client's name/userinfo)
-		// have landed, then re-validate. Losing the first second of a recording is irrelevant here.
 		Scheduler::Once([clientNum]
 		{
 			if (!Dedicated::IsRunning()) return;
@@ -445,7 +454,9 @@ namespace Components
 			// Client may have dropped during the settle window.
 			if (cl->header.state < Game::CS_CONNECTED) return;
 
-			// Now the bot flag is trustworthy - StartRecording re-checks it too.
+			// The previous demo was already closed synchronously when the gamestate arrived,
+			// so this only ever opens a new one. StartRecording re-checks the bot flag, which
+			// is trustworthy by now.
 			StartRecording(clientNum, true);
 		}, Scheduler::Pipeline::SERVER, 1s);
 	}
@@ -522,7 +533,6 @@ namespace Components
 			"How many auto-recorded server demos to keep per rotation");
 
 		Events::OnSVSendClientMessage(OnServerMessage);
-		Events::OnClientConnect(OnClientConnected);
 		Events::OnClientDisconnect(OnClientDisconnected);
 
 		// Hooks the call to FUN_00625270 inside SV_SendClientGameState (0x625570) - the
