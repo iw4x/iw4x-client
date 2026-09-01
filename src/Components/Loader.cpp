@@ -49,6 +49,7 @@
 #include "Modules/RawFiles.hpp"
 #include "Modules/RawMouse.hpp"
 #include "Modules/RCon.hpp"
+#include "Modules/RemoteControl.hpp"
 #include "Modules/Rumble.hpp"
 #include "Modules/Security.hpp"
 #include "Modules/ServerCommands.hpp"
@@ -156,6 +157,7 @@ namespace Components
 		Register(new RawFiles());
 		Register(new RawMouse());
 		Register(new RCon());
+		Register(new RemoteControl());
 		Register(new Renderer());
 		Register(new Scheduler());
 		Register(new Security());
