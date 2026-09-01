@@ -10,6 +10,7 @@ namespace Components
 		using ClientCallback = std::vector<std::function<void(int clientNum)>>;
 		using ClientCmdCallback = std::vector<std::function<void(Game::usercmd_s* cmd)>>;
 		using CLDisconnectCallback = std::vector<std::function<void(bool wasConnected)>>;
+		using SVClientMessageCallback = std::vector<std::function<void(Game::client_s* cl, Game::msg_t* msg)>>;
 
 		Events();
 
@@ -18,6 +19,15 @@ namespace Components
 
 		// Server side
 		static void OnClientConnect(const std::function<void(Game::client_s* cl)>& callback);
+
+		// Server side - fired once per connected client per server frame, right after the
+		// engine finishes building that client's outgoing message (post SV_EndClientSnapshot,
+		// pre Huffman-compress/send). msg->data[0..cursize] is the complete, final,
+		// pre-compression wire payload for that frame. Invoked directly by
+		// Voice::SV_SendClientMessages_Stub, which already owns the 0x4519F5 call site -
+		// a second independent hook at that address would stomp this one.
+		static void OnSVSendClientMessage(const std::function<void(Game::client_s* cl, Game::msg_t* msg)>& callback);
+		static void FireSVSendClientMessage(Game::client_s* cl, Game::msg_t* msg);
 
 		// Client side
 		static void OnSteamDisconnect(const std::function<void()>& callback);
@@ -60,6 +70,7 @@ namespace Components
 		static Utils::Concurrency::Container<Callback> CGameInitTasks_;
 		static Utils::Concurrency::Container<Callback> UIInitTasks_;
 		static Utils::Concurrency::Container<CLDisconnectCallback> CL_DisconnectedTask_;
+		static Utils::Concurrency::Container<SVClientMessageCallback> SVSendClientMessageTasks_;
 
 		// For speed this one does not use concurrency container. Be careful
 		static ClientCmdCallback ClientCmdButtonsTasks_;

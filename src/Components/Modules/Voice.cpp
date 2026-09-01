@@ -74,6 +74,12 @@ namespace Components
 		// SV_EndClientSnapshot
 		Utils::Hook::Call<void(Game::client_s*, Game::msg_t*, unsigned char*)>(0x4F5300)(client, msg, snapshotMsgBuf);
 
+		// msg now holds the complete, final, pre-compression wire message for this client's
+		// frame (confirmed via decompilation: the very next step in the engine's per-client
+		// loop is the Huffman-compress+send call). Let ServerDemo (and anything else that
+		// needs it) tap it here instead of installing a second, conflicting hook at 0x4519F5.
+		Events::FireSVSendClientMessage(client, msg);
+
 		SV_SendClientVoiceData(client);
 	}
 

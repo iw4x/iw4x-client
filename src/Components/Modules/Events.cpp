@@ -13,6 +13,7 @@ namespace Components
 	Utils::Concurrency::Container<Events::Callback> Events::NetworkInitTasks_;
 	Utils::Concurrency::Container<Events::Callback> Events::CGameInitTasks_;
 	Utils::Concurrency::Container<Events::Callback> Events::UIInitTasks_;
+	Utils::Concurrency::Container<Events::SVClientMessageCallback> Events::SVSendClientMessageTasks_;
 
 	Events::ClientCmdCallback Events::ClientCmdButtonsTasks_;
 	Events::ClientCmdCallback Events::ClientKeyMoveTasks_;
@@ -30,6 +31,25 @@ namespace Components
 		ClientConnectTasks_.access([&callback](ClientConnectCallback& tasks)
 		{
 			tasks.emplace_back(callback);
+		});
+	}
+
+	void Events::OnSVSendClientMessage(const std::function<void(Game::client_s* cl, Game::msg_t* msg)>& callback)
+	{
+		SVSendClientMessageTasks_.access([&callback](SVClientMessageCallback& tasks)
+		{
+			tasks.emplace_back(callback);
+		});
+	}
+
+	void Events::FireSVSendClientMessage(Game::client_s* cl, Game::msg_t* msg)
+	{
+		SVSendClientMessageTasks_.access([&cl, &msg](SVClientMessageCallback& tasks)
+		{
+			for (const auto& func : tasks)
+			{
+				func(cl, msg);
+			}
 		});
 	}
 

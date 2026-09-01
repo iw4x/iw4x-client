@@ -53,6 +53,7 @@
 #include "Modules/Rumble.hpp"
 #include "Modules/Security.hpp"
 #include "Modules/ServerCommands.hpp"
+#include "Modules/ServerDemo.hpp"
 #include "Modules/ServerInfo.hpp"
 #include "Modules/ServerList.hpp"
 #include "Modules/Session.hpp"
@@ -162,6 +163,7 @@ namespace Components
 		Register(new Scheduler());
 		Register(new Security());
 		Register(new ServerCommands());
+		Register(new ServerDemo());
 		Register(new ServerInfo());
 		Register(new ServerList());
 		Register(new Session());
