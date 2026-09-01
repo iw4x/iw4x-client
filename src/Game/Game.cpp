@@ -18,8 +18,14 @@ namespace Game
 
 	G_DebugLineWithDuration_t G_DebugLineWithDuration = G_DebugLineWithDuration_t(0x4C3280);
 
+	G_PointContents_t G_PointContents = G_PointContents_t(0x4635F0);
+	G_TraceCapsule_t G_TraceCapsule = G_TraceCapsule_t(0x42CE50);
+	G_RadiusDamage_t G_RadiusDamage = G_RadiusDamage_t(0x45F420);
+
 	gentity_s* g_entities = reinterpret_cast<gentity_s*>(0x18835D8);
 	bool* g_quitRequested = reinterpret_cast<bool*>(0x649FB61);
+
+	Bounds* bounds_origin = reinterpret_cast<Bounds*>(0x747168);
 
 	char(*g_cmdlineCopy)[1024] = reinterpret_cast<char(*)[1024]>(0x1AD7AB0);
 
