@@ -34,6 +34,7 @@
 #include "Modules/MapDump.hpp"
 #include "Modules/MapRotation.hpp"
 #include "Modules/Materials.hpp"
+#include "Modules/Missile.hpp"
 #include "Modules/ModList.hpp"
 #include "Modules/ModelCache.hpp"
 #include "Modules/ModelSurfs.hpp"
@@ -140,6 +141,7 @@ namespace Components
 		Register(new Maps());
 		Register(new Materials());
 		Register(new Menus());
+		Register(new Missile());
 		Register(new ModList());
 		Register(new ModelCache());
 		Register(new ModelSurfs());

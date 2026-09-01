@@ -57,8 +57,19 @@ namespace Game
 	typedef void(*G_DebugLineWithDuration_t)(const float* start, const float* end, const float* color, int depthTest, int duration);
 	extern G_DebugLineWithDuration_t G_DebugLineWithDuration;
 
+	typedef int(*G_PointContents_t)(const float* point, int passEntityNum, int contentMask);
+	extern G_PointContents_t G_PointContents;
+
+	typedef void(*G_TraceCapsule_t)(trace_t* results, const float* start, const float* end, const Bounds* bounds, int passEntityNum, int contentMask);
+	extern G_TraceCapsule_t G_TraceCapsule;
+
+	typedef void(*G_RadiusDamage_t)(const float* origin, gentity_s* inflictor, gentity_s* attacker, float damage, float minDamage, float radius, float coneDot, const float* coneDir, gentity_s* ignore, int meansOfDeath, int hitLoc);
+	extern G_RadiusDamage_t G_RadiusDamage;
+
 	extern gentity_s* g_entities;
 	extern bool* g_quitRequested;
+
+	extern Bounds* bounds_origin;
 
 	extern char(*g_cmdlineCopy)[1024];
 
