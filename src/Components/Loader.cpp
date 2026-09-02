@@ -16,6 +16,7 @@
 #include "Modules/ClientCommand.hpp"
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/Console.hpp"
+#include "Modules/Controller.hpp"
 #include "Modules/ConfigStrings.hpp"
 #include "Modules/D3D9Ex.hpp"
 #include "Modules/Debug.hpp"
@@ -27,7 +28,6 @@
 #include "Modules/Exception.hpp"
 #include "Modules/FastFiles.hpp"
 #include "Modules/Friends.hpp"
-#include "Modules/Gamepad.hpp"
 #include "Modules/Huffman.hpp"
 #include "Modules/IPCPipe.hpp"
 #include "Modules/Lean.hpp"
@@ -121,6 +121,7 @@ namespace Components
 		Register(new ClientCommand());
 		Register(new ConnectProtocol());
 		Register(new Console());
+		Register(new Controller());
 		Register(new D3D9Ex());
 		Register(new Debug());
 		Register(new Dedicated());
@@ -132,7 +133,6 @@ namespace Components
 		Register(new FastFiles());
 		Register(new FileSystem());
 		Register(new Friends());
-		Register(new Gamepad());
 		Register(new Rumble());
 		Register(new Huffman());
 		Register(new Lean());

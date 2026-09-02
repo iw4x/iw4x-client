@@ -1,6 +1,6 @@
 #include "RawMouse.hpp"
 
-#include "Gamepad.hpp"
+#include "Controller.hpp"
 #include "Window.hpp"
 
 namespace Components
@@ -376,7 +376,7 @@ namespace Components
     Game::s_wmv->oldPos = p;
     ScreenToClient (Window::GetWindow (), &p);
 
-    Gamepad::OnMouseMove (p.x, p.y, dx, dy);
+    Controller::OnMouseMove (dx, dy);
 
     // CL_MouseEvent returns false if we are in a state where the mouse should
     // float freely (e.g., menu). If true, it means we are in-game and looking

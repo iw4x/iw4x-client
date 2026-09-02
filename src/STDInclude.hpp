@@ -50,8 +50,11 @@
 #include <d3dx9tex.h>
 #pragma comment(lib, "D3dx9.lib")
 
+// XInput types only: the controller subsystem resolves the runtime's entry points
+// by name at load time (see Controller/Transport/XInputModule.hpp), so the import
+// library is deliberately not linked. A missing XInput runtime then degrades to
+// "no XInput" rather than stopping the process from loading.
 #include <XInput.h>
-#pragma comment (lib, "xinput.lib")
 
 #include <dwmapi.h>
 #pragma comment (lib, "dwmapi.lib")

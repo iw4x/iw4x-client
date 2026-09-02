@@ -21,7 +21,7 @@ namespace Components
 	constexpr auto EXTRA_MODELCACHE_LAST = EXTRA_MODELCACHE_FIRST + ModelCache::ADDITIONAL_GMODELS;
 
 	constexpr auto RUMBLE_FIRST = EXTRA_MODELCACHE_LAST + 1;
-	constexpr auto RUMBLE_LAST = RUMBLE_FIRST + Gamepad::RUMBLE_CONFIGSTRINGS_COUNT - 1; // TODO
+	constexpr auto RUMBLE_LAST = RUMBLE_FIRST + Controller::RUMBLE_CONFIGSTRINGS_COUNT - 1; // TODO
 
 	void ConfigStrings::PatchConfigStrings()
 	{
