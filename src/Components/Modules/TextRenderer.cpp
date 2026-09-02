@@ -1,4 +1,5 @@
 #include "TextRenderer.hpp"
+#include "Console.hpp"
 #include "Events.hpp"
 
 namespace Game
@@ -522,12 +523,14 @@ namespace Components
 			return;
 		}
 
-		UpdateAutocompleteContext(autocompleteContext, Game::g_consoleField, Game::cls->consoleFont, 1.0f);
+		const auto scale = Console::GetConsoleScale();
+
+		UpdateAutocompleteContext(autocompleteContext, Game::g_consoleField, Game::cls->consoleFont, scale);
 		if (autocompleteContext.autocompleteActive)
 		{
 			const auto x = Game::conDrawInputGlob->leftX;
-			const auto y = Game::con_screenMin[1] + 6.0f + static_cast<float>(2 * Game::R_TextHeight(Game::cls->consoleFont));
-			DrawAutocomplete(FONT_ICON_ACI_CONSOLE, x, y, Game::cls->consoleFont, 1.0f, 1.0f);
+			const auto y = Game::con_screenMin[1] + 6.0f + static_cast<float>(2 * Game::R_TextHeight(Game::cls->consoleFont)) * scale;
+			DrawAutocomplete(FONT_ICON_ACI_CONSOLE, x, y, Game::cls->consoleFont, scale, scale);
 		}
 	}
 

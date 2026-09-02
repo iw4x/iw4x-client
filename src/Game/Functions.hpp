@@ -81,6 +81,9 @@ namespace Game
 	typedef void(*CG_SetupWeaponConfigString_t)(int localClientNum, unsigned int weapIndex);
 	extern CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString;
 
+	typedef void(*CL_DrawTextWithCursor_t)(ScreenPlacement* scrPlace, const char* text, int maxChars, Font_s* font, float x, float y, int horzAlign, int vertAlign, float xScale, float yScale, const float* color, int style, int cursorPos, char cursorChar);
+	extern CL_DrawTextWithCursor_t CL_DrawTextWithCursor;
+
 	typedef int(*CL_GetSnapshot_t)(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot);
 	extern CL_GetSnapshot_t CL_GetSnapshot;
 
@@ -406,6 +409,9 @@ namespace Game
 
 	typedef void(*R_AddCmdDrawText_t)(const char *text, int maxChars, Font_s *font, float x, float y, float xScale, float yScale, float rotation, const float *color, int style);
 	extern R_AddCmdDrawText_t R_AddCmdDrawText;
+
+	typedef void(*R_AddCmdDrawConsoleText_t)(const char* text, int textSize, int offset, int length, Font_s* font, float x, float y, float xScale, float yScale, const float* color, int style);
+	extern R_AddCmdDrawConsoleText_t R_AddCmdDrawConsoleText;
 
 	typedef void(*R_AddCmdDrawStretchPic_t)(float x, float y, float w, float h, float xScale, float yScale, float xay, float yay, const float *color, Game::Material* material);
 	extern R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic;

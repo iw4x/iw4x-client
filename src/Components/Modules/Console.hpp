@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Dvar.hpp"
+
 #define OUTPUT_HEIGHT 250
 #define OUTPUT_MAX_TOP (OUTPUT_HEIGHT - (Console::Height - 2))
 
@@ -18,6 +20,8 @@ namespace Components
 		static HWND GetWindow();
 
 		static void ShowAsyncConsole();
+
+		static float GetConsoleScale();
 
 	private:
 
@@ -49,6 +53,13 @@ namespace Components
 
 		static Game::SafeArea OriginalSafeArea;
 
+		static Dvar::Var con_scale;
+		static float ConsoleScale;
+
+		static double InputBoxOffset;
+		static double BuildStringOffset;
+		static double DvarColumnWidth;
+
 		static bool isCommand;
 
 		static void ShowPrompt();
@@ -70,6 +81,14 @@ namespace Components
 		static void DrawSolidConsoleStub();
 		static void StoreSafeArea();
 		static void RestoreSafeArea();
+
+		static float GetFontScale(Game::Font_s* font);
+
+		static int R_TextHeight_Stub(Game::Font_s* font);
+		static int R_TextWidth_Stub(const char* text, int maxChars, Game::Font_s* font);
+		static void R_AddCmdDrawText_Stub(const char* text, int maxChars, Game::Font_s* font, float x, float y, float xScale, float yScale, float rotation, const float* color, int style);
+		static void R_AddCmdDrawConsoleText_Stub(const char* text, int textSize, int offset, int length, Game::Font_s* font, float x, float y, float xScale, float yScale, const float* color, int style);
+		static void CL_DrawTextWithCursor_Stub(Game::ScreenPlacement* scrPlace, const char* text, int maxChars, Game::Font_s* font, float x, float y, int horzAlign, int vertAlign, float xScale, float yScale, const float* color, int style, int cursorPos, char cursorChar);
 
 		static const char** GetAutoCompleteFileList(const char *path, const char *extension, Game::FsListBehavior_e behavior, int *numfiles, int allocTrackType);
 

@@ -30,6 +30,7 @@ namespace Game
 	CG_GetTeamName_t CG_GetTeamName = CG_GetTeamName_t(0x4B6210);
 	CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString = CG_SetupWeaponConfigString_t(0x4BD520);
 
+	CL_DrawTextWithCursor_t CL_DrawTextWithCursor = CL_DrawTextWithCursor_t(0x4981A0);
 	CL_GetSnapshot_t CL_GetSnapshot = CL_GetSnapshot_t(0x46B7C0);
 
 	Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
@@ -161,6 +162,7 @@ namespace Game
 	R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = R_Cinematic_StartPlayback_Now_t(0x51C5B0);
 	R_RegisterFont_t R_RegisterFont = R_RegisterFont_t(0x505670);
 	R_AddCmdDrawText_t R_AddCmdDrawText = R_AddCmdDrawText_t(0x509D80);
+	R_AddCmdDrawConsoleText_t R_AddCmdDrawConsoleText = R_AddCmdDrawConsoleText_t(0x50A390);
 	R_LoadGraphicsAssets_t R_LoadGraphicsAssets = R_LoadGraphicsAssets_t(0x506AC0);
 	R_TextWidth_t R_TextWidth = R_TextWidth_t(0x5056C0);
 	R_TextHeight_t R_TextHeight = R_TextHeight_t(0x505770);

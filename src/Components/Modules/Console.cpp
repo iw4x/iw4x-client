@@ -55,6 +55,13 @@ namespace Components
 
 	Game::SafeArea Console::OriginalSafeArea;
 
+	Dvar::Var Console::con_scale;
+	float Console::ConsoleScale = 1.0f;
+
+	double Console::InputBoxOffset = 32.0;
+	double Console::BuildStringOffset = 16.0;
+	double Console::DvarColumnWidth = 348.0;
+
 	bool Console::isCommand;
 
 	const char** Console::GetAutoCompleteFileList(const char* path, const char* extension, Game::FsListBehavior_e behavior, int* numfiles, [[maybe_unused]] int allocTrackType)
@@ -733,10 +740,65 @@ namespace Components
 		}
 	}
 
+	float Console::GetConsoleScale()
+	{
+		auto scale = con_scale.get<float>();
+
+		if (scale <= 0.0f)
+			scale = static_cast<float>(Renderer::Height()) / 1080.0f;
+
+		return std::clamp(scale, 1.0f, 4.0f);
+	}
+
+	float Console::GetFontScale(Game::Font_s* font)
+	{
+		return (font != nullptr && font == Game::cls->consoleFont) ? ConsoleScale : 1.0f;
+	}
+
+	int Console::R_TextHeight_Stub(Game::Font_s* font)
+	{
+		return static_cast<int>(static_cast<float>(Game::R_TextHeight(font)) * GetFontScale(font));
+	}
+
+	int Console::R_TextWidth_Stub(const char* text, const int maxChars, Game::Font_s* font)
+	{
+		return static_cast<int>(static_cast<float>(Game::R_TextWidth(text, maxChars, font)) * GetFontScale(font));
+	}
+
+	void Console::R_AddCmdDrawText_Stub(const char* text, const int maxChars, Game::Font_s* font, const float x, const float y, const float xScale, const float yScale, const float rotation, const float* color, const int style)
+	{
+		const auto scale = GetFontScale(font);
+		Game::R_AddCmdDrawText(text, maxChars, font, x, y, xScale * scale, yScale * scale, rotation, color, style);
+	}
+
+	void Console::R_AddCmdDrawConsoleText_Stub(const char* text, const int textSize, const int offset, const int length, Game::Font_s* font, const float x, const float y, const float xScale, const float yScale, const float* color, const int style)
+	{
+		const auto scale = GetFontScale(font);
+		Game::R_AddCmdDrawConsoleText(text, textSize, offset, length, font, x, y, xScale * scale, yScale * scale, color, style);
+	}
+
+	void Console::CL_DrawTextWithCursor_Stub(Game::ScreenPlacement* scrPlace, const char* text, const int maxChars, Game::Font_s* font, const float x, const float y, const int horzAlign, const int vertAlign, const float xScale, const float yScale, const float* color, const int style, const int cursorPos, const char cursorChar)
+	{
+		const auto scale = GetFontScale(font);
+		Game::CL_DrawTextWithCursor(scrPlace, text, maxChars, font, x, y, horzAlign, vertAlign, xScale * scale, yScale * scale, color, style, cursorPos, cursorChar);
+	}
+
 	void Console::StoreSafeArea()
 	{
 		// Backup the original safe area
 		OriginalSafeArea = *Game::safeArea;
+
+		ConsoleScale = GetConsoleScale();
+
+		const auto baseFontHeight = Game::cls->consoleFont != nullptr ? Game::R_TextHeight(Game::cls->consoleFont) : 0;
+		const auto fontHeight = static_cast<int>(static_cast<float>(baseFontHeight) * ConsoleScale);
+		const auto growth = static_cast<double>(fontHeight - baseFontHeight);
+
+		// The game hardcodes these to fit unscaled console font, so grow
+		// them alongside it
+		InputBoxOffset = 32.0 + growth;
+		BuildStringOffset = 16.0 + growth;
+		DvarColumnWidth = 348.0 * ConsoleScale;
 
 		// Apply new safe area and border
 		float border = 6.0f;
@@ -745,6 +807,7 @@ namespace Components
 		Game::safeArea->bottom = static_cast<float>(Renderer::Height()) - border;
 		Game::safeArea->right = static_cast<float>(Renderer::Width()) - border;
 
+		Game::safeArea->fontHeight = fontHeight;
 		Game::safeArea->textHeight = static_cast<int>((Game::safeArea->bottom - Game::safeArea->top - (2 * Game::safeArea->fontHeight) - 24.0) / Game::safeArea->fontHeight);
 		Game::safeArea->textWidth = static_cast<int>(Game::safeArea->right - Game::safeArea->left - 10.0f - 18.0);
 	}
@@ -824,6 +887,8 @@ namespace Components
 
 	void Console::Con_ToggleConsole()
 	{
+		ConsoleScale = GetConsoleScale();
+
 		Game::Field_Clear(Game::g_consoleField);
 		if (Game::conDrawInputGlob->matchIndex >= 0 && Game::conDrawInputGlob->autoCompleteChoice[0] != '\0')
 		{
@@ -883,6 +948,46 @@ namespace Components
 
 		// Patch safearea for ingame-console
 		Utils::Hook(0x5A50EF, DrawSolidConsoleStub, HOOK_CALL).install()->quick();
+
+		// Scale ingame-console with render resolution (raw pixels)
+		con_scale = Dvar::Register<float>("con_scale", 0.0f, 0.0f, 4.0f, Game::DVAR_ARCHIVE, "Size multiplier of the ingame console. 0 derives it from the render resolution.");
+
+		// Console metrics: Con_CheckResize, Con_DrawInput, SCR_DrawSmallStringExt
+		Utils::Hook(0x5A239C, R_TextHeight_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A44C5, R_TextHeight_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x465FF7, R_TextHeight_Stub, HOOK_CALL).install()->quick();
+
+		// Console metrics: ConDrawInput_TextAndOver
+		Utils::Hook(0x5A3204, R_TextWidth_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A38B0, R_TextWidth_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5A3908, R_TextWidth_Stub, HOOK_CALL).install()->quick();
+
+		// Input field metrics: Field_DrawTextOverride, Field_AdjustScroll
+		Utils::Hook(0x4795C0, R_TextHeight_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x488C88, R_TextWidth_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x488CF2, R_TextWidth_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x488D3A, R_TextWidth_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x488D61, R_TextWidth_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x488E14, R_TextWidth_Stub, HOOK_CALL).install()->quick();
+
+		Utils::Hook(0x5A3135, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick(); 			 // ConDrawInput_Text
+		Utils::Hook(0x5A3185, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick(); 			 // ConDrawInput_TextClamped
+		Utils::Hook(0x5A31F5, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick(); 			 // ConDrawInput_TextAndOver
+		Utils::Hook(0x5A3A11, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick(); 			 // ConDrawInput_ValueMatches
+		Utils::Hook(0x5A3D9C, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick(); 			 // ConDrawInput_DetailedDvarMatch
+		Utils::Hook(0x466049, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick(); 			 // SCR_DrawSmallStringExt
+		Utils::Hook(0x5A431D, R_AddCmdDrawConsoleText_Stub, HOOK_CALL).install()->quick(); // Con_DrawOutputText
+		Utils::Hook(0x479635, CL_DrawTextWithCursor_Stub, HOOK_CALL).install()->quick();   // Field_DrawTextOverride
+
+		// Con_DrawOutputWindow
+		Utils::Hook::Set<double*>(0x5A4370, &InputBoxOffset);
+		Utils::Hook::Set<double*>(0x5A43F8, &BuildStringOffset);
+
+		// ConDrawInput_DvarMatch, ConDrawInput_DetailedDvarMatch
+		Utils::Hook::Set<double*>(0x5A36B7, &DvarColumnWidth);
+		Utils::Hook::Set<double*>(0x5A3B29, &DvarColumnWidth);
+		Utils::Hook::Set<double*>(0x5A3B85, &DvarColumnWidth);
+		Utils::Hook::Set<double*>(0x5A3BDD, &DvarColumnWidth);
 
 		// Check for bad food ;)
 		Utils::Hook(0x4CB9F4, GetAutoCompleteFileList, HOOK_CALL).install()->quick();
