@@ -4,7 +4,7 @@
 #include "Auth.hpp"
 #include "Download.hpp"
 #include "Friends.hpp"
-#include "Gamepad.hpp"
+#include "Controller.hpp"
 #include "ModList.hpp"
 #include "Node.hpp"
 #include "ServerList.hpp"
@@ -467,7 +467,7 @@ namespace Components
 			info.set("hc", (Dvar::Var("g_hardcore").get<bool>() ? "1" : "0"));
 			info.set("securityLevel", std::to_string(securityLevel));
 			info.set("sv_running", (Dedicated::IsRunning() ? "1" : "0"));
-			info.set("aimAssist", (Gamepad::sv_allowAimAssist.get<bool>() ? "1" : "0"));
+			info.set("aimAssist", (Controller::sv_allowAimAssist.get<bool>() ? "1" : "0"));
 			info.set("voiceChat", (Voice::SV_VoiceEnabled() ? "1" : "0"));
 
 			// Ensure mapname is set
