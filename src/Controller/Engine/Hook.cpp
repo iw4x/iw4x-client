@@ -61,6 +61,11 @@ namespace Controller
       constexpr auto key_write_bindings_call {0x60B223};
       constexpr auto key_write_bindings_address {0x4A5A20};
 
+      constexpr auto aim_accel_enabled_flags {0x43F8E0};
+      constexpr auto aim_accel_enabled_default {0x43F8E2};
+      constexpr auto aim_slowdown_enabled_flags {0x43F945};
+      constexpr auto aim_lockon_enabled_flags {0x43FC76};
+
       constexpr auto keyname_table_slot_1 {0x4A780A};
       constexpr auto keyname_table_slot_2 {0x4A7810};
       constexpr auto keyname_table_slot_3 {0x435C9F};
@@ -474,6 +479,11 @@ namespace Controller
       install_protocol ();
 
       build_key_name_tables ();
+
+      Utils::Hook::Set<BYTE> (aim_accel_enabled_flags, Game::DVAR_ARCHIVE);
+      Utils::Hook::Set<BYTE> (aim_accel_enabled_default, 0);
+      Utils::Hook::Set<BYTE> (aim_slowdown_enabled_flags, Game::DVAR_ARCHIVE);
+      Utils::Hook::Set<BYTE> (aim_lockon_enabled_flags, Game::DVAR_ARCHIVE);
 
       Utils::Hook (command_assignment_address, command_assignment_stub, HOOK_JUMP).install ()->quick ();
       Utils::Hook (menu_set_binding_call_1, menu_set_binding, HOOK_CALL).install ()->quick ();
