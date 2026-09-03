@@ -1155,24 +1155,26 @@ namespace Game
 		}
 	}
 
+	constexpr auto AimAssist_UpdateTweakables_Func = 0x569950;
+
 	__declspec(naked) void AimAssist_UpdateTweakables(int /*localClientNum*/)
 	{
 		__asm
 		{
-			mov eax, [esp+0x4]
-			mov ebx, 0x569950
-			call ebx
+			mov eax, [esp + 0x4]
+			call AimAssist_UpdateTweakables_Func
 			retn
 		}
 	}
+
+	constexpr auto AimAssist_UpdateAdsLerp_Func = 0x569AA0;
 
 	__declspec(naked) void AimAssist_UpdateAdsLerp(const AimInput* /*aimInput*/)
 	{
 		__asm
 		{
 			mov eax, [esp + 0x4]
-			mov ebx, 0x569AA0
-			call ebx
+			call AimAssist_UpdateAdsLerp_Func
 			retn
 		}
 	}
