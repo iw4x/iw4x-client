@@ -526,11 +526,15 @@ namespace Components
 		if (!pm || !pm->ps || pm->ps != &Game::cgArray[0].predictedPlayerState)
 			return;
 
-		if ((pm->cmd.buttons & Game::CMD_BUTTON_USE_RELOAD) != 0 &&
-			(pm->oldcmd.buttons & Game::CMD_BUTTON_USE_RELOAD) == 0)
-		{
-			pm->ps->weapCommon.weapFlags |= Game::PWF_USE_RELOAD;
-		}
+		if ((pm->cmd.buttons & Game::CMD_BUTTON_USE_RELOAD) == 0 ||
+			(pm->oldcmd.buttons & Game::CMD_BUTTON_USE_RELOAD) != 0)
+			return;
+
+		if (pm->ps->cursorHint != 0 &&
+			pm->ps->cursorHintEntIndex != static_cast<int>(Game::ENTITYNUM_NONE))
+			return;
+
+		pm->ps->weapCommon.weapFlags |= Game::PWF_USE_RELOAD;
 	}
 
 	void Weapon::PM_Weapon_stub(Game::pmove_s* pm, Game::pml_t* pml)
