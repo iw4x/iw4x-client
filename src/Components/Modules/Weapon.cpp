@@ -521,8 +521,22 @@ namespace Components
 		GSC::Script::AddMethod("FreezeControlsAllowLook", PlayerCmd_FreezeControlsAllowLook);
 	}
 
+	void Weapon::PredictUseReload(Game::pmove_s* pm)
+	{
+		if (!pm || !pm->ps || pm->ps != &Game::cgArray[0].predictedPlayerState)
+			return;
+
+		if ((pm->cmd.buttons & Game::CMD_BUTTON_USE_RELOAD) != 0 &&
+			(pm->oldcmd.buttons & Game::CMD_BUTTON_USE_RELOAD) == 0)
+		{
+			pm->ps->weapCommon.weapFlags |= Game::PWF_USE_RELOAD;
+		}
+	}
+
 	void Weapon::PM_Weapon_stub(Game::pmove_s* pm, Game::pml_t* pml)
 	{
+		PredictUseReload(pm);
+
 		if (BGDisableDoubleTaps && BGDisableDoubleTaps->current.enabled)
 		{
 			if (pm && pm->ps)
