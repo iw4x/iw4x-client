@@ -557,9 +557,6 @@ namespace Game
 	typedef void(*Field_AdjustScroll_t)(ScreenPlacement* scrPlace, field_t* edit);
 	extern Field_AdjustScroll_t Field_AdjustScroll;
 
-	typedef void(*AimAssist_ApplyAutoMelee_t)(const AimInput* input, AimOutput* output);
-	extern AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee;
-
 	typedef gentity_s*(*Weapon_RocketLauncher_Fire_t)(gentity_s* ent, unsigned int weaponIndex, float spread, weaponParms* wp, const float* gunVel, lockonFireParms* lockParms, bool magicBullet);
 	extern Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire;
 
@@ -862,6 +859,7 @@ namespace Game
 
 	void AimAssist_UpdateTweakables(int localClientNum);
 	void AimAssist_UpdateAdsLerp(const AimInput* input);
+	void AimAssist_ApplyAutoMelee(const AimInput* input, AimOutput* output);
 
 	bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings);
 

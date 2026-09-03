@@ -233,7 +233,6 @@ namespace Game
 
 	Field_Draw_t Field_Draw = Field_Draw_t(0x4F5B40);
 	Field_AdjustScroll_t Field_AdjustScroll = Field_AdjustScroll_t(0x488C10);
-	AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee = AimAssist_ApplyAutoMelee_t(0x56A360);
 
 	Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire = Weapon_RocketLauncher_Fire_t(0x424680);
 	Bullet_Fire_t Bullet_Fire = Bullet_Fire_t(0x4402C0);
@@ -1173,6 +1172,24 @@ namespace Game
 			mov eax, [esp + 0x4]
 			mov ebx, 0x569AA0
 			call ebx
+			retn
+		}
+	}
+
+	// Was a plain stack-arg (cdecl) function pointer, crashing on entry (0xC0000005 @
+	// func+0x18) because the real function takes both args in registers, same as its
+	// AimAssist_Update* siblings above. Confirmed against a crash dump: the fault was a
+	// WRITE to 0x569AA8, i.e. output+8 (AimOutput::meleeChargeYaw) using the stale EBX
+	// left over from AimAssist_UpdateAdsLerp's own "mov ebx, 0x569AA0" trampoline just
+	// above - proving the real function reads its output pointer from ebx, not ecx.
+	__declspec(naked) void AimAssist_ApplyAutoMelee(const AimInput* /*input*/, AimOutput* /*output*/)
+	{
+		__asm
+		{
+			mov eax, [esp + 0x4]
+			mov ebx, [esp + 0x8]
+			mov edx, 0x56A360
+			call edx
 			retn
 		}
 	}
