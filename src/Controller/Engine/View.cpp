@@ -25,12 +25,6 @@ namespace Controller
         return static_cast<signed char> (std::clamp (v, -128, 127));
       }
 
-      float
-      sensitivity_from_level (int level) noexcept
-      {
-        return static_cast<float> (level) / 5.0f;
-      }
-
       std::optional<std::vector<knot>>
       read_engine_graph (int index)
       {
@@ -306,7 +300,7 @@ namespace Controller
       fi.look = look;
       fi.ads_lerp = aa.initialized ? aa.adsLerp : 0.0f;
       fi.fov_scale = aa.initialized ? aa.fovTurnRateScale : 1.0f;
-      fi.sensitivity = sensitivity_from_level (read (dvars_.sensitivity_level, 5));
+      fi.sensitivity = read (dvars_.view_sensitivity, 1.0f);
       fi.invert_pitch = read (dvars_.invert_pitch, false);
       fi.dt = seconds {frame_time};
 
@@ -378,8 +372,7 @@ namespace Controller
     view_driver::
     apply_remote_move (int, usercmd_s& cmd) noexcept
     {
-      const float sensitivity (
-        sensitivity_from_level (read (dvars_.sensitivity_level, 5)));
+      const float sensitivity (read (dvars_.view_sensitivity, 1.0f));
 
       cmd.remoteControlAngles[0] = clamp_move (
         cmd.remoteControlAngles[0] +

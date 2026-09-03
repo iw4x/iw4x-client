@@ -72,10 +72,7 @@ namespace Controller
         "input_invertPitch", false, DVAR_ARCHIVE, "Invert game pad pitch");
       d.view_sensitivity = Dvar_RegisterFloat (
         "input_viewSensitivity", 1.0f, 0.0001f, 5.0f, DVAR_ARCHIVE,
-        "View sensitivity");
-      d.sensitivity_level = Dvar_RegisterInt (
-        "gpad_sensitivity", 5, 1, 10, DVAR_ARCHIVE,
-        "Game pad look sensitivity (1-10)");
+        "Game pad look sensitivity multiplier");
       d.aim_assist_enabled = Dvar_FindVar ("sv_allowAimAssist");
       d.turnrate_pitch = Dvar_RegisterFloat (
         "aim_turnrate_pitch", 90.0f, 0.0f, 1080.0f, DVAR_CHEAT,

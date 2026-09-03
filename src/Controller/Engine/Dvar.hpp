@@ -38,7 +38,6 @@ namespace Controller
 
       dvar_t* invert_pitch {};
       dvar_t* view_sensitivity {};
-      dvar_t* sensitivity_level {};
       dvar_t* aim_assist_enabled {};
       dvar_t* turnrate_pitch {};
       dvar_t* turnrate_pitch_ads {};
