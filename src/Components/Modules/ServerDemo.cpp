@@ -7,45 +7,14 @@
 
 namespace Components
 {
-	std::array<ServerDemo::Session, Game::MAX_CLIENTS> ServerDemo::Sessions;
-	std::array<std::vector<unsigned char>, Game::MAX_CLIENTS> ServerDemo::CachedGamestate;
+	std::array<ServerDemo::ClientData, Game::MAX_CLIENTS> ServerDemo::Clients;
+
+	std::string ServerDemo::LastMapname;
+	std::string ServerDemo::LastGametype;
+	bool ServerDemo::HaveMapIdentity = false;
 
 	Dvar::Var ServerDemo::SVDemoAutoRecord;
 	Dvar::Var ServerDemo::SVDemosKeep;
-
-	nlohmann::json ServerDemo::DemoInfo::to_json() const
-	{
-		std::tm tm{};
-		localtime_s(&tm, &timeStamp);
-		char dateBuf[64]{};
-		asctime_s(dateBuf, sizeof(dateBuf), &tm);
-
-		// Field names/shape intentionally match the sidecar schema already produced by the
-		// other titles' demo storage (mapname/gametype/length/date/server/timestamp), so any
-		// shared demo-browsing tooling can ingest this without special-casing IW4x.
-		return nlohmann::json
-		{
-			// These five keys are REQUIRED by Theatre::LoadDemos, which reads them with
-			// metaObject["key"].get<T>() while only catching nlohmann::json::parse_error.
-			// A missing key yields null, and .get<std::string>() on null throws type_error -
-			// which is NOT caught, so it escapes as an unhandled C++ exception and crashes the
-			// game with 0xE06D7363 the moment the Theatre menu is opened. Do not remove them.
-			{ "author", clientName },
-			{ "mapname", mapname },
-			{ "gametype", gametype },
-			{ "length", length },
-			{ "timestamp", std::to_string(timeStamp) },
-
-			// Extra keys for parity with the sidecar schema used by the other titles' demo
-			// storage, so shared demo-browsing tooling can ingest these unchanged.
-			{ "date", dateBuf },
-			{ "map", mapname },
-			{ "mod", "" },
-			{ "revision", "iw4x-serverdemo-v1" },
-			{ "server", Dvar::Var("sv_hostname").get<std::string>() },
-			{ "recordedClient", clientName },
-		};
-	}
 
 	bool ServerDemo::ValidClientNum(const int clientNum)
 	{
@@ -54,41 +23,95 @@ namespace Components
 
 	std::string ServerDemo::SanitizeName(const char* name)
 	{
-		// Player names are not safe to drop into a path as-is: they carry IW colour codes
-		// ('^' followed by a digit), spaces, and potentially any byte a client felt like
-		// sending. Deliberately not using the engine's I_CleanStr here - it rewrites the
-		// string in place and we are handed a pointer straight into live client_s state.
+		// Player names carry IW colour codes ('^' + digit), spaces, and potentially any byte a
+		// client felt like sending - none of which belong in a path. Deliberately not using the
+		// engine's I_CleanStr here - it rewrites the string in place and we are handed a pointer
+		// straight into live client_s state.
 		std::string out;
-
-		if (!name)
-		{
-			return out;
-		}
+		if (!name) return out;
 
 		for (auto i = 0u; name[i] != '\0' && out.size() < MAX_NAME_CHARS; ++i)
 		{
 			const auto c = static_cast<unsigned char>(name[i]);
 
-			// Skip colour code pairs entirely (^ plus the digit that follows it).
 			if (c == '^' && name[i + 1] >= '0' && name[i + 1] <= '9')
 			{
 				++i;
 				continue;
 			}
 
-			if (std::isalnum(c))
+			if (std::isalnum(c) || c == '_' || c == '-')
 			{
 				out.push_back(static_cast<char>(c));
 			}
-			else if (c == '_' || c == '-')
-			{
-				out.push_back(static_cast<char>(c));
-			}
-			// Everything else (spaces, punctuation, non-ASCII, control bytes) is dropped
-			// rather than substituted, to keep filenames predictable.
 		}
 
 		return out;
+	}
+
+	bool ServerDemo::CheckMapRotation()
+	{
+		const std::string mapname = (*Game::sv_mapname)->current.string;
+		const std::string gametype = (*Game::sv_gametype)->current.string;
+
+		if (!HaveMapIdentity)
+		{
+			LastMapname = mapname;
+			LastGametype = gametype;
+			HaveMapIdentity = true;
+			return false;
+		}
+
+		if (mapname != LastMapname || gametype != LastGametype)
+		{
+			LastMapname = mapname;
+			LastGametype = gametype;
+			return true;
+		}
+
+		return false;
+	}
+
+	void ServerDemo::WriteSidecar(const ClientData& data, const std::string& baseName)
+	{
+		std::tm tm{};
+		localtime_s(&tm, &data.recordStartTimeStamp);
+		char dateBuf[64]{};
+		asctime_s(dateBuf, sizeof(dateBuf), &tm);
+
+		const auto lengthMs = Game::Sys_Milliseconds() - data.recordStartMs;
+
+		// These five keys are REQUIRED by Theatre::LoadDemos, which reads them with
+		// metaObject["key"].get<T>() while only catching nlohmann::json::parse_error. A
+		// missing key yields null, and .get<std::string>() on null throws type_error - which
+		// is NOT caught, so it escapes as an unhandled C++ exception and crashes the game the
+		// moment the Theatre menu is opened. Do not remove them.
+		// "author" drives Theatre's ui_demo_author (the theater menu's byline) - for a
+		// server-recorded demo that should read as "recorded by this server", not the name of
+		// whichever client got recorded, so it's the server's own hostname. The actual client
+		// is still preserved separately below, as "recordedClient".
+		const auto serverName = Dvar::Var("sv_hostname").get<std::string>();
+
+		const nlohmann::json j
+		{
+			{ "author", serverName },
+			{ "mapname", data.mapname },
+			{ "gametype", data.gametype },
+			{ "length", lengthMs },
+			{ "timestamp", std::to_string(data.recordStartTimeStamp) },
+
+			// Extra keys for parity with the sidecar schema used by the other titles' demo
+			// storage, so shared demo-browsing tooling can ingest these unchanged.
+			{ "date", dateBuf },
+			{ "map", data.mapname },
+			{ "mod", "" },
+			{ "revision", "iw4x-serverdemo-v2" },
+			{ "server", serverName },
+			{ "recordedClient", data.clientName },
+		};
+
+		FileSystem::FileWriter meta(std::format("{}{}.dm_13.json", DEMO_DIR, baseName));
+		meta.write(j.dump());
 	}
 
 	void ServerDemo::CleanupOldAutoDemos()
@@ -107,9 +130,6 @@ namespace Components
 			}
 		}
 
-		// Oldest first (timestamp is embedded in the filename and sorts lexicographically
-		// the same as numerically for our fixed-width-ish naming), so trimming from the
-		// front removes the oldest entries once we're over the keep limit.
 		std::ranges::sort(files);
 
 		const auto numDel = static_cast<int>(files.size()) - keep;
@@ -121,28 +141,261 @@ namespace Components
 		}
 	}
 
+	void ServerDemo::ResetClient(const int clientNum, const bool wasMapChange)
+	{
+		if (!ValidClientNum(clientNum)) return;
+
+		auto& data = Clients[clientNum];
+
+		if (data.fileActive)
+		{
+			WriteSidecar(data, data.fileBaseName);
+			Game::FS_FCloseFile(data.demoFile);
+
+			Logger::Print("[ServerDemo] {} client {} ({}), wrote {}{}.dm_13\n",
+				wasMapChange ? "Rotated" : "Closed", clientNum, data.clientName, DEMO_DIR, data.fileBaseName);
+		}
+
+		data = ClientData{};
+	}
+
+	void ServerDemo::ResetAll(const bool wasMapChange)
+	{
+		for (auto i = 0; i < static_cast<int>(Game::MAX_CLIENTS); ++i)
+		{
+			ResetClient(i, wasMapChange);
+		}
+	}
+
+	void ServerDemo::EnsureBufferHeader(const int clientNum, const Game::client_s* cl)
+	{
+		auto& data = Clients[clientNum];
+		if (data.bufferActive) return;
+
+		// Reserve up front: auto-record almost immediately opens a file and starts writing
+		// straight to disk, so the buffer never needs to hold much; a manual/admin recording
+		// might be started minutes into a match, so the buffer needs to be ready to hold a
+		// full match's worth of every message sent to this client since they connected.
+		const auto autorecord = SVDemoAutoRecord.get<bool>();
+		data.buffer.reserve(autorecord ? 8192 : (512 * 1024));
+
+		data.mapname = (*Game::sv_mapname)->current.string;
+		data.gametype = (*Game::sv_gametype)->current.string;
+		data.clientName = cl->name;
+
+		data.bufferActive = true;
+	}
+
+	namespace
+	{
+		// Shared little record-builder. Every record (archive or network) is built ONCE into
+		// a scratch byte vector, then handed to EmitRecord below to go wherever it needs to -
+		// this is what keeps the in-memory buffer and any currently-open file byte-for-byte
+		// identical, instead of two independent write call chains that could drift apart.
+		class RecordBuilder
+		{
+		public:
+			void put(const void* p, const std::size_t n)
+			{
+				const auto* bytes = static_cast<const unsigned char*>(p);
+				bytes_.insert(bytes_.end(), bytes, bytes + n);
+			}
+
+			template <typename T>
+			void put(const T& value) { put(&value, sizeof(T)); }
+
+			[[nodiscard]] const std::vector<unsigned char>& bytes() const { return bytes_; }
+
+		private:
+			std::vector<unsigned char> bytes_;
+		};
+	}
+
+	// Appends one already-built record to the buffer (if active) and to the open file (if
+	// active) - the single place that decides where a record's bytes actually go.
+	void ServerDemo::EmitRecord(ClientData& data, const std::vector<unsigned char>& record)
+	{
+		if (record.empty()) return;
+
+		if (data.bufferActive)
+		{
+			data.buffer.insert(data.buffer.end(), record.begin(), record.end());
+		}
+
+		if (data.fileActive)
+		{
+			Game::FS_WriteToDemo(record.data(), static_cast<int>(record.size()), data.demoFile);
+		}
+	}
+
+	void ServerDemo::AppendArchiveRecord(ClientData& data, const Game::client_s* cl)
+	{
+		// Not populated until the client has actually spawned in - skip rather than archive a
+		// null/garbage view. Read directly from the SAME client_s the engine just used to
+		// build the message this hook call is processing, so there is no separate timing
+		// window in which the pointer chain could be stale or the client could have dropped.
+		if (!cl->gentity || !cl->gentity->client) return;
+
+		const auto* ps = &cl->gentity->client->ps;
+
+		// Layout is fixed by the engine's own demo reader (type-1 branch of the dispatcher),
+		// confirmed by hex-diffing against a real client-recorded .dm_13:
+		//   index(4) origin(12) velocity(12) movementDir(4) bobCycle(4) commandTime(4)
+		//   viewangles(12) locationSelectionInfo(4)
+		// Field order on disk is NOT struct order. Unlike network records this one is raw: no
+		// length prefix, no compression.
+		RecordBuilder rec;
+
+		constexpr unsigned char msgType = 1;
+		rec.put(msgType);
+		rec.put(data.archiveIndex);
+		rec.put(ps->origin, sizeof(float[3]));
+		rec.put(ps->velocity, sizeof(float[3]));
+		rec.put(ps->movementDir);
+		rec.put(ps->bobCycle);
+		rec.put(ps->commandTime);
+		rec.put(ps->viewangles, sizeof(float[3]));
+
+		// 0 = no location selector active. Non-zero would oblige 8 more bytes of
+		// selectedLocation, and IW4x deliberately disables this field client-side anyway
+		// (Theatre::CL_WriteDemoClientArchive_Hk, "Fix issue with locationSelectionInfo").
+		constexpr int locationSelectionInfo = 0;
+		rec.put(locationSelectionInfo);
+
+		EmitRecord(data, rec.bytes());
+
+		// Rolls over at 256: the engine's own archive table has exactly that many slots and
+		// rejects anything else as a corrupt demo.
+		data.archiveIndex = (data.archiveIndex + 1) & 0xFF;
+	}
+
+	void ServerDemo::AppendNetworkRecord(ClientData& data, const unsigned char* wireData, const int wireLength)
+	{
+		// wireData is EXACTLY what SV_Netchan_Transmit is about to hand to the network layer:
+		// [outgoingSequence:4 raw, netchan transport framing][huffman-compressed body].
+		//
+		// A previous version of this comment claimed, based on Theatre::WriteBaseline, that
+		// this leading 4 bytes should be DROPPED and replaced with a literal constant 8 - that
+		// was wrong, and traced back to trusting the wrong reference. Ground truth is the
+		// native reader itself (FUN_005a9ba0/CL_ReadDemoNetworkPacket, decompiled directly) and
+		// the native WRITER instruction trace around the RecordGamestateStub hook site
+		// (0x5A85D2): both agree a type-0 record is exactly [type:1][seq:4][length:4]
+		// [length bytes of body] - THREE header fields, not four. WriteBaseline writes FOUR
+		// (seq, compressedSize+4, then a spurious extra literal-8 field) - it does not match
+		// what either the real reader or the real writer actually do, so it was never a valid
+		// reference for this record's shape and the fix built on it just traded one corruption
+		// for another. The body is the wire capture verbatim, unmodified - length bytes
+		// starting at wireData, no bytes dropped or substituted.
+		if (wireLength <= 0) return;
+
+		RecordBuilder rec;
+		constexpr unsigned char msgType = 0;
+
+		rec.put(msgType);
+		rec.put(data.messageSequence);
+		rec.put(wireLength);
+		rec.put(wireData, static_cast<std::size_t>(wireLength));
+
+		EmitRecord(data, rec.bytes());
+
+		++data.messageSequence;
+	}
+
+	void ServerDemo::OnTransmit(Game::client_s* cl, const unsigned char* wireData, const int wireLength)
+	{
+		if (!cl || !wireData || wireLength <= 0) return;
+
+		// Gate exactly the way iw6-mod's SV_Netchan_Transmit hook does: only clients actually
+		// receiving meaningful traffic (loading in, or fully active), never bots/test clients.
+		if (cl->bIsTestClient) return;
+		if (cl->header.state != Game::CS_CLIENTLOADING && cl->header.state != Game::CS_ACTIVE) return;
+
+		const auto clientNum = static_cast<int>(cl - Game::svs_clients);
+		if (!ValidClientNum(clientNum)) return;
+
+		// A map change closes and clears EVERY client's buffer/file together, before touching
+		// the one this call is for.
+		if (CheckMapRotation())
+		{
+			ResetAll(true);
+		}
+
+		auto& data = Clients[clientNum];
+
+		// Reconnect into the same slot: a different lastConnectTime than what we last saw means
+		// this is a genuinely new connection wearing the old slot number, not a continuation.
+		if (data.lastConnectTime && *data.lastConnectTime != cl->lastConnectTime)
+		{
+			ResetClient(clientNum, false);
+		}
+		data.lastConnectTime = cl->lastConnectTime;
+
+		EnsureBufferHeader(clientNum, cl);
+
+		if (!data.firstServerTime)
+		{
+			data.firstServerTime = static_cast<int>(*Game::svs_time);
+		}
+		data.curServerTime = static_cast<int>(*Game::svs_time);
+
+		const auto clientLoading = (cl->header.state == Game::CS_CLIENTLOADING);
+
+		// The player's own archived viewpoint is only meaningful once they are actually
+		// active in the world - matches the loading-state skip iw6-mod uses for the same
+		// reason (there is no predicted playerState worth recording while still loading in).
+		if (!clientLoading)
+		{
+			AppendArchiveRecord(data, cl);
+		}
+		AppendNetworkRecord(data, wireData, wireLength);
+
+		if (!data.fileActive && SVDemoAutoRecord.get<bool>() && !cl->bIsTestClient)
+		{
+			StartRecording(clientNum, true);
+		}
+	}
+
+	bool ServerDemo::SV_Netchan_Transmit_Stub(Game::client_s* client, const void* data, const int length)
+	{
+		// Capture FIRST, call through SECOND. This used to be the other way around on the
+		// theory that "the real send should never be affected by our capture" - true, but it
+		// doesn't require reading AFTER the real call: `data` is a reused per-client scratch
+		// buffer (confirmed via Ghidra - SV_SendMessageToClient builds each message into the
+		// same static buffer every call), and reading it only after SV_Netchan_Transmit has
+		// already run risked reading whatever that call left behind rather than the message it
+		// was actually handed. OnTransmit only reads and copies - it never touches `data` or
+		// `client`, so capturing first changes nothing about the real send either way, and
+		// removes any dependency on what SV_Netchan_Transmit does internally with its buffer.
+		OnTransmit(client, static_cast<const unsigned char*>(data), length);
+
+		return Utils::Hook::Call<bool(Game::client_s*, const void*, int)>(SV_NETCHAN_TRANSMIT)(client, data, length);
+	}
+
 	void ServerDemo::StartRecording(const int clientNum, const bool automatic)
 	{
 		if (!ValidClientNum(clientNum)) return;
 
-		auto& session = Sessions[clientNum];
-		if (session.active)
+		auto& data = Clients[clientNum];
+		if (data.fileActive)
 		{
-			Logger::Print("[ServerDemo] Client {} is already being recorded\n", clientNum);
+			if (!automatic)
+			{
+				Logger::Print("[ServerDemo] Client {} is already being recorded\n", clientNum);
+			}
 			return;
 		}
 
 		auto* cl = &Game::svs_clients[clientNum];
 		if (cl->header.state < Game::CS_CONNECTED)
 		{
-			Logger::Print("[ServerDemo] Client {} is not connected\n", clientNum);
+			if (!automatic)
+			{
+				Logger::Print("[ServerDemo] Client {} is not connected\n", clientNum);
+			}
 			return;
 		}
 
-		// Never record bots/test clients. On a bot-filled server this would otherwise spam
-		// one demo file per bot every map (they connect at map start, before any human), which
-		// is pure noise and would also churn through sv_demosKeep and evict real players' demos.
-		// Note: this flag is only reliable once the client has settled - see RestartRecordingDeferred.
+		// Never record bots/test clients.
 		if (cl->bIsTestClient)
 		{
 			if (!automatic)
@@ -152,27 +405,32 @@ namespace Components
 			return;
 		}
 
+		if (!data.bufferActive)
+		{
+			// sv_demoAutoRecord (or a manual serverrecord) was enabled/invoked before this
+			// client had sent a single message - nothing has been buffered yet. This can only
+			// happen in the narrow window between a slot being reused and the first transmit
+			// to it; OnTransmit will call back into StartRecording itself as soon as the
+			// buffer exists.
+			Logger::Print("[ServerDemo] Client {} cannot be recorded yet - no buffered data\n", clientNum);
+			return;
+		}
+
 		if (automatic)
 		{
 			CleanupOldAutoDemos();
 		}
 
-		const auto timestamp = static_cast<long long>(std::time(nullptr));
-		const std::string mapname = (*Game::sv_mapname)->current.string;
-		const std::string gametype = (*Game::sv_gametype)->current.string;
-
-		// Prefer the player's actual name over their slot number - a slot number is
-		// meaningless once the match is over. Fall back to the number only when the name
-		// sanitises down to nothing (all colour codes, or non-ASCII only).
 		auto label = SanitizeName(cl->name);
 		if (label.empty())
 		{
 			label = std::to_string(clientNum);
 		}
 
-		const auto name = std::format("{}{}_{}_{}_{}",
-			automatic ? AUTO_PREFIX : "", gametype, mapname, label, timestamp);
-		const auto path = std::format("{}{}.dm_13", DEMO_DIR, name);
+		const auto timestamp = static_cast<long long>(std::time(nullptr));
+		const auto baseName = std::format("{}{}_{}_{}_{}",
+			automatic ? AUTO_PREFIX : "", data.gametype, data.mapname, label, timestamp);
+		const auto path = std::format("{}{}.dm_13", DEMO_DIR, baseName);
 
 		const auto handle = Game::FS_FOpenFileWrite(path.data());
 		if (!handle)
@@ -181,80 +439,52 @@ namespace Components
 			return;
 		}
 
-		session = Session{};
-		session.active = true;
-		session.autoRecorded = automatic;
-		session.demoFile = handle;
-		session.messageSequence = 0;
-		session.archiveIndex = 0;
-		session.name = name;
-		session.info.mapname = mapname;
-		session.info.gametype = gametype;
-		session.info.clientName = cl->name;
-		session.info.length = Game::Sys_Milliseconds();
-		std::time(&session.info.timeStamp);
-
-		// If we captured this client's gamestate message at connect time (see
-		// OnGamestateMessage), write it as message 0 now that `session.active` is true and
-		// WriteRawMessage will actually accept it. Consume-once: a stale gamestate from an
-		// earlier connection must never attach to a later recording of the same slot.
-		auto& gamestate = CachedGamestate[clientNum];
-		if (!gamestate.empty())
+		// Seed the file with everything already buffered for this client - which, thanks to
+		// buffer-everything, is the real, complete, unbroken record of every message sent to
+		// them since they connected (or since the last map change/reconnect). Recording that
+		// "starts after a couple of minutes" is not starting from a stale cached frame; it is
+		// dumping two real minutes of real traffic, headers included, with the delta chain
+		// intact the whole way through. No forced keyframe, no cached gamestate to go stale.
+		if (!data.buffer.empty())
 		{
-			const auto gamestateSize = gamestate.size();
-			WriteRawMessage(clientNum, gamestate.data(), static_cast<int>(gamestateSize));
-			gamestate.clear();
-			Logger::Print("[ServerDemo] Prepended cached gamestate for client {} ({} bytes)\n",
-				clientNum, gamestateSize);
-		}
-		else
-		{
-			Logger::Print("[ServerDemo] No cached gamestate for client {} - recording will start mid-stream\n",
-				clientNum);
+			Game::FS_WriteToDemo(data.buffer.data(), static_cast<int>(data.buffer.size()), handle);
 		}
 
-		// Force the next snapshot sent to this client to be a FULL (non-delta) one. Snapshots
-		// are normally delta-compressed against an earlier frame; the first frame we capture
-		// would otherwise reference a baseline that was sent before recording began and so is
-		// absent from the file, leaving the client unable to reconstruct it. The engine takes
-		// the non-delta path whenever deltaMessage < 1 (verified in the snapshot writer:
-		// `if (deltaMessage < 1 || state != CS_ACTIVE)` -> full snapshot). This is the
-		// server-side counterpart to the client recorder's clc.demowaiting keyframe wait.
-		cl->header.deltaMessage = -1;
+		data.demoFile = handle;
+		data.fileBaseName = baseName;
+		data.fileActive = true;
+		data.autoRecorded = automatic;
+		data.recordStartMs = Game::Sys_Milliseconds();
+		std::time(&data.recordStartTimeStamp);
 
-		Logger::Print("[ServerDemo] Started recording client {} ({}) -> {}\n", clientNum, cl->name, path);
+		Logger::Print("[ServerDemo] Started recording client {} ({}) -> {} ({} bytes seeded from buffer)\n",
+			clientNum, cl->name, path, data.buffer.size());
 	}
 
 	void ServerDemo::StopRecording(const int clientNum)
 	{
 		if (!ValidClientNum(clientNum)) return;
 
-		auto& session = Sessions[clientNum];
-		if (!session.active) return;
+		auto& data = Clients[clientNum];
+		if (!data.fileActive) return;
 
-		session.active = false;
-
-		if (session.demoFile)
-		{
-			Game::FS_FCloseFile(session.demoFile);
-			session.demoFile = 0;
-		}
-
-		session.info.length = Game::Sys_Milliseconds() - session.info.length;
-
-		FileSystem::FileWriter meta(std::format("{}{}.dm_13.json", DEMO_DIR, session.name));
-		meta.write(nlohmann::json(session.info.to_json()).dump());
+		WriteSidecar(data, data.fileBaseName);
+		Game::FS_FCloseFile(data.demoFile);
 
 		Logger::Print("[ServerDemo] Stopped recording client {}, wrote {}{}.dm_13\n",
-			clientNum, DEMO_DIR, session.name);
+			clientNum, DEMO_DIR, data.fileBaseName);
 
-		session = Session{};
+		// Deliberately does NOT reset the buffer/times/counters - only the file. A later
+		// serverrecord for the same client, same connection, resumes seeded with everything
+		// that happened while not recording, rather than starting from a blank buffer.
+		data.demoFile = 0;
+		data.fileActive = false;
+		data.fileBaseName.clear();
 	}
 
 	void ServerDemo::StartAll(const bool automatic)
 	{
-		const auto max = (*Game::sv_maxclients)->current.integer;
-		for (auto i = 0; i < max && i < static_cast<int>(Game::MAX_CLIENTS); ++i)
+		for (auto i = 0; i < static_cast<int>(Game::MAX_CLIENTS); ++i)
 		{
 			if (Game::svs_clients[i].header.state >= Game::CS_CONNECTED)
 			{
@@ -271,204 +501,12 @@ namespace Components
 		}
 	}
 
-	void ServerDemo::WriteRawMessage(const int clientNum, const unsigned char* data, const int size)
-	{
-		if (!ValidClientNum(clientNum)) return;
-
-		auto& session = Sessions[clientNum];
-		if (!session.active || !session.demoFile) return;
-		if (!data || size <= 0) return;
-
-		static unsigned char cmpData[131072];
-
-		if (size >= static_cast<int>(sizeof(cmpData)))
-		{
-			// Should not happen in practice - engine snapshot/gamestate messages are bounded
-			// well under this - but bail rather than overrun our buffer if it ever does.
-			Logger::PrintError(Game::CON_CHANNEL_ERROR,
-				"[ServerDemo] Message for client {} exceeds compress buffer ({} bytes), skipping\n",
-				clientNum, size);
-			return;
-		}
-
-		// Every message the server builds for a client begins with a 4-byte long: the engine
-		// does MSG_Init, then MSG_WriteLong(msg, client->lastClientCommand) before writing any
-		// server commands or snapshot/gamestate payload (confirmed by disassembling both
-		// SV_SendClientGameState and the per-client send loop). The client reads that same long
-		// back as clc.reliableAcknowledge.
-		//
-		// In the .dm_13 file that long is stored RAW, OUTSIDE the Huffman-compressed body:
-		//   [msgType:1][sequence:4][payloadLen:4][reliableAcknowledge:4][huffman(body)]
-		// (framing per CL_WriteDemoMessage; the split confirmed by CL_ReadDemoNetworkPacket,
-		// which reads the long straight off the uncompressed buffer and range-checks it
-		// against clc.reliableSequence - MAX_RELIABLE_COMMANDS before parsing the rest.)
-		//
-		// This is why Theatre::WriteBaseline writes a bare constant there and compresses a
-		// buffer containing no leading long at all. Compressing the WHOLE message and also
-		// prepending a dummy long - as this function originally did - left an extra 4 bytes at
-		// the head of the decompressed stream, desyncing the parser and dropping the client.
-		if (size < static_cast<int>(sizeof(int)))
-		{
-			return;
-		}
-
-		int reliableAcknowledge;
-		std::memcpy(&reliableAcknowledge, data, sizeof(int));
-
-		const auto* body = data + sizeof(int);
-		const auto bodySize = size - static_cast<int>(sizeof(int));
-
-		const auto compressedSize = Utils::Huffman::Compress(body, cmpData, bodySize, sizeof(cmpData));
-		if (compressedSize <= 0) return;
-
-		// Payload length counts the raw reliableAcknowledge long plus the compressed body.
-		const auto payloadSize = compressedSize + static_cast<int>(sizeof(int));
-		constexpr unsigned char msgType = 0;
-
-		Game::FS_WriteToDemo(&msgType, sizeof(msgType), session.demoFile);
-		Game::FS_WriteToDemo(&session.messageSequence, sizeof(int), session.demoFile);
-		Game::FS_WriteToDemo(&payloadSize, sizeof(int), session.demoFile);
-		Game::FS_WriteToDemo(&reliableAcknowledge, sizeof(int), session.demoFile);
-
-		for (auto i = 0; i < compressedSize; i += 1024)
-		{
-			const auto chunk = std::min(compressedSize - i, 1024);
-			Game::FS_WriteToDemo(&cmpData[i], chunk, session.demoFile);
-		}
-
-		++session.messageSequence;
-	}
-
-	void ServerDemo::WriteFrame(const int clientNum, Game::msg_t* msg)
-	{
-		if (!msg || !msg->data || msg->cursize <= 0) return;
-		WriteRawMessage(clientNum, msg->data, msg->cursize);
-	}
-
-	void ServerDemo::WriteClientArchive(const int clientNum, Game::client_s* cl)
-	{
-		if (!ValidClientNum(clientNum) || !cl) return;
-
-		auto& session = Sessions[clientNum];
-		if (!session.active || !session.demoFile) return;
-
-		// Server-side source of truth for this player's state. Not populated until the client
-		// has actually spawned in, so skip until then rather than archiving a null/garbage view.
-		if (!cl->gentity || !cl->gentity->client) return;
-
-		const auto* ps = &cl->gentity->client->ps;
-
-		// Layout is fixed by the engine's own reader (type-1 branch of the demo dispatcher):
-		//   index(4) origin(12) velocity(12) movementDir(4) bobCycle(4) commandTime(4)
-		//   viewangles(12) locationSelectionInfo(4)
-		// Note the field order on disk is NOT struct order - movementDir and bobCycle are
-		// written before the first 4 bytes of playerState_s (commandTime). Unlike type-0
-		// records this one is raw: no length prefix and no Huffman compression.
-		constexpr unsigned char msgType = 1;
-		Game::FS_WriteToDemo(&msgType, sizeof(msgType), session.demoFile);
-
-		Game::FS_WriteToDemo(&session.archiveIndex, sizeof(int), session.demoFile);
-		Game::FS_WriteToDemo(ps->origin, sizeof(float[3]), session.demoFile);
-		Game::FS_WriteToDemo(ps->velocity, sizeof(float[3]), session.demoFile);
-		Game::FS_WriteToDemo(&ps->movementDir, sizeof(int), session.demoFile);
-		Game::FS_WriteToDemo(&ps->bobCycle, sizeof(int), session.demoFile);
-		Game::FS_WriteToDemo(&ps->commandTime, sizeof(int), session.demoFile);
-		Game::FS_WriteToDemo(ps->viewangles, sizeof(float[3]), session.demoFile);
-
-		// 0 = no location selector active. Non-zero would oblige us to write 8 more bytes of
-		// selectedLocation, and IW4x deliberately disables this field client-side anyway
-		// (Theatre::CL_WriteDemoClientArchive_Hk, "Fix issue with locationSelectionInfo").
-		constexpr int locationSelectionInfo = 0;
-		Game::FS_WriteToDemo(&locationSelectionInfo, sizeof(int), session.demoFile);
-
-		session.archiveIndex = (session.archiveIndex + 1) & 0xFF;
-	}
-
-	void ServerDemo::OnServerMessage(Game::client_s* cl, Game::msg_t* msg)
-	{
-		if (!cl) return;
-
-		const auto clientNum = static_cast<int>(cl - Game::svs_clients);
-		WriteFrame(clientNum, msg);
-
-		// Pair every network message with the archived viewpoint for that same frame.
-		WriteClientArchive(clientNum, cl);
-	}
-
-	void ServerDemo::SV_SendClientGameState_Stub(Game::client_s* client, Game::msg_t* msg)
-	{
-		// FUN_00625270: builds the svc_gamestate message (configstring dump + baseline framing)
-		// into msg. Real engine name unconfirmed by symbol, but its only caller (0x625570)
-		// self-identifies via its own debug format string: "SV_SendClientGameState() for %s\n".
-		Utils::Hook::Call<void(Game::client_s*, Game::msg_t*)>(0x625270)(client, msg);
-
-		OnGamestateMessage(client, msg);
-	}
-
-	void ServerDemo::OnGamestateMessage(Game::client_s* cl, Game::msg_t* msg)
-	{
-		if (!cl || !msg || !msg->data || msg->cursize <= 0) return;
-
-		const auto clientNum = static_cast<int>(cl - Game::svs_clients);
-		if (!ValidClientNum(clientNum)) return;
-
-		// Close any demo still open for this slot IMMEDIATELY, before caching the new
-		// gamestate. A gamestate means the client is (re)entering the world, so the previous
-		// recording is finished. Doing this here rather than in the deferred restart matters:
-		// the deferred start runs a second later, and in that window snapshots for the NEW
-		// map would otherwise be appended to the PREVIOUS map's demo.
-		StopRecording(clientNum);
-
-		// Cache unconditionally, whether or not a recording is active yet - auto-record's
-		// settle delay means recording usually starts a moment AFTER gamestate has already
-		// gone out, so this is the only way to still capture it.
-		CachedGamestate[clientNum].assign(msg->data, msg->data + msg->cursize);
-
-		// A gamestate is sent to a client whenever it (re)enters the world - on connect AND
-		// on every map change / map_restart. That makes this the right place to (re)start a
-		// recording, and it fixes a real gap: previously recording only began on connect, so
-		// a player who stayed across a map change was never recorded again. Their old demo
-		// was closed at map end and nothing replaced it.
-		//
-		// Rotate here: close any demo still open for this slot, then start a fresh one for
-		// the new map. Deferred for the same reason as the connect path - client_s::bIsTestClient
-		// and the player's name are not populated yet at this instant.
-		RestartRecordingDeferred(clientNum);
-	}
-
-	// Closes any active recording for a slot and starts a new one, after a short settle
-	// window. Safe to call for a client that is not being recorded.
-	void ServerDemo::RestartRecordingDeferred(const int clientNum)
-	{
-		if (!Dedicated::IsRunning()) return;
-		if (!SVDemoAutoRecord.get<bool>()) return;
-		if (!ValidClientNum(clientNum)) return;
-
-		Scheduler::Once([clientNum]
-		{
-			if (!Dedicated::IsRunning()) return;
-			if (!SVDemoAutoRecord.get<bool>()) return;
-
-			const auto* cl = &Game::svs_clients[clientNum];
-
-			// Client may have dropped during the settle window.
-			if (cl->header.state < Game::CS_CONNECTED) return;
-
-			// The previous demo was already closed synchronously when the gamestate arrived,
-			// so this only ever opens a new one. StartRecording re-checks the bot flag, which
-			// is trustworthy by now.
-			StartRecording(clientNum, true);
-		}, Scheduler::Pipeline::SERVER, 1s);
-	}
-
 	void ServerDemo::OnClientDisconnected(const int clientNum)
 	{
-		StopRecording(clientNum);
-
-		if (ValidClientNum(clientNum))
-		{
-			CachedGamestate[clientNum].clear();
-		}
+		// Full reset, not just StopRecording: a disconnect ends this connection's buffer
+		// history too, so a later reconnect (which OnTransmit would also catch via
+		// lastConnectTime) starts clean rather than potentially resuming stale data.
+		ResetClient(clientNum, false);
 	}
 
 	void ServerDemo::ServerRecordCommand(const Command::Params* params)
@@ -532,19 +570,20 @@ namespace Components
 		SVDemosKeep = Dvar::Register<int>("sv_demosKeep", 100, 1, 999, Game::DVAR_NONE,
 			"How many auto-recorded server demos to keep per rotation");
 
-		Events::OnSVSendClientMessage(OnServerMessage);
 		Events::OnClientDisconnect(OnClientDisconnected);
 
-		// Hooks the call to FUN_00625270 inside SV_SendClientGameState (0x625570) - the
-		// engine's own gamestate message builder. Confirmed via disassembly to be untouched by
-		// any other module (single call site, no other hook installed here), and its calling
-		// convention (client, msg) was cross-checked byte-for-byte against Voice.cpp's already-
-		// proven hook at 0x4519F5 before adding this. Unlike that hook, this one has not yet
-		// been confirmed against a live server - see ServerDemo.hpp.
-		Utils::Hook(0x6256B3, SV_SendClientGameState_Stub, HOOK_CALL).install()->quick();
+		// The ONE hook: the real SV_Netchan_Transmit, confirmed via Ghidra decompilation as
+		// char FUN_0047CB60(client_s*, const void* data, int length), cdecl, with exactly one
+		// caller in the whole binary (SV_SendMessageToClient, 0x48FE90) at this call site.
+		// Every message to every client - loading or active, gamestate or snapshot or reliable
+		// command - passes through here exactly once, already fully compressed. Nothing else
+		// in this codebase hooks this address.
+		Utils::Hook(SV_NETCHAN_TRANSMIT_CALL_SITE, SV_Netchan_Transmit_Stub, HOOK_CALL).install()->quick();
 
-		// Belt-and-braces: make sure nothing bleeds across a map change/server shutdown.
-		Scheduler::OnGameShutdown(StopAll);
+		Scheduler::OnGameShutdown([]
+		{
+			ResetAll(false);
+		});
 
 		Command::Add("serverrecord", ServerRecordCommand);
 		Command::Add("serverstoprecord", ServerStopRecordCommand);
