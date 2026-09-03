@@ -58,7 +58,7 @@ namespace Controller
         "No-change band around the stick pressed threshold");
 
       d.buttons_config = Dvar_RegisterString (
-        "gpad_buttonConfig", "gamepad_default", DVAR_ARCHIVE,
+        "gpad_buttonConfig", "buttons_default", DVAR_ARCHIVE,
         "Game pad button configuration");
       d.sticks_config = Dvar_RegisterString (
         "gpad_sticksConfig", "thumbstick_default", DVAR_ARCHIVE,

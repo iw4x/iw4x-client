@@ -74,7 +74,7 @@ namespace Controller
     bind_bridge::
     apply_configured_layout ()
     {
-      const char* name (read (dvars_.buttons_config, "gamepad_default"));
+      const char* name (read (dvars_.buttons_config, "buttons_default"));
 
       if (std::strcmp (name, custom_layout) == 0)
       {
@@ -122,7 +122,7 @@ namespace Controller
     bind_bridge::
     reapply_layout ()
     {
-      apply_layout (read (dvars_.buttons_config, "gamepad_default"));
+      apply_layout (read (dvars_.buttons_config, "buttons_default"));
     }
 
     void
