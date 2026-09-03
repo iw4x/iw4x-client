@@ -102,9 +102,9 @@ namespace Controller
         "Scale the view axes by the dominant axis");
 
       d.slowdown_enabled = Dvar_RegisterBool (
-        "aim_slowdown_enabled", true, DVAR_CHEAT, "Enable aim slowdown");
+        "aim_slowdown_enabled", true, DVAR_ARCHIVE, "Enable aim slowdown");
       d.lockon_enabled = Dvar_RegisterBool (
-        "aim_lockon_enabled", true, DVAR_CHEAT, "Enable lock-on aim assist");
+        "aim_lockon_enabled", true, DVAR_ARCHIVE, "Enable lock-on aim assist");
       d.lockon_deflection = Dvar_RegisterFloat (
         "aim_lockon_deflection", 0.05f, 0.0f, 1.0f, DVAR_CHEAT,
         "Stick deflection at which lock-on activates");
