@@ -420,7 +420,9 @@ namespace Controller
         {
           const int keynum (static_cast<int> (k));
 
-          combined_key_names[names++] = {mapping::key_name (k), keynum};
+          const char* const name (mapping::key_name (k));
+
+          combined_key_names[names++] = {name, keynum};
 
           const char* const xbox (
             mapping::glyph_for (k, mapping::glyph_family::xbox));
@@ -428,12 +430,10 @@ namespace Controller
           const char* const playstation (
             mapping::glyph_for (k, mapping::glyph_family::playstation));
 
-          if (xbox != nullptr && playstation != nullptr)
-          {
-            combined_glyphs_xbox[glyphs] = {xbox, keynum};
-            combined_glyphs_playstation[glyphs] = {playstation, keynum};
-            ++glyphs;
-          }
+          combined_glyphs_xbox[glyphs] = {xbox != nullptr ? xbox : name, keynum};
+          combined_glyphs_playstation[glyphs] =
+            {playstation != nullptr ? playstation : name, keynum};
+          ++glyphs;
         }
 
         combined_key_names[names] = {nullptr, 0};
