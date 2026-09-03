@@ -72,7 +72,7 @@ namespace Controller
           read (d.stick_deadzone_min, 0.2f),
           read (d.stick_deadzone_max, 0.01f),
           read (d.accel_rate, 1200.0f),
-          static_cast<float> (read (d.accel_enabled, true)),
+          static_cast<float> (read (d.accel_enabled, false)),
           static_cast<float> (read (d.graph_enabled, true)),
           static_cast<float> (read (d.graph_index, 3)),
         };
@@ -174,7 +174,7 @@ namespace Controller
                             read (dvars_.turnrate_yaw_ads, 90.0f),
                             read (dvars_.turnrate_pitch_ads, 55.0f));
 
-      const float accel (read (dvars_.accel_enabled, true)
+      const float accel (read (dvars_.accel_enabled, false)
                          ? read (dvars_.accel_rate, 1200.0f)
                          : 0.0f);
 

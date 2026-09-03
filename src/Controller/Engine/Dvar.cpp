@@ -87,8 +87,9 @@ namespace Controller
         "aim_turnrate_yaw_ads", 90.0f, 0.0f, 1080.0f, DVAR_CHEAT,
         "ADS horizontal turn rate (deg/s)");
       d.accel_enabled = Dvar_RegisterBool (
-        "aim_accel_turnrate_enabled", true, DVAR_CHEAT,
-        "Enable turn-rate acceleration");
+        "aim_accel_turnrate_enabled", false, DVAR_ARCHIVE,
+        "Ramp the stick's turn rate up while a direction is held, rather than "
+        "turning at the full rate immediately");
       d.accel_rate = Dvar_RegisterFloat (
         "aim_accel_turnrate_lerp", 1200.0f, 0.0f, 4000.0f, DVAR_CHEAT,
         "Turn-rate acceleration (deg/s per second)");
