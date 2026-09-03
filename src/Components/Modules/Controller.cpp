@@ -107,7 +107,7 @@ namespace Components
 		if (ZoneBuilder::IsEnabled())
 			return;
 
-		sv_allowAimAssist = Dvar::Register<bool>("sv_allowAimAssist", true, Game::DVAR_NONE,
+		sv_allowAimAssist = Dvar::Register<bool>("sv_allowAimAssist", true, Game::DVAR_SYSTEMINFO,
 			"Controls whether aim assist features on clients are enabled");
 
 		if (Dedicated::IsEnabled())

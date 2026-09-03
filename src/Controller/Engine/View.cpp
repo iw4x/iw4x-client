@@ -304,7 +304,10 @@ namespace Controller
       fi.invert_pitch = read (dvars_.invert_pitch, false);
       fi.dt = seconds {frame_time};
 
-      if (aa.initialized && read (dvars_.slowdown_enabled, true))
+      const bool assist_allowed (read (dvars_.aim_assist_enabled, true));
+
+      if (aa.initialized && assist_allowed &&
+          read (dvars_.slowdown_enabled, true))
       {
         const float range (
           assist_range (aa, read (dvars_.aim_assist_range_scale, 1.0f)));
@@ -329,7 +332,8 @@ namespace Controller
 
       aim_frame_output o (processor_->process (fi));
 
-      if (aa.initialized && read (dvars_.lockon_enabled, true))
+      if (aa.initialized && assist_allowed &&
+          read (dvars_.lockon_enabled, true))
       {
         const float deflection (std::sqrt (look.x * look.x + look.y * look.y));
 
