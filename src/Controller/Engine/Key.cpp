@@ -387,7 +387,7 @@ namespace Controller
       if (b != button::l3 && b != button::r3)
         return false;
 
-      if (!read (dvars_.ads_sprint_lock, true))
+      if (!read (dvars_.ads_sprint_lock, false))
         return false;
 
       if (!is_sprint (command_for (k)) || !aiming ())
