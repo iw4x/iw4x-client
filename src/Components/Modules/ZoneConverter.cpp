@@ -399,7 +399,14 @@ namespace Components
 			int steps_ = 0;
 		};
 
-		bool RunConverter(const std::string& converter, const std::filesystem::path& zone, const ProgressDialog& dialog)
+		struct ConverterOutcome
+		{
+			bool started = false;
+			std::string startError;
+			DWORD exitCode = 0;
+		};
+
+		ConverterOutcome RunConverter(const std::string& converter, const std::filesystem::path& zone, const ProgressDialog& dialog)
 		{
 			SECURITY_ATTRIBUTES inheritable{};
 			inheritable.nLength = sizeof(inheritable);
@@ -427,7 +434,21 @@ namespace Components
 			const auto started = CreateProcessA(converter.data(), commandLine.data(), nullptr, nullptr,
 				log != INVALID_HANDLE_VALUE, CREATE_NO_WINDOW, nullptr, nullptr, &startup, &process);
 
-			const auto error = GetLastError();
+			ConverterOutcome outcome;
+
+			if (!started)
+			{
+				const auto error = GetLastError();
+				auto reason = Utils::GetLastWindowsError();
+				Utils::String::Trim(reason);
+
+				while (!reason.empty() && reason.back() == '.')
+				{
+					reason.pop_back();
+				}
+
+				outcome.startError = std::format("{} ({})", reason.empty() ? "unknown error" : reason, error);
+			}
 
 			if (log != INVALID_HANDLE_VALUE)
 			{
@@ -436,8 +457,8 @@ namespace Components
 
 			if (!started)
 			{
-				Log(std::format("Could not start \"{}\" ({})", converter, error));
-				return false;
+				Log(std::format("Could not start \"{}\": {}", converter, outcome.startError));
+				return outcome;
 			}
 
 			CloseHandle(process.hThread);
@@ -447,11 +468,12 @@ namespace Components
 				dialog.Pump();
 			}
 
-			DWORD exitCode = 1;
-			GetExitCodeProcess(process.hProcess, &exitCode);
+			outcome.started = true;
+			outcome.exitCode = 1;
+			GetExitCodeProcess(process.hProcess, &outcome.exitCode);
 			CloseHandle(process.hProcess);
 
-			return exitCode == 0;
+			return outcome;
 		}
 
 		bool CopyAcross(const std::filesystem::path& file)
@@ -527,7 +549,9 @@ namespace Components
 			if (!converter)
 			{
 				Fail(std::format("This installation ships the Microsoft Store's x64 fastfiles, which have to be "
-					"converted before the game can read them, and {} was not found next to the game.",
+					"converted before the game can read them, and {} was not found next to the game.\n\n"
+					"If you did install it, antivirus software such as Windows Defender may have quarantined it. "
+					"Add an exclusion for the IW4x folder and start the game again.",
 					CONVERTER_NAMES[0]));
 				return;
 			}
@@ -577,11 +601,23 @@ namespace Components
 			{
 				dialog.Begin(std::format("Converting {}", path.filename().generic_string()));
 
-				if (!RunConverter(*converter, path, dialog))
+				const auto outcome = RunConverter(*converter, path, dialog);
+
+				if (!outcome.started)
 				{
-					Fail(std::format("Converting \"{}\" failed. See \"{}\" for what the converter said. "
-						"The originals are still in \"{}\".",
-						path.generic_string(), LOG_FILE, BACKUP_DIRECTORY));
+					Fail(std::format("\"{}\" could not be started: {}.\n\n"
+						"Antivirus software such as Windows Defender often blocks or quarantines it. "
+						"Add an exclusion for the IW4x folder and start the game again.\n\n"
+						"No fastfile was converted with it; the originals are still in \"{}\".",
+						*converter, outcome.startError, BACKUP_DIRECTORY));
+					return;
+				}
+
+				if (outcome.exitCode != 0)
+				{
+					Fail(std::format("Converting \"{}\" failed (\"{}\" exited with code {}). See \"{}\" for "
+						"what the converter said. The originals are still in \"{}\".",
+						path.generic_string(), *converter, outcome.exitCode, LOG_FILE, BACKUP_DIRECTORY));
 					return;
 				}
 
