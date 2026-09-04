@@ -16,11 +16,6 @@ namespace Controller
 
     namespace
     {
-      constexpr int scroll_delay_first {420};
-      constexpr int scroll_delay_rest {210};
-      constexpr int scroll_delay_min {50};
-      constexpr int scroll_accel_time {1500};
-
       constexpr int controller_use_hold_time {250};
 
       constexpr char loc_sel_cancel_command[] {"+actionslot 4"};
@@ -491,23 +486,27 @@ namespace Controller
     {
       if (Key_IsCatcherActive (local_client, KEYCATCH_UI) && is_scroll_key (k))
       {
+        const int first (read (dvars_.menu_scroll_delay_first, 420));
+        const int rest (read (dvars_.menu_scroll_delay_rest, 210));
+        const int least (read (dvars_.menu_scroll_delay_min, 50));
+        const int accel (read (dvars_.menu_scroll_accel_time, 1500));
+
         if (repeats == 1)
         {
-          next_scroll_ = time + static_cast<unsigned> (scroll_delay_first);
+          next_scroll_ = time + static_cast<unsigned> (first);
           return false;
         }
 
         if (time > next_scroll_)
         {
-          int delay (scroll_delay_rest);
+          int delay (rest);
 
-          if (is_dpad (k))
+          if (is_dpad (k) && accel > 0 && rest > least)
           {
             const int elapsed (static_cast<int> (time - scroll_hold_start_));
-            const int t (std::min (elapsed, scroll_accel_time));
+            const int t (std::min (elapsed, accel));
 
-            delay = scroll_delay_rest -
-                    (scroll_delay_rest - scroll_delay_min) * t / scroll_accel_time;
+            delay = rest - (rest - least) * t / accel;
           }
 
           next_scroll_ = time + static_cast<unsigned> (delay);
@@ -537,7 +536,8 @@ namespace Controller
         scroll_hold_key_ = k;
       }
 
-      next_scroll_ = time + static_cast<unsigned> (scroll_delay_first);
+      next_scroll_ = time +
+        static_cast<unsigned> (read (dvars_.menu_scroll_delay_first, 420));
     }
 
     void

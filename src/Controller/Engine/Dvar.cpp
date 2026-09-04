@@ -64,6 +64,20 @@ namespace Controller
         "gpad_sticksConfig", "thumbstick_default", DVAR_ARCHIVE,
         "Game pad stick configuration");
 
+      d.menu_scroll_delay_first = Dvar_RegisterInt (
+        "gpad_menu_scroll_delay_first", 420, 0, 1000, DVAR_ARCHIVE,
+        "Menu scroll key-repeat delay, for the first repeat, in milliseconds");
+      d.menu_scroll_delay_rest = Dvar_RegisterInt (
+        "gpad_menu_scroll_delay_rest", 210, 0, 1000, DVAR_ARCHIVE,
+        "Menu scroll key-repeat delay, for later repeats, in milliseconds");
+      d.menu_scroll_delay_min = Dvar_RegisterInt (
+        "gpad_menu_scroll_delay_min", 50, 0, 1000, DVAR_ARCHIVE,
+        "Menu scroll key-repeat delay at maximum acceleration, in milliseconds");
+      d.menu_scroll_accel_time = Dvar_RegisterInt (
+        "gpad_menu_scroll_accel_time", 1500, 0, 5000, DVAR_ARCHIVE,
+        "How long a held direction takes to reach the minimum scroll delay, in "
+        "milliseconds");
+
       d.ads_sprint_lock = Dvar_RegisterBool (
         "gpad_ads_sprint_lock", true, DVAR_ARCHIVE,
         "Ignore a stick click bound to sprint while aiming down sight");

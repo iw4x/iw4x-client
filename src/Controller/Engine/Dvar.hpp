@@ -34,6 +34,11 @@ namespace Controller
       dvar_t* buttons_config {};
       dvar_t* sticks_config {};
 
+      dvar_t* menu_scroll_delay_first {};
+      dvar_t* menu_scroll_delay_rest {};
+      dvar_t* menu_scroll_delay_min {};
+      dvar_t* menu_scroll_accel_time {};
+
       dvar_t* ads_sprint_lock {};
 
       dvar_t* invert_pitch {};
