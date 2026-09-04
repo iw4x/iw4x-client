@@ -163,6 +163,33 @@ namespace Controller
       }
 
       bool
+      slowdown_active (const AimAssistPlayerState& ps) noexcept
+      {
+        if (ps.weapIndex == 0)
+          return false;
+
+        const WeaponDef* const wd (
+          BG_GetWeaponDef (static_cast<unsigned> (ps.weapIndex)));
+
+        if (wd == nullptr || wd->requireLockonToFire)
+          return false;
+
+        if ((ps.linkFlags & Game::PLF_WEAPONVIEW_ONLY) != 0)
+          return false;
+
+        if (ps.weaponState >= Game::WEAPON_STUNNED_START &&
+            ps.weaponState <= Game::WEAPON_STUNNED_END)
+          return false;
+
+        if ((ps.eFlags & (Game::EF_VEHICLE_ACTIVE |
+                          Game::EF_TURRET_ACTIVE_DUCK |
+                          Game::EF_TURRET_ACTIVE_PRONE)) != 0)
+          return false;
+
+        return ps.hasAmmo;
+      }
+
+      bool
       using_offhand (const AimAssistPlayerState& ps) noexcept
       {
         if ((ps.weapFlags & PWF_USING_OFFHAND) == 0 || ps.weapIndex == 0)
@@ -364,7 +391,7 @@ namespace Controller
       const bool assist_allowed (read (dvars_.aim_assist_enabled, true));
 
       if (aa.initialized && assist_allowed &&
-          read (dvars_.slowdown_enabled, true))
+          read (dvars_.slowdown_enabled, true) && slowdown_active (aa.ps))
       {
         const float range (
           assist_range (aa, read (dvars_.aim_assist_range_scale, 1.0f)));
