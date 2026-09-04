@@ -40,6 +40,11 @@ namespace Controller
       bool
       view_active (int client) const noexcept;
 
+      void
+      apply_lock_on (int client,
+                     const AimInput&,
+                     aim::aim_frame_output&) noexcept;
+
       const context& ctx_;
       const dvars& dvars_;
 

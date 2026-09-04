@@ -147,6 +147,29 @@ namespace Controller
         return nullptr;
       }
 
+      const AimScreenTarget*
+      prev_or_best_target (const AimAssistGlobals& aa,
+                           float range,
+                           float half_w,
+                           float half_h,
+                           int previous) noexcept
+      {
+        if (previous != Game::AIM_TARGET_INVALID)
+        {
+          for (int i (0); i != aa.screenTargetCount; ++i)
+          {
+            const AimScreenTarget& t (aa.screenTargets[i]);
+
+            if (t.entIndex == previous &&
+                range * range > t.distSqr &&
+                in_region (t, half_w, half_h))
+              return &t;
+          }
+        }
+
+        return best_target (aa, range, half_w, half_h);
+      }
+
       float
       assist_range (const AimAssistGlobals& aa, float scale) noexcept
       {
@@ -419,49 +442,88 @@ namespace Controller
 
       aim_assist_end (in, out);
 
-      if (aa.initialized && assist_allowed &&
-          read (dvars_.lockon_enabled, true))
+      if (aa.initialized)
       {
-        const stick_vector look (fi.look);
+        aim_frame_output l;
+        apply_lock_on (client, in, l);
 
-        const float deflection (std::sqrt (look.x * look.x + look.y * look.y));
-
-        if (deflection <= read (dvars_.lockon_deflection, 0.05f))
-        {
-          const float range (
-            assist_range (aa, read (dvars_.aim_assist_range_scale, 1.0f)));
-
-          if (const AimScreenTarget* t = best_target (
-                aa, range,
-                aa.tweakables.lockOnRegionWidth,
-                aa.tweakables.lockOnRegionHeight);
-              t != nullptr && t->distSqr > 0.0f)
-          {
-            lock_on_target lt;
-            lt.target_velocity = {t->velocity[0], t->velocity[1], t->velocity[2]};
-            lt.player_velocity = {aa.ps.velocity[0], aa.ps.velocity[1],
-                                  aa.ps.velocity[2]};
-            lt.view_yaw_axis = {-aa.viewAxis[1][0], -aa.viewAxis[1][1],
-                                -aa.viewAxis[1][2]};
-            lt.view_pitch_axis = {aa.viewAxis[2][0], aa.viewAxis[2][1],
-                                  aa.viewAxis[2][2]};
-            lt.distance = std::sqrt (t->distSqr);
-
-            lock_on_params lp;
-            lp.yaw_strength = read (dvars_.lockon_strength, 0.6f);
-            lp.pitch_strength = read (dvars_.lockon_pitch_strength, 0.6f);
-
-            const aim_frame_output l (lock_on (lt, lp, seconds {frame_time}));
-            out.yaw -= l.yaw_delta.value;
-            out.pitch -= l.pitch_delta.value;
-          }
-        }
+        out.pitch -= l.pitch_delta.value;
+        out.yaw -= l.yaw_delta.value;
       }
 
       view_pitch (client) = out.pitch;
       view_yaw (client) = out.yaw;
       cmd.meleeChargeYaw = out.meleeChargeYaw;
       cmd.meleeChargeDist = out.meleeChargeDist;
+    }
+
+    void
+    view_driver::
+    apply_lock_on (int client,
+                   const AimInput& in,
+                   aim_frame_output& o) noexcept
+    {
+      AimAssistGlobals& aa (aaGlobArray[client]);
+
+      const int previous (aa.lockOnTargetEnt);
+      aa.lockOnTargetEnt = Game::AIM_TARGET_INVALID;
+
+      if (!read (dvars_.aim_assist_enabled, true) ||
+          !read (dvars_.lockon_enabled, true))
+        return;
+
+      if (using_offhand (aa.ps) || aa.autoAimActive ||
+          aa.autoMeleeState == Game::AIM_MELEE_STATE_UPDATING)
+        return;
+
+      if (aa.ps.weapIndex == 0)
+        return;
+
+      const WeaponDef* const wd (
+        BG_GetWeaponDef (static_cast<unsigned> (aa.ps.weapIndex)));
+
+      if (wd == nullptr || wd->requireLockonToFire)
+        return;
+
+      const float threshold (read (dvars_.lockon_deflection, 0.05f));
+
+      if (threshold > std::fabs (in.pitchAxis) &&
+          threshold > std::fabs (in.yawAxis) &&
+          threshold > std::fabs (in.rightAxis))
+        return;
+
+      const float range (
+        assist_range (aa, read (dvars_.aim_assist_range_scale, 1.0f)));
+
+      const AimScreenTarget* t (
+        prev_or_best_target (aa, range,
+                             aa.tweakables.lockOnRegionWidth,
+                             aa.tweakables.lockOnRegionHeight,
+                             previous));
+
+      if (t == nullptr || !(t->distSqr > 0.0f))
+        return;
+
+      aa.lockOnTargetEnt = t->entIndex;
+
+      lock_on_target lt;
+      lt.target_velocity = {t->velocity[0], t->velocity[1], t->velocity[2]};
+      lt.player_velocity = {aa.ps.velocity[0], aa.ps.velocity[1],
+                            aa.ps.velocity[2]};
+      lt.view_yaw_axis = {-aa.viewAxis[1][0], -aa.viewAxis[1][1],
+                          -aa.viewAxis[1][2]};
+      lt.view_pitch_axis = {aa.viewAxis[2][0], aa.viewAxis[2][1],
+                            aa.viewAxis[2][2]};
+      lt.distance = std::sqrt (t->distSqr);
+
+      lock_on_params lp;
+      lp.yaw_strength = read (dvars_.lockon_strength, 0.6f);
+      lp.pitch_strength = read (dvars_.lockon_pitch_strength, 0.6f);
+
+      const aim_frame_output l (lock_on (lt, lp, seconds {in.deltaTime}));
+
+      o.yaw_delta = o.yaw_delta + l.yaw_delta;
+      o.pitch_delta = o.pitch_delta + l.pitch_delta;
     }
 
     void
