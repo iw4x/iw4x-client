@@ -5,7 +5,6 @@
 #include "../Clock.hpp"
 #include "Types.hpp"
 #include "Deadzone.hpp"
-#include "Curve.hpp"
 #include "Graph.hpp"
 #include "Integrator.hpp"
 #include "../Sample/Axis.hpp"
@@ -19,7 +18,6 @@ namespace Controller
       deg_per_s yaw_rate {0.0f};
       deg_per_s pitch_rate {0.0f};
       deadzone_params deadzone;
-      response_curve curve;
     };
 
     struct aim_frame_input

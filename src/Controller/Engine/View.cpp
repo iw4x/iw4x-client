@@ -57,7 +57,6 @@ namespace Controller
           magnitude {read (d.stick_deadzone_min, 0.2f)},
           magnitude {read (d.stick_deadzone_max, 0.01f)},
           magnitude {0.0f}};
-        p.curve = response_curve {curve_kind::linear, 1.0f};
         return p;
       }
 

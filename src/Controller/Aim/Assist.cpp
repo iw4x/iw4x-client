@@ -55,10 +55,9 @@ namespace Controller
       const float deflection (
         std::clamp (std::sqrt (v.x * v.x + v.y * v.y), 0.0f, 1.0f));
 
-      const float response (
-        cfg_.graph != nullptr
-          ? cfg_.graph->evaluate (deflection)
-          : evaluate (t >= 0.5f ? cfg_.ads.curve : cfg_.hip.curve, deflection));
+      const float response (cfg_.graph != nullptr
+                            ? cfg_.graph->evaluate (deflection)
+                            : 1.0f);
 
       const float eff_yaw (v.x * response);
       const float eff_pitch (v.y * response);

@@ -38,18 +38,6 @@ namespace Controller
         return std::nullopt;
       }
 
-      if (!validate (s.hip.curve, w))
-      {
-        why = "hip curve: " + w;
-        return std::nullopt;
-      }
-
-      if (!validate (s.ads.curve, w))
-      {
-        why = "ADS curve: " + w;
-        return std::nullopt;
-      }
-
       std::optional<aim_graph> graph;
       if (s.graph_knots)
       {
