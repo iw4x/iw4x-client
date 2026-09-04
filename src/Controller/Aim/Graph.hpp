@@ -14,7 +14,7 @@ namespace Controller
       float output {0.0f};
     };
 
-    inline constexpr size_t max_graph_knots {16};
+    inline constexpr size_t max_graph_knots {32};
 
     class aim_graph
     {
