@@ -139,6 +139,24 @@ namespace Controller
         return wd != nullptr && wd->offhandClass != OFFHAND_CLASS_NONE;
       }
 
+      deadzone_params
+      stick_deadzone (const dvars& d) noexcept
+      {
+        const deadzone_params p {
+          magnitude {read (d.stick_deadzone_min, 0.2f)},
+          magnitude {read (d.stick_deadzone_max, 0.01f)},
+          magnitude {0.0f}};
+
+        std::string why;
+
+        if (validate (p, why))
+          return p;
+
+        return deadzone_params {magnitude {0.2f},
+                                magnitude {0.01f},
+                                magnitude {0.0f}};
+      }
+
       void
       advance_view (int client, degrees yaw_delta, degrees pitch_delta) noexcept
       {
@@ -212,8 +230,12 @@ namespace Controller
     view_driver::
     observe (const canonical_sample& s) noexcept
     {
-      const stick_vector left (s.sticks[static_cast<size_t> (stick::left)].calibrated);
-      const stick_vector right (s.sticks[static_cast<size_t> (stick::right)].calibrated);
+      const deadzone_params dz (stick_deadzone (dvars_));
+
+      const stick_vector left (
+        apply (dz, s.sticks[static_cast<size_t> (stick::left)].calibrated));
+      const stick_vector right (
+        apply (dz, s.sticks[static_cast<size_t> (stick::right)].calibrated));
 
       const mapping::stick_layout layout (
         mapping::stick_layout_from_name (read (dvars_.sticks_config,

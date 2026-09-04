@@ -16,16 +16,6 @@ namespace Controller
       {
         return {std::lerp (a.value, b.value, t)};
       }
-
-      deadzone_params
-      lerp_deadzone (const deadzone_params& a,
-                     const deadzone_params& b,
-                     float t) noexcept
-      {
-        return {magnitude {std::lerp (a.inner.value, b.inner.value, t)},
-                magnitude {std::lerp (a.outer.value, b.outer.value, t)},
-                magnitude {std::lerp (a.anti.value, b.anti.value, t)}};
-      }
     }
 
     aim_processor::
@@ -48,9 +38,7 @@ namespace Controller
     {
       const float t (std::clamp (in.ads_lerp, 0.0f, 1.0f));
 
-      const deadzone_params dz (
-        lerp_deadzone (cfg_.hip.deadzone, cfg_.ads.deadzone, t));
-      const stick_vector v (apply (dz, in.look));
+      const stick_vector v (in.look);
 
       const float deflection (
         std::clamp (std::sqrt (v.x * v.x + v.y * v.y), 0.0f, 1.0f));
