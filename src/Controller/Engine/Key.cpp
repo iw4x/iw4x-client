@@ -178,13 +178,6 @@ namespace Controller
         return ads_key_held () ||
                (aa.initialized && aa.adsLerp >= ads_engaged);
       }
-
-      bool
-      menu_open () noexcept
-      {
-        return Key_IsCatcherActive (local_client, KEYCATCH_UI) ||
-               UI_GetActiveMenu (local_client) == UIMENU_SCOREBOARD;
-      }
     }
 
     key_dispatcher::
@@ -310,8 +303,6 @@ namespace Controller
     key_dispatcher::
     dispatch_apad (unsigned time) noexcept
     {
-      const bool menu (menu_open ());
-
       for (size_t i (0); i != axis_count; ++i)
       {
         const stick which (i < 2 ? stick::right : stick::left);
@@ -319,19 +310,6 @@ namespace Controller
 
         const engine_key pos (stick_key (which, horizontal, true));
         const engine_key neg (stick_key (which, horizontal, false));
-
-        if (!menu)
-        {
-          const PlayerKeyState& ks (playerKeys[local_client]);
-
-          if (ks.keys[static_cast<int> (pos)].down != 0)
-            emit (pos, key_event::released, time);
-
-          if (ks.keys[static_cast<int> (neg)].down != 0)
-            emit (neg, key_event::released, time);
-
-          continue;
-        }
 
         const bool pos_now (deflected_[i][1]);
         const bool neg_now (deflected_[i][0]);
