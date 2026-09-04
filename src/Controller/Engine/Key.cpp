@@ -266,9 +266,18 @@ namespace Controller
       const float lt (s.triggers[static_cast<size_t> (trigger_side::left)].normalized);
       const float rt (s.triggers[static_cast<size_t> (trigger_side::right)].normalized);
 
+      const auto trigger_down = [trigger_deadzone] (float v) noexcept
+      {
+        return v > 0.0f && v >= trigger_deadzone;
+      };
+
+      button_set buttons (s.buttons);
+      buttons.set (button::l2, trigger_down (lt));
+      buttons.set (button::r2, trigger_down (rt));
+
       if (left.x != 0.0f || left.y != 0.0f ||
           right.x != 0.0f || right.y != 0.0f ||
-          lt >= trigger_deadzone || rt >= trigger_deadzone)
+          trigger_down (lt) || trigger_down (rt))
         set_in_use (true);
 
       const float axis[axis_count] {right.x, right.y, left.x, left.y};
@@ -292,9 +301,9 @@ namespace Controller
       }
 
       dispatch_apad (time);
-      dispatch_buttons (s, time);
+      dispatch_buttons (buttons, time);
 
-      buttons_ = s.buttons;
+      buttons_ = buttons;
 
       apply_use_hold_time ();
     }
@@ -329,11 +338,11 @@ namespace Controller
 
     void
     key_dispatcher::
-    dispatch_buttons (const canonical_sample& s, unsigned time) noexcept
+    dispatch_buttons (const button_set& current, unsigned time) noexcept
     {
       for (const button_key& m: button_keys)
       {
-        const bool now (s.buttons.down (m.physical));
+        const bool now (current.down (m.physical));
         const bool was (buttons_.down (m.physical));
 
         if (now && !was)

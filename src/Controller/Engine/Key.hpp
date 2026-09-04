@@ -54,7 +54,7 @@ namespace Controller
       dispatch_apad (unsigned time) noexcept;
 
       void
-      dispatch_buttons (const canonical_sample&, unsigned time) noexcept;
+      dispatch_buttons (const button_set& current, unsigned time) noexcept;
 
       bool
       swallow_stick_click (button, mapping::engine_key) noexcept;
