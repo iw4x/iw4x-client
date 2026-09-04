@@ -25,6 +25,19 @@ namespace Controller
         return static_cast<signed char> (std::clamp (v, -128, 127));
       }
 
+      float
+      diagonal_move_scale (float forward, float side) noexcept
+      {
+        if (forward == 0.0f && side == 0.0f)
+          return move_scale;
+
+        const float ratio (std::fabs (side) <= std::fabs (forward)
+                           ? side / forward
+                           : forward / side);
+
+        return std::sqrt (ratio * ratio + 1.0f) * move_scale;
+      }
+
       std::optional<std::vector<knot>>
       read_engine_graph (int index)
       {
@@ -293,10 +306,12 @@ namespace Controller
     view_driver::
     apply_move (int client, usercmd_s& cmd, float frame_time) noexcept
     {
+      const float scale (diagonal_move_scale (axes_.forward, axes_.side));
+
       cmd.forwardmove = clamp_move (cmd.forwardmove +
-        static_cast<int> (std::lround (axes_.forward * move_scale)));
+        static_cast<int> (std::floor (axes_.forward * scale)));
       cmd.rightmove = clamp_move (cmd.rightmove +
-        static_cast<int> (std::lround (axes_.side * move_scale)));
+        static_cast<int> (std::floor (axes_.side * scale)));
 
       if (last_weapon_hand (client) == WEAPON_HAND_LEFT)
       {
