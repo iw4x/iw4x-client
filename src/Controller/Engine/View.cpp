@@ -47,6 +47,27 @@ namespace Controller
         return knots;
       }
 
+      size_t
+      engine_graph_signature (int index)
+      {
+        if (index < 0 ||
+            static_cast<unsigned> (index) >= AIM_ASSIST_GRAPH_COUNT)
+          return 0;
+
+        const GraphFloat& g (aaInputGraph[index]);
+        const size_t n (static_cast<size_t> (g.knotCount));
+
+        size_t h (std::hash<float> {} (g.scale) * 31u + n);
+
+        for (size_t i (0); i != n && i != max_graph_knots; ++i)
+        {
+          h = h * 31u + std::hash<float> {} (g.knots[i][0]);
+          h = h * 31u + std::hash<float> {} (g.knots[i][1]);
+        }
+
+        return h;
+      }
+
       aim_profile
       make_profile (const dvars& d, float yaw, float pitch)
       {
@@ -79,6 +100,9 @@ namespace Controller
         size_t h (0);
         for (float v: values)
           h = h * 31u + std::hash<float> {} (v);
+
+        if (read (d.graph_enabled, true))
+          h = h * 31u + engine_graph_signature (read (d.graph_index, 3));
 
         return h;
       }
