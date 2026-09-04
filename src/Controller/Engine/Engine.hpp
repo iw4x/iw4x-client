@@ -117,6 +117,7 @@ namespace Controller
       return static_cast<float> (Game::cls->frametime) * 0.001f;
     }
 
-    void aim_assist_update (const AimInput& input, AimOutput& output) noexcept;
+    void aim_assist_begin (const AimInput& input, AimOutput& output) noexcept;
+    void aim_assist_end (const AimInput& input, AimOutput& output) noexcept;
   }
 }

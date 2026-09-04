@@ -216,13 +216,6 @@ namespace Controller
                                 magnitude {0.01f},
                                 magnitude {0.0f}};
       }
-
-      void
-      advance_view (int client, degrees yaw_delta, degrees pitch_delta) noexcept
-      {
-        view_yaw (client) -= yaw_delta.value;
-        view_pitch (client) -= pitch_delta.value;
-      }
     }
 
     view_driver::
@@ -351,40 +344,39 @@ namespace Controller
       if (!view_active (client) || !ensure_processor ())
         return;
 
+      const float engine_pitch_axis (read (dvars_.invert_pitch, false)
+                                     ? axes_.pitch
+                                     : -axes_.pitch);
+
       AimInput in {};
       AimOutput out {};
       in.deltaTime = frame_time;
       in.deltaTimeScaled = client_frame_time ();
       in.pitch = view_pitch (client);
-      in.pitchAxis = axes_.pitch;
+      in.pitchAxis = engine_pitch_axis;
       in.pitchMax = max_pitch_speed (client);
       in.yaw = view_yaw (client);
-      in.yawAxis = axes_.yaw;
+      in.yawAxis = -axes_.yaw;
       in.yawMax = max_yaw_speed (client);
       in.forwardAxis = axes_.forward;
       in.rightAxis = axes_.side;
       in.buttons = cmd.buttons;
       in.localClientNum = client;
 
-      aim_assist_update (in, out);
-
-      view_pitch (client) = out.pitch;
-      view_yaw (client) = out.yaw;
-      cmd.meleeChargeYaw = out.meleeChargeYaw;
-      cmd.meleeChargeDist = out.meleeChargeDist;
-
-      stick_vector look {axes_.yaw, axes_.pitch};
-
-      if (read (dvars_.scale_view_axis, true))
-        look = scale_dominant_axis (look);
+      aim_assist_begin (in, out);
 
       const AimAssistGlobals& aa (aaGlobArray[client]);
 
+      const bool melee_steering (
+        aa.initialized && aa.autoMeleeState == Game::AIM_MELEE_STATE_UPDATING);
+
       aim_frame_input fi;
-      fi.look = look;
+      fi.look = melee_steering ? stick_vector {}
+                               : stick_vector {axes_.yaw, axes_.pitch};
       fi.ads_lerp = aa.initialized ? aa.adsLerp : 0.0f;
       fi.fov_scale = aa.initialized ? aa.fovTurnRateScale : 1.0f;
       fi.sensitivity = read (dvars_.view_sensitivity, 1.0f);
+      fi.scale_view_axis = read (dvars_.scale_view_axis, true);
       fi.invert_pitch = read (dvars_.invert_pitch, false);
       fi.dt = seconds {frame_time};
 
@@ -420,11 +412,18 @@ namespace Controller
       if (max_pitch_speed (client) > 0.0f)
         fi.pitch_max = deg_per_s {max_pitch_speed (client)};
 
-      aim_frame_output o (processor_->process (fi));
+      const aim_frame_output o (processor_->process (fi));
+
+      out.pitch -= o.pitch_delta.value;
+      out.yaw -= o.yaw_delta.value;
+
+      aim_assist_end (in, out);
 
       if (aa.initialized && assist_allowed &&
           read (dvars_.lockon_enabled, true))
       {
+        const stick_vector look (fi.look);
+
         const float deflection (std::sqrt (look.x * look.x + look.y * look.y));
 
         if (deflection <= read (dvars_.lockon_deflection, 0.05f))
@@ -453,13 +452,16 @@ namespace Controller
             lp.pitch_strength = read (dvars_.lockon_pitch_strength, 0.6f);
 
             const aim_frame_output l (lock_on (lt, lp, seconds {frame_time}));
-            o.yaw_delta = o.yaw_delta + l.yaw_delta;
-            o.pitch_delta = o.pitch_delta + l.pitch_delta;
+            out.yaw -= l.yaw_delta.value;
+            out.pitch -= l.pitch_delta.value;
           }
         }
       }
 
-      advance_view (client, o.yaw_delta, o.pitch_delta);
+      view_pitch (client) = out.pitch;
+      view_yaw (client) = out.yaw;
+      cmd.meleeChargeYaw = out.meleeChargeYaw;
+      cmd.meleeChargeDist = out.meleeChargeDist;
     }
 
     void

@@ -28,6 +28,7 @@ namespace Controller
       float sensitivity {1.0f};
       float slowdown_yaw {1.0f};
       float slowdown_pitch {1.0f};
+      bool scale_view_axis {true};
       bool invert_pitch {false};
       std::optional<deg_per_s> yaw_max;
       std::optional<deg_per_s> pitch_max;

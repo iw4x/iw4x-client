@@ -47,8 +47,13 @@ namespace Controller
                             ? cfg_.graph->evaluate (deflection)
                             : 1.0f);
 
-      const float eff_yaw (v.x * response);
-      const float eff_pitch (v.y * response);
+      stick_vector adjusted {v.x * response, v.y * response};
+
+      if (in.scale_view_axis)
+        adjusted = scale_dominant_axis (adjusted);
+
+      const float eff_yaw (adjusted.x);
+      const float eff_pitch (adjusted.y);
 
       const float gain_yaw (in.fov_scale * in.sensitivity * in.slowdown_yaw);
       const float gain_pitch (in.fov_scale * in.sensitivity * in.slowdown_pitch);
