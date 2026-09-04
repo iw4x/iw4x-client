@@ -532,7 +532,7 @@ namespace Controller
       build_key_name_tables ();
 
       Utils::Hook::Set<BYTE> (aim_accel_enabled_flags, Game::DVAR_ARCHIVE);
-      Utils::Hook::Set<BYTE> (aim_accel_enabled_default, 0);
+      Utils::Hook::Set<BYTE> (aim_accel_enabled_default, 1);
       Utils::Hook::Set<BYTE> (aim_slowdown_enabled_flags, Game::DVAR_ARCHIVE);
       Utils::Hook::Set<BYTE> (aim_lockon_enabled_flags, Game::DVAR_ARCHIVE);
 
