@@ -201,6 +201,42 @@ namespace Controller
                      : "input source: keyboard and mouse");
     }
 
+    unsigned
+    key_dispatcher::
+    release_delay () const noexcept
+    {
+      if (!read (dvars_.release_delay_enabled, true))
+        return 0;
+
+      const unsigned floor_ms (
+        static_cast<unsigned> (std::max (0, read (dvars_.release_delay, 50))));
+
+      const float scale (read (dvars_.release_delay_scale, 3.5f));
+
+      if (!(scale > 0.0f))
+        return floor_ms;
+
+      const int ping (std::max (0, Game::clients[local_client].snap.ping));
+      const unsigned scaled (
+        static_cast<unsigned> (static_cast<float> (ping) * scale));
+
+      return std::min (std::max (floor_ms, scaled), 2000u);
+    }
+
+    bool
+    key_dispatcher::
+    defers_release (engine_key k) const noexcept
+    {
+      if (release_delay () == 0 &&
+          read (dvars_.release_grace, 75) <= 0)
+        return false;
+
+      if (!read (dvars_.release_delay_sprint_only, true))
+        return true;
+
+      return is_sprint (command_for (k));
+    }
+
     void
     key_dispatcher::
     note_other_input () noexcept
@@ -318,13 +354,22 @@ namespace Controller
     key_dispatcher::
     dispatch_buttons (const button_set& current, unsigned time) noexcept
     {
+      const unsigned delay (release_delay ());
+      const unsigned grace (
+        static_cast<unsigned> (std::max (0, read (dvars_.release_grace, 75))));
+
       for (const button_key& m: button_keys)
       {
+        const size_t index (static_cast<size_t> (m.physical));
+
         const bool now (current.down (m.physical));
         const bool was (buttons_.down (m.physical));
 
         if (now && !was)
         {
+          deferred_.set (m.physical, false);
+          pressed_at_[index] = time;
+
           if (swallow_stick_click (m.physical, m.key))
             continue;
 
@@ -340,7 +385,26 @@ namespace Controller
             continue;
           }
 
+          if (defers_release (m.key))
+          {
+            released_at_[index] = time;
+            deferred_.set (m.physical, true);
+            emit_button (m.key, key_event::repeated, time);
+            continue;
+          }
+
           emit_button (m.key, key_event::released, time);
+        }
+        else if (!now && deferred_.down (m.physical))
+        {
+          if (time - pressed_at_[index] >= delay &&
+              time - released_at_[index] >= grace)
+          {
+            deferred_.set (m.physical, false);
+            emit_button (m.key, key_event::released, time);
+          }
+          else
+            emit_button (m.key, key_event::repeated, time);
         }
       }
     }
@@ -579,6 +643,9 @@ namespace Controller
 
       buttons_ = button_set ();
       swallowed_ = button_set ();
+      deferred_ = button_set ();
+      pressed_at_ = {};
+      released_at_ = {};
       deflected_ = {};
       was_deflected_ = {};
       scroll_hold_key_.reset ();

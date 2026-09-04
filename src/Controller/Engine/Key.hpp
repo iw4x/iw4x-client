@@ -41,6 +41,12 @@ namespace Controller
       void
       set_in_use (bool) noexcept;
 
+      unsigned
+      release_delay () const noexcept;
+
+      bool
+      defers_release (mapping::engine_key) const noexcept;
+
       void
       emit_button (mapping::engine_key, key_event, unsigned time) noexcept;
 
@@ -78,6 +84,14 @@ namespace Controller
       button_set buttons_;
 
       button_set swallowed_;
+
+      static constexpr size_t button_state_count {
+        static_cast<size_t> (button::count)};
+
+      button_set deferred_;
+
+      std::array<unsigned, button_state_count> pressed_at_ {};
+      std::array<unsigned, button_state_count> released_at_ {};
 
       static constexpr size_t axis_count {4};
 

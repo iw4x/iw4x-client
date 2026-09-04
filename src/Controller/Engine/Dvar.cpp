@@ -83,6 +83,27 @@ namespace Controller
         "How long the use/reload button must be held on a game pad before it "
         "uses rather than reloads");
 
+      d.release_delay_enabled = Dvar_RegisterBool (
+        "gpad_button_release_delay_enabled", true, DVAR_ARCHIVE,
+        "Hold a tapped button down long enough for the server to see it, so a "
+        "quick tap is not swallowed on a laggy connection");
+      d.release_delay = Dvar_RegisterInt (
+        "gpad_button_release_delay", 50, 0, 2000, DVAR_ARCHIVE,
+        "Shortest press the server is shown, in milliseconds. Scales up with "
+        "ping through gpad_button_release_delay_scale");
+      d.release_delay_scale = Dvar_RegisterFloat (
+        "gpad_button_release_delay_scale", 3.5f, 0.0f, 10.0f, DVAR_ARCHIVE,
+        "Ping multiplier for the release delay (delay = ping * scale). Zero "
+        "pins the delay at gpad_button_release_delay");
+      d.release_delay_sprint_only = Dvar_RegisterBool (
+        "gpad_button_release_delay_sprint_only", true, DVAR_ARCHIVE,
+        "Only hold the sprint button, so firing and menu navigation stay "
+        "immediate");
+      d.release_grace = Dvar_RegisterInt (
+        "gpad_button_release_grace", 75, 0, 500, DVAR_ARCHIVE,
+        "How long after the physical release the button is still reported "
+        "held, in milliseconds");
+
       d.ads_sprint_lock = Dvar_RegisterBool (
         "gpad_ads_sprint_lock", false, DVAR_ARCHIVE,
         "Ignore a stick click bound to sprint while aiming down sight. Off by "

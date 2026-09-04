@@ -43,6 +43,12 @@ namespace Controller
 
       dvar_t* use_hold_time {};
 
+      dvar_t* release_delay_enabled {};
+      dvar_t* release_delay {};
+      dvar_t* release_delay_scale {};
+      dvar_t* release_delay_sprint_only {};
+      dvar_t* release_grace {};
+
       dvar_t* invert_pitch {};
       dvar_t* view_sensitivity {};
       dvar_t* aim_assist_enabled {};
