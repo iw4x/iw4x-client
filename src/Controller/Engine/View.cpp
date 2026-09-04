@@ -121,11 +121,6 @@ namespace Controller
         return h;
       }
 
-      constexpr float slowdown_pitch_hip {0.4f};
-      constexpr float slowdown_pitch_ads {0.5f};
-      constexpr float slowdown_yaw_hip {0.4f};
-      constexpr float slowdown_yaw_ads {0.5f};
-
       bool
       in_region (const AimScreenTarget& t, float half_w, float half_h) noexcept
       {
@@ -379,12 +374,18 @@ namespace Controller
                        aa.tweakables.slowdownRegionWidth,
                        aa.tweakables.slowdownRegionHeight) != nullptr);
 
-        fi.slowdown_yaw = slowdown_scale (present, slowdown_yaw_hip,
-                                          slowdown_yaw_ads, aa.adsLerp);
+        fi.slowdown_yaw = slowdown_scale (
+          present,
+          read (dvars_.slowdown_yaw_scale, 0.4f),
+          read (dvars_.slowdown_yaw_scale_ads, 0.5f),
+          aa.adsLerp);
+
         fi.slowdown_pitch = using_offhand (aa.ps)
           ? 1.0f
-          : slowdown_scale (present, slowdown_pitch_hip,
-                            slowdown_pitch_ads, aa.adsLerp);
+          : slowdown_scale (present,
+                            read (dvars_.slowdown_pitch_scale, 0.4f),
+                            read (dvars_.slowdown_pitch_scale_ads, 0.5f),
+                            aa.adsLerp);
       }
 
       if (max_yaw_speed (client) > 0.0f)

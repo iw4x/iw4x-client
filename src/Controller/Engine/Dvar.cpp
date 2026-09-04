@@ -146,6 +146,10 @@ namespace Controller
 
       d.slowdown_enabled = Dvar_RegisterBool (
         "aim_slowdown_enabled", true, DVAR_ARCHIVE, "Enable aim slowdown");
+      d.slowdown_pitch_scale = Dvar_FindVar ("aim_slowdown_pitch_scale");
+      d.slowdown_pitch_scale_ads = Dvar_FindVar ("aim_slowdown_pitch_scale_ads");
+      d.slowdown_yaw_scale = Dvar_FindVar ("aim_slowdown_yaw_scale");
+      d.slowdown_yaw_scale_ads = Dvar_FindVar ("aim_slowdown_yaw_scale_ads");
       d.lockon_enabled = Dvar_RegisterBool (
         "aim_lockon_enabled", true, DVAR_ARCHIVE, "Enable lock-on aim assist");
       d.lockon_deflection = Dvar_RegisterFloat (

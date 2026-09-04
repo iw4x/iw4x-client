@@ -63,6 +63,10 @@ namespace Controller
       dvar_t* scale_view_axis {};
 
       dvar_t* slowdown_enabled {};
+      dvar_t* slowdown_pitch_scale {};
+      dvar_t* slowdown_pitch_scale_ads {};
+      dvar_t* slowdown_yaw_scale {};
+      dvar_t* slowdown_yaw_scale_ads {};
       dvar_t* lockon_enabled {};
       dvar_t* lockon_deflection {};
       dvar_t* lockon_strength {};
