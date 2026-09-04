@@ -23,6 +23,9 @@ namespace Controller
 {
   namespace engine
   {
+    bool
+    should_use (const Game::gentity_s* player, unsigned held) noexcept;
+
     namespace
     {
       constexpr auto in_frame_mouse_move_call {0x475E9E};
@@ -60,6 +63,8 @@ namespace Controller
 
       constexpr auto key_write_bindings_call {0x60B223};
       constexpr auto key_write_bindings_address {0x4A5A20};
+
+      constexpr auto player_use_entity_patch {0x5FE396};
 
       constexpr auto aim_accel_enabled_flags {0x43F8E0};
       constexpr auto aim_accel_enabled_default {0x43F8E2};
@@ -105,6 +110,39 @@ namespace Controller
         {
           Components::Logger::PrintError (Game::CON_CHANNEL_ERROR,
                                           "controller: input frame failed\n");
+        }
+      }
+
+      __declspec (naked) void
+      player_use_entity_stub ()
+      {
+        __asm
+        {
+          cmp eax, [ecx + 0x10]
+          jl skip
+
+          push eax
+          pushad
+
+          push eax
+          push edi
+          call should_use
+          add esp, 0x8
+
+          mov [esp + 0x20], eax
+
+          popad
+          pop eax
+
+          test al, al
+          jz skip
+
+          push 0x5FE39B
+          ret
+
+        skip:
+          push 0x5FE3AF
+          ret
         }
       }
 
@@ -459,6 +497,19 @@ namespace Controller
         the_runtime->keys ().note_other_input ();
     }
 
+    bool
+    should_use (const Game::gentity_s* player, unsigned held) noexcept
+    {
+      if ((player->client->buttons & Game::CMD_BUTTON_USE_RELOAD) == 0)
+        return true;
+
+      const int hold (the_runtime != nullptr
+                      ? read (the_runtime->dvars ().use_hold_time, 250)
+                      : 250);
+
+      return hold <= 0 || held >= static_cast<unsigned> (hold);
+    }
+
     void
 		install_protocol ()
     {
@@ -490,6 +541,7 @@ namespace Controller
       Utils::Hook (menu_set_binding_call_2, menu_set_binding, HOOK_CALL).install ()->quick ();
       Utils::Hook (menu_set_binding_call_3, menu_set_binding, HOOK_CALL).install ()->quick ();
       Utils::Hook (key_write_bindings_call, key_write_bindings, HOOK_CALL).install ()->quick ();
+      Utils::Hook (player_use_entity_patch, player_use_entity_stub, HOOK_JUMP).install ()->quick ();
       Utils::Hook (in_frame_mouse_move_call, in_frame_trampoline, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_key_event_call, cl_key_event, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_mouse_event_call, cl_mouse_event, HOOK_CALL).install ()->quick ();

@@ -43,9 +43,6 @@ namespace Components
 
 		static void AddScriptMethods();
 
-		static int useReloadPressTime;
-
-		static void PredictUseReload(Game::pmove_s* pm);
 		static void PM_Weapon_stub(Game::pmove_s* pm, Game::pml_t* pml);
 	};
 }

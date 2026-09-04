@@ -42,9 +42,6 @@ namespace Controller
       set_in_use (bool) noexcept;
 
       void
-      apply_use_hold_time () noexcept;
-
-      void
       emit_button (mapping::engine_key, key_event, unsigned time) noexcept;
 
       void
@@ -75,8 +72,6 @@ namespace Controller
       const dvars& dvars_;
 
       bool in_use_ {false};
-
-      dvar_t* use_hold_time_ {nullptr};
 
       bool reported_deadzone_ {false};
 

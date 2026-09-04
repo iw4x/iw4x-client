@@ -521,46 +521,8 @@ namespace Components
 		GSC::Script::AddMethod("FreezeControlsAllowLook", PlayerCmd_FreezeControlsAllowLook);
 	}
 
-	int Weapon::useReloadPressTime = 0;
-
-	void Weapon::PredictUseReload(Game::pmove_s* pm)
-	{
-		if (!pm || !pm->ps || pm->ps != &Game::cgArray[0].predictedPlayerState)
-			return;
-
-		const auto down = (pm->cmd.buttons & Game::CMD_BUTTON_USE_RELOAD) != 0;
-		const auto wasDown = (pm->oldcmd.buttons & Game::CMD_BUTTON_USE_RELOAD) != 0;
-
-		if (down == wasDown)
-			return;
-
-		const auto usable = pm->ps->cursorHint != 0 &&
-			pm->ps->cursorHintEntIndex != static_cast<int>(Game::ENTITYNUM_NONE);
-
-		if (down)
-		{
-			useReloadPressTime = pm->cmd.serverTime;
-
-			if (!usable)
-				pm->ps->weapCommon.weapFlags |= Game::PWF_USE_RELOAD;
-
-			return;
-		}
-
-		if (!usable)
-			return;
-
-		const auto* holdTime = Game::Dvar_FindVar("g_useholdtime");
-		const auto hold = holdTime ? holdTime->current.integer : 0;
-
-		if (hold > 0 && (pm->cmd.serverTime - useReloadPressTime) < hold)
-			pm->ps->weapCommon.weapFlags |= Game::PWF_USE_RELOAD;
-	}
-
 	void Weapon::PM_Weapon_stub(Game::pmove_s* pm, Game::pml_t* pml)
 	{
-		PredictUseReload(pm);
-
 		if (BGDisableDoubleTaps && BGDisableDoubleTaps->current.enabled)
 		{
 			if (pm && pm->ps)

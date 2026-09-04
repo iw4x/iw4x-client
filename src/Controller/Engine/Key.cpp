@@ -16,8 +16,6 @@ namespace Controller
 
     namespace
     {
-      constexpr int controller_use_hold_time {250};
-
       constexpr char loc_sel_cancel_command[] {"+actionslot 4"};
       constexpr char loc_sel_confirm_command[] {"+attack"};
 
@@ -198,27 +196,9 @@ namespace Controller
       if (dvars_.in_use != nullptr)
         Dvar_SetBool (dvars_.in_use, v);
 
-      apply_use_hold_time ();
-
       ctx_.report (severity::info, facility::engine, errc::none,
                    v ? "input source: controller"
                      : "input source: keyboard and mouse");
-    }
-
-    void
-    key_dispatcher::
-    apply_use_hold_time () noexcept
-    {
-      if (use_hold_time_ == nullptr)
-        use_hold_time_ = Dvar_FindVar ("g_useholdtime");
-
-      if (use_hold_time_ == nullptr)
-        return;
-
-      const int desired (in_use_ ? controller_use_hold_time : 0);
-
-      if (read_number (use_hold_time_, 0) != desired)
-        write_number (use_hold_time_, desired);
     }
 
     void
@@ -304,8 +284,6 @@ namespace Controller
       dispatch_buttons (buttons, time);
 
       buttons_ = buttons;
-
-      apply_use_hold_time ();
     }
 
     void

@@ -41,6 +41,8 @@ namespace Controller
 
       dvar_t* ads_sprint_lock {};
 
+      dvar_t* use_hold_time {};
+
       dvar_t* invert_pitch {};
       dvar_t* view_sensitivity {};
       dvar_t* aim_assist_enabled {};
@@ -67,12 +69,6 @@ namespace Controller
 
     void
     publish_present (const dvars&, bool present) noexcept;
-
-    int
-    read_number (dvar_t*, int fallback) noexcept;
-
-    void
-    write_number (dvar_t*, int value) noexcept;
 
     inline bool
     read (dvar_t* d, bool fallback) noexcept

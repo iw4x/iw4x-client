@@ -78,6 +78,11 @@ namespace Controller
         "How long a held direction takes to reach the minimum scroll delay, in "
         "milliseconds");
 
+      d.use_hold_time = Dvar_RegisterInt (
+        "gpad_use_hold_time", 250, 0, 10000, DVAR_ARCHIVE,
+        "How long the use/reload button must be held on a game pad before it "
+        "uses rather than reloads");
+
       d.ads_sprint_lock = Dvar_RegisterBool (
         "gpad_ads_sprint_lock", false, DVAR_ARCHIVE,
         "Ignore a stick click bound to sprint while aiming down sight. Off by "
@@ -138,55 +143,6 @@ namespace Controller
       ctx.report (severity::info, facility::engine, errc::none,
                   "controller dvars registered");
       return d;
-    }
-
-    int
-    read_number (dvar_t* d, int fallback) noexcept
-    {
-      if (d == nullptr)
-        return fallback;
-
-      switch (d->type)
-      {
-        case Game::DVAR_TYPE_INT:
-        case Game::DVAR_TYPE_ENUM:
-          return d->current.integer;
-
-        case Game::DVAR_TYPE_FLOAT:
-          return static_cast<int> (d->current.value);
-
-        case Game::DVAR_TYPE_BOOL:
-          return d->current.enabled ? 1 : 0;
-
-        default:
-          return fallback;
-      }
-    }
-
-    void
-    write_number (dvar_t* d, int value) noexcept
-    {
-      if (d == nullptr)
-        return;
-
-      switch (d->type)
-      {
-        case Game::DVAR_TYPE_INT:
-        case Game::DVAR_TYPE_ENUM:
-          Dvar_SetInt (d, value);
-          break;
-
-        case Game::DVAR_TYPE_FLOAT:
-          Dvar_SetFloat (d, static_cast<float> (value));
-          break;
-
-        case Game::DVAR_TYPE_BOOL:
-          Dvar_SetBool (d, value != 0);
-          break;
-
-        default:
-          break;
-      }
     }
 
     void
