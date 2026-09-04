@@ -24,7 +24,7 @@ namespace Controller
       constexpr char ads_command[] {"+speed_throw"};
       constexpr char toggle_scores_command[] {"togglescores"};
 
-      constexpr char sprint_command[] {"+breath_sprint"};
+      constexpr char sprint_commands[][16] {"+breath_sprint", "+sprint"};
 
       constexpr float ads_engaged {0.99f};
 
@@ -125,6 +125,18 @@ namespace Controller
       command_is (const char* command, const char* name) noexcept
       {
         return command != nullptr && std::strcmp (command, name) == 0;
+      }
+
+      bool
+      is_sprint (const char* command) noexcept
+      {
+        for (const char* name: sprint_commands)
+        {
+          if (command_is (command, name))
+            return true;
+        }
+
+        return false;
       }
 
       engine_key
@@ -378,7 +390,7 @@ namespace Controller
       if (!read (dvars_.ads_sprint_lock, true))
         return false;
 
-      if (!command_is (command_for (k), sprint_command) || !aiming ())
+      if (!is_sprint (command_for (k)) || !aiming ())
         return false;
 
       set_in_use (true);
