@@ -17,9 +17,8 @@ namespace Controller
       if (dtc <= 0.0f)
         return degrees {0.0f};
 
-      const float prev (current_.value);
       const float tgt (target.value);
-      float cur (prev);
+      float cur (current_.value);
 
       if (cur < tgt)
       {
@@ -36,7 +35,7 @@ namespace Controller
 
       current_ = deg_per_s {cur};
 
-      return degrees {0.5f * (prev + cur) * dtc};
+      return degrees {cur * dtc};
     }
   }
 }
