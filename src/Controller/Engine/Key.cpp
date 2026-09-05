@@ -158,12 +158,12 @@ namespace Controller
                cg->predictedPlayerState.sprintState.sprintButtonUpRequired != 0;
       }
 
-      bool
-      ads_active () noexcept
+      float
+      ads_lerp () noexcept
       {
         const AimAssistGlobals& aa (aaGlobArray[local_client]);
 
-        return aa.initialized && aa.adsLerp > 0.0f;
+        return aa.initialized ? aa.adsLerp : 0.0f;
       }
     }
 
@@ -318,6 +318,13 @@ namespace Controller
 
     void
     key_dispatcher::
+    tick () noexcept
+    {
+      dispatch_buttons (buttons_, static_cast<unsigned> (Sys_Milliseconds ()));
+    }
+
+    void
+    key_dispatcher::
     dispatch_apad (unsigned time) noexcept
     {
       for (size_t i (0); i != axis_count; ++i)
@@ -346,8 +353,22 @@ namespace Controller
 
     void
     key_dispatcher::
+    update_ads () noexcept
+    {
+      const float ads (ads_lerp ());
+
+      ads_lowering_ = ads > 0.0f &&
+                      (ads == ads_lerp_ ? ads_lowering_ : ads < ads_lerp_);
+
+      ads_lerp_ = ads;
+    }
+
+    void
+    key_dispatcher::
     dispatch_buttons (const button_set& current, unsigned time) noexcept
     {
+      update_ads ();
+
       const unsigned delay (release_delay ());
       const unsigned grace (
         static_cast<unsigned> (std::max (0, read (dvars_.release_grace, 75))));
@@ -386,7 +407,7 @@ namespace Controller
                               time - released_at_[index] >= grace);
 
           const bool lowering (is_sprint (command_for (m.key)) &&
-                               ads_active () &&
+                               ads_lowering_ &&
                                time - released_at_[index] < ads_sprint_hold);
 
           if (!defers_release (m.key) || (expired && !lowering))
@@ -615,6 +636,8 @@ namespace Controller
 
       buttons_ = button_set ();
       deferred_ = button_set ();
+      ads_lerp_ = 0.0f;
+      ads_lowering_ = false;
       pressed_at_ = {};
       released_at_ = {};
       deflected_ = {};

@@ -307,6 +307,8 @@ namespace Controller
       apply_light_bar ();
       apply_trigger_feedback ();
     }
+    else if (had_device_)
+      keys_.tick ();
 
     CONTROLLER_FRAME_MARK ();
   }

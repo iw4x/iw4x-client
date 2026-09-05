@@ -22,6 +22,9 @@ namespace Controller
       dispatch (const canonical_sample&) noexcept;
 
       void
+      tick () noexcept;
+
+      void
       release_all () noexcept;
 
       bool
@@ -57,6 +60,9 @@ namespace Controller
       dispatch_apad (unsigned time) noexcept;
 
       void
+      update_ads () noexcept;
+
+      void
       dispatch_buttons (const button_set& current, unsigned time) noexcept;
 
       bool
@@ -84,6 +90,9 @@ namespace Controller
         static_cast<size_t> (button::count)};
 
       button_set deferred_;
+
+      float ads_lerp_ {0.0f};
+      bool ads_lowering_ {false};
 
       std::array<unsigned, button_state_count> pressed_at_ {};
       std::array<unsigned, button_state_count> released_at_ {};
