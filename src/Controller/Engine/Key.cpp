@@ -19,8 +19,6 @@ namespace Controller
       constexpr char loc_sel_cancel_command[] {"+actionslot 4"};
       constexpr char loc_sel_confirm_command[] {"+attack"};
 
-      constexpr char toggle_scores_command[] {"togglescores"};
-
       constexpr char sprint_commands[][16] {"+breath_sprint", "+sprint"};
 
       constexpr unsigned ads_sprint_hold {600};
@@ -600,12 +598,6 @@ namespace Controller
     key_dispatcher::
     scoreboard_key_event (engine_key k) noexcept
     {
-      if (command_is (command_for (k), toggle_scores_command))
-      {
-        Cbuf_AddText (local_client, "togglescores\n");
-        return true;
-      }
-
       if (k == engine_key::dpad_up)
       {
         CG_ScrollScoreboardUp (Game::cgArray);

@@ -31,6 +31,9 @@ namespace Controller
       if (std::strcmp (command, "+melee_breath") == 0)
         return "+holdbreath";
 
+      if (std::strcmp (command, "togglescores") == 0)
+        return "+scores";
+
       return command;
     }
 
@@ -78,13 +81,10 @@ namespace Controller
 
       applied_ = name;
 
-      if (std::strcmp (name, custom_layout) == 0)
-      {
-        migrate_controller_commands ();
-        return;
-      }
+      migrate_controller_commands ();
 
-      apply_layout (name);
+      if (std::strcmp (name, custom_layout) != 0)
+        apply_layout (name);
     }
 
     void
