@@ -44,6 +44,12 @@ jobs:
     needs:
       - verify-tag-is-correct
     runs-on: windows-2022
+    env:
+      SENTRY_URL: ${{ secrets.SENTRY_URL }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_RELEASE: iw4x@${{ github.ref_name }}
     steps:
       - name: Check out files
         uses: actions/checkout@v4
@@ -55,10 +61,18 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Generate project files
-        run: tools/premake5 vs2022
+        run: tools/premake5 vs2022 --sentry-dsn=${{ secrets.SENTRY_DSN }}
 
       - name: Build release binaries
         run: msbuild /m /v:minimal /p:Configuration=Release /p:Platform=Win32 build/iw4x.sln
+
+      - name: Upload debug symbols to Sentry
+        if: env.SENTRY_AUTH_TOKEN != ''
+        run: |
+          npm install -g @sentry/cli
+          sentry-cli releases new "$env:SENTRY_RELEASE"
+          sentry-cli debug-files upload --include-sources build/bin/Win32/Release
+          sentry-cli releases finalize "$env:SENTRY_RELEASE"
 
       - name: Upload release binaries
         uses: actions/upload-artifact@v4
@@ -67,6 +81,10 @@ jobs:
           path: |
             build/bin/Win32/Release/iw4x.dll
             build/bin/Win32/Release/iw4x.pdb
+            build/bin/Win32/Release/sentry-crash.exe
+            build/bin/Win32/Release/sentry-crash.pdb
+            build/bin/Win32/Release/sentry-wer.dll
+            build/bin/Win32/Release/sentry-wer.pdb
 
   release:
     needs:
@@ -90,6 +108,8 @@ jobs:
         run: |
           mkdir -p ./launcher-files
           mv -v iw4x-release/iw4x.dll launcher-files/iw4x.dll
+          mv -v iw4x-release/sentry-crash.exe launcher-files/sentry-crash.exe
+          mv -v iw4x-release/sentry-wer.dll launcher-files/sentry-wer.dll
           ./release-tool ./launcher-files
       - uses: ncipollo/release-action@v1
         env:
