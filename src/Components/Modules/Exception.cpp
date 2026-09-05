@@ -13,6 +13,7 @@ namespace Components
 	constexpr auto CLIPBOARD_MSG = "Do you want to copy this message to the clipboard?";
 
 	Utils::Hook Exception::SetFilterHook;
+	LPTOP_LEVEL_EXCEPTION_FILTER Exception::ChainedFilter;
 	int Exception::MiniDumpType;
 
 	__declspec(noreturn) void Exception::LongJmp_Internal_Stub(jmp_buf env, int status)
@@ -253,6 +254,11 @@ namespace Components
 			return EXCEPTION_CONTINUE_EXECUTION;
 		}
 
+		if (ChainedFilter)
+		{
+			ChainedFilter(ExceptionInfo);
+		}
+
 		if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW)
 		{
 			const auto error = std::format("Termination because of a stack overflow.\n{}", CLIPBOARD_MSG);
@@ -336,6 +342,21 @@ namespace Components
 		{
 			MiniDumpType |= MiniDumpWithDataSegs;
 		}
+	}
+
+	void Exception::ChainFilterInstalledBy(const std::function<void()>& installer)
+	{
+		SetFilterHook.uninstall();
+
+		installer();
+
+		const auto chained = ::SetUnhandledExceptionFilter(&ExceptionFilter);
+		if (chained != &ExceptionFilter)
+		{
+			ChainedFilter = chained;
+		}
+
+		SetFilterHook.install();
 	}
 
 	LPTOP_LEVEL_EXCEPTION_FILTER WINAPI Exception::SetUnhandledExceptionFilter_Stub(LPTOP_LEVEL_EXCEPTION_FILTER)
