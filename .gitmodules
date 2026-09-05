@@ -47,3 +47,7 @@
 [submodule "deps/companion"]
 	path = deps/companion
 	url = https://github.com/iw4x/companion.git
+[submodule "deps/sentry-native"]
+	path = deps/sentry-native
+	url = https://github.com/getsentry/sentry-native.git
+	branch = master
