@@ -94,6 +94,31 @@ out-of-process `native` backend. Three binaries make up the client side of it:
 
 All three are published with each release and must be installed side by side.
 
+### Enabling it in a development build
+
+Crash reporting is compiled out unless a DSN is passed to premake, so it
+is off by default and release builds take the DSN from a repository
+secret. To point a local build at Sentry, copy the example configuration
+and fill in the DSN:
+
+```sh
+cp sentry.bash.example sentry.bash
+sh generate-linux.sh release
+```
+
+Note that `sentry.bash` is ignored by git and is picked up automatically
+by `generate-linux.sh`, which passes the DSN on to premake and exports
+the rest of the file so `sentry-cli` can upload debug symbols from the
+same shell.
+
+On Windows the same is done with a user script, which git ignores as well.
+Create `user.bat` next to `generate.bat` containing:
+
+```bat
+@echo off
+call generate.bat --sentry-dsn=https://...
+```
+
 ## Disclaimer
 
 This software has been created purely for the purposes of
