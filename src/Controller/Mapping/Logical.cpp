@@ -52,7 +52,7 @@ namespace Controller
         case action::frag:            return "+frag";
         case action::special_grenade: return "+smoke";
         case action::menu:            return "togglemenu";
-        case action::scoreboard:      return "+scores";
+        case action::scoreboard:      return "togglescores";
         case action::action_slot_1:   return "+actionslot 1";
         case action::action_slot_2:   return "+actionslot 2";
         case action::action_slot_3:   return "+actionslot 3";
