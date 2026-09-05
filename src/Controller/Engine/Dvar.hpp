@@ -40,8 +40,6 @@ namespace Controller
       dvar_t* menu_scroll_delay_min {};
       dvar_t* menu_scroll_accel_time {};
 
-      dvar_t* ads_sprint_lock {};
-
       dvar_t* use_hold_time {};
 
       dvar_t* release_delay_enabled {};

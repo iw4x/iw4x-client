@@ -112,12 +112,6 @@ namespace Controller
         "How long after the physical release the button is still reported "
         "held, in milliseconds");
 
-      d.ads_sprint_lock = Dvar_RegisterBool (
-        "gpad_ads_sprint_lock", false, DVAR_ARCHIVE,
-        "Ignore a stick click bound to sprint while aiming down sight. Off by "
-        "default: clicking the stick while holding aim is how a great deal of "
-        "movement is cancelled, and swallowing it breaks those cancels");
-
       d.invert_pitch = Dvar_RegisterBool (
         "input_invertPitch", false, DVAR_ARCHIVE, "Invert game pad pitch");
       d.view_sensitivity = Dvar_RegisterFloat (

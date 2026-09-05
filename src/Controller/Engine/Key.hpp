@@ -60,9 +60,6 @@ namespace Controller
       dispatch_buttons (const button_set& current, unsigned time) noexcept;
 
       bool
-      swallow_stick_click (button, mapping::engine_key) noexcept;
-
-      bool
       ignore_repeat (mapping::engine_key, int repeats, unsigned time) noexcept;
 
       void
@@ -82,8 +79,6 @@ namespace Controller
       bool reported_deadzone_ {false};
 
       button_set buttons_;
-
-      button_set swallowed_;
 
       static constexpr size_t button_state_count {
         static_cast<size_t> (button::count)};

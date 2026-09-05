@@ -19,12 +19,11 @@ namespace Controller
       constexpr char loc_sel_cancel_command[] {"+actionslot 4"};
       constexpr char loc_sel_confirm_command[] {"+attack"};
 
-      constexpr char ads_command[] {"+speed_throw"};
       constexpr char toggle_scores_command[] {"togglescores"};
 
       constexpr char sprint_commands[][16] {"+breath_sprint", "+sprint"};
 
-      constexpr float ads_engaged {0.99f};
+      constexpr unsigned ads_sprint_hold {600};
 
       struct button_key
       {
@@ -151,30 +150,20 @@ namespace Controller
       }
 
       bool
-      ads_key_held () noexcept
+      sprint_button_up_wanted () noexcept
       {
-        const PlayerKeyState& ks (playerKeys[local_client]);
+        Game::cg_s* const cg (Game::CL_GetLocalClientGlobals (local_client));
 
-        for (const engine_key k: mapping::keys ())
-        {
-          if (ks.keys[static_cast<int> (k)].down != 0 &&
-              command_is (command_for (k), ads_command))
-            return true;
-        }
-
-        return false;
+        return cg != nullptr &&
+               cg->predictedPlayerState.sprintState.sprintButtonUpRequired != 0;
       }
 
       bool
-      aiming () noexcept
+      ads_active () noexcept
       {
-        if (Key_IsCatcherActive (local_client, KEYCATCH_UI))
-          return false;
-
         const AimAssistGlobals& aa (aaGlobArray[local_client]);
 
-        return ads_key_held () ||
-               (aa.initialized && aa.adsLerp >= ads_engaged);
+        return aa.initialized && aa.adsLerp > 0.0f;
       }
     }
 
@@ -231,10 +220,15 @@ namespace Controller
           read (dvars_.release_grace, 75) <= 0)
         return false;
 
+      const bool sprint (is_sprint (command_for (k)));
+
+      if (sprint && sprint_button_up_wanted ())
+        return false;
+
       if (!read (dvars_.release_delay_sprint_only, true))
         return true;
 
-      return is_sprint (command_for (k));
+      return sprint;
     }
 
     void
@@ -370,21 +364,12 @@ namespace Controller
           deferred_.set (m.physical, false);
           pressed_at_[index] = time;
 
-          if (swallow_stick_click (m.physical, m.key))
-            continue;
-
           emit_button (m.key, key_event::pressed, time);
         }
         else if (now && repeats_while_held (m.physical))
           emit_button (m.key, key_event::repeated, time);
         else if (!now && was)
         {
-          if (swallowed_.down (m.physical))
-          {
-            swallowed_.set (m.physical, false);
-            continue;
-          }
-
           if (defers_release (m.key))
           {
             released_at_[index] = time;
@@ -397,8 +382,14 @@ namespace Controller
         }
         else if (!now && deferred_.down (m.physical))
         {
-          if (time - pressed_at_[index] >= delay &&
-              time - released_at_[index] >= grace)
+          const bool expired (time - pressed_at_[index] >= delay &&
+                              time - released_at_[index] >= grace);
+
+          const bool lowering (is_sprint (command_for (m.key)) &&
+                               ads_active () &&
+                               time - released_at_[index] < ads_sprint_hold);
+
+          if (!defers_release (m.key) || (expired && !lowering))
           {
             deferred_.set (m.physical, false);
             emit_button (m.key, key_event::released, time);
@@ -407,25 +398,6 @@ namespace Controller
             emit_button (m.key, key_event::repeated, time);
         }
       }
-    }
-
-    bool
-    key_dispatcher::
-    swallow_stick_click (button b, engine_key k) noexcept
-    {
-      if (b != button::l3 && b != button::r3)
-        return false;
-
-      if (!read (dvars_.ads_sprint_lock, false))
-        return false;
-
-      if (!is_sprint (command_for (k)) || !aiming ())
-        return false;
-
-      set_in_use (true);
-
-      swallowed_.set (b, true);
-      return true;
     }
 
     void
@@ -642,7 +614,6 @@ namespace Controller
       }
 
       buttons_ = button_set ();
-      swallowed_ = button_set ();
       deferred_ = button_set ();
       pressed_at_ = {};
       released_at_ = {};
