@@ -77,6 +77,12 @@ namespace Sentry
     }
 
     std::string
+    wine ()
+    {
+      return Utils::IsWineEnvironment () ? "yes" : "no";
+    }
+
+    std::string
     architecture ()
     {
       return Utils::GetWindowsArchitecture ();
