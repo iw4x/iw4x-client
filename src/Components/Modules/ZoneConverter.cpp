@@ -15,9 +15,32 @@ namespace Components
 	{
 		constexpr auto* ZONE_DIRECTORY = "zone/english";
 		constexpr auto* BACKUP_DIRECTORY = "zone/old";
-		constexpr auto* MARKER_FILE = "zone/old/converted.txt";
-		constexpr auto* PROGRESS_FILE = "zone/old/converting.txt";
+		constexpr auto* DLC_DIRECTORY = "zone/dlc";
+		constexpr auto* DLC_BACKUP_DIRECTORY = "zone/dlc_old";
+		constexpr auto* MARKER_NAME = "converted.txt";
+		constexpr auto* PROGRESS_NAME = "converting.txt";
 		constexpr auto* LOG_FILE = "zone-conversion.log";
+
+		struct Location
+		{
+			const char* zone;
+			const char* backup;
+		};
+
+		constexpr Location LOCATIONS[] = {
+			{ZONE_DIRECTORY, BACKUP_DIRECTORY},
+			{DLC_DIRECTORY, DLC_BACKUP_DIRECTORY},
+		};
+
+		std::string MarkerFile(const Location& where)
+		{
+			return std::format("{}/{}", where.backup, MARKER_NAME);
+		}
+
+		std::string ProgressFile(const Location& where)
+		{
+			return std::format("{}/{}", where.backup, PROGRESS_NAME);
+		}
 
 		const char* const CONVERTER_NAMES[] = {
 			"Unlinker.exe",
@@ -406,7 +429,8 @@ namespace Components
 			DWORD exitCode = 0;
 		};
 
-		ConverterOutcome RunConverter(const std::string& converter, const std::filesystem::path& zone, const ProgressDialog& dialog)
+		ConverterOutcome RunConverter(const std::string& converter, const std::filesystem::path& zone,
+			const char* output, const ProgressDialog& dialog)
 		{
 			SECURITY_ATTRIBUTES inheritable{};
 			inheritable.nLength = sizeof(inheritable);
@@ -428,7 +452,7 @@ namespace Components
 			}
 
 			auto commandLine = std::format("\"{}\" --game IW4MS --convert-to IW4 -o \"{}\" \"{}\"",
-				converter, ZONE_DIRECTORY, zone.generic_string());
+				converter, output, zone.generic_string());
 
 			PROCESS_INFORMATION process{};
 			const auto started = CreateProcessA(converter.data(), commandLine.data(), nullptr, nullptr,
@@ -476,11 +500,11 @@ namespace Components
 			return outcome;
 		}
 
-		bool CopyAcross(const std::filesystem::path& file)
+		bool CopyAcross(const std::filesystem::path& file, const char* destination)
 		{
 			std::error_code error;
 			std::filesystem::copy_file(file,
-				std::filesystem::path(ZONE_DIRECTORY) / file.filename(),
+				std::filesystem::path(destination) / file.filename(),
 				std::filesystem::copy_options::overwrite_existing,
 				error);
 
@@ -499,23 +523,32 @@ namespace Components
 			MessageBoxA(nullptr, message.data(), "IW4x", MB_ICONERROR | MB_OK);
 		}
 
-		void Run()
+		struct Plan
 		{
-			if (Utils::IO::FileExists(MARKER_FILE))
+			const Location* where = nullptr;
+			bool resuming = false;
+			std::vector<std::filesystem::path> toConvert;
+			std::vector<std::filesystem::path> toCopy;
+		};
+
+		std::optional<Plan> Survey(const Location& where)
+		{
+			if (Utils::IO::FileExists(MarkerFile(where)))
 			{
-				return;
+				return {};
 			}
 
-			const auto resuming = Utils::IO::FileExists(PROGRESS_FILE);
-			const std::filesystem::path source = resuming ? BACKUP_DIRECTORY : ZONE_DIRECTORY;
+			const auto resuming = Utils::IO::FileExists(ProgressFile(where));
+			const std::filesystem::path source = resuming ? where.backup : where.zone;
 
 			if (!Utils::IO::DirectoryExists(source))
 			{
-				return;
+				return {};
 			}
 
-			std::vector<std::filesystem::path> toConvert;
-			std::vector<std::filesystem::path> toCopy;
+			Plan plan;
+			plan.where = &where;
+			plan.resuming = resuming;
 
 			for (const auto& entry : Utils::IO::ListFiles(source, false))
 			{
@@ -526,22 +559,124 @@ namespace Components
 
 				if (ProbeWordSize(entry.path()) == WordSize::X64)
 				{
-					toConvert.push_back(entry.path());
+					plan.toConvert.push_back(entry.path());
 				}
 				else
 				{
-					toCopy.push_back(entry.path());
+					plan.toCopy.push_back(entry.path());
 				}
 			}
 
-			if (toConvert.empty())
+			if (plan.toConvert.empty())
 			{
 				if (resuming)
 				{
-					Utils::IO::WriteFile(MARKER_FILE, "");
-					Utils::IO::RemoveFile(PROGRESS_FILE);
+					Utils::IO::WriteFile(MarkerFile(where), "");
+					Utils::IO::RemoveFile(ProgressFile(where));
 				}
 
+				return {};
+			}
+
+			return plan;
+		}
+
+		bool Prepare(Plan& plan)
+		{
+			const auto& where = *plan.where;
+
+			if (!plan.resuming)
+			{
+				std::error_code error;
+				std::filesystem::rename(where.zone, where.backup, error);
+
+				if (error)
+				{
+					Fail(std::format("Could not move \"{}\" to \"{}\": {}",
+						where.zone, where.backup, error.message()));
+					return false;
+				}
+
+				for (auto* list : {&plan.toConvert, &plan.toCopy})
+				{
+					for (auto& path : *list)
+					{
+						path = std::filesystem::path(where.backup) / path.filename();
+					}
+				}
+			}
+
+			Utils::IO::CreateDir(where.zone);
+			Utils::IO::WriteFile(ProgressFile(where), "");
+
+			return true;
+		}
+
+		bool Process(const Plan& plan, const std::string& converter, ProgressDialog& dialog)
+		{
+			const auto& where = *plan.where;
+
+			for (const auto& path : plan.toCopy)
+			{
+				dialog.Begin(std::format("Copying {}", path.filename().generic_string()));
+
+				if (!CopyAcross(path, where.zone))
+				{
+					Fail(std::format("Could not copy \"{}\" into \"{}\".", path.generic_string(), where.zone));
+					return false;
+				}
+
+				dialog.Finish();
+			}
+
+			for (const auto& path : plan.toConvert)
+			{
+				dialog.Begin(std::format("Converting {}", path.filename().generic_string()));
+
+				const auto outcome = RunConverter(converter, path, where.zone, dialog);
+
+				if (!outcome.started)
+				{
+					Fail(std::format("\"{}\" could not be started: {}.\n\n"
+						"Antivirus software such as Windows Defender often blocks or quarantines it. "
+						"Add an exclusion for the IW4x folder and start the game again.\n\n"
+						"No fastfile was converted with it; the originals are still in \"{}\".",
+						converter, outcome.startError, where.backup));
+					return false;
+				}
+
+				if (outcome.exitCode != 0)
+				{
+					Fail(std::format("Converting \"{}\" failed (\"{}\" exited with code {}). See \"{}\" for "
+						"what the converter said. The originals are still in \"{}\".",
+						path.generic_string(), converter, outcome.exitCode, LOG_FILE, where.backup));
+					return false;
+				}
+
+				dialog.Finish();
+			}
+
+			Utils::IO::WriteFile(MarkerFile(where),
+				std::format("Converted {} fastfiles from the x64 layout.\n", plan.toConvert.size()));
+			Utils::IO::RemoveFile(ProgressFile(where));
+
+			return true;
+		}
+
+		void Run()
+		{
+			std::vector<Plan> plans;
+
+			for (const auto& where : LOCATIONS)
+			{
+				if (auto plan = Survey(where))
+				{
+					plans.push_back(std::move(*plan));
+				}
+			}
+
+			if (plans.empty())
+			{
 				return;
 			}
 
@@ -556,76 +691,26 @@ namespace Components
 				return;
 			}
 
-			if (!resuming)
+			std::size_t steps = 0;
+			std::size_t conversions = 0;
+
+			for (const auto& plan : plans)
 			{
-				std::error_code error;
-				std::filesystem::rename(ZONE_DIRECTORY, BACKUP_DIRECTORY, error);
-
-				if (error)
-				{
-					Fail(std::format("Could not move \"{}\" to \"{}\": {}",
-						ZONE_DIRECTORY, BACKUP_DIRECTORY, error.message()));
-					return;
-				}
-
-				for (auto* list : {&toConvert, &toCopy})
-				{
-					for (auto& path : *list)
-					{
-						path = std::filesystem::path(BACKUP_DIRECTORY) / path.filename();
-					}
-				}
+				steps += plan.toConvert.size() + plan.toCopy.size();
+				conversions += plan.toConvert.size();
 			}
 
-			Utils::IO::CreateDir(ZONE_DIRECTORY);
-			Utils::IO::WriteFile(PROGRESS_FILE, "");
+			Log(std::format("Converting {} x64 fastfiles to x86", conversions));
 
-			Log(std::format("Converting {} x64 fastfiles to x86", toConvert.size()));
+			ProgressDialog dialog("IW4x - Converting fastfiles", static_cast<int>(steps));
 
-			ProgressDialog dialog("IW4x - Converting fastfiles", static_cast<int>(toConvert.size() + toCopy.size()));
-
-			for (const auto& path : toCopy)
+			for (auto& plan : plans)
 			{
-				dialog.Begin(std::format("Copying {}", path.filename().generic_string()));
-
-				if (!CopyAcross(path))
+				if (!Prepare(plan) || !Process(plan, *converter, dialog))
 				{
-					Fail(std::format("Could not copy \"{}\" into \"{}\".", path.generic_string(), ZONE_DIRECTORY));
 					return;
 				}
-
-				dialog.Finish();
 			}
-
-			for (const auto& path : toConvert)
-			{
-				dialog.Begin(std::format("Converting {}", path.filename().generic_string()));
-
-				const auto outcome = RunConverter(*converter, path, dialog);
-
-				if (!outcome.started)
-				{
-					Fail(std::format("\"{}\" could not be started: {}.\n\n"
-						"Antivirus software such as Windows Defender often blocks or quarantines it. "
-						"Add an exclusion for the IW4x folder and start the game again.\n\n"
-						"No fastfile was converted with it; the originals are still in \"{}\".",
-						*converter, outcome.startError, BACKUP_DIRECTORY));
-					return;
-				}
-
-				if (outcome.exitCode != 0)
-				{
-					Fail(std::format("Converting \"{}\" failed (\"{}\" exited with code {}). See \"{}\" for "
-						"what the converter said. The originals are still in \"{}\".",
-						path.generic_string(), *converter, outcome.exitCode, LOG_FILE, BACKUP_DIRECTORY));
-					return;
-				}
-
-				dialog.Finish();
-			}
-
-			Utils::IO::WriteFile(MARKER_FILE, std::format("Converted {} fastfiles from the x64 layout.\n", toConvert.size()));
-			Utils::IO::RemoveFile(PROGRESS_FILE);
 
 			Log("Finished converting fastfiles");
 		}
