@@ -207,7 +207,7 @@ workspace "iw4x"
 
 	filter "configurations:Release"
 		optimize "Size"
-		buildoptions {"/GL"}
+		buildoptions {"/GL", "/Oy-"}
 		linkoptions {"/IGNORE:4702", "/LTCG"}
 		defines {"NDEBUG"}
 		fatalwarnings { "all" }
@@ -244,6 +244,10 @@ workspace "iw4x"
 		if _OPTIONS["sentry-dsn"] then
 			defines {"IW4X_SENTRY_DSN=" .. cstrquote(_OPTIONS["sentry-dsn"])}
 		end
+
+		filter "configurations:Release"
+			linkoptions {"/OPT:NOICF"}
+		filter {}
 
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
