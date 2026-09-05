@@ -14,6 +14,7 @@ namespace Controller
         case action::none:            return "none";
         case action::fire:            return "fire";
         case action::ads:             return "ads";
+        case action::ads_toggle:      return "ads-toggle";
         case action::jump_stand:      return "jump-stand";
         case action::stance:          return "stance";
         case action::melee:           return "melee";
@@ -41,6 +42,7 @@ namespace Controller
         case action::none:            return "";
         case action::fire:            return "+attack";
         case action::ads:             return "+speed_throw";
+        case action::ads_toggle:      return "+toggleads_throw";
         case action::jump_stand:      return "+gostand";
         case action::stance:          return "+stance";
         case action::melee:           return "+melee";

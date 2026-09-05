@@ -90,50 +90,111 @@ namespace Controller
       return n;
     }
 
+    namespace
+    {
+      struct layout
+      {
+        const char* name;
+        const char* keyword;
+
+        action trigger_right;
+        action trigger_left;
+        action shoulder_right;
+        action shoulder_left;
+        action stick_right;
+        action stick_left;
+        action face_b;
+      };
+
+      constexpr layout layouts[]
+      {
+        {"buttons_default", "default",
+         action::fire, action::ads,
+         action::frag, action::special_grenade,
+         action::melee, action::sprint,
+         action::stance},
+
+        {"buttons_tactical", "tactical",
+         action::fire, action::ads,
+         action::frag, action::special_grenade,
+         action::stance, action::sprint,
+         action::melee},
+
+        {"buttons_lefty", "lefty",
+         action::ads, action::fire,
+         action::special_grenade, action::frag,
+         action::sprint, action::melee,
+         action::stance},
+
+        {"buttons_nomad", "nomad",
+         action::fire, action::ads_toggle,
+         action::frag, action::special_grenade,
+         action::stance, action::sprint,
+         action::melee},
+      };
+
+      const layout&
+      layout_for (const std::string& name) noexcept
+      {
+        for (const layout& l: layouts)
+        {
+          if (name == l.name)
+            return l;
+        }
+
+        for (const layout& l: layouts)
+        {
+          if (contains (name, l.keyword))
+            return l;
+        }
+
+        return layouts[0];
+      }
+
+      constexpr std::string_view alt_suffix {"_alt"};
+    }
+
     void
     apply_button_layout (binding_table& t, std::string_view name)
     {
-      const std::string n (lowercase (name));
+      std::string n (lowercase (name));
 
-      const bool tactical (contains (n, "tactical"));
-      const bool lefty (contains (n, "lefty"));
-      const bool nomad (contains (n, "nomad"));
-      const bool alt (contains (n, "_alt"));
+      const bool alt (n.size () > alt_suffix.size () &&
+                      n.compare (n.size () - alt_suffix.size (),
+                                 alt_suffix.size (),
+                                 alt_suffix) == 0);
+
+      if (alt)
+        n.resize (n.size () - alt_suffix.size ());
+
+      const layout& l (layout_for (n));
 
       t.clear ();
 
       t.bind (engine_key::button_start, action::menu);
       t.bind (engine_key::button_back,  action::scoreboard);
-      t.bind (engine_key::button_x,     action::use_reload);
-      t.bind (engine_key::button_y,     action::next_weapon);
-      t.bind (engine_key::dpad_up,      action::action_slot_1);
-      t.bind (engine_key::dpad_down,    action::action_slot_2);
-      t.bind (engine_key::dpad_left,    action::action_slot_3);
-      t.bind (engine_key::dpad_right,   action::action_slot_4);
-      t.bind (engine_key::button_a,     action::jump_stand);
 
-      t.bind (engine_key::button_b,      tactical ? action::melee : action::stance);
-      t.bind (engine_key::button_rstick, tactical ? action::stance : action::melee);
+      t.bind (engine_key::button_a, action::jump_stand);
+      t.bind (engine_key::button_b, l.face_b);
+      t.bind (engine_key::button_x, action::use_reload);
+      t.bind (engine_key::button_y, action::next_weapon);
 
-      if (lefty)
-      {
-        t.bind (engine_key::button_ltrig,  action::fire);
-        t.bind (engine_key::button_rtrig,  action::ads);
-        t.bind (engine_key::button_lshldr, nomad ? action::sprint : action::frag);
-        t.bind (engine_key::button_rshldr, action::special_grenade);
-        t.bind (engine_key::button_rstick, action::sprint);
-      }
-      else
-      {
-        t.bind (engine_key::button_rtrig,  action::fire);
-        t.bind (engine_key::button_ltrig,  action::ads);
-        t.bind (engine_key::button_rshldr,
-                alt ? action::special_grenade : action::frag);
-        t.bind (engine_key::button_lshldr,
-                alt ? action::frag : action::special_grenade);
-        t.bind (engine_key::button_lstick,
-                nomad ? action::jump_stand : action::sprint);
-      }
+      t.bind (engine_key::button_rstick, l.stick_right);
+      t.bind (engine_key::button_lstick, l.stick_left);
+
+      t.bind (alt ? engine_key::button_rshldr : engine_key::button_rtrig,
+              l.trigger_right);
+      t.bind (alt ? engine_key::button_lshldr : engine_key::button_ltrig,
+              l.trigger_left);
+      t.bind (alt ? engine_key::button_rtrig : engine_key::button_rshldr,
+              l.shoulder_right);
+      t.bind (alt ? engine_key::button_ltrig : engine_key::button_lshldr,
+              l.shoulder_left);
+
+      t.bind (engine_key::dpad_up,    action::action_slot_1);
+      t.bind (engine_key::dpad_down,  action::action_slot_2);
+      t.bind (engine_key::dpad_left,  action::action_slot_3);
+      t.bind (engine_key::dpad_right, action::action_slot_4);
     }
   }
 }

@@ -12,6 +12,7 @@ namespace Controller
 
       fire,
       ads,
+      ads_toggle,
       jump_stand,
       stance,
       melee,
