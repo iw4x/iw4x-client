@@ -19,6 +19,9 @@ namespace Sentry
     operating_system ();
 
     std::string
+    wine ();
+
+    std::string
     architecture ();
 
     std::string
