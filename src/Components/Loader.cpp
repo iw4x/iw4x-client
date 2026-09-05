@@ -52,6 +52,7 @@
 #include "Modules/RemoteControl.hpp"
 #include "Modules/Rumble.hpp"
 #include "Modules/Security.hpp"
+#include "Modules/Sentry.hpp"
 #include "Modules/ServerCommands.hpp"
 #include "Modules/ServerDemo.hpp"
 #include "Modules/ServerInfo.hpp"
@@ -107,6 +108,7 @@ namespace Components
     Register(new IPCPipe());
     Register(new Network());
     Register(new Logger());
+    Register(new Sentry());
     Register(new UIScript());
     Register(new ZoneBuilder());
 
