@@ -55,6 +55,7 @@ To use the `iw4x.dll`, you must have a valid Modern Warfare 2 installation with 
 | `--copy-to=PATH`            | Optional, copy the DLL to a custom folder after build, define the path here if wanted. |
 | `--copy-pdb`                | Copy debug information for binaries as well to the path given via --copy-to. |
 | `--disable-binary-check`    | Do not perform integrity checks on the exe. |
+| `--sentry-dsn=URL`          | Submit crash reports to this Sentry DSN. Crash reporting is compiled out when it is not given. |
 
 ## Command line arguments
 
@@ -77,6 +78,23 @@ To use the `iw4x.dll`, you must have a valid Modern Warfare 2 installation with 
 | `-disable-mongoose`     | Disable Mongoose HTTP server |
 | `-disable-rate-limit-check` | Disable RCon rate limit checks |
 | `-disable-mod-unloading` | Disable automatic mod (fs_game) unloading when disconnecting |
+| `-sentryfull`           | Capture full process memory in crash reports rather than the stack and its surroundings. |
+| `-sentrystack`          | Capture only stack memory in crash reports. |
+| `-sentrydebug`          | Print the crash reporter's own diagnostics to the console. |
+
+## Crash reporting
+
+Crash reports are submitted to [Sentry](https://sentry.io) through the
+[Sentry Native SDK](https://docs.sentry.io/platforms/native/), using its
+out-of-process `native` backend. Three binaries make up the client side of it:
+
+| Binary             | Role                                                                      |
+|:-------------------|:--------------------------------------------------------------------------|
+| `iw4x.dll`         | Holds the SDK, the scope and the in-process crash handler.                 |
+| `sentry-crash.exe` | Started at launch and parked until a crash. Writes the minidump against the crashed game from the outside and uploads it, so a corrupted heap or an exhausted stack cannot take the report down with it. |
+| `sentry-wer.dll`   | Registered with Windows Error Reporting. Catches fail-fast exceptions, stack buffer overruns and heap corruption, none of which reach a top level exception filter. |
+
+All three are published with each release and must be installed side by side.
 
 ## Disclaimer
 
