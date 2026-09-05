@@ -239,6 +239,8 @@ namespace Controller
       return;
     }
 
+    binds_.poll_configured_layout ();
+
     discovery_.scan ();
     drivers_.reconcile (devices_);
 

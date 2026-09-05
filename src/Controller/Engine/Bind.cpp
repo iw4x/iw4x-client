@@ -74,7 +74,9 @@ namespace Controller
     bind_bridge::
     apply_configured_layout ()
     {
-      const char* name (read (dvars_.buttons_config, "buttons_default"));
+      const char* const name (read (dvars_.buttons_config, "buttons_default"));
+
+      applied_ = name;
 
       if (std::strcmp (name, custom_layout) == 0)
       {
@@ -83,6 +85,18 @@ namespace Controller
       }
 
       apply_layout (name);
+    }
+
+    void
+    bind_bridge::
+    poll_configured_layout ()
+    {
+      const char* const name (read (dvars_.buttons_config, "buttons_default"));
+
+      if (applied_ == name)
+        return;
+
+      apply_configured_layout ();
     }
 
     void
@@ -122,7 +136,9 @@ namespace Controller
     bind_bridge::
     reapply_layout ()
     {
-      apply_layout (read (dvars_.buttons_config, "buttons_default"));
+      applied_.clear ();
+
+      apply_configured_layout ();
     }
 
     void

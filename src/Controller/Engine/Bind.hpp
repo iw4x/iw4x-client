@@ -21,6 +21,9 @@ namespace Controller
       apply_configured_layout ();
 
       void
+      poll_configured_layout ();
+
+      void
       reapply_layout ();
 
       void
@@ -38,6 +41,8 @@ namespace Controller
 
       const context& ctx_;
       const dvars& dvars_;
+
+      std::string applied_;
     };
 
     const char*
