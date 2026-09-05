@@ -58,6 +58,13 @@ run ()
   fi
 }
 
+update_submodules ()
+{
+  run git submodule update --init
+  run git submodule foreach --quiet \
+    'test $sm_path = deps/sentry-native || git submodule update --init --recursive'
+}
+
 # Check whether the specified command exists. If the hint is provided, print it
 # alongside the error.
 #
@@ -549,7 +556,7 @@ build ()
 
   if test -n "$submods"; then
     diag "info: updating git submodules"
-    run git submodule update --init --recursive
+    update_submodules
   fi
 
   gen_info
@@ -600,7 +607,7 @@ bootstrap ()
 
   if test -n "$submods"; then
     diag "info: updating git submodules"
-    run git submodule update --init --recursive
+    update_submodules
   fi
 
   gen_info
