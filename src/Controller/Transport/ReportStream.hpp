@@ -29,6 +29,9 @@ namespace Controller
       bool
       running () const noexcept {return running_.load (std::memory_order_acquire);}
 
+      bool
+      failed () const noexcept {return failed_.load (std::memory_order_acquire);}
+
       std::string
       status () const;
 
@@ -45,6 +48,7 @@ namespace Controller
       size_t capacity_;
 
       std::atomic<bool> running_ {false};
+      std::atomic<bool> failed_ {false};
 
       mutable std::mutex status_mutex_;
       mutable std::string status_ {"not started"};

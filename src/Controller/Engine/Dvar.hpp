@@ -19,6 +19,7 @@ namespace Controller
 
       dvar_t* haptics {};
       dvar_t* adaptive_triggers {};
+      dvar_t* output_interval {};
 
       dvar_t* light_bar {};
       dvar_t* light_bar_r {};

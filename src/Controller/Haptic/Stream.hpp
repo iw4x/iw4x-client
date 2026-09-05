@@ -30,11 +30,7 @@ namespace Controller
       stream& operator= (const stream&) = delete;
 
       bool
-      running () const noexcept
-      {
-        return audio_ != nullptr ? audio_->running ()
-             : reports_ != nullptr && reports_->running ();
-      }
+      running () noexcept;
 
       bool
       play (const haptic::effect& e) noexcept {return mixer_.play (e);}
@@ -45,12 +41,6 @@ namespace Controller
       void
       set_rumble (float low_frequency, float high_frequency) noexcept
       {
-        if (mixer_.has_effects ())
-        {
-          mixer_.set_rumble (0.0f, 0.0f);
-          return;
-        }
-
         mixer_.set_rumble (low_frequency, high_frequency);
       }
 
@@ -61,13 +51,21 @@ namespace Controller
       status () const;
 
     private:
-      const context& ctx_;
-      device_id device_;
+      void
+      start_reports ();
 
-      uint64_t reported_drops_ {0};
+      void
+      start_audio ();
 
       std::optional<size_t>
       produce (std::span<std::byte>) noexcept;
+
+      const context& ctx_;
+      device_id device_;
+      connection link_;
+      transport::hid_device& hid_;
+
+      uint64_t reported_drops_ {0};
 
       mixer mixer_;
 

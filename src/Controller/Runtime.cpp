@@ -139,6 +139,8 @@ namespace Controller
     p.haptics = engine::read (dvars_.haptics, true)
       ? driver::haptic_mode::waveform
       : driver::haptic_mode::emulated;
+    p.output_interval =
+      static_cast<unsigned> (std::max (0, engine::read (dvars_.output_interval, 4)));
 
     drivers_.configure (p);
   }

@@ -16,21 +16,17 @@ namespace Controller
             connection link,
             transport::hid_device& hid)
       : ctx_ (ctx),
-        device_ (device)
+        device_ (device),
+        link_ (link),
+        hid_ (hid)
     {
-      if (link == connection::usb)
-      {
-        audio_ = std::make_unique<transport::audio_endpoint> (
-          ctx, device, hid.path (),
-          [this] (std::span<frame> f)
-          {
-            rate_ = audio_->sample_rate ();
-            mixer_.render (f, rate_);
-          });
+      start_reports ();
+    }
 
-        return;
-      }
-
+    void
+    stream::
+    start_reports ()
+    {
       rate_ = driver::haptic_sample_rate;
       block_.resize (driver::haptic_frames_per_report);
 
@@ -42,8 +38,49 @@ namespace Controller
       };
 
       reports_ = std::make_unique<transport::report_stream> (
-        ctx, device, hid, period, driver::ds_haptic_report_size,
+        ctx_, device_, hid_, period, driver::ds_haptic_report_size,
         [this] (std::span<std::byte> out) {return produce (out);});
+    }
+
+    void
+    stream::
+    start_audio ()
+    {
+      rate_ = 0;
+      block_.clear ();
+
+      audio_ = std::make_unique<transport::audio_endpoint> (
+        ctx_, device_, hid_.path (),
+        [this] (std::span<frame> f)
+        {
+          rate_ = audio_->sample_rate ();
+          mixer_.render (f, rate_);
+        });
+    }
+
+    bool
+    stream::
+    running () noexcept
+    {
+      if (reports_ != nullptr)
+      {
+        if (reports_->running ())
+          return true;
+
+        if (link_ != connection::usb || !reports_->failed ())
+          return false;
+
+        ctx_.report (severity::info, facility::transport, errc::output_rejected,
+                     device_,
+                     "the controller would not carry the haptic report stream over "
+                     "USB; falling back to its audio endpoint, which sits behind "
+                     "the Windows audio pipeline and lags further behind the game");
+
+        reports_.reset ();
+        start_audio ();
+      }
+
+      return audio_ != nullptr && audio_->running ();
     }
 
     std::optional<size_t>
@@ -60,8 +97,9 @@ namespace Controller
     stream::
     status () const
     {
-      std::string s (audio_ != nullptr ? audio_->status ()
-                                       : reports_->status ());
+      std::string s (reports_ != nullptr ? reports_->status ()
+                   : audio_ != nullptr   ? audio_->status ()
+                                         : std::string ("not started"));
 
       if (const uint64_t dropped = mixer_.dropped (); dropped != 0)
         s += ", " + std::to_string (dropped) +

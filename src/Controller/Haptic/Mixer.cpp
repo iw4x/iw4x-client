@@ -52,8 +52,6 @@ namespace Controller
         v.stopping.store (false, std::memory_order_relaxed);
 
         v.phase.store (state::ready, std::memory_order_release);
-
-        started_.fetch_add (1, std::memory_order_relaxed);
         return true;
       }
 
@@ -103,10 +101,10 @@ namespace Controller
 
     void
     mixer::
-    render_rumble (std::span<frame> out, float step) noexcept
+    render_rumble (std::span<frame> out, float step, float scale) noexcept
     {
-      const float target_low (rumble_low_.load (std::memory_order_relaxed));
-      const float target_high (rumble_high_.load (std::memory_order_relaxed));
+      const float target_low (rumble_low_.load (std::memory_order_relaxed) * scale);
+      const float target_high (rumble_high_.load (std::memory_order_relaxed) * scale);
 
       const float coefficient (std::min (step / rumble_ramp_seconds, 1.0f));
 
@@ -201,7 +199,7 @@ namespace Controller
 
       std::fill (out.begin (), out.end (), frame {});
 
-      render_rumble (out, step);
+      bool effects (false);
 
       for (voice& v: voices_)
       {
@@ -220,9 +218,13 @@ namespace Controller
         if (phase != state::playing)
           continue;
 
+        effects = true;
+
         if (render_voice (v, out, step))
           v.phase.store (state::free, std::memory_order_release);
       }
+
+      render_rumble (out, step, effects ? 0.0f : 1.0f);
 
       for (frame& f: out)
       {

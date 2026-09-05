@@ -33,13 +33,32 @@ namespace Controller
       void
       submit (const output_request&) noexcept override;
 
+      void
+      configure (const output_policy&) noexcept override;
+
     private:
+      void
+      submit_report (const output_request&) noexcept;
+
+      void
+      queue_rumble (const rumble_request&) noexcept;
+
+      void
+      flush_rumble () noexcept;
+
       const context& ctx_;
       transport::hid_device& hid_;
       device_id device_;
       connection link_;
 
       bool minimal_reported_ {false};
+
+      output_policy policy_ {};
+
+      rumble_request pending_rumble_ {};
+      bool rumble_pending_ {false};
+      bool rumble_sent_ {false};
+      timestamp last_rumble_ {};
     };
   }
 }

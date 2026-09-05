@@ -247,7 +247,40 @@ namespace Controller
     dualsense_driver::
     poll (raw_sample& raw, canonical_sample& canonical) noexcept
     {
+      flush_rumble ();
+
       return read_and_decode (raw, canonical, false);
+    }
+
+    void
+    dualsense_driver::
+    queue_rumble (const rumble_request& r) noexcept
+    {
+      pending_rumble_ = r;
+      rumble_pending_ = true;
+
+      flush_rumble ();
+    }
+
+    void
+    dualsense_driver::
+    flush_rumble () noexcept
+    {
+      if (!rumble_pending_)
+        return;
+
+      const timestamp now (clock::now ());
+
+      if (policy_.output_interval != 0 && rumble_sent_ &&
+          now - last_rumble_ <
+            std::chrono::milliseconds (policy_.output_interval))
+        return;
+
+      rumble_pending_ = false;
+      rumble_sent_ = true;
+      last_rumble_ = now;
+
+      submit_report (pending_rumble_);
     }
 
     bool
@@ -311,7 +344,7 @@ namespace Controller
           if (emulating_)
           {
             emulating_ = false;
-            submit_report (rumble_request {});
+            queue_rumble (rumble_request {});
           }
 
           if (play_waveform (*r))
@@ -333,6 +366,9 @@ namespace Controller
         }
 
         emulating_ = r->low_frequency > 0.0f || r->high_frequency > 0.0f;
+
+        queue_rumble (*r);
+        return;
       }
 
       submit_report (request);

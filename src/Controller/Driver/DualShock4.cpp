@@ -191,10 +191,50 @@ namespace Controller
     {
     }
 
+    void
+    dualshock4_driver::
+    configure (const output_policy& p) noexcept
+    {
+      policy_ = p;
+    }
+
+    void
+    dualshock4_driver::
+    queue_rumble (const rumble_request& r) noexcept
+    {
+      pending_rumble_ = r;
+      rumble_pending_ = true;
+
+      flush_rumble ();
+    }
+
+    void
+    dualshock4_driver::
+    flush_rumble () noexcept
+    {
+      if (!rumble_pending_)
+        return;
+
+      const timestamp now (clock::now ());
+
+      if (policy_.output_interval != 0 && rumble_sent_ &&
+          now - last_rumble_ <
+            std::chrono::milliseconds (policy_.output_interval))
+        return;
+
+      rumble_pending_ = false;
+      rumble_sent_ = true;
+      last_rumble_ = now;
+
+      submit_report (pending_rumble_);
+    }
+
     bool
     dualshock4_driver::
     poll (raw_sample& raw, canonical_sample& canonical) noexcept
     {
+      flush_rumble ();
+
       std::array<std::byte, ds4_size_bt> buf;
       bool decoded (false);
 
@@ -233,6 +273,19 @@ namespace Controller
     void
     dualshock4_driver::
     submit (const output_request& request) noexcept
+    {
+      if (const auto* r = std::get_if<rumble_request> (&request))
+      {
+        queue_rumble (*r);
+        return;
+      }
+
+      submit_report (request);
+    }
+
+    void
+    dualshock4_driver::
+    submit_report (const output_request& request) noexcept
     {
       std::array<std::byte, ds4_output_bt_size> buf;
 

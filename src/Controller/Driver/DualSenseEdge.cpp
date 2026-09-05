@@ -19,6 +19,8 @@ namespace Controller
     dualsense_edge_driver::
     poll (raw_sample& raw, canonical_sample& canonical) noexcept
     {
+      flush_rumble ();
+
       return read_and_decode (raw, canonical, true);
     }
   }

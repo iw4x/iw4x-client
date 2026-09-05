@@ -45,6 +45,7 @@ namespace Controller
       if (period_ <= std::chrono::nanoseconds::zero () || capacity_ == 0)
       {
         note ("a report stream was asked for with no cadence to keep");
+        failed_.store (true, std::memory_order_release);
         return;
       }
 
@@ -102,6 +103,7 @@ namespace Controller
       }
 
       running_.store (false, std::memory_order_release);
+      failed_.store (true, std::memory_order_release);
     }
   }
 }

@@ -48,6 +48,12 @@ namespace Controller
       void
       submit_report (const output_request&) noexcept;
 
+      void
+      queue_rumble (const rumble_request&) noexcept;
+
+      void
+      flush_rumble () noexcept;
+
       bool
       ensure_haptics () noexcept;
 
@@ -70,6 +76,11 @@ namespace Controller
       bool minimal_reported_ {false};
 
       output_policy policy_ {};
+
+      rumble_request pending_rumble_ {};
+      bool rumble_pending_ {false};
+      bool rumble_sent_ {false};
+      timestamp last_rumble_ {};
 
       std::unique_ptr<haptic::stream> haptics_;
 

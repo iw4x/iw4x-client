@@ -31,6 +31,14 @@ namespace Controller
         "gpad_adaptive_triggers", true, DVAR_ARCHIVE,
         "Resist the PlayStation controller's triggers according to the weapon held");
 
+      d.output_interval = Dvar_RegisterInt (
+        "gpad_output_interval", 4, 0, 50, DVAR_ARCHIVE,
+        "Shortest gap between rumble output reports, in milliseconds. The game "
+        "changes the rumble level every frame, which is faster than the "
+        "controller's output endpoint can carry, so the reports queue up in the "
+        "driver and the rumble falls further behind the longer it runs. Zero "
+        "sends every change");
+
       d.light_bar = Dvar_RegisterBool (
         "gpad_light_bar", true, DVAR_ARCHIVE,
         "Light the PlayStation controller's bar in the menu accent colour");

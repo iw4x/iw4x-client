@@ -25,6 +25,7 @@ namespace Controller
     {
       bool rumble {true};
       haptic_mode haptics {haptic_mode::waveform};
+      unsigned output_interval {4};
     };
 
     struct light_bar_request

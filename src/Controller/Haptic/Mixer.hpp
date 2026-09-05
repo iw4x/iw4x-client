@@ -33,12 +33,6 @@ namespace Controller
       void
       render (std::span<frame>, uint32_t rate) noexcept;
 
-      bool
-      has_effects () const noexcept
-      {
-        return started_.load (std::memory_order_relaxed) != 0;
-      }
-
       uint64_t
       dropped () const noexcept {return dropped_.load (std::memory_order_relaxed);}
 
@@ -68,7 +62,7 @@ namespace Controller
       render_voice (voice&, std::span<frame>, float step) noexcept;
 
       void
-      render_rumble (std::span<frame>, float step) noexcept;
+      render_rumble (std::span<frame>, float step, float scale) noexcept;
 
       std::array<voice, voices> voices_ {};
 
@@ -80,7 +74,6 @@ namespace Controller
       float rumble_low_phase_ {0.0f};
       float rumble_high_phase_ {0.0f};
 
-      std::atomic<uint64_t> started_ {0};
       std::atomic<uint64_t> dropped_ {0};
     };
   }

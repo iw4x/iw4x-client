@@ -342,6 +342,8 @@ namespace Controller
 
         HANDLE ready {nullptr};
         UINT32 buffer_frames {0};
+        UINT32 cushion_frames {0};
+        REFERENCE_TIME period {0};
         uint32_t rate {0};
         size_t channels {0};
         bool exclusive {false};
@@ -362,43 +364,72 @@ namespace Controller
         if (declared_format (device, declared) &&
             writable (declared.Format, s.is_float))
         {
-          HRESULT hr (s.client->Initialize (AUDCLNT_SHAREMODE_EXCLUSIVE,
-                                            AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-                                            default_period,
-                                            default_period,
-                                            &declared.Format,
-                                            nullptr));
+          REFERENCE_TIME periods[2] {default_period, 0};
+          size_t count (1);
 
-          if (hr == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED)
+          if (minimum_period > 0 && minimum_period < default_period)
           {
-            UINT32 frames (0);
+            periods[0] = minimum_period;
+            periods[1] = default_period;
+            count = 2;
+          }
 
-            if (SUCCEEDED (s.client->GetBufferSize (&frames)) && frames != 0)
+          HRESULT hr (AUDCLNT_E_UNSUPPORTED_FORMAT);
+          REFERENCE_TIME used (0);
+
+          for (size_t i (0); i != count; ++i)
+          {
+            used = periods[i];
+
+            hr = s.client->Initialize (AUDCLNT_SHAREMODE_EXCLUSIVE,
+                                       AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+                                       periods[i],
+                                       periods[i],
+                                       &declared.Format,
+                                       nullptr);
+
+            if (hr == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED)
             {
-              const REFERENCE_TIME aligned (
-                static_cast<REFERENCE_TIME> (
-                  10000.0 * 1000 * frames / declared.Format.nSamplesPerSec + 0.5));
+              UINT32 frames (0);
 
-              s.client.reset ();
+              if (SUCCEEDED (s.client->GetBufferSize (&frames)) && frames != 0)
+              {
+                const REFERENCE_TIME aligned (
+                  static_cast<REFERENCE_TIME> (
+                    10000.0 * 1000 * frames / declared.Format.nSamplesPerSec + 0.5));
 
-              hr = device.Activate (__uuidof (IAudioClient),
-                                    CLSCTX_ALL,
-                                    nullptr,
-                                    reinterpret_cast<void**> (s.client.put ()));
+                used = aligned;
 
-              if (SUCCEEDED (hr))
-                hr = s.client->Initialize (AUDCLNT_SHAREMODE_EXCLUSIVE,
-                                           AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-                                           aligned,
-                                           aligned,
-                                           &declared.Format,
-                                           nullptr);
+                hr = device.Activate (__uuidof (IAudioClient),
+                                      CLSCTX_ALL,
+                                      nullptr,
+                                      reinterpret_cast<void**> (s.client.put ()));
+
+                if (SUCCEEDED (hr))
+                  hr = s.client->Initialize (AUDCLNT_SHAREMODE_EXCLUSIVE,
+                                             AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+                                             aligned,
+                                             aligned,
+                                             &declared.Format,
+                                             nullptr);
+              }
             }
+
+            if (SUCCEEDED (hr))
+              break;
+
+            if (FAILED (device.Activate (
+                  __uuidof (IAudioClient),
+                  CLSCTX_ALL,
+                  nullptr,
+                  reinterpret_cast<void**> (s.client.put ()))))
+              return AUDCLNT_E_UNSUPPORTED_FORMAT;
           }
 
           if (SUCCEEDED (hr))
           {
             s.exclusive = true;
+            s.period = used;
             s.rate = declared.Format.nSamplesPerSec;
             s.channels = declared.Format.nChannels;
             s.described = describe (declared.Format, true);
@@ -425,6 +456,7 @@ namespace Controller
           if (SUCCEEDED (hr))
           {
             s.exclusive = false;
+            s.period = default_period;
             s.rate = mix->nSamplesPerSec;
             s.channels = mix->nChannels;
             s.described = describe (*mix, false);
@@ -479,11 +511,33 @@ namespace Controller
         if (s.ready == nullptr)
           return false;
 
-        return SUCCEEDED (s.client->SetEventHandle (s.ready)) &&
-               SUCCEEDED (s.client->GetBufferSize (&s.buffer_frames)) &&
-               SUCCEEDED (s.client->GetService (
-                 __uuidof (IAudioRenderClient),
-                 reinterpret_cast<void**> (s.render.put ())));
+        if (FAILED (s.client->SetEventHandle (s.ready)) ||
+            FAILED (s.client->GetBufferSize (&s.buffer_frames)) ||
+            FAILED (s.client->GetService (
+              __uuidof (IAudioRenderClient),
+              reinterpret_cast<void**> (s.render.put ()))))
+          return false;
+
+        s.cushion_frames = s.buffer_frames;
+
+        if (!s.exclusive && s.period > 0 && s.rate != 0)
+        {
+          uint64_t want (static_cast<uint64_t> (s.period) *
+                         static_cast<uint64_t> (s.rate) * 2 / 10000000ull);
+
+          if (want == 0)
+            want = 1;
+
+          if (want < static_cast<uint64_t> (s.cushion_frames))
+            s.cushion_frames = static_cast<UINT32> (want);
+        }
+
+        if (s.rate != 0)
+          s.described += ", " +
+            std::to_string (static_cast<uint64_t> (s.cushion_frames) * 1000ull /
+                            s.rate) + " ms queued";
+
+        return true;
       }
 
       void
@@ -504,7 +558,7 @@ namespace Controller
           return place (s, count, b);
         };
 
-        if (!block (s.buffer_frames) || FAILED (s.client->Start ()))
+        if (!block (s.cushion_frames) || FAILED (s.client->Start ()))
           return;
 
         running.store (true, std::memory_order_release);
@@ -514,19 +568,22 @@ namespace Controller
           if (WaitForSingleObject (s.ready, wait_timeout) != WAIT_OBJECT_0)
             break;
 
-          UINT32 free (s.buffer_frames);
+          UINT32 count (s.buffer_frames);
 
           if (!s.exclusive)
           {
-            UINT32 padding (0);
+            UINT32 queued (0);
 
-            if (FAILED (s.client->GetCurrentPadding (&padding)))
+            if (FAILED (s.client->GetCurrentPadding (&queued)))
               break;
 
-            free = s.buffer_frames - padding;
+            if (queued >= s.cushion_frames)
+              continue;
+
+            count = s.cushion_frames - queued;
           }
 
-          if (free != 0 && !block (free))
+          if (count != 0 && !block (count))
             break;
         }
 
