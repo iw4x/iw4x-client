@@ -12,6 +12,8 @@ namespace Components
 
 		static void SetMiniDumpType(bool codeseg, bool dataseg);
 
+		static void ChainFilterInstalledBy(const std::function<void()>& installer);
+
 	private:
 		static void SuspendProcess();
 		static LONG WINAPI ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo);
@@ -28,5 +30,6 @@ namespace Components
 
 		static int MiniDumpType;
 		static Utils::Hook SetFilterHook;
+		static LPTOP_LEVEL_EXCEPTION_FILTER ChainedFilter;
 	};
 }
