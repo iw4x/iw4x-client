@@ -1,0 +1,31 @@
+# Local Sentry configuration for development builds.
+#
+# Copy this file to sentry.bash and fill in the values below. sentry.bash is
+# ignored by git, so the DSN never ends up in a commit:
+#
+#   cp sentry.bash.example sentry.bash
+#   sh generate-linux.sh release
+#
+# The generator loads it automatically and passes the DSN to premake as
+# --sentry-dsn. Use --sentry-file to load it from somewhere else, --sentry-dsn
+# to give one directly, or --no-sentry to ignore the file for a single build.
+#
+# On Windows the same is done with a user script, which is ignored by git as
+# well. Create user.bat next to generate.bat containing:
+#
+#   @echo off
+#   call generate.bat --sentry-dsn=https://...
+#
+# The DSN of the Sentry project that crash reports are submitted to. Crash
+# reporting is compiled out of the client entirely when this is empty.
+#
+SENTRY_DSN=
+
+# The values below are only needed to upload debug symbols with sentry-cli,
+# which the release workflow normally takes care of. Everything this file sets
+# is exported into the environment, so sentry-cli picks them up on its own.
+#
+#SENTRY_URL=https://sentry.io/
+#SENTRY_ORG=
+#SENTRY_PROJECT=
+#SENTRY_AUTH_TOKEN=
