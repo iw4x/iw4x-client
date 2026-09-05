@@ -17,6 +17,13 @@ namespace Components
 	float Controller::lowRumble = 0.0f;
 	float Controller::highRumble = 0.0f;
 
+	namespace
+	{
+		float submittedLowRumble = 0.0f;
+		float submittedHighRumble = 0.0f;
+		bool rumbleSubmitted = false;
+	}
+
 	::Controller::runtime* Controller::Runtime()
 	{
 		return theRuntime.get();
@@ -37,10 +44,20 @@ namespace Components
 		if (theRuntime == nullptr)
 			return;
 
-		if (!::Controller::engine::read(theRuntime->dvars().rumble, true))
+		const auto enabled = ::Controller::engine::read(theRuntime->dvars().rumble, true);
+
+		const auto low = enabled ? lowRumble : 0.0f;
+		const auto high = enabled ? highRumble : 0.0f;
+
+		if (rumbleSubmitted && low == submittedLowRumble && high == submittedHighRumble)
 			return;
 
-		theRuntime->submit(::Controller::driver::rumble_request{lowRumble, highRumble});
+		if (!theRuntime->submit(::Controller::driver::rumble_request{low, high}))
+			return;
+
+		submittedLowRumble = low;
+		submittedHighRumble = high;
+		rumbleSubmitted = true;
 	}
 
 	void Controller::PlayHapticEffect(const ::Controller::haptic::effect& effect)
@@ -61,45 +78,27 @@ namespace Components
 
 	void Controller::GPad_SetLowRumble(int, const double rumble)
 	{
-		const auto value = static_cast<float>(std::clamp(rumble, 0.0, 1.0));
-
-		if (value == lowRumble)
-			return;
-
-		lowRumble = value;
+		lowRumble = static_cast<float>(std::clamp(rumble, 0.0, 1.0));
 		SubmitRumble();
 	}
 
 	void Controller::GPad_SetHighRumble(int, const double rumble)
 	{
-		const auto value = static_cast<float>(std::clamp(rumble, 0.0, 1.0));
-
-		if (value == highRumble)
-			return;
-
-		highRumble = value;
+		highRumble = static_cast<float>(std::clamp(rumble, 0.0, 1.0));
 		SubmitRumble();
 	}
 
 	void Controller::GPad_StopRumbles(int)
 	{
-		if (lowRumble == 0.0f && highRumble == 0.0f)
-			return;
-
 		lowRumble = 0.0f;
 		highRumble = 0.0f;
 
-		if (theRuntime != nullptr)
-			theRuntime->submit(::Controller::driver::rumble_request{});
+		SubmitRumble();
 	}
 
 	void Controller::GPad_UpdateFeedbacks()
 	{
-		if (theRuntime == nullptr)
-			return;
-
-		if (!::Controller::engine::read(theRuntime->dvars().rumble, true))
-			GPad_StopRumbles(0);
+		SubmitRumble();
 	}
 
 	Controller::Controller()

@@ -26,6 +26,7 @@ namespace Components
 
 		static Dvar::Var cl_rumbleScale;
 
+		static bool IsValidLocalClient(int localClientNum);
 		static int GetRumbleInfoIndexFromName(const char* rumbleName);
 		static Game::ActiveRumble* GetDuplicateRumbleIfExists(Game::cg_s* cgameGlob, Game::ActiveRumble* arArray, Game::RumbleInfo* info, bool loop, Game::RumbleSourceType type, int entityNum, const float* pos);
 		static int FindClosestToDyingActiveRumble(Game::cg_s* cgameGlob, Game::ActiveRumble* activeRumbleArray);
@@ -70,8 +71,8 @@ namespace Components
 		static void CG_ExplosiveImpactOnShieldEvent(int localClientNum);
 		static void CG_ExplosiveSplashOnShieldEvent(int localClientNum, int weaponIndex);
 		static void CG_SetRumbleReceiver();
-		static void CG_UpdateEntInfo_Hk();
-		static void CG_FireWeapon_Rumble(int localClientNum, Game::entityState_s* ent, Game::WeaponDef* weaponDef, bool isPlayerView);
+		static void CG_UpdateEntInfo_Hk(int localClientNum);
+		static void CG_FireWeapon_Rumble(int localClientNum, Game::centity_s* cent, Game::WeaponDef* weaponDef, bool isPlayerView);
 		static void CG_FireWeapon_FireSoundHk();
 		static int CG_LoadRumble(Game::RumbleGraph* rumbleGraphArray, Game::RumbleInfo* info, const char* rumbleName, int rumbleNameIndex);
 		static void CG_RegisterRumbles(int localClientNum);

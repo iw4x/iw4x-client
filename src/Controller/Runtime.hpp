@@ -71,7 +71,7 @@ namespace Controller
     const engine::dvars&
     dvars () const noexcept {return dvars_;}
 
-    void
+    bool
     submit (const driver::output_request&);
 
     void

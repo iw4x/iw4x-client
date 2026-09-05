@@ -105,12 +105,15 @@ namespace Controller
     return true;
   }
 
-  void
+  bool
   runtime::
   submit (const driver::output_request& r)
   {
-    if (active_ != no_device)
-      drivers_.submit (active_, r);
+    if (active_ == no_device)
+      return false;
+
+    drivers_.submit (active_, r);
+    return true;
   }
 
   void

@@ -47,6 +47,11 @@ namespace Components
 	Dvar::Var Rumble::cl_debug_rumbles;
 	Dvar::Var Rumble::cl_rumbleScale;
 
+	bool Rumble::IsValidLocalClient(int localClientNum)
+	{
+		return localClientNum >= 0 && localClientNum < Game::MAX_GPAD_COUNT;
+	}
+
 	int Rumble::GetRumbleInfoIndexFromName(const char* rumbleName)
 	{
 		for (size_t i = 0; i < Controller::RUMBLE_CONFIGSTRINGS_COUNT-1; i++)
@@ -289,6 +294,12 @@ namespace Components
 		assert(type != Game::RumbleSourceType::RUMBLESOURCE_INVALID);
 		assert(rumbleName);
 		assert(*rumbleName);
+		assert(IsValidLocalClient(localClientNum));
+
+		if (!IsValidLocalClient(localClientNum))
+		{
+			return;
+		}
 
 		int rumbleIndex = GetRumbleInfoIndexFromName(rumbleName);
 
@@ -334,6 +345,8 @@ namespace Components
 		{
 			activeRumble = NextAvailableRumble(cg, rumbleGlobArray[localClientNum].activeRumbles);
 			assert(activeRumble);
+
+			InvalidateActiveRumble(activeRumble);
 		}
 
 		if (!rumbleIsDuplicate || updateDuplicates)
@@ -568,18 +581,11 @@ namespace Components
 		}
 		if (!info->highRumbleGraph || !info->lowRumbleGraph)
 		{
-			if (i == 64)
-				Components::Logger::Error(Game::ERR_DROP, "No more room to allocate rumble graph");
-
-			auto rumbleGraph = &rumbleGraphArray[i];
-
 			while (i < 64)
 			{
-				if (i == 64)
-				{
-					Components::Logger::Error(Game::ERR_DROP, "No more room to allocate rumble graph");
-				}
-				else if (!info->highRumbleGraph)
+				auto rumbleGraph = &rumbleGraphArray[i];
+
+				if (!info->highRumbleGraph)
 				{
 					ReadRumbleGraph(rumbleGraph, highRumbleFileName);
 					info->highRumbleGraph = rumbleGraph;
@@ -597,7 +603,10 @@ namespace Components
 				}
 			}
 
-			// There's more stuff that should be happening here
+			if (!info->highRumbleGraph || !info->lowRumbleGraph)
+			{
+				Components::Logger::Error(Game::ERR_DROP, "No more room to allocate rumble graph");
+			}
 		}
 
 		return 1;
@@ -732,9 +741,9 @@ namespace Components
 		}
 	}
 
-	void Rumble::CG_FireWeapon_Rumble(int localClientNum, Game::entityState_s* ent, Game::WeaponDef* weaponDef, bool isPlayerView)
+	void Rumble::CG_FireWeapon_Rumble(int localClientNum, Game::centity_s* cent, Game::WeaponDef* weaponDef, bool isPlayerView)
 	{
-		assert(ent);
+		assert(cent);
 		assert(weaponDef);
 
 		bool freeView = true;
@@ -746,9 +755,9 @@ namespace Components
 			{
 				auto cg = Game::CL_GetLocalClientGlobals(localClientNum); // should be CG instead
 
-				if (ent->eType != 12
+				if (cent->nextState.eType != 12
 					|| (cg->predictedPlayerState.eFlags & Game::EF_VEHICLE_ACTIVE) == 0
-					|| cg->predictedPlayerState.viewlocked_entNum != ent->number)
+					|| cg->predictedPlayerState.viewlocked_entNum != cent->nextState.number)
 				{
 					freeView = false;
 				}
@@ -767,10 +776,10 @@ namespace Components
 		{
 			pushad;
 
-			push ebx
-			push[esp + 0x20 + 0x28 + 0x4] // weapon
+			push ebx // isPlayerView (bl)
+			push[esp + 0x34] // weapDef (arg_C)
 			push esi // cent
-			push ebp
+			push[esp + 0x30] // localClientNum (arg_0)
 
 			call CG_FireWeapon_Rumble
 
@@ -860,6 +869,13 @@ namespace Components
 
 	void Rumble::CG_UpdateRumble(int localClientNum)
 	{
+		assert(IsValidLocalClient(localClientNum));
+
+		if (!IsValidLocalClient(localClientNum))
+		{
+			return;
+		}
+
 		auto cg = Game::CL_GetLocalClientGlobals(localClientNum);
 		if (cg->nextSnap && (cg->predictedPlayerState.clientNum != cg->localClientNum || cg->predictedPlayerState.pm_type == 5))
 		{
@@ -869,7 +885,7 @@ namespace Components
 
 				if (ar->startTime < 0)
 				{
-					break;
+					continue;
 				}
 
 				InvalidateActiveRumble(ar);
@@ -902,10 +918,10 @@ namespace Components
 		Utils::Hook::Call<void()>(0x50BB30)();
 	}
 
-	void Rumble::CG_UpdateEntInfo_Hk()
+	void Rumble::CG_UpdateEntInfo_Hk(int localClientNum)
 	{
-		Utils::Hook::Call<void()>(0X5994B0)(); // Call original
-		CG_UpdateRumble(0); // Local client has to be zero i guess :<
+		Utils::Hook::Call<void(int)>(0X5994B0)(localClientNum); // Call original
+		CG_UpdateRumble(localClientNum);
 	}
 
 	void Rumble::DebugRumbles()
@@ -1061,7 +1077,7 @@ namespace Components
 				assert(activeRumble->rumbleInfo);
 				if (activeRumble->source.entityNum == entityNum)
 				{
-					const std::string& otherRumbleName = ConfigStrings::CL_GetRumbleConfigString(activeRumble->rumbleInfo->rumbleNameIndex);
+					const std::string& otherRumbleName = ConfigStrings::CL_GetRumbleConfigString(activeRumble->rumbleInfo->rumbleNameIndex - 1);
 					if (otherRumbleName == rumbleName)
 					{
 						InvalidateActiveRumble(activeRumble);
@@ -1298,9 +1314,15 @@ namespace Components
 		{
 			if (weaponDef->meleeImpactRumble && *weaponDef->meleeImpactRumble)
 			{
-				targetEntity->r.svFlags &= 0xFEu;
 				const auto index = G_RumbleIndex(weaponDef->meleeImpactRumble);
-				Game::G_AddEvent(targetEntity, static_cast<Game::entity_event_t>(EV_PLAY_RUMBLE_ON_ENT), index);
+
+				if (!index)
+				{
+					return;
+				}
+
+				targetEntity->r.svFlags &= 0xFEu;
+				Game::G_AddEvent(targetEntity, static_cast<Game::entity_event_t>(EV_PLAY_RUMBLE_ON_ENT), index - 1);
 			}
 		}
 	}
