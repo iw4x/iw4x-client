@@ -2,6 +2,7 @@
 #include "Branding.hpp"
 #include "Console.hpp"
 #include "Events.hpp"
+#include "Sentry.hpp"
 
 namespace Components
 {
@@ -94,6 +95,8 @@ namespace Components
 #ifdef _DEBUG
 		if (IsDebuggerPresent()) __debugbreak();
 #endif
+
+		Sentry::CaptureError(error, msg);
 
 		Game::Com_Error(error, "%s", msg.data());
 	}
