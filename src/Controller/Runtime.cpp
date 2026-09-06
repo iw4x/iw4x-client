@@ -253,7 +253,23 @@ namespace Controller
 
     apply_output_policy ();
 
-    if (!engine::read (dvars_.enabled, true) || drivers_.size () == 0)
+    const device_connection* selected (nullptr);
+
+    drivers_.for_each ([this, &selected]
+                       (driver::driver&, const device_connection& dc)
+    {
+      if (selected != nullptr && selected->id == active_)
+        return;
+
+      if (dc.id == active_ || selected == nullptr ||
+          (dc.transport == transport_kind::hid &&
+           selected->transport != transport_kind::hid))
+        selected = &dc;
+    });
+
+    const bool enabled (engine::read (dvars_.enabled, true));
+
+    if (!enabled || selected == nullptr || selected->id != active_)
     {
       if (had_device_)
       {
@@ -267,14 +283,17 @@ namespace Controller
         felt_device_ = no_device;
       }
 
-      CONTROLLER_FRAME_MARK ();
-      return;
+      if (!enabled || selected == nullptr)
+      {
+        CONTROLLER_FRAME_MARK ();
+        return;
+      }
     }
 
     input_frame candidate;
     bool have_candidate (false);
 
-    drivers_.for_each ([this, &candidate, &have_candidate]
+    drivers_.for_each ([this, selected, &candidate, &have_candidate]
                        (driver::driver& d, const device_connection& dc)
     {
       input_frame f;
@@ -282,7 +301,7 @@ namespace Controller
       if (!advance (d, dc, f))
         return;
 
-      if (!have_candidate || dc.id == active_)
+      if (dc.id == selected->id)
       {
         candidate = std::move (f);
         have_candidate = true;
@@ -296,9 +315,6 @@ namespace Controller
 
       assert (latest_.sequence > last_published_);
       last_published_ = latest_.sequence;
-
-      if (active_ != latest_.device)
-        keys_.release_all ();
 
       active_ = latest_.device;
       had_device_ = true;
