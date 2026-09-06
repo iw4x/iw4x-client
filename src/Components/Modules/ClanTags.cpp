@@ -71,6 +71,12 @@ namespace Components
 		return input;
 	}
 
+	void ClanTags::SetClanName(const char* name)
+	{
+		assert(ClanName);
+		Game::Dvar_SetString(ClanName, name ? name : "");
+	}
+
 	void ClanTags::CL_SanitizeClanName()
 	{
 		char saneNameBuf[MAX_CLAN_NAME_LENGTH]{};
