@@ -329,11 +329,20 @@ namespace Controller
       if (const auto* e = std::get_if<haptic::effect> (&request))
       {
         if (policy_.rumble && play_effect (*e))
+        {
+          reported_effect_drop_ = false;
           return;
+        }
 
-        ctx_.report (severity::info, facility::driver, errc::output_rejected,
-                     device_, "DualSense dropped a haptic effect: its actuators are "
-                              "not being driven");
+        if (!reported_effect_drop_)
+        {
+          reported_effect_drop_ = true;
+
+          ctx_.report (severity::info, facility::driver, errc::output_rejected,
+                       device_, "DualSense dropped a haptic effect: its actuators "
+                                "are not being driven");
+        }
+
         return;
       }
 
@@ -396,6 +405,7 @@ namespace Controller
       {
         haptics_.reset ();
         reported_fallback_ = false;
+        reported_effect_drop_ = false;
       }
 
       if (haptics_ != nullptr)

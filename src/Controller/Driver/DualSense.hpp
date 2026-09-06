@@ -87,6 +87,7 @@ namespace Controller
       bool haptics_failed_ {false};
 
       bool reported_fallback_ {false};
+      bool reported_effect_drop_ {false};
 
       bool emulating_ {false};
     };
