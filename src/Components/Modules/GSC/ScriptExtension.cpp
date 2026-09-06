@@ -31,7 +31,6 @@ namespace Components::GSC
 	{
 		if (!pos)
 		{
-			// This seems to happen often and there should not be pointers to NULL in our map
 			return;
 		}
 
@@ -138,7 +137,6 @@ namespace Components::GSC
 			SetReplacedPos(what, with);
 		});
 
-
 		Script::AddFunction("GetSystemMilliseconds", [] // gsc: GetSystemMilliseconds()
 		{
 			SYSTEMTIME time;
@@ -159,7 +157,6 @@ namespace Components::GSC
 			Command::Execute(str, false);
 		});
 
-		// Allow printing to the console even when developer is 0
 		Script::AddFunction("PrintConsole", [] // gsc: PrintConsole(<string>)
 		{
 			for (std::size_t i = 0; i < Game::Scr_GetNumParam(); ++i)
