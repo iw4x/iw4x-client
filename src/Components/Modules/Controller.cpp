@@ -67,6 +67,9 @@ namespace Components
 			!::Controller::engine::read(theRuntime->dvars().haptics, true))
 			return;
 
+		if (!theRuntime->supports_haptics())
+			return;
+
 		theRuntime->submit(effect);
 	}
 

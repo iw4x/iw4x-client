@@ -72,6 +72,13 @@ namespace Controller
     dvars () const noexcept {return dvars_;}
 
     bool
+    supports_haptics () const noexcept
+    {
+      return active_ != no_device &&
+             latest_.state.caps.has (capability::haptics);
+    }
+
+    bool
     submit (const driver::output_request&);
 
     void
