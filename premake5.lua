@@ -60,6 +60,12 @@ newoption {
 	description = "Do not perform integrity checks on the exe."
 }
 
+newoption {
+	trigger = "sentry-dsn",
+	description = "Sentry DSN that crash reports are submitted to. Crash reporting is compiled out when this is not given.",
+	value = "URL"
+}
+
 newaction {
 	trigger = "version",
 	description = "Returns the version string for the current commit of the source code.",
@@ -201,7 +207,7 @@ workspace "iw4x"
 
 	filter "configurations:Release"
 		optimize "Size"
-		buildoptions {"/GL"}
+		buildoptions {"/GL", "/Oy-"}
 		linkoptions {"/IGNORE:4702", "/LTCG"}
 		defines {"NDEBUG"}
 		fatalwarnings { "all" }
@@ -235,6 +241,14 @@ workspace "iw4x"
 			defines {"DISABLE_BINARY_CHECK"}
 		end
 
+		if _OPTIONS["sentry-dsn"] then
+			defines {"IW4X_SENTRY_DSN=" .. cstrquote(_OPTIONS["sentry-dsn"])}
+		end
+
+		filter "configurations:Release"
+			linkoptions {"/OPT:NOICF"}
+		filter {}
+
 		-- Pre-compiled header
 		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
@@ -262,6 +276,10 @@ workspace "iw4x"
 					"copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "\"",
 				}
 			end
+
+			postbuildcommands {
+				"copy /y \"$(TargetDir)*.exe\" \"" .. saneCopyToPath .. "\"",
+			}
 
 			-- This has to be the last one, as otherwise VisualStudio will succeed building even if copying fails
 			postbuildcommands {

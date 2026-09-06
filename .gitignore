@@ -149,6 +149,9 @@ ida/*
 # User scripts
 user*.bat
 
+# Local Sentry configuration
+sentry.bash
+
 ### Visual Studio Code
 .vscode/
 
