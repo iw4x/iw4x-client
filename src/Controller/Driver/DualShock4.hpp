@@ -52,6 +52,7 @@ namespace Controller
       connection link_;
 
       bool minimal_reported_ {false};
+      bool unencodable_reported_ {false};
 
       output_policy policy_ {};
 
