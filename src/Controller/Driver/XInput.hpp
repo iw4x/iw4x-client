@@ -36,6 +36,9 @@ namespace Controller
       void
       submit (const output_request&) noexcept override;
 
+      std::string
+      diagnostics () const override;
+
     private:
       const context& ctx_;
       const transport::xinput_module& module_;

@@ -36,6 +36,9 @@ namespace Controller
       void
       configure (const output_policy&) noexcept override;
 
+      std::string
+      diagnostics () const override;
+
     private:
       void
       submit_report (const output_request&) noexcept;

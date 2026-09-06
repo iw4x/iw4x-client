@@ -283,6 +283,14 @@ namespace Controller
       submit_report (request);
     }
 
+    std::string
+    dualshock4_driver::
+    diagnostics () const
+    {
+      return "haptics: unavailable, because a DualShock 4 exposes nothing but its "
+             "two rumble motors";
+    }
+
     void
     dualshock4_driver::
     submit_report (const output_request& request) noexcept
