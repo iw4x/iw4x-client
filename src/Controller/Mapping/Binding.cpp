@@ -196,5 +196,47 @@ namespace Controller
       t.bind (engine_key::dpad_left,  action::action_slot_3);
       t.bind (engine_key::dpad_right, action::action_slot_4);
     }
+
+    namespace
+    {
+      bool
+      same_bindings (const binding_table& a, const binding_table& b) noexcept
+      {
+        for (const engine_key k: keys ())
+        {
+          const std::string* const x (a.command_for (k));
+          const std::string* const y (b.command_for (k));
+
+          if ((x == nullptr) != (y == nullptr))
+            return false;
+
+          if (x != nullptr && *x != *y)
+            return false;
+        }
+
+        return true;
+      }
+    }
+
+    bool
+    matches_button_layout (const binding_table& t)
+    {
+      binding_table stock;
+
+      for (const layout& l: layouts)
+      {
+        for (const bool alt: {false, true})
+        {
+          apply_button_layout (stock,
+                               alt ? std::string (l.name) + std::string (alt_suffix)
+                                   : std::string (l.name));
+
+          if (same_bindings (t, stock))
+            return true;
+        }
+      }
+
+      return false;
+    }
   }
 }

@@ -43,5 +43,8 @@ namespace Controller
 
     void
     apply_button_layout (binding_table&, std::string_view name);
+
+    bool
+    matches_button_layout (const binding_table&);
   }
 }

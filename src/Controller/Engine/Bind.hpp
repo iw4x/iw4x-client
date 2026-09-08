@@ -21,6 +21,9 @@ namespace Controller
       apply_configured_layout ();
 
       void
+      apply_startup_layout ();
+
+      void
       poll_configured_layout ();
 
       void
@@ -37,7 +40,13 @@ namespace Controller
 
     private:
       void
+      install_configured_layout (bool keep_config_bindings);
+
+      void
       migrate_controller_commands ();
+
+      bool
+      bindings_customized () const;
 
       const context& ctx_;
       const dvars& dvars_;

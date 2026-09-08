@@ -77,14 +77,70 @@ namespace Controller
     bind_bridge::
     apply_configured_layout ()
     {
+      install_configured_layout (false);
+    }
+
+    void
+    bind_bridge::
+    apply_startup_layout ()
+    {
+      install_configured_layout (true);
+    }
+
+    void
+    bind_bridge::
+    install_configured_layout (bool keep_config_bindings)
+    {
       const char* const name (read (dvars_.buttons_config, "buttons_default"));
 
       applied_ = name;
 
       migrate_controller_commands ();
 
-      if (std::strcmp (name, custom_layout) != 0)
-        apply_layout (name);
+      if (std::strcmp (name, custom_layout) == 0)
+        return;
+
+      if (keep_config_bindings && bindings_customized ())
+      {
+        ctx_.report (severity::info, facility::mapping, errc::none,
+                     "kept the controller bindings loaded from the config; "
+                     "layout '" + std::string (name) + "' left unapplied");
+        return;
+      }
+
+      apply_layout (name);
+    }
+
+    bool
+    bind_bridge::
+    bindings_customized () const
+    {
+      mapping::binding_table t;
+
+      const PlayerKeyState& ks (playerKeys[local_client]);
+
+      for (const engine_key k: mapping::keys ())
+      {
+        const char* const command (ks.keys[static_cast<int> (k)].binding);
+
+        if (command != nullptr && command[0] != '\0')
+          t.bind (k, command);
+      }
+
+      // An empty table means we haven't got any controller bindings to
+      // compare against the predefined layouts. This normally happens
+      // for a fresh profile before the default bindings have been
+      // applied.
+      //
+      // Note that treating such a table as failing to match a layout
+      // would make the profile appear customized and, as a result,
+      // leave it without the default controller bindings. So handle
+      // this case explicitly.
+      //
+      if (t.size () == 0)
+        return false;
+
+      return !mapping::matches_button_layout (t);
     }
 
     void

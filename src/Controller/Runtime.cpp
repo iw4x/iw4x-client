@@ -60,7 +60,7 @@ namespace Controller
     dvars_ = engine::register_dvars (ctx_);
     engine::register_commands (ctx_, *this);
 
-    binds_.apply_configured_layout ();
+    binds_.apply_startup_layout ();
 
     discovery_.scan_now ();
 
