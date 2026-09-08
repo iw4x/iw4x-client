@@ -62,8 +62,6 @@ namespace Controller
 
     binds_.apply_startup_layout ();
 
-    discovery_.scan_now ();
-
     engine_ready_ = true;
   }
 
@@ -246,8 +244,13 @@ namespace Controller
 
     binds_.poll_configured_layout ();
 
-    discovery_.scan ();
-    drivers_.reconcile (devices_);
+    const bool enabled (engine::read (dvars_.enabled, true));
+
+    if (enabled)
+    {
+      discovery_.scan ();
+      drivers_.reconcile (devices_);
+    }
 
     engine::publish_present (dvars_, drivers_.size () != 0);
 
@@ -266,8 +269,6 @@ namespace Controller
            selected->transport != transport_kind::hid))
         selected = &dc;
     });
-
-    const bool enabled (engine::read (dvars_.enabled, true));
 
     if (!enabled || selected == nullptr || selected->id != active_)
     {

@@ -4,7 +4,6 @@
 
 #include <windows.h>
 #include <dbt.h>
-#include <hidsdi.h>
 
 namespace Controller
 {
@@ -12,7 +11,11 @@ namespace Controller
   {
     namespace
     {
-      constexpr wchar_t window_class[] {L"iw4x_controller_devnotify"};
+      constexpr wchar_t  window_class[] {L"iw4x_controller_devnotify"};
+      constexpr UINT_PTR rescan_timer   {1};
+      constexpr UINT_PTR retry_timer    {2};
+      constexpr UINT     rescan_delay   {300};
+      constexpr UINT     retry_delay    {2000};
 
       std::atomic<bool>*
       flag_of (HWND w) noexcept
@@ -28,14 +31,41 @@ namespace Controller
         {
           case WM_DEVICECHANGE:
             {
-              if (wp == DBT_DEVICEARRIVAL || wp == DBT_DEVICEREMOVECOMPLETE)
+              const DEV_BROADCAST_HDR* change (
+                reinterpret_cast<const DEV_BROADCAST_HDR*> (lp));
+
+              if ((wp == DBT_DEVICEARRIVAL || wp == DBT_DEVICEREMOVECOMPLETE) &&
+                  change != nullptr &&
+                  change->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
               {
-                if (std::atomic<bool>* f = flag_of (w))
-                  f->store (true, std::memory_order_release);
+                const UINT_PTR first (
+                  SetTimer (w, rescan_timer, rescan_delay, nullptr));
+                const UINT_PTR retry (
+                  SetTimer (w, retry_timer, retry_delay, nullptr));
+
+                if (first == 0 || retry == 0)
+                {
+                  if (std::atomic<bool>* f = flag_of (w))
+                    f->store (true, std::memory_order_release);
+                }
               }
 
               return TRUE;
             }
+
+          case WM_TIMER:
+					  {
+							if (wp == rescan_timer || wp == retry_timer)
+							{
+								KillTimer (w, wp);
+
+								if (std::atomic<bool>* f = flag_of (w))
+									f->store (true, std::memory_order_release);
+
+								return 0;
+							}
+						}
+            break;
 
           case WM_CLOSE:
             DestroyWindow (w);
@@ -71,6 +101,7 @@ namespace Controller
       if (RegisterClassExW (&wc) == 0 &&
           GetLastError () != ERROR_CLASS_ALREADY_EXISTS)
       {
+        failed_.store (true, std::memory_order_release);
         ctx.report (severity::warning, facility::discovery, errc::transport_failure,
                     "device-change window class registration failed; discovery "
                     "will poll");
@@ -83,6 +114,7 @@ namespace Controller
 
       if (window == nullptr)
       {
+        failed_.store (true, std::memory_order_release);
         ctx.report (severity::warning, facility::discovery, errc::transport_failure,
                     "device-change window creation failed; discovery will poll");
         return;
@@ -96,21 +128,23 @@ namespace Controller
         PostMessageW (window, WM_CLOSE, 0, 0);
       });
 
-      GUID hid_guid {};
-      HidD_GetHidGuid (&hid_guid);
-
       DEV_BROADCAST_DEVICEINTERFACE_W filter {};
       filter.dbcc_size = sizeof (filter);
       filter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-      filter.dbcc_classguid = hid_guid;
 
       HDEVNOTIFY notify (
         RegisterDeviceNotificationW (window, &filter,
-                                     DEVICE_NOTIFY_WINDOW_HANDLE));
+                                     DEVICE_NOTIFY_WINDOW_HANDLE |
+                                     DEVICE_NOTIFY_ALL_INTERFACE_CLASSES));
 
       if (notify == nullptr)
+      {
+        failed_.store (true, std::memory_order_release);
         ctx.report (severity::warning, facility::discovery, errc::transport_failure,
-                    "HID device-change registration failed; discovery will poll");
+                    "device-change registration failed; discovery will poll");
+      }
+
+      pending_.store (true, std::memory_order_release);
 
       MSG m;
       while (GetMessageW (&m, nullptr, 0, 0) > 0)
@@ -118,6 +152,9 @@ namespace Controller
         TranslateMessage (&m);
         DispatchMessageW (&m);
       }
+
+      if (!stop.stop_requested ())
+        failed_.store (true, std::memory_order_release);
 
       if (notify != nullptr)
         UnregisterDeviceNotification (notify);

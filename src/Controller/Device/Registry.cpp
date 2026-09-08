@@ -23,7 +23,7 @@ namespace Controller
     device_id id;
 
     {
-      std::lock_guard<std::mutex> l (mutex_);
+      std::scoped_lock l (mutex_);
 
       for (device_connection& d: devices_)
       {
@@ -57,7 +57,7 @@ namespace Controller
     Controller::family family {Controller::family::unknown};
 
     {
-      std::lock_guard<std::mutex> l (mutex_);
+      std::scoped_lock l (mutex_);
 
       auto i (std::find_if (devices_.begin (), devices_.end (),
                             [id] (const device_connection& d)
@@ -83,7 +83,7 @@ namespace Controller
   registry::
   find (device_id id) const
   {
-    std::lock_guard<std::mutex> l (mutex_);
+    std::scoped_lock l (mutex_);
 
     for (const device_connection& d: devices_)
     {
@@ -98,7 +98,7 @@ namespace Controller
   registry::
   for_each (function_ref<void (const device_connection&)> fn) const
   {
-    std::lock_guard<std::mutex> l (mutex_);
+    std::scoped_lock l (mutex_);
 
     for (const device_connection& d: devices_)
       fn (d);
@@ -108,7 +108,7 @@ namespace Controller
   registry::
   size () const
   {
-    std::lock_guard<std::mutex> l (mutex_);
+    std::scoped_lock l (mutex_);
     return devices_.size ();
   }
 }

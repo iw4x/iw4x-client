@@ -23,11 +23,15 @@ namespace Controller
       bool
       consume () noexcept {return pending_.exchange (false, std::memory_order_acquire);}
 
+      bool
+      failed () const noexcept {return failed_.load (std::memory_order_acquire);}
+
     private:
       void
       run (std::stop_token, context) noexcept;
 
       std::atomic<bool> pending_ {false};
+      std::atomic<bool> failed_ {false};
 
       std::jthread thread_;
     };

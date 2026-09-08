@@ -15,16 +15,19 @@ namespace Controller
   public:
     discovery (const context&, registry&, const transport::xinput_module&);
 
+    discovery (const discovery&) = delete;
+    discovery& operator= (const discovery&) = delete;
+
     void
     scan ();
 
+  private:
     void
     scan_now ();
 
-    static constexpr clock::duration interval {
-      std::chrono::milliseconds (1000)};
+    void
+    run (std::stop_token) noexcept;
 
-  private:
     void
     scan_xinput (std::vector<transport_binding>& seen);
 
@@ -44,5 +47,9 @@ namespace Controller
     timestamp last_scan_ {};
 
     std::vector<std::wstring> unbound_ {};
+
+    std::atomic<bool> pending_ {false};
+
+    std::jthread thread_;
   };
 }

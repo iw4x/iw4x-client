@@ -11,6 +11,8 @@ namespace Controller
 {
   namespace
   {
+    constexpr clock::duration fallback_interval {std::chrono::seconds (5)};
+
     constexpr uint8_t subtype_wheel {0x02};
     constexpr uint8_t subtype_arcade_stick {0x03};
     constexpr uint8_t subtype_flight_stick {0x04};
@@ -89,7 +91,11 @@ namespace Controller
   discovery (const context& ctx,
              registry& r,
              const transport::xinput_module& x)
-    : ctx_ (ctx), registry_ (r), xinput_ (x), notifier_ (ctx)
+    : ctx_ (ctx),
+      registry_ (r),
+      xinput_ (x),
+      notifier_ (ctx),
+      thread_ ([this] (std::stop_token t) {run (std::move (t));})
   {
   }
 
@@ -100,13 +106,47 @@ namespace Controller
     const bool changed (notifier_.consume ());
     const timestamp now (clock::now ());
 
-    if (!changed && scanned_ && now - last_scan_ < interval)
+    if (!changed && scanned_ &&
+        (!notifier_.failed () || now - last_scan_ < fallback_interval))
       return;
 
     last_scan_ = now;
     scanned_ = true;
 
-    scan_now ();
+    pending_.store (true, std::memory_order_release);
+    pending_.notify_one ();
+  }
+
+  void
+  discovery::
+  run (std::stop_token stop) noexcept
+  {
+    const std::stop_callback wake (stop, [this] () noexcept
+    {
+      pending_.store (true, std::memory_order_release);
+      pending_.notify_one ();
+    });
+
+    while (!stop.stop_requested ())
+    {
+      pending_.wait (false, std::memory_order_acquire);
+
+      if (stop.stop_requested ())
+        return;
+
+      pending_.store (false, std::memory_order_relaxed);
+
+      try
+      {
+        scan_now ();
+      }
+      catch (const std::exception& e)
+      {
+        ctx_.report (severity::warning, facility::discovery,
+                     errc::transport_failure,
+                     std::string ("device scan failed: ") + e.what ());
+      }
+    }
   }
 
   void
