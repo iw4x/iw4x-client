@@ -11,10 +11,14 @@ namespace Components
 		static bool IsMuted(const Game::gentity_s* ent);
 		static bool IsMuted(const Game::client_s* cl);
 
+		static bool IsChatBlacklistEnabled();
+		static bool ContainsBlacklistedPhrase(const std::string& text);
+
 	private:
 		static Dvar::Var cg_chatWidth;
 		static Dvar::Var sv_disableChat;
 		static Dvar::Var sv_sayName;
+		static Dvar::Var cl_autoMuteBlacklist;
 
 		static bool SendChat;
 
@@ -22,10 +26,15 @@ namespace Components
 		static Utils::Concurrency::Container<muteList> MutedList;
 		static const char* MutedListFile;
 
+		using blacklist = std::unordered_set<std::string>;
+		static Utils::Concurrency::Container<blacklist> Blacklist;
+		static const char* BlacklistFile;
+
 		static bool CanAddCallback; // ClientCommand & GSC thread are the same
 		static std::vector<Scripting::Function> SayCallbacks;
 
 		static std::unique_lock<Utils::NamedMutex> Lock();
+		static std::unique_lock<Utils::NamedMutex> BlacklistLock();
 
 		static const char* EvaluateSay(char* text, Game::gentity_s* player, int mode);
 
@@ -42,6 +51,9 @@ namespace Components
 		static void SaveMutedList(const muteList& list);
 		static void LoadMutedList();
 
+		static void SaveBlacklist(const blacklist& list);
+		static void LoadBlacklist();
+
 		static void AddServerCommands();
 
 		static int GetCallbackReturn();
@@ -49,5 +61,6 @@ namespace Components
 		static void AddScriptFunctions();
 
 		static bool CL_IsMessageFromMutedUser(const std::string& txt);
+		static bool CL_AutoMuteIfBlacklisted(const std::string& text);
 	};
 }
