@@ -5,8 +5,38 @@
 namespace Components
 {
 	const Game::dvar_t* Weapon::BGWeaponOffHandFix;
+	const Game::dvar_t* Weapon::BGAdsTransitionTimeFix;
 	const Game::dvar_t* Weapon::CGRecoilMultiplier;
 	const Game::dvar_t* Weapon::BGDisableDoubleTaps;
+
+	void Weapon::ApplyAdsTransitionTimes(Game::WeaponCompleteDef* weapon)
+	{
+		AssertOffset(Game::WeaponCompleteDef, iAdsTransInTime, 0x18);
+		AssertOffset(Game::WeaponCompleteDef, iAdsTransOutTime, 0x1C);
+		AssertOffset(Game::WeaponDef, fOOPosAnimLength, 0x590);
+
+		// What the game falls back on when a weapon file leaves the times at or below zero
+		constexpr auto defaultAdsTransInTime = 300.0f;
+		constexpr auto defaultAdsTransOutTime = 500.0f;
+
+		if (!weapon || !weapon->weapDef)
+		{
+			return;
+		}
+
+		if (!BGAdsTransitionTimeFix || !BGAdsTransitionTimeFix->current.enabled)
+		{
+			return;
+		}
+
+		weapon->weapDef->fOOPosAnimLength[0] = 1.0f / (weapon->iAdsTransInTime > 0
+			? static_cast<float>(weapon->iAdsTransInTime)
+			: defaultAdsTransInTime);
+
+		weapon->weapDef->fOOPosAnimLength[1] = 1.0f / (weapon->iAdsTransOutTime > 0
+			? static_cast<float>(weapon->iAdsTransOutTime)
+			: defaultAdsTransOutTime);
+	}
 
 	Game::WeaponCompleteDef* Weapon::LoadWeaponCompleteDef(const char* name)
 	{
@@ -84,11 +114,18 @@ namespace Components
 				}
 			}
 
+			ApplyAdsTransitionTimes(rawWeaponFile);
 			return rawWeaponFile;
 		}
 
 		auto* zoneWeaponFile = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_WEAPON, name).weapon;
-		return Game::DB_IsXAssetDefault(Game::ASSET_TYPE_WEAPON, name) ? nullptr : zoneWeaponFile;
+		if (Game::DB_IsXAssetDefault(Game::ASSET_TYPE_WEAPON, name))
+		{
+			return nullptr;
+		}
+
+		ApplyAdsTransitionTimes(zoneWeaponFile);
+		return zoneWeaponFile;
 	}
 
 	void Weapon::SaveRegisteredWeapons()
@@ -553,6 +590,9 @@ namespace Components
 			// Steam version uses a limit of 1400 weapons and other clients use the default limit of 1200 weapons
 			PatchLimit();
 		}
+
+		BGAdsTransitionTimeFix = Game::Dvar_RegisterBool("bg_adsTransitionTimeFix", true, Game::DVAR_CODINFO,
+			"Apply adsTransInTime/adsTransOutTime to weapons that were loaded from a fastfile");
 
 		// BG_LoadWEaponCompleteDef_FastFile
 		Utils::Hook(0x57B650, LoadWeaponCompleteDef, HOOK_JUMP).install()->quick();

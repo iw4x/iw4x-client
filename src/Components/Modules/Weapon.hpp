@@ -18,8 +18,10 @@ namespace Components
 
 	private:
 		static const Game::dvar_t* BGWeaponOffHandFix;
+		static const Game::dvar_t* BGAdsTransitionTimeFix;
 		static const Game::dvar_t* CGRecoilMultiplier;
 
+		static void ApplyAdsTransitionTimes(Game::WeaponCompleteDef* weapon);
 		static Game::WeaponCompleteDef* LoadWeaponCompleteDef(const char* name);
 		static void PatchLimit();
 		static void* LoadNoneWeaponHook();
