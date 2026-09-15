@@ -24,6 +24,11 @@ namespace Assets
 			Components::AssetHandler::ExposeTemporaryAssets(true);
 			header->data = Game::BG_LoadWeaponDef_LoadObj(name.data());
 			Components::AssetHandler::ExposeTemporaryAssets(false);
+
+			if (header->weapon)
+			{
+				return;
+			}
 		}
 
 		// Fallback on original
