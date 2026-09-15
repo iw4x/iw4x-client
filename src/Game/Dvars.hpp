@@ -126,6 +126,7 @@ namespace Game
 	extern const dvar_t** cl_shownet;
 
 	extern const dvar_t** g_cheats;
+	extern const dvar_t** g_giveAll;
 	extern const dvar_t** g_deadChat;
 	extern const dvar_t** g_allowVote;
 	extern const dvar_t** g_oldVoting;

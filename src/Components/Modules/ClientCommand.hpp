@@ -44,5 +44,46 @@ namespace Components
 		static void GiveMaxAmmo(Game::gentity_s* ent);
 		static void GiveAllWeapons(Game::gentity_s* ent);
 		static void SetOffhandClass(Game::gentity_s* ent, unsigned int weaponIndex);
+
+		enum class GiveAllSource
+		{
+			StackArgument,
+			PlayerState,
+			Entity,
+			PredictedPlayerState,
+		};
+
+		enum GiveAllRegister
+		{
+			REG_EDI,
+			REG_ESI,
+			REG_EBP,
+			REG_ESP,
+			REG_EBX,
+			REG_EDX,
+			REG_ECX,
+			REG_EAX,
+		};
+
+		struct GiveAllSite
+		{
+			std::uintptr_t address;
+			std::size_t size;
+			GiveAllSource source;
+			int location;
+			GiveAllRegister target;
+		};
+
+		static std::array<bool, Game::MAX_CLIENTS> GiveAllClients;
+		static std::unordered_map<std::uintptr_t, GiveAllSite> GiveAllSites;
+		static Game::dvar_t GiveAllDvar;
+
+		static bool HasGiveAll(const Game::playerState_s* ps);
+		static void SetGiveAll(Game::gentity_s* ent, bool enabled);
+		static void GiveAll_Hk(std::uintptr_t* frame);
+		static void GiveAll_Stub();
+		static void PatchGiveAll();
+		static void GiveAllAmmo(Game::gentity_s* ent, bool refill);
+		static int BG_GetAmmoPlayerMax_Hk(Game::playerState_s* ps, unsigned int weaponIndex, unsigned int weaponIndexToSkip);
 	};
 }

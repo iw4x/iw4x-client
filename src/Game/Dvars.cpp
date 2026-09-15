@@ -72,6 +72,7 @@ namespace Game
 	const dvar_t** cl_shownet = reinterpret_cast<const dvar_t**>(0x1059008);
 
 	const dvar_t** g_cheats = reinterpret_cast<const dvar_t**>(0x1A45D54);
+	const dvar_t** g_giveAll = reinterpret_cast<const dvar_t**>(0x19BD654);
 	const dvar_t** g_deadChat = reinterpret_cast<const dvar_t**>(0x19BD5DC);
 	const dvar_t** g_allowVote = reinterpret_cast<const dvar_t**>(0x19BD644);
 	const dvar_t** g_oldVoting = reinterpret_cast<const dvar_t**>(0x1A45DEC);
