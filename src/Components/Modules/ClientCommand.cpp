@@ -776,6 +776,356 @@ namespace Components
 		GiveAllDvar.type = Game::DVAR_TYPE_BOOL;
 		GiveAllDvar.current.enabled = true;
 
+		// The story here is a little involved. So let's first explain what we
+		// are trying to achieve and then how all this machine state business
+		// comes into it.
+		//
+		// The stock game has g_giveAll as a regular global dvar. Weapon code
+		// reads it in a number of places and, if it is enabled, behaves as if
+		// the player has access to every weapon. This is fine for the original
+		// use of the dvar where give-all really is global.
+		//
+		// For our `give all` command we want slightly different semantics. The
+		// command applies to one client, so setting the real g_giveAll dvar
+		// would make every player get the same behavior.
+		//
+		// We could, of course, patch all the weapon code that depends on
+		// g_giveAll and teach each place about GiveAllClients. There are quite
+		// a few such places and most of them already do exactly what we need
+		// once they see a true g_giveAll dvar. So let's leave that code alone
+		// and substitute the dvar pointer that it sees.
+		//
+		// GiveAllDvar is this substitute. It looks like g_giveAll to the engine
+		// and has its boolean value permanently set to true. At each site below
+		// we decide which pointer the original code should see:
+		//
+		//   &GiveAllDvar
+		//
+		// if give-all is enabled for the player involved in the current weapon
+		// operation, or:
+		//
+		//   *Game::g_giveAll
+		//
+		// in every other case.
+		//
+		// Note that this preserves the stock global g_giveAll behavior. If the
+		// real dvar is enabled, HasGiveAll() returns true independently of the
+		// client state and these sites see a true dvar just as they did before.
+		//
+		// Now, the slightly awkward part is figuring out which player a given
+		// g_giveAll read belongs to.
+		//
+		// These reads are spread across different engine functions and there is
+		// no useful convention such as "the player is always in EDI". At one
+		// site we have playerState_s* in ESI. Somewhere else EDI contains
+		// gentity_s*. At another site the pointer we need lives on the stack.
+		// The client prediction paths already have their player in
+		// cgArray->predictedPlayerState.
+		//
+		// So each GiveAllSite records two things we recovered from the
+		// disassembly:
+		//
+		//   1. Where to find the player associated with this g_giveAll read.
+		//
+		//   2. Which register the original instruction used to receive the
+		//      g_giveAll pointer.
+		//
+		// The second part is easy to miss. We are replacing an instruction, so
+		// finding the player and deciding which dvar to use is only part of the
+		// job. When control returns to the engine we have to leave the machine
+		// state in the form that the replaced instruction would have produced,
+		// with the possible substitution of GiveAllDvar for g_giveAll.
+		//
+		// For example, suppose the original instruction was effectively:
+		//
+		//   EAX = g_giveAll;
+		//
+		// Then our hook has to return with EAX containing either
+		// *Game::g_giveAll or &GiveAllDvar. Putting the right pointer in ECX
+		// does us no good since the next instruction expects it in EAX.
+		//
+		// This is what the final REG_* value in every entry describes.
+		//
+		// Take this entry:
+		//
+		//   { 0x43ACD4, 5, GiveAllSource::PlayerState, REG_ESI, REG_EAX }
+		//
+		// Reading it from left to right:
+		//
+		//   0x43ACD4
+		//
+		// is the address of the engine instruction that used to read
+		// g_giveAll.
+		//
+		//   5
+		//
+		// is the size of that instruction in bytes.
+		//
+		//   GiveAllSource::PlayerState
+		//
+		// says that `location` identifies a saved register containing
+		// playerState_s*.
+		//
+		//   REG_ESI
+		//
+		// says that ESI contains playerState_s* at this exact point in the
+		// function.
+		//
+		//   REG_EAX
+		//
+		// says that the original instruction placed the g_giveAll pointer in
+		// EAX.
+		//
+		// Or, written approximately as C++:
+		//
+		//   player = reinterpret_cast<playerState_s*>(ESI);
+		//
+		//   EAX = HasGiveAll(player)
+		//       ? &GiveAllDvar
+		//       : *Game::g_giveAll;
+		//
+		// Of course, we cannot put all of that at 0x43ACD4. We have five bytes
+		// there and we need to preserve the register state around the original
+		// instruction. This is where GiveAll_Stub and PUSHAD come in.
+		//
+		// Each site is replaced with a near CALL to GiveAll_Stub. On x86
+		// this CALL takes five bytes. GiveAll_Stub then does:
+		//
+		//   pushad
+		//   push esp
+		//   call GiveAll_Hk
+		//   add  esp, 4
+		//   popad
+		//   ret
+		//
+		// PUSHAD saves all of the general-purpose registers for us. This gives
+		// GiveAll_Hk() a snapshot of the register state at the point where the
+		// engine reached the patched instruction.
+		//
+		// There is one x86 detail here that is rather easy to get backwards
+		// from the C++ side.
+		//
+		// PUSHAD pushes:
+		//
+		//   EAX
+		//   ECX
+		//   EDX
+		//   EBX
+		//   original ESP
+		//   EBP
+		//   ESI
+		//   EDI
+		//
+		// The stack grows downwards. So once PUSHAD has finished, ESP points at
+		// the last value pushed, EDI. When GiveAll_Hk() receives this ESP as a
+		// uintptr_t array, the layout looks like this:
+		//
+		//   frame[0] = EDI
+		//   frame[1] = ESI
+		//   frame[2] = EBP
+		//   frame[3] = original ESP saved by PUSHAD
+		//   frame[4] = EBX
+		//   frame[5] = EDX
+		//   frame[6] = ECX
+		//   frame[7] = EAX
+		//
+		// Immediately above the PUSHAD frame we have:
+		//
+		//   frame[8] = return address pushed by our hook CALL
+		//
+		// and after that we are back at the stack that existed at the original
+		// patch site:
+		//
+		//   frame[9] = value at [ESP + 0] before our CALL
+		//   ...
+		//
+		// Note that REG_EAX and friends are indices into this PUSHAD frame. They
+		// are not the register encodings used by x86 instructions. REG_EAX, for
+		// example, is the index for frame[7].
+		//
+		// With the current stub we have:
+		//
+		//   REG_EDI -> frame[0]
+		//   REG_ESI -> frame[1]
+		//   REG_EBP -> frame[2]
+		//   REG_ESP -> frame[3]
+		//   REG_EBX -> frame[4]
+		//   REG_EDX -> frame[5]
+		//   REG_ECX -> frame[6]
+		//   REG_EAX -> frame[7]
+		//
+		// This gives us a convenient trick. Changing one of these saved values
+		// changes what POPAD restores later. So if the original instruction
+		// wanted g_giveAll in EAX, GiveAll_Hk() changes frame[REG_EAX]. POPAD
+		// then puts our selected pointer into EAX and the engine carries on as
+		// if the original load had happened there.
+		//
+		// The same PUSHAD frame gives us the source register when the player is
+		// already available in one.
+		//
+		// GiveAllSource::PlayerState means `location` is a REG_* value and the
+		// corresponding register contains playerState_s*. For example:
+		//
+		//   { 0x5D8D22, 5, GiveAllSource::PlayerState, REG_EBX, REG_EAX }
+		//
+		// means EBX contains playerState_s* at 0x5D8D22 and the original
+		// g_giveAll load writes to EAX.
+		//
+		// GiveAllSource::Entity is the same idea except that the source register
+		// contains gentity_s*. For example:
+		//
+		//   { 0x5D8EA0, 5, GiveAllSource::Entity, REG_EDI, REG_EAX }
+		//
+		// means EDI contains gentity_s* at 0x5D8EA0. GiveAll_Hk() follows
+		// ent->client to obtain the corresponding player state and then puts the
+		// selected dvar pointer into the saved EAX slot.
+		//
+		// Note that the register name by itself tells us nothing about the type
+		// of pointer stored there. EDI contains gentity_s* at some of these
+		// sites and playerState_s* at others. This is simply what the surrounding
+		// machine code tells us at each address. So don't infer the source type
+		// from another entry that happens to use the same register.
+		//
+		// Then we have GiveAllSource::StackArgument. For example:
+		//
+		//   { 0x43AC60, 5, GiveAllSource::StackArgument, 4, REG_EAX }
+		//
+		// Here the playerState_s* is at [ESP + 4] as seen at 0x43AC60.
+		//
+		// The `4` deserves a bit of explanation since the StackArgument name can
+		// make this look more abstract than it really is. What GiveAll_Hk()
+		// actually has here is a byte offset from ESP at this exact instruction.
+		//
+		// The function may have adjusted ESP in its prologue, reserved stack
+		// space, pushed some temporary value, and so on before reaching this
+		// point. So the useful fact for us is simply that, at 0x43AC60, the
+		// pointer is at [ESP + 4].
+		//
+		// GiveAll_Hk() gets back to that stack using frame + 9. Recall that
+		// frame[8] is our CALL return address. Thus frame[9] corresponds to the
+		// original [ESP + 0], and an offset of 4 refers to the DWORD at the
+		// original [ESP + 4].
+		//
+		// In other words, the StackArgument case does approximately:
+		//
+		//   player = *reinterpret_cast<playerState_s**>(
+		//       original_esp + site.location);
+		//
+		// And so:
+		//
+		//   { 0x496B0D, 5, GiveAllSource::StackArgument, 8, REG_EAX }
+		//
+		// means that the playerState_s* is at [ESP + 8] at 0x496B0D.
+		//
+		// Note that these offsets belong to the individual instruction sites.
+		// A `4` here should not be read as some universal first-argument marker.
+		// If the surrounding machine code changes, then the stack offset may
+		// change with it.
+		//
+		// GiveAllSource::PredictedPlayerState is the easy case:
+		//
+		//   { 0x59EF21, 5, GiveAllSource::PredictedPlayerState, 0, REG_EAX }
+		//
+		// This code is operating on the local predicted player, so we just use:
+		//
+		//   &Game::cgArray->predictedPlayerState
+		//
+		// directly.
+		//
+		// The `0` is unused for this source. It is present since GiveAllSite has
+		// one `location` field shared by all of the source kinds. REG_EAX still
+		// matters since the original instruction expects the dvar pointer there.
+		//
+		// Now for the instruction size.
+		//
+		// Most entries have size 5, which means our five-byte CALL replaces the
+		// complete instruction exactly. A few entries have size 6:
+		//
+		//   { 0x59ECD0, 6, GiveAllSource::PredictedPlayerState, 0, REG_ECX }
+		//
+		// Here the original instruction occupied six bytes. The CALL is still
+		// five bytes, so PatchGiveAll() replaces the byte left over with a NOP.
+		// After the stub returns we execute that NOP and then continue after the
+		// original six-byte instruction.
+		//
+		// Note that we really do need to replace the complete instruction. The
+		// sixth byte is part of the old instruction and has no useful meaning
+		// once its first five bytes have become a CALL.
+		//
+		// There is a related little detail in GiveAll_Hk():
+		//
+		//   frame[8] - 5
+		//
+		// is how we recover the address of the current GiveAllSite.
+		//
+		// The `5` here is the size of our CALL, not `site.size`. frame[8] is the
+		// return address pushed by that CALL, so subtracting five gets us back
+		// to its first byte.
+		//
+		// For example, with the six-byte site at 0x59ECD0:
+		//
+		//   CALL occupies 0x59ECD0..0x59ECD4
+		//   return address is 0x59ECD5
+		//   NOP occupies 0x59ECD5
+		//   engine continues at 0x59ECD6
+		//
+		// And so:
+		//
+		//   0x59ECD5 - 5 == 0x59ECD0
+		//
+		// This is why `site.size` is used when installing the patch but not when
+		// looking up the site in GiveAll_Hk().
+		//
+		// There is another subtle point here. GiveAll_Hk() is changing the saved
+		// register frame. The compiler can use the registers as it
+		// sees fit inside the C++ function. POPAD is what copies our modified
+		// saved state back into the registers visible to the game.
+		//
+		// So take this entry:
+		//
+		//   { 0x5DC4F7, 6, GiveAllSource::Entity, REG_EDI, REG_EBX }
+		//
+		// It says:
+		//
+		//   * At 0x5DC4F7, EDI contains gentity_s*.
+		//
+		//   * The instruction being replaced is six bytes long.
+		//
+		//   * The original instruction produces the g_giveAll pointer in EBX.
+		//
+		// GiveAll_Hk() gets the entity from frame[REG_EDI], finds the
+		// corresponding player state, decides which dvar applies, and replaces
+		// frame[REG_EBX] with that pointer. POPAD restores it into EBX. RET then
+		// returns to the NOP at 0x5DC4FC, after which execution continues at
+		// 0x5DC4FD.
+		//
+		//
+		// Finally, the useful invariant to keep in mind is this: from the game's point
+		// of view, the hook should look like the original g_giveAll load. All
+		// saved registers we do not touch come back as they were. The register
+		// that originally received g_giveAll still receives a dvar pointer. For
+		// a client with give-all enabled that pointer happens to be GiveAllDvar.
+		//
+		// With that in mind the entries below can be read fairly mechanically:
+		//
+		//   { ..., GiveAllSource::PlayerState, REG_ESI, REG_EAX }
+		//
+		//     The player state is in ESI and the selected dvar goes in EAX.
+		//
+		//   { ..., GiveAllSource::Entity, REG_EDI, REG_EBX }
+		//
+		//     The entity is in EDI and the selected dvar goes in EBX.
+		//
+		//   { ..., GiveAllSource::StackArgument, 4, REG_EAX }
+		//
+		//     The player state is at [ESP + 4] and the selected dvar goes in
+		//     EAX.
+		//
+		//   { ..., GiveAllSource::PredictedPlayerState, 0, REG_ECX }
+		//
+		//     Use the local predicted player state and put the selected dvar in
+		//     ECX.
+		//
 		const GiveAllSite sites[] =
 		{
 			{ 0x43AC60, 5, GiveAllSource::StackArgument, 				4, 			 REG_EAX },
@@ -835,9 +1185,7 @@ namespace Components
 		{
 			const auto clientNum = std::strtoul(params->get(1), nullptr, 10);
 			if (clientNum < GiveAllClients.size())
-			{
 				GiveAllClients[clientNum] = std::strtol(params->get(2), nullptr, 10) != 0;
-			}
 
 			return true;
 		});
@@ -845,9 +1193,7 @@ namespace Components
 		Events::OnClientDisconnect([](const int clientNum)
 		{
 			if (static_cast<std::size_t>(clientNum) < GiveAllClients.size())
-			{
 				GiveAllClients[clientNum] = false;
-			}
 		});
 
 		Events::OnVMShutdown([]
@@ -863,17 +1209,13 @@ namespace Components
 		Scheduler::Loop([]
 		{
 			if (!Dedicated::IsRunning())
-			{
 				return;
-			}
 
 			for (std::size_t i = 0; i < GiveAllClients.size(); ++i)
 			{
 				auto* ent = &Game::g_entities[i];
 				if (ent->client && ent->client->sess.connected != Game::CON_DISCONNECTED && ent->health > 0 && HasGiveAll(&ent->client->ps))
-				{
 					GiveAllAmmo(ent, false);
-				}
 			}
 		}, Scheduler::Pipeline::SERVER);
 	}
@@ -883,9 +1225,7 @@ namespace Components
 		const auto result = Utils::Hook::Call<int(Game::playerState_s*, unsigned int, unsigned int)>(0x4A5560)(ps, weaponIndex, weaponIndexToSkip);
 
 		if (result || !HasGiveAll(ps) || weaponIndex == weaponIndexToSkip)
-		{
 			return result;
-		}
 
 		return Game::BG_GetWeaponDef(weaponIndex)->iMaxAmmo;
 	}
@@ -899,9 +1239,7 @@ namespace Components
 		const auto addWeapon = [&](const unsigned int weapon)
 		{
 			if (weapon && weapon < weaponCount && std::ranges::find(weapons, weapon) == weapons.end())
-			{
 				weapons.push_back(weapon);
-			}
 		};
 
 		addWeapon(common.weapon);
@@ -974,9 +1312,7 @@ namespace Components
 			}
 
 			if (allocated || refill)
-			{
 				Game::Add_Ammo(ent, weapon, 0, 998, 1);
-			}
 		}
 	}
 
