@@ -28,6 +28,9 @@ namespace Game
 	typedef gentity_s* (*G_Spawn_t)();
 	extern G_Spawn_t G_Spawn;
 
+	typedef int(*G_GivePlayerWeapon_t)(playerState_s* ps, unsigned int weaponIndex, unsigned char weaponModel, int akimbo);
+	extern G_GivePlayerWeapon_t G_GivePlayerWeapon;
+
 	typedef gentity_s* (*G_TempEntity_t)(float *origin, Game::entity_event_t  entity);
 	extern G_TempEntity_t G_TempEntity;
 

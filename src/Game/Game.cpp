@@ -6,6 +6,7 @@ namespace Game
 	G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
 	G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
 	G_Spawn_t G_Spawn = G_Spawn_t(0x4226F0);
+	G_GivePlayerWeapon_t G_GivePlayerWeapon = G_GivePlayerWeapon_t(0x4B38B0);
 	G_FreeEntity_t G_FreeEntity = G_FreeEntity_t(0x44C9D0);
 	G_SpawnItem_t G_SpawnItem = G_SpawnItem_t(0x403770);
 	G_TempEntity_t G_TempEntity = G_TempEntity_t(0x4511F0);
