@@ -14,4 +14,5 @@ namespace Game
 	BG_GetEquippedWeaponState_t BG_GetEquippedWeaponState = BG_GetEquippedWeaponState_t(0x4E79E0);
 	BG_PlayerHasWeapon_t BG_PlayerHasWeapon = BG_PlayerHasWeapon_t(0x4AB530);
 	BG_GetWeaponCompleteDef_t BG_GetWeaponCompleteDef = BG_GetWeaponCompleteDef_t(0x44CE00);
+	BG_TakePlayerWeapon_t BG_TakePlayerWeapon = BG_TakePlayerWeapon_t(0x41FEC0);
 }
