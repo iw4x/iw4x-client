@@ -688,6 +688,37 @@ namespace Components
 			Game::DB_LoadXAssets(&info, 1, true);
 		});
 
+		Command::Add("listassetpool", [](const Command::Params* params)
+		{
+			auto first = 0;
+			auto last = Game::ASSET_TYPE_COUNT - 1;
+
+			if (params->size() >= 2)
+			{
+				const auto type = Game::DB_GetXAssetNameType(params->get(1));
+				if (type == Game::ASSET_TYPE_INVALID)
+				{
+					Logger::PrintError(Game::CON_CHANNEL_ERROR, "Invalid asset type '{}'\n", params->get(1));
+					return;
+				}
+
+				first = last = type;
+			}
+
+			for (auto i = first; i <= last; ++i)
+			{
+				const auto type = static_cast<Game::XAssetType>(i);
+				auto count = 0u;
+
+				Game::DB_EnumXAssets(type, [](Game::XAssetHeader, void* data)
+				{
+					++*static_cast<unsigned int*>(data);
+				}, &count, false);
+
+				Logger::Print("{}: {} / {}\n", Game::DB_GetXAssetTypeName(type), count, Game::g_poolSize[type]);
+			}
+		});
+
 		Command::Add("awaitDatabase", []()
 		{
 			Logger::Print("Waiting for database...\n");
