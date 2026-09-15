@@ -158,12 +158,20 @@ namespace Components
 
 			if (params->size() < 2)
 			{
-				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: give <weapon name>\"", 0x65));
+				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: give <weapon name|ammo>\"", 0x65));
+				return;
+			}
+
+			const auto* weaponName = params->get(1);
+
+			if (ToLower(weaponName) == "ammo")
+			{
+				Logger::Debug("Giving max ammo to entity {}", ent->s.number);
+				GiveMaxAmmo(ent);
 				return;
 			}
 
 			Game::level->initializing = 1;
-			const auto* weaponName = params->get(1);
 			Logger::Debug("Giving weapon {} to entity {}", weaponName, ent->s.number);
 			const auto weaponIndex = Game::G_GetWeaponIndexForName(weaponName);
 
@@ -220,14 +228,7 @@ namespace Components
 
 			Game::level->initializing = 0;
 
-			for (std::size_t i = 0; i < std::extent_v<decltype(Game::playerState_s::weaponsEquipped)>; ++i)
-			{
-				const auto index = ent->client->ps.weaponsEquipped[i];
-				if (index)
-				{
-					Game::Add_Ammo(ent, index, 0, 998, 1);
-				}
-			}
+			GiveMaxAmmo(ent);
 		});
 
 		Add("take", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
@@ -557,6 +558,20 @@ namespace Components
 		Logger::Debug("UFO toggled for entity {}", entNum);
 
 		Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::CF_BIT_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
+	}
+
+	void ClientCommand::GiveMaxAmmo(Game::gentity_s* ent)
+	{
+		auto* client = ent->client;
+
+		for (std::size_t i = 0; i < std::extent_v<decltype(Game::playerState_s::weaponsEquipped)>; ++i)
+		{
+			const auto index = client->ps.weaponsEquipped[i];
+			if (index)
+			{
+				Game::Add_Ammo(ent, index, client->ps.weapEquippedData[i].weaponModel, 998, 1);
+			}
+		}
 	}
 
 	ClientCommand::ClientCommand()

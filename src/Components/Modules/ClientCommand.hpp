@@ -35,5 +35,7 @@ namespace Components
 
 		static void Cmd_Noclip_f(Game::gentity_s* ent, const Command::ServerParams* params);
 		static void Cmd_UFO_f(Game::gentity_s* ent, const Command::ServerParams* params);
+
+		static void GiveMaxAmmo(Game::gentity_s* ent);
 	};
 }
