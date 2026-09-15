@@ -674,8 +674,15 @@ namespace Components
 		{
 			if (params->size() < 2) return;
 
+			const auto* zoneName = params->get(1);
+			if (!FastFiles::Exists(zoneName))
+			{
+				Logger::PrintError(Game::CON_CHANNEL_ERROR, "Zone '{}' does not exist\n", zoneName);
+				return;
+			}
+
 			Game::XZoneInfo info;
-			info.name = params->get(1);
+			info.name = zoneName;
 			info.allocFlags = 1;//0x01000000;
 			info.freeFlags = 0;
 
