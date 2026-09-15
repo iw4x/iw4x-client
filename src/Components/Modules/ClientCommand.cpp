@@ -1,4 +1,5 @@
 #include "ClientCommand.hpp"
+#include "Events.hpp"
 
 #include "ModelCache.hpp"
 
@@ -156,66 +157,18 @@ namespace Components
 			if (!CheatsOk(ent))
 				return;
 
-			if (params->size() < 2)
+			auto* target = params->size() > 2 ? GetPlayerEntity(params->get(1)) : ent;
+
+			if (params->size() < 2 || !target)
 			{
-				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: give <weapon name|all|ammo>\"", 0x65));
+				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: give [entity] <weapon name|all|ammo>\"", 0x65));
 				return;
 			}
 
-			const auto* weaponName = params->get(1);
-
-			if (ToLower(weaponName) == "ammo")
-			{
-				Logger::Debug("Giving max ammo to entity {}", ent->s.number);
-				GiveMaxAmmo(ent);
+			if (target != ent && !CheatsOk(target))
 				return;
-			}
 
-			if (ToLower(weaponName) == "all")
-			{
-				Logger::Debug("Giving all weapons to entity {}", ent->s.number);
-				GiveAllWeapons(ent);
-				return;
-			}
-
-			Game::level->initializing = 1;
-			Logger::Debug("Giving weapon {} to entity {}", weaponName, ent->s.number);
-			const auto weaponIndex = Game::G_GetWeaponIndexForName(weaponName);
-
-			if (weaponIndex == 0)
-			{
-				Game::level->initializing = 0;
-				return;
-			}
-
-			if (Game::BG_GetWeaponDef(weaponIndex)->inventoryType == Game::weapInventoryType_t::WEAPINVENTORY_ALTMODE)
-			{
-				Logger::PrintError(Game::CON_CHANNEL_ERROR,
-					"You can't directly spawn the altfire weapon '{}'. Spawn a weapon that has this altmode instead.\n", weaponName);
-				Game::level->initializing = 0;
-				return;
-			}
-
-			auto* weapEnt = Game::G_Spawn();
-			std::memcpy(weapEnt->r.currentOrigin, ent->r.currentOrigin, sizeof(std::float_t[3]));
-			Game::G_GetItemClassname(static_cast<int>(weaponIndex), weapEnt);
-			Game::G_SpawnItem(weapEnt, static_cast<int>(weaponIndex));
-
-			weapEnt->active = 1;
-			SetOffhandClass(ent, weaponIndex);
-
-			Game::Touch_Item(weapEnt, ent, 0);
-			weapEnt->active = 0;
-
-			if (weapEnt->r.isInUse)
-			{
-				Logger::Debug("Freeing up entity {}", weapEnt->s.number);
-				Game::G_FreeEntity(weapEnt);
-			}
-
-			Game::level->initializing = 0;
-
-			GiveMaxAmmo(ent);
+			Give(target, params->get(params->size() > 2 ? 2 : 1));
 		});
 
 		Add("take", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
@@ -223,41 +176,18 @@ namespace Components
 			if (!CheatsOk(ent))
 				return;
 
-			if (params->size() < 2)
+			auto* target = params->size() > 2 ? GetPlayerEntity(params->get(1)) : ent;
+
+			if (params->size() < 2 || !target)
 			{
-				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: take <weapon name|all>\"", 0x65));
+				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: take [entity] <weapon name|all>\"", 0x65));
 				return;
 			}
 
-			auto* client = ent->client;
-			const auto* weaponName = params->get(1);
-
-			if (ToLower(weaponName) == "all")
-			{
-				Logger::Debug("Taking all weapons from entity {}", ent->s.number);
-
-				client->ps.weapCommon.weapon = 0;
-
-				for (std::size_t i = 0; i < std::extent_v<decltype(Game::playerState_s::weaponsEquipped)>; ++i)
-				{
-					const auto index = client->ps.weaponsEquipped[i];
-					if (index && Game::BG_GetWeaponDef(index)->inventoryType != Game::weapInventoryType_t::WEAPINVENTORY_ALTMODE)
-					{
-						Game::BG_TakePlayerWeapon(&client->ps, index);
-					}
-				}
-
+			if (target != ent && !CheatsOk(target))
 				return;
-			}
 
-			const auto weaponIndex = Game::G_GetWeaponIndexForName(weaponName);
-			if (weaponIndex == 0)
-			{
-				return;
-			}
-
-			Logger::Debug("Taking weapon {} from entity {}", weaponName, ent->s.number);
-			Game::BG_TakePlayerWeapon(&client->ps, weaponIndex);
+			Take(target, params->get(params->size() > 2 ? 2 : 1));
 		});
 
 		Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
@@ -547,6 +477,170 @@ namespace Components
 		Game::SV_GameSendServerCommand(entNum, Game::SV_CMD_CAN_IGNORE, VA("%c \"%s\"", 0x65, (ent->client->flags & Game::CF_BIT_UFO) ? "GAME_UFOON" : "GAME_UFOOFF"));
 	}
 
+	void ClientCommand::AddServerCommands()
+	{
+		Command::AddSV("give", [](const Command::Params* params)
+		{
+			if (!Dedicated::IsRunning())
+			{
+				Logger::Print("Server is not running.\n");
+				return;
+			}
+
+			if (params->size() < 3)
+			{
+				Logger::Print("{} <entity> <weapon name|all|ammo>\n", params->get(0));
+				return;
+			}
+
+			auto* ent = GetPlayerEntity(params->get(1));
+			if (!ent)
+			{
+				Logger::Print("Bad entity: {}\n", params->get(1));
+				return;
+			}
+
+			if (!CheatsOk(ent))
+				return;
+
+			Give(ent, params->get(2));
+		});
+
+		Command::AddSV("take", [](const Command::Params* params)
+		{
+			if (!Dedicated::IsRunning())
+			{
+				Logger::Print("Server is not running.\n");
+				return;
+			}
+
+			if (params->size() < 3)
+			{
+				Logger::Print("{} <entity> <weapon name|all>\n", params->get(0));
+				return;
+			}
+
+			auto* ent = GetPlayerEntity(params->get(1));
+			if (!ent)
+			{
+				Logger::Print("Bad entity: {}\n", params->get(1));
+				return;
+			}
+
+			if (!CheatsOk(ent))
+				return;
+
+			Take(ent, params->get(2));
+		});
+	}
+
+	Game::gentity_s* ClientCommand::GetPlayerEntity(const char* input)
+	{
+		char* end;
+		const auto entNum = std::strtoul(input, &end, 10);
+
+		if (input == end || *end != '\0' || entNum >= Game::MAX_CLIENTS)
+		{
+			return nullptr;
+		}
+
+		auto* ent = &Game::g_entities[entNum];
+		if (!ent->client || ent->client->sess.connected == Game::CON_DISCONNECTED)
+		{
+			return nullptr;
+		}
+
+		return ent;
+	}
+
+	void ClientCommand::Give(Game::gentity_s* ent, const char* weaponName)
+	{
+		if (ToLower(weaponName) == "ammo")
+		{
+			Logger::Debug("Giving max ammo to entity {}", ent->s.number);
+			GiveMaxAmmo(ent);
+			return;
+		}
+
+		if (ToLower(weaponName) == "all")
+		{
+			Logger::Debug("Giving all weapons to entity {}", ent->s.number);
+			GiveAllWeapons(ent);
+			return;
+		}
+
+		Game::level->initializing = 1;
+		Logger::Debug("Giving weapon {} to entity {}", weaponName, ent->s.number);
+		const auto weaponIndex = Game::G_GetWeaponIndexForName(weaponName);
+
+		if (weaponIndex == 0)
+		{
+			Game::level->initializing = 0;
+			return;
+		}
+
+		if (Game::BG_GetWeaponDef(weaponIndex)->inventoryType == Game::weapInventoryType_t::WEAPINVENTORY_ALTMODE)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR,
+				"You can't directly spawn the altfire weapon '{}'. Spawn a weapon that has this altmode instead.\n", weaponName);
+			Game::level->initializing = 0;
+			return;
+		}
+
+		auto* weapEnt = Game::G_Spawn();
+		std::memcpy(weapEnt->r.currentOrigin, ent->r.currentOrigin, sizeof(std::float_t[3]));
+		Game::G_GetItemClassname(static_cast<int>(weaponIndex), weapEnt);
+		Game::G_SpawnItem(weapEnt, static_cast<int>(weaponIndex));
+
+		weapEnt->active = 1;
+		SetOffhandClass(ent, weaponIndex);
+
+		Game::Touch_Item(weapEnt, ent, 0);
+		weapEnt->active = 0;
+
+		if (weapEnt->r.isInUse)
+		{
+			Logger::Debug("Freeing up entity {}", weapEnt->s.number);
+			Game::G_FreeEntity(weapEnt);
+		}
+
+		Game::level->initializing = 0;
+
+		GiveMaxAmmo(ent);
+	}
+
+	void ClientCommand::Take(Game::gentity_s* ent, const char* weaponName)
+	{
+		auto* client = ent->client;
+
+		if (ToLower(weaponName) == "all")
+		{
+			Logger::Debug("Taking all weapons from entity {}", ent->s.number);
+
+			client->ps.weapCommon.weapon = 0;
+
+			for (std::size_t i = 0; i < std::extent_v<decltype(Game::playerState_s::weaponsEquipped)>; ++i)
+			{
+				const auto index = client->ps.weaponsEquipped[i];
+				if (index && Game::BG_GetWeaponDef(index)->inventoryType != Game::weapInventoryType_t::WEAPINVENTORY_ALTMODE)
+				{
+					Game::BG_TakePlayerWeapon(&client->ps, index);
+				}
+			}
+
+			return;
+		}
+
+		const auto weaponIndex = Game::G_GetWeaponIndexForName(weaponName);
+		if (weaponIndex == 0)
+		{
+			return;
+		}
+
+		Logger::Debug("Taking weapon {} from entity {}", weaponName, ent->s.number);
+		Game::BG_TakePlayerWeapon(&client->ps, weaponIndex);
+	}
+
 	void ClientCommand::GiveMaxAmmo(Game::gentity_s* ent)
 	{
 		auto* client = ent->client;
@@ -625,6 +719,12 @@ namespace Components
 		CheatsEnabled = false;
 
 		AddCheatCommands();
+
+		if (Dedicated::IsEnabled())
+		{
+			Events::OnSVInit(AddServerCommands);
+		}
+
 		AddScriptFunctions();
 		AddScriptMethods();
 #ifdef _DEBUG

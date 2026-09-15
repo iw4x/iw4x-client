@@ -25,6 +25,11 @@ namespace Components
 		static void ClientCommandStub(int clientNum);
 		static void AddCheatCommands();
 		static void AddDevelopmentCommands();
+		static void AddServerCommands();
+
+		static Game::gentity_s* GetPlayerEntity(const char* input);
+		static void Give(Game::gentity_s* ent, const char* weaponName);
+		static void Take(Game::gentity_s* ent, const char* weaponName);
 
 		static void AddScriptFunctions();
 		static void AddScriptMethods();
