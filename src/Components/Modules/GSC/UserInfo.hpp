@@ -15,6 +15,7 @@ namespace Components::GSC
 		static std::unordered_map<int, userInfoMap> UserInfoOverrides;
 
 		static void SV_GetUserInfo_Stub(int index, char* buffer, int bufferSize);
+		static int G_ShutdownGame_Hk(int freeScripts);
 
 		static void AddScriptMethods();
 	};
