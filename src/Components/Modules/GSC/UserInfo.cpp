@@ -99,14 +99,21 @@ namespace Components::GSC
 		});
 	}
 
+	int UserInfo::G_ShutdownGame_Hk(const int freeScripts)
+	{
+		ClearAllOverrides();
+		return Utils::Hook::Call<int(int)>(0x4D0630)(freeScripts);
+	}
+
 	UserInfo::UserInfo()
 	{
 		Utils::Hook(0x445268, SV_GetUserInfo_Stub, HOOK_CALL).install()->quick();
 		Utils::Hook(0x478B04, SV_GetUserInfo_Stub, HOOK_CALL).install()->quick();
 
+		Utils::Hook(0x4C1EC9, G_ShutdownGame_Hk, HOOK_CALL).install()->quick();
+
 		AddScriptMethods();
 
-		Events::OnVMShutdown(ClearAllOverrides);
 		Events::OnClientDisconnect(ClearClientOverrides);
 	}
 }
