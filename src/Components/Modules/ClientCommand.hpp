@@ -37,5 +37,7 @@ namespace Components
 		static void Cmd_UFO_f(Game::gentity_s* ent, const Command::ServerParams* params);
 
 		static void GiveMaxAmmo(Game::gentity_s* ent);
+		static void GiveAllWeapons(Game::gentity_s* ent);
+		static void SetOffhandClass(Game::gentity_s* ent, unsigned int weaponIndex);
 	};
 }

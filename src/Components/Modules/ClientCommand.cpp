@@ -158,7 +158,7 @@ namespace Components
 
 			if (params->size() < 2)
 			{
-				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: give <weapon name|ammo>\"", 0x65));
+				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: give <weapon name|all|ammo>\"", 0x65));
 				return;
 			}
 
@@ -168,6 +168,13 @@ namespace Components
 			{
 				Logger::Debug("Giving max ammo to entity {}", ent->s.number);
 				GiveMaxAmmo(ent);
+				return;
+			}
+
+			if (ToLower(weaponName) == "all")
+			{
+				Logger::Debug("Giving all weapons to entity {}", ent->s.number);
+				GiveAllWeapons(ent);
 				return;
 			}
 
@@ -195,27 +202,7 @@ namespace Components
 			Game::G_SpawnItem(weapEnt, static_cast<int>(weaponIndex));
 
 			weapEnt->active = 1;
-			const auto offHandClass = Game::BG_GetWeaponDef(weaponIndex)->offhandClass;
-			if (offHandClass != Game::OFFHAND_CLASS_NONE)
-			{
-				auto* client = ent->client;
-				if ((client->ps.weapCommon.offhandPrimary != offHandClass) && (client->ps.weapCommon.offhandSecondary != offHandClass))
-				{
-					switch (offHandClass)
-					{
-					case Game::OFFHAND_CLASS_FRAG_GRENADE:
-					case Game::OFFHAND_CLASS_THROWINGKNIFE:
-					case Game::OFFHAND_CLASS_OTHER:
-						Logger::Debug("Setting offhandPrimary");
-						client->ps.weapCommon.offhandPrimary = offHandClass;
-						break;
-					default:
-						Logger::Debug("Setting offhandSecondary");
-						client->ps.weapCommon.offhandSecondary = offHandClass;
-						break;
-					}
-				}
-			}
+			SetOffhandClass(ent, weaponIndex);
 
 			Game::Touch_Item(weapEnt, ent, 0);
 			weapEnt->active = 0;
@@ -570,6 +557,60 @@ namespace Components
 			if (index)
 			{
 				Game::Add_Ammo(ent, index, client->ps.weapEquippedData[i].weaponModel, 998, 1);
+			}
+		}
+	}
+
+	void ClientCommand::GiveAllWeapons(Game::gentity_s* ent)
+	{
+		auto* client = ent->client;
+		const auto weaponCount = Game::BG_GetNumWeapons();
+
+		for (auto weaponIndex = 1u; weaponIndex < weaponCount; ++weaponIndex)
+		{
+			if (std::ranges::find(client->ps.weaponsEquipped, 0u) == std::end(client->ps.weaponsEquipped))
+			{
+				break;
+			}
+
+			const auto inventoryType = Game::BG_GetWeaponDef(weaponIndex)->inventoryType;
+			if (inventoryType == Game::weapInventoryType_t::WEAPINVENTORY_ALTMODE || inventoryType == Game::weapInventoryType_t::WEAPINVENTORY_SCAVENGER)
+			{
+				continue;
+			}
+
+			if (Game::G_GivePlayerWeapon(&client->ps, weaponIndex, 0, 0))
+			{
+				SetOffhandClass(ent, weaponIndex);
+			}
+		}
+
+		GiveMaxAmmo(ent);
+	}
+
+	void ClientCommand::SetOffhandClass(Game::gentity_s* ent, const unsigned int weaponIndex)
+	{
+		const auto offHandClass = Game::BG_GetWeaponDef(weaponIndex)->offhandClass;
+		if (offHandClass == Game::OFFHAND_CLASS_NONE)
+		{
+			return;
+		}
+
+		auto* client = ent->client;
+		if ((client->ps.weapCommon.offhandPrimary != offHandClass) && (client->ps.weapCommon.offhandSecondary != offHandClass))
+		{
+			switch (offHandClass)
+			{
+			case Game::OFFHAND_CLASS_FRAG_GRENADE:
+			case Game::OFFHAND_CLASS_THROWINGKNIFE:
+			case Game::OFFHAND_CLASS_OTHER:
+				Logger::Debug("Setting offhandPrimary");
+				client->ps.weapCommon.offhandPrimary = offHandClass;
+				break;
+			default:
+				Logger::Debug("Setting offhandSecondary");
+				client->ps.weapCommon.offhandSecondary = offHandClass;
+				break;
 			}
 		}
 	}
