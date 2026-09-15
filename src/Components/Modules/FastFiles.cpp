@@ -251,7 +251,6 @@ namespace Components
 			paths.push_back(std::format("{}\\", fsGame));
 		}
 
-		if (Utils::String::StartsWith(file, "mp_"))
 		{
 			std::string zone = file;
 			if (Utils::String::EndsWith(zone, ".ff"))
