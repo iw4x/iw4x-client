@@ -29,6 +29,21 @@ namespace Components::GSC
 			Game::SV_SetBrushModel(ent);
 			Game::SV_LinkEntity(ent);
 		});
+
+		Script::AddMethod("TagExists", [](const Game::scr_entref_t entref)
+		{
+			if (Game::Scr_GetNumParam() != 1)
+			{
+				Game::Scr_Error("usage: <entity> TagExists( <tag name> )\n");
+				return;
+			}
+
+			auto* ent = Game::GetEntity(entref);
+			const auto tagName = Utils::Hook::Call<unsigned int(unsigned int)>(0x47C720)(0);
+
+			const auto exists = Utils::Hook::Call<int(Game::gentity_s*, unsigned int, void*, int)>(0x501120)(ent, tagName, reinterpret_cast<void*>(0x1A860C0), 0);
+			Game::Scr_AddBool(exists != 0);
+		});
 	}
 
 	Entity::Entity()
