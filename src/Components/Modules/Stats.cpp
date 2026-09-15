@@ -208,6 +208,22 @@ namespace Components
 		}
 	}
 
+	int Stats::LiveStorage_DataSetValue_Stub(void* state, void* ddlContext, const int unused, const char* value)
+	{
+		Command::ClientParams params;
+		if (params.size() == 3 && _stricmp(params.get(1), "prestige") == 0)
+		{
+			char* end;
+			const auto prestige = std::strtol(value, &end, 10);
+			if (end != value && *end == '\0')
+			{
+				value = Utils::String::VA("%d", std::clamp(prestige, 0l, static_cast<long>(MAX_PRESTIGE)));
+			}
+		}
+
+		return Utils::Hook::Call<int(void*, void*, int, const char*)>(0x42C000)(state, ddlContext, unused, value);
+	}
+
 	Stats::Stats()
 	{
 		// This UIScript should be added in the onClose code of the cac_popup menu,
@@ -218,6 +234,8 @@ namespace Components
 
 		// Allow playerdata to be changed while connected to a server
 		Utils::Hook::Set<BYTE>(0x4376FD, 0xEB);
+
+		Utils::Hook(0x4377EC, LiveStorage_DataSetValue_Stub, HOOK_CALL).install()->quick();
 
 		// IW4x stats hashing used to be a constant because fs_game profiles were broken (Steam ID constant, filename constant)
 		// Now they're fixed, and so the hash is no longer constant. This is a problem for backward compatibility

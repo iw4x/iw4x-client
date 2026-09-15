@@ -5,6 +5,8 @@ namespace Components
 	class Stats : public Component
 	{
 	public:
+		static constexpr int MAX_PRESTIGE = 10;
+
 		Stats();
 
 		static bool IsMaxLevel();
@@ -25,5 +27,7 @@ namespace Components
 
 		static uint32_t HashFilename();
 		static void HashFilenameStub();
+
+		static int LiveStorage_DataSetValue_Stub(void* state, void* ddlContext, int unused, const char* value);
 	};
 }
