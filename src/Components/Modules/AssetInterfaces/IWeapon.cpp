@@ -8,6 +8,10 @@ namespace Assets
 
 		if (header->weapon)
 		{
+			auto* weapon = header->weapon;
+			weapon->weapDef->fOOPosAnimLength[0] = weapon->iAdsTransInTime <= 0 ? 0.0033333334f : 1.0f / static_cast<float>(weapon->iAdsTransInTime);
+			weapon->weapDef->fOOPosAnimLength[1] = weapon->iAdsTransOutTime <= 0 ? 0.0020000001f : 1.0f / static_cast<float>(weapon->iAdsTransOutTime);
+
 			return;
 		}
 
