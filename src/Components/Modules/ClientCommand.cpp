@@ -1,5 +1,6 @@
 #include "ClientCommand.hpp"
 #include "Events.hpp"
+#include "ServerCommands.hpp"
 
 #include "ModelCache.hpp"
 
@@ -12,6 +13,10 @@ namespace Components
 	std::unordered_map<std::string, std::function<void(Game::gentity_s*, const Command::ServerParams*)>> ClientCommand::HandlersSV;
 
 	bool ClientCommand::CheatsEnabled;
+
+	std::array<bool, Game::MAX_CLIENTS> ClientCommand::GiveAllClients;
+	std::unordered_map<std::uintptr_t, ClientCommand::GiveAllSite> ClientCommand::GiveAllSites;
+	Game::dvar_t ClientCommand::GiveAllDvar;
 
 	ClientCommand::CheatsScopedLock::CheatsScopedLock()
 	{
@@ -617,6 +622,8 @@ namespace Components
 		{
 			Logger::Debug("Taking all weapons from entity {}", ent->s.number);
 
+			SetGiveAll(ent, false);
+
 			client->ps.weapCommon.weapon = 0;
 
 			for (std::size_t i = 0; i < std::extent_v<decltype(Game::playerState_s::weaponsEquipped)>; ++i)
@@ -645,6 +652,12 @@ namespace Components
 	{
 		auto* client = ent->client;
 
+		if (HasGiveAll(&client->ps))
+		{
+			GiveAllAmmo(ent, true);
+			return;
+		}
+
 		for (std::size_t i = 0; i < std::extent_v<decltype(Game::playerState_s::weaponsEquipped)>; ++i)
 		{
 			const auto index = client->ps.weaponsEquipped[i];
@@ -657,29 +670,8 @@ namespace Components
 
 	void ClientCommand::GiveAllWeapons(Game::gentity_s* ent)
 	{
-		auto* client = ent->client;
-		const auto weaponCount = Game::BG_GetNumWeapons();
-
-		for (auto weaponIndex = 1u; weaponIndex < weaponCount; ++weaponIndex)
-		{
-			if (std::ranges::find(client->ps.weaponsEquipped, 0u) == std::end(client->ps.weaponsEquipped))
-			{
-				break;
-			}
-
-			const auto inventoryType = Game::BG_GetWeaponDef(weaponIndex)->inventoryType;
-			if (inventoryType == Game::weapInventoryType_t::WEAPINVENTORY_ALTMODE || inventoryType == Game::weapInventoryType_t::WEAPINVENTORY_SCAVENGER)
-			{
-				continue;
-			}
-
-			if (Game::G_GivePlayerWeapon(&client->ps, weaponIndex, 0, 0))
-			{
-				SetOffhandClass(ent, weaponIndex);
-			}
-		}
-
-		GiveMaxAmmo(ent);
+		SetGiveAll(ent, true);
+		GiveAllAmmo(ent, true);
 	}
 
 	void ClientCommand::SetOffhandClass(Game::gentity_s* ent, const unsigned int weaponIndex)
@@ -709,6 +701,285 @@ namespace Components
 		}
 	}
 
+	bool ClientCommand::HasGiveAll(const Game::playerState_s* ps)
+	{
+		if (*Game::g_giveAll && (*Game::g_giveAll)->current.enabled)
+		{
+			return true;
+		}
+
+		if (!ps)
+		{
+			return false;
+		}
+
+		const auto clientNum = static_cast<std::size_t>(ps->clientNum);
+		return clientNum < GiveAllClients.size() && GiveAllClients[clientNum];
+	}
+
+	void ClientCommand::SetGiveAll(Game::gentity_s* ent, const bool enabled)
+	{
+		const auto clientNum = ent->s.number;
+		GiveAllClients[clientNum] = enabled;
+
+		Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_RELIABLE, VA("%c %i %i", 23, clientNum, enabled ? 1 : 0));
+	}
+
+	void ClientCommand::GiveAll_Hk(std::uintptr_t* frame)
+	{
+		const auto itr = GiveAllSites.find(frame[8] - 5);
+		assert(itr != GiveAllSites.end());
+
+		const auto& site = itr->second;
+		const Game::playerState_s* ps = nullptr;
+
+		switch (site.source)
+		{
+		case GiveAllSource::StackArgument:
+			ps = *reinterpret_cast<Game::playerState_s**>(reinterpret_cast<std::uintptr_t>(frame + 9) + site.location);
+			break;
+		case GiveAllSource::PlayerState:
+			ps = reinterpret_cast<Game::playerState_s*>(frame[site.location]);
+			break;
+		case GiveAllSource::Entity:
+			if (const auto* ent = reinterpret_cast<Game::gentity_s*>(frame[site.location]); ent && ent->client)
+			{
+				ps = &ent->client->ps;
+			}
+			break;
+		case GiveAllSource::PredictedPlayerState:
+			ps = &Game::cgArray->predictedPlayerState;
+			break;
+		}
+
+		frame[site.target] = HasGiveAll(ps) ? reinterpret_cast<std::uintptr_t>(&GiveAllDvar) : reinterpret_cast<std::uintptr_t>(*Game::g_giveAll);
+	}
+
+	__declspec(naked) void ClientCommand::GiveAll_Stub()
+	{
+		__asm
+		{
+			pushad
+			push esp
+			call GiveAll_Hk
+			add esp, 4
+			popad
+			ret
+		}
+	}
+
+	void ClientCommand::PatchGiveAll()
+	{
+		Utils::Hook::Set<std::uint32_t>(0x5E4492, Game::DVAR_CHEAT | Game::DVAR_INTERNAL);
+
+		GiveAllDvar.name = "g_giveAll";
+		GiveAllDvar.type = Game::DVAR_TYPE_BOOL;
+		GiveAllDvar.current.enabled = true;
+
+		const GiveAllSite sites[] =
+		{
+			{ 0x43AC60, 5, GiveAllSource::StackArgument, 				4, 			 REG_EAX },
+			{ 0x43ACD4, 5, GiveAllSource::PlayerState, 				  REG_ESI, REG_EAX },
+			{ 0x48BB80, 5, GiveAllSource::PredictedPlayerState, 0, 			 REG_EAX },
+			{ 0x496B0D, 5, GiveAllSource::StackArgument, 				8, 			 REG_EAX },
+			{ 0x4AB530, 5, GiveAllSource::StackArgument, 				4, 			 REG_EAX },
+			{ 0x4B38B0, 5, GiveAllSource::StackArgument, 				4, 			 REG_EAX },
+			{ 0x4BB33A, 5, GiveAllSource::StackArgument, 				4, 			 REG_EAX },
+			{ 0x4D8BA0, 5, GiveAllSource::StackArgument, 				4, 			 REG_EAX },
+			{ 0x4E1493, 5, GiveAllSource::PlayerState, 					REG_EDI, REG_EAX },
+			{ 0x4E79E0, 5, GiveAllSource::StackArgument, 				4,			 REG_EAX },
+			{ 0x4FD1D7, 5, GiveAllSource::PlayerState, 					REG_EDI, REG_EAX },
+			{ 0x5763C0, 5, GiveAllSource::PlayerState, 					REG_EDI, REG_EAX },
+			{ 0x576406, 5, GiveAllSource::PlayerState, 					REG_EDI, REG_EAX },
+			{ 0x59ECD0, 6, GiveAllSource::PredictedPlayerState, 0, 			 REG_ECX },
+			{ 0x59EF21, 5, GiveAllSource::PredictedPlayerState, 0, 			 REG_EAX },
+			{ 0x5A18D1, 5, GiveAllSource::StackArgument, 				8, 			 REG_EAX },
+			{ 0x5D8D22, 5, GiveAllSource::PlayerState, 					REG_EBX, REG_EAX },
+			{ 0x5D8EA0, 5, GiveAllSource::Entity, 							REG_EDI, REG_EAX },
+			{ 0x5D8F7F, 5, GiveAllSource::PlayerState, 					REG_EBX, REG_EAX },
+			{ 0x5D97CA, 5, GiveAllSource::Entity, 							REG_EBX, REG_EAX },
+			{ 0x5D991E, 5, GiveAllSource::Entity, 							REG_ESI, REG_EAX },
+			{ 0x5D99E5, 5, GiveAllSource::Entity, 							REG_EDI, REG_EAX },
+			{ 0x5D9AAC, 5, GiveAllSource::PlayerState, 					REG_EBX, REG_EAX },
+			{ 0x5D9B8D, 5, GiveAllSource::Entity, 							REG_ESI, REG_EAX },
+			{ 0x5D9CA8, 5, GiveAllSource::Entity, 							REG_EDI, REG_EAX },
+			{ 0x5DC4F7, 6, GiveAllSource::Entity, 							REG_EDI, REG_EBX },
+			{ 0x5DC567, 6, GiveAllSource::Entity, 							REG_EDI, REG_EBX },
+			{ 0x5DC5E7, 6, GiveAllSource::Entity, 							REG_EBX, REG_EDI },
+			{ 0x5DC669, 6, GiveAllSource::Entity, 							REG_EBX, REG_EDI },
+			{ 0x5DC7A4, 6, GiveAllSource::Entity, 							REG_EBP, REG_EDI },
+			{ 0x5DC832, 6, GiveAllSource::Entity, 							REG_EBP, REG_EDI },
+			{ 0x5E26E0, 5, GiveAllSource::Entity, 							REG_EBP, REG_EAX },
+			{ 0x5E2C9F, 5, GiveAllSource::Entity, 							REG_EBX, REG_EAX },
+			{ 0x5FED1A, 5, GiveAllSource::PlayerState, 					REG_EDI, REG_EAX },
+			{ 0x5FEE80, 5, GiveAllSource::PlayerState, 					REG_ESI, REG_EAX },
+		};
+
+		for (const auto& site : sites)
+		{
+			GiveAllSites[site.address] = site;
+			Utils::Hook(site.address, GiveAll_Stub, HOOK_CALL).install()->quick();
+
+			if (site.size > 5)
+			{
+				Utils::Hook::Nop(site.address + 5, site.size - 5);
+			}
+		}
+
+		for (const auto address : { 0x43574B, 0x4E14FE, 0x4F76BF, 0x5D9AE2, 0x5DB41E, 0x5E2C13 })
+		{
+			Utils::Hook(address, BG_GetAmmoPlayerMax_Hk, HOOK_CALL).install()->quick();
+		}
+
+		ServerCommands::OnCommand(23, [](const Command::Params* params)
+		{
+			const auto clientNum = std::strtoul(params->get(1), nullptr, 10);
+			if (clientNum < GiveAllClients.size())
+			{
+				GiveAllClients[clientNum] = std::strtol(params->get(2), nullptr, 10) != 0;
+			}
+
+			return true;
+		});
+
+		Events::OnClientDisconnect([](const int clientNum)
+		{
+			if (static_cast<std::size_t>(clientNum) < GiveAllClients.size())
+			{
+				GiveAllClients[clientNum] = false;
+			}
+		});
+
+		Events::OnVMShutdown([]
+		{
+			GiveAllClients.fill(false);
+		});
+
+		Events::OnCLDisconnected([]([[maybe_unused]] bool wasConnected)
+		{
+			GiveAllClients.fill(false);
+		});
+
+		Scheduler::Loop([]
+		{
+			if (!Dedicated::IsRunning())
+			{
+				return;
+			}
+
+			for (std::size_t i = 0; i < GiveAllClients.size(); ++i)
+			{
+				auto* ent = &Game::g_entities[i];
+				if (ent->client && ent->client->sess.connected != Game::CON_DISCONNECTED && ent->health > 0 && HasGiveAll(&ent->client->ps))
+				{
+					GiveAllAmmo(ent, false);
+				}
+			}
+		}, Scheduler::Pipeline::SERVER);
+	}
+
+	int ClientCommand::BG_GetAmmoPlayerMax_Hk(Game::playerState_s* ps, const unsigned int weaponIndex, const unsigned int weaponIndexToSkip)
+	{
+		const auto result = Utils::Hook::Call<int(Game::playerState_s*, unsigned int, unsigned int)>(0x4A5560)(ps, weaponIndex, weaponIndexToSkip);
+
+		if (result || !HasGiveAll(ps) || weaponIndex == weaponIndexToSkip)
+		{
+			return result;
+		}
+
+		return Game::BG_GetWeaponDef(weaponIndex)->iMaxAmmo;
+	}
+
+	void ClientCommand::GiveAllAmmo(Game::gentity_s* ent, const bool refill)
+	{
+		auto& common = ent->client->ps.weapCommon;
+		const auto weaponCount = Game::BG_GetNumWeapons();
+
+		std::vector<unsigned int> weapons;
+		const auto addWeapon = [&](const unsigned int weapon)
+		{
+			if (weapon && weapon < weaponCount && std::ranges::find(weapons, weapon) == weapons.end())
+			{
+				weapons.push_back(weapon);
+			}
+		};
+
+		addWeapon(common.weapon);
+		addWeapon(common.primaryWeaponForAltMode);
+		addWeapon(static_cast<unsigned int>(common.offHandIndex));
+
+		if (common.weapon && common.weapon < weaponCount)
+		{
+			addWeapon(Game::BG_GetWeaponCompleteDef(common.weapon)->altWeaponIndex);
+		}
+
+		const auto isAmmoInUse = [&](const int ammoType)
+		{
+			return std::ranges::any_of(weapons, [&](const unsigned int weapon)
+			{
+				return Game::BG_GetWeaponDef(weapon)->iAmmoIndex == ammoType;
+			});
+		};
+
+		const auto isClipInUse = [&](const int clipIndex)
+		{
+			return std::ranges::any_of(weapons, [&](const unsigned int weapon)
+			{
+				return Game::BG_GetWeaponDef(weapon)->iClipIndex == clipIndex;
+			});
+		};
+
+		for (const auto weapon : weapons)
+		{
+			const auto* weaponDef = Game::BG_GetWeaponDef(weapon);
+			auto allocated = false;
+
+			if (std::ranges::find(common.ammoNotInClip, weaponDef->iAmmoIndex, &Game::GlobalAmmo::ammoType) == std::end(common.ammoNotInClip))
+			{
+				auto* ammo = std::ranges::find(common.ammoNotInClip, 0, &Game::GlobalAmmo::ammoType);
+				if (ammo == std::end(common.ammoNotInClip))
+				{
+					ammo = std::ranges::find_if(common.ammoNotInClip, [&](const Game::GlobalAmmo& entry)
+					{
+						return !isAmmoInUse(entry.ammoType);
+					});
+				}
+
+				if (ammo != std::end(common.ammoNotInClip))
+				{
+					ammo->ammoType = weaponDef->iAmmoIndex;
+					ammo->ammoCount = 0;
+					allocated = true;
+				}
+			}
+
+			if (std::ranges::find(common.ammoInClip, weaponDef->iClipIndex, &Game::ClipAmmo::clipIndex) == std::end(common.ammoInClip))
+			{
+				auto* clip = std::ranges::find(common.ammoInClip, 0, &Game::ClipAmmo::clipIndex);
+				if (clip == std::end(common.ammoInClip))
+				{
+					clip = std::ranges::find_if(common.ammoInClip, [&](const Game::ClipAmmo& entry)
+					{
+						return !isClipInUse(entry.clipIndex);
+					});
+				}
+
+				if (clip != std::end(common.ammoInClip))
+				{
+					clip->clipIndex = weaponDef->iClipIndex;
+					clip->ammoCount[0] = 0;
+					clip->ammoCount[1] = 0;
+					allocated = true;
+				}
+			}
+
+			if (allocated || refill)
+			{
+				Game::Add_Ammo(ent, weapon, 0, 998, 1);
+			}
+		}
+	}
+
 	ClientCommand::ClientCommand()
 	{
 		AssertOffset(Game::playerState_s, stats, 0x150);
@@ -718,6 +989,7 @@ namespace Components
 
 		CheatsEnabled = false;
 
+		PatchGiveAll();
 		AddCheatCommands();
 
 		if (Dedicated::IsEnabled())
