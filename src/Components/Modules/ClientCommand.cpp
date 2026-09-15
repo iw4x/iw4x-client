@@ -230,6 +230,48 @@ namespace Components
 			}
 		});
 
+		Add("take", [](Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
+		{
+			if (!CheatsOk(ent))
+				return;
+
+			if (params->size() < 2)
+			{
+				Game::SV_GameSendServerCommand(ent->s.number, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_USAGE\x15: take <weapon name|all>\"", 0x65));
+				return;
+			}
+
+			auto* client = ent->client;
+			const auto* weaponName = params->get(1);
+
+			if (ToLower(weaponName) == "all")
+			{
+				Logger::Debug("Taking all weapons from entity {}", ent->s.number);
+
+				client->ps.weapCommon.weapon = 0;
+
+				for (std::size_t i = 0; i < std::extent_v<decltype(Game::playerState_s::weaponsEquipped)>; ++i)
+				{
+					const auto index = client->ps.weaponsEquipped[i];
+					if (index && Game::BG_GetWeaponDef(index)->inventoryType != Game::weapInventoryType_t::WEAPINVENTORY_ALTMODE)
+					{
+						Game::BG_TakePlayerWeapon(&client->ps, index);
+					}
+				}
+
+				return;
+			}
+
+			const auto weaponIndex = Game::G_GetWeaponIndexForName(weaponName);
+			if (weaponIndex == 0)
+			{
+				return;
+			}
+
+			Logger::Debug("Taking weapon {} from entity {}", weaponName, ent->s.number);
+			Game::BG_TakePlayerWeapon(&client->ps, weaponIndex);
+		});
+
 		Add("kill", []([[maybe_unused]] Game::gentity_s* ent, [[maybe_unused]] const Command::ServerParams* params)
 		{
 			assert(ent->client);

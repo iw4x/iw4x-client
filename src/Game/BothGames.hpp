@@ -37,4 +37,7 @@ namespace Game
 
 	typedef Game::WeaponCompleteDef*(*BG_GetWeaponCompleteDef_t)(unsigned int weaponIndex);
 	extern BG_GetWeaponCompleteDef_t BG_GetWeaponCompleteDef;
+
+	typedef void(*BG_TakePlayerWeapon_t)(playerState_s* ps, unsigned int weaponIndex);
+	extern BG_TakePlayerWeapon_t BG_TakePlayerWeapon;
 }
