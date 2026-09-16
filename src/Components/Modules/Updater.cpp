@@ -81,14 +81,34 @@ namespace Components
 		UIScript::Add("getAutoUpdate", [](const UIScript::Token& /*token*/, const Game::uiInfo_s* /*info*/)
 		{
 			const auto exe = GetLauncher();
-			if (exe.has_value())
+			if (!exe.has_value())
 			{
-				Game::Sys_QuitAndStartProcess(exe.value().data());
+				Logger::Print("No launcher found - cannot auto-update\n");
 				return;
 			}
 
-			// No launcher was found on the system
-			Logger::Print("No launcher found - cannot auto-update\n");
+			STARTUPINFOA startupInfo{};
+			startupInfo.cb = sizeof(startupInfo);
+			PROCESS_INFORMATION processInfo{};
+
+			auto commandLine = std::format("\"{}\" --wait-pid {}", exe.value(), GetCurrentProcessId());
+
+			auto start = [&](DWORD flags)
+			{
+				auto buffer = commandLine;
+				return CreateProcessA(exe.value().data(), buffer.data(), nullptr, nullptr, FALSE, flags, nullptr, nullptr, &startupInfo, &processInfo) != FALSE;
+			};
+
+			if (!start(CREATE_NEW_CONSOLE | CREATE_BREAKAWAY_FROM_JOB) && !start(CREATE_NEW_CONSOLE))
+			{
+				Logger::Print("Failed to start the launcher for auto-update\n");
+				return;
+			}
+
+			CloseHandle(processInfo.hThread);
+			CloseHandle(processInfo.hProcess);
+
+			Game::Com_Quit_f();
 		});
 	}
 }
