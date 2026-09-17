@@ -47,3 +47,7 @@ jobs:
           path: |
             build/bin/Win32/${{matrix.configuration}}/iw4x.dll
             build/bin/Win32/${{matrix.configuration}}/iw4x.pdb
+            build/bin/Win32/${{matrix.configuration}}/sentry-crash.exe
+            build/bin/Win32/${{matrix.configuration}}/sentry-crash.pdb
+            build/bin/Win32/${{matrix.configuration}}/sentry-wer.dll
+            build/bin/Win32/${{matrix.configuration}}/sentry-wer.pdb
