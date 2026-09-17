@@ -406,7 +406,9 @@ namespace Controller
       const bool assist_allowed (read (dvars_.aim_assist_enabled, true));
 
       if (aa.initialized && assist_allowed &&
-          read (dvars_.slowdown_enabled, true) && slowdown_active (aa.ps))
+          read (dvars_.slowdown_enabled, true) &&
+          read (dvars_.gpad_slowdown_enabled, true) &&
+          slowdown_active (aa.ps))
       {
         const float range (
           assist_range (aa, read (dvars_.aim_assist_range_scale, 1.0f)));
@@ -469,7 +471,8 @@ namespace Controller
       aa.lockOnTargetEnt = Game::AIM_TARGET_INVALID;
 
       if (!read (dvars_.aim_assist_enabled, true) ||
-          !read (dvars_.lockon_enabled, true))
+          !read (dvars_.lockon_enabled, true) ||
+          !read (dvars_.gpad_lockon_enabled, true))
         return;
 
       if (using_offhand (aa.ps) || aa.autoAimActive ||

@@ -116,7 +116,7 @@ namespace Controller
     driver::set drivers_;
     calibration::store calibration_;
 
-    engine::dvars dvars_ {};
+    engine::dvars& dvars_ {engine::registered_dvars ()};
     engine::key_dispatcher keys_;
     engine::bind_bridge binds_;
     engine::view_driver view_;

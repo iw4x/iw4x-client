@@ -61,6 +61,9 @@ namespace Controller
       constexpr auto read_delta_movement_patch_2 {0x492009};
       constexpr auto read_delta_movement_return_2 {0x492085};
 
+      constexpr auto cg_register_dvars_call {0x4059FE};
+      constexpr auto cg_register_dvars_address {0x4F8DC0};
+
       constexpr auto key_write_bindings_call {0x60B223};
       constexpr auto key_write_bindings_address {0x4A5A20};
 
@@ -444,6 +447,14 @@ namespace Controller
       }
 
       void
+      cg_register_dvars ()
+      {
+        Utils::Hook::Call<void ()> (cg_register_dvars_address) ();
+
+        register_dvars ();
+      }
+
+      void
       build_key_name_tables ()
       {
         std::memcpy (combined_key_names,
@@ -503,9 +514,7 @@ namespace Controller
       if ((player->client->buttons & Game::CMD_BUTTON_USE_RELOAD) == 0)
         return true;
 
-      const int hold (the_runtime != nullptr
-                      ? read (the_runtime->dvars ().use_hold_time, 250)
-                      : 250);
+      const int hold (read (registered_dvars ().use_hold_time, 250));
 
       return hold <= 0 || held >= static_cast<unsigned> (hold);
     }
@@ -518,6 +527,9 @@ namespace Controller
       Utils::Hook::Set<BYTE> (write_delta_field_width_2, 16);
       Utils::Hook (read_delta_movement_patch_1, read_delta_movement_stub_1, HOOK_JUMP).install ()->quick ();
       Utils::Hook (read_delta_movement_patch_2, read_delta_movement_stub_2, HOOK_JUMP).install ()->quick ();
+      Utils::Hook (cg_register_dvars_call, cg_register_dvars, HOOK_CALL).install ()->quick ();
+      Utils::Hook (key_write_bindings_call, key_write_bindings, HOOK_CALL).install ()->quick ();
+      Utils::Hook (player_use_entity_patch, player_use_entity_stub, HOOK_JUMP).install ()->quick ();
     }
 
     void
@@ -540,8 +552,6 @@ namespace Controller
       Utils::Hook (menu_set_binding_call_1, menu_set_binding, HOOK_CALL).install ()->quick ();
       Utils::Hook (menu_set_binding_call_2, menu_set_binding, HOOK_CALL).install ()->quick ();
       Utils::Hook (menu_set_binding_call_3, menu_set_binding, HOOK_CALL).install ()->quick ();
-      Utils::Hook (key_write_bindings_call, key_write_bindings, HOOK_CALL).install ()->quick ();
-      Utils::Hook (player_use_entity_patch, player_use_entity_stub, HOOK_JUMP).install ()->quick ();
       Utils::Hook (in_frame_mouse_move_call, in_frame_trampoline, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_key_event_call, cl_key_event, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_mouse_event_call, cl_mouse_event, HOOK_CALL).install ()->quick ();

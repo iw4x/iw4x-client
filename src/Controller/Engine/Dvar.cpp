@@ -6,10 +6,17 @@ namespace Controller
 {
   namespace engine
   {
-    dvars
-    register_dvars (const context& ctx)
+    dvars&
+    registered_dvars () noexcept
     {
-      dvars d;
+      static dvars d;
+      return d;
+    }
+
+    void
+    register_dvars ()
+    {
+      dvars& d (registered_dvars ());
 
       d.enabled = Dvar_RegisterBool (
         "gpad_enabled", true, DVAR_ARCHIVE, "Game pad enabled");
@@ -148,12 +155,18 @@ namespace Controller
 
       d.slowdown_enabled = Dvar_RegisterBool (
         "aim_slowdown_enabled", true, DVAR_ARCHIVE, "Enable aim slowdown");
+      d.gpad_slowdown_enabled = Dvar_RegisterBool (
+        "gpad_slowdown_enabled", true, DVAR_ARCHIVE,
+        "Game pad slowdown aim assist enabled");
       d.slowdown_pitch_scale = Dvar_FindVar ("aim_slowdown_pitch_scale");
       d.slowdown_pitch_scale_ads = Dvar_FindVar ("aim_slowdown_pitch_scale_ads");
       d.slowdown_yaw_scale = Dvar_FindVar ("aim_slowdown_yaw_scale");
       d.slowdown_yaw_scale_ads = Dvar_FindVar ("aim_slowdown_yaw_scale_ads");
       d.lockon_enabled = Dvar_RegisterBool (
         "aim_lockon_enabled", true, DVAR_ARCHIVE, "Enable lock-on aim assist");
+      d.gpad_lockon_enabled = Dvar_RegisterBool (
+        "gpad_lockon_enabled", true, DVAR_ARCHIVE,
+        "Game pad lockon aim assist enabled");
       d.lockon_deflection = Dvar_RegisterFloat (
         "aim_lockon_deflection", 0.05f, 0.0f, 1.0f, DVAR_CHEAT,
         "Stick deflection at which lock-on activates");
@@ -166,10 +179,6 @@ namespace Controller
       d.aim_assist_range_scale = Dvar_RegisterFloat (
         "aim_aimAssistRangeScale", 1.0f, 0.0f, 10.0f, DVAR_CHEAT,
         "Aim-assist target range scale");
-
-      ctx.report (severity::info, facility::engine, errc::none,
-                  "controller dvars registered");
-      return d;
     }
 
     void

@@ -57,7 +57,6 @@ namespace Controller
     if (engine_ready_)
       return;
 
-    dvars_ = engine::register_dvars (ctx_);
     engine::register_commands (ctx_, *this);
 
     binds_.apply_startup_layout ();

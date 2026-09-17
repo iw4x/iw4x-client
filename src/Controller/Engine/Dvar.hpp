@@ -62,19 +62,24 @@ namespace Controller
       dvar_t* scale_view_axis {};
 
       dvar_t* slowdown_enabled {};
+      dvar_t* gpad_slowdown_enabled {};
       dvar_t* slowdown_pitch_scale {};
       dvar_t* slowdown_pitch_scale_ads {};
       dvar_t* slowdown_yaw_scale {};
       dvar_t* slowdown_yaw_scale_ads {};
       dvar_t* lockon_enabled {};
+      dvar_t* gpad_lockon_enabled {};
       dvar_t* lockon_deflection {};
       dvar_t* lockon_strength {};
       dvar_t* lockon_pitch_strength {};
       dvar_t* aim_assist_range_scale {};
     };
 
-    dvars
-    register_dvars (const context&);
+    dvars&
+    registered_dvars () noexcept;
+
+    void
+    register_dvars ();
 
     void
     publish_present (const dvars&, bool present) noexcept;
