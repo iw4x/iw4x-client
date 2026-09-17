@@ -72,7 +72,6 @@
 #include "Modules/Vote.hpp"
 #include "Modules/Weapon.hpp"
 #include "Modules/Window.hpp"
-#include "Modules/ZoneConverter.hpp"
 #include "Modules/Sound.hpp"
 
 #include "Modules/BotLib/lPrecomp.hpp"
@@ -93,6 +92,10 @@ namespace Components
 		Pregame = true;
 		Utils::Memory::GetAllocator()->clear();
 
+		// Before anything else.
+		//
+		Register(new ZoneConvert());
+
 		// High priority
 		Register(new Singleton());
 
@@ -103,7 +106,6 @@ namespace Components
 		Register(new IPCPipe());
 		Register(new Network());
 		Register(new Logger());
-		Register(new ZoneConverter());
 		Register(new UIScript());
 		Register(new ZoneBuilder());
 

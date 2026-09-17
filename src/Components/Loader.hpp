@@ -55,6 +55,7 @@ namespace Components
 #include "Modules/Singleton.hpp"
 #include "Modules/UIScript.hpp"
 #include "Modules/ZoneBuilder.hpp"
+#include "Modules/ZoneConvert.hpp"
 
 #include "Modules/AssetHandler.hpp"
 #include "Modules/Dedicated.hpp"

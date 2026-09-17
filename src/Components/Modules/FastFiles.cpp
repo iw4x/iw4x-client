@@ -274,6 +274,9 @@ namespace Components
 
 		Utils::Merge(&paths, FastFiles::ZonePaths);
 
+		paths.push_back(ZoneConvert::SearchPath(Game::Win_GetLanguage()));
+		paths.push_back(std::format("zone\\{}\\", Game::Win_GetLanguage()));
+
 		for (auto& path : paths)
 		{
 			const auto* dir = (*Game::fs_basepath)->current.string;
@@ -292,7 +295,7 @@ namespace Components
 			}
 		}
 
-		return Utils::String::Format("zone\\{}\\", Game::Win_GetLanguage());
+		return Utils::String::Format("{}", ZoneConvert::SearchPath(Game::Win_GetLanguage()));
 	}
 
 	void FastFiles::AddZonePath(const std::string& path)
@@ -556,7 +559,10 @@ namespace Components
 
 		if (file.handle == INVALID_HANDLE_VALUE && ZoneBuilder::IsEnabled())
 		{
-			file = Game::Sys_CreateFile("zone\\zonebuilder\\", filename);
+			file = Game::Sys_CreateFile(ZoneConvert::SearchPath("zonebuilder").data(), filename);
+
+			if (file.handle == INVALID_HANDLE_VALUE)
+				file = Game::Sys_CreateFile("zone\\zonebuilder\\", filename);
 		}
 
 		return file;
@@ -640,8 +646,8 @@ namespace Components
 		Utils::Hook(0x4159E2, FastFiles::ReadXFileHeader, HOOK_CALL).install()->quick();
 
 		// Add custom zone paths
-		FastFiles::AddZonePath("zone\\patch\\");
-		FastFiles::AddZonePath("zone\\dlc\\");
+		FastFiles::AddZonePath(ZoneConvert::SearchPath("patch"));
+		FastFiles::AddZonePath(ZoneConvert::SearchPath("dlc"));
 
 		if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
 		{

@@ -581,7 +581,7 @@ namespace Components
 		Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
 		Utils::Hook::Nop(0x60BEF6, 5); // Don't reset the intro dvar
 		Utils::Hook::Set<const char*>(0x60BED2, "cinematic IW_logo\n");
-		Utils::Hook::Set<const char*>(0x51C2A4, "%s\\" BASEGAME "\\video\\%s.bik");
+		Utils::Hook::Set<const char*>(0x51C2A4, "%s/" BASEGAME "/video/%s.bik");
 		Utils::Hook::Set<DWORD>(0x51C2C2, 0x78A0AC);
 
 		// Redirect logs
@@ -665,22 +665,18 @@ namespace Components
 			std::vector<std::string> fastFiles;
 			if (std::strcmp(param->get(1), "all") == 0)
 			{
-				for (const auto& entry : Utils::IO::ListFiles("zone/english", false))
+				for (const auto* group : {"english", "dlc", "patch"})
 				{
-					const auto& f = entry.path().string();
-					fastFiles.emplace_back(f.substr(7, f.length() - 10));
-				}
+					const auto directory = ZoneConvert::SearchPath(group);
 
-				for (const auto& entry : Utils::IO::ListFiles("zone/dlc", false))
-				{
-					const auto& f = entry.path().string();
-					fastFiles.emplace_back(f.substr(3, f.length() - 6));
-				}
+					if (!Utils::IO::DirectoryExists(directory))
+						continue;
 
-				for (const auto& entry : Utils::IO::ListFiles("zone/patch", false))
-				{
-					const auto& f = entry.path().string();
-					fastFiles.emplace_back(f.substr(5, f.length() - 8));
+					for (const auto& entry : Utils::IO::ListFiles(directory, false))
+					{
+						if (entry.path().extension() == ".ff")
+							fastFiles.emplace_back(entry.path().stem().string());
+					}
 				}
 			}
 			else
