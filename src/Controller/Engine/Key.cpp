@@ -245,7 +245,7 @@ namespace Controller
       aim::deadzone_params dz {
         aim::magnitude {read (dvars_.stick_deadzone_min, 0.2f)},
         aim::magnitude {read (dvars_.stick_deadzone_max, 0.01f)},
-        aim::magnitude {0.0f}};
+        aim::magnitude {read (dvars_.stick_anti_deadzone, 0.0f)}};
 
       std::string why;
 
@@ -270,6 +270,8 @@ namespace Controller
         aim::apply (dz, s.sticks[static_cast<size_t> (stick::right)].calibrated));
 
       const float trigger_deadzone (read (dvars_.button_deadzone, 0.13f));
+      const float trigger_margin (
+        read (dvars_.button_deadzone_hysteresis, default_trigger_release_margin));
 
       const float lt (s.triggers[static_cast<size_t> (trigger_side::left)].normalized);
       const float rt (s.triggers[static_cast<size_t> (trigger_side::right)].normalized);
@@ -280,7 +282,7 @@ namespace Controller
 
         const float engage (std::max (trigger_deadzone, engage_[i]));
         const float release (
-          std::max (trigger_deadzone, engage - trigger_release_margin));
+          std::max (trigger_deadzone, engage - trigger_margin));
 
         trigger_held_[i] =
           v > 0.0f && v >= (trigger_held_[i] ? release : engage);

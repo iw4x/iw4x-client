@@ -396,8 +396,24 @@ namespace Controller
         if (style == nullptr)
           style = Dvar_FindVar ("gpad_style");
 
-        return read (style, false) ? combined_glyphs_playstation
-                                   : combined_glyphs_xbox;
+        std::optional<mapping::glyph_family> chosen;
+
+        switch (read (style, 0))
+        {
+          case 1: chosen = mapping::glyph_family::playstation; break;
+          case 2: chosen = mapping::glyph_family::xbox; break;
+          default: break;
+        }
+
+        const Controller::family device (
+          the_runtime != nullptr && the_runtime->active () != no_device
+          ? the_runtime->latest ().family
+          : Controller::family::unknown);
+
+        return mapping::glyph_family_for (device, chosen) ==
+               mapping::glyph_family::playstation
+          ? combined_glyphs_playstation
+          : combined_glyphs_xbox;
       }
 
       __declspec (naked) void

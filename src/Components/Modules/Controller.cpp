@@ -44,10 +44,17 @@ namespace Components
 		if (theRuntime == nullptr)
 			return;
 
-		const auto enabled = ::Controller::engine::read(theRuntime->dvars().rumble, true);
+		const auto& dvars = theRuntime->dvars();
 
-		const auto low = enabled ? lowRumble : 0.0f;
-		const auto high = enabled ? highRumble : 0.0f;
+		const auto enabled = ::Controller::engine::read(dvars.rumble, true);
+
+		const auto scale = [](const float rumble, Game::dvar_t* dvar)
+		{
+			return std::clamp(rumble * std::clamp(::Controller::engine::read(dvar, 1.0f), 0.0f, 1.0f), 0.0f, 1.0f);
+		};
+
+		const auto low = enabled ? scale(lowRumble, dvars.rumble_scale_low) : 0.0f;
+		const auto high = enabled ? scale(highRumble, dvars.rumble_scale_high) : 0.0f;
 
 		if (rumbleSubmitted && low == submittedLowRumble && high == submittedHighRumble)
 			return;
@@ -70,7 +77,16 @@ namespace Components
 		if (!theRuntime->supports_haptics())
 			return;
 
-		theRuntime->submit(effect);
+		const auto intensity = std::clamp(
+			::Controller::engine::read(theRuntime->dvars().haptic_intensity, 1.0f), 0.0f, 1.0f);
+
+		if (intensity <= 0.0f)
+			return;
+
+		auto scaled = effect;
+		scaled.intensity *= intensity;
+
+		theRuntime->submit(scaled);
 	}
 
 	void Controller::StopHapticEffect(const std::uint32_t tag)

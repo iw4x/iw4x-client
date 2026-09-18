@@ -90,7 +90,7 @@ namespace Controller
         p.deadzone = deadzone_params {
           magnitude {read (d.stick_deadzone_min, 0.2f)},
           magnitude {read (d.stick_deadzone_max, 0.01f)},
-          magnitude {0.0f}};
+          magnitude {read (d.stick_anti_deadzone, 0.0f)}};
         return p;
       }
 
@@ -104,6 +104,7 @@ namespace Controller
           read (d.turnrate_pitch_ads, 55.0f),
           read (d.stick_deadzone_min, 0.2f),
           read (d.stick_deadzone_max, 0.01f),
+          read (d.stick_anti_deadzone, 0.0f),
           read (d.accel_rate, 1200.0f),
           read (d.view_sensitivity, 1.0f),
           static_cast<float> (read (d.accel_enabled, true)),
@@ -228,7 +229,7 @@ namespace Controller
         const deadzone_params p {
           magnitude {read (d.stick_deadzone_min, 0.2f)},
           magnitude {read (d.stick_deadzone_max, 0.01f)},
-          magnitude {0.0f}};
+          magnitude {read (d.stick_anti_deadzone, 0.0f)}};
 
         std::string why;
 

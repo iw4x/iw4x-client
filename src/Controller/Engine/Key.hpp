@@ -87,7 +87,7 @@ namespace Controller
 
       bool reported_deadzone_ {false};
 
-      static constexpr float trigger_release_margin {0.05f};
+      static constexpr float default_trigger_release_margin {0.05f};
 
       std::array<float, trigger_count> engage_ {};
       std::array<bool, trigger_count> trigger_held_ {};

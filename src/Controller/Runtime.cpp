@@ -165,9 +165,13 @@ namespace Controller
       return;
     }
 
-    const auto clamp8 = [] (int v) -> uint8_t
+    const float brightness (
+      std::clamp (engine::read (dvars_.light_bar_brightness, 1.0f), 0.0f, 1.0f));
+
+    const auto clamp8 = [brightness] (int v) -> uint8_t
     {
-      return static_cast<uint8_t> (v < 0 ? 0 : (v > 255 ? 255 : v));
+      const int lit (static_cast<int> (static_cast<float> (v) * brightness + 0.5f));
+      return static_cast<uint8_t> (lit < 0 ? 0 : (lit > 255 ? 255 : lit));
     };
 
     const uint8_t r (clamp8 (engine::read (dvars_.light_bar_r, 196)));

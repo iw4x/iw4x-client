@@ -1581,6 +1581,12 @@ namespace Components
 		Add("ui_mp/mod_download_popmenu.menu");
 		Add("ui_mp/pc_options_game.menu");
 		Add("ui_mp/pc_options_gamepad.menu");
+		Add("ui_mp/pc_options_gamepad_advanced.menu");
+		Add("ui_mp/pc_options_gamepad_sticks.menu");
+		Add("ui_mp/pc_options_gamepad_triggers.menu");
+		Add("ui_mp/pc_options_gamepad_response.menu");
+		Add("ui_mp/pc_options_gamepad_feedback.menu");
+		Add("ui_mp/pc_options_gamepad_timing.menu");
 		Add("ui_mp/pc_options_multi.menu");
 		Add("ui_mp/popup_customclan.menu");
 		Add("ui_mp/popup_customtitle.menu");

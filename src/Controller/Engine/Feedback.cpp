@@ -114,8 +114,74 @@ namespace Controller
       constexpr uint8_t hard_break_start {3};
       constexpr uint8_t hard_break_end {7};
 
+      constexpr uint8_t max_strength {8};
+      constexpr uint8_t max_position {
+        static_cast<uint8_t> (driver::trigger_zone_count - 1)};
+
+      struct tuning
+      {
+        uint8_t light {0};
+        uint8_t heavy {0};
+
+        uint8_t light_start {0};
+        uint8_t light_end {0};
+        uint8_t hard_start {0};
+        uint8_t hard_end {0};
+
+        uint8_t ads {0};
+      };
+
+      uint8_t
+      clamp_to (int v, uint8_t limit) noexcept
+      {
+        return static_cast<uint8_t> (v < 0 ? 0 : (v > limit ? limit : v));
+      }
+
+      uint8_t
+      scaled_strength (int configured, float scale) noexcept
+      {
+        const float v (static_cast<float> (clamp_to (configured, max_strength)) *
+                       (scale < 0.0f ? 0.0f : (scale > 1.0f ? 1.0f : scale)));
+
+        return clamp_to (static_cast<int> (v + 0.5f), max_strength);
+      }
+
+      tuning
+      read_tuning (const dvars& d) noexcept
+      {
+        const float scale (read (d.adaptive_trigger_strength, 1.0f));
+
+        tuning t;
+
+        t.light = scaled_strength (
+          read (d.adaptive_trigger_light, static_cast<int> (slight)), scale);
+        t.heavy = scaled_strength (
+          read (d.adaptive_trigger_heavy, static_cast<int> (heavy)), scale);
+        t.ads = scaled_strength (read (d.adaptive_trigger_ads, 0), scale);
+
+        t.light_start = clamp_to (
+          read (d.adaptive_trigger_light_start,
+                static_cast<int> (light_break_start)), max_position);
+        t.light_end = clamp_to (
+          read (d.adaptive_trigger_light_end,
+                static_cast<int> (light_break_end)), max_position);
+        t.hard_start = clamp_to (
+          read (d.adaptive_trigger_heavy_start,
+                static_cast<int> (hard_break_start)), max_position);
+        t.hard_end = clamp_to (
+          read (d.adaptive_trigger_heavy_end,
+                static_cast<int> (hard_break_end)), max_position);
+
+        t.light_end = std::max (t.light_end, t.light_start);
+        t.hard_end = std::max (t.hard_end, t.hard_start);
+
+        return t;
+      }
+
       adaptive_trigger_request
-      firing_feedback (trigger_side side, const playerState_s& ps) noexcept
+      firing_feedback (trigger_side side,
+                       const playerState_s& ps,
+                       const tuning& t) noexcept
       {
         const int index (BG_GetViewModelWeaponIndex (&ps));
 
@@ -133,18 +199,18 @@ namespace Controller
           case Game::WEAPCLASS_MG:
           case Game::WEAPCLASS_RIFLE:
           case Game::WEAPCLASS_TURRET:
-            return profile (side, flat (heavy));
+            return profile (side, flat (t.heavy));
 
           case Game::WEAPCLASS_SMG:
-            return profile (side, ramp (slight, heavy));
+            return profile (side, ramp (t.light, t.heavy));
 
           case Game::WEAPCLASS_PISTOL:
-            return section (side, light_break_start, light_break_end, slight);
+            return section (side, t.light_start, t.light_end, t.light);
 
           case Game::WEAPCLASS_SPREAD:
           case Game::WEAPCLASS_SNIPER:
           case Game::WEAPCLASS_ROCKETLAUNCHER:
-            return section (side, hard_break_start, hard_break_end, heavy);
+            return section (side, t.hard_start, t.hard_end, t.heavy);
 
           default:
             return released (side);
@@ -154,14 +220,21 @@ namespace Controller
       adaptive_trigger_request
       offhand_feedback (trigger_side side,
                         const playerState_s& ps,
-                        bool primary) noexcept
+                        bool primary,
+                        const tuning& t) noexcept
       {
         const int held (primary ? ps.weapCommon.offhandPrimary
                                 : ps.weapCommon.offhandSecondary);
 
         return held != Game::OFFHAND_CLASS_NONE
-          ? section (side, light_break_start, light_break_end, slight)
+          ? section (side, t.light_start, t.light_end, t.light)
           : released (side);
+      }
+
+      adaptive_trigger_request
+      aiming_feedback (trigger_side side, const tuning& t) noexcept
+      {
+        return t.ads != 0 ? profile (side, flat (t.ads)) : released (side);
       }
     }
 
@@ -171,7 +244,7 @@ namespace Controller
                                adaptive_trigger_request& left,
                                adaptive_trigger_request& right) noexcept
     {
-      if (!read (d.adaptive_triggers, true))
+      if (!read (d.adaptive_triggers, false))
         return false;
 
       Game::cg_s* const cg (Game::CL_GetLocalClientGlobals (client));
@@ -184,22 +257,26 @@ namespace Controller
       const trigger_role l (role_for (mapping::engine_key::button_ltrig));
       const trigger_role r (role_for (mapping::engine_key::button_rtrig));
 
-      const auto effect_for = [&ps] (trigger_side side, trigger_role role)
+      const tuning t (read_tuning (d));
+
+      const auto effect_for = [&ps, &t] (trigger_side side, trigger_role role)
       {
         switch (role)
         {
           case trigger_role::firing:
-            return firing_feedback (side, ps);
+            return firing_feedback (side, ps, t);
 
           case trigger_role::aiming:
+            return aiming_feedback (side, t);
+
           case trigger_role::none:
             return released (side);
 
           case trigger_role::primary_offhand:
-            return offhand_feedback (side, ps, true);
+            return offhand_feedback (side, ps, true, t);
 
           case trigger_role::secondary_offhand:
-            return offhand_feedback (side, ps, false);
+            return offhand_feedback (side, ps, false, t);
         }
 
         return released (side);
