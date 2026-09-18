@@ -47,10 +47,16 @@ namespace Controller
       weapon,
     };
 
+    constexpr size_t trigger_zone_count {10};
+
+    using trigger_profile = std::array<uint8_t, trigger_zone_count>;
+
     struct adaptive_trigger_request
     {
       trigger_side side {trigger_side::left};
       trigger_effect effect {trigger_effect::off};
+
+      trigger_profile zones {};
 
       uint8_t start_position {0};
       uint8_t end_position {0};

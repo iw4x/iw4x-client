@@ -274,18 +274,30 @@ namespace Controller
       const float lt (s.triggers[static_cast<size_t> (trigger_side::left)].normalized);
       const float rt (s.triggers[static_cast<size_t> (trigger_side::right)].normalized);
 
-      const auto trigger_down = [trigger_deadzone] (float v) noexcept
+      const auto trigger_down = [&] (trigger_side side, float v) noexcept
       {
-        return v > 0.0f && v >= trigger_deadzone;
+        const size_t i (static_cast<size_t> (side));
+
+        const float engage (std::max (trigger_deadzone, engage_[i]));
+        const float release (
+          std::max (trigger_deadzone, engage - trigger_release_margin));
+
+        trigger_held_[i] =
+          v > 0.0f && v >= (trigger_held_[i] ? release : engage);
+
+        return trigger_held_[i];
       };
 
+      const bool lt_down (trigger_down (trigger_side::left, lt));
+      const bool rt_down (trigger_down (trigger_side::right, rt));
+
       button_set buttons (s.buttons);
-      buttons.set (button::l2, trigger_down (lt));
-      buttons.set (button::r2, trigger_down (rt));
+      buttons.set (button::l2, lt_down);
+      buttons.set (button::r2, rt_down);
 
       if (left.x != 0.0f || left.y != 0.0f ||
           right.x != 0.0f || right.y != 0.0f ||
-          trigger_down (lt) || trigger_down (rt))
+          lt_down || rt_down)
         set_in_use (true);
 
       const float axis[axis_count] {right.x, right.y, left.x, left.y};
@@ -615,6 +627,14 @@ namespace Controller
 
     void
     key_dispatcher::
+    set_trigger_engage (float left, float right) noexcept
+    {
+      engage_[static_cast<size_t> (trigger_side::left)] = left;
+      engage_[static_cast<size_t> (trigger_side::right)] = right;
+    }
+
+    void
+    key_dispatcher::
     release_all () noexcept
     {
       const unsigned time (static_cast<unsigned> (Sys_Milliseconds ()));
@@ -628,6 +648,7 @@ namespace Controller
 
       buttons_ = button_set ();
       deferred_ = button_set ();
+      trigger_held_ = {};
       ads_lerp_ = 0.0f;
       ads_lowering_ = false;
       pressed_at_ = {};

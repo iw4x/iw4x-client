@@ -62,16 +62,60 @@ namespace Controller
       constexpr size_t ds_trigger_effect_size {11};
 
       constexpr uint8_t ds_trigger_off {0x00};
-      constexpr uint8_t ds_trigger_feedback {0x01};
-      constexpr uint8_t ds_trigger_weapon {0x02};
+      constexpr uint8_t ds_trigger_feedback {0x21};
+      constexpr uint8_t ds_trigger_weapon {0x22};
 
-      constexpr uint8_t ds_trigger_max_position {9};
       constexpr uint8_t ds_trigger_max_strength {8};
+      constexpr uint8_t ds_trigger_min_weapon_start {2};
+      constexpr uint8_t ds_trigger_max_weapon_start {7};
+      constexpr uint8_t ds_trigger_max_weapon_end {8};
 
       uint8_t
       clamp_to (uint8_t v, uint8_t hi) noexcept
       {
         return v > hi ? hi : v;
+      }
+
+      void
+      put_zones (std::span<std::byte> e,
+                 uint16_t active,
+                 uint32_t force) noexcept
+      {
+        put (e, 1, static_cast<uint8_t> (active));
+        put (e, 2, static_cast<uint8_t> (active >> 8));
+        put (e, 3, static_cast<uint8_t> (force));
+        put (e, 4, static_cast<uint8_t> (force >> 8));
+        put (e, 5, static_cast<uint8_t> (force >> 16));
+        put (e, 6, static_cast<uint8_t> (force >> 24));
+      }
+
+      bool
+      encode_feedback_zones (const trigger_profile& zones,
+                             std::span<std::byte> e) noexcept
+      {
+        uint16_t active {0};
+        uint32_t force {0};
+
+        for (size_t i (0); i != trigger_zone_count; ++i)
+        {
+          const uint8_t s (clamp_to (zones[i], ds_trigger_max_strength));
+
+          if (s == 0)
+            continue;
+
+          active |= static_cast<uint16_t> (1u << i);
+          force |= static_cast<uint32_t> ((s - 1) & 0x07) << (3 * i);
+        }
+
+        if (active == 0)
+        {
+          put (e, 0, ds_trigger_off);
+          return true;
+        }
+
+        put (e, 0, ds_trigger_feedback);
+        put_zones (e, active, force);
+        return true;
       }
 
       bool
@@ -82,7 +126,6 @@ namespace Controller
 
         std::fill_n (e.data (), ds_trigger_effect_size, std::byte {});
 
-        const uint8_t start (clamp_to (t.start_position, ds_trigger_max_position));
         const uint8_t strength (clamp_to (t.strength, ds_trigger_max_strength));
 
         switch (t.effect)
@@ -94,26 +137,37 @@ namespace Controller
             }
 
           case trigger_effect::feedback:
-            {
-              put (e, 0, ds_trigger_feedback);
-              put (e, 1, start);
-              put (e, 2, strength);
-              return true;
-            }
+            return encode_feedback_zones (t.zones, e);
 
           case trigger_effect::weapon:
             {
-              const uint8_t end (
-                clamp_to (t.end_position > start ? t.end_position
-                                                 : static_cast<uint8_t> (start + 1),
-                          ds_trigger_max_position));
+              if (strength == 0)
+              {
+                put (e, 0, ds_trigger_off);
+                return true;
+              }
 
-              if (end <= start)
+              const uint8_t begin (
+                clamp_to (t.start_position < ds_trigger_min_weapon_start
+                            ? ds_trigger_min_weapon_start
+                            : t.start_position,
+                          ds_trigger_max_weapon_start));
+
+              const uint8_t end (
+                clamp_to (t.end_position > begin ? t.end_position
+                                                 : static_cast<uint8_t> (begin + 1),
+                          ds_trigger_max_weapon_end));
+
+              if (end <= begin)
                 return false;
 
+              const uint16_t bounds (
+                static_cast<uint16_t> ((1u << begin) | (1u << end)));
+
               put (e, 0, ds_trigger_weapon);
-              put (e, 1, start);
-              put (e, 2, end);
+              put (e, 1, static_cast<uint8_t> (bounds));
+              put (e, 2, static_cast<uint8_t> (bounds >> 8));
+              put (e, 3, static_cast<uint8_t> (strength - 1));
               return true;
             }
         }

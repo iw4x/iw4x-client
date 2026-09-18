@@ -191,7 +191,10 @@ namespace Controller
   apply_trigger_feedback ()
   {
     if (!latest_.state.caps.has (capability::adaptive_triggers))
+    {
+      keys_.set_trigger_engage (0.0f, 0.0f);
       return;
+    }
 
     driver::adaptive_trigger_request left {};
     driver::adaptive_trigger_request right {};
@@ -199,14 +202,26 @@ namespace Controller
     if (!engine::evaluate_trigger_feedback (dvars_, engine::local_client,
                                             left, right))
     {
+      keys_.set_trigger_engage (0.0f, 0.0f);
       felt_device_ = no_device;
       return;
     }
+
+    const auto engage_for = [] (const driver::adaptive_trigger_request& r) noexcept
+    {
+      return r.effect == driver::trigger_effect::weapon
+        ? static_cast<float> (r.end_position) /
+            static_cast<float> (driver::trigger_zone_count)
+        : 0.0f;
+    };
+
+    keys_.set_trigger_engage (engage_for (left), engage_for (right));
 
     const auto same = [] (const driver::adaptive_trigger_request& a,
                           const driver::adaptive_trigger_request& b) noexcept
     {
       return a.effect == b.effect &&
+             a.zones == b.zones &&
              a.start_position == b.start_position &&
              a.end_position == b.end_position &&
              a.strength == b.strength;
@@ -319,12 +334,13 @@ namespace Controller
       active_ = latest_.device;
       had_device_ = true;
 
+      apply_trigger_feedback ();
+
       keys_.dispatch (latest_.state);
 
       view_.observe (latest_.state);
 
       apply_light_bar ();
-      apply_trigger_feedback ();
     }
     else if (had_device_)
       keys_.tick ();

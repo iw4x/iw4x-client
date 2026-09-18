@@ -60,34 +60,59 @@ namespace Controller
       }
 
       adaptive_trigger_request
-      continuous (trigger_side side, uint8_t strength) noexcept
+      profile (trigger_side side, const driver::trigger_profile& zones) noexcept
       {
         adaptive_trigger_request r;
         r.side = side;
         r.effect = trigger_effect::feedback;
-        r.start_position = 1;
-        r.strength = strength;
+        r.zones = zones;
         return r;
       }
 
+      driver::trigger_profile
+      ramp (uint8_t from, uint8_t to) noexcept
+      {
+        driver::trigger_profile z {};
+
+        constexpr size_t last (driver::trigger_zone_count - 1);
+
+        for (size_t i (0); i != driver::trigger_zone_count; ++i)
+          z[i] = static_cast<uint8_t> (
+            from + (static_cast<int> (to) - from) * static_cast<int> (i) / last);
+
+        return z;
+      }
+
+      driver::trigger_profile
+      flat (uint8_t strength) noexcept
+      {
+        driver::trigger_profile z {};
+        z.fill (strength);
+        return z;
+      }
+
       adaptive_trigger_request
-      section (trigger_side side, uint8_t start, uint8_t end) noexcept
+      section (trigger_side side,
+               uint8_t start,
+               uint8_t end,
+               uint8_t strength) noexcept
       {
         adaptive_trigger_request r;
         r.side = side;
         r.effect = trigger_effect::weapon;
         r.start_position = start;
         r.end_position = end;
+        r.strength = strength;
         return r;
       }
 
-      constexpr uint8_t slight {3};
-      constexpr uint8_t heavy {7};
+      constexpr uint8_t slight {7};
+      constexpr uint8_t heavy {8};
 
-      constexpr uint8_t light_break_start {3};
+      constexpr uint8_t light_break_start {2};
       constexpr uint8_t light_break_end {5};
-      constexpr uint8_t hard_break_start {5};
-      constexpr uint8_t hard_break_end {8};
+      constexpr uint8_t hard_break_start {3};
+      constexpr uint8_t hard_break_end {7};
 
       adaptive_trigger_request
       firing_feedback (trigger_side side, const playerState_s& ps) noexcept
@@ -108,18 +133,18 @@ namespace Controller
           case Game::WEAPCLASS_MG:
           case Game::WEAPCLASS_RIFLE:
           case Game::WEAPCLASS_TURRET:
-            return continuous (side, heavy);
+            return profile (side, flat (heavy));
 
           case Game::WEAPCLASS_SMG:
-            return continuous (side, slight);
+            return profile (side, ramp (slight, heavy));
 
           case Game::WEAPCLASS_PISTOL:
-            return section (side, light_break_start, light_break_end);
+            return section (side, light_break_start, light_break_end, slight);
 
           case Game::WEAPCLASS_SPREAD:
           case Game::WEAPCLASS_SNIPER:
           case Game::WEAPCLASS_ROCKETLAUNCHER:
-            return section (side, hard_break_start, hard_break_end);
+            return section (side, hard_break_start, hard_break_end, heavy);
 
           default:
             return released (side);
@@ -135,7 +160,7 @@ namespace Controller
                                 : ps.weapCommon.offhandSecondary);
 
         return held != Game::OFFHAND_CLASS_NONE
-          ? section (side, light_break_start, light_break_end)
+          ? section (side, light_break_start, light_break_end, slight)
           : released (side);
       }
     }

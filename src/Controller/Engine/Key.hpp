@@ -33,6 +33,9 @@ namespace Controller
       void
       note_other_input () noexcept;
 
+      void
+      set_trigger_engage (float left, float right) noexcept;
+
     private:
       enum class key_event : uint8_t
       {
@@ -83,6 +86,11 @@ namespace Controller
       bool in_use_ {false};
 
       bool reported_deadzone_ {false};
+
+      static constexpr float trigger_release_margin {0.05f};
+
+      std::array<float, trigger_count> engage_ {};
+      std::array<bool, trigger_count> trigger_held_ {};
 
       button_set buttons_;
 
