@@ -51,7 +51,20 @@ namespace Utils::IO
 
 			if (size > -1)
 			{
-				data->resize(static_cast<std::string::size_type>(size));
+				// The client is 32-bit, so a large file can fail to allocate long before the system
+				// is out of memory. Report it and let the caller deal with a failed read instead of
+				// letting bad_alloc escape as an unhandled exception with no indication of the cause.
+				try
+				{
+					data->resize(static_cast<std::string::size_type>(size));
+				}
+				catch (const std::exception& ex)
+				{
+					Components::Logger::Warning(Game::CON_CHANNEL_FILES, "Could not allocate {} bytes to read '{}': {}\n", size, file, ex.what());
+					data->clear();
+					return false;
+				}
+
 				stream.read(data->data(), size);
 				stream.close();
 				return true;
