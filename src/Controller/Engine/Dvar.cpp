@@ -2,6 +2,8 @@
 
 #include "../Types.hpp"
 
+#include <initializer_list>
+
 namespace Controller
 {
   namespace engine
@@ -11,6 +13,19 @@ namespace Controller
     {
       static dvars d;
       return d;
+    }
+
+    namespace
+    {
+      void
+      player_settings (std::initializer_list<dvar_t*> settings) noexcept
+      {
+        for (dvar_t* v: settings)
+        {
+          if (v != nullptr)
+            v->flags &= ~DVAR_CHEAT;
+        }
+      }
     }
 
     void
@@ -233,6 +248,63 @@ namespace Controller
       d.aim_assist_range_scale = Dvar_RegisterFloat (
         "aim_aimAssistRangeScale", 1.0f, 0.0f, 10.0f, DVAR_CHEAT,
         "Aim-assist target range scale");
+
+      player_settings ({d.enabled,
+                        d.rumble,
+                        d.style,
+                        d.haptics,
+                        d.haptic_intensity,
+                        d.rumble_scale_low,
+                        d.rumble_scale_high,
+                        d.adaptive_triggers,
+                        d.output_interval,
+                        d.adaptive_trigger_strength,
+                        d.adaptive_trigger_light,
+                        d.adaptive_trigger_heavy,
+                        d.adaptive_trigger_light_start,
+                        d.adaptive_trigger_light_end,
+                        d.adaptive_trigger_heavy_start,
+                        d.adaptive_trigger_heavy_end,
+                        d.adaptive_trigger_ads,
+                        d.light_bar,
+                        d.light_bar_brightness,
+                        d.light_bar_r,
+                        d.light_bar_g,
+                        d.light_bar_b,
+                        d.stick_deadzone_min,
+                        d.stick_deadzone_max,
+                        d.stick_anti_deadzone,
+                        d.button_deadzone,
+                        d.button_deadzone_hysteresis,
+                        d.stick_pressed,
+                        d.stick_pressed_hysteresis,
+                        d.buttons_config,
+                        d.sticks_config,
+                        d.menu_scroll_delay_first,
+                        d.menu_scroll_delay_rest,
+                        d.menu_scroll_delay_min,
+                        d.menu_scroll_accel_time,
+                        d.use_hold_time,
+                        d.release_delay_enabled,
+                        d.release_delay,
+                        d.release_delay_scale,
+                        d.release_delay_sprint_only,
+                        d.release_grace,
+                        d.invert_pitch,
+                        d.view_sensitivity,
+                        d.turnrate_pitch,
+                        d.turnrate_pitch_ads,
+                        d.turnrate_yaw,
+                        d.turnrate_yaw_ads,
+                        d.accel_enabled,
+                        d.accel_rate,
+                        d.graph_enabled,
+                        d.graph_index,
+                        d.scale_view_axis,
+                        d.slowdown_enabled,
+                        d.gpad_slowdown_enabled,
+                        d.lockon_enabled,
+                        d.gpad_lockon_enabled});
     }
 
     void
