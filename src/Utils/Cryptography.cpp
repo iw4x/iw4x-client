@@ -257,6 +257,34 @@ namespace Utils
 			return String::DumpHex(hash, {});
 		}
 
+		std::string SHA256::ComputeFile(const std::string& file, bool hex)
+		{
+			std::ifstream stream(file, std::ios::binary);
+			if (!stream.is_open()) return {};
+
+			hash_state state;
+			sha256_init(&state);
+
+			std::vector<char> chunk(64 * 1024);
+			while (stream)
+			{
+				stream.read(chunk.data(), static_cast<std::streamsize>(chunk.size()));
+
+				if (const auto read = stream.gcount(); read > 0)
+				{
+					sha256_process(&state, reinterpret_cast<const std::uint8_t*>(chunk.data()), static_cast<unsigned long>(read));
+				}
+			}
+
+			std::uint8_t buffer[32]{};
+			sha256_done(&state, buffer);
+
+			std::string hash{ reinterpret_cast<char*>(buffer), sizeof(buffer) };
+			if (!hex) return hash;
+
+			return String::DumpHex(hash, {});
+		}
+
 #pragma endregion
 
 #pragma region SHA512

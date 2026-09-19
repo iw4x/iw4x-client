@@ -493,7 +493,9 @@ namespace Components
 				auto filePath = std::format("usermaps/{}/{}{}", map, map, Maps::UserMapFiles[i]);
 				if (Utils::IO::FileExists(filePath))
 				{
-					hash.append(Utils::Cryptography::SHA256::Compute(Utils::IO::ReadFile(filePath)));
+					// Streamed rather than read whole: usermap iwds run to tens of megabytes, and asking
+					// for that much contiguous memory is what tips an already loaded client over.
+					hash.append(Utils::Cryptography::SHA256::ComputeFile(filePath));
 				}
 			}
 
