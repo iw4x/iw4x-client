@@ -1532,7 +1532,10 @@ namespace Components
 
 		// Increase HunkMemory for people with heavy-loaded menus
 		// Original is 0xA00000
-		Utils::Hook::Set<uint32_t>(0x420830 + 6, 0xB00000);
+		// Raised again from 0xB00000: large ported maps exhaust the hunk while loading and die on
+		// allocations of a few hundred bytes ("Hunk_AllocAlign failed on 380 bytes (total 11 MB...)").
+		// This is reserved address space rather than committed pages, so the headroom is cheap.
+		Utils::Hook::Set<uint32_t>(0x420830 + 6, 0x4000000); // 64 MiB
 
 		// Don't open connect menu twice - it gets stuck!
 		Utils::Hook::Nop(0x428E48, 5);
