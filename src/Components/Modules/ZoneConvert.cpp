@@ -473,15 +473,16 @@ namespace zone
     enum class action
     {
       move,    // Move the file with nothing already at the destination.
+      copy,    // Copy the file, leaving the original where it is.
       replace, // Move the file over what is already at the destination.
       drop,    // Remove the file since the destination is newer.
       convert, // Convert the file and write the result to `to`.
       prune    // Remove the directory together with empty directories below it.
     };
 
-    // A step is one such operation. For move, replace, and convert we
-    // need both sides. For drop and prune there is naturally nowhere to
-    // move anything to, so `to` is simply left empty.
+    // A step is one such operation. For move, copy, replace, and
+    // convert we need both sides. For drop and prune there is naturally
+    // nowhere to move anything to, so `to` is simply left empty.
     //
     // Perhaps we could have separate representations for those cases,
     // though there doesn't seem to be much gained by making the plan
@@ -794,11 +795,31 @@ namespace zone
 
           string n (e.path ().filename ().generic_string ());
 
-          // dlc is/was shared, as discussed above, so leave its stock
-          // files where Steam put them.
+          // dlc is/was shared, as discussed above. Steam's stock files
+          // stay where Steam put them: they belong to the game and an
+          // integrity check would bring them back anyway.
+          //
+          // The game does, however, read this group from
+          // converted_root, so a copy of them has to turn up there as
+          // well. For the x64 ones that happens on its own since the
+          // next pass writes its output there. Which leaves the ones
+          // that are already in the layout the game reads: those we
+          // simply copy across.
           //
           if (g.shared != nullptr && g.shared (n))
+          {
+            fs::path t (converted_root / g.name / n);
+
+            // Perhaps we copied it on an earlier start. Note also that
+            // the copy under converted_root is what the next pass
+            // writes, so finding something there means this file has
+            // been dealt with either way.
+            //
+            if (!fs::exists (t) && probe (e.path ()) == arch::x86)
+              p.push_back ({action::copy, e.path (), move (t)});
+
             continue;
+          }
 
         // And leave x64 alone for now. These are the files the next pass will
         // actually convert.
@@ -1342,6 +1363,25 @@ namespace zone
     }
 
     void
+    do_copy (const step& s)
+    {
+      // Same story as do_move() with the destination directory. The
+      // difference is at the other end: this is for the files that are
+      // not ours to move, so the original stays where it is.
+      //
+      mkdir_p (s.to.parent_path ());
+
+      error_code ec;
+      fs::copy_file (s.from, s.to, fs::copy_options::overwrite_existing, ec);
+
+      if (ec)
+        fail ("\"{}\" could not be copied to \"{}\": {}.\n\n"
+              "This game reads that file from where it was being copied to, so it "
+              "cannot start until the copy goes through.",
+              s.from.generic_string (), s.to.generic_string (), ec.message ());
+    }
+
+    void
     do_replace (const step& s)
     {
       // This is basically a move except there may already be something
@@ -1441,6 +1481,7 @@ namespace zone
     //
     const action_type actions[] = {
       {"moving",     &do_move},
+      {"copying",    &do_copy},
       {"replacing",  &do_replace},
       {"dropping",   &do_drop},
       {"converting", nullptr},
