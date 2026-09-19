@@ -12,11 +12,15 @@ namespace Components
 	Dvar::Var Chat::cg_chatWidth;
 	Dvar::Var Chat::sv_disableChat;
 	Dvar::Var Chat::sv_sayName;
+	Dvar::Var Chat::cl_autoMuteBlacklist;
 
 	bool Chat::SendChat;
 
 	Utils::Concurrency::Container<Chat::muteList> Chat::MutedList;
 	const char* Chat::MutedListFile = "userraw/muted-users.json";
+
+	Utils::Concurrency::Container<Chat::blacklist> Chat::Blacklist;
+	const char* Chat::BlacklistFile = "userraw/user_filters.json";
 
 	bool Chat::CanAddCallback = true;
 	std::vector<Scripting::Function> Chat::SayCallbacks;
@@ -25,6 +29,13 @@ namespace Components
 	std::unique_lock<Utils::NamedMutex> Chat::Lock()
 	{
 		static Utils::NamedMutex mutex{ "iw4x-mute-list-lock" };
+		std::unique_lock lock{mutex};
+		return lock;
+	}
+
+	std::unique_lock<Utils::NamedMutex> Chat::BlacklistLock()
+	{
+		static Utils::NamedMutex mutex{ "iw4x-chat-blacklist-lock" };
 		std::unique_lock lock{mutex};
 		return lock;
 	}
@@ -231,8 +242,67 @@ namespace Components
 		return false;
 	}
 
+	bool Chat::CL_AutoMuteIfBlacklisted(const std::string& text)
+	{
+		if (!IsChatBlacklistEnabled())
+		{
+			return false;
+		}
+
+		const std::string colorlessText = TextRenderer::StripColors(text);
+		const std::string rawText = TextRenderer::StripAllTextIcons(colorlessText);
+
+		const size_t index = rawText.find(':');
+		if (index == std::string::npos)
+		{
+			// This is likely a server say or an unauthored message
+			return false;
+		}
+
+		const std::string authorName = rawText.substr(0, index);
+		const std::string body = rawText.substr(index + 1);
+
+		if (!ContainsBlacklistedPhrase(body))
+		{
+			return false;
+		}
+
+		char nameBuffer[64]{};
+		for (size_t i = 0; i < ARRAYSIZE(Game::g_serverSession->dyn.users); i++)
+		{
+			int gotName = Game::CL_GetClientName(0, static_cast<int>(i), nameBuffer, ARRAYSIZE(nameBuffer));
+			if (gotName)
+			{
+				const std::string rawPlayerName = TextRenderer::StripColors(nameBuffer);
+				if (authorName == rawPlayerName)
+				{
+					if (static_cast<int>(i) == Game::cgArray[0].clientNum)
+					{
+						return false; // Don't auto-mute yourself
+					}
+					
+					if (!Voice::CL_IsPlayerMuted(static_cast<int>(i)))
+					{
+						Voice::CL_MutePlayerByIndex(static_cast<int>(i));
+						Logger::Debug("Auto-muted client {} ({}) for a blacklisted chat phrase", i, rawPlayerName);
+					}
+
+					break;
+				}
+			}
+		}
+
+		// The offending message must never be displayed, regardless of whether the author could be resolved
+		return true;
+	}
+
 	void Chat::CG_AddToTeamChat(const char* text)
 	{
+		if (CL_AutoMuteIfBlacklisted(text))
+		{
+			return; // Skip it, blacklisted phrase triggered an auto-mute
+		}
+
 		if (CL_IsMessageFromMutedUser(text))
 		{
 			return; // Skip it, user is muted
@@ -352,6 +422,55 @@ namespace Components
 		return result;
 	}
 
+	bool Chat::IsChatBlacklistEnabled()
+	{
+		return cl_autoMuteBlacklist.get<bool>();
+	}
+
+	bool Chat::ContainsBlacklistedPhrase(const std::string& text)
+	{
+		const auto haystack = Utils::String::ToLower(text);
+
+		const auto isWordChar = [](const char c)
+		{
+			return std::isalnum(static_cast<unsigned char>(c)) != 0;
+		};
+
+		return Blacklist.access<bool>([&](const blacklist& phrases)
+		{
+			for (const auto& phrase : phrases)
+			{
+				if (phrase.empty())
+				{
+					continue;
+				}
+
+				std::size_t searchStart = 0;
+				while (true)
+				{
+					const auto matchIndex = haystack.find(phrase, searchStart);
+					if (matchIndex == std::string::npos)
+					{
+						break;
+					}
+
+					const auto matchEnd = matchIndex + phrase.size();
+					const auto hasWordCharBefore = matchIndex > 0 && isWordChar(haystack[matchIndex - 1]);
+					const auto hasWordCharAfter = matchEnd < haystack.size() && isWordChar(haystack[matchEnd]);
+
+					if (!hasWordCharBefore && !hasWordCharAfter)
+					{
+						return true;
+					}
+
+					searchStart = matchIndex + 1;
+				}
+			}
+
+			return false;
+		});
+	}
+
 	void Chat::MuteClient(const Game::client_s* client)
 	{
 		const auto xuid = client->steamID;
@@ -440,6 +559,79 @@ namespace Components
 				if (entry.is_number_unsigned())
 				{
 					clients.insert(entry.get<std::uint64_t>());
+				}
+			}
+		});
+	}
+
+	void Chat::SaveBlacklist(const blacklist& list)
+	{
+		const auto _ = BlacklistLock();
+
+		const nlohmann::json blacklistData = nlohmann::json
+		{
+			{ "Phrases", list },
+		};
+
+		Utils::IO::WriteFile(BlacklistFile, blacklistData.dump());
+	}
+
+	void Chat::LoadBlacklist()
+	{
+		const auto _ = BlacklistLock();
+
+		const auto blacklistFileData = Utils::IO::ReadFile(BlacklistFile);
+		if (blacklistFileData.empty())
+		{
+			Logger::Debug("user_filters.json does not exist, seeding it with placeholder entries");
+
+			blacklist defaultEntries{ "foo", "bar" };
+			Blacklist.access([&](blacklist& phrases)
+			{
+				phrases = defaultEntries;
+			});
+
+			SaveBlacklist(defaultEntries);
+			return;
+		}
+
+		nlohmann::json blacklistJson;
+		try
+		{
+			blacklistJson = nlohmann::json::parse(blacklistFileData);
+		}
+		catch (const std::exception& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "JSON Parse Error: {}\n", ex.what());
+			return;
+		}
+
+		if (!blacklistJson.contains("Phrases"))
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "user_filters.json contains invalid data\n");
+			return;
+		}
+
+		const auto& list = blacklistJson["Phrases"];
+		if (!list.is_array())
+		{
+			return;
+		}
+
+		Blacklist.access([&](blacklist& phrases)
+		{
+			const nlohmann::json::array_t arr = list;
+			for (const auto& entry : arr)
+			{
+				if (!entry.is_string())
+				{
+					continue;
+				}
+
+				const auto phrase = Utils::String::ToLower(entry.get<std::string>());
+				if (!phrase.empty())
+				{
+					phrases.insert(phrase);
 				}
 			}
 		});
@@ -677,9 +869,11 @@ namespace Components
 
 		cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
 		sv_disableChat = Dvar::Register<bool>("sv_disableChat", false, Game::DVAR_NONE, "Disable chat messages from clients");
+		cl_autoMuteBlacklist = Dvar::Register<bool>("cl_autoMuteBlacklist", true, Game::DVAR_ARCHIVE, "Automatically mute (client-side only) players whose chat messages contain a phrase from userraw/user_filters.json");
 		Events::OnSVInit(AddServerCommands);
 
 		LoadMutedList();
+		LoadBlacklist();
 
 		// Intercept chat sending
 		Utils::Hook(0x4D000B, PreSayStub, HOOK_CALL).install()->quick();
