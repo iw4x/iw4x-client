@@ -602,33 +602,20 @@ namespace Components
 
 	int Chat::GetCallbackReturn()
 	{
-		const auto returnCount = Game::scrVmPub->inparamcount;
-		if (returnCount == 0)
+		if (Game::scrVmPub->inparamcount == 0)
 		{
 			// Nothing. Let's not mute the player
 			return 1;
 		}
 
-		Game::Scr_ClearOutParams();
-
-		const auto* result = &Game::scrVmPub->top[1 - returnCount];
-		auto mute = 1;
+		const auto* result = Game::scrVmPub->top;
 
 		if (result->type == Game::VAR_INTEGER)
 		{
-			mute = result->u.intValue;
+			return result->u.intValue;
 		}
 
-		for (auto i = 0u; i < returnCount; ++i)
-		{
-			Game::RemoveRefToValue(Game::scrVmPub->top->type, Game::scrVmPub->top->u);
-			Game::scrVmPub->top->type = Game::VAR_UNDEFINED;
-			--Game::scrVmPub->top;
-		}
-
-		Game::scrVmPub->inparamcount = 0;
-
-		return mute;
+		return 1;
 	}
 
 	int Chat::ChatCallback(Game::gentity_s* self, const char* codePos, const char* message, int mode)

@@ -17,7 +17,13 @@ namespace Scripting
 
 	StackIsolation::~StackIsolation()
 	{
-		Game::Scr_ClearOutParams();
+		while (Game::scrVmPub->top > this->stack_)
+		{
+			Game::RemoveRefToValue(Game::scrVmPub->top->type, Game::scrVmPub->top->u);
+			Game::scrVmPub->top->type = Game::VAR_UNDEFINED;
+			--Game::scrVmPub->top;
+		}
+
 		Game::scrVmPub->inparamcount = this->inParamCount_;
 		Game::scrVmPub->outparamcount = this->outParamCount_;
 		Game::scrVmPub->top = this->top_;
