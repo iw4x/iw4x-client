@@ -2,16 +2,31 @@
 
 namespace Assets
 {
+	void IWeapon::applyAdsTransitionTimes(Game::WeaponCompleteDef* weapon)
+	{
+		constexpr auto defaultAdsTransInTime = 300.0f;
+		constexpr auto defaultAdsTransOutTime = 500.0f;
+
+		if (!weapon || !weapon->weapDef)
+		{
+			return;
+		}
+
+		weapon->weapDef->fOOPosAnimLength[0] = 1.0f / (weapon->iAdsTransInTime > 0
+			? static_cast<float>(weapon->iAdsTransInTime)
+			: defaultAdsTransInTime);
+
+		weapon->weapDef->fOOPosAnimLength[1] = 1.0f / (weapon->iAdsTransOutTime > 0
+			? static_cast<float>(weapon->iAdsTransOutTime)
+			: defaultAdsTransOutTime);
+	}
+
 	void IWeapon::load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder)
 	{
 		header->weapon = builder->getIW4OfApi()->read<Game::WeaponCompleteDef>(Game::XAssetType::ASSET_TYPE_WEAPON, name);
 
 		if (header->weapon)
 		{
-			auto* weapon = header->weapon;
-			weapon->weapDef->fOOPosAnimLength[0] = weapon->iAdsTransInTime <= 0 ? 0.0033333334f : 1.0f / static_cast<float>(weapon->iAdsTransInTime);
-			weapon->weapDef->fOOPosAnimLength[1] = weapon->iAdsTransOutTime <= 0 ? 0.0020000001f : 1.0f / static_cast<float>(weapon->iAdsTransOutTime);
-
 			return;
 		}
 
@@ -38,6 +53,8 @@ namespace Assets
 	void IWeapon::mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder)
 	{
 		Game::WeaponCompleteDef* asset = header.weapon;
+
+		applyAdsTransitionTimes(asset);
 
 		// convert all script strings
 		if (asset->hideTags)

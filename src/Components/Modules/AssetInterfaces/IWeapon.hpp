@@ -13,6 +13,7 @@ namespace Assets
 		void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
 
 	private:
+		static void applyAdsTransitionTimes(Game::WeaponCompleteDef* weapon);
 		void writeWeaponDef(Game::WeaponDef* def, Components::ZoneBuilder::Zone* builder, Utils::Stream* buffer);
 	};
 }
