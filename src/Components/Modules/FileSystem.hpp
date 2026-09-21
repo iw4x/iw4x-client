@@ -135,6 +135,9 @@ namespace Components
 
 		static void IwdFreeStub(Game::iwd_t* iwd);
 
+		static int FS_WriteOriginal(const void* buffer, int len, int h);
+		static int FS_Write_Hk(const void* buffer, int len, int h);
+
 		static FILE* FS_FileOpenReadText_Hk(const char* file);
 	};
 }

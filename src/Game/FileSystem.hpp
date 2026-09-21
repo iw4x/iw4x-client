@@ -83,6 +83,9 @@ namespace Game
 	typedef void(*FS_BuildOSPath_t)(const char* base, const char* game, const char* qpath, char* ospath);
 	extern FS_BuildOSPath_t FS_BuildOSPath;
 
+	constexpr auto MAX_FILE_HANDLES = 64;
+	extern fileHandleData_t* fsh;
+
 	extern searchpath_s** fs_searchpaths;
 
 	extern char* fs_gamedir;

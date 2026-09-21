@@ -438,11 +438,67 @@ namespace Components
 		return FileWrapper_Rotate(ospath.data());
 	}
 
+	// FS_Write and FS_FCloseFile both check that a file handle index is non-zero and then use the
+	// stream they load out of the handle table without ever checking that. A handle whose entry
+	// has already been released holds a null stream there, and handing that to fwrite or fclose
+	// trips the CRT's invalid-parameter handler, which raises STATUS_INVALID_PARAMETER
+	// (0xC000000D) instead of returning an error, from a stack that unwinds to nothing usable.
+	//
+	// It is reachable while the client config is written, where one handle stays open across the
+	// header, the key bindings and several hundred dvars. Losing the stream partway through that
+	// faulted on an arbitrary 'seta' line and left iw4x_config.cfg truncated to zero bytes, since
+	// nothing had been flushed out of the CRT's buffer yet.
+	//
+	// Drop the write rather than faulting: a lost line is recoverable, a fault mid-config is not.
+	__declspec(naked) int FileSystem::FS_WriteOriginal(const void*, int, int)
+	{
+		__asm
+		{
+			push ebx
+			mov ebx, [esp + 0x10]
+
+			push 0x4576C5
+			ret
+		}
+	}
+
+	int FileSystem::FS_Write_Hk(const void* buffer, int len, int h)
+	{
+		if (h > 0 && h < Game::MAX_FILE_HANDLES && Game::fsh[h].handleFiles.file.o == nullptr)
+		{
+			Logger::Warning(Game::CON_CHANNEL_FILES, "Dropped a {} byte write to file handle {}: its stream has already been released\n", len, h);
+			return 0;
+		}
+
+		return FS_WriteOriginal(buffer, len, h);
+	}
+
 	FileSystem::FileSystem()
 	{
 		// Thread safe file system interaction
 		Utils::Hook(0x4F4BFF, AllocateFile, HOOK_CALL).install()->quick();
 		Utils::Hook(Game::FS_FreeFile, FreeFile, HOOK_JUMP).install()->quick();
+
+		// Never hand an already-released stream to fwrite
+		Utils::Hook(Game::FS_Write, FS_Write_Hk, HOOK_JUMP).install()->quick();
+
+		// FS_FCloseFile has the same blind spot, so move its test off the handle and onto the
+		// stream it is about to close:
+		//
+		//   mov eax, [esi + 63D4FE0h]   ; fsh[h].handleFiles.file.o
+		//   test eax, eax
+		//   jz short 462078h            ; skip fclose, still clear the entry
+		//   push eax
+		//
+		// Testing the stream subsumes the handle test it replaces, because handle 0 indexes an
+		// entry that is always zeroed, and both the fclose and the memset after it are left as
+		// they were. Patched in place rather than hooked so that it still applies underneath the
+		// ZoneBuilder hook on this same function.
+		Utils::Hook::Set<std::uint16_t>(0x462065, 0x868B);
+		Utils::Hook::Set<std::uint32_t>(0x462067, 0x063D4FE0);
+		Utils::Hook::Set<std::uint16_t>(0x46206B, 0xC085);
+		Utils::Hook::Set<std::uint16_t>(0x46206D, 0x0974);
+		Utils::Hook::Set<std::uint8_t>(0x46206F, 0x50);
 
 		// Filesystem config checks
 		Utils::Hook(0x6098FD, Cmd_Exec_f_Stub, HOOK_CALL).install()->quick();
