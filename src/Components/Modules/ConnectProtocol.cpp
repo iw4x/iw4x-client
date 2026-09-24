@@ -5,7 +5,7 @@ namespace Components
 {
 	namespace
 	{
-		bool SetRegistryString(const wchar_t* keyPath, const wchar_t* valueName, const std::wstring& value)
+		LSTATUS SetRegistryString(const wchar_t* keyPath, const wchar_t* valueName, const std::wstring& value)
 		{
 			HKEY key = nullptr;
 			const auto result = RegCreateKeyExW(HKEY_CURRENT_USER, keyPath, 0, nullptr,
@@ -13,7 +13,7 @@ namespace Components
 
 			if (result != ERROR_SUCCESS)
 			{
-				return false;
+				return result;
 			}
 
 			const auto closeKey = gsl::finally([&key]
@@ -23,7 +23,7 @@ namespace Components
 
 			const auto size = static_cast<DWORD>((value.size() + 1) * sizeof(wchar_t));
 			return RegSetValueExW(key, valueName, 0, REG_SZ,
-				reinterpret_cast<const BYTE*>(value.c_str()), size) == ERROR_SUCCESS;
+				reinterpret_cast<const BYTE*>(value.c_str()), size);
 		}
 	}
 
@@ -64,12 +64,37 @@ namespace Components
 		}
 
 		const auto quotedExecutable = L"\"" + executable.native() + L"\"";
+		bool success = true;
 
-		return SetRegistryString(L"SOFTWARE\\Classes\\iw4x", nullptr, L"URL:IW4x Protocol")
-			&& SetRegistryString(L"SOFTWARE\\Classes\\iw4x", L"URL Protocol", L"")
-			&& SetRegistryString(L"SOFTWARE\\Classes\\iw4x\\DefaultIcon", nullptr, quotedExecutable + L",1")
-			&& SetRegistryString(L"SOFTWARE\\Classes\\iw4x\\shell\\open\\command", nullptr,
-				quotedExecutable + L" \"%1\"");
+		const auto set = [&success](const wchar_t* subkey, const wchar_t* name,
+			const std::wstring& value, const char* description)
+		{
+			std::wstring key = L"SOFTWARE\\Classes\\iw4x";
+
+			if (subkey != nullptr)
+			{
+				key += L'\\';
+				key += subkey;
+			}
+
+			const auto result = SetRegistryString(key.c_str(), name, value);
+			if (result == ERROR_SUCCESS)
+			{
+				return;
+			}
+
+			success = false;
+			Logger::Warning(Game::CON_CHANNEL_SYSTEM,
+				"Unable to register IW4x {}: {} ({})\n", description,
+				std::system_category().message(result), result);
+		};
+
+		set(nullptr, nullptr, L"URL:IW4x Protocol", "protocol description");
+		set(nullptr, L"URL Protocol", L"", "URL protocol marker");
+		set(L"DefaultIcon", nullptr, quotedExecutable + L",0", "protocol icon");
+		set(L"shell\\open\\command", nullptr, quotedExecutable + L" \"%1\"", "protocol command");
+
+		return success;
 	}
 
 	void ConnectProtocol::EvaluateProtocol()
