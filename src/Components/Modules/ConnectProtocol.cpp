@@ -3,6 +3,30 @@
 
 namespace Components
 {
+	namespace
+	{
+		bool SetRegistryString(const wchar_t* keyPath, const wchar_t* valueName, const std::wstring& value)
+		{
+			HKEY key = nullptr;
+			const auto result = RegCreateKeyExW(HKEY_CURRENT_USER, keyPath, 0, nullptr,
+				REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, nullptr, &key, nullptr);
+
+			if (result != ERROR_SUCCESS)
+			{
+				return false;
+			}
+
+			const auto closeKey = gsl::finally([&key]
+			{
+				RegCloseKey(key);
+			});
+
+			const auto size = static_cast<DWORD>((value.size() + 1) * sizeof(wchar_t));
+			return RegSetValueExW(key, valueName, 0, REG_SZ,
+				reinterpret_cast<const BYTE*>(value.c_str()), size) == ERROR_SUCCESS;
+		}
+	}
+
 	bool ConnectProtocol::Evaluated = false;
 	std::string ConnectProtocol::ConnectString;
 
@@ -23,154 +47,29 @@ namespace Components
 
 	bool ConnectProtocol::InstallProtocol()
 	{
-		HKEY hKey = nullptr;
-		std::string data;
+		wchar_t ownPath[MAX_PATH]{};
+		const auto pathLength = GetModuleFileNameW(nullptr, ownPath, ARRAYSIZE(ownPath));
 
-		char ownPth[MAX_PATH]{};
-		char workdir[MAX_PATH]{};
-
-		DWORD dwsize = MAX_PATH;
-		HMODULE hModule = GetModuleHandleA(nullptr);
-
-		if (hModule != nullptr)
-		{
-			if (GetModuleFileNameA(hModule, ownPth, MAX_PATH) == ERROR)
-			{
-				return false;
-			}
-
-			if (GetModuleFileNameA(hModule, workdir, MAX_PATH) == ERROR)
-			{
-				return false;
-			}
-			else
-			{
-				auto* endPtr = std::strstr(workdir, "iw4x.exe");
-				if (endPtr != nullptr)
-				{
-					*endPtr = 0;
-				}
-				else
-				{
-					return false;
-				}
-			}
-		}
-		else
+		if (pathLength == 0 || pathLength >= ARRAYSIZE(ownPath))
 		{
 			return false;
 		}
 
-		SetCurrentDirectoryA(workdir);
+		const std::filesystem::path executable(ownPath);
+		const auto workdir = executable.parent_path();
 
-		LONG openRes = RegOpenKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x\\shell\\open\\command", 0, KEY_ALL_ACCESS, &hKey);
-		if (openRes == ERROR_SUCCESS)
-		{
-			char regred[MAX_PATH]{};
-
-			// Check if the game has been moved.
-			openRes = RegQueryValueExA(hKey, nullptr, nullptr, nullptr, reinterpret_cast<BYTE*>(regred), &dwsize);
-			if (openRes == ERROR_SUCCESS)
-			{
-				auto* endPtr = std::strstr(regred, "\" \"%1\"");
-				if (endPtr != nullptr)
-				{
-					*endPtr = 0;
-				}
-				else
-				{
-					return false;
-				}
-
-				RegCloseKey(hKey);
-
-				if (std::strcmp(regred + 1, ownPth) != 0)
-				{
-					RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
-				}
-				else
-				{
-					return true;
-				}
-			}
-			else
-			{
-				RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
-			}
-		}
-		else
-		{
-			RegDeleteKeyA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x");
-		}
-
-		// Open SOFTWARE\\Classes
-		openRes = RegOpenKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\Classes", 0, KEY_ALL_ACCESS, &hKey);
-
-		if (openRes != ERROR_SUCCESS)
+		if (workdir.empty() || !SetCurrentDirectoryW(workdir.c_str()))
 		{
 			return false;
 		}
 
-		// Create SOFTWARE\\Classes\\iw4x
-		openRes = RegCreateKeyExA(hKey, "iw4x", 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, nullptr, &hKey, nullptr);
+		const auto quotedExecutable = L"\"" + executable.native() + L"\"";
 
-		if (openRes != ERROR_SUCCESS)
-		{
-			return false;
-		}
-
-		// Write URL:IW4x Protocol
-		data = "URL:IW4x Protocol";
-		openRes = RegSetValueExA(hKey, "URL Protocol", 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
-
-		if (openRes != ERROR_SUCCESS)
-		{
-			RegCloseKey(hKey);
-			return false;
-		}
-
-		// Create SOFTWARE\\Classes\\iw4x\\DefaultIcon
-		openRes = RegCreateKeyExA(hKey, "DefaultIcon", 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, nullptr, &hKey, nullptr);
-
-		if (openRes != ERROR_SUCCESS)
-		{
-			return false;
-		}
-
-		data = Utils::String::VA("%s,1", ownPth);
-		openRes = RegSetValueExA(hKey, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
-		RegCloseKey(hKey);
-
-		if (openRes != ERROR_SUCCESS)
-		{
-			RegCloseKey(hKey);
-			return false;
-		}
-
-		openRes = RegOpenKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\Classes\\iw4x", 0, KEY_ALL_ACCESS, &hKey);
-
-		if (openRes != ERROR_SUCCESS)
-		{
-			return false;
-		}
-
-		openRes = RegCreateKeyExA(hKey, "shell\\open\\command", 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, nullptr, &hKey, nullptr);
-
-		if (openRes != ERROR_SUCCESS)
-		{
-			return false;
-		}
-
-		data = Utils::String::VA("\"%s\" \"%s\"", ownPth, "%1");
-		openRes = RegSetValueExA(hKey, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
-		RegCloseKey(hKey);
-
-		if (openRes != ERROR_SUCCESS)
-		{
-			return false;
-		}
-
-		return true;
+		return SetRegistryString(L"SOFTWARE\\Classes\\iw4x", nullptr, L"URL:IW4x Protocol")
+			&& SetRegistryString(L"SOFTWARE\\Classes\\iw4x", L"URL Protocol", L"")
+			&& SetRegistryString(L"SOFTWARE\\Classes\\iw4x\\DefaultIcon", nullptr, quotedExecutable + L",1")
+			&& SetRegistryString(L"SOFTWARE\\Classes\\iw4x\\shell\\open\\command", nullptr,
+				quotedExecutable + L" \"%1\"");
 	}
 
 	void ConnectProtocol::EvaluateProtocol()
