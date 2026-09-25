@@ -580,6 +580,13 @@ namespace Components
 		// Fix XSurface assets
 		Utils::Hook(0x0048E8A5, FastFiles::Load_XSurfaceArray, HOOK_CALL).install()->quick();
 
+		// The surface count pushed into that call is read straight off varXSurface. Some community
+		// fastfiles declare vertex/index blocks they never ship, which leaves that pointer outside
+		// the loaded blocks and faults here before the call is even made. Load_XSurfaceArray above
+		// ignores the argument and uses varXModelSurfs->numsurfs instead, so pass zero rather than
+		// dereferencing a pointer the zone gave us no reason to trust.
+		Utils::Hook::Set<DWORD>(0x0048E89E, 0x9090D231); // xor edx, edx | nop | nop
+
 		// Redirect zone paths
 		Utils::Hook(0x44DA90, FastFiles::GetZoneLocation, HOOK_JUMP).install()->quick();
 

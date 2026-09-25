@@ -493,7 +493,9 @@ namespace Components
 				auto filePath = std::format("usermaps/{}/{}{}", map, map, Maps::UserMapFiles[i]);
 				if (Utils::IO::FileExists(filePath))
 				{
-					hash.append(Utils::Cryptography::SHA256::Compute(Utils::IO::ReadFile(filePath)));
+					// Streamed rather than read whole: usermap iwds run to tens of megabytes, and asking
+					// for that much contiguous memory is what tips an already loaded client over.
+					hash.append(Utils::Cryptography::SHA256::ComputeFile(filePath));
 				}
 			}
 
@@ -906,9 +908,12 @@ namespace Components
 		// Restrict asset loading
 		AssetHandler::OnLoad(Maps::LoadAssetRestrict);
 
-		// hunk size (was 300 MiB)
-		Utils::Hook::Set<DWORD>(0x64A029, 0x1C200000); // 450 MiB
-		Utils::Hook::Set<DWORD>(0x64A057, 0x1C200000);
+		// hunk size (was 300 MiB). 450 MiB still left several ported maps short on load - mp_cement,
+		// mp_boardwalk, mp_carbon, mp_radar, mp_exchange and the stock mp_underground all died with
+		// "Need N more bytes of ram for alloc to succeed". This is reserved address space, not
+		// committed pages, so the cost of the headroom is only VA.
+		Utils::Hook::Set<DWORD>(0x64A029, 0x28000000); // 640 MiB
+		Utils::Hook::Set<DWORD>(0x64A057, 0x28000000);
 
 		// Intercept BSP name resolving
 		Utils::Hook(0x4C5979, Maps::GetBSPName, HOOK_CALL).install()->quick();

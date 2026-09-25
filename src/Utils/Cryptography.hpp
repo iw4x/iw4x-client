@@ -348,6 +348,9 @@ namespace Utils
 		public:
 			static std::string Compute(const std::string& data, bool hex = false);
 			static std::string Compute(const std::uint8_t* data, std::size_t length, bool hex = false);
+			// Hashes a file in chunks. Same digest as Compute over the file's bytes, but never needs
+			// the whole file in one contiguous allocation, which a 32-bit client cannot rely on.
+			static std::string ComputeFile(const std::string& file, bool hex = false);
 		};
 
 		class SHA512
