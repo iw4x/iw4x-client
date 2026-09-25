@@ -17,6 +17,10 @@ namespace Components
 			return CL_IsPlayerMuted_Hk(Game::g_serverSession, 0, clientIndex);
 		};
 
+		static void CL_MutePlayerByIndex(int clientIndex) {
+			CL_MutePlayer_Hk(nullptr, clientIndex);
+		};
+
 	private:
 		static constexpr auto MAX_VOICE_PACKET_DATA = 256;
 		static constexpr auto MAX_SERVER_QUEUED_VOICE_PACKETS = 40;
