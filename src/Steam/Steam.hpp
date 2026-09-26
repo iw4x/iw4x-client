@@ -9,29 +9,29 @@
 
 typedef union
 {
-	struct
-	{
-		unsigned int accountID : 32;
-		unsigned int accountInstance : 20;
-		unsigned int accountType : 4;
-		int          universe : 8;
-	};
+  struct
+  {
+    unsigned int accountID : 32;
+    unsigned int accountInstance : 20;
+    unsigned int accountType : 4;
+    int          universe : 8;
+  };
 
-	unsigned long long bits;
+  unsigned long long bits;
 } SteamID;
 
 
 #pragma pack( push, 1 )
 typedef union
 {
-	struct
-	{
-		unsigned int appID : 24;
-		unsigned int type : 8;
-		unsigned int modID : 32;
-	};
+  struct
+  {
+    unsigned int appID : 24;
+    unsigned int type : 8;
+    unsigned int modID : 32;
+  };
 
-	unsigned long long bits;
+  unsigned long long bits;
 } GameID_t;
 #pragma pack( pop )
 
@@ -60,73 +60,73 @@ typedef void* unknown_ret;
 
 namespace Steam
 {
-	class Callbacks
-	{
-	public:
-		class Base
-		{
-		public:
-			Base() : Flags(0), Callback(0) {};
+  class Callbacks
+  {
+  public:
+    class Base
+    {
+    public:
+      Base() : Flags(0), Callback(0) {};
 
-			virtual void Run(void *pvParam) = 0;
-			virtual void Run(void *pvParam, bool bIOFailure, uint64_t hSteamAPICall) = 0;
-			virtual int GetCallbackSizeBytes() = 0;
+      virtual void Run(void *pvParam) = 0;
+      virtual void Run(void *pvParam, bool bIOFailure, uint64_t hSteamAPICall) = 0;
+      virtual int GetCallbackSizeBytes() = 0;
 
-			int GetICallback() { return Callback; }
-			void SetICallback(int iCallback) { Callback = iCallback; }
+      int GetICallback() { return Callback; }
+      void SetICallback(int iCallback) { Callback = iCallback; }
 
-		protected:
-			~Base() = default;
+    protected:
+      ~Base() = default;
 
-			unsigned char Flags;
-			int Callback;
-		};
+      unsigned char Flags;
+      int Callback;
+    };
 
-		struct Result
-		{
-			void* data;
-			int size;
-			int type;
-			uint64_t call;
-		};
+    struct Result
+    {
+      void* data;
+      int size;
+      int type;
+      uint64_t call;
+    };
 
-		static uint64_t RegisterCall();
-		static void RegisterCallback(Base* handler, int callback);
-		static void RegisterCallResult(uint64_t call, Base* result);
-		static void ReturnCall(void* data, int size, int type, uint64_t call);
-		static void RunCallbacks();
+    static uint64_t RegisterCall();
+    static void RegisterCallback(Base* handler, int callback);
+    static void RegisterCallResult(uint64_t call, Base* result);
+    static void ReturnCall(void* data, int size, int type, uint64_t call);
+    static void RunCallbacks();
 
-		static void RunCallback(int32_t callback, void* data);
+    static void RunCallback(int32_t callback, void* data);
 
-		static void Uninitialize();
+    static void Uninitialize();
 
-	private:
-		static uint64_t CallID;
-		static std::map<uint64_t, bool> Calls;
-		static std::map<uint64_t, Base*> ResultHandlers;
-		static std::vector<Result> Results;
-		static std::vector<Base*> CallbackList;
-		static std::recursive_mutex Mutex;
-	};
+  private:
+    static uint64_t CallID;
+    static std::map<uint64_t, bool> Calls;
+    static std::map<uint64_t, Base*> ResultHandlers;
+    static std::vector<Result> Results;
+    static std::vector<Base*> CallbackList;
+    static std::recursive_mutex Mutex;
+  };
 
-	STEAM_EXPORT bool SteamAPI_Init();
-	STEAM_EXPORT void SteamAPI_RegisterCallResult(Callbacks::Base* result, uint64_t call);
-	STEAM_EXPORT void SteamAPI_RegisterCallback(Callbacks::Base* handler, int callback);
-	STEAM_EXPORT void SteamAPI_RunCallbacks();
-	STEAM_EXPORT void SteamAPI_Shutdown();
-	STEAM_EXPORT void SteamAPI_UnregisterCallResult();
-	STEAM_EXPORT void SteamAPI_UnregisterCallback();
+  STEAM_EXPORT bool SteamAPI_Init();
+  STEAM_EXPORT void SteamAPI_RegisterCallResult(Callbacks::Base* result, uint64_t call);
+  STEAM_EXPORT void SteamAPI_RegisterCallback(Callbacks::Base* handler, int callback);
+  STEAM_EXPORT void SteamAPI_RunCallbacks();
+  STEAM_EXPORT void SteamAPI_Shutdown();
+  STEAM_EXPORT void SteamAPI_UnregisterCallResult();
+  STEAM_EXPORT void SteamAPI_UnregisterCallback();
 
-	STEAM_EXPORT bool SteamGameServer_Init();
-	STEAM_EXPORT void SteamGameServer_RunCallbacks();
-	STEAM_EXPORT void SteamGameServer_Shutdown();
+  STEAM_EXPORT bool SteamGameServer_Init();
+  STEAM_EXPORT void SteamGameServer_RunCallbacks();
+  STEAM_EXPORT void SteamGameServer_Shutdown();
 
-	STEAM_EXPORT Steam::Friends* SteamFriends();
-	STEAM_EXPORT Steam::Matchmaking* SteamMatchmaking();
-	STEAM_EXPORT Steam::GameServer* SteamGameServer();
-	STEAM_EXPORT Steam::MasterServerUpdater* SteamMasterServerUpdater();
-	STEAM_EXPORT Steam::Networking* SteamNetworking();
-	STEAM_EXPORT Steam::RemoteStorage* SteamRemoteStorage();
-	STEAM_EXPORT Steam::User* SteamUser();
-	STEAM_EXPORT Steam::Utils* SteamUtils();
+  STEAM_EXPORT Steam::Friends* SteamFriends();
+  STEAM_EXPORT Steam::Matchmaking* SteamMatchmaking();
+  STEAM_EXPORT Steam::GameServer* SteamGameServer();
+  STEAM_EXPORT Steam::MasterServerUpdater* SteamMasterServerUpdater();
+  STEAM_EXPORT Steam::Networking* SteamNetworking();
+  STEAM_EXPORT Steam::RemoteStorage* SteamRemoteStorage();
+  STEAM_EXPORT Steam::User* SteamUser();
+  STEAM_EXPORT Steam::Utils* SteamUtils();
 }

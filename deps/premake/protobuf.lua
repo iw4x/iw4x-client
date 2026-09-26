@@ -1,46 +1,46 @@
 protobuf = {
-	source = path.join(dependencies.basePath, "protobuf"),
+  source = path.join(dependencies.basePath, "protobuf"),
 }
 
 function protobuf.import()
-	links {"protobuf"}
+  links {"protobuf"}
 
-	protobuf.includes()
+  protobuf.includes()
 end
 
 function protobuf.includes()
-	includedirs {
-		path.join(protobuf.source, "src"),
-	}
+  includedirs {
+    path.join(protobuf.source, "src"),
+  }
 end
 
 function protobuf.project()
-	project "protobuf"
-		language "C++"
+  project "protobuf"
+    language "C++"
 
-		protobuf.includes()
+    protobuf.includes()
 
-		files {
-			path.join(protobuf.source, "src/**.cc"),
-			"./src/**.proto",
-		}
-		
-		removefiles {
-			path.join(protobuf.source, "src/**/*test.cc"),
-			path.join(protobuf.source, "src/google/protobuf/*test*.cc"),
+    files {
+      path.join(protobuf.source, "src/**.cc"),
+      "./src/**.proto",
+    }
+    
+    removefiles {
+      path.join(protobuf.source, "src/**/*test.cc"),
+      path.join(protobuf.source, "src/google/protobuf/*test*.cc"),
 
-			path.join(protobuf.source, "src/google/protobuf/testing/**.cc"),
-			path.join(protobuf.source, "src/google/protobuf/compiler/**.cc"),
+      path.join(protobuf.source, "src/google/protobuf/testing/**.cc"),
+      path.join(protobuf.source, "src/google/protobuf/compiler/**.cc"),
 
-			path.join(protobuf.source, "src/google/protobuf/arena_nc.cc"),
-			path.join(protobuf.source, "src/google/protobuf/util/internal/error_listener.cc"),
-			path.join(protobuf.source, "**/*_gcc.cc"),
-		}
-		
-		rules {"ProtobufCompiler"}
+      path.join(protobuf.source, "src/google/protobuf/arena_nc.cc"),
+      path.join(protobuf.source, "src/google/protobuf/util/internal/error_listener.cc"),
+      path.join(protobuf.source, "**/*_gcc.cc"),
+    }
+    
+    rules {"ProtobufCompiler"}
 
-		warnings "Off"
-		kind "StaticLib"
+    warnings "Off"
+    kind "StaticLib"
 end
 
 table.insert(dependencies, protobuf)

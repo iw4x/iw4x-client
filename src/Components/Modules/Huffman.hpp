@@ -2,11 +2,11 @@
 
 namespace Components
 {
-	class Huffman : public Component
-	{
-	public:
-		Huffman();
+  class Huffman : public Component
+  {
+  public:
+    Huffman();
 
-		static inline bool isInitialized;
-	};
+    static inline bool isInitialized;
+  };
 }

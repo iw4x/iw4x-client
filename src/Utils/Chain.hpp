@@ -2,148 +2,148 @@
 
 namespace Utils
 {
-	template <typename T>
-	class Chain
-	{
-	public:
-		class Entry
-		{
-		private:
-			std::shared_ptr<T> object;
-			std::shared_ptr<Entry> next;
+  template <typename T>
+  class Chain
+  {
+  public:
+    class Entry
+    {
+    private:
+      std::shared_ptr<T> object;
+      std::shared_ptr<Entry> next;
 
-		public:
-			bool hasNext()
-			{
-				return (this->next.use_count() > 0);
-			}
+    public:
+      bool hasNext()
+      {
+        return (this->next.use_count() > 0);
+      }
 
-			bool isValid()
-			{
-				return (this->object.use_count() > 0);
-			}
+      bool isValid()
+      {
+        return (this->object.use_count() > 0);
+      }
 
-			void set(T object)
-			{
-				this->object = std::make_shared<T>();
-				*this->object.get() = object;
-			}
+      void set(T object)
+      {
+        this->object = std::make_shared<T>();
+        *this->object.get() = object;
+      }
 
-			std::shared_ptr<T> get()
-			{
-				return this->object;
-			}
+      std::shared_ptr<T> get()
+      {
+        return this->object;
+      }
 
-			Entry getNext()
-			{
-				if (this->hasNext())
-				{
-					return *(this->next.get());
-				}
-				else
-				{
-					return Entry();
-				}
-			}
+      Entry getNext()
+      {
+        if (this->hasNext())
+        {
+          return *(this->next.get());
+        }
+        else
+        {
+          return Entry();
+        }
+      }
 
-			std::shared_ptr<Entry> getNextEntry()
-			{
-				return this->next;
-			}
+      std::shared_ptr<Entry> getNextEntry()
+      {
+        return this->next;
+      }
 
-			void setNextEntry(std::shared_ptr<Entry> entry)
-			{
-				this->next = entry;
-			}
+      void setNextEntry(std::shared_ptr<Entry> entry)
+      {
+        this->next = entry;
+      }
 
-			T *operator->()
-			{
-				return (this->object.get());
-			}
+      T *operator->()
+      {
+        return (this->object.get());
+      }
 
-			Entry& operator++ ()
-			{
-				*this = this->getNext();
-				return *this;
-			}
+      Entry& operator++ ()
+      {
+        *this = this->getNext();
+        return *this;
+      }
 
-			Entry operator++ (int)
-			{
-				Entry result = *this;
-				this->operator++();
-				return result;
-			}
-		};
+      Entry operator++ (int)
+      {
+        Entry result = *this;
+        this->operator++();
+        return result;
+      }
+    };
 
-	private:
-		std::mutex mutex;
-		Entry object;
+  private:
+    std::mutex mutex;
+    Entry object;
 
-	public:
-		void add(T object)
-		{
-			std::lock_guard<std::mutex> _(this->mutex);
+  public:
+    void add(T object)
+    {
+      std::lock_guard<std::mutex> _(this->mutex);
 
-			if (!this->empty())
-			{
-				// Create new chain entry
-				std::shared_ptr<Entry> currentObject = std::make_shared<Entry>();
-				*currentObject.get() = this->object;
+      if (!this->empty())
+      {
+        // Create new chain entry
+        std::shared_ptr<Entry> currentObject = std::make_shared<Entry>();
+        *currentObject.get() = this->object;
 
-				// Add it to the chain
-				this->object = Entry();
-				this->object.setNextEntry(currentObject);
-			}
+        // Add it to the chain
+        this->object = Entry();
+        this->object.setNextEntry(currentObject);
+      }
 
-			this->object.set(object);
-		}
+      this->object.set(object);
+    }
 
-		void remove(std::shared_ptr<T> object)
-		{
-			std::lock_guard<std::mutex> _(this->mutex);
+    void remove(std::shared_ptr<T> object)
+    {
+      std::lock_guard<std::mutex> _(this->mutex);
 
-			if (!this->empty())
-			{
-				if (this->object.get().get() == object.get())
-				{
-					this->object = this->object.getNext();
-				}
-				else if (this->object.hasNext())
-				{
-					for (auto entry = this->object; entry.isValid(); ++entry)
-					{
-						auto next = entry.getNext();
+      if (!this->empty())
+      {
+        if (this->object.get().get() == object.get())
+        {
+          this->object = this->object.getNext();
+        }
+        else if (this->object.hasNext())
+        {
+          for (auto entry = this->object; entry.isValid(); ++entry)
+          {
+            auto next = entry.getNext();
 
-						if (next.isValid() && next.get().get() == object.get())
-						{
-							*entry.getNextEntry().get() = next.getNext();
-						}
-					}
-				}
-			}
-		}
+            if (next.isValid() && next.get().get() == object.get())
+            {
+              *entry.getNextEntry().get() = next.getNext();
+            }
+          }
+        }
+      }
+    }
 
-		void remove(Entry entry)
-		{
-			if (entry.isValid())
-			{
-				this->remove(entry.Get());
-			}
-		}
+    void remove(Entry entry)
+    {
+      if (entry.isValid())
+      {
+        this->remove(entry.Get());
+      }
+    }
 
-		bool empty()
-		{
-			return !this->object.isValid();
-		}
+    bool empty()
+    {
+      return !this->object.isValid();
+    }
 
-		Entry begin()
-		{
-			return this->object;
-		}
+    Entry begin()
+    {
+      return this->object;
+    }
 
-		void clear()
-		{
-			this->object = Entry();
-		}
-	};
+    void clear()
+    {
+      this->object = Entry();
+    }
+  };
 }

@@ -13,18 +13,18 @@
 
 namespace Components::GSC
 {
-	GSC::GSC()
-	{
-		Loader::Register(new Entity());
-		Loader::Register(new Field());
-		Loader::Register(new Int64());
-		Loader::Register(new IO());
-		Loader::Register(new Script());
-		Loader::Register(new ScriptError());
-		Loader::Register(new ScriptExtension());
-		Loader::Register(new ScriptPatches());
-		Loader::Register(new ScriptStorage());
-		Loader::Register(new String());
-		Loader::Register(new UserInfo());
-	}
+  GSC::GSC()
+  {
+    Loader::Register(new Entity());
+    Loader::Register(new Field());
+    Loader::Register(new Int64());
+    Loader::Register(new IO());
+    Loader::Register(new Script());
+    Loader::Register(new ScriptError());
+    Loader::Register(new ScriptExtension());
+    Loader::Register(new ScriptPatches());
+    Loader::Register(new ScriptStorage());
+    Loader::Register(new String());
+    Loader::Register(new UserInfo());
+  }
 }

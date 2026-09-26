@@ -2,31 +2,31 @@
 
 namespace Scripting
 {
-	StackIsolation::StackIsolation()
-	{
-		this->inParamCount_ = Game::scrVmPub->inparamcount;
-		this->outParamCount_ = Game::scrVmPub->outparamcount;
-		this->top_ = Game::scrVmPub->top;
-		this->maxStack_ = Game::scrVmPub->maxStack;
+  StackIsolation::StackIsolation()
+  {
+    this->inParamCount_ = Game::scrVmPub->inparamcount;
+    this->outParamCount_ = Game::scrVmPub->outparamcount;
+    this->top_ = Game::scrVmPub->top;
+    this->maxStack_ = Game::scrVmPub->maxStack;
 
-		Game::scrVmPub->top = this->stack_;
-		Game::scrVmPub->maxStack = &this->stack_[ARRAYSIZE(this->stack_) - 1];
-		Game::scrVmPub->inparamcount = 0;
-		Game::scrVmPub->outparamcount = 0;
-	}
+    Game::scrVmPub->top = this->stack_;
+    Game::scrVmPub->maxStack = &this->stack_[ARRAYSIZE(this->stack_) - 1];
+    Game::scrVmPub->inparamcount = 0;
+    Game::scrVmPub->outparamcount = 0;
+  }
 
-	StackIsolation::~StackIsolation()
-	{
-		while (Game::scrVmPub->top > this->stack_)
-		{
-			Game::RemoveRefToValue(Game::scrVmPub->top->type, Game::scrVmPub->top->u);
-			Game::scrVmPub->top->type = Game::VAR_UNDEFINED;
-			--Game::scrVmPub->top;
-		}
+  StackIsolation::~StackIsolation()
+  {
+    while (Game::scrVmPub->top > this->stack_)
+    {
+      Game::RemoveRefToValue(Game::scrVmPub->top->type, Game::scrVmPub->top->u);
+      Game::scrVmPub->top->type = Game::VAR_UNDEFINED;
+      --Game::scrVmPub->top;
+    }
 
-		Game::scrVmPub->inparamcount = this->inParamCount_;
-		Game::scrVmPub->outparamcount = this->outParamCount_;
-		Game::scrVmPub->top = this->top_;
-		Game::scrVmPub->maxStack = this->maxStack_;
-	}
+    Game::scrVmPub->inparamcount = this->inParamCount_;
+    Game::scrVmPub->outparamcount = this->outParamCount_;
+    Game::scrVmPub->top = this->top_;
+    Game::scrVmPub->maxStack = this->maxStack_;
+  }
 }

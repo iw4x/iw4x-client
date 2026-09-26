@@ -2,9 +2,9 @@
 
 namespace Components::ViewModelFxSetup
 {
-	class Setup : public Component
-	{
-	public:
-		Setup();
-	};
+  class Setup : public Component
+  {
+  public:
+    Setup();
+  };
 }

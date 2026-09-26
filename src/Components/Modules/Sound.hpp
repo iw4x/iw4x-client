@@ -2,13 +2,13 @@
 
 namespace Components
 {
-	class Sound : public Component
-	{
-	public:
-		Sound();
+  class Sound : public Component
+  {
+  public:
+    Sound();
 
-	private:
-		static int  Init();
-		static void Loop();
-	};
+  private:
+    static int  Init();
+    static void Loop();
+  };
 }

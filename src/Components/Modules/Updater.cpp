@@ -8,107 +8,107 @@
 
 namespace Components
 {
-	namespace
-	{
-		const Game::dvar_t* cl_updateAvailable;
+  namespace
+  {
+    const Game::dvar_t* cl_updateAvailable;
 
-		constexpr auto* GITHUB_REMOTE_URL = "https://api.github.com/repos/iw4x/iw4x-client/releases/latest";
-		constexpr auto* INSTALL_GUIDE_REMOTE_URL = "https://iw4x.io/install";
+    constexpr auto* GITHUB_REMOTE_URL = "https://api.github.com/repos/iw4x/iw4x-client/releases/latest";
+    constexpr auto* INSTALL_GUIDE_REMOTE_URL = "https://iw4x.io/install";
 
-		void CheckForUpdate()
-		{
-			const auto result = Utils::WebIO("IW4x", GITHUB_REMOTE_URL).setTimeout(5000)->get();
-			if (result.empty())
-			{
-				// Nothing to do in this situation. We won't know if we need to update or not
-				Logger::Print("Could not fetch latest tag from GitHub\n");
-				return;
-			}
+    void CheckForUpdate()
+    {
+      const auto result = Utils::WebIO("IW4x", GITHUB_REMOTE_URL).setTimeout(5000)->get();
+      if (result.empty())
+      {
+        // Nothing to do in this situation. We won't know if we need to update or not
+        Logger::Print("Could not fetch latest tag from GitHub\n");
+        return;
+      }
 
-			rapidjson::Document doc{};
-			const rapidjson::ParseResult parseResult = doc.Parse(result);
-			if (!parseResult || !doc.IsObject())
-			{
-				// Nothing to do in this situation. We won't know if we need to update or not
-				Logger::Print("GitHub sent an invalid reply (malformed JSON)\n");
-				return;
-			}
+      rapidjson::Document doc{};
+      const rapidjson::ParseResult parseResult = doc.Parse(result);
+      if (!parseResult || !doc.IsObject())
+      {
+        // Nothing to do in this situation. We won't know if we need to update or not
+        Logger::Print("GitHub sent an invalid reply (malformed JSON)\n");
+        return;
+      }
 
-			if (!doc.HasMember("tag_name") || !doc["tag_name"].IsString())
-			{
-				// Nothing to do in this situation. We won't know if we need to update or not
-				Logger::Print("GitHub sent an invalid reply (missing 'tag_name' JSON member)\n");
-				return;
-			}
+      if (!doc.HasMember("tag_name") || !doc["tag_name"].IsString())
+      {
+        // Nothing to do in this situation. We won't know if we need to update or not
+        Logger::Print("GitHub sent an invalid reply (missing 'tag_name' JSON member)\n");
+        return;
+      }
 
-			const std::string tag = doc["tag_name"].GetString();
-			if (REVISION_STR != tag)
-			{
-				// A new version came out!
-				Game::Dvar_SetBool(cl_updateAvailable, true);
-			}
-		}
+      const std::string tag = doc["tag_name"].GetString();
+      if (REVISION_STR != tag)
+      {
+        // A new version came out!
+        Game::Dvar_SetBool(cl_updateAvailable, true);
+      }
+    }
 
-		// Depending on Linux/Windows 32/64 there are a few things we must check
-		std::optional<std::string> GetLauncher()
-		{
-			const char* launchers[] = {
-				"iw4x-launcher.exe",
-				"iw4x-launcher-x86.exe",
-				Utils::IsWineEnvironment() ? "iw4x-launcher" : nullptr
-			};
+    // Depending on Linux/Windows 32/64 there are a few things we must check
+    std::optional<std::string> GetLauncher()
+    {
+      const char* launchers[] = {
+        "iw4x-launcher.exe",
+        "iw4x-launcher-x86.exe",
+        Utils::IsWineEnvironment() ? "iw4x-launcher" : nullptr
+      };
 
-			for (const char* launcher : launchers) {
-				if (launcher && Utils::IO::FileExists(launcher)) {
-					return launcher;
-				}
-			}
+      for (const char* launcher : launchers) {
+        if (launcher && Utils::IO::FileExists(launcher)) {
+          return launcher;
+        }
+      }
 
-			return {};
-		}
-	}
+      return {};
+    }
+  }
 
-	Updater::Updater()
-	{
-		cl_updateAvailable = Game::Dvar_RegisterBool("cl_updateAvailable", false, Game::DVAR_NONE, "Whether an update is available or not");
-		Scheduler::Once(CheckForUpdate, Scheduler::Pipeline::ASYNC);
+  Updater::Updater()
+  {
+    cl_updateAvailable = Game::Dvar_RegisterBool("cl_updateAvailable", false, Game::DVAR_NONE, "Whether an update is available or not");
+    Scheduler::Once(CheckForUpdate, Scheduler::Pipeline::ASYNC);
 
-		UIScript::Add("checkForUpdate", [](const UIScript::Token& /*token*/, const Game::uiInfo_s* /*info*/)
-		{
-			CheckForUpdate();
-		});
+    UIScript::Add("checkForUpdate", [](const UIScript::Token& /*token*/, const Game::uiInfo_s* /*info*/)
+    {
+      CheckForUpdate();
+    });
 
-		UIScript::Add("getAutoUpdate", [](const UIScript::Token& /*token*/, const Game::uiInfo_s* /*info*/)
-		{
-			const auto exe = GetLauncher();
-			if (!exe.has_value())
-			{
-				Logger::Print("No launcher found - cannot auto-update\n");
-				return;
-			}
+    UIScript::Add("getAutoUpdate", [](const UIScript::Token& /*token*/, const Game::uiInfo_s* /*info*/)
+    {
+      const auto exe = GetLauncher();
+      if (!exe.has_value())
+      {
+        Logger::Print("No launcher found - cannot auto-update\n");
+        return;
+      }
 
-			STARTUPINFOA startupInfo{};
-			startupInfo.cb = sizeof(startupInfo);
-			PROCESS_INFORMATION processInfo{};
+      STARTUPINFOA startupInfo{};
+      startupInfo.cb = sizeof(startupInfo);
+      PROCESS_INFORMATION processInfo{};
 
-			auto commandLine = std::format("\"{}\" --wait-pid {}", exe.value(), GetCurrentProcessId());
+      auto commandLine = std::format("\"{}\" --wait-pid {}", exe.value(), GetCurrentProcessId());
 
-			auto start = [&](DWORD flags)
-			{
-				auto buffer = commandLine;
-				return CreateProcessA(exe.value().data(), buffer.data(), nullptr, nullptr, FALSE, flags, nullptr, nullptr, &startupInfo, &processInfo) != FALSE;
-			};
+      auto start = [&](DWORD flags)
+      {
+        auto buffer = commandLine;
+        return CreateProcessA(exe.value().data(), buffer.data(), nullptr, nullptr, FALSE, flags, nullptr, nullptr, &startupInfo, &processInfo) != FALSE;
+      };
 
-			if (!start(CREATE_NEW_CONSOLE | CREATE_BREAKAWAY_FROM_JOB) && !start(CREATE_NEW_CONSOLE))
-			{
-				Logger::Print("Failed to start the launcher for auto-update\n");
-				return;
-			}
+      if (!start(CREATE_NEW_CONSOLE | CREATE_BREAKAWAY_FROM_JOB) && !start(CREATE_NEW_CONSOLE))
+      {
+        Logger::Print("Failed to start the launcher for auto-update\n");
+        return;
+      }
 
-			CloseHandle(processInfo.hThread);
-			CloseHandle(processInfo.hProcess);
+      CloseHandle(processInfo.hThread);
+      CloseHandle(processInfo.hProcess);
 
-			Game::Com_Quit_f();
-		});
-	}
+      Game::Com_Quit_f();
+    });
+  }
 }

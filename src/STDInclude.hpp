@@ -80,24 +80,24 @@
 using namespace std::literals;
 
 #ifdef max
-	#undef max
+  #undef max
 #endif
 
 #ifdef min
-	#undef min
+  #undef min
 #endif
 
 #ifdef GetObject
-	#undef GetObject
+  #undef GetObject
 #endif
 
 #define AssertSize(x, size) \
-	static_assert(sizeof(x) == (size), \
-		"Structure has an invalid size. " #x " must be " #size " bytes")
+  static_assert(sizeof(x) == (size), \
+    "Structure has an invalid size. " #x " must be " #size " bytes")
 
 #define AssertOffset(x, y, offset) \
-	static_assert(offsetof(x, y) == (offset), \
-		#x "::" #y " is not at the right offset. Must be at " #offset)
+  static_assert(offsetof(x, y) == (offset), \
+    #x "::" #y " is not at the right offset. Must be at " #offset)
 
 #define AssertIn(x, y) assert(static_cast<unsigned int>(x) < static_cast<unsigned int>(y))
 

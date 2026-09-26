@@ -4,15 +4,15 @@ package Proto.Auth;
 
 message Certificate
 {
-	bytes privatekey = 1;
-	bytes token      = 2;
-	bytes ctoken     = 3;
+  bytes privatekey = 1;
+  bytes token      = 2;
+  bytes ctoken     = 3;
 }
 
 message Connect
 {
-	bytes signature  = 1;
-	bytes publickey  = 2;
-	bytes token      = 3;
-	bytes infostring = 4;
+  bytes signature  = 1;
+  bytes publickey  = 2;
+  bytes token      = 3;
+  bytes infostring = 4;
 }

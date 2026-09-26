@@ -2,9 +2,9 @@
 
 namespace Components
 {
-	class Ceg : public Component
-	{
-	public:
-		Ceg();
-	};
+  class Ceg : public Component
+  {
+  public:
+    Ceg();
+  };
 }

@@ -2,48 +2,48 @@
 
 namespace Components
 {
-	class Component
-	{
-	public:
-		Component() = default;
-		virtual ~Component() = default;
+  class Component
+  {
+  public:
+    Component() = default;
+    virtual ~Component() = default;
 
 #if defined(DEBUG)
-		virtual std::string getName()
-		{
-			std::string name = typeid(*this).name();
-			Utils::String::Replace(name, "class Components::", "");
-			return name;
-		};
+    virtual std::string getName()
+    {
+      std::string name = typeid(*this).name();
+      Utils::String::Replace(name, "class Components::", "");
+      return name;
+    };
 #endif
-	};
+  };
 
-	class Loader
-	{
-	public:
-		static void Initialize();
-		static void Register(Component* component);
+  class Loader
+  {
+  public:
+    static void Initialize();
+    static void Register(Component* component);
 
-		static bool IsPregame();
+    static bool IsPregame();
 
-		template <typename T>
-		static T* GetInstance()
-		{
-			for (auto& component : Components)
-			{
-				if (typeid(*component) == typeid(T))
-				{
-					return reinterpret_cast<T*>(component);
-				}
-			}
+    template <typename T>
+    static T* GetInstance()
+    {
+      for (auto& component : Components)
+      {
+        if (typeid(*component) == typeid(T))
+        {
+          return reinterpret_cast<T*>(component);
+        }
+      }
 
-			return nullptr;
-		}
+      return nullptr;
+    }
 
-	private:
-		static bool Pregame;
-		static std::vector<Component*> Components;
-	};
+  private:
+    static bool Pregame;
+    static std::vector<Component*> Components;
+  };
 }
 
 // Priority

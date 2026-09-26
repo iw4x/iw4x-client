@@ -1226,7 +1226,7 @@ namespace zone
         }
 
         case WM_ERASEBKGND: return 1;
-        case WM_CLOSE: 			return 0;
+        case WM_CLOSE:          return 0;
       }
 
       return DefWindowProcA (w, m, wp, lp);
@@ -1244,7 +1244,7 @@ namespace zone
       // Draw into a bitmap and blit it in one go. The bar is painted column by
       // column, which straight onto the window would show as tearing.
       //
-      HDC 		b  (CreateCompatibleDC (dc));
+      HDC       b  (CreateCompatibleDC (dc));
       HBITMAP bm (CreateCompatibleBitmap (dc, w, h));
       HGDIOBJ ob (SelectObject (b, bm));
 

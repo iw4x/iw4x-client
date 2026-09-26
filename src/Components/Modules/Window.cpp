@@ -3,257 +3,257 @@
 
 namespace Components
 {
-	Dvar::Var Window::NoBorder;
-	Dvar::Var Window::NativeCursor;
+  Dvar::Var Window::NoBorder;
+  Dvar::Var Window::NativeCursor;
 
-	HWND Window::MainWindow = nullptr;
-	BOOL Window::CursorVisible = TRUE;
-	std::unordered_map<UINT, Utils::Slot<Window::WndProcCallback>> Window::WndMessageCallbacks;
-	Utils::Signal<Window::CreateCallback> Window::CreateSignals;
-	Utils::Signal<Window::DeviceChangeCallback> Window::DeviceChangeSignals;
+  HWND Window::MainWindow = nullptr;
+  BOOL Window::CursorVisible = TRUE;
+  std::unordered_map<UINT, Utils::Slot<Window::WndProcCallback>> Window::WndMessageCallbacks;
+  Utils::Signal<Window::CreateCallback> Window::CreateSignals;
+  Utils::Signal<Window::DeviceChangeCallback> Window::DeviceChangeSignals;
 
-	int Window::Width()
-	{
-		return Window::Width(Window::MainWindow);
-	}
+  int Window::Width()
+  {
+    return Window::Width(Window::MainWindow);
+  }
 
-	int Window::Height()
-	{
-		return Window::Height(Window::MainWindow);
-	}
+  int Window::Height()
+  {
+    return Window::Height(Window::MainWindow);
+  }
 
-	int Window::Width(HWND window)
-	{
-		RECT rect;
-		Window::Dimension(window, &rect);
-		return (rect.right - rect.left);
-	}
+  int Window::Width(HWND window)
+  {
+    RECT rect;
+    Window::Dimension(window, &rect);
+    return (rect.right - rect.left);
+  }
 
-	int Window::Height(HWND window)
-	{
-		RECT rect;
-		Window::Dimension(window, &rect);
-		return (rect.bottom - rect.top);
-	}
+  int Window::Height(HWND window)
+  {
+    RECT rect;
+    Window::Dimension(window, &rect);
+    return (rect.bottom - rect.top);
+  }
 
-	void Window::Dimension(RECT* rect)
-	{
-		Window::Dimension(Window::MainWindow, rect);
-	}
+  void Window::Dimension(RECT* rect)
+  {
+    Window::Dimension(Window::MainWindow, rect);
+  }
 
-	void Window::Dimension(HWND window, RECT* rect)
-	{
-		if (rect)
-		{
-			ZeroMemory(rect, sizeof(RECT));
+  void Window::Dimension(HWND window, RECT* rect)
+  {
+    if (rect)
+    {
+      ZeroMemory(rect, sizeof(RECT));
 
-			if (window && IsWindow(window))
-			{
-				GetWindowRect(window, rect);
-			}
-		}
-	}
+      if (window && IsWindow(window))
+      {
+        GetWindowRect(window, rect);
+      }
+    }
+  }
 
-	bool Window::IsCursorWithin(HWND window)
-	{
-		RECT rect;
-		POINT point;
-		Window::Dimension(window, &rect);
+  bool Window::IsCursorWithin(HWND window)
+  {
+    RECT rect;
+    POINT point;
+    Window::Dimension(window, &rect);
 
-		GetCursorPos(&point);
+    GetCursorPos(&point);
 
-		return ((point.x - rect.left) > 0 && (point.y - rect.top) > 0 && (rect.right - point.x) > 0 && (rect.bottom - point.y) > 0);
-	}
+    return ((point.x - rect.left) > 0 && (point.y - rect.top) > 0 && (rect.right - point.x) > 0 && (rect.bottom - point.y) > 0);
+  }
 
-	HWND Window::GetWindow()
-	{
-		return Window::MainWindow;
-	}
+  HWND Window::GetWindow()
+  {
+    return Window::MainWindow;
+  }
 
-	void Window::OnWndMessage(UINT Msg, Utils::Slot<Window::WndProcCallback> callback)
-	{
-		WndMessageCallbacks.emplace(Msg, callback);
-	}
+  void Window::OnWndMessage(UINT Msg, Utils::Slot<Window::WndProcCallback> callback)
+  {
+    WndMessageCallbacks.emplace(Msg, callback);
+  }
 
-	void Window::OnDeviceChange(Utils::Slot<Window::DeviceChangeCallback> callback)
-	{
-		DeviceChangeSignals.connect(callback);
-	}
+  void Window::OnDeviceChange(Utils::Slot<Window::DeviceChangeCallback> callback)
+  {
+    DeviceChangeSignals.connect(callback);
+  }
 
-	void Window::OnCreate(Utils::Slot<CreateCallback> callback)
-	{
-		CreateSignals.connect(callback);
-	}
+  void Window::OnCreate(Utils::Slot<CreateCallback> callback)
+  {
+    CreateSignals.connect(callback);
+  }
 
-	int Window::IsNoBorder()
-	{
-		return Window::NoBorder.get<bool>();
-	}
+  int Window::IsNoBorder()
+  {
+    return Window::NoBorder.get<bool>();
+  }
 
-	__declspec(naked) void Window::StyleHookStub()
-	{
-		__asm
-		{
-			call Window::IsNoBorder
-			test al, al
-			jz setBorder
+  __declspec(naked) void Window::StyleHookStub()
+  {
+    __asm
+    {
+      call Window::IsNoBorder
+      test al, al
+      jz setBorder
 
-			mov ebp, WS_VISIBLE | WS_POPUP
-			retn
+      mov ebp, WS_VISIBLE | WS_POPUP
+      retn
 
-		setBorder:
-			mov ebp, WS_VISIBLE | WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX
-			retn
-		}
-	}
+    setBorder:
+      mov ebp, WS_VISIBLE | WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX
+      retn
+    }
+  }
 
-	void Window::DrawCursorStub(Game::ScreenPlacement* scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float* color, Game::Material* material)
-	{
-		if (Window::NativeCursor.get<bool>())
-		{
-			Window::CursorVisible = TRUE;
-		}
-		else
-		{
-			Game::UI_DrawHandlePic(scrPlace, x, y, w, h, horzAlign, vertAlign, color, material);
-		}
-	}
+  void Window::DrawCursorStub(Game::ScreenPlacement* scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float* color, Game::Material* material)
+  {
+    if (Window::NativeCursor.get<bool>())
+    {
+      Window::CursorVisible = TRUE;
+    }
+    else
+    {
+      Game::UI_DrawHandlePic(scrPlace, x, y, w, h, horzAlign, vertAlign, color, material);
+    }
+  }
 
-	int WINAPI Window::ShowCursorHook(BOOL show)
-	{
-		if (Window::NativeCursor.get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
-		{
-			static int count = 0;
-			(show ? ++count : --count);
+  int WINAPI Window::ShowCursorHook(BOOL show)
+  {
+    if (Window::NativeCursor.get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
+    {
+      static int count = 0;
+      (show ? ++count : --count);
 
-			if (count >= 0)
-			{
-				Window::CursorVisible = TRUE;
-			}
+      if (count >= 0)
+      {
+        Window::CursorVisible = TRUE;
+      }
 
-			return count;
-		}
+      return count;
+    }
 
-		return ShowCursor(show);
-	}
+    return ShowCursor(show);
+  }
 
-	HWND WINAPI Window::CreateMainWindow(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
-	{
-		Window::MainWindow = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+  HWND WINAPI Window::CreateMainWindow(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
+  {
+    Window::MainWindow = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 
-		CreateSignals();
+    CreateSignals();
 
-		return Window::MainWindow;
-	}
+    return Window::MainWindow;
+  }
 
-	void Window::ApplyCursor()
-	{
-		bool isLoading = !FastFiles::Ready();
-		SetCursor(LoadCursor(nullptr, isLoading ? IDC_APPSTARTING : IDC_ARROW));
-	}
+  void Window::ApplyCursor()
+  {
+    bool isLoading = !FastFiles::Ready();
+    SetCursor(LoadCursor(nullptr, isLoading ? IDC_APPSTARTING : IDC_ARROW));
+  }
 
-	BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
-	{
-		// Handle raw input device change events.
-		//
-		// Note that we delegate handling to DeviceChangeSignals(), which interprets
-		// the event and performs any necessary updates to the gamepad state.
-		//
-		if (Msg == WM_INPUT_DEVICE_CHANGE)
-		{
-			DeviceChangeSignals(wParam, lParam);
-		}
+  BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+  {
+    // Handle raw input device change events.
+    //
+    // Note that we delegate handling to DeviceChangeSignals(), which interprets
+    // the event and performs any necessary updates to the gamepad state.
+    //
+    if (Msg == WM_INPUT_DEVICE_CHANGE)
+    {
+      DeviceChangeSignals(wParam, lParam);
+    }
 
-		if (const auto cb = WndMessageCallbacks.find(Msg); cb != WndMessageCallbacks.end())
-		{
-			return cb->second(lParam, wParam);
-		}
+    if (const auto cb = WndMessageCallbacks.find(Msg); cb != WndMessageCallbacks.end())
+    {
+      return cb->second(lParam, wParam);
+    }
 
-		return Utils::Hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x4731F0)(hWnd, Msg, wParam, lParam);
-	}
+    return Utils::Hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x4731F0)(hWnd, Msg, wParam, lParam);
+  }
 
-	void Window::EnableDpiAwareness()
-	{
-		const Utils::Library user32{"user32.dll"};
+  void Window::EnableDpiAwareness()
+  {
+    const Utils::Library user32{"user32.dll"};
 
-		user32.invokePascal<void>("SetProcessDpiAwarenessContext", DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-	}
+    user32.invokePascal<void>("SetProcessDpiAwarenessContext", DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+  }
 
-	Window::Window()
-	{
-		// Borderless window
-		Window::NoBorder = Dvar::Register<bool>("r_noborder", true, Game::DVAR_ARCHIVE, "Do not use a border in windowed mode");
-		Window::NativeCursor = Dvar::Register<bool>("ui_nativeCursor", false, Game::DVAR_ARCHIVE, "Display native cursor");
+  Window::Window()
+  {
+    // Borderless window
+    Window::NoBorder = Dvar::Register<bool>("r_noborder", true, Game::DVAR_ARCHIVE, "Do not use a border in windowed mode");
+    Window::NativeCursor = Dvar::Register<bool>("ui_nativeCursor", false, Game::DVAR_ARCHIVE, "Display native cursor");
 
-		Utils::Hook(0x507643, Window::StyleHookStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x507643, Window::StyleHookStub, HOOK_CALL).install()->quick();
 
-		// Main window creation
-		Utils::Hook::Nop(0x5076AA, 1);
-		Utils::Hook(0x5076AB, Window::CreateMainWindow, HOOK_CALL).install()->quick();
+    // Main window creation
+    Utils::Hook::Nop(0x5076AA, 1);
+    Utils::Hook(0x5076AB, Window::CreateMainWindow, HOOK_CALL).install()->quick();
 
-		// Mark the cursor as visible
-		Utils::Hook(0x48E5D3, Window::DrawCursorStub, HOOK_CALL).install()->quick();
+    // Mark the cursor as visible
+    Utils::Hook(0x48E5D3, Window::DrawCursorStub, HOOK_CALL).install()->quick();
 
-		// Draw the cursor if necessary
-		Scheduler::Loop([]
-		{
-			if (Window::NativeCursor.get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
-			{
-				int value = 0;
-				Window::ApplyCursor();
+    // Draw the cursor if necessary
+    Scheduler::Loop([]
+    {
+      if (Window::NativeCursor.get<bool>() && IsWindow(Window::MainWindow) && GetForegroundWindow() == Window::MainWindow && Window::IsCursorWithin(Window::MainWindow))
+      {
+        int value = 0;
+        Window::ApplyCursor();
 
-				if (Window::CursorVisible)
-				{
-					while ((value = ShowCursor(TRUE)) < 0) {};
-					while (value > 0) { value = ShowCursor(FALSE); } // Set display counter to 0
-				}
-				else
-				{
-					while ((value = ShowCursor(FALSE)) >= 0) {};
-					while (value < -1) { value = ShowCursor(TRUE); } // Set display counter to -1
-				}
+        if (Window::CursorVisible)
+        {
+          while ((value = ShowCursor(TRUE)) < 0) {};
+          while (value > 0) { value = ShowCursor(FALSE); } // Set display counter to 0
+        }
+        else
+        {
+          while ((value = ShowCursor(FALSE)) >= 0) {};
+          while (value < -1) { value = ShowCursor(TRUE); } // Set display counter to -1
+        }
 
-				Window::CursorVisible = FALSE;
-			}
-		}, Scheduler::Pipeline::RENDERER);
+        Window::CursorVisible = FALSE;
+      }
+    }, Scheduler::Pipeline::RENDERER);
 
-		// Don't let the game interact with the native cursor
-		Utils::Hook::Set(0x6D7348, Window::ShowCursorHook);
+    // Don't let the game interact with the native cursor
+    Utils::Hook::Set(0x6D7348, Window::ShowCursorHook);
 
-		// Use custom message handler
-		Utils::Hook::Set(0x64D298, Window::MessageHandler);
+    // Use custom message handler
+    Utils::Hook::Set(0x64D298, Window::MessageHandler);
 
-		Window::OnWndMessage(WM_SETCURSOR, [](WPARAM, LPARAM)
-		{
-			Window::ApplyCursor();
-			return TRUE;
-		});
+    Window::OnWndMessage(WM_SETCURSOR, [](WPARAM, LPARAM)
+    {
+      Window::ApplyCursor();
+      return TRUE;
+    });
 
-		// Register for raw input device notifications when the window is created.
-		//
-		// This allows the system to notify us when a gamepad is connected or
-		// disconnected, without requiring explicit polling. We request
-		// notifications specifically for gamepad-class HID devices.
-		//
-		Window::OnCreate([]()
-		{
-			RAWINPUTDEVICE rid{};
-			rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
-			rid.usUsage = HID_USAGE_GENERIC_GAMEPAD;
-			rid.dwFlags = RIDEV_DEVNOTIFY;
-			rid.hwndTarget = Window::MainWindow;
+    // Register for raw input device notifications when the window is created.
+    //
+    // This allows the system to notify us when a gamepad is connected or
+    // disconnected, without requiring explicit polling. We request
+    // notifications specifically for gamepad-class HID devices.
+    //
+    Window::OnCreate([]()
+    {
+      RAWINPUTDEVICE rid{};
+      rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
+      rid.usUsage = HID_USAGE_GENERIC_GAMEPAD;
+      rid.dwFlags = RIDEV_DEVNOTIFY;
+      rid.hwndTarget = Window::MainWindow;
 
-			if (!RegisterRawInputDevices(&rid, 1, sizeof(rid)))
-			{
-				// Some systems may reject usage-specific registration. In that case,
-				// fall back to receiving notifications for all devices within the
-				// generic desktop page. We lose precision but still receive updates.
-				//
-				rid.usUsage = 0x00;
-				RegisterRawInputDevices(&rid, 1, sizeof(rid));
-			}
-		});
+      if (!RegisterRawInputDevices(&rid, 1, sizeof(rid)))
+      {
+        // Some systems may reject usage-specific registration. In that case,
+        // fall back to receiving notifications for all devices within the
+        // generic desktop page. We lose precision but still receive updates.
+        //
+        rid.usUsage = 0x00;
+        RegisterRawInputDevices(&rid, 1, sizeof(rid));
+      }
+    });
 
-		Window::EnableDpiAwareness();
-	}
+    Window::EnableDpiAwareness();
+  }
 }

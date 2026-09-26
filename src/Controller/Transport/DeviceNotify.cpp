@@ -54,17 +54,17 @@ namespace Controller
             }
 
           case WM_TIMER:
-					  {
-							if (wp == rescan_timer || wp == retry_timer)
-							{
-								KillTimer (w, wp);
+            {
+              if (wp == rescan_timer || wp == retry_timer)
+              {
+                KillTimer (w, wp);
 
-								if (std::atomic<bool>* f = flag_of (w))
-									f->store (true, std::memory_order_release);
+                if (std::atomic<bool>* f = flag_of (w))
+                  f->store (true, std::memory_order_release);
 
-								return 0;
-							}
-						}
+                return 0;
+              }
+            }
             break;
 
           case WM_CLOSE:

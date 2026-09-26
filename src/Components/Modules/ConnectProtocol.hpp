@@ -2,21 +2,21 @@
 
 namespace Components
 {
-	class ConnectProtocol : public Component
-	{
-	public:
-		ConnectProtocol();
+  class ConnectProtocol : public Component
+  {
+  public:
+    ConnectProtocol();
 
-		static bool IsEvaluated();
-		static bool Used();
+    static bool IsEvaluated();
+    static bool Used();
 
-	private:
-		static bool Evaluated;
-		static std::string ConnectString;
+  private:
+    static bool Evaluated;
+    static std::string ConnectString;
 
-		static void EvaluateProtocol();
-		static bool InstallProtocol();
+    static void EvaluateProtocol();
+    static bool InstallProtocol();
 
-		static void Invocation();
-	};
+    static void Invocation();
+  };
 }

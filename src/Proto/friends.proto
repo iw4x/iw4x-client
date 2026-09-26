@@ -4,14 +4,14 @@ package Proto.Friends;
 
 message Friend
 {
-	bytes steamid = 1;
-	bytes name = 2;
-	bytes guid = 3;
-	uint32 prestige = 4;
-	uint32 experience = 5;
+  bytes steamid = 1;
+  bytes name = 2;
+  bytes guid = 3;
+  uint32 prestige = 4;
+  uint32 experience = 5;
 }
 
 message List
 {
-	repeated Friend friends = 1;
+  repeated Friend friends = 1;
 }

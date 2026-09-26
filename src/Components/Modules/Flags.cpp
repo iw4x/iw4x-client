@@ -2,22 +2,22 @@
 
 namespace Components
 {
-	std::vector<std::string> Flags::EnabledFlags;
+  std::vector<std::string> Flags::EnabledFlags;
 
-	bool Flags::HasFlag(const std::string& flag)
-	{
-		ParseFlags();
+  bool Flags::HasFlag(const std::string& flag)
+  {
+    ParseFlags();
 
-		for (const auto& entry : EnabledFlags)
-		{
-			if (Utils::String::ToLower(entry) == Utils::String::ToLower(flag))
-			{
-				return true;
-			}
-		}
+    for (const auto& entry : EnabledFlags)
+    {
+      if (Utils::String::ToLower(entry) == Utils::String::ToLower(flag))
+      {
+        return true;
+      }
+    }
 
-		return false;
-	}
+    return false;
+  }
 
   void Flags::ParseFlags ()
   {
@@ -28,11 +28,11 @@ namespace Components
 
     p = true;
 
-		// Note that the engine's parser mishandles trailing quotes. So here we
-		// strip them all globally from the raw OS buffers by shifting characters
-		// in-place. We cannot just replace them with spaces because that would
-		// naturally break space-separated values.
-		//
+    // Note that the engine's parser mishandles trailing quotes. So here we
+    // strip them all globally from the raw OS buffers by shifting characters
+    // in-place. We cannot just replace them with spaces because that would
+    // naturally break space-separated values.
+    //
     if (char* b = GetCommandLineA ())
     {
       char* r (b);
@@ -67,11 +67,11 @@ namespace Components
 
     int c (0);
 
-		// Parse the arguments. Since we already removed the quotes from the OS
-		// buffer above, CommandLineToArgvW() will parse the resulting clean
-		// string. This is perfectly safe as we are only looking for the '-'
-		// prefix anyway.
-		//
+    // Parse the arguments. Since we already removed the quotes from the OS
+    // buffer above, CommandLineToArgvW() will parse the resulting clean
+    // string. This is perfectly safe as we are only looking for the '-'
+    // prefix anyway.
+    //
     const auto a (CommandLineToArgvW (GetCommandLineW (), &c));
 
     if (a)
@@ -90,13 +90,13 @@ namespace Components
       LocalFree (a);
     }
 
-		// Work around a Wine issue. If we are running dedicated and they did not
-		// specify output channels, force stdout so we actually see the logs.
-		//
-		if (Utils::IsWineEnvironment () &&
-      	Dedicated::IsEnabled ()     &&
-				!HasFlag ("console")        &&
-				!HasFlag ("stdout"))
+    // Work around a Wine issue. If we are running dedicated and they did not
+    // specify output channels, force stdout so we actually see the logs.
+    //
+    if (Utils::IsWineEnvironment () &&
+        Dedicated::IsEnabled ()     &&
+        !HasFlag ("console")        &&
+        !HasFlag ("stdout"))
     {
       EnabledFlags.emplace_back ("stdout");
     }

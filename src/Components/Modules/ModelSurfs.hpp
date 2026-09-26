@@ -2,32 +2,32 @@
 
 namespace Components
 {
-	class ModelSurfs : public Component
-	{
-	public:
-		ModelSurfs();
-		~ModelSurfs();
+  class ModelSurfs : public Component
+  {
+  public:
+    ModelSurfs();
+    ~ModelSurfs();
 
-	private:
-		static std::unordered_map<void*, IUnknown*> BufferMap;
-		static std::unordered_map<std::string, Game::CModelAllocData*> AllocMap;
+  private:
+    static std::unordered_map<void*, IUnknown*> BufferMap;
+    static std::unordered_map<std::string, Game::CModelAllocData*> AllocMap;
 
-		static void ReleaseModelSurf(Game::XAssetHeader header);
+    static void ReleaseModelSurf(Game::XAssetHeader header);
 
-		static void BeginRecover();
-		static void EndRecover();
+    static void BeginRecover();
+    static void EndRecover();
 
-		static IUnknown* GetBuffer(void* buffer);
-		static void SetBuffer(char streamHandle, void* buffer, IUnknown** bufferOut, int* offsetOut);
+    static IUnknown* GetBuffer(void* buffer);
+    static void SetBuffer(char streamHandle, void* buffer, IUnknown** bufferOut, int* offsetOut);
 
-		static void CreateBuffers(Game::XModelSurfs* surfs);
-		static Game::XModelSurfs* LoadXModelSurfaces(const std::string& name);
-		static bool LoadSurfaces(Game::XModel* model);
-		static void XModelSurfsFixup(Game::XModel* model);
+    static void CreateBuffers(Game::XModelSurfs* surfs);
+    static Game::XModelSurfs* LoadXModelSurfaces(const std::string& name);
+    static bool LoadSurfaces(Game::XModel* model);
+    static void XModelSurfsFixup(Game::XModel* model);
 
-		static void GetIndexBaseStub();
-		static void GetIndexBufferStub();
-		static void GetIndexBufferStub2();
-		static void GetVertexBufferStub();
-	};
+    static void GetIndexBaseStub();
+    static void GetIndexBufferStub();
+    static void GetIndexBufferStub2();
+    static void GetVertexBufferStub();
+  };
 }

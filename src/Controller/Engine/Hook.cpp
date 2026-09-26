@@ -536,7 +536,7 @@ namespace Controller
     }
 
     void
-		install_protocol ()
+    install_protocol ()
     {
       Utils::Hook (write_delta_movement_patch, write_delta_movement_stub, HOOK_JUMP).install ()->quick ();
       Utils::Hook::Set<BYTE> (write_delta_field_width_1, 16);
@@ -549,7 +549,7 @@ namespace Controller
     }
 
     void
-		install (runtime& rt)
+    install (runtime& rt)
     {
       the_runtime = &rt;
 

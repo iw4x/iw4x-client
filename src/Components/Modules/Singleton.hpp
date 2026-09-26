@@ -2,15 +2,15 @@
 
 namespace Components
 {
-	class Singleton : public Component
-	{
-	public:
-		Singleton();
+  class Singleton : public Component
+  {
+  public:
+    Singleton();
 
-		static bool IsFirstInstance();
+    static bool IsFirstInstance();
 
-	private:
-		static HANDLE Mutex;
-		static bool FirstInstance;
-	};
+  private:
+    static HANDLE Mutex;
+    static bool FirstInstance;
+  };
 }

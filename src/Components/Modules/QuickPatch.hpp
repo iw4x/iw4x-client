@@ -2,43 +2,43 @@
 
 namespace Components
 {
-	class QuickPatch : public Component
-	{
-	public:
-		QuickPatch();
+  class QuickPatch : public Component
+  {
+  public:
+    QuickPatch();
 
-		static void UnlockStats();
+    static void UnlockStats();
 
-	private:
-		static Dvar::Var UIMousePitch;
+  private:
+    static Dvar::Var UIMousePitch;
 
-		static Dvar::Var r_customAspectRatio;
-		static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* dvarName, const char** valueList, int defaultIndex, unsigned __int16 flags, const char* description);
-		static void SetAspectRatio_Stub();
-		static void SetAspectRatio();
+    static Dvar::Var r_customAspectRatio;
+    static Game::dvar_t* Dvar_RegisterAspectRatioDvar(const char* dvarName, const char** valueList, int defaultIndex, unsigned __int16 flags, const char* description);
+    static void SetAspectRatio_Stub();
+    static void SetAspectRatio();
 
-		static void CL_InitRef_Hk(Game::GfxConfiguration* config);
-		static void R_EnumDisplayModes_Hk(unsigned int adapterIndex);
+    static void CL_InitRef_Hk(Game::GfxConfiguration* config);
+    static void R_EnumDisplayModes_Hk(unsigned int adapterIndex);
 
-		static Game::dvar_t* g_antilag;
-		static void ClientEventsFireWeapon_Stub();
-		static void ClientEventsFireWeaponMelee_Stub();
+    static Game::dvar_t* g_antilag;
+    static void ClientEventsFireWeapon_Stub();
+    static void ClientEventsFireWeaponMelee_Stub();
 
-		static BOOL IsDynClassname_Stub(const char* classname);
+    static BOOL IsDynClassname_Stub(const char* classname);
 
-		static void CL_KeyEvent_OnEscape();
-		static void CL_KeyEvent_ConsoleEscape_Stub();
+    static void CL_KeyEvent_OnEscape();
+    static void CL_KeyEvent_ConsoleEscape_Stub();
 
-		static void R_AddImageToList_Hk(Game::XAssetHeader header, void* data);
+    static void R_AddImageToList_Hk(Game::XAssetHeader header, void* data);
 
-		static void Sys_SpawnQuitProcess_Hk();
+    static void Sys_SpawnQuitProcess_Hk();
 
-		static void SND_GetAliasOffset_Stub();
+    static void SND_GetAliasOffset_Stub();
 
-		static Game::dvar_t* Dvar_RegisterConMinicon(const char* dvarName, bool value, unsigned __int16 flags, const char* description);
+    static Game::dvar_t* Dvar_RegisterConMinicon(const char* dvarName, bool value, unsigned __int16 flags, const char* description);
 
-		static void VehicleFx_PlayerIndexCheck_Stub();
-		static void VehicleCl_SetPlayerIndex_UpdateEntity_Stub();
-		static void VehicleCl_SetPlayerIndex_ResetEntity_Stub();
-	};
+    static void VehicleFx_PlayerIndexCheck_Stub();
+    static void VehicleCl_SetPlayerIndex_UpdateEntity_Stub();
+    static void VehicleCl_SetPlayerIndex_ResetEntity_Stub();
+  };
 }

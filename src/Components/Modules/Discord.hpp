@@ -2,16 +2,16 @@
 
 namespace Components
 {
-	class Discord : public Component
-	{
-	public:
-		Discord();
+  class Discord : public Component
+  {
+  public:
+    Discord();
 
-		static std::string GetDiscordServerLink() { return "https://iw4x.io/discord"; }
+    static std::string GetDiscordServerLink() { return "https://iw4x.io/discord"; }
 
-	private:
-		static bool Initialized_;
+  private:
+    static bool Initialized_;
 
-		static void UpdateDiscord();
-	};
+    static void UpdateDiscord();
+  };
 }
