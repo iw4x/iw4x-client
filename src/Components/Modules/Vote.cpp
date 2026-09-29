@@ -51,6 +51,62 @@ namespace Components
     return Game::level->numConnectedClients / 2 + 1;
   }
 
+  const char* Vote::GetVoteText(const char* voteString)
+  {
+    static const auto SEH_ReadVoteReference = reinterpret_cast<const char* (__cdecl*)(const char*, unsigned int*)>(0x406490);
+    static const auto SEH_LocalizeTextMessage = reinterpret_cast<const char* (__cdecl*)(const char*, const char*, Game::msgLocErrType_t)>(0x49D4A0);
+
+    auto* const voteDisplayString = reinterpret_cast<char*>(0x7ED554);
+
+    char source[256]{};
+    std::size_t out = 0;
+
+    for (std::size_t in = 0; in < sizeof(source); ++in)
+    {
+      unsigned int consumed = 0;
+      if (const auto* expansion = SEH_ReadVoteReference(&voteString[in], &consumed))
+      {
+        for (const auto* c = expansion; *c != '\0'; ++c)
+        {
+          if (out < sizeof(source) - 1)
+          {
+            source[out++] = *c;
+          }
+        }
+
+        in += consumed;
+      }
+
+      const auto ch = voteString[in];
+      if (out < sizeof(source) - 1)
+      {
+        source[out++] = ch;
+      }
+
+      if (ch == '\0')
+      {
+        break;
+      }
+    }
+
+    source[sizeof(source) - 1] = '\0';
+
+    const auto* localized = SEH_LocalizeTextMessage(source, "vote string", Game::LOCMSG_SAFE);
+    Game::I_strncpyz(voteDisplayString, localized, sizeof(source));
+    return voteDisplayString;
+  }
+
+  __declspec(naked) void Vote::GetVoteTextStub()
+  {
+    __asm
+    {
+      push ebx
+      call Vote::GetVoteText
+      add esp, 4
+      ret
+    }
+  }
+
   bool Vote::IsInvalidVoteString(const std::string& input)
   {
     static const char* separators[] = { "\n", "\r", ";" };
@@ -334,6 +390,8 @@ namespace Components
   {
     // Replicate g_allowVote
     Utils::Hook::Set<std::uint32_t>(0x5E3A4F, Game::DVAR_INTERNAL | Game::DVAR_CODINFO);
+
+    Utils::Hook(0x5928C0, Vote::GetVoteTextStub, HOOK_JUMP).install()->quick();
 
     Events::OnDvarInit([]{
       Vote::SV_VotesRequired = Game::Dvar_RegisterInt("sv_votesRequired", 0, 0, 18, Game::DVAR_NONE, "Set the amount of votes required for a vote to pass.\n0 = (players / 2) + 1");

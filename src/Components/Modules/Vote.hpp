@@ -20,6 +20,9 @@ namespace Components
     static bool IsInvalidVoteString(const std::string& input);
     static int VotesRequired();
 
+    static const char* GetVoteText(const char* voteString);
+    static void GetVoteTextStub();
+
     static bool HandleMapRestart(const Game::gentity_s* ent, const Command::ServerParams* params);
     static bool HandleMapRotate(const Game::gentity_s* ent, const Command::ServerParams* params);
     static bool HandleTypemap(const Game::gentity_s* ent, const Command::ServerParams* params);
