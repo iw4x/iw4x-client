@@ -6,6 +6,7 @@ namespace Components
   std::unordered_map<std::string, Game::StringTable*> StringTable::StringTableMap;
   std::unordered_set<std::string> StringTable::ModTables;
   std::string StringTable::ModFsGame;
+  std::mutex StringTable::ModTablesMutex;
 
   Game::StringTable* StringTable::LoadObject(std::string filename)
   {
@@ -67,6 +68,7 @@ namespace Components
 
       std::string filename = Utils::String::ToLower(_filename);
 
+      std::scoped_lock lock(ModTablesMutex);
       if (ModTables.contains(filename) && ModFsGame == (*Game::fs_gameDirVar)->current.string)
       {
         return header;
@@ -88,6 +90,7 @@ namespace Components
     {
       if (type == Game::XAssetType::ASSET_TYPE_STRINGTABLE && FastFiles::Current() == "mod")
       {
+        std::scoped_lock lock(ModTablesMutex);
         if (ModFsGame != (*Game::fs_gameDirVar)->current.string)
         {
           ModTables.clear();

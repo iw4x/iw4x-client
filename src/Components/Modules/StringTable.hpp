@@ -11,6 +11,7 @@ namespace Components
     static std::unordered_map<std::string, Game::StringTable*> StringTableMap;
     static std::unordered_set<std::string> ModTables;
     static std::string ModFsGame;
+    static std::mutex ModTablesMutex;
 
     static Game::StringTable* LoadObject(std::string filename);
   };
