@@ -64,6 +64,7 @@ namespace Components
     static bool IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset);
     static void FindAssetStub();
     static void AddAssetStub();
+    static void OverrideAssetStub();
 
     static void StoreEmptyAsset(Game::XAssetType type, const char* name);
     static void StoreEmptyAssetStub();

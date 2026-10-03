@@ -1,8 +1,11 @@
 #include "StringTable.hpp"
+#include "FastFiles.hpp"
 
 namespace Components
 {
   std::unordered_map<std::string, Game::StringTable*> StringTable::StringTableMap;
+  std::unordered_set<std::string> StringTable::ModTables;
+  std::string StringTable::ModFsGame;
 
   Game::StringTable* StringTable::LoadObject(std::string filename)
   {
@@ -64,6 +67,11 @@ namespace Components
 
       std::string filename = Utils::String::ToLower(_filename);
 
+      if (ModTables.contains(filename) && ModFsGame == (*Game::fs_gameDirVar)->current.string)
+      {
+        return header;
+      }
+
       if (StringTableMap.contains(filename))
       {
         header.stringTable = StringTableMap[filename];
@@ -74,6 +82,20 @@ namespace Components
       }
 
       return header;
+    });
+
+    AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, const std::string& name, bool* /*restrict*/)
+    {
+      if (type == Game::XAssetType::ASSET_TYPE_STRINGTABLE && FastFiles::Current() == "mod")
+      {
+        if (ModFsGame != (*Game::fs_gameDirVar)->current.string)
+        {
+          ModTables.clear();
+          ModFsGame = (*Game::fs_gameDirVar)->current.string;
+        }
+
+        ModTables.insert(Utils::String::ToLower(name));
+      }
     });
   }
 }

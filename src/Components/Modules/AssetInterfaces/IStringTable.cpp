@@ -9,7 +9,7 @@ namespace Assets
     Utils::Stream* buffer = builder->getBuffer();
 
     Game::StringTableCell* destValues = buffer->dest<Game::StringTableCell>();
-    buffer->saveArray(destValues, count);
+    buffer->saveArray(values, count);
 
     for (int i = 0; i < count; ++i)
     {
