@@ -2,96 +2,96 @@
 
 namespace Components
 {
-	class PlayerMovement : public Component
-	{
-	public:
-		PlayerMovement();
+  class PlayerMovement : public Component
+  {
+  public:
+    PlayerMovement();
 
-	private:
-		enum BouncesSettings : int { DISABLED, ENABLED, DOUBLE };
+  private:
+    enum BouncesSettings : int { DISABLED, ENABLED, DOUBLE };
 
-		static constexpr auto SURF_LADDER = 0x8;
+    static constexpr auto SURF_LADDER = 0x8;
 
-		static const Game::dvar_t* BGRocketJump;
-		static const Game::dvar_t* BGRocketJumpScale;
-		static const Game::dvar_t* BGPlayerEjection;
-		static const Game::dvar_t* BGPlayerCollision;
-		static const Game::dvar_t* BGClimbAnything;
-		static const Game::dvar_t* CGNoclipScaler;
-		static const Game::dvar_t* CGUfoScaler;
-		static const Game::dvar_t* PlayerSpectateSpeedScale;
-		static const Game::dvar_t* BGBounces;
-		static const Game::dvar_t* BGBouncesAllAngles;
-		static const Game::dvar_t* BGDisableLandingSlowdown;
-		static const Game::dvar_t* BGBunnyHopAuto;
-		static const Game::dvar_t* PlayerDuckedSpeedScale;
-		static const Game::dvar_t* PlayerProneSpeedScale;
-		static const Game::dvar_t* BGDisableBarrierClips;
-		static const Game::dvar_t* BGLadderFixedInput;
-		static const Game::dvar_t* BGSprintIgnoreRepress;
+    static const Game::dvar_t* BGRocketJump;
+    static const Game::dvar_t* BGRocketJumpScale;
+    static const Game::dvar_t* BGPlayerEjection;
+    static const Game::dvar_t* BGPlayerCollision;
+    static const Game::dvar_t* BGClimbAnything;
+    static const Game::dvar_t* CGNoclipScaler;
+    static const Game::dvar_t* CGUfoScaler;
+    static const Game::dvar_t* PlayerSpectateSpeedScale;
+    static const Game::dvar_t* BGBounces;
+    static const Game::dvar_t* BGBouncesAllAngles;
+    static const Game::dvar_t* BGDisableLandingSlowdown;
+    static const Game::dvar_t* BGBunnyHopAuto;
+    static const Game::dvar_t* PlayerDuckedSpeedScale;
+    static const Game::dvar_t* PlayerProneSpeedScale;
+    static const Game::dvar_t* BGDisableBarrierClips;
+    static const Game::dvar_t* BGLadderFixedInput;
+    static const Game::dvar_t* BGSprintIgnoreRepress;
 
-		// Omnimovement
-		static const Game::dvar_t* BGOmnimovement;
-		static const Game::dvar_t* BGDive;
-		static const Game::dvar_t* BGOmnimovementDive;
+    // Omnimovement
+    static const Game::dvar_t* BGOmnimovement;
+    static const Game::dvar_t* BGDive;
+    static const Game::dvar_t* BGOmnimovementDive;
 
-		static Game::dvar_t** player_sprintStrafeSpeedScale;
-		static constexpr DWORD BG_SetConditionValueAddr = 0x41FF10;
+    static Game::dvar_t** player_sprintStrafeSpeedScale;
+    static constexpr DWORD BG_SetConditionValueAddr = 0x41FF10;
 
-		static void PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask);
-		static void PM_PlayerDuckedSpeedScaleStub();
-		static void PM_PlayerProneSpeedScaleStub();
+    static void PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask);
+    static void PM_PlayerDuckedSpeedScaleStub();
+    static void PM_PlayerProneSpeedScaleStub();
 
-		static void PM_MoveScale_Noclip();
-		static void PM_MoveScale_Ufo();
-		static void PM_MoveScale_Spectate();
+    static void PM_MoveScale_Noclip();
+    static void PM_MoveScale_Ufo();
+    static void PM_MoveScale_Spectate();
 
-		// Bounce logic
-		static void PM_StepSlideMoveStub();
-		static void PM_ProjectVelocityStub();
-		static void Jump_ClearState_Hk(Game::playerState_s* ps);
+    // Bounce logic
+    static void PM_StepSlideMoveStub();
+    static void PM_ProjectVelocityStub();
+    static void Jump_ClearState_Hk(Game::playerState_s* ps);
 
-		static Game::gentity_s* Weapon_RocketLauncher_Fire_Hk(Game::gentity_s* ent, unsigned int weaponIndex, float spread, Game::weaponParms* wp, const float* gunVel, Game::lockonFireParms* lockParms, bool a7);
+    static Game::gentity_s* Weapon_RocketLauncher_Fire_Hk(Game::gentity_s* ent, unsigned int weaponIndex, float spread, Game::weaponParms* wp, const float* gunVel, Game::lockonFireParms* lockParms, bool a7);
 
-		// Player collison
-		static int StuckInClient_Hk(Game::gentity_s* self);
-		static void CM_TransformedCapsuleTrace_Hk(Game::trace_t* results, const float* start, const float* end, const Game::Bounds* bounds, const Game::Bounds* capsule, int contents, const float* origin, const float* angles);
+    // Player collison
+    static int StuckInClient_Hk(Game::gentity_s* self);
+    static void CM_TransformedCapsuleTrace_Hk(Game::trace_t* results, const float* start, const float* end, const Game::Bounds* bounds, const Game::Bounds* capsule, int contents, const float* origin, const float* angles);
 
-		static void PM_CrashLand_Stub(const float* v, float scale, const float* result);
-		static void Jump_Check_Stub();
+    static void PM_CrashLand_Stub(const float* v, float scale, const float* result);
+    static void Jump_Check_Stub();
 
-		static void GScr_IsSprinting(Game::scr_entref_t entref);
+    static void GScr_IsSprinting(Game::scr_entref_t entref);
 
-		static const Game::dvar_t* Dvar_RegisterSpectateSpeedScale(const char* dvarName, float value, float min, float max, unsigned __int16 flags, const char* description);
+    static const Game::dvar_t* Dvar_RegisterSpectateSpeedScale(const char* dvarName, float value, float min, float max, unsigned __int16 flags, const char* description);
 
-		static void RegisterMovementDvars();
+    static void RegisterMovementDvars();
 
-		static void PmoveSingle_Stub(Game::pmove_s* pm);
-		static void PM_CheckLadderMove_Stub(Game::pmove_s* pm, Game::pml_t* pml);
+    static void PmoveSingle_Stub(Game::pmove_s* pm);
+    static void PM_CheckLadderMove_Stub(Game::pmove_s* pm, Game::pml_t* pml);
 
-		static void PM_LadderMove_PitchStub();
-		static float* PM_LadderMove_RightVector_Hk(float* source, const float* ladderNormal, float* pmlRight);
+    static void PM_LadderMove_PitchStub();
+    static float* PM_LadderMove_RightVector_Hk(float* source, const float* ladderNormal, float* pmlRight);
 
-		static void PM_UpdateSprint_RepressCallStub();
+    static void PM_UpdateSprint_RepressCallStub();
 
-		// Omnimovement helpers and stubs.
-		static int ComputeHorizontalIntent(int forwardSpeed, int rightSpeed);
-		static void ApplyStockSprintStrafeScale(Game::pmove_s* pm);
+    // Omnimovement helpers and stubs.
+    static int ComputeHorizontalIntent(int forwardSpeed, int rightSpeed);
+    static void ApplyStockSprintStrafeScale(Game::pmove_s* pm);
 
-		static void CL_KeyMove_SprintBit_Stub();
-		static void PM_SprintStartInterferingButtons_Stub();
-		static void PM_SprintEndingButtons_Stub();
-		static void PM_WalkMove_SprintStrafeStub();
+    static void CL_KeyMove_SprintBit_Stub();
+    static void PM_SprintStartInterferingButtons_Stub();
+    static void PM_SprintEndingButtons_Stub();
+    static void PM_WalkMove_SprintStrafeStub();
 
-		static void PM_SetMovementDir_ClampProneLadder_Stub();
-		static void PM_SetMovementDir_ClampGeneric_Stub();
+    static void PM_SetMovementDir_ClampProneLadder_Stub();
+    static void PM_SetMovementDir_ClampGeneric_Stub();
 
-		static void PM_SetStrafeCondition_Stub();
+    static void PM_SetStrafeCondition_Stub();
 
-		static void Jump_CheckDive_PerkGate_Stub();
+    static void Jump_CheckDive_PerkGate_Stub();
 
-		static void PM_GetMaxSpeed_BackDiagonal_Stub();
-		static void PM_GetMaxSpeed_BackPure_Stub();
-		static void Jump_CheckDive_BackDiveVelocity_Stub();
-	};
+    static void PM_GetMaxSpeed_BackDiagonal_Stub();
+    static void PM_GetMaxSpeed_BackPure_Stub();
+    static void Jump_CheckDive_BackDiveVelocity_Stub();
+  };
 }

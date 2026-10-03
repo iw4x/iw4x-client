@@ -5,8 +5,8 @@
 namespace Controller
 {
   // P0792R14
-	//
-	// TODO: remove when wine-msvc catch up.
+  //
+  // TODO: remove when wine-msvc catch up.
   //
   template <auto V>
   struct nontype_t

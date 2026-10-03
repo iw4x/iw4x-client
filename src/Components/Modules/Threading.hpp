@@ -2,13 +2,13 @@
 
 namespace Components
 {
-	class Threading : public Component
-	{
-	public:
-		Threading();
+  class Threading : public Component
+  {
+  public:
+    Threading();
 
-	private:
-		static void FrameEpilogueStub();
-		static void PacketEventStub();
-	};
+  private:
+    static void FrameEpilogueStub();
+    static void PacketEventStub();
+  };
 }

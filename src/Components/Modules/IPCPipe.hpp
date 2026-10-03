@@ -9,69 +9,69 @@
 
 namespace Components
 {
-	class Pipe
-	{
-	public:
-		struct Packet
-		{
-			char command[IPC_COMMAND_SIZE];
-			char buffer[IPC_BUFFER_SIZE];
-		};
+  class Pipe
+  {
+  public:
+    struct Packet
+    {
+      char command[IPC_COMMAND_SIZE];
+      char buffer[IPC_BUFFER_SIZE];
+    };
 
-		enum Type
-		{
-			IPCTYPE_NONE,
-			IPCTYPE_SERVER,
-			IPCTYPE_CLIENT
-		};
+    enum Type
+    {
+      IPCTYPE_NONE,
+      IPCTYPE_SERVER,
+      IPCTYPE_CLIENT
+    };
 
-		typedef void(__cdecl PacketCallback)(const std::string& data);
-		typedef void(__cdecl Callback)();
+    typedef void(__cdecl PacketCallback)(const std::string& data);
+    typedef void(__cdecl Callback)();
 
-		Pipe();
-		~Pipe();
+    Pipe();
+    ~Pipe();
 
-		bool connect(const std::string& name);
-		bool create(const std::string& name);
+    bool connect(const std::string& name);
+    bool create(const std::string& name);
 
-		bool write(const std::string& command, const std::string& data);
-		void setCallback(const std::string& command, Utils::Slot<PacketCallback> callback);
-		void onConnect(Callback callback);
+    bool write(const std::string& command, const std::string& data);
+    void setCallback(const std::string& command, Utils::Slot<PacketCallback> callback);
+    void onConnect(Callback callback);
 
-		void destroy();
+    void destroy();
 
-	private:
-		Utils::Slot<void()> connectCallback;
-		std::map<std::string, Utils::Slot<PacketCallback>> packetCallbacks;
+  private:
+    Utils::Slot<void()> connectCallback;
+    std::map<std::string, Utils::Slot<PacketCallback>> packetCallbacks;
 
-		HANDLE pipe;
-		std::jthread thread;
-		bool threadAttached;
+    HANDLE pipe;
+    std::jthread thread;
+    bool threadAttached;
 
-		Type type;
-		Packet packet;
+    Type type;
+    Packet packet;
 
-		char pipeName[MAX_PATH]{};
-		char pipeFile[MAX_PATH]{};
-		unsigned int reconnectAttempt;
+    char pipeName[MAX_PATH]{};
+    char pipeFile[MAX_PATH]{};
+    unsigned int reconnectAttempt;
 
-		void setName(const std::string& name);
+    void setName(const std::string& name);
 
-		static void ReceiveThread(Pipe* pipe);
-	};
+    static void ReceiveThread(Pipe* pipe);
+  };
 
-	class IPCPipe : public Component
-	{
-	public:
-		IPCPipe();
+  class IPCPipe : public Component
+  {
+  public:
+    IPCPipe();
 
-		static bool Write(const std::string& command, const std::string& data);
-		static void On(const std::string& command, const Utils::Slot<Pipe::PacketCallback>& callback);
+    static bool Write(const std::string& command, const std::string& data);
+    static void On(const std::string& command, const Utils::Slot<Pipe::PacketCallback>& callback);
 
-	private:
-		static Pipe ServerPipe;
-		static Pipe ClientPipe;
+  private:
+    static Pipe ServerPipe;
+    static Pipe ClientPipe;
 
-		static void ConnectClient();
-	};
+    static void ConnectClient();
+  };
 }

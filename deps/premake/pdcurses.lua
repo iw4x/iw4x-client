@@ -1,34 +1,34 @@
 pdcurses = {
-	source = path.join(dependencies.basePath, "pdcurses"),
+  source = path.join(dependencies.basePath, "pdcurses"),
 }
 
 function pdcurses.import()
-	links {"pdcurses"}
+  links {"pdcurses"}
 
-	pdcurses.includes()
+  pdcurses.includes()
 end
 
 function pdcurses.includes()
-	includedirs {pdcurses.source}
+  includedirs {pdcurses.source}
 end
 
 function pdcurses.project()
-	project "pdcurses"
-		language "C"
+  project "pdcurses"
+    language "C"
 
-		pdcurses.includes()
+    pdcurses.includes()
 
-		files
-		{
-			path.join(pdcurses.source, "pdcurses/*.c"),
-			path.join(pdcurses.source, "pdcurses/*.h"),
-			path.join(pdcurses.source, "wincon/*.c"),
-			path.join(pdcurses.source, "wincon/*.h"),
-		}
+    files
+    {
+      path.join(pdcurses.source, "pdcurses/*.c"),
+      path.join(pdcurses.source, "pdcurses/*.h"),
+      path.join(pdcurses.source, "wincon/*.c"),
+      path.join(pdcurses.source, "wincon/*.h"),
+    }
 
-		warnings "Off"
+    warnings "Off"
 
-		kind "StaticLib"
+    kind "StaticLib"
 end
 
 table.insert(dependencies, pdcurses)

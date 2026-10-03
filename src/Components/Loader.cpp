@@ -79,131 +79,131 @@
 
 namespace Components
 {
-	bool Loader::Pregame = true;
-	std::vector<Component*> Loader::Components;
+  bool Loader::Pregame = true;
+  std::vector<Component*> Loader::Components;
 
-	bool Loader::IsPregame()
-	{
-		return Pregame;
-	}
+  bool Loader::IsPregame()
+  {
+    return Pregame;
+  }
 
-	void Loader::Initialize()
-	{
-		Pregame = true;
-		Utils::Memory::GetAllocator()->clear();
+  void Loader::Initialize()
+  {
+    Pregame = true;
+    Utils::Memory::GetAllocator()->clear();
 
-		// Before anything else.
-		//
-		Register(new ZoneConvert());
+    // Before anything else.
+    //
+    Register(new ZoneConvert());
 
-		// High priority
-		Register(new Singleton());
+    // High priority
+    Register(new Singleton());
 
-		Register(new Auth());
-		Register(new Command());
-		Register(new Dvar());
-		Register(new Exception()); // Install our exception handler as early as possible to get better debug dumps from startup crashes
-		Register(new IPCPipe());
-		Register(new Network());
-		Register(new Logger());
-		Register(new UIScript());
-		Register(new ZoneBuilder());
+    Register(new Auth());
+    Register(new Command());
+    Register(new Dvar());
+    Register(new Exception()); // Install our exception handler as early as possible to get better debug dumps from startup crashes
+    Register(new IPCPipe());
+    Register(new Network());
+    Register(new Logger());
+    Register(new UIScript());
+    Register(new ZoneBuilder());
 
-		Register(new ConfigStrings()); // Needs to be there early !! Before modelcache & weapons
+    Register(new ConfigStrings()); // Needs to be there early !! Before modelcache & weapons
 
-		Register(new ArenaLength());
-		Register(new AssetHandler());
-		Register(new Bans());
-		Register(new Bots());
-		Register(new Branding());
-		Register(new Bullet());
-		Register(new CardTitles());
-		Register(new Ceg());
-		Register(new Changelog());
-		Register(new Chat());
-		Register(new ClanTags());
-		Register(new ClientCommand());
-		Register(new ConnectProtocol());
-		Register(new Console());
-		Register(new Controller());
-		Register(new D3D9Ex());
-		Register(new Debug());
-		Register(new Dedicated());
-		Register(new Discord());
-		Register(new Discovery());
-		Register(new Download());
-		Register(new Elevators());
-		Register(new Events());
-		Register(new FastFiles());
-		Register(new FileSystem());
-		Register(new Friends());
-		Register(new Rumble());
-		Register(new Huffman());
-		Register(new Lean());
-		Register(new Localization());
-		Register(new MapDump());
-		Register(new MapRotation());
-		Register(new Maps());
-		Register(new Materials());
-		Register(new Menus());
-		Register(new Missile());
-		Register(new ModList());
-		Register(new ModelCache());
-		Register(new ModelSurfs());
-		Register(new NetworkDebug());
-		Register(new News());
-		Register(new Node());
-		Register(new Party());
-		Register(new PlayerMovement());
-		Register(new PlayerName());
-		Register(new Playlist());
-		Register(new QuickPatch());
-		Register(new RawFiles());
-		Register(new RawMouse());
-		Register(new RCon());
-		Register(new RemoteControl());
-		Register(new Renderer());
-		Register(new Scheduler());
-		Register(new Security());
-		Register(new ServerCommands());
-		Register(new ServerInfo());
-		Register(new ServerList());
-		Register(new Session());
-		Register(new SlowMotion());
-		Register(new Sound());
-		Register(new StartupMessages());
-		Register(new Stats());
-		Register(new StringTable());
-		Register(new StructuredData());
-		Register(new TextRenderer());
-		Register(new Theatre());
-		Register(new Threading());
-		Register(new Toast());
-		Register(new UIFeeder());
-		Register(new Updater());
-		Register(new VisionFile());
-		Register(new Voice());
-		Register(new Vote());
-		Register(new Weapon());
-		Register(new Window());
-		Register(new Zones());
+    Register(new ArenaLength());
+    Register(new AssetHandler());
+    Register(new Bans());
+    Register(new Bots());
+    Register(new Branding());
+    Register(new Bullet());
+    Register(new CardTitles());
+    Register(new Ceg());
+    Register(new Changelog());
+    Register(new Chat());
+    Register(new ClanTags());
+    Register(new ClientCommand());
+    Register(new ConnectProtocol());
+    Register(new Console());
+    Register(new Controller());
+    Register(new D3D9Ex());
+    Register(new Debug());
+    Register(new Dedicated());
+    Register(new Discord());
+    Register(new Discovery());
+    Register(new Download());
+    Register(new Elevators());
+    Register(new Events());
+    Register(new FastFiles());
+    Register(new FileSystem());
+    Register(new Friends());
+    Register(new Rumble());
+    Register(new Huffman());
+    Register(new Lean());
+    Register(new Localization());
+    Register(new MapDump());
+    Register(new MapRotation());
+    Register(new Maps());
+    Register(new Materials());
+    Register(new Menus());
+    Register(new Missile());
+    Register(new ModList());
+    Register(new ModelCache());
+    Register(new ModelSurfs());
+    Register(new NetworkDebug());
+    Register(new News());
+    Register(new Node());
+    Register(new Party());
+    Register(new PlayerMovement());
+    Register(new PlayerName());
+    Register(new Playlist());
+    Register(new QuickPatch());
+    Register(new RawFiles());
+    Register(new RawMouse());
+    Register(new RCon());
+    Register(new RemoteControl());
+    Register(new Renderer());
+    Register(new Scheduler());
+    Register(new Security());
+    Register(new ServerCommands());
+    Register(new ServerInfo());
+    Register(new ServerList());
+    Register(new Session());
+    Register(new SlowMotion());
+    Register(new Sound());
+    Register(new StartupMessages());
+    Register(new Stats());
+    Register(new StringTable());
+    Register(new StructuredData());
+    Register(new TextRenderer());
+    Register(new Theatre());
+    Register(new Threading());
+    Register(new Toast());
+    Register(new UIFeeder());
+    Register(new Updater());
+    Register(new VisionFile());
+    Register(new Voice());
+    Register(new Vote());
+    Register(new Weapon());
+    Register(new Window());
+    Register(new Zones());
 
-		Register(new GSC::GSC());
+    Register(new GSC::GSC());
 
-		Register(new BotLib::lPrecomp());
-		Register(new ViewModelFxSetup::Setup());
+    Register(new BotLib::lPrecomp());
+    Register(new ViewModelFxSetup::Setup());
 
-		Pregame = false;
-	}
+    Pregame = false;
+  }
 
-	void Loader::Register(Component* component)
-	{
-		if (component)
-		{
+  void Loader::Register(Component* component)
+  {
+    if (component)
+    {
 #if defined(DEBUG)
-			Logger::Print("Component registered: {}\n", component->getName());
+      Logger::Print("Component registered: {}\n", component->getName());
 #endif
-			Components.push_back(component);
-		}
-	}
+      Components.push_back(component);
+    }
+  }
 }

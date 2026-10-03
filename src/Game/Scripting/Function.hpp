@@ -2,14 +2,14 @@
 
 namespace Scripting
 {
-	class Function
-	{
-	public:
-		Function(const char* pos);
+  class Function
+  {
+  public:
+    Function(const char* pos);
 
-		[[nodiscard]] const char* getPos() const;
+    [[nodiscard]] const char* getPos() const;
 
-	private:
-		const char* pos_;
-	};
+  private:
+    const char* pos_;
+  };
 }

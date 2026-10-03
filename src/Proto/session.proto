@@ -4,8 +4,8 @@ package Proto.Session;
 
 message Packet
 {
-	bytes signature = 1;
-	bytes publicKey = 2;
-	bytes command = 3;
-	bytes data = 4;
+  bytes signature = 1;
+  bytes publicKey = 2;
+  bytes command = 3;
+  bytes data = 4;
 }

@@ -2,9 +2,9 @@
 
 namespace Components
 {
-	class MapDump : public Component
-	{
-	public:
-		MapDump();
-	};
+  class MapDump : public Component
+  {
+  public:
+    MapDump();
+  };
 }

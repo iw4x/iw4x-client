@@ -12,7 +12,7 @@ namespace Controller
 {
   // P0843R14
   //
-	// TODO: remove when wine-msvc catch up.
+  // TODO: remove when wine-msvc catch up.
   //
   struct from_range_t
   {

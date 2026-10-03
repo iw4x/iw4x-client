@@ -272,7 +272,7 @@ sys_deps ()
       cmd="sudo $pm install -y"
       pkgs="wine python3 msitools ca-certificates samba-winbind git curl gcc gcc-c++ make"
       ;;
-		apt)
+    apt)
       cmd="sudo apt install -y"
       pkgs="wine python3 msitools ca-certificates winbind git curl build-essential"
       ;;
@@ -286,7 +286,7 @@ sys_deps ()
 
   # Deliberate unquoted expansion for command word splitting.
   #
-	# shellcheck disable=SC2086
+  # shellcheck disable=SC2086
   run $cmd $pkgs
 }
 
@@ -373,18 +373,18 @@ gen_info ()
   #    matched a search pattern or not. The '-n' flag tells it to stay quiet and
   #    suppress this default output.
   #
-	# 2. 's/FIND/REPLACE/p' tells sed to search, replace, and then print ('p')
+  # 2. 's/FIND/REPLACE/p' tells sed to search, replace, and then print ('p')
   #    only if the substitution is successful.
   #
-	# 3. In the FIND pattern, '.*,.*, ' uses the greedy '.*' to consume everything
+  # 3. In the FIND pattern, '.*,.*, ' uses the greedy '.*' to consume everything
   #    up to a comma, then another comma, followed by a space. This skips past
   #    the initial branch decorations.
   #
-	# 4. '\(' and '\)' create a capture group. Inside it, '[^)]*' means "match any
+  # 4. '\(' and '\)' create a capture group. Inside it, '[^)]*' means "match any
   #    sequence of characters as long as they are not a closing bracket".
   #
-	# 5. The final '.*' simply consumes the rest of the line.
-	#
+  # 5. The final '.*' simply consumes the rest of the line.
+  #
   # 6. Finally, the '\1' in the REPLACE section tells sed to replace the entire
   #    matched line with whatever text was caught inside our first capture
   #    group.
@@ -445,7 +445,7 @@ gen_vscode ()
   sv="10.0.26100.0"
 
   # We rely on GNU sort -V to correctly order the semantic version directories.
-	#
+  #
   # Also it's safe to use ls here because MSVC version folders are guaranteed to
   # only contain alphanumeric characters and dots.
   #
@@ -463,29 +463,29 @@ gen_vscode ()
 
   cat > .vscode/c_cpp_properties.json << EOF
 {
-	"configurations":[
-		{
-			"name": "Linux",
-			"includePath":[
-				"\${default}",
-				"$mi_dir/vc/tools/msvc/$mv/atlmfc/include",
-				"$mi_dir/vc/tools/msvc/$mv/include",
-				"$mi_dir/kits/10/Include/$sv/shared",
-				"$mi_dir/kits/10/Include/$sv/ucrt",
-				"$mi_dir/kits/10/Include/$sv/um",
-				"$mi_dir/kits/10/Include/$sv/winrt",
-				"\${workspaceFolder}/**"
-			],
-			"defines":[],
-			"cStandard": "c23",
-			"cppStandard": "c++23",
-			"intelliSenseMode": "windows-msvc-x86",
-			"forcedInclude":[
-				"$owd/src/STDInclude.hpp"
-			]
-		}
-	],
-	"version": 4
+  "configurations":[
+    {
+      "name": "Linux",
+      "includePath":[
+        "\${default}",
+        "$mi_dir/vc/tools/msvc/$mv/atlmfc/include",
+        "$mi_dir/vc/tools/msvc/$mv/include",
+        "$mi_dir/kits/10/Include/$sv/shared",
+        "$mi_dir/kits/10/Include/$sv/ucrt",
+        "$mi_dir/kits/10/Include/$sv/um",
+        "$mi_dir/kits/10/Include/$sv/winrt",
+        "\${workspaceFolder}/**"
+      ],
+      "defines":[],
+      "cStandard": "c23",
+      "cppStandard": "c++23",
+      "intelliSenseMode": "windows-msvc-x86",
+      "forcedInclude":[
+        "$owd/src/STDInclude.hpp"
+      ]
+    }
+  ],
+  "version": 4
 }
 EOF
 }
@@ -527,7 +527,7 @@ compile ()
   fi
 
   # Deliberate unquoted expansion for msbuild argument word splitting.
-	#
+  #
   # shellcheck disable=SC2086
   run "$mi_dir/bin/x86/msbuild.exe" "$sln" $args
 }

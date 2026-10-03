@@ -1,33 +1,33 @@
 mongoose = {
-	source = path.join(dependencies.basePath, "mongoose"),
+  source = path.join(dependencies.basePath, "mongoose"),
 }
 
 function mongoose.import()
-	links "mongoose"
+  links "mongoose"
 
-	mongoose.includes()
+  mongoose.includes()
 end
 
 function mongoose.includes()
-	includedirs {
-		mongoose.source,
-	}
+  includedirs {
+    mongoose.source,
+  }
 end
 
 function mongoose.project()
-	project "mongoose"
-		language "C"
+  project "mongoose"
+    language "C"
 
-		mongoose.includes()
+    mongoose.includes()
 
-		files {
-			path.join(mongoose.source, "mongoose.c"),
-			path.join(mongoose.source, "mongoose.h"),
-		}
+    files {
+      path.join(mongoose.source, "mongoose.c"),
+      path.join(mongoose.source, "mongoose.h"),
+    }
 
-		warnings "Off"
+    warnings "Off"
 
-		kind "StaticLib"
+    kind "StaticLib"
 end
 
 table.insert(dependencies, mongoose)

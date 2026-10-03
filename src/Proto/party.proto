@@ -4,6 +4,6 @@ package Proto.Party;
 
 message Playlist
 {
-	uint32 hash     = 1;
-	bytes buffer    = 2;
+  uint32 hash     = 1;
+  bytes buffer    = 2;
 }

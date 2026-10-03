@@ -2,12 +2,12 @@
 
 namespace Assets
 {
-	class ILoadedSound : public Components::AssetHandler::IAsset
-	{
-	public:
-		Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_LOADED_SOUND; };
+  class ILoadedSound : public Components::AssetHandler::IAsset
+  {
+  public:
+    Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_LOADED_SOUND; };
 
-		void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
-		void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
-	};
+    void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
+    void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
+  };
 }

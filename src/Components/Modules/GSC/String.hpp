@@ -2,12 +2,12 @@
 
 namespace Components::GSC
 {
-	class String : public Component
-	{
-	public:
-		String();
+  class String : public Component
+  {
+  public:
+    String();
 
-	private:
-		static void AddScriptFunctions();
-	};
+  private:
+    static void AddScriptFunctions();
+  };
 }

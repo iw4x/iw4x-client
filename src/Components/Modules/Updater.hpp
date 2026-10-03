@@ -2,9 +2,9 @@
 
 namespace Components
 {
-	class Updater : public Component
-	{
-	public:
-		Updater();
-	};
+  class Updater : public Component
+  {
+  public:
+    Updater();
+  };
 }

@@ -2,14 +2,14 @@
 
 namespace Components::GSC
 {
-	class ScriptStorage : public Component
-	{
-	public:
-		ScriptStorage();
+  class ScriptStorage : public Component
+  {
+  public:
+    ScriptStorage();
 
-	private:
-		static std::unordered_map<std::string, std::string> Data;
+  private:
+    static std::unordered_map<std::string, std::string> Data;
 
-		static void AddScriptFunctions();
-	};
+    static void AddScriptFunctions();
+  };
 }

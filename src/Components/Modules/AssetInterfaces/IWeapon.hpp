@@ -2,18 +2,18 @@
 
 namespace Assets
 {
-	class IWeapon : public Components::AssetHandler::IAsset
-	{
-	public:
-		Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_WEAPON; }
-		IWeapon();
+  class IWeapon : public Components::AssetHandler::IAsset
+  {
+  public:
+    Game::XAssetType getType() override { return Game::XAssetType::ASSET_TYPE_WEAPON; }
+    IWeapon();
 
-		void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
-		void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
-		void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
+    void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
+    void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
+    void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
 
-	private:
-		static void applyAdsTransitionTimes(Game::WeaponCompleteDef* weapon);
-		void writeWeaponDef(Game::WeaponDef* def, Components::ZoneBuilder::Zone* builder, Utils::Stream* buffer);
-	};
+  private:
+    static void applyAdsTransitionTimes(Game::WeaponCompleteDef* weapon);
+    void writeWeaponDef(Game::WeaponDef* def, Components::ZoneBuilder::Zone* builder, Utils::Stream* buffer);
+  };
 }

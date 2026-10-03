@@ -6,38 +6,38 @@
 
 namespace Components
 {
-	HANDLE Singleton::Mutex;
+  HANDLE Singleton::Mutex;
 
-	bool Singleton::FirstInstance = true;
+  bool Singleton::FirstInstance = true;
 
-	bool Singleton::IsFirstInstance()
-	{
-		return FirstInstance;
-	}
+  bool Singleton::IsFirstInstance()
+  {
+    return FirstInstance;
+  }
 
-	Singleton::Singleton()
-	{
-		if (Flags::HasFlag("version"))
-		{
+  Singleton::Singleton()
+  {
+    if (Flags::HasFlag("version"))
+    {
 #ifdef EXPERIMENTAL_BUILD
-			printf("%s", "IW4x " REVISION_STR "-develop (built " __DATE__ " " __TIME__ ")\n");
+      printf("%s", "IW4x " REVISION_STR "-develop (built " __DATE__ " " __TIME__ ")\n");
 #else
-			printf("%s", "IW4x " REVISION_STR " (built " __DATE__ " " __TIME__ ")\n");
+      printf("%s", "IW4x " REVISION_STR " (built " __DATE__ " " __TIME__ ")\n");
 #endif
 
-			ExitProcess(EXIT_SUCCESS);
-		}
+      ExitProcess(EXIT_SUCCESS);
+    }
 
-		Console::FreeNativeConsole();
+    Console::FreeNativeConsole();
 
-		if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
+    if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
 
-		Mutex = CreateMutexA(nullptr, FALSE, "iw4x_mutex");
-		FirstInstance = ((INVALID_HANDLE_VALUE != Mutex) && GetLastError() != ERROR_ALREADY_EXISTS);
+    Mutex = CreateMutexA(nullptr, FALSE, "iw4x_mutex");
+    FirstInstance = ((INVALID_HANDLE_VALUE != Mutex) && GetLastError() != ERROR_ALREADY_EXISTS);
 
-		if (!FirstInstance && !ConnectProtocol::Used() && MessageBoxA(nullptr, "Do you want to start another instance?\nNot all features will be available!", "Game already running", MB_ICONEXCLAMATION | MB_YESNO) == IDNO)
-		{
-			ExitProcess(EXIT_SUCCESS);
-		}
-	}
+    if (!FirstInstance && !ConnectProtocol::Used() && MessageBoxA(nullptr, "Do you want to start another instance?\nNot all features will be available!", "Game already running", MB_ICONEXCLAMATION | MB_YESNO) == IDNO)
+    {
+      ExitProcess(EXIT_SUCCESS);
+    }
+  }
 }

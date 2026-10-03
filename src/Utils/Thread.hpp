@@ -2,18 +2,18 @@
 
 namespace Utils::Thread
 {
-	bool SetName(HANDLE t, const std::string& name);
-	bool SetName(DWORD id, const std::string& name);
-	bool SetName(std::jthread& t, const std::string& name);
-	bool SetName(const std::string& name);
+  bool SetName(HANDLE t, const std::string& name);
+  bool SetName(DWORD id, const std::string& name);
+  bool SetName(std::jthread& t, const std::string& name);
+  bool SetName(const std::string& name);
 
-	template <typename ...Args>
-	std::jthread CreateNamedThread(const std::string& name, Args&&... args)
-	{
-		auto t = std::jthread(std::forward<Args>(args)...);
-		SetName(t, name);
-		return t;
-	}
+  template <typename ...Args>
+  std::jthread CreateNamedThread(const std::string& name, Args&&... args)
+  {
+    auto t = std::jthread(std::forward<Args>(args)...);
+    SetName(t, name);
+    return t;
+  }
 
-	std::vector<DWORD> GetThreadIds();
+  std::vector<DWORD> GetThreadIds();
 }

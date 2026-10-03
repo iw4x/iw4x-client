@@ -1,246 +1,246 @@
 -- Quote the given string input as a C string
 function cstrquote(value)
-	if value == nil then
-		return "\"\""
-	end
-	result = value:gsub("\\", "\\\\")
-	result = result:gsub("\"", "\\\"")
-	result = result:gsub("\n", "\\n")
-	result = result:gsub("\t", "\\t")
-	result = result:gsub("\r", "\\r")
-	result = result:gsub("\a", "\\a")
-	result = result:gsub("\b", "\\b")
-	result = "\"" .. result .. "\""
-	return result
+  if value == nil then
+    return "\"\""
+  end
+  result = value:gsub("\\", "\\\\")
+  result = result:gsub("\"", "\\\"")
+  result = result:gsub("\n", "\\n")
+  result = result:gsub("\t", "\\t")
+  result = result:gsub("\r", "\\r")
+  result = result:gsub("\a", "\\a")
+  result = result:gsub("\b", "\\b")
+  result = "\"" .. result .. "\""
+  return result
 end
 
 dependencies = {
-	basePath = "./deps"
+  basePath = "./deps"
 }
 
 function dependencies.load()
-	dir = path.join(dependencies.basePath, "premake/*.lua")
-	deps = os.matchfiles(dir)
+  dir = path.join(dependencies.basePath, "premake/*.lua")
+  deps = os.matchfiles(dir)
 
-	for i, dep in pairs(deps) do
-		dep = dep:gsub(".lua", "")
-		require(dep)
-	end
+  for i, dep in pairs(deps) do
+    dep = dep:gsub(".lua", "")
+    require(dep)
+  end
 end
 
 function dependencies.imports()
-	for i, proj in pairs(dependencies) do
-		if type(i) == 'number' then
-			proj.import()
-		end
-	end
+  for i, proj in pairs(dependencies) do
+    if type(i) == 'number' then
+      proj.import()
+    end
+  end
 end
 
 function dependencies.projects()
-	for i, proj in pairs(dependencies) do
-		if type(i) == 'number' then
-			proj.project()
-		end
-	end
+  for i, proj in pairs(dependencies) do
+    if type(i) == 'number' then
+      proj.project()
+    end
+  end
 end
 
 newoption {
-	trigger = "copy-to",
-	description = "Optional, copy the DLL to a custom folder after build, define the path here if wanted.",
-	value = "PATH"
+  trigger = "copy-to",
+  description = "Optional, copy the DLL to a custom folder after build, define the path here if wanted.",
+  value = "PATH"
 }
 
 newoption {
-	trigger = "copy-pdb",
-	description = "Copy debug information for binaries as well to the path given via --copy-to."
+  trigger = "copy-pdb",
+  description = "Copy debug information for binaries as well to the path given via --copy-to."
 }
 
 newoption {
-	trigger = "disable-binary-check",
-	description = "Do not perform integrity checks on the exe."
+  trigger = "disable-binary-check",
+  description = "Do not perform integrity checks on the exe."
 }
 
 newaction {
-	trigger = "version",
-	description = "Returns the version string for the current commit of the source code.",
-	onWorkspace = function(wks)
-		local revNumber = getRevisionNumber()
-		local branchName = getBranchName()
+  trigger = "version",
+  description = "Returns the version string for the current commit of the source code.",
+  onWorkspace = function(wks)
+    local revNumber = getRevisionNumber()
+    local branchName = getBranchName()
 
-		local version = "r" .. revNumber
-		if branchName ~= "develop" then
-			version = version .. "-" .. branchName
-		end
+    local version = "r" .. revNumber
+    if branchName ~= "develop" then
+      version = version .. "-" .. branchName
+    end
 
-		print(version)
-		os.exit(0)
-	end
+    print(version)
+    os.exit(0)
+  end
 }
 
 function getBranchName()
-	-- get current branch name
-	local proc = assert(io.popen("git branch --show-current"))
-	local branchName = proc:read('*l')
+  -- get current branch name
+  local proc = assert(io.popen("git branch --show-current"))
+  local branchName = proc:read('*l')
 
-	-- branch for ci
-	if branchName == nil or branchName == '' then
-		proc = assert(io.popen("git show -s --pretty=%d HEAD"))
-		local branchInfo = proc:read('*l')
-		m = string.match(branchInfo, ".+,.+, ([^)]+)")
-		if m ~= nil then
-			branchName = m
-		end
-	end
+  -- branch for ci
+  if branchName == nil or branchName == '' then
+    proc = assert(io.popen("git show -s --pretty=%d HEAD"))
+    local branchInfo = proc:read('*l')
+    m = string.match(branchInfo, ".+,.+, ([^)]+)")
+    if m ~= nil then
+      branchName = m
+    end
+  end
 
-	if branchName == nil then
-		branchName = "develop"
-	end
+  if branchName == nil then
+    branchName = "develop"
+  end
 
-	return branchName
+  return branchName
 end
 
 function getRevisionNumber()
-	local proc = assert(io.popen("git rev-list --count HEAD", "r"))
-	return assert(proc:read('*a')):gsub("%s+", "")
+  local proc = assert(io.popen("git rev-list --count HEAD", "r"))
+  return assert(proc:read('*a')):gsub("%s+", "")
 end
 
 newaction {
-	trigger = "generate-buildinfo",
-	description = "Sets up build information file. Output will be stored in version.h.",
-	onWorkspace = function(wks)
-		-- get revision number
-		local revNumber = getRevisionNumber()
-		local branchName = getBranchName()
+  trigger = "generate-buildinfo",
+  description = "Sets up build information file. Output will be stored in version.h.",
+  onWorkspace = function(wks)
+    -- get revision number
+    local revNumber = getRevisionNumber()
+    local branchName = getBranchName()
 
-		print("Detected branch: " .. branchName)
+    print("Detected branch: " .. branchName)
 
-		-- get old version number from version.hpp if any
-		local oldVersion = "(none)"
-		local oldVersionHeader = io.open(wks.location .. "/src/version.h", "r")
-		if oldVersionHeader ~= nil then
-			local oldVersionHeaderContent = assert(oldVersionHeader:read('*l'))
-			while oldVersionHeaderContent do
-				m = string.match(oldVersionHeaderContent, "#define REVISION (.+)%s*$")
-				if m ~= nil then
-					oldVersion = m
-				end
+    -- get old version number from version.hpp if any
+    local oldVersion = "(none)"
+    local oldVersionHeader = io.open(wks.location .. "/src/version.h", "r")
+    if oldVersionHeader ~= nil then
+      local oldVersionHeaderContent = assert(oldVersionHeader:read('*l'))
+      while oldVersionHeaderContent do
+        m = string.match(oldVersionHeaderContent, "#define REVISION (.+)%s*$")
+        if m ~= nil then
+          oldVersion = m
+        end
 
-				oldVersionHeaderContent = oldVersionHeader:read('*l')
-			end
-		end
+        oldVersionHeaderContent = oldVersionHeader:read('*l')
+      end
+    end
 
-		-- generate version.hpp with a revision number if not equal
-		if oldVersion ~= revNumber then
-			print ("Update " .. oldVersion .. " -> " .. revNumber)
-			local versionHeader = assert(io.open(wks.location .. "/src/version.h", "w"))
-			versionHeader:write("/*\n")
-			versionHeader:write(" * Automatically generated by premake5.\n")
-			versionHeader:write(" * Do not touch!\n")
-			versionHeader:write(" */\n")
-			versionHeader:write("\n")
-			versionHeader:write("#define GIT_BRANCH " .. cstrquote(branchName) .. "\n")
-			versionHeader:write("\n")
-			versionHeader:write("// Revision definition\n")
-			versionHeader:write("#define REVISION " .. revNumber .. "\n")
-			versionHeader:write("#define REVISION_STR \"r" .. revNumber .. "\"\n")
-			versionHeader:write("\n")
-			if branchName == "develop" then
-				versionHeader:write("// Branch-specific definitions\n")
-				versionHeader:write("#define EXPERIMENTAL_BUILD" .. "\n")
-			end
-			versionHeader:close()
+    -- generate version.hpp with a revision number if not equal
+    if oldVersion ~= revNumber then
+      print ("Update " .. oldVersion .. " -> " .. revNumber)
+      local versionHeader = assert(io.open(wks.location .. "/src/version.h", "w"))
+      versionHeader:write("/*\n")
+      versionHeader:write(" * Automatically generated by premake5.\n")
+      versionHeader:write(" * Do not touch!\n")
+      versionHeader:write(" */\n")
+      versionHeader:write("\n")
+      versionHeader:write("#define GIT_BRANCH " .. cstrquote(branchName) .. "\n")
+      versionHeader:write("\n")
+      versionHeader:write("// Revision definition\n")
+      versionHeader:write("#define REVISION " .. revNumber .. "\n")
+      versionHeader:write("#define REVISION_STR \"r" .. revNumber .. "\"\n")
+      versionHeader:write("\n")
+      if branchName == "develop" then
+        versionHeader:write("// Branch-specific definitions\n")
+        versionHeader:write("#define EXPERIMENTAL_BUILD" .. "\n")
+      end
+      versionHeader:close()
 
-			local versionHeader = assert(io.open(wks.location .. "/src/version.hpp", "w"))
-			versionHeader:write("/*\n")
-			versionHeader:write(" * Automatically generated by premake5.\n")
-			versionHeader:write(" * Do not touch!\n")
-			versionHeader:write(" *\n")
-			versionHeader:write(" * This file exists for reasons of complying with our coding standards.\n")
-			versionHeader:write(" *\n")
-			versionHeader:write(" * The Resource Compiler will ignore any content from C++ header files if they're not from STDInclude.hpp.\n")
-			versionHeader:write(" * That's the reason why we now place all version info in version.h instead.\n")
-			versionHeader:write(" */\n")
-			versionHeader:write("\n")
-			versionHeader:write("#include \".\\version.h\"\n")
-			versionHeader:close()
-		end
-	end
+      local versionHeader = assert(io.open(wks.location .. "/src/version.hpp", "w"))
+      versionHeader:write("/*\n")
+      versionHeader:write(" * Automatically generated by premake5.\n")
+      versionHeader:write(" * Do not touch!\n")
+      versionHeader:write(" *\n")
+      versionHeader:write(" * This file exists for reasons of complying with our coding standards.\n")
+      versionHeader:write(" *\n")
+      versionHeader:write(" * The Resource Compiler will ignore any content from C++ header files if they're not from STDInclude.hpp.\n")
+      versionHeader:write(" * That's the reason why we now place all version info in version.h instead.\n")
+      versionHeader:write(" */\n")
+      versionHeader:write("\n")
+      versionHeader:write("#include \".\\version.h\"\n")
+      versionHeader:close()
+    end
+  end
 }
 
 dependencies.load()
 
 workspace "iw4x"
-	startproject "iw4x"
-	location "./build"
-	objdir "%{wks.location}/obj"
-	targetdir "%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}"
+  startproject "iw4x"
+  location "./build"
+  objdir "%{wks.location}/obj"
+  targetdir "%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}"
 
-	configurations {"Debug", "Release"}
+  configurations {"Debug", "Release"}
 
-	language "C++"
-	cppdialect "C++20"
+  language "C++"
+  cppdialect "C++20"
 
-	architecture "x86"
-	platforms "Win32"
+  architecture "x86"
+  platforms "Win32"
 
-	systemversion "latest"
-	symbols "On"
-	staticruntime "On"
-	editandcontinue "Off"
-	warnings "Extra"
-	characterset "ASCII"
+  systemversion "latest"
+  symbols "On"
+  staticruntime "On"
+  editandcontinue "Off"
+  warnings "Extra"
+  characterset "ASCII"
 
-	incrementallink "Off"
-	minimalrebuild "Off"
-	multiprocessorcompile "On"
-	enable64bitchecks "Off"
+  incrementallink "Off"
+  minimalrebuild "Off"
+  multiprocessorcompile "On"
+  enable64bitchecks "Off"
 
-	filter "platforms:Win*"
-		defines {"_WINDOWS", "WIN32"}
-	filter {}
+  filter "platforms:Win*"
+    defines {"_WINDOWS", "WIN32"}
+  filter {}
 
-	filter "configurations:Release"
-		optimize "Size"
-		buildoptions {"/GL"}
-		linkoptions {"/IGNORE:4702", "/LTCG"}
-		defines {"NDEBUG"}
-		fatalwarnings { "all" }
-		rtti ("Off")
-	filter {}
+  filter "configurations:Release"
+    optimize "Size"
+    buildoptions {"/GL"}
+    linkoptions {"/IGNORE:4702", "/LTCG"}
+    defines {"NDEBUG"}
+    fatalwarnings { "all" }
+    rtti ("Off")
+  filter {}
 
-	filter "configurations:Debug"
-		optimize "Debug"
-		defines {"DEBUG", "_DEBUG"}
-	filter {}
+  filter "configurations:Debug"
+    optimize "Debug"
+    defines {"DEBUG", "_DEBUG"}
+  filter {}
 
-	project "iw4x"
-		kind "SharedLib"
-		language "C++"
-		files {
-			"./src/**.rc",
-			"./src/**.hpp",
-			"./src/**.cpp",
-		}
-		includedirs {
-			"%{prj.location}/src",
-			"./src",
-			"./lib/include",
-		}
-		resincludedirs {
-			"$(ProjectDir)src" -- fix for VS IDE
-		}
+  project "iw4x"
+    kind "SharedLib"
+    language "C++"
+    files {
+      "./src/**.rc",
+      "./src/**.hpp",
+      "./src/**.cpp",
+    }
+    includedirs {
+      "%{prj.location}/src",
+      "./src",
+      "./lib/include",
+    }
+    resincludedirs {
+      "$(ProjectDir)src" -- fix for VS IDE
+    }
 
-		-- Debug flags
-		if _OPTIONS["disable-binary-check"] then
-			defines {"DISABLE_BINARY_CHECK"}
-		end
+    -- Debug flags
+    if _OPTIONS["disable-binary-check"] then
+      defines {"DISABLE_BINARY_CHECK"}
+    end
 
-		-- Pre-compiled header
-		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
-		pchsource "src/STDInclude.cpp" -- real path
-		forceincludes  { "STDInclude.hpp" }
+    -- Pre-compiled header
+    pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
+    pchsource "src/STDInclude.cpp" -- real path
+    forceincludes  { "STDInclude.hpp" }
 
-		dependencies.imports()
+    dependencies.imports()
 
         -- Pre-build
         local cwd = os.getcwd()
@@ -250,41 +250,41 @@ workspace "iw4x"
             "cd " .. cwd,
         }
 
-		-- Post-build
-		if _OPTIONS["copy-to"] then
-			saneCopyToPath = string.gsub(_OPTIONS["copy-to"] .. "\\", "\\\\", "\\")
-			postbuildcommands {
-				"if not exist \"" .. saneCopyToPath .. "\" mkdir \"" .. saneCopyToPath .. "\"",
-			}
+    -- Post-build
+    if _OPTIONS["copy-to"] then
+      saneCopyToPath = string.gsub(_OPTIONS["copy-to"] .. "\\", "\\\\", "\\")
+      postbuildcommands {
+        "if not exist \"" .. saneCopyToPath .. "\" mkdir \"" .. saneCopyToPath .. "\"",
+      }
 
-			if _OPTIONS["copy-pdb"] then
-				postbuildcommands {
-					"copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "\"",
-				}
-			end
+      if _OPTIONS["copy-pdb"] then
+        postbuildcommands {
+          "copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "\"",
+        }
+      end
 
-			-- This has to be the last one, as otherwise VisualStudio will succeed building even if copying fails
-			postbuildcommands {
-				"copy /y \"$(TargetDir)*.dll\" \"" .. saneCopyToPath .. "\"",
-			}
-		end
+      -- This has to be the last one, as otherwise VisualStudio will succeed building even if copying fails
+      postbuildcommands {
+        "copy /y \"$(TargetDir)*.dll\" \"" .. saneCopyToPath .. "\"",
+      }
+    end
 
 
 group "External Dependencies"
 dependencies.projects()
 
 rule "ProtobufCompiler"
-	display "Protobuf compiler"
-	location "./build"
-	fileExtension ".proto"
-	buildmessage "Compiling %(Identity) with protoc..."
-	buildcommands {
-		'@echo off',
-		'path "$(SolutionDir)\\..\\tools"',
-		'if not exist "$(ProjectDir)\\src\\proto" mkdir "$(ProjectDir)\\src\\proto"',
-		'protoc --error_format=msvs -I=%(RelativeDir) --cpp_out=src\\proto %(Identity)',
-	}
-	buildoutputs {
-		'$(ProjectDir)\\src\\proto\\%(Filename).pb.cc',
-		'$(ProjectDir)\\src\\proto\\%(Filename).pb.h',
-	}
+  display "Protobuf compiler"
+  location "./build"
+  fileExtension ".proto"
+  buildmessage "Compiling %(Identity) with protoc..."
+  buildcommands {
+    '@echo off',
+    'path "$(SolutionDir)\\..\\tools"',
+    'if not exist "$(ProjectDir)\\src\\proto" mkdir "$(ProjectDir)\\src\\proto"',
+    'protoc --error_format=msvs -I=%(RelativeDir) --cpp_out=src\\proto %(Identity)',
+  }
+  buildoutputs {
+    '$(ProjectDir)\\src\\proto\\%(Filename).pb.cc',
+    '$(ProjectDir)\\src\\proto\\%(Filename).pb.h',
+  }

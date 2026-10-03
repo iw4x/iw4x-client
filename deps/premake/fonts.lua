@@ -1,29 +1,29 @@
 fonts = {
-	source = path.join(dependencies.basePath, "extra/font"),
+  source = path.join(dependencies.basePath, "extra/font"),
 }
 
 function fonts.import()
-	fonts.includes()
+  fonts.includes()
 end
 
 function fonts.includes()
-	includedirs {
-		fonts.source,
-	}
+  includedirs {
+    fonts.source,
+  }
 end
 
 function fonts.project()
-	project "fonts"
-		language "C"
+  project "fonts"
+    language "C"
 
-		fonts.includes()
+    fonts.includes()
 
-		files {
-			path.join(fonts.source, "Terminus_4.49.1.ttf.hpp"),
-		}
+    files {
+      path.join(fonts.source, "Terminus_4.49.1.ttf.hpp"),
+    }
 
-		warnings "Off"
-		kind "SharedItems"
+    warnings "Off"
+    kind "SharedItems"
 end
 
 table.insert(dependencies, fonts)

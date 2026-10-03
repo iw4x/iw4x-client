@@ -19,7 +19,7 @@ namespace Components
 			const auto closeKey = gsl::finally([&key]
 			{
 				RegCloseKey(key);
-			});
+			}
 
 			const auto size = static_cast<DWORD>((value.size() + 1) * sizeof(wchar_t));
 			return RegSetValueExW(key, valueName, 0, REG_SZ,

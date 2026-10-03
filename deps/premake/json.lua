@@ -1,19 +1,19 @@
 json = {
-	source = path.join(dependencies.basePath, "json"),
+  source = path.join(dependencies.basePath, "json"),
 }
 
 function json.import()
-	json.includes()
+  json.includes()
 end
 
 function json.includes()
-	includedirs {
-		path.join(json.source, "single_include/nlohmann")
-	}
+  includedirs {
+    path.join(json.source, "single_include/nlohmann")
+  }
 end
 
 function json.project()
-	
+  
 end
 
 table.insert(dependencies, json)
