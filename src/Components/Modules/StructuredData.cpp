@@ -236,7 +236,7 @@ namespace Components
         {
           Game::XAssetHeader header = { nullptr };
 
-          if (filename == "mp/playerdata.def" && !StructuredData::ModFsGame.empty() && FastFiles::Ready() && StructuredData::ModFsGame != (*Game::fs_gameDirVar)->current.string)
+          if (filename == "mp/playerdata.def" && FastFiles::Ready() && !StructuredData::ModFsGame.empty() && StructuredData::ModFsGame != (*Game::fs_gameDirVar)->current.string)
           {
             header.structuredDataDefSet = &StructuredData::StockPlayerDataDef;
           }
@@ -249,11 +249,16 @@ namespace Components
           if (!StructuredData::StatsPlayerDataDefs || !FastFiles::Ready()) return;
 
           const auto* set = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_STRUCTURED_DATA_DEF, "mp/playerdata.def").structuredDataDefSet;
-          if (!set || set->defs == StructuredData::StatsPlayerDataDefs) return;
+
+          if (!set || set->defs == StructuredData::StatsPlayerDataDefs)
+            return;
+
+          if (Game::CL_GetLocalClientConnectionState(0) >= Game::CA_CONNECTING)
+            return;
 
           StructuredData::StatsPlayerDataDefs = set->defs;
           Utils::Hook::Call<void(int)>(0x44CEC0)(0);
-        }, Scheduler::Pipeline::MAIN);
+        }, Scheduler::Pipeline::MAIN, 500ms);
 
       return;
     }

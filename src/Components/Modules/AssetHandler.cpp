@@ -360,18 +360,43 @@ namespace Components
     }
   }
 
+  bool AssetHandler::ShouldOverrideAsset(Game::XAssetType type)
+  {
+    switch (type)
+    {
+    // Stock behaviour (0x5BB89A): always override on async loads
+    //
+    case Game::ASSET_TYPE_LIGHT_DEF:
+    case Game::ASSET_TYPE_IMPACT_FX:
+      return true;
+
+    // Only let mod.ff replace these
+    //
+    case Game::ASSET_TYPE_STRINGTABLE:
+    case Game::ASSET_TYPE_STRUCTURED_DATA_DEF:
+      return FastFiles::Current() == "mod";
+
+    default:
+      return false;
+    }
+  }
+
   __declspec(naked) void AssetHandler::OverrideAssetStub()
   {
     __asm
     {
-      cmp ebp, 0x16
-      jz overrideAsset
-      cmp ebp, 0x1F
-      jz overrideAsset
-      cmp ebp, 0x25
-      jz overrideAsset
-      cmp ebp, 0x27
-      jz overrideAsset
+      sub esp, 4
+      pushad
+      push ebp
+      call AssetHandler::ShouldOverrideAsset
+      add esp, 4
+
+      mov [esp + 20h], eax
+      popad
+
+      cmp byte ptr [esp], 0
+      lea esp, [esp + 4]
+      jnz overrideAsset
 
       push 0x5BB8A4
       retn
