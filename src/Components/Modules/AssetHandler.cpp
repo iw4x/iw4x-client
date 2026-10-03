@@ -360,6 +360,28 @@ namespace Components
     }
   }
 
+  __declspec(naked) void AssetHandler::OverrideAssetStub()
+  {
+    __asm
+    {
+      cmp ebp, 0x16
+      jz overrideAsset
+      cmp ebp, 0x1F
+      jz overrideAsset
+      cmp ebp, 0x25
+      jz overrideAsset
+      cmp ebp, 0x27
+      jz overrideAsset
+
+      push 0x5BB8A4
+      retn
+
+    overrideAsset:
+      push 0x5BB876
+      retn
+    }
+  }
+
   void AssetHandler::OnFind(Game::XAssetType type, Utils::Slot<AssetHandler::Callback> callback)
   {
     AssetHandler::TypeCallbacks[type] = callback;
@@ -568,6 +590,8 @@ namespace Components
 
     // DB_AddXAsset
     Utils::Hook(0x5BB650, AssetHandler::AddAssetStub, HOOK_JUMP).install()->quick();
+
+    if (!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB89A, AssetHandler::OverrideAssetStub, HOOK_JUMP).install()->quick();
 
     // Store empty assets
     Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).install()->quick();

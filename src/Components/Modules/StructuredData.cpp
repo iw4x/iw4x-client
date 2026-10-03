@@ -1,10 +1,14 @@
 #include "StructuredData.hpp"
+#include "FastFiles.hpp"
 
 namespace Components
 {
   constexpr auto BASE_PLAYERSTATS_VERSION = 155;
 
   Utils::Memory::Allocator StructuredData::MemAllocator;
+  Game::StructuredDataDefSet StructuredData::StockPlayerDataDef{};
+  std::string StructuredData::ModFsGame;
+  Game::StructuredDataDef* StructuredData::StatsPlayerDataDefs = nullptr;
 
   const char* StructuredData::EnumTranslation[COUNT] =
   {
@@ -154,6 +158,8 @@ namespace Components
 
   bool StructuredData::UpdateVersionOffsets(Game::StructuredDataDefSet* set, Game::StructuredDataBuffer* buffer, Game::StructuredDataDef* whatever)
   {
+    StructuredData::StatsPlayerDataDefs = set->defs;
+
     if (set->defCount > 1)
     {
       int bufferVersion = *reinterpret_cast<int*>(buffer->data);
@@ -210,6 +216,44 @@ namespace Components
 
       // 15 or more custom classes
       Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
+
+      AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& filename, bool* /*restrict*/)
+        {
+          if (type != Game::ASSET_TYPE_STRUCTURED_DATA_DEF || filename != "mp/playerdata.def") return;
+
+          if (FastFiles::Current() == "mod")
+          {
+            StructuredData::ModFsGame = (*Game::fs_gameDirVar)->current.string;
+          }
+          else
+          {
+            StructuredData::StockPlayerDataDef = *asset.structuredDataDefSet;
+            StructuredData::ModFsGame.clear();
+          }
+        });
+
+      AssetHandler::OnFind(Game::ASSET_TYPE_STRUCTURED_DATA_DEF, [](Game::XAssetType, const std::string& filename)
+        {
+          Game::XAssetHeader header = { nullptr };
+
+          if (filename == "mp/playerdata.def" && !StructuredData::ModFsGame.empty() && FastFiles::Ready() && StructuredData::ModFsGame != (*Game::fs_gameDirVar)->current.string)
+          {
+            header.structuredDataDefSet = &StructuredData::StockPlayerDataDef;
+          }
+
+          return header;
+        });
+
+      Scheduler::Loop([]
+        {
+          if (!StructuredData::StatsPlayerDataDefs || !FastFiles::Ready()) return;
+
+          const auto* set = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_STRUCTURED_DATA_DEF, "mp/playerdata.def").structuredDataDefSet;
+          if (!set || set->defs == StructuredData::StatsPlayerDataDefs) return;
+
+          StructuredData::StatsPlayerDataDefs = set->defs;
+          Utils::Hook::Call<void(int)>(0x44CEC0)(0);
+        }, Scheduler::Pipeline::MAIN);
 
       return;
     }
