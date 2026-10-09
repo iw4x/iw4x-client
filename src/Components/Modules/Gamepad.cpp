@@ -183,6 +183,10 @@ namespace Components
 		{Game::K_BUTTON_START, Game::K_ENTER},
 		{Game::K_BUTTON_B, Game::K_ESCAPE},
 		{Game::K_BUTTON_BACK, Game::K_ESCAPE},
+		// The menus come from the PC game, the Xbox prompts show these buttons for their keys
+		{Game::K_BUTTON_Y, Game::K_F1}, // Game summary, clear killstreaks/attachments
+		{Game::K_BUTTON_X, Game::K_F2}, // View challenges
+		{Game::K_BUTTON_X, Game::K_F5}, // Refresh
 		{Game::K_DPAD_UP, Game::K_UPARROW},
 		{Game::K_APAD_UP, Game::K_UPARROW},
 		{Game::K_DPAD_DOWN, Game::K_DOWNARROW},
@@ -1173,12 +1177,12 @@ namespace Components
 			return;
 		}
 
+		// A button can stand for several keys, menus only react to the ones they use
 		for (const auto& mapping : controllerMenuKeyMappings)
 		{
 			if (mapping.controllerKey == key)
 			{
 				Game::UI_KeyEvent(localClientNum, mapping.pcKey, down);
-				return;
 			}
 		}
 

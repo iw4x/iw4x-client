@@ -15,13 +15,18 @@ namespace Components
 		static constexpr int ITEM_ALIGN_RIGHT = 2;
 
 		static Dvar::Var LocRightAlignMenus;
+		static std::unordered_set<const Game::itemDef_s*> FlippedItems;
 
 		static bool IsRtlText(const char* text);
 		static bool DrawsText(const Game::itemDef_s* item);
-		static bool SharesRow(const Game::itemDef_s* item, const Game::menuDef_t* menu);
+		static const Game::itemDef_s* FindRowNeighbour(const Game::itemDef_s* item, const Game::menuDef_t* menu);
+		static const char* GetSkipReason(const Game::itemDef_s* item, const Game::menuDef_t* menu, const Game::itemDef_s** neighbour);
 		static void AlignItem(Game::itemDef_s* item, const Game::menuDef_t* menu);
 		static void AlignMenu(const Game::menuDef_t* menu);
 		static void AlignOpenMenus(const Game::UiContext* context);
 		static void AlignAllMenus(const Game::UiContext* context);
+
+		static std::string DescribeItem(const Game::itemDef_s* item, int index);
+		static void DebugMenus();
 	};
 }
