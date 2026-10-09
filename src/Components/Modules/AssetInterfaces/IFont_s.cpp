@@ -239,8 +239,25 @@ namespace Assets
 			return;
 		}
 
-		const auto yOffset = fontDef.value("yOffset", 0);
-		const auto glyphScale = fontDef.value("glyphScale", 1.0f);
+		auto yOffset = fontDef.value("yOffset", 0);
+		auto glyphScale = fontDef.value("glyphScale", 1.0f);
+
+		// Console fonts draw text above the y position. Sit on the stock font's baseline and match its
+		// capital height, so the replacement lines up with the menus made for the stock font.
+		if (fontDef.value("alignToBaseFont", false) && fontDef.contains("baseFont"))
+		{
+			auto* baseFont = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_FONT, fontDef["baseFont"].get<std::string>().data()).font;
+			const auto* baseCapital = baseFont ? Game::R_GetCharacterGlyph(baseFont, 'A') : nullptr;
+
+			stbtt_fontinfo info{};
+			int left, bottom, right, top;
+			if (baseCapital && stbtt_InitFont(&info, reinterpret_cast<const uint8_t*>(fontFile.getBuffer().data()), 0) && stbtt_GetCodepointBox(&info, 'A', &left, &bottom, &right, &top))
+			{
+				const auto capitalHeight = static_cast<float>(top - bottom) * stbtt_ScaleForPixelHeight(&info, static_cast<float>(size));
+				glyphScale = static_cast<float>(baseCapital->pixelHeight) / capitalHeight * fontDef.value("capitalScale", 1.0f);
+				yOffset += baseCapital->y0 + baseCapital->pixelHeight;
+			}
+		}
 
 		// Setup assets
 		const auto texName = std::format("if_{}", name.substr(6 /* skip "fonts/" */));

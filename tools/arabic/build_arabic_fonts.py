@@ -34,9 +34,9 @@ FONTS = {
     "hudSmallFont": 400,
 }
 
-# Fitting the whole font into the stock line height leaves Latin capitals at about 60% of their
-# usual size because of the tall Arabic ascenders, so scale glyphs back up.
-GLYPH_SCALE = 1.45
+# Kufi's capitals line up with the stock font's, a little smaller so its deep descenders stay clear of
+# the line below
+CAPITAL_SCALE = 0.9
 
 EXTRA_CODEPOINTS = [
     0x060C, 0x061B, 0x061F,  # Arabic comma, semicolon, question mark
@@ -111,8 +111,8 @@ def main():
 
         definition = {
             "baseFont": f"fonts/{stock_name}",
-            "glyphScale": GLYPH_SCALE,
-            "yOffset": 0,
+            "alignToBaseFont": True,
+            "capitalScale": CAPITAL_SCALE,
             "charset": charset,
         }
         (fonts_dir / f"{name}.json").write_text(json.dumps(definition), encoding="utf-8")
