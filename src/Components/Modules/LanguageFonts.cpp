@@ -28,7 +28,7 @@ namespace Components
 		};
 
 		// Tried in order for letters the current font does not have
-		constexpr const char* BACKUP_FONTS[] { "fonts/fb_latin", "fonts/ar_normalFont", "fonts/fb_ja", "fonts/fb_ko" };
+		constexpr const char* BACKUP_FONTS[] { "fonts/fb_buttons", "fonts/fb_latin", "fonts/ar_normalFont", "fonts/fb_ja", "fonts/fb_ko" };
 
 		Game::Font_s* FindLoadedFont(const char* name)
 		{

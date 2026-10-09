@@ -84,6 +84,10 @@ namespace Components
 		static Dvar::Var gpad_in_use;
 		static Dvar::Var gpad_sticksConfig;
 		static Dvar::Var gpad_buttonConfig;
+		static Dvar::Var gpad_style;
+		static Dvar::Var gpad_glyphs_ps3;
+
+		static bool UsePlayStationGlyphs();
 		static Dvar::Var gpad_menu_scroll_delay_first;
 		static Dvar::Var gpad_menu_scroll_delay_rest;
 		static Dvar::Var gpad_menu_scroll_delay_min;

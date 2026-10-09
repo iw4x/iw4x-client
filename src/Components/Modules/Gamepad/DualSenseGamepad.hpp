@@ -8,6 +8,7 @@ namespace Components::GamepadControls
 	{
 	public:
 		bool PlugIn(uint8_t portIndex) override;
+		bool IsPlayStation() const override { return true; }
 		void UpdateRumbles(float left, float right) override;
 		void UpdateForceFeedback(const TriggerFeedback& left, const TriggerFeedback& right) override;
 		void UpdateLights(uint32_t color) override;

@@ -43,6 +43,9 @@ namespace Components::GamepadControls
 		bool IsButtonReleased(Game::GamePadButton button);
 		bool IsButtonPressed(Game::GamePadButton button);
 
+		// A DualSense is connected on this port
+		bool IsPlayStation() const;
+
 		static Dvar::Var gpad_debug;
 
 		bool inUse;

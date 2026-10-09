@@ -26,6 +26,7 @@ namespace Components::GamepadControls
 		virtual void ReadAnalogs([[maybe_unused]] float& leftTrigger, [[maybe_unused]] float& rightTrigger) {};
 
 		virtual bool PlugIn([[maybe_unused]] uint8_t portIndex) { return false; };
+		virtual bool IsPlayStation() const { return false; }
 		virtual bool SupportsForceFeedback() const { return false; };
 
 		virtual void UpdateRumbles([[maybe_unused]] float left, [[maybe_unused]] float right) {};

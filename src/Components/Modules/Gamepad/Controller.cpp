@@ -55,6 +55,11 @@ namespace Components::GamepadControls
 		return enabled;
 	}
 
+	bool Controller::IsPlayStation() const
+	{
+		return enabled && api && api->IsPlayStation();
+	}
+
 	void Controller::SetLowRumble(double rumble)
 	{
 		lowRumble = static_cast<float>(rumble);

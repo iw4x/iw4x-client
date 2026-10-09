@@ -1,0 +1,246 @@
+// Fixed copy of IW4x's dpad_hd.menu: gpad_style is 0 auto / 1 PlayStation / 2 Xbox, so read the resolved gpad_glyphs_ps3
+{
+	menuDef
+	{
+		name dpad_hd
+		fullscreen 0
+		rect 0 -16 640 480 4 4
+		style 0
+		border 0
+		ownerdraw 0
+		ownerdrawFlag 0
+		borderSize 0
+		foreColor 1 1 1 1
+		backColor 0 0 0 0
+		borderColor 0 0 0 0
+		outlineColor 0 0 0 0
+		fadeCycle 0
+		fadeClamp 0
+		fadeAmount 0
+		fadeInAmount 0
+		visible 1
+		visible when ( ( ( ! ( ui_active( ) ) ) && ( ! ( dvarbool( "g_hardcore" ) ) ) && ( ! ( flashbanged( ) ) ) && ( ! ( ( weaponname( ) == "killstreak_ac130_mp" ) || ( weaponname( ) == "killstreak_helicopter_minigun_mp" ) || ( weaponname( ) == "killstreak_predator_missile_mp" ) || ( ( weaponname( ) == "ac130_105mm_mp" ) || ( weaponname( ) == "ac130_40mm_mp" ) || ( weaponname( ) == "ac130_25mm_mp" ) ) || ( adsjavelin( ) ) || ( weaponname( ) == "heli_remote_mp" ) || missilecam( ) ) ) && ( !isempjammed( ) ) && ( ! ( dvarint( "scr_gameended" ) ) ) ) && ! ( selecting_location( ) ) && ( ! ( spectatingfree( ) ) ) )
+		blurWorld 0
+		focusColor 0 0 0 0
+		itemDef
+		{
+			rect 0 0 32 32 10 10
+			style 0
+			border 0
+			ownerdraw 171
+			ownerdrawFlag 0
+			borderSize 0
+			foreColor 1 1 1 1
+			backColor 0 0 0 0
+			borderColor 0 0 0 0
+			outlineColor 0 0 0 0
+			origin -81 -39
+			type 8
+			align 0
+			textAlign 2
+			textAlignX -21
+			textAlignY -9
+			textScale 0.3333
+			textStyle 3
+			textFont 10
+			visible when ( !dvarbool( "gpad_enabled" ) || !dvarint( "gpad_in_use" ) )
+		}
+		itemDef
+		{
+			rect 0 0 32 32 10 10
+			style 0
+			border 0
+			ownerdraw 0
+			ownerdrawFlag 0
+			borderSize 0
+			foreColor 1 1 0 1
+			backColor 0 0 0 0
+			borderColor 0 0 0 0
+			outlineColor 0 0 0 0
+			origin -81 -39
+			decoration 
+			type 0
+			align 0
+			textAlign 1
+			textAlignX 0
+			textAlignY 35
+			textScale 0.25
+			textStyle 6
+			textFont 6
+			visible 1
+			exp text ( "^3" + keybinding( "+actionslot 1" )  )
+			visible when ( ( !dvarbool( "gpad_enabled" ) || !dvarint( "gpad_in_use" ) ) && actionslotusable( 1 ) )
+		}
+		itemDef
+		{
+			rect 0 0 32 32 10 10
+			style 0
+			border 0
+			ownerdraw 173
+			ownerdrawFlag 0
+			borderSize 0
+			foreColor 1 1 1 1
+			backColor 0 0 0 0
+			borderColor 0 0 0 0
+			outlineColor 0 0 0 0
+			origin -61 -29
+			type 8
+			align 0
+			textAlign 2
+			textAlignX -21
+			textAlignY -9
+			textScale 0.3333
+			textStyle 3
+			textFont 10
+			visible when ( !dvarbool( "gpad_enabled" ) || !dvarint( "gpad_in_use" ) )
+		}
+		itemDef
+		{
+			rect 0 0 32 32 10 10
+			style 0
+			border 0
+			ownerdraw 0
+			ownerdrawFlag 0
+			borderSize 0
+			foreColor 1 1 0 1
+			backColor 0 0 0 0
+			borderColor 0 0 0 0
+			outlineColor 0 0 0 0
+			origin -61 -29
+			decoration 
+			type 0
+			align 0
+			textAlign 1
+			textAlignX 0
+			textAlignY 35
+			textScale 0.25
+			textStyle 6
+			textFont 6
+			visible 1
+			exp text ( "^3" + keybinding( "+actionslot 3" )  )
+			visible when ( ( !dvarbool( "gpad_enabled" ) || !dvarint( "gpad_in_use" ) ) && actionslotusable( 3 ) )
+		}
+		itemDef
+		{
+			rect 0 0 32 32 10 10
+			style 0
+			border 0
+			ownerdraw 174
+			ownerdrawFlag 0
+			borderSize 0
+			foreColor 1 1 1 1
+			backColor 0 0 0 0
+			borderColor 0 0 0 0
+			outlineColor 0 0 0 0
+			origin -61 -61
+			type 8
+			align 0
+			textAlign 0
+			textAlignX -40
+			textAlignY -5
+			textScale 0.3333
+			textStyle 3
+			textFont 10
+			visible when ( !dvarbool( "gpad_enabled" ) || !dvarint( "gpad_in_use" ) )
+		}
+		itemDef
+		{
+			rect 0 0 32 32 10 10
+			style 0
+			border 0
+			ownerdraw 0
+			ownerdrawFlag 0
+			borderSize 0
+			foreColor 1 1 0 1
+			backColor 0 0 0 0
+			borderColor 0 0 0 0
+			outlineColor 0 0 0 0
+			origin -61 -61
+			decoration 
+			type 0
+			align 0
+			textAlign 1
+			textAlignX 0
+			textAlignY 35
+			textScale 0.25
+			textStyle 6
+			textFont 6
+			visible 1
+			exp text ( "^3" + keybinding( "+actionslot 4" )  )
+			visible when ( ( !dvarbool( "gpad_enabled" ) || !dvarint( "gpad_in_use" ) ) && actionslotusable( 4 ) )
+		}
+		itemDef
+		{
+			rect -68.6667 -42.3333 42.6667 42.6667 10 10
+			style 3
+			decoration
+			visible 1
+			foreColor 1 1 1 0.65
+			background "hud_dpad_xbox360"
+			textScale 0.55
+			visible when ( dvarbool( "gpad_enabled" ) && dvarint( "gpad_in_use" ) && !dvarbool( "gpad_glyphs_ps3" ) )
+		}
+		itemDef
+		{
+			rect -68.6667 -42.3333 42.6667 42.6667 10 10
+			style 3
+			decoration
+			visible 1
+			foreColor 1 1 1 0.65
+			background "hud_dpad_ps3"
+			textScale 0.55
+			visible when ( dvarbool( "gpad_enabled" ) && dvarint( "gpad_in_use" ) && dvarbool( "gpad_glyphs_ps3" ) )
+		}
+		itemDef
+		{
+			rect -68.6667 -42 42.6667 42.6667 10 10
+			style 3
+			decoration
+			visible 1
+			foreColor 1 0.9 0.5 1
+			background "hud_dpad_arrow_left"
+			textScale 0.55
+			visible when ( ( dvarbool( "gpad_enabled" ) && dvarint( "gpad_in_use" ) ) && actionslotusable( 3 ) )
+		}
+		itemDef
+		{
+			rect -93 -33 32 32 10 10
+			ownerdraw 173
+			visible 1
+			foreColor 1 1 1 1
+			type 8
+			textFont 10
+			textAlign 2
+			textAlignX -21
+			textAlignY -3
+			textScale 0.3333
+			textStyle 3
+			visible when ( dvarbool( "gpad_enabled" ) && dvarint( "gpad_in_use" ) )
+		}
+		itemDef
+		{
+			rect -68.6667 -42 42.6667 42.6667 10 10
+			style 3
+			decoration
+			visible 0
+			foreColor 1 0.9 0.5 1
+			background "hud_dpad_arrow_right"
+			textScale 0.55
+			exp foreColor a ( 0.25 + ( sin( milliseconds( ) / 200 ) + 1 ) )
+			visible when ( ( dvarbool( "gpad_enabled" ) && dvarint( "gpad_in_use" ) ) && actionslotusable( 4 ) )
+		}
+		itemDef
+		{
+			rect -30 -36 32 32 10 10
+			ownerdraw 174
+			visible 1
+			foreColor 1 1 1 1
+			type 8
+			textFont 10
+			textAlignX -40
+			textScale 0.3333
+			textStyle 3
+			visible when ( dvarbool( "gpad_enabled" ) && dvarint( "gpad_in_use" ) )
+		}
+	}
+}

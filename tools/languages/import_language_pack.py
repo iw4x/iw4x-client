@@ -66,9 +66,14 @@ def legacy_charset(code_page, leads, trails):
     return chars
 
 
+# Codes the console fonts use for controller button pictures rather than letters (0x01-0x1F are
+# buttons too). The game sends them as raw bytes, so they keep their code in every language.
+BUTTON_CODES = {0xBC, 0xBD}
+
+
 def decode_letter(letter, code_page):
     """Glyph letters are single bytes, or lead/trail byte pairs for double-byte code pages."""
-    if letter < 0x80:
+    if letter < 0x80 or letter in BUTTON_CODES:
         return letter
     raw = bytes([letter]) if letter <= 0xFF else bytes([letter >> 8, letter & 0xFF])
     try:
@@ -121,12 +126,30 @@ def import_fonts(language_dir, prefix, code_page, fonts_out):
             "baseFont": f"fonts/{stock_name}",
             "image": f"gamefonts_{prefix}",
             "pixelHeight": font["pixelHeight"],
-            # The game indexes 32-127 directly and binary searches the rest, so keep that layout
-            "glyphs": [glyphs[letter] for letter in sorted(glyphs, key=lambda l: (not 32 <= l <= 127, l))],
+            "glyphs": [glyphs[letter] for letter in game_layout(glyphs)],
         }
         (fonts_out / f"{name}.json").write_text(json.dumps(definition), encoding="utf-8")
         names.append(name)
     return names
+
+
+def game_layout(letters):
+    """The game indexes 32-127 directly and binary searches the rest."""
+    return sorted(letters, key=lambda l: (not 32 <= l <= 127, l))
+
+
+def build_button_font(language_dir, fonts_out, images_out):
+    """Button pictures of the English console font, for languages whose fonts don't have them (Korean)."""
+    font = json.loads((language_dir / "fonts" / "normalFont.json").read_text(encoding="utf-8-sig"))
+    glyphs = {g["letter"]: g for g in font["glyphs"] if 32 <= g["letter"] <= 127 or g["letter"] < 32 or g["letter"] in BUTTON_CODES}
+    shutil.copyfile(language_dir / "images" / "gamefonts_pc.iwi", images_out / "gamefonts_buttons.iwi")
+    definition = {
+        "image": "gamefonts_buttons",
+        "pixelHeight": font["pixelHeight"],
+        "glyphs": [glyphs[letter] for letter in game_layout(glyphs)],
+    }
+    (fonts_out / "fb_buttons.json").write_text(json.dumps(definition), encoding="utf-8")
+    print(f"  fonts/fb_buttons: {len(glyphs)} glyphs")
 
 
 def build_backup_font(source, name, charset, glyph_scale, fonts_out):
@@ -187,11 +210,12 @@ def main():
 
     # Backup fonts cover what players type in chat as well as the game text
     print("Backup fonts:")
+    build_button_font(pack / "english", fonts_out, images_out)
     build_backup_font(noto / "NotoSans.ttf", "fb_latin", latin_charset(), 1.0, fonts_out)
     # Shift-JIS symbols, kana and level 1 kanji (lead bytes up to 0x98); KS X 1001 symbols and the 2350 common syllables
     build_backup_font(noto / "NotoSansJP.ttf", "fb_ja", legacy_charset("cp932", range(0x81, 0x99), range(0x40, 0xFD)) | used_chars["ja"], 1.0, fonts_out)
     build_backup_font(noto / "NotoSansKR.ttf", "fb_ko", legacy_charset("cp949", range(0xA1, 0xC9), range(0xA1, 0xFF)) | used_chars["ko"], 1.0, fonts_out)
-    zone_fonts += ["fb_latin", "fb_ja", "fb_ko"]
+    zone_fonts += ["fb_buttons", "fb_latin", "fb_ja", "fb_ko"]
 
     csv = "".join(f"font,fonts/{name}\n" for name in zone_fonts)
     (out / "zone_source" / f"{ZONE_NAME}.csv").write_text(csv, encoding="utf-8")

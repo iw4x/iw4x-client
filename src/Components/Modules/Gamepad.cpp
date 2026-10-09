@@ -208,6 +208,8 @@ namespace Components
 	Dvar::Var Gamepad::gpad_in_use;
 	Dvar::Var Gamepad::gpad_sticksConfig;
 	Dvar::Var Gamepad::gpad_buttonConfig;
+	Dvar::Var Gamepad::gpad_style;
+	Dvar::Var Gamepad::gpad_glyphs_ps3;
 	Dvar::Var Gamepad::gpad_menu_scroll_delay_first;
 	Dvar::Var Gamepad::gpad_menu_scroll_delay_rest;
 	Dvar::Var Gamepad::gpad_menu_scroll_delay_min;
@@ -1902,6 +1904,20 @@ namespace Components
 #endif
 		gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "", Game::DVAR_ARCHIVE, "Game pad stick configuration");
 		gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "", Game::DVAR_ARCHIVE, "Game pad button configuration");
+		gpad_style = Dvar::Register<int>("gpad_style", 0, 0, 2, Game::DVAR_ARCHIVE,
+			"Which button glyphs to present: 0 follows the controller that is connected, 1 is PlayStation and 2 is Xbox");
+		gpad_glyphs_ps3 = Dvar::Register<bool>("gpad_glyphs_ps3", false, Game::DVAR_ROM,
+			"PlayStation button glyphs are shown, for menus (resolved from gpad_style)");
+
+		// Menus can't resolve gpad_style themselves, keep the result where they can read it
+		Scheduler::Loop([]
+		{
+			const auto ps3 = UsePlayStationGlyphs();
+			if (gpad_glyphs_ps3.get<bool>() != ps3)
+			{
+				gpad_glyphs_ps3.setRaw(ps3);
+			}
+		}, Scheduler::Pipeline::MAIN);
 		gpad_menu_scroll_delay_first = Dvar::Register<int>("gpad_menu_scroll_delay_first", 420, 0, 1000, Game::DVAR_ARCHIVE, "Menu scroll key-repeat delay, for the first repeat, in milliseconds");
 		gpad_menu_scroll_delay_rest = Dvar::Register<int>("gpad_menu_scroll_delay_rest", 210, 0, 1000, Game::DVAR_ARCHIVE,
 			"Menu scroll key-repeat delay, for repeats after the first, in milliseconds");
@@ -2128,10 +2144,23 @@ namespace Components
 		return cl_bypassMouseInput.get<bool>() || IsGamePadInUse();
 	}
 
+	bool Gamepad::UsePlayStationGlyphs()
+	{
+		// gpad_style: 0 follows the connected controller, 1 is PlayStation and 2 is Xbox (same values as current IW4x)
+		switch (gpad_style.get<int>())
+		{
+		case 1:
+			return true;
+		case 2:
+			return false;
+		default:
+			return gamePads[0].IsPlayStation();
+		}
+	}
+
 	Game::keyname_t* Gamepad::GetLocalizedKeyNameMap()
 	{
-		// Project Xenon always uses Xbox-style button prompts.
-		return combinedLocalizedKeyNamesXenon;
+		return UsePlayStationGlyphs() ? combinedLocalizedKeyNamesPs3 : combinedLocalizedKeyNamesXenon;
 	}
 
 	void __declspec(naked) Gamepad::GetLocalizedKeyName_Stub()
