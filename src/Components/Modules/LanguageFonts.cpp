@@ -17,6 +17,8 @@ namespace Components
 			{ "english", "en" },
 			// Arabic text uses the Xbox fonts too, its letters come from the Arabic fonts (FindBackupGlyph)
 			{ "arabic", "en" },
+			// French has no fonts of its own, the Xbox English fonts have its accented letters
+			{ "french", "en" },
 			{ "german", "de" },
 			{ "italian", "it" },
 			{ "spanish", "es" },

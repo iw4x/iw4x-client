@@ -1,6 +1,7 @@
 #include "Localization.hpp"
 #include "ArenaLength.hpp"
 #include "Events.hpp"
+#include "LanguageVoices.hpp"
 #include "GSC/Script.hpp"
 
 namespace Components
@@ -227,6 +228,12 @@ namespace Components
 		FileSystem::File file(path);
 		if (!file.exists())
 		{
+			// A language whose official files are installed already has its text in its zones
+			if (name == LanguageVoices::GetLanguage())
+			{
+				return;
+			}
+
 			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Translation file '{}' was not found\n", path);
 			return;
 		}
