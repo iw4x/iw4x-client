@@ -71,10 +71,6 @@ def legacy_charset(code_page, leads, trails):
 # Codes the console fonts use for controller button pictures rather than letters (0x01-0x1F are
 # buttons too). The game sends them as raw bytes, so they keep their code in every language.
 BUTTON_CODES = {0xBC, 0xBD}
-BUTTON_PICTURES = set(range(0x01, 0x20)) | BUTTON_CODES
-
-# The button backup font is made from this font: its large buttons stay sharp when scaled down
-BUTTON_FONT = "bigFont"
 
 
 def decode_letter(letter, code_page):
@@ -126,11 +122,7 @@ def parse_str(path, code_page):
     return strings
 
 
-def button_height(font):
-    return next((g["pixelHeight"] for g in font["glyphs"] if g["letter"] == 0x01), 0)
-
-
-def import_fonts(language_dir, prefix, code_page, fonts_out, english_dir):
+def import_fonts(language_dir, prefix, code_page, fonts_out):
     names = []
     for font_path in sorted((language_dir / "fonts").glob("*.json")):
         font = json.loads(font_path.read_text(encoding="utf-8-sig"))
@@ -142,13 +134,6 @@ def import_fonts(language_dir, prefix, code_page, fonts_out, english_dir):
                 glyphs[letter] = dict(glyph, letter=letter)
 
         stock_name = font_path.stem
-
-        # Low resolution buttons (the Korean fonts have 20 pixel ones) come from the button backup font instead
-        english_font = english_dir / "fonts" / font_path.name
-        if english_font.exists():
-            english_height = button_height(json.loads(english_font.read_text(encoding="utf-8-sig")))
-            if 0 < button_height(font) < english_height:
-                glyphs = {letter: glyph for letter, glyph in glyphs.items() if letter not in BUTTON_PICTURES}
         name = f"{prefix}_{stock_name}"
         definition = {
             "baseFont": f"fonts/{stock_name}",
@@ -168,8 +153,8 @@ def game_layout(letters):
 
 def build_button_font(language_dir, fonts_out, images_out):
     """Button pictures of the English console font, for languages whose fonts don't have them (Korean)."""
-    font = json.loads((language_dir / "fonts" / f"{BUTTON_FONT}.json").read_text(encoding="utf-8-sig"))
-    glyphs = {g["letter"]: g for g in font["glyphs"] if 32 <= g["letter"] <= 127 or g["letter"] in BUTTON_PICTURES}
+    font = json.loads((language_dir / "fonts" / "normalFont.json").read_text(encoding="utf-8-sig"))
+    glyphs = {g["letter"]: g for g in font["glyphs"] if 32 <= g["letter"] <= 127 or g["letter"] < 32 or g["letter"] in BUTTON_CODES}
     shutil.copyfile(language_dir / "images" / "gamefonts_pc.iwi", images_out / "gamefonts_buttons.iwi")
     definition = {
         "image": "gamefonts_buttons",
@@ -235,7 +220,7 @@ def main():
             used_chars[prefix].update(ord(c) for text in strings.values() for c in text)
 
         shutil.copyfile(language_dir / "images" / "gamefonts_pc.iwi", images_out / f"gamefonts_{prefix}.iwi")
-        names = import_fonts(language_dir, prefix, code_page, fonts_out, pack / "english")
+        names = import_fonts(language_dir, prefix, code_page, fonts_out)
         zone_fonts += names
         print(f"{language}: {len(strings)} strings, {len(names)} fonts")
 
