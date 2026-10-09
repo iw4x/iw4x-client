@@ -98,9 +98,17 @@ namespace Components
 		else if (IsWindow(GetWindow()) != FALSE)
 		{
 #ifdef EXPERIMENTAL_BUILD
+	#ifdef __XENON_VERSION
+			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR "-develop | Project Xenon v" __XENON_VERSION " : {}", hostname));
+	#else
 			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR "-develop : {}", hostname));
+	#endif
 #else
+	#ifdef __XENON_VERSION
+			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR " | Project Xenon v" __XENON_VERSION " : {}", hostname));
+	#else
 			SetWindowTextA(GetWindow(), Utils::String::Format("IW4x " REVISION_STR " : {}", hostname));
+	#endif
 #endif
 		}
 	}
@@ -696,7 +704,27 @@ namespace Components
 
 	void Console::StdOutPrint(const char* message)
 	{
-		printf("%s", message);
+#ifdef __XENON_LOGGING
+		constexpr auto* xenonPrefixColored = "^2[XENON]: ";
+		constexpr auto* xenonPrefixPlain = "[XENON]: ";
+		if (message && std::strncmp(message, xenonPrefixColored, std::strlen(xenonPrefixColored)) == 0)
+		{
+			std::fputs("\x1b[32m[XENON]: \x1b[0m", stdout);
+			std::fputs(message + std::strlen(xenonPrefixColored), stdout);
+		}
+		else if (message && std::strncmp(message, xenonPrefixPlain, std::strlen(xenonPrefixPlain)) == 0)
+		{
+			std::fputs("\x1b[32m[XENON]: \x1b[0m", stdout);
+			std::fputs(message + std::strlen(xenonPrefixPlain), stdout);
+		}
+		else
+		{
+			std::fputs(message, stdout);
+		}
+#else
+		std::fputs(message, stdout);
+#endif
+
 		fflush(stdout);
 	}
 

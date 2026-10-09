@@ -1119,6 +1119,20 @@ namespace Components
 
 				auto finalColor = currentColor;
 
+#ifdef __XENON_UI_BINDS /*doesnt allow button texture to have color codes*/
+				const auto isXenonBindGlyph =
+					letter == '\x01' || letter == '\x02' || letter == '\x03' || letter == '\x04' ||
+					letter == '\x05' || letter == '\x06' || letter == '\x0E' || letter == '\x0F' ||
+					letter == '\x10' || letter == '\x11' || letter == '\x12' || letter == '\x13' ||
+					letter == '\x14' || letter == '\x15' || letter == '\x16' || letter == '\x17';
+
+				if (isXenonBindGlyph)
+				{
+					// Keep button glyphs on the base draw color, independent of inline color codes.
+					finalColor = color;
+				}
+#endif
+
 				if (letter == '^' && (*curText == '\x01' || *curText == '\x02'))
 				{
 					RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
@@ -1239,13 +1253,18 @@ namespace Components
 					{
 						GlowColor(&finalColor, finalColor, glowForcedColor, renderFlags);
 
+						const auto glyphWidth = static_cast<float>(glyph->pixelWidth);
+						const auto glyphHeight = static_cast<float>(glyph->pixelHeight);
+						const auto glowXOffset = -0.375f * glyphWidth * xScale;
+						const auto glowYOffset = -0.0625f * glyphHeight * yScale;
+
 						for (const auto offset : MY_OFFSETS)
 						{
-							RotateXY(cosAngle, sinAngle, startX, startY, xa + xAdj + 2.0f * offset[0] * xScale, xy + yAdj + 2.0f * offset[1] * yScale, &xRot, &yRot);
+							RotateXY(cosAngle, sinAngle, startX, startY, xa + xAdj + glowXOffset + 2.0f * offset[0] * xScale, xy + yAdj + glowYOffset + 2.0f * offset[1] * yScale, &xRot, &yRot);
 							if (drawExtraFxChar)
-								DrawTextFxExtraCharacter(fxMaterialGlow, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, finalColor.packed);
+								DrawTextFxExtraCharacter(fxMaterialGlow, extraFxChar, xRot, yRot, glyphWidth * xScale, glyphHeight * yScale, sinAngle, cosAngle, finalColor.packed);
 							else
-								Game::RB_DrawChar(glowMaterial, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, glyph, finalColor.packed);
+								Game::RB_DrawChar(glowMaterial, xRot, yRot, glyphWidth * xScale * 1.75f, glyphHeight * yScale * 1.125f, sinAngle, cosAngle, glyph, finalColor.packed);
 						}
 					}
 				}
@@ -1642,10 +1661,14 @@ namespace Components
 
 	void TextRenderer::UpdateColorTable()
 	{
+#ifndef __XENON_BUILD_DEV
 		if (cg_newColors.get<bool>())
 			currentColorTable = &colorTableNew;
 		else
 			currentColorTable = &colorTableDefault;
+#else
+		currentColorTable = &colorTableDefault;
+#endif
 
 		(*currentColorTable)[TEXT_COLOR_AXIS] = *reinterpret_cast<unsigned*>(0x66E5F70);
 		(*currentColorTable)[TEXT_COLOR_ALLIES] = *reinterpret_cast<unsigned*>(0x66E5F74);
@@ -1713,7 +1736,9 @@ namespace Components
 	{
 		currentColorTable = &colorTableDefault;
 
+#ifndef __XENON_BUILD_DEV
 		cg_newColors = Dvar::Register<bool>("cg_newColors", true, Game::DVAR_ARCHIVE, "Use Warfare 2 color code style.");
+#endif
 		cg_fontIconAutocomplete = Dvar::Register<bool>("cg_fontIconAutocomplete", true, Game::DVAR_ARCHIVE, "Show autocomplete for fonticons when typing.");
 		cg_fontIconAutocompleteHint = Dvar::Register<bool>("cg_fontIconAutocompleteHint", true, Game::DVAR_ARCHIVE, "Show hint text in autocomplete for fonticons.");
 		sv_customTextColor = Game::Dvar_RegisterColor("sv_customTextColor", 1, 0.7f, 0, 1, Game::DVAR_CODINFO, "Color for the extended color code.");

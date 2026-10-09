@@ -200,6 +200,7 @@ namespace Game
 	UI_TextWidth_t UI_TextWidth = UI_TextWidth_t(0x6315C0);
 	UI_TextHeight_t UI_TextHeight = UI_TextHeight_t(0x4C8630);
 	UI_DrawText_t UI_DrawText = UI_DrawText_t(0x49C0D0);
+	UI_DrawWrappedText_t UI_DrawWrappedText = UI_DrawWrappedText_t(0x46FE30);
 	UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x4AEA60);
 	ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x454E20);
 	UI_KeyEvent_t UI_KeyEvent = UI_KeyEvent_t(0x4970F0);
@@ -1027,6 +1028,66 @@ namespace Game
 
 	Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter)
 	{
+	#ifdef __XENON_UI_BINDS
+		if (font && font->glyphs)
+		{
+			// Match the console font lookup behavior:
+			// - ASCII (0x20..0x7F): direct index at [letter - 32]
+			// - Non-ASCII: search extended glyph region, fallback to '.'
+			if (letter >= 0x20 && letter <= 0x7F)
+			{
+				auto* glyph = &font->glyphs[letter - 32];
+				if (glyph->letter == letter)
+				{
+					return glyph;
+				}
+			}
+			else
+			{
+				auto low = 96;
+				auto high = font->glyphCount - 1;
+
+				if (high >= low)
+				{
+					while (low <= high)
+					{
+						const auto mid = (low + high) / 2;
+						auto* glyph = &font->glyphs[mid];
+						if (glyph->letter == letter)
+						{
+							return glyph;
+						}
+
+						if (glyph->letter >= letter)
+						{
+							high = mid - 1;
+						}
+						else
+						{
+							low = mid + 1;
+						}
+					}
+				}
+
+				// JSON overrides can append glyphs out of sort order.
+				// Try a full scan before fallback.
+				for (auto i = 0; i < font->glyphCount; ++i)
+				{
+					auto* glyph = &font->glyphs[i];
+					if (glyph->letter == letter)
+					{
+						return glyph;
+					}
+				}
+
+				if (font->glyphCount > 14)
+				{
+					return &font->glyphs[14];
+				}
+			}
+		}
+	#endif
+
 		static auto R_GetCharacterGlyph_t = 0x5055C0;
 		Glyph* result;
 

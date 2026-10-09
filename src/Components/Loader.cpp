@@ -71,6 +71,9 @@
 #include "Modules/Weapon.hpp"
 #include "Modules/Window.hpp"
 #include "Modules/Sound.hpp"
+#include "Modules/XenonModule.hpp"
+#include "Modules/XenonSpectate.hpp"
+#include "Modules/XenonScoreboard.hpp"
 
 #include "Modules/BotLib/lPrecomp.hpp"
 
@@ -105,6 +108,9 @@ namespace Components
 		Register(new ConfigStrings()); // Needs to be there early !! Before modelcache & weapons
 
 		Register(new ArenaLength());
+		Register(new Xenon());
+		Register(new XenonSpectate());
+		Register(new XenonScoreboard());
 		Register(new AssetHandler());
 		Register(new Bans());
 		Register(new Bots());

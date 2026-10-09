@@ -10,6 +10,41 @@ namespace Components
 
 	Dvar::Var QuickPatch::r_customAspectRatio;
 
+#ifdef __LANG_TEST
+	namespace
+	{
+		Dvar::Var lang_test_decode_index;
+
+		int SEH_GetDecodeLanguageIndex()
+		{
+			auto index = lang_test_decode_index.get<int>();
+			if (index < 0)
+			{
+				index = 0;
+			}
+			else if (index > 11)
+			{
+				index = 11;
+			}
+
+			return index;
+		}
+
+		__declspec(naked) void SEH_DecodeLetterLanguage_Stub()
+		{
+			__asm
+			{
+				push edx
+				call SEH_GetDecodeLanguageIndex
+				pop edx
+
+				push 0x49BA0A
+				retn
+			}
+		}
+	}
+#endif
+
 	void QuickPatch::UnlockStats()
 	{
 		if (Dedicated::IsEnabled()) return;
@@ -447,6 +482,14 @@ namespace Components
 
 	QuickPatch::QuickPatch()
 	{
+#ifdef __LANG_TEST
+		lang_test_decode_index = Dvar::Register<int>("lang_test_decode_index", 8, 0, 11, Game::DVAR_ARCHIVE,
+			"SEH_DecodeLetter language index override for testing (8=Korean, 9=Big5, 10=GBK, 11=SJIS)");
+
+		Utils::Hook::Nop(0x49B9FC, 6);
+		Utils::Hook(0x49BA02, SEH_DecodeLetterLanguage_Stub, HOOK_JUMP).install()->quick();
+#endif
+
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
 		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
 
@@ -500,7 +543,11 @@ namespace Components
 		Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
 
 		// window title
+#ifdef __XENON_VERSION
+		Utils::Hook::Set<const char*>(0x5076A0, "IW4x: Multiplayer | Project Xenon v" __XENON_VERSION);
+#else
 		Utils::Hook::Set<const char*>(0x5076A0, "IW4x: Multiplayer");
+#endif
 
 		// sv_hostname
 		Utils::Hook::Set<const char*>(0x4D378B, "IW4Host");
@@ -511,9 +558,11 @@ namespace Components
 		// splash logo
 		Utils::Hook::Set<const char*>(0x475F9E, BASEGAME "/images/splash.bmp");
 
+#ifndef __XENON_BUILD_DEV
 		// Numerical ping (cg_scoreboardPingText 1)
 		Utils::Hook::Set<BYTE>(0x45888E, 1);
 		Utils::Hook::Set<BYTE>(0x45888C, Game::DVAR_CHEAT);
+#endif
 
 		// increase font sizes for chat on higher resolutions
 		static float float13 = 13.0f;

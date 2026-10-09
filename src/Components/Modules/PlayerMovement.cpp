@@ -22,8 +22,12 @@ namespace Components
 	const Game::dvar_t* PlayerMovement::PlayerDuckedSpeedScale;
 	const Game::dvar_t* PlayerMovement::PlayerProneSpeedScale;
 	const Game::dvar_t* PlayerMovement::BGDisableBarrierClips;
+#ifdef __XENON_LADDER_MOVEMENT
 	const Game::dvar_t* PlayerMovement::BGLadderFixedInput;
+#endif
+#ifdef __XENON_SPRINT_INPUT
 	const Game::dvar_t* PlayerMovement::BGSprintIgnoreRepress;
+#endif
 	const Game::dvar_t* PlayerMovement::BGOmnimovement;
 	const Game::dvar_t* PlayerMovement::BGDive;
 	const Game::dvar_t* PlayerMovement::BGOmnimovementDive;
@@ -317,6 +321,7 @@ namespace Components
 		}
 	}
 
+#ifdef __XENON_LADDER_MOVEMENT
 	// Replaces PM_LadderMove's pitch-scaled climb multiplier
 	// (v18 = clamp((forward[2] + 0.25) * 2.5, -1, +1)) at 0x573FEF with a
 	// constant 1.0 so vertical wishvel becomes 0.5 * cmdScale * forwardmove.
@@ -365,7 +370,9 @@ namespace Components
 
 		return Utils::Hook::Call<float*(float*, const float*, float*)>(0x4C3130)(source, ladderNormal, pmlRight);
 	}
+#endif // __XENON_LADDER_MOVEMENT
 
+#ifdef __XENON_SPRINT_INPUT
 	// Disables PM_UpdateSprint's PC-only sprint re-press cancel when enabled.
 	// Otherwise keeps the original behavior.
 	__declspec(naked) void PlayerMovement::PM_UpdateSprint_RepressCallStub()
@@ -397,6 +404,7 @@ namespace Components
 			ret
 		}
 	}
+#endif // __XENON_SPRINT_INPUT
 
 	// Omnimovement
 
@@ -904,12 +912,16 @@ namespace Components
 		BGDisableBarrierClips = Game::Dvar_RegisterBool("bg_disableBarrierClips",
 			false, Game::DVAR_CODINFO, "Disable player collision with out of bound barriers");
 
+#ifdef __XENON_LADDER_MOVEMENT
 		BGLadderFixedInput = Game::Dvar_RegisterBool("bg_ladderFixedInput",
-			false, Game::DVAR_SYSTEMINFO, "Make ladder climb and strafe independent of view angle");
+			true, Game::DVAR_SYSTEMINFO, "Make ladder climb and strafe independent of view angle");
+#endif
 
+#ifdef __XENON_SPRINT_INPUT
 		BGSprintIgnoreRepress = Game::Dvar_RegisterBool("bg_sprintIgnoreRepress",
-			false, Game::DVAR_SYSTEMINFO,
+			true, Game::DVAR_SYSTEMINFO,
 			"Ignore sprint-key re-presses while already sprinting (matches console behaviour)");
+#endif
 
 		BGOmnimovement = Game::Dvar_RegisterBool("bg_omnimovement",
 			false, Game::DVAR_CODINFO,
@@ -990,12 +1002,15 @@ namespace Components
 		Utils::Hook(0x4CFF5C, PmoveSingle_Stub, HOOK_CALL).install()->quick(); 			// single PmoveSingle call inside Pmove
 		Utils::Hook(0x574AF4, PM_CheckLadderMove_Stub, HOOK_CALL).install()->quick(); 	// single PM_CheckLadderMove call inside PmoveSingle
 
+#ifdef __XENON_LADDER_MOVEMENT
 		// View-independent ladder controls (opt-in via bg_ladderFixedInput)
 		Utils::Hook(0x573FEF, PM_LadderMove_PitchStub, HOOK_JUMP).install()->quick();       // pitch-scaled climb rate block
 		Utils::Hook(0x574061, PM_LadderMove_RightVector_Hk, HOOK_CALL).install()->quick();  // camera-relative right-vector projection
-
+#endif
+#ifdef __XENON_SPRINT_INPUT
 		// Console-style sprint hold (opt-in via bg_sprintIgnoreRepress)
 		Utils::Hook(0x56EF59, PM_UpdateSprint_RepressCallStub, HOOK_JUMP).install()->quick();
+#endif
 
 		// Omnimovement - allow sprint bit to be set when pressing back
 		Utils::Hook(0x5A605B, CL_KeyMove_SprintBit_Stub, HOOK_JUMP).install()->quick();

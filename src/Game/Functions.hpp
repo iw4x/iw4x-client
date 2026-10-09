@@ -491,6 +491,9 @@ namespace Game
 	typedef void(*UI_DrawText_t)(const ScreenPlacement* scrPlace, const char* text, int maxChars, Font_s* font, float x, float y, int horzAlign, int vertAlign, float scale, const float* color, int style);
 	extern UI_DrawText_t UI_DrawText;
 
+	typedef int(*UI_DrawWrappedText_t)(const ScreenPlacement* scrPlace, const char* text, const rectDef_s* rect, Font_s* font, float x, float y, float fontScale, const float* color, int textStyle, int textAlignMode, int* textRect, int cursorPos);
+	extern UI_DrawWrappedText_t UI_DrawWrappedText;
+
 	typedef Font_s*(*UI_GetFontHandle_t)(ScreenPlacement* scrPlace, int fontEnum, float scale);
 	extern UI_GetFontHandle_t UI_GetFontHandle;
 

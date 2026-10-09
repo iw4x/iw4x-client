@@ -27,8 +27,12 @@ namespace Components
 		static const Game::dvar_t* PlayerDuckedSpeedScale;
 		static const Game::dvar_t* PlayerProneSpeedScale;
 		static const Game::dvar_t* BGDisableBarrierClips;
+#ifdef __XENON_LADDER_MOVEMENT
 		static const Game::dvar_t* BGLadderFixedInput;
+#endif
+#ifdef __XENON_SPRINT_INPUT
 		static const Game::dvar_t* BGSprintIgnoreRepress;
+#endif
 
 		// Omnimovement
 		static const Game::dvar_t* BGOmnimovement;
@@ -69,10 +73,13 @@ namespace Components
 		static void PmoveSingle_Stub(Game::pmove_s* pm);
 		static void PM_CheckLadderMove_Stub(Game::pmove_s* pm, Game::pml_t* pml);
 
+#ifdef __XENON_LADDER_MOVEMENT
 		static void PM_LadderMove_PitchStub();
 		static float* PM_LadderMove_RightVector_Hk(float* source, const float* ladderNormal, float* pmlRight);
-
+#endif
+#ifdef __XENON_SPRINT_INPUT
 		static void PM_UpdateSprint_RepressCallStub();
+#endif
 
 		// Omnimovement helpers and stubs.
 		static int ComputeHorizontalIntent(int forwardSpeed, int rightSpeed);

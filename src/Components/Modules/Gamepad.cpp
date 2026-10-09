@@ -1,6 +1,8 @@
 #include "Gamepad.hpp"
 #include "RawMouse.hpp"
 #include "Window.hpp"
+#include "XenonScoreboard.hpp"
+#include "XenonSpectate.hpp"
 
 namespace Components
 {
@@ -112,6 +114,24 @@ namespace Components
 
 	Game::keyname_t Gamepad::extendedLocalizedKeyNamesXenon[]
 	{
+#ifdef __XENON_UI_BINDS
+		{"\x01", Game::K_BUTTON_A},
+		{"\x02", Game::K_BUTTON_B},
+		{"\x03", Game::K_BUTTON_X},
+		{"\x04", Game::K_BUTTON_Y},
+		{"\x05", Game::K_BUTTON_LSHLDR},
+		{"\x06", Game::K_BUTTON_RSHLDR},
+		{"\x0E", Game::K_BUTTON_START},
+		{"\x0F", Game::K_BUTTON_BACK},
+		{"\x10", Game::K_BUTTON_LSTICK},
+		{"\x11", Game::K_BUTTON_RSTICK},
+		{"\x12", Game::K_BUTTON_LTRIG},
+		{"\x13", Game::K_BUTTON_RTRIG},
+		{"\x14", Game::K_DPAD_UP},
+		{"\x15", Game::K_DPAD_DOWN},
+		{"\x16", Game::K_DPAD_LEFT},
+		{"\x17", Game::K_DPAD_RIGHT},
+#else
 		// Material text icons pattern: 0x01 width height material_name_len
 		{"^\x01\x32\x32\x08""button_a", Game::K_BUTTON_A},
 		{"^\x01\x32\x32\x08""button_b", Game::K_BUTTON_B},
@@ -129,6 +149,7 @@ namespace Components
 		{"^\x01\x32\x32\x09""dpad_down", Game::K_DPAD_DOWN},
 		{"^\x01\x32\x32\x09""dpad_left", Game::K_DPAD_LEFT},
 		{"^\x01\x32\x32\x0A""dpad_right", Game::K_DPAD_RIGHT},
+#endif
 	};
 
 	Game::keyname_t Gamepad::extendedLocalizedKeyNamesPs3[]
@@ -185,7 +206,6 @@ namespace Components
 	Dvar::Var Gamepad::gpad_enabled;
 	Dvar::Var Gamepad::gpad_present;
 	Dvar::Var Gamepad::gpad_in_use;
-	Dvar::Var Gamepad::gpad_style;
 	Dvar::Var Gamepad::gpad_sticksConfig;
 	Dvar::Var Gamepad::gpad_buttonConfig;
 	Dvar::Var Gamepad::gpad_menu_scroll_delay_first;
@@ -922,8 +942,14 @@ namespace Components
 			moveScale = std::sqrt((length * length) + 1.0f) * moveScale;
 		}
 
+#ifdef __XENON_GPAD
+		// Console uses C float-to-int truncation (toward zero), not floor
+		const auto forwardMove = static_cast<int>(forward * moveScale);
+		const auto rightMove = static_cast<int>(side * moveScale);
+#else
 		const auto forwardMove = static_cast<int>(std::floor(forward * moveScale));
 		const auto rightMove = static_cast<int>(std::floor(side * moveScale));
+#endif
 
 		cmd->rightmove = ClampChar(cmd->rightmove + rightMove);
 		cmd->forwardmove = ClampChar(cmd->forwardmove + forwardMove);
@@ -1270,6 +1296,13 @@ namespace Components
 			return;
 		}
 
+#ifdef __XENON_SCOREBOARD
+		if (XenonScoreboard::HandleGamepadScoreboardInput(localClientNum, key, buttonEvent))
+		{
+			return;
+		}
+#endif
+
 		const auto activeMenu = Game::UI_GetActiveMenu(localClientNum);
 		if (activeMenu == Game::UIMENU_SCOREBOARD)
 		{
@@ -1280,6 +1313,13 @@ namespace Components
 		}
 
 		keyState.locSelInputState = Game::LOC_SEL_INPUT_NONE;
+
+#ifdef __XENON_INPUT_SPECTATOR
+		if (XenonSpectate::HandleGamepadSpectatorInput(localClientNum, key, buttonEvent, time))
+		{
+			return;
+		}
+#endif
 
 		const auto* keyBinding = keyState.keys[key].binding;
 
@@ -1854,8 +1894,12 @@ namespace Components
 	{
 		gpad_enabled = Dvar::Register<bool>("gpad_enabled", false, Game::DVAR_ARCHIVE, "Game pad enabled");
 		gpad_present = Dvar::Register<bool>("gpad_present", false, Game::DVAR_ROM, "Game pad present");
+
+#ifdef __XENON_BUILD_DEV
+		gpad_in_use = Dvar::Register<bool>("gpad_in_use", true, Game::DVAR_ROM, "A game pad is in use");
+#else
 		gpad_in_use = Dvar::Register<bool>("gpad_in_use", false, Game::DVAR_ROM, "A game pad is in use");
-		gpad_style = Dvar::Register<bool>("gpad_style", false, Game::DVAR_ARCHIVE, "Switch between Xbox and PS HUD");
+#endif
 		gpad_sticksConfig = Dvar::Register<const char*>("gpad_sticksConfig", "", Game::DVAR_ARCHIVE, "Game pad stick configuration");
 		gpad_buttonConfig = Dvar::Register<const char*>("gpad_buttonConfig", "", Game::DVAR_ARCHIVE, "Game pad button configuration");
 		gpad_menu_scroll_delay_first = Dvar::Register<int>("gpad_menu_scroll_delay_first", 420, 0, 1000, Game::DVAR_ARCHIVE, "Menu scroll key-repeat delay, for the first repeat, in milliseconds");
@@ -1940,6 +1984,30 @@ namespace Components
 		(*keys)[0] = -1;
 		(*keys)[1] = -1;
 
+#ifdef __XENON_UI_BINDS
+		const auto gamePadCmd = GetGamePadCommand(cmd);
+
+		for (auto keyNum = 0; keyNum < Game::K_LAST_KEY; keyNum++)
+		{
+			if (!Key_IsValidGamePadChar(keyNum))
+			{
+				continue;
+			}
+
+			if (Game::playerKeys[localClientNum].keys[keyNum].binding &&
+				std::strcmp(Game::playerKeys[localClientNum].keys[keyNum].binding, gamePadCmd) == 0)
+			{
+				(*keys)[keyCount++] = keyNum;
+
+				if (keyCount >= 2)
+				{
+					return keyCount;
+				}
+			}
+		}
+
+		return keyCount;
+#else
 		if (gamePads[localClientNum].inUse)
 		{
 			const auto gamePadCmd = GetGamePadCommand(cmd);
@@ -1983,6 +2051,7 @@ namespace Components
 		}
 
 		return keyCount;
+#endif
 	}
 
 	void __declspec(naked) Gamepad::Key_GetCommandAssignmentInternal_Stub()
@@ -2020,7 +2089,10 @@ namespace Components
 	{
 		// A keyboard key has been pressed. Mark controller as unused.
 		gamePads[localClientNum].inUse = false;
+
+#ifndef __XENON_BUILD_DEV
 		gpad_in_use.setRaw(false);
+#endif
 
 		// Call original function
 		Utils::Hook::Call<void(int, int, int, unsigned)>(0x4F6480)(localClientNum, key, down, time);
@@ -2036,7 +2108,10 @@ namespace Components
 		if (dx != 0 || dy != 0)
 		{
 			gamePads[0].inUse = false;
+
+#ifndef __XENON_BUILD_DEV
 			gpad_in_use.setRaw(false);
+#endif
 		}
 	}
 
@@ -2055,11 +2130,7 @@ namespace Components
 
 	Game::keyname_t* Gamepad::GetLocalizedKeyNameMap()
 	{
-		if (gpad_style.get<bool>())
-		{
-			return combinedLocalizedKeyNamesPs3;
-		}
-
+		// Project Xenon always uses Xbox-style button prompts.
 		return combinedLocalizedKeyNamesXenon;
 	}
 
@@ -2093,10 +2164,12 @@ namespace Components
 
 		combinedLocalizedKeyNamesXenon[std::extent_v<decltype(combinedLocalizedKeyNamesXenon)> -1] = { nullptr, 0 };
 
+#ifndef __XENON_UI_BINDS
 		std::memcpy(combinedLocalizedKeyNamesPs3, Game::localizedKeyNames, sizeof(Game::keyname_t) * Game::LOCALIZED_KEY_NAME_COUNT);
 		std::memcpy(&combinedLocalizedKeyNamesPs3[Game::LOCALIZED_KEY_NAME_COUNT], extendedLocalizedKeyNamesPs3, sizeof(Game::keyname_t) * std::extent_v<decltype(extendedLocalizedKeyNamesPs3)>);
 
 		combinedLocalizedKeyNamesPs3[std::extent_v<decltype(combinedLocalizedKeyNamesPs3)> -1] = { nullptr, 0 };
+#endif
 
 		Utils::Hook::Set<Game::keyname_t*>(0x4A780A, combinedKeyNames);
 		Utils::Hook::Set<Game::keyname_t*>(0x4A7810, combinedKeyNames);
@@ -2348,3 +2421,4 @@ namespace Components
 	{
 	}
 }
+

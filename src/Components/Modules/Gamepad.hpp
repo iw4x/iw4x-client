@@ -44,6 +44,7 @@ namespace Components
 		static Dvar::Var sv_allowAimAssist;
 
 		static bool IsGamePadInUse();
+		static Game::keyname_t* GetLocalizedKeyNameMap();
 
 	private:
 		enum TriggerRole
@@ -81,7 +82,6 @@ namespace Components
 		static Dvar::Var gpad_enabled;
 		static Dvar::Var gpad_present;
 		static Dvar::Var gpad_in_use;
-		static Dvar::Var gpad_style;
 		static Dvar::Var gpad_sticksConfig;
 		static Dvar::Var gpad_buttonConfig;
 		static Dvar::Var gpad_menu_scroll_delay_first;
@@ -206,7 +206,6 @@ namespace Components
 		static int CL_MouseEvent_Hk(int x, int y, int dx, int dy);
 		static bool UI_RefreshViewport_Hk();
 
-		static Game::keyname_t* GetLocalizedKeyNameMap();
 		static void GetLocalizedKeyName_Stub();
 		static void CreateKeyNameMap();
 

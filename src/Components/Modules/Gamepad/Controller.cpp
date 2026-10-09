@@ -146,7 +146,11 @@ namespace Components::GamepadControls
 		}
 
 		const auto rightDeflect = gpad_button_rstick_deflect_max.get<float>();
+#ifdef __XENON_GPAD
+		if (std::fabs(sticks[2]) > rightDeflect || std::fabs(sticks[3]) > rightDeflect)
+#else
 		if (std::fabs(sticks[2]) > leftDeflect || std::fabs(sticks[3]) > rightDeflect)
+#endif
 		{
 			digitals &= ~static_cast<short>(XINPUT_GAMEPAD_RIGHT_THUMB);
 		}
@@ -169,6 +173,26 @@ namespace Components::GamepadControls
 			api->ReadAnalogs(analogs[0], analogs[1]);
 		}
 
+	#ifdef __XENON_GPAD
+		const auto remapDeadzone = [buttonDeadZone](float value)
+		{
+			if (value <= buttonDeadZone)
+			{
+				return 0.0f;
+			}
+
+			const auto denominator = 1.0f - buttonDeadZone;
+			if (denominator <= 0.0f)
+			{
+				return 1.0f;
+			}
+
+			return std::clamp((value - buttonDeadZone) / denominator, 0.0f, 1.0f);
+		};
+
+		analogs[0] = remapDeadzone(analogs[0]);
+		analogs[1] = remapDeadzone(analogs[1]);
+	#else
 		if (analogs[0] < buttonDeadZone)
 		{
 			analogs[0] = 0.0f;
@@ -178,6 +202,7 @@ namespace Components::GamepadControls
 		{
 			analogs[1] = 0.0f;
 		}
+	#endif
 
 		if (gpad_debug.get<bool>())
 		{

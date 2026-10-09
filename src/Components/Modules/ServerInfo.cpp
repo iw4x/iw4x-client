@@ -188,7 +188,9 @@ namespace Components
 		PlayerContainer.currentPlayer = 0;
 
 		// Draw IP and hostname on the scoreboard
+#ifndef __XENON_BUILD_DEV
 		Utils::Hook(0x4FC6EA, DrawScoreboardStub, HOOK_CALL).install()->quick();
+#endif
 
 		// Ignore native getStatus implementation
 		Utils::Hook::Nop(0x62654E, 6);
