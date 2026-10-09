@@ -5,6 +5,9 @@ namespace Components
 {
 	static float g_xenonHudElemFontScaleLarge = __XENON_UI_BIGFONT;
 	static float g_xenonHudElemFontScaleSmall = __XENON_UI_SMALLFONT;
+#ifdef __XENON_SCOREBOARD
+	static double g_xenonScoreboardRankTextDrop = 0.0;
+#endif
 
 #ifdef __XENON_UI_THUMBSTICK
 	Utils::Hook Xenon::s_uiReplaceConversionsHook;
@@ -155,6 +158,10 @@ namespace Components
 		// Console draws only up/down arrows. These two PC-only calls draw PageUp/PageDown key icons.
 		Utils::Hook::Nop(0x5919F5, 5); // UI_DrawHandlePic("hudscoreboardscroll_upkey")
 		Utils::Hook::Nop(0x591B58, 5); // UI_DrawHandlePic("hudscoreboardscroll_downkey")
+
+		// The rank number is moved down by a quarter of its text height, which only lines up with the PC fonts.
+		// The console fonts are centered on the row by DrawListString already.
+		Utils::Hook::Set<DWORD>(0x591115, reinterpret_cast<DWORD>(&g_xenonScoreboardRankTextDrop)); // fmul qword ptr [0.25]
 #endif
 		
 		// apply hud elem font scale values from console
