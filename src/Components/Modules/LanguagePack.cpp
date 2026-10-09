@@ -330,13 +330,34 @@ namespace Components
 			return buttons;
 		}
 
+		// Prompts whose Arabic text talks about the mouse, written again for the gamepad
+		const std::unordered_map<std::string, std::string> WRITTEN_PROMPTS
+		{
+			{ "PLATFORM_LOCSEL_DIR_CONTROLS", "\xD8\xAD\xD8\xAF\xD8\xAF \xD8\xA7\xD9\x84\xD8\xA7\xD8\xAA\xD8\xAC\xD8\xA7\xD9\x87 \xD8\xA8\xD8\xA7\xD8\xB3\xD8\xAA\xD8\xAE\xD8\xAF\xD8\xA7\xD9\x85 \x11" },
+			{ "PLATFORM_LOCSEL_POSITION_CONTROLS", "\xD8\xAD\xD8\xAF\xD8\xAF \xD8\xA7\xD9\x84\xD9\x85\xD9\x88\xD9\x82\xD8\xB9 \xD8\xA8\xD8\xA7\xD8\xB3\xD8\xAA\xD8\xAE\xD8\xAF\xD8\xA7\xD9\x85 \x10" },
+		};
+
 		// The Arabic prompt with its keyboard key turned into the button the Xbox string shows
 		std::optional<std::string> XboxArabicPrompt(const std::string& arabic, const std::string& xboxEnglish)
 		{
 			// Bindings (&&1, [{+activate}]) already show the button the player uses
-			if (arabic.find("&&") != std::string::npos || arabic.find("[{") != std::string::npos || HasButton(arabic))
+			if (arabic.find("&&") != std::string::npos || arabic.find("[{") != std::string::npos)
 			{
 				return {};
+			}
+
+			// A button after the text, e.g. "text    <B>", goes right next to it on the right side
+			if (HasButton(arabic))
+			{
+				std::string reversedArabic(arabic.rbegin(), arabic.rend());
+				auto buttons = Buttons(reversedArabic);
+				std::ranges::reverse(buttons);
+				const auto text = Trimmed(arabic.substr(0, arabic.size() - buttons.size()));
+				if (buttons.empty() || text.empty() || HasButton(text))
+				{
+					return {};
+				}
+				return std::format("{} {}", buttons, text);
 			}
 
 			const auto leading = Buttons(xboxEnglish);
@@ -358,15 +379,8 @@ namespace Components
 				return {};
 			}
 
-			// Same order as the English text, which mirrors it in Arabic: a leading button shows on the right
-			if (!leading.empty())
-			{
-				return std::format("{} {}", leading, core);
-			}
-
-			const auto spacing = xboxEnglish.substr(0, xboxEnglish.size() - trailing.size());
-			const auto spaces = spacing.size() - spacing.find_last_not_of(' ') - 1;
-			return core + std::string(spaces, ' ') + trailing;
+			// The button comes first, which right-to-left text shows on the right, right next to the word
+			return std::format("{} {}", leading.empty() ? trailing : leading, core);
 		}
 #endif
 	}
@@ -553,7 +567,12 @@ namespace Components
 				auto changed = 0;
 				for (const auto& [key, text] : english.items())
 				{
-					if (arabic.contains(key))
+					if (const auto written = WRITTEN_PROMPTS.find(key); written != WRITTEN_PROMPTS.end())
+					{
+						arabic[key] = written->second;
+						++changed;
+					}
+					else if (arabic.contains(key))
 					{
 						if (const auto prompt = XboxArabicPrompt(arabic[key].get<std::string>(), text.get<std::string>()))
 						{

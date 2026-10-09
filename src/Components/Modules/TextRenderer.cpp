@@ -1217,8 +1217,8 @@ namespace Components
 
 				if (isXenonBindGlyph)
 				{
-					// Keep button glyphs on the base draw color, independent of inline color codes.
-					finalColor = color;
+					// Button glyphs keep their own colors, only the text's alpha applies (e.g. hints drawn in yellow would tint them)
+					finalColor.packed = ColorRgba(255, 255, 255, color.array[3]);
 				}
 #endif
 
@@ -1347,7 +1347,11 @@ namespace Components
 								Game::RB_DrawChar(glyphMaterial, xRot, yRot, static_cast<float>(glyph->pixelWidth) * glyphXScale, static_cast<float>(glyph->pixelHeight) * glyphYScale, sinAngle, cosAngle, glyph, dropShadowColor.packed);
 						}
 					}
-					else if(passes[passIndex] == Game::FONTPASS_GLOW && ((renderFlags & Game::TEXT_RENDERFLAG_SUBTITLETEXT) == 0 || subtitleAllowGlow))
+					else if(passes[passIndex] == Game::FONTPASS_GLOW && ((renderFlags & Game::TEXT_RENDERFLAG_SUBTITLETEXT) == 0 || subtitleAllowGlow)
+#ifdef __XENON_UI_BINDS
+						&& !isXenonBindGlyph
+#endif
+					)
 					{
 						GlowColor(&finalColor, finalColor, glowForcedColor, renderFlags);
 

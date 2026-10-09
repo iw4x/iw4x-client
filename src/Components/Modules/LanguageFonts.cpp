@@ -14,7 +14,8 @@ namespace Components
 			// English (no translation) uses the Xbox console fonts as well
 			{ "", "en" },
 			{ "english", "en" },
-			{ "arabic", "ar" },
+			// Arabic text uses the Xbox fonts too, its letters come from the Arabic fonts (FindBackupGlyph)
+			{ "arabic", "en" },
 			{ "german", "de" },
 			{ "italian", "it" },
 			{ "spanish", "es" },
@@ -63,6 +64,29 @@ namespace Components
 
 	Game::Glyph* LanguageFonts::FindBackupGlyph(const unsigned int letter, Game::Font_s** backupFont)
 	{
+		// Arabic letters come from the Arabic font made for the same stock font, e.g. fonts/ar_bigFont for fonts/en_bigFont
+		if (*backupFont && (*backupFont)->fontName && letter >= 0x600)
+		{
+			std::string stockName = (*backupFont)->fontName;
+			if (stockName.starts_with("fonts/"))
+			{
+				stockName.erase(0, 6);
+			}
+			if (stockName.size() > 3 && stockName[2] == '_')
+			{
+				stockName.erase(0, 3);
+			}
+
+			if (auto* font = FindLoadedFont(std::format("fonts/ar_{}", stockName).data()))
+			{
+				if (auto* glyph = FindGlyph(font, letter))
+				{
+					*backupFont = font;
+					return glyph;
+				}
+			}
+		}
+
 		for (const auto* name : BACKUP_FONTS)
 		{
 			auto* font = FindLoadedFont(name);
