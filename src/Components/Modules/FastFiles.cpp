@@ -289,6 +289,13 @@ namespace Components
 		paths.push_back(std::format("zone\\iw4x\\x86\\{}\\", Game::Win_GetLanguage()));
 		paths.push_back(std::format("zone\\{}\\", Game::Win_GetLanguage()));
 
+		// A language with its own files (LanguageVoices) uses English for zones it does not have, e.g. IW4x's own
+		if (Game::Win_GetLanguage() != "english"s)
+		{
+			paths.emplace_back("zone\\iw4x\\x86\\english\\");
+			paths.emplace_back("zone\\english\\");
+		}
+
 		for (auto& path : paths)
 		{
 			const auto* dir = (*Game::fs_basepath)->current.string;
