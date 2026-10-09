@@ -32,8 +32,10 @@ from fontTools.varLib import instancer
 ZONE_NAME = "iw4x_languages"
 
 # Folder name -> font prefix and the code page its strings and glyph codes use.
-# English and British are the game's own text and fonts, so they are not imported.
+# English is the game's own text, only its console fonts are imported. Its glyph codes stay as they
+# are (code page None) because the game's English text is single-byte Windows-1252. British is a copy.
 LANGUAGES = {
+    "english": ("en", None),
     "german": ("de", "cp1252"),
     "italian": ("it", "cp1252"),
     "spanish": ("es", "cp1252"),
@@ -73,7 +75,7 @@ BUTTON_CODES = {0xBC, 0xBD}
 
 def decode_letter(letter, code_page):
     """Glyph letters are single bytes, or lead/trail byte pairs for double-byte code pages."""
-    if letter < 0x80 or letter in BUTTON_CODES:
+    if letter < 0x80 or letter in BUTTON_CODES or code_page is None:
         return letter
     raw = bytes([letter]) if letter <= 0xFF else bytes([letter >> 8, letter & 0xFF])
     try:
@@ -209,9 +211,11 @@ def main():
             print(f"Skipping {language}, not found")
             continue
 
-        strings = parse_str(language_dir / "localizedstrings" / "iw4mp.str", code_page)
-        strings.update(FIXES.get(language, {}))
-        (strings_out / f"{language}.json").write_text(json.dumps(strings, ensure_ascii=False, indent=1), encoding="utf-8")
+        strings = {}
+        if code_page is not None:
+            strings = parse_str(language_dir / "localizedstrings" / "iw4mp.str", code_page)
+            strings.update(FIXES.get(language, {}))
+            (strings_out / f"{language}.json").write_text(json.dumps(strings, ensure_ascii=False, indent=1), encoding="utf-8")
         if prefix in used_chars:
             used_chars[prefix].update(ord(c) for text in strings.values() for c in text)
 

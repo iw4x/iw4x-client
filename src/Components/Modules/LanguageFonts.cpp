@@ -11,6 +11,9 @@ namespace Components
 		// Translation name -> prefix of its fonts
 		const std::unordered_map<std::string, std::string> FONT_PREFIXES
 		{
+			// English (no translation) uses the Xbox console fonts as well
+			{ "", "en" },
+			{ "english", "en" },
 			{ "arabic", "ar" },
 			{ "german", "de" },
 			{ "italian", "it" },
