@@ -155,7 +155,9 @@ using namespace std::literals;
 
 #include "xenon.hpp"
 
-#define BASEGAME "iw4x"
+// Current IW4x layout: its files under main/iw4x/x86, the converted fastfiles under zone/iw4x/x86
+#define BASEGAME "main/iw4x/x86"
+#define BASEGAME_LEGACY "iw4x"
 #define BASEGAME_NAME "iw4mp_ceg.exe"
 #define CLIENT_CONFIG "iw4x_config.cfg"
 

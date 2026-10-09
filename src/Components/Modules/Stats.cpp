@@ -136,7 +136,7 @@ namespace Components
 	{
 		size_t fsGameLength = strnlen(fsGame, size);
 
-		constexpr auto baseStatName = BASEGAME ".stat";
+		constexpr auto baseStatName = BASEGAME_LEGACY ".stat";
 		const size_t baseStatNameLength = strnlen(baseStatName, 16);
 
 		std::memcpy(target, fsGame, fsGameLength);

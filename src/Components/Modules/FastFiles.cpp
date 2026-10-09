@@ -285,6 +285,10 @@ namespace Components
 
 		Utils::Merge(&paths, FastFiles::ZonePaths);
 
+		// The game's fastfiles as converted by IW4x, then the original location
+		paths.push_back(std::format("zone\\iw4x\\x86\\{}\\", Game::Win_GetLanguage()));
+		paths.push_back(std::format("zone\\{}\\", Game::Win_GetLanguage()));
+
 		for (auto& path : paths)
 		{
 			const auto* dir = (*Game::fs_basepath)->current.string;
@@ -303,7 +307,7 @@ namespace Components
 			}
 		}
 
-		return Utils::String::Format("zone\\{}\\", Game::Win_GetLanguage());
+		return Utils::String::Format("zone\\iw4x\\x86\\{}\\", Game::Win_GetLanguage());
 	}
 
 	void FastFiles::AddZonePath(const std::string& path)
@@ -651,6 +655,8 @@ namespace Components
 		Utils::Hook(0x4159E2, FastFiles::ReadXFileHeader, HOOK_CALL).install()->quick();
 
 		// Add custom zone paths
+		FastFiles::AddZonePath("zone\\iw4x\\x86\\patch\\");
+		FastFiles::AddZonePath("zone\\iw4x\\x86\\dlc\\");
 		FastFiles::AddZonePath("zone\\patch\\");
 		FastFiles::AddZonePath("zone\\dlc\\");
 
