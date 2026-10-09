@@ -12,6 +12,7 @@
 #include "Modules/Ceg.hpp"
 #include "Modules/Changelog.hpp"
 #include "Modules/Chat.hpp"
+#include "Modules/ChatInput.hpp"
 #include "Modules/ClanTags.hpp"
 #include "Modules/ClientCommand.hpp"
 #include "Modules/ConnectProtocol.hpp"
@@ -30,6 +31,7 @@
 #include "Modules/Gamepad.hpp"
 #include "Modules/Huffman.hpp"
 #include "Modules/IPCPipe.hpp"
+#include "Modules/LanguageFonts.hpp"
 #include "Modules/Lean.hpp"
 #include "Modules/MapDump.hpp"
 #include "Modules/MapRotation.hpp"
@@ -48,6 +50,7 @@
 #include "Modules/RawFiles.hpp"
 #include "Modules/RawMouse.hpp"
 #include "Modules/RCon.hpp"
+#include "Modules/RtlMenus.hpp"
 #include "Modules/Rumble.hpp"
 #include "Modules/Security.hpp"
 #include "Modules/ServerCommands.hpp"
@@ -120,6 +123,7 @@ namespace Components
 		Register(new Ceg());
 		Register(new Changelog());
 		Register(new Chat());
+		Register(new ChatInput());
 		Register(new ClanTags());
 		Register(new ClientCommand());
 		Register(new ConnectProtocol());
@@ -173,6 +177,8 @@ namespace Components
 		Register(new StringTable());
 		Register(new StructuredData());
 		Register(new TextRenderer());
+		Register(new LanguageFonts());
+		Register(new RtlMenus());
 		Register(new Theatre());
 		Register(new Threading());
 		Register(new Toast());

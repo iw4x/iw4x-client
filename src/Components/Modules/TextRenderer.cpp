@@ -1,4 +1,6 @@
 #include "TextRenderer.hpp"
+#include "ChatInput.hpp"
+#include "LanguageFonts.hpp"
 #include "Events.hpp"
 
 namespace Game
@@ -691,7 +693,7 @@ namespace Components
 
 	bool TextRenderer::ChatHandleKeyDown(const int localClientNum, const int key)
 	{
-		return HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CHAT, key);
+		return HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CHAT, key) || ChatInput::HandleKey(localClientNum, key);
 	}
 
 	constexpr auto Message_Key = 0x5A7E50;
@@ -1006,9 +1008,93 @@ namespace Components
 		*outY = (y - pivotY) * cosAngle + pivotY + (x - pivotX) * sinAngle;
 	}
 
+	unsigned int TextRenderer::ReadCharFromString(const char** text, int* byteCount)
+	{
+		std::uint32_t codepoint;
+		if (const auto length = Utils::Arabic::DecodeUtf8(*text, &codepoint); length > 0)
+		{
+			*text += length;
+			*byteCount = static_cast<int>(length);
+			return codepoint;
+		}
+
+		*byteCount = 1;
+		return Game::SEH_ReadCharFromString(text, nullptr);
+	}
+
+	Game::Glyph* TextRenderer::GetGlyph(Game::Font_s* font, const unsigned int letter, Game::Font_s** glyphFont)
+	{
+		*glyphFont = font;
+		if (auto* glyph = LanguageFonts::FindGlyph(font, letter))
+		{
+			return glyph;
+		}
+
+		// Letters of other languages, e.g. in chat, come from the backup fonts
+		if (auto* glyph = LanguageFonts::FindBackupGlyph(letter, glyphFont))
+		{
+			return glyph;
+		}
+
+		*glyphFont = font;
+		return Game::R_GetCharacterGlyph(font, letter);
+	}
+
+	Utils::Arabic::Token TextRenderer::GetRtlToken(const char* text)
+	{
+		if (text[0] == '^')
+		{
+			if (text[1] >= COLOR_FIRST_CHAR && text[1] <= COLOR_LAST_CHAR)
+			{
+				return {Utils::Arabic::TokenKind::Color, 2};
+			}
+
+			if ((text[1] == '\x01' || text[1] == '\x02') && text[2] && text[3] && text[4])
+			{
+				const auto materialNameLength = static_cast<std::uint8_t>(text[4]);
+				for (auto i = 0u; i < materialNameLength; i++)
+				{
+					if (text[5 + i] == 0)
+					{
+						return {Utils::Arabic::TokenKind::None, 0};
+					}
+				}
+
+				return {Utils::Arabic::TokenKind::Object, 5u + materialNameLength};
+			}
+		}
+
+		if (text[0] == FONT_ICON_SEPARATOR_CHARACTER)
+		{
+			FontIconInfo fontIconInfo{};
+			const char* fontIconEnd = text + 1;
+			if (IsFontIcon(fontIconEnd, fontIconInfo))
+			{
+				return {Utils::Arabic::TokenKind::Object, static_cast<std::size_t>(fontIconEnd - text)};
+			}
+		}
+
+		return {Utils::Arabic::TokenKind::None, 0};
+	}
+
+	std::string TextRenderer::PrepareRtlText(const char* text, int* cursor)
+	{
+		static const std::string resetColorCode{'^', CharForColorIndex(TEXT_COLOR_DEFAULT)};
+		return Utils::Arabic::ProcessForDisplay(text, GetRtlToken, resetColorCode, cursor);
+	}
+
 	void TextRenderer::DrawText2D(const char* text, float x, float y, Game::Font_s* font, float xScale, float yScale, float sinAngle, float cosAngle, Game::GfxColor color, int maxLength, int renderFlags, int cursorPos, char cursorLetter, float padding, Game::GfxColor glowForcedColor, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, Game::Material* fxMaterial, Game::Material* fxMaterialGlow)
 	{
 		UpdateColorTable();
+
+		// Arabic needs joined letter forms and right-to-left ordering, which the engine does not do
+		std::string displayText;
+		if (Utils::Arabic::ContainsRtl(text))
+		{
+			// Editable fields pass a cursor position into the original text, move it along with the reordered text
+			displayText = PrepareRtlText(text, (renderFlags & Game::TEXT_RENDERFLAG_CURSOR) ? &cursorPos : nullptr);
+			text = displayText.c_str();
+		}
 
 		Game::GfxColor dropShadowColor{0};
 		dropShadowColor.array[3] = color.array[3];
@@ -1085,7 +1171,10 @@ namespace Components
 					Game::RB_DrawCursor(material, cursorLetter, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, color.packed);
 				}
 
-				auto letter = Game::SEH_ReadCharFromString(&curText, nullptr);
+				int letterBytes;
+				auto letter = ReadCharFromString(&curText, &letterBytes);
+				// Cursor positions are byte offsets
+				count += letterBytes - 1;
 
 				if (letter == '^' && *curText >= COLOR_FIRST_CHAR && *curText <= COLOR_LAST_CHAR)
 				{
@@ -1205,9 +1294,18 @@ namespace Components
 					extraFxChar = Game::RandWithSeed(&tempSeed);
 				}
 
-				auto glyph = Game::R_GetCharacterGlyph(font, letter);
-				auto xAdj = static_cast<float>(glyph->x0) * xScale;
-				auto yAdj = static_cast<float>(glyph->y0) * yScale;
+				Game::Font_s* glyphFont;
+				auto glyph = GetGlyph(font, letter, &glyphFont);
+
+				// A glyph from a backup font uses that font's texture and is scaled to this font's line height
+				const auto glyphScale = static_cast<float>(font->pixelHeight) / static_cast<float>(glyphFont->pixelHeight);
+				const auto glyphXScale = xScale * glyphScale;
+				const auto glyphYScale = yScale * glyphScale;
+				auto* glyphMaterial = glyphFont == font ? material : glyphFont->material;
+				auto* glyphGlowMaterial = glyphFont == font ? glowMaterial : glyphFont->glowMaterial;
+
+				auto xAdj = static_cast<float>(glyph->x0) * glyphXScale;
+				auto yAdj = static_cast<float>(glyph->y0) * glyphYScale;
 
 				if (!skipDrawing)
 				{
@@ -1223,16 +1321,16 @@ namespace Components
 							yRot = xy + yAdj + ofs;
 							RotateXY(cosAngle, sinAngle, startX, startY, xRot, yRot, &xRot, &yRot);
 							if (drawExtraFxChar)
-								DrawTextFxExtraCharacter(fxMaterial, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, dropShadowColor.packed);
+								DrawTextFxExtraCharacter(fxMaterial, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * glyphXScale, static_cast<float>(glyph->pixelHeight) * glyphYScale, sinAngle, cosAngle, dropShadowColor.packed);
 							else
-								Game::RB_DrawChar(material, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, glyph, dropShadowColor.packed);
+								Game::RB_DrawChar(glyphMaterial, xRot, yRot, static_cast<float>(glyph->pixelWidth) * glyphXScale, static_cast<float>(glyph->pixelHeight) * glyphYScale, sinAngle, cosAngle, glyph, dropShadowColor.packed);
 						}
 
 						RotateXY(cosAngle, sinAngle, startX, startY, xa + xAdj, xy + yAdj, &xRot, &yRot);
 						if (drawExtraFxChar)
-							DrawTextFxExtraCharacter(fxMaterial, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, finalColor.packed);
+							DrawTextFxExtraCharacter(fxMaterial, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * glyphXScale, static_cast<float>(glyph->pixelHeight) * glyphYScale, sinAngle, cosAngle, finalColor.packed);
 						else
-							Game::RB_DrawChar(material, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, glyph, finalColor.packed);
+							Game::RB_DrawChar(glyphMaterial, xRot, yRot, static_cast<float>(glyph->pixelWidth) * glyphXScale, static_cast<float>(glyph->pixelHeight) * glyphYScale, sinAngle, cosAngle, glyph, finalColor.packed);
 					}
 					else if (passes[passIndex] == Game::FONTPASS_OUTLINE)
 					{
@@ -1244,9 +1342,9 @@ namespace Components
 						{
 							RotateXY(cosAngle, sinAngle, startX, startY, xa + xAdj + outlineSize * offset[0], xy + yAdj + outlineSize * offset[1], &xRot, &yRot);
 							if (drawExtraFxChar)
-								DrawTextFxExtraCharacter(fxMaterial, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, dropShadowColor.packed);
+								DrawTextFxExtraCharacter(fxMaterial, extraFxChar, xRot, yRot, static_cast<float>(glyph->pixelWidth) * glyphXScale, static_cast<float>(glyph->pixelHeight) * glyphYScale, sinAngle, cosAngle, dropShadowColor.packed);
 							else
-								Game::RB_DrawChar(material, xRot, yRot, static_cast<float>(glyph->pixelWidth) * xScale, static_cast<float>(glyph->pixelHeight) * yScale, sinAngle, cosAngle, glyph, dropShadowColor.packed);
+								Game::RB_DrawChar(glyphMaterial, xRot, yRot, static_cast<float>(glyph->pixelWidth) * glyphXScale, static_cast<float>(glyph->pixelHeight) * glyphYScale, sinAngle, cosAngle, glyph, dropShadowColor.packed);
 						}
 					}
 					else if(passes[passIndex] == Game::FONTPASS_GLOW && ((renderFlags & Game::TEXT_RENDERFLAG_SUBTITLETEXT) == 0 || subtitleAllowGlow))
@@ -1255,16 +1353,16 @@ namespace Components
 
 						const auto glyphWidth = static_cast<float>(glyph->pixelWidth);
 						const auto glyphHeight = static_cast<float>(glyph->pixelHeight);
-						const auto glowXOffset = -0.375f * glyphWidth * xScale;
-						const auto glowYOffset = -0.0625f * glyphHeight * yScale;
+						const auto glowXOffset = -0.375f * glyphWidth * glyphXScale;
+						const auto glowYOffset = -0.0625f * glyphHeight * glyphYScale;
 
 						for (const auto offset : MY_OFFSETS)
 						{
 							RotateXY(cosAngle, sinAngle, startX, startY, xa + xAdj + glowXOffset + 2.0f * offset[0] * xScale, xy + yAdj + glowYOffset + 2.0f * offset[1] * yScale, &xRot, &yRot);
 							if (drawExtraFxChar)
-								DrawTextFxExtraCharacter(fxMaterialGlow, extraFxChar, xRot, yRot, glyphWidth * xScale, glyphHeight * yScale, sinAngle, cosAngle, finalColor.packed);
+								DrawTextFxExtraCharacter(fxMaterialGlow, extraFxChar, xRot, yRot, glyphWidth * glyphXScale, glyphHeight * glyphYScale, sinAngle, cosAngle, finalColor.packed);
 							else
-								Game::RB_DrawChar(glowMaterial, xRot, yRot, glyphWidth * xScale * 1.75f, glyphHeight * yScale * 1.125f, sinAngle, cosAngle, glyph, finalColor.packed);
+								Game::RB_DrawChar(glyphGlowMaterial, xRot, yRot, glyphWidth * glyphXScale * 1.75f, glyphHeight * glyphYScale * 1.125f, sinAngle, cosAngle, glyph, finalColor.packed);
 						}
 					}
 				}
@@ -1272,7 +1370,7 @@ namespace Components
 				if (forceMonospace)
 					xa += monospaceWidth * xScale;
 				else
-					xa += static_cast<float>(glyph->dx) * xScale;
+					xa += static_cast<float>(glyph->dx) * glyphXScale;
 
 				if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
 					xa += xScale * padding;
@@ -1304,10 +1402,19 @@ namespace Components
 			return 0;
 		}
 
+		// Shaping can merge letters, so measure the text as it will be drawn
+		std::string displayText;
+		if (Utils::Arabic::ContainsRtl(text))
+		{
+			displayText = PrepareRtlText(text);
+			text = displayText.c_str();
+		}
+
 		auto count = 0;
 		while (text && *text && count < maxChars)
 		{
-			const auto letter = Game::SEH_ReadCharFromString(&text, nullptr);
+			int letterBytes;
+			const auto letter = ReadCharFromString(&text, &letterBytes);
 			if (letter == '\r' || letter == '\n')
 			{
 				lineWidth = 0;
@@ -1363,7 +1470,9 @@ namespace Components
 					}
 				}
 
-				lineWidth += R_GetCharacterGlyph(font, letter)->dx;
+				Game::Font_s* glyphFont;
+				const auto* glyph = GetGlyph(font, letter, &glyphFont);
+				lineWidth += static_cast<int>(std::lround(static_cast<float>(glyph->dx) * static_cast<float>(font->pixelHeight) / static_cast<float>(glyphFont->pixelHeight)));
 				if (lineWidth > maxWidth)
 				{
 					maxWidth = lineWidth;

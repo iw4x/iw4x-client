@@ -1,6 +1,7 @@
 #include <zlib.h>
 
 #include "FastFiles.hpp"
+#include "LanguageFonts.hpp"
 
 namespace Components
 {
@@ -187,6 +188,15 @@ namespace Components
 		if (FastFiles::Exists("iw4x_code_post_gfx_mp"))
 		{
 			data.push_back({ "iw4x_code_post_gfx_mp", zoneInfo->allocFlags, zoneInfo->freeFlags });
+		}
+
+		// Fonts of the translations, picked up by the font lookup in LanguageFonts
+		for (const auto* zone : LanguageFonts::ZONE_NAMES)
+		{
+			if (FastFiles::Exists(zone))
+			{
+				data.push_back({ zone, zoneInfo->allocFlags, zoneInfo->freeFlags });
+			}
 		}
 
 		Game::DB_LoadXAssets(data.data(), data.size(), sync);

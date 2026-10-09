@@ -1,11 +1,31 @@
 #include "Localization.hpp"
 #include "ArenaLength.hpp"
+#include "Events.hpp"
 #include "GSC/Script.hpp"
 
 namespace Components
 {
 	std::recursive_mutex Localization::LocalizeMutex;
 	Dvar::Var Localization::UseLocalization;
+	Dvar::Var Localization::Translation;
+	std::atomic_bool Localization::RtlTranslation = false;
+
+	bool Localization::IsRtlTranslation()
+	{
+		return RtlTranslation;
+	}
+
+	std::string Localization::GetTranslationName()
+	{
+		// Fonts are looked up before the dvar is registered, but the config may already have set it
+		if (Translation.get<Game::dvar_t*>())
+		{
+			return Translation.get<std::string>();
+		}
+
+		const auto* dvar = Game::Dvar_FindVar("loc_translation");
+		return dvar && dvar->current.string ? dvar->current.string : "";
+	}
 	std::unordered_map<std::string, Game::LocalizeEntry*> Localization::LocalizeMap;
 
 	std::optional<std::string> Localization::PrefixOverride;
@@ -193,6 +213,84 @@ namespace Components
 		credits.append("-\n-");
 
 		Set("IW4X_CREDITS", credits);
+	}
+
+	void Localization::LoadTranslation()
+	{
+		const auto name = Translation.get<std::string>();
+		if (name.empty())
+		{
+			return;
+		}
+
+		const auto path = std::format("localizedstrings/{}.json", name);
+		FileSystem::File file(path);
+		if (!file.exists())
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Translation file '{}' was not found\n", path);
+			return;
+		}
+
+		nlohmann::json translation;
+		try
+		{
+			translation = nlohmann::json::parse(file.getBuffer());
+		}
+		catch (const nlohmann::json::exception& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Translation file '{}' is invalid: {}\n", path, ex.what());
+			return;
+		}
+
+		if (!translation.is_object())
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Translation file '{}' should be an object!\n", path);
+			return;
+		}
+
+		auto count = 0;
+		auto rtlCount = 0;
+		for (const auto& [key, value] : translation.items())
+		{
+			// Untranslated entries are left empty and keep the original text
+			if (!value.is_string() || value.get_ref<const std::string&>().empty())
+			{
+				continue;
+			}
+
+			const auto& text = value.get_ref<const std::string&>();
+			Set(key, text);
+			++count;
+
+			if (Utils::Arabic::ContainsRtl(text.data()))
+			{
+				++rtlCount;
+			}
+		}
+
+		RtlTranslation = rtlCount > count / 2;
+
+		Logger::Print("Loaded {} strings from translation '{}'\n", count, name);
+	}
+
+	void Localization::DumpStrings()
+	{
+		std::map<std::string, std::string> strings;
+		Game::DB_EnumXAssets(Game::ASSET_TYPE_LOCALIZE_ENTRY, [](Game::XAssetHeader header, void* data)
+		{
+			const auto* entry = header.localize;
+			if (entry && entry->name && entry->value)
+			{
+				static_cast<std::map<std::string, std::string>*>(data)->emplace(entry->name, entry->value);
+			}
+		}, &strings, false);
+
+		// Stock strings are Windows-1252, replace what is not valid UTF-8 instead of failing
+		const auto json = nlohmann::json(strings).dump(2, ' ', false, nlohmann::json::error_handler_t::replace);
+
+		Utils::IO::CreateDir("userraw/localizedstrings");
+		Utils::IO::WriteFile("userraw/localizedstrings/dump.json", json);
+		Logger::Print("Dumped {} strings to userraw/localizedstrings/dump.json\n", strings.size());
 	}
 
 	const char* Localization::SEH_LocalizeTextMessageStub(const char* pszInputBuffer, const char* pszMessageType, Game::msgLocErrType_t errType)
@@ -410,6 +508,14 @@ namespace Components
 		Utils::Hook::Nop(0x49D4A5, 1);
 
 		UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::DVAR_NONE, "Use localization strings");
+		Events::OnDvarInit([]
+		{
+			Translation = Dvar::Register<const char*>("loc_translation", "", Game::DVAR_ARCHIVE, "Name of a translation in localizedstrings/<name>.json that replaces the game text");
+		});
+
+		Scheduler::OnGameInitialized(LoadTranslation, Scheduler::Pipeline::MAIN);
+		Command::Add("loc_reloadTranslation", LoadTranslation);
+		Command::Add("loc_dumpStrings", DumpStrings);
 
 		// Generate localized entries for custom classes above 10
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)

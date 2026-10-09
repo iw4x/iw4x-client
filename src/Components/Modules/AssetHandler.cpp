@@ -82,7 +82,7 @@ namespace Components
 	void AssetHandler::StoreTemporaryAsset(Game::XAssetType type, Game::XAssetHeader asset)
 	{
 		const char* assetName = Game::DB_GetXAssetNameHandlers[type](&asset);
-  	AssetHandler::TemporaryAssets[type][assetName] = asset;
+		AssetHandler::TemporaryAssets[type][assetName] = asset;
 	}
 
 	Game::XAssetHeader AssetHandler::FindAsset(Game::XAssetType type, const char* filename)
@@ -612,6 +612,7 @@ namespace Components
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_WEAPON, Weapon::WEAPON_LIMIT);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_STRINGTABLE, 800);
 		Game::ReallocateAssetPool(Game::ASSET_TYPE_IMPACT_FX, 8);
+		Game::ReallocateAssetPool(Game::ASSET_TYPE_FONT, 160); // Room for the fonts of every translation
 
 		// Register asset interfaces
 		if (ZoneBuilder::IsEnabled())
@@ -619,7 +620,6 @@ namespace Components
 			Game::ReallocateAssetPool(Game::ASSET_TYPE_MAP_ENTS, 10);
 			Game::ReallocateAssetPool(Game::ASSET_TYPE_XMODEL_SURFS, 8192 * 2);
 			Game::ReallocateAssetPool(Game::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
-			Game::ReallocateAssetPool(Game::ASSET_TYPE_FONT, 32);
 			Game::ReallocateAssetPool(Game::ASSET_TYPE_RAWFILE, 2048);
 			Game::ReallocateAssetPool(Game::ASSET_TYPE_LEADERBOARD, 500);
 

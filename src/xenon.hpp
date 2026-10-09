@@ -28,7 +28,9 @@
 #define __XENON_INPUT_SPECTATOR
 #define __XENON_SCOREBOARD // TODO: Buttons text
 #define __XENON_GPAD
-#define __LANG_TEST
+// Replaced by the language system (LanguageFonts, loc_translation): all languages are UTF-8 now,
+// forcing a double-byte decode language would misread their text
+//#define __LANG_TEST
 
 #define __XENON_LADDER_MOVEMENT
 #define __XENON_SPRINT_INPUT

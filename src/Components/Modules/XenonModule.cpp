@@ -121,6 +121,10 @@ namespace Components
 		if (!font || !asset || !*asset)
 			return font;
 
+		// A translation's font (LanguageFonts) has its own glyph table for its own texture
+		if (font->fontName && Utils::String::ToLower(font->fontName) != Utils::String::ToLower(asset))
+			return font;
+
 		const auto jsonPath = std::string(asset) + ".json";
 		ApplyFontJson(font, jsonPath.c_str());
 

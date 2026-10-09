@@ -10,5 +10,8 @@ namespace Assets
 		void save(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		void mark(Game::XAssetHeader header, Components::ZoneBuilder::Zone* builder) override;
 		void load(Game::XAssetHeader* header, const std::string& name, Components::ZoneBuilder::Zone* builder) override;
+
+	private:
+		static void LoadGlyphTable(Game::XAssetHeader* header, const std::string& name, const nlohmann::json& fontDef, Components::ZoneBuilder::Zone* builder);
 	};
 }

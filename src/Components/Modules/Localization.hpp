@@ -16,10 +16,18 @@ namespace Components
 
 		static const char* LocalizeMapName(const char* mapName);
 
+		// True when the loaded translation is in a right-to-left language
+		static bool IsRtlTranslation();
+
+		// Value of loc_translation, empty for the game's own text
+		static std::string GetTranslationName();
+
 	private:
 		static std::recursive_mutex LocalizeMutex;
 		static std::unordered_map<std::string, Game::LocalizeEntry*> LocalizeMap;
 		static Dvar::Var UseLocalization;
+		static Dvar::Var Translation;
+		static std::atomic_bool RtlTranslation;
 
 		static std::function<void(Game::LocalizeEntry*)> ParseCallback;
 
@@ -28,6 +36,9 @@ namespace Components
 		static void SaveParseOutput(Game::LocalizeEntry* asset);
 
 		static void SetCredits();
+
+		static void LoadTranslation();
+		static void DumpStrings();
 
 		static const char* SEH_LocalizeTextMessageStub(const char* pszInputBuffer, const char* pszMessageType, Game::msgLocErrType_t errType);
 
