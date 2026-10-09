@@ -83,6 +83,17 @@ def decode_letter(letter, code_page):
     return ord(text) if len(text) == 1 else None
 
 
+# Mistakes in the official translations: language -> {key: corrected text}
+FIXES = {
+    # The stance hints are shifted by one in the Polish strings (jump says "lie down" and so on)
+    "polish": {
+        "PLATFORM_STANCEHINT_JUMP": "Naciśnij &&1, aby skoczyć",
+        "PLATFORM_STANCEHINT_STAND": "Naciśnij &&1, aby wstać",
+        "PLATFORM_STANCEHINT_PRONE": "Naciśnij &&1, aby się położyć",
+    },
+}
+
+
 def parse_str(path, code_page):
     """Reads a .str file: REFERENCE <key> followed by LANG_<language> "<text>"."""
     lines = [line.rstrip(b"\r") for line in path.read_bytes().split(b"\n")]
@@ -199,6 +210,7 @@ def main():
             continue
 
         strings = parse_str(language_dir / "localizedstrings" / "iw4mp.str", code_page)
+        strings.update(FIXES.get(language, {}))
         (strings_out / f"{language}.json").write_text(json.dumps(strings, ensure_ascii=False, indent=1), encoding="utf-8")
         if prefix in used_chars:
             used_chars[prefix].update(ord(c) for text in strings.values() for c in text)
