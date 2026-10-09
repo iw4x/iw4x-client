@@ -1,6 +1,7 @@
 #include "LanguageFonts.hpp"
 #include "Localization.hpp"
 #include "ZoneBuilder.hpp"
+#include "FastFiles.hpp"
 
 namespace Components
 {
@@ -126,11 +127,20 @@ namespace Components
 		{
 			if (lowerName == Utils::String::ToLower(std::format("fonts/{}", stockName)))
 			{
-				// Only use the replacement when its zone is loaded
-				if (auto* font = FindLoadedFont(std::format("fonts/{}_{}", prefix->second, stockName).data()))
+				const auto replacement = std::format("fonts/{}_{}", prefix->second, stockName);
+				auto* font = FindLoadedFont(replacement.data());
+
+				// Menus register their fonts at startup, maybe before the zone is done loading, so wait for it
+				if (font == nullptr && FastFiles::Exists("iw4x_languages"))
 				{
-					header.font = font;
+					auto* loaded = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_FONT, replacement.data()).font;
+					if (loaded && loaded->fontName && replacement == loaded->fontName)
+					{
+						font = loaded;
+					}
 				}
+
+				header.font = font;
 				break;
 			}
 		}

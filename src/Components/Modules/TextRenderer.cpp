@@ -1213,7 +1213,9 @@ namespace Components
 					letter == '\x01' || letter == '\x02' || letter == '\x03' || letter == '\x04' ||
 					letter == '\x05' || letter == '\x06' || letter == '\x0E' || letter == '\x0F' ||
 					letter == '\x10' || letter == '\x11' || letter == '\x12' || letter == '\x13' ||
-					letter == '\x14' || letter == '\x15' || letter == '\x16' || letter == '\x17';
+					letter == '\x14' || letter == '\x15' || letter == '\x16' || letter == '\x17' ||
+					// LS and RS as the hold breath hint shows them
+					letter == 0xBC || letter == 0xBD;
 
 				if (isXenonBindGlyph)
 				{
