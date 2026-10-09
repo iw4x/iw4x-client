@@ -39,6 +39,7 @@ namespace Components
 
 		static void LoadTranslation();
 		static void DumpStrings();
+		static void CheckTranslation();
 
 		static const char* SEH_LocalizeTextMessageStub(const char* pszInputBuffer, const char* pszMessageType, Game::msgLocErrType_t errType);
 

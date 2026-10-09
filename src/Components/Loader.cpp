@@ -32,6 +32,7 @@
 #include "Modules/Huffman.hpp"
 #include "Modules/IPCPipe.hpp"
 #include "Modules/LanguageFonts.hpp"
+#include "Modules/LanguagePack.hpp"
 #include "Modules/Lean.hpp"
 #include "Modules/MapDump.hpp"
 #include "Modules/MapRotation.hpp"
@@ -178,6 +179,7 @@ namespace Components
 		Register(new StructuredData());
 		Register(new TextRenderer());
 		Register(new LanguageFonts());
+		Register(new LanguagePack());
 		Register(new RtlMenus());
 		Register(new Theatre());
 		Register(new Threading());

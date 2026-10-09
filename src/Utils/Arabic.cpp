@@ -495,6 +495,29 @@ namespace Utils::Arabic
 		}
 	}
 
+	std::vector<std::uint32_t> GetPresentationForms()
+	{
+		std::vector<std::uint32_t> forms;
+		for (const auto& [codepoint, letter] : LETTERS)
+		{
+			for (const auto form : { letter.isolated, letter.final, letter.initial, letter.medial })
+			{
+				if (form)
+				{
+					forms.push_back(form);
+				}
+			}
+		}
+
+		// Lam-alef ligatures
+		for (std::uint32_t form = 0xFEF5; form <= 0xFEFC; ++form)
+		{
+			forms.push_back(form);
+		}
+
+		return forms;
+	}
+
 	bool ContainsRtl(const char* text)
 	{
 		if (!text) return false;

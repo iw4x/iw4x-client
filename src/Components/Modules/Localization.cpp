@@ -293,6 +293,74 @@ namespace Components
 		Logger::Print("Dumped {} strings to userraw/localizedstrings/dump.json\n", strings.size());
 	}
 
+	void Localization::CheckTranslation()
+	{
+		const auto name = GetTranslationName();
+		if (name.empty())
+		{
+			Logger::Print("No translation is selected (loc_translation)\n");
+			return;
+		}
+
+		FileSystem::File file(std::format("localizedstrings/{}.json", name));
+		if (!file.exists())
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Translation file 'localizedstrings/{}.json' was not found\n", name);
+			return;
+		}
+
+		nlohmann::json translation;
+		try
+		{
+			translation = nlohmann::json::parse(file.getBuffer());
+		}
+		catch (const nlohmann::json::exception& ex)
+		{
+			Logger::PrintError(Game::CON_CHANNEL_ERROR, "Translation '{}' is invalid: {}\n", name, ex.what());
+			return;
+		}
+
+		// Inserts the game fills in, a translation must keep all of them
+		static const std::regex placeholders(R"(&&\d|%[sdif]|\[\{[^}]*\}\])");
+		const auto findPlaceholders = [](const std::string& text)
+		{
+			std::multiset<std::string> found;
+			for (auto it = std::sregex_iterator(text.begin(), text.end(), placeholders); it != std::sregex_iterator(); ++it)
+			{
+				found.insert(it->str());
+			}
+			return found;
+		};
+
+		auto checked = 0;
+		auto wrong = 0;
+		for (const auto& [key, value] : translation.items())
+		{
+			if (!value.is_string() || value.get_ref<const std::string&>().empty())
+			{
+				continue;
+			}
+
+			// The game's own text, not the translation that replaces it
+			const auto* entry = Game::DB_FindXAssetEntry(Game::ASSET_TYPE_LOCALIZE_ENTRY, key.data());
+			if (entry == nullptr || entry->asset.header.localize == nullptr || entry->asset.header.localize->value == nullptr)
+			{
+				continue;
+			}
+
+			++checked;
+			const std::string original = entry->asset.header.localize->value;
+			const auto& text = value.get_ref<const std::string&>();
+			if (findPlaceholders(original) != findPlaceholders(text))
+			{
+				++wrong;
+				Logger::Print("{}:\n  {}\n  {}\n", key, original, text);
+			}
+		}
+
+		Logger::Print("Checked {} strings of '{}', {} have different placeholders than the game's text\n", checked, name, wrong);
+	}
+
 	const char* Localization::SEH_LocalizeTextMessageStub(const char* pszInputBuffer, const char* pszMessageType, Game::msgLocErrType_t errType)
 	{
 		constexpr auto szStringCount = 10;
@@ -516,6 +584,7 @@ namespace Components
 		Scheduler::OnGameInitialized(LoadTranslation, Scheduler::Pipeline::MAIN);
 		Command::Add("loc_reloadTranslation", LoadTranslation);
 		Command::Add("loc_dumpStrings", DumpStrings);
+		Command::Add("loc_checkTranslation", CheckTranslation);
 
 		// Generate localized entries for custom classes above 10
 		AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
