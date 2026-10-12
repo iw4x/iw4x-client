@@ -141,6 +141,7 @@ namespace Game
 
   LiveStorage_GetStat_t LiveStorage_GetStat = LiveStorage_GetStat_t(0x471F60);
   LiveStorage_SetStat_t LiveStorage_SetStat = LiveStorage_SetStat_t(0x4CC5D0);
+  LiveStorage_GetPersistentDataDefVersion_t LiveStorage_GetPersistentDataDefVersion = LiveStorage_GetPersistentDataDefVersion_t(0x4C1850);
 
   Scr_AddSourceBuffer_t Scr_AddSourceBuffer = Scr_AddSourceBuffer_t(0x61ABC0);
 

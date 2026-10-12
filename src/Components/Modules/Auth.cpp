@@ -29,6 +29,51 @@ namespace Components
 
   bool Auth::HasAccessToReservedSlot;
 
+  namespace
+  {
+    // SV_DirectConnect rejects a protocol or player data version mismatch on its own,
+    // but its message doesn't say which side is out of date or what to do about it.
+    // Check both here first so the player gets an actionable error.
+    bool CheckClientVersion(const Network::Address& address, const Utils::InfoString& infostr)
+    {
+      const auto clientProtocol = std::atoi(infostr.get("protocol").data());
+
+      if (clientProtocol != PROTOCOL)
+      {
+        if (clientProtocol < PROTOCOL)
+        {
+          Network::Send(address, std::format("error\nYour IW4x version is outdated (protocol {}, server uses {}).\nUpdate IW4x and try again.", clientProtocol, PROTOCOL));
+        }
+        else
+        {
+          Network::Send(address, std::format("error\nThis server runs an older IW4x version (protocol {}, yours is {}).\nThe server needs to be updated before you can join.", PROTOCOL, clientProtocol));
+        }
+
+        return false;
+      }
+
+      // "statver" is "<version> <checksum>", only the version is compared here
+      const auto clientStatVersion = std::atoi(infostr.get("statver").data());
+      const auto serverStatVersion = Game::LiveStorage_GetPersistentDataDefVersion();
+
+      if (clientStatVersion != serverStatVersion)
+      {
+        if (clientStatVersion < serverStatVersion)
+        {
+          Network::Send(address, std::format("error\nYour game files are outdated (player data version {}, server uses {}).\nUpdate IW4x and try again.", clientStatVersion, serverStatVersion));
+        }
+        else
+        {
+          Network::Send(address, std::format("error\nThis server uses older game files (player data version {}, yours is {}).\nThe server needs to be updated before you can join.", serverStatVersion, clientStatVersion));
+        }
+
+        return false;
+      }
+
+      return true;
+    }
+  }
+
   void Auth::Frame()
   {
     if (TokenContainer.generating)
@@ -268,6 +313,12 @@ namespace Components
       }
 
       Logger::Debug("Verified XUID {:#X} ({}) from {}", xuid, userLevel, address.getString());
+
+      if (!CheckClientVersion(address, infostr))
+      {
+        return;
+      }
+
       Game::SV_DirectConnect(*address.get());
     }
 #endif
