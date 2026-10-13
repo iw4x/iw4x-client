@@ -148,8 +148,8 @@ namespace Components
     }
 
     // Return the UTF-8 text without the DEL and C1 control characters (the
-    // C0 ones are stripped before the conversion). Discord shows them as
-    // boxes and the companion's relay rejects text with control characters.
+    // C0 ones are stripped before the conversion), which Discord shows as
+    // boxes.
     //
     std::string StripControls(std::string text)
     {
