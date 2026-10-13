@@ -278,8 +278,7 @@ namespace Steam
     static void SetGame(uint32_t appId);
     static void RunGame();
 
-    static void SetMod(const std::string& mod);
-    static void RunMod();
+    static void SelectOwnedGame();
 
     //Overlay related proxies
     static void SetOverlayNotificationPosition(uint32_t eNotificationPosition);

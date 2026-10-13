@@ -118,7 +118,7 @@ namespace Steam
       }
       else
       {
-        Proxy::SetMod("IW4x: Modern Warfare 2");
+        Proxy::SelectOwnedGame();
         Proxy::RunGame();
       }
 

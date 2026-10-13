@@ -147,80 +147,17 @@ namespace Steam
     }
   }
 
-  void Proxy::SetMod(const std::string& mod)
+  // The CM server only shows Steam friends a game that the account owns. So
+  // if the account doesn't own Modern Warfare 2, run as Spacewar, which every
+  // account owns.
+  //
+  void Proxy::SelectOwnedGame()
   {
-    if (!Proxy::ClientUser || !Proxy::SteamApps || Components::Dedicated::IsEnabled()) return;
+    if (!Proxy::SteamApps || Components::Dedicated::IsEnabled()) return;
 
     if (!Proxy::SteamApps->BIsSubscribedApp(Proxy::AppId))
     {
       Proxy::AppId = 480; // Spacewar - Steam's demo app
-    }
-
-    GameID_t gameID;
-    gameID.type = 1; // k_EGameIDTypeGameMod
-    gameID.appID = Proxy::AppId & 0xFFFFFF;
-
-    const char* modId = "IW4x";
-    gameID.modID = *reinterpret_cast<const unsigned int*>(modId) | 0x80000000;
-
-    Interface clientUtils(Proxy::ClientEngine->GetIClientUtils(Proxy::SteamPipe));
-    clientUtils.invoke<void>("SetAppIDForCurrentPipe", Proxy::AppId, false);
-
-    char ourPath[MAX_PATH]{};
-    GetModuleFileNameA(GetModuleHandleA(nullptr), ourPath, sizeof(ourPath));
-
-    char ourDirectory[MAX_PATH]{};
-    GetCurrentDirectoryA(sizeof(ourDirectory), ourDirectory);
-
-    const auto* cmdline = ::Utils::String::VA("\"%s\" -proc %d", ourPath, GetCurrentProcessId());
-
-    // As of 02/19/2017, the SpawnProcess method doesn't require the app id anymore,
-    // but only for those who participate in the beta.
-    // Therefore we have to check how many bytes the method expects as arguments
-    // and adapt our call accordingly!
-    const auto expectedParams = Proxy::ClientUser.paramSize("SpawnProcess");
-    if (expectedParams == 40) // Release
-    {
-      Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline, ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0, 0);
-    }
-    else if (expectedParams == 36) // Beta
-    {
-      Proxy::ClientUser.invoke<bool>("SpawnProcess", ourPath, cmdline, ourDirectory, gameID.bits, mod.data(), Proxy::AppId, 0, 0);
-    }
-    else if (expectedParams == 48) // Legacy, expects VAC blob
-    {
-      char blob[8] = { 0 };
-      Proxy::ClientUser.invoke<bool>("SpawnProcess", blob, 0, ourPath, cmdline, 0, ourDirectory, gameID.bits, Proxy::AppId, mod.data(), 0, 0);
-    }
-    else
-    {
-#ifdef _DEBUG
-      OutputDebugStringA("Steam proxy was unable to match the arguments for SpawnProcess!\n");
-#endif
-    }
-  }
-
-  void Proxy::RunMod()
-  {
-    const char* command = "-proc ";
-    auto* parentProc = std::strstr(GetCommandLineA(), command);
-
-    if (parentProc)
-    {
-      FreeConsole();
-
-      parentProc += strlen(command);
-      const auto pid = std::strtol(parentProc, nullptr, 10);
-
-      HANDLE processHandle = OpenProcess(SYNCHRONIZE, FALSE, pid);
-
-      if (processHandle && processHandle != INVALID_HANDLE_VALUE)
-      {
-        WaitForSingleObject(processHandle, INFINITE);
-        CloseHandle(processHandle);
-      }
-
-      TerminateProcess(GetCurrentProcess(), 0);
     }
   }
 
