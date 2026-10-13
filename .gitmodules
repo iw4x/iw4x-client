@@ -44,3 +44,6 @@
 [submodule "deps/iw4-open-formats"]
 	path = deps/iw4-open-formats
 	url = https://github.com/iw4x/iw4-open-formats.git
+[submodule "deps/companion"]
+	path = deps/companion
+	url = https://github.com/iw4x/companion.git
