@@ -99,49 +99,83 @@ namespace Components
       return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     }
 
-    // Return the engine text in UTF-8 without color codes and text icons, or
-    // nothing if it isn't representable. The engine's text is single-byte
-    // and Latin-1 in the Western locales, which we convert. In the other
-    // locales its bytes mean something else, so the caller falls back to an
-    // internal name.
+    // Return the Windows code page of the game's text in the current
+    // language, or 0 if we don't know it. The languages are in the engine's
+    // order (see its language table).
+    //
+    UINT LanguageCodePage()
+    {
+      constexpr UINT pages[] =
+      {
+        1252, // English
+        1252, // French
+        1252, // German
+        1252, // Italian
+        1252, // Spanish
+        1252, // British
+        1251, // Russian
+        1250, // Polish
+        949,  // Korean
+        950,  // Taiwanese
+        932,  // Japanese
+        936,  // Chinese
+        874,  // Thai
+        1252, // Leet
+        1250, // Czech
+      };
+
+      const auto language = Game::SEH_GetCurrentLanguage();
+      return language >= 0 && language < static_cast<int>(std::size(pages)) ? pages[language] : 0;
+    }
+
+    // Return the text converted from the code page to UTF-8, or nothing if it
+    // isn't valid in that code page.
+    //
+    std::optional<std::string> ConvertToUtf8(const std::string& text, const UINT codePage)
+    {
+      const auto size = MultiByteToWideChar(codePage, MB_ERR_INVALID_CHARS, text.data(), static_cast<int>(text.size()), nullptr, 0);
+      if (size <= 0) return {};
+
+      std::wstring wide(size, L'\0');
+      MultiByteToWideChar(codePage, MB_ERR_INVALID_CHARS, text.data(), static_cast<int>(text.size()), wide.data(), size);
+
+      const auto length = WideCharToMultiByte(CP_UTF8, 0, wide.data(), size, nullptr, 0, nullptr, nullptr);
+      if (length <= 0) return {};
+
+      std::string result(length, '\0');
+      WideCharToMultiByte(CP_UTF8, 0, wide.data(), size, result.data(), length, nullptr, nullptr);
+      return result;
+    }
+
+    // Return the engine text in UTF-8 without color codes, text icons, and
+    // control characters, or nothing if we can't tell what it says.
+    //
+    // The game's text is single-byte or double-byte text in the code page of
+    // its language (Windows-1251 for Russian, for example), except for some
+    // of IW4x's own strings, which are UTF-8. So we take text that is valid
+    // UTF-8 as is and decode the rest with the language's code page. Text in
+    // a single-byte code page practically never happens to be valid UTF-8.
     //
     std::optional<std::string> EngineTextToUtf8(const char* text)
     {
       if (!text || !*text) return {};
 
-      const auto stripped = TextRenderer::StripAllTextIcons(TextRenderer::StripColors(std::string(text)));
+      auto stripped = TextRenderer::StripAllTextIcons(TextRenderer::StripColors(std::string(text)));
+      std::erase_if(stripped, [](const char c) { return static_cast<unsigned char>(c) < 0x20; });
 
-      // English, French, German, Italian, Spanish, and British, in the
-      // engine's language order.
-      //
-      const auto latin1 = Game::SEH_GetCurrentLanguage() <= 5;
+      if (stripped.empty()) return {};
 
-      std::string result;
-      result.reserve(stripped.size());
-
-      for (const auto c : stripped)
+      if (std::ranges::all_of(stripped, [](const char c) { return static_cast<unsigned char>(c) < 0x80; }))
       {
-        const auto b = static_cast<unsigned char>(c);
-
-        if (b < 0x20) continue;
-
-        if (b < 0x80)
-        {
-          result += c;
-        }
-        else if (latin1)
-        {
-          result += static_cast<char>(0xC0 | (b >> 6));
-          result += static_cast<char>(0x80 | (b & 0x3F));
-        }
-        else
-        {
-          return {};
-        }
+        return stripped;
       }
 
-      if (result.empty()) return {};
-      return result;
+      if (auto utf8 = ConvertToUtf8(stripped, CP_UTF8)) return utf8;
+
+      const auto codePage = LanguageCodePage();
+      if (!codePage) return {};
+
+      return ConvertToUtf8(stripped, codePage);
     }
 
     // Return the text cut to fit a presence field without splitting a UTF-8
