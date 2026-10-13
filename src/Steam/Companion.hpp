@@ -15,7 +15,7 @@ namespace Steam
   // Companion to the Steam client with the 64-bit rundll32.exe. Under Wine
   // (Proton) the game runs with the native Linux Steam client, which cannot
   // see Windows objects, so the record is a file in /dev/shm and the
-  // iw4x-steam launcher starts Steam with Companion preloaded.
+  // companion launcher starts Steam with Companion preloaded.
   //
   class Companion
   {

@@ -371,7 +371,7 @@ namespace Steam
     }
     else
     {
-      Components::Logger::Print("Steam companion is not running, start Steam with iw4x-steam to show the IW4x title to Steam friends\n");
+      Components::Logger::Print("Steam companion is not running, start Steam with companion to show the IW4x title to Steam friends\n");
     }
   }
 
