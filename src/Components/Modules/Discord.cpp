@@ -147,6 +147,38 @@ namespace Components
       return result;
     }
 
+    // Return the UTF-8 text without the DEL and C1 control characters (the
+    // C0 ones are stripped before the conversion). Discord shows them as
+    // boxes and the companion's relay rejects text with control characters.
+    //
+    std::string StripControls(std::string text)
+    {
+      std::string result;
+      result.reserve(text.size());
+
+      for (std::size_t i = 0; i != text.size(); ++i)
+      {
+        const auto b = static_cast<unsigned char>(text[i]);
+
+        if (b == 0x7F) continue;
+
+        if (b == 0xC2 && i + 1 != text.size())
+        {
+          const auto c = static_cast<unsigned char>(text[i + 1]);
+
+          if (c >= 0x80 && c <= 0x9F)
+          {
+            ++i;
+            continue;
+          }
+        }
+
+        result += text[i];
+      }
+
+      return result;
+    }
+
     // Return the engine text in UTF-8 without color codes, text icons, and
     // control characters, or nothing if we can't tell what it says.
     //
@@ -165,17 +197,26 @@ namespace Components
 
       if (stripped.empty()) return {};
 
+      std::optional<std::string> utf8;
+
       if (std::ranges::all_of(stripped, [](const char c) { return static_cast<unsigned char>(c) < 0x80; }))
       {
-        return stripped;
+        utf8 = stripped;
+      }
+      else if (!(utf8 = ConvertToUtf8(stripped, CP_UTF8)))
+      {
+        if (const auto codePage = LanguageCodePage())
+        {
+          utf8 = ConvertToUtf8(stripped, codePage);
+        }
       }
 
-      if (auto utf8 = ConvertToUtf8(stripped, CP_UTF8)) return utf8;
+      if (!utf8) return {};
 
-      const auto codePage = LanguageCodePage();
-      if (!codePage) return {};
+      auto result = StripControls(std::move(*utf8));
+      if (result.empty()) return {};
 
-      return ConvertToUtf8(stripped, codePage);
+      return result;
     }
 
     // Return the text cut to fit a presence field without splitting a UTF-8
