@@ -57,6 +57,7 @@ typedef void* unknown_ret;
 #include "Interfaces/SteamMasterServerUpdater.hpp"
 
 #include "Proxy.hpp"
+#include "Companion.hpp"
 
 namespace Steam
 {
