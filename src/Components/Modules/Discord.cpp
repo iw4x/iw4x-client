@@ -27,9 +27,23 @@ namespace Components
     Discord_UpdatePresence(&DiscordPresence);
   }
 
+  // The secret comes from Discord, so we only accept an internet address and
+  // connect to it as parsed. We never pass the secret itself to the console,
+  // where it could carry commands.
+  //
   static void JoinGame(const char* joinSecret)
   {
-    Game::Cbuf_AddText(0, Utils::String::VA("connect %s\n", joinSecret));
+    if (!joinSecret) return;
+
+    const Network::Address target{std::string(joinSecret)};
+
+    if (!target.isValid() || target.getType() != Game::NA_IP || target.isLocal())
+    {
+      Logger::Print("Discord: Ignoring join request for invalid server '{}'\n", joinSecret);
+      return;
+    }
+
+    Party::Connect(target);
   }
 
   static void JoinRequest(const DiscordUser* request)
