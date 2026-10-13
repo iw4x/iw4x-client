@@ -304,6 +304,20 @@ namespace Components
       return held;
     }
 
+    // Return true if the player is in the private match lobby, including
+    // under one of the menus that it opens (game setup, class editing).
+    //
+    // The Private Match menu item opens the lobby menu, which stays in the
+    // menu stack until the player leaves the lobby. Note that the party state
+    // can't identify it: party_host is only set by the party system's own
+    // lobby and the private party also runs in the main menu.
+    //
+    bool InPrivateLobby()
+    {
+      auto* menu = Game::Menus_FindByName(Game::uiContext, "menu_xboxlive_privatelobby");
+      return menu && Game::Menus_MenuIsInStack(Game::uiContext, menu);
+    }
+
     Scene Observe()
     {
       Scene scene;
@@ -336,7 +350,7 @@ namespace Components
           scene.capacity = Party::GetMaxClients();
         }
       }
-      else if (Party::IsInLobby())
+      else if (InPrivateLobby() || Party::IsInLobby())
       {
         scene.where = Scene::Place::PrivateLobby;
         scene.mapKey = ShortMapName((*Game::ui_mapname)->current.string);
