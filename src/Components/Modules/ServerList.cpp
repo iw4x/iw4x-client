@@ -736,7 +736,12 @@ namespace Components
     root["timestamp"] = std::time (nullptr);
     root["version"]   = REVISION_STR;
 
-    Utils::IO::WriteFile (ServerCacheFile, root.dump ());
+    // Server-supplied strings are not necessarily valid UTF-8 (e.g., hostnames
+    // in a legacy code page), so replace invalid bytes instead of throwing.
+    //
+    Utils::IO::WriteFile (ServerCacheFile,
+                          root.dump (-1, ' ', false,
+                                     nlohmann::json::error_handler_t::replace));
 
     // Note that ephemeral entries are not included, so the cached set may
     // differ from the full set returned by live node queries.
