@@ -20,6 +20,7 @@ namespace Components
     ~UIFeeder();
 
     static void Add(float feeder, GetItemCount_t itemCountCb, GetItemText_t itemTextCb, Select_t selectCb);
+    static void Select(float feeder, unsigned int index);
 
   private:
     struct Container
@@ -50,10 +51,9 @@ namespace Components
 
     static void MouseEnterStub();
     static void MouseSelectStub();
+    static bool HandleClick(Game::itemDef_s* item);
     static void HandleKeyStub();
     static void PlaySoundStub();
-
-    static void Select(float feeder, unsigned int index);
 
     static std::unordered_map<float, Callbacks> Feeders;
 

@@ -133,64 +133,68 @@ namespace Components
     }
   }
 
+  bool UIFeeder::HandleClick(Game::itemDef_s* item)
+  {
+    static Game::itemDef_s* lastItem = nullptr;
+    static int lastIndex = -1;
+    static int lastTime = 0;
+
+    const auto index = item->typeData.listBox->mousePos;
+    const auto now = Game::Sys_Milliseconds();
+
+    // We only treat a click as a double click if it lands on the row that is
+    // still selected in the same list within 300ms. In this case we return
+    // true and the caller runs the list's double click script. Any other
+    // click selects the row under the cursor.
+    //
+    // Note that a list can change between the two clicks (the server list,
+    // for example, re-sorts as servers respond), which moves the selected
+    // row away from the cursor. The second click then selects the row that
+    // is now under the cursor.
+    //
+    if (item == lastItem && index == lastIndex && index == item->cursorPos[0] && now - lastTime < 300)
+    {
+      lastItem = nullptr;
+      return true;
+    }
+
+    lastItem = item;
+    lastIndex = index;
+    lastTime = now;
+
+    if (item->cursorPos[0] != index)
+    {
+      item->cursorPos[0] = index;
+      Current.index = index;
+
+      SetItemSelection();
+    }
+
+    return false;
+  }
+
   __declspec(naked) void UIFeeder::HandleKeyStub()
   {
-    static int nextClickTime = 0;
-
     __asm
     {
-      mov ebx, ebp
       mov eax, [ebp + 12Ch]
       mov Current.feeder, eax
 
-      push ebx
       call CheckFeeder
-      pop ebx
 
       test al, al
-      jz continueOriginal
+      jz runDoubleClick
 
-      // Get current milliseconds
-      call Game::Sys_Milliseconds
+      push ebp
+      call HandleClick
+      add esp, 4
 
-      // Check if allowed to click
-      cmp eax, nextClickTime
-      jl continueOriginal
+      test al, al
+      jnz runDoubleClick
 
-      // Set next allowed click time to current time + 300ms
-      add eax, 300
-      mov nextClickTime, eax
-
-      // Get item cursor position ptr
-      mov ecx, ebx
-      add ecx, Game::itemDef_s::cursorPos
-
-      // Get item listbox ptr
-      mov edx, ebx
-      add edx, Game::itemDef_s::typeData
-
-      // Get listbox cursor pos
-      mov edx, [edx]
-      add edx, Game::listBoxDef_s::mousePos
-      mov edx, [edx]
-
-      // Resolve item cursor pos pointer
-      mov ebx, [ecx]
-
-      // Check if item cursor pos equals listbox cursor pos
-      cmp ebx, edx
-      je returnSafe
-
-      // Update indices if not
-      mov [ecx], edx
-      mov Current.index, edx
-
-      call SetItemSelection
-
-    returnSafe:
       retn
 
-    continueOriginal:
+    runDoubleClick:
       mov eax, 635570h
       jmp eax
     }
