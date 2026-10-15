@@ -137,6 +137,7 @@ namespace Components
     static const char* GetServerText(unsigned int index, int column);
     static const char* GetServerInfoText(ServerInfo* server, int column, bool sorting = false);
     static void SelectServer(unsigned int index);
+    static void RestoreSelection();
 
     static void UpdateSource();
     static void UpdateGameType();
@@ -165,6 +166,7 @@ namespace Components
     static bool SortAsc;
 
     static unsigned int CurrentServer;
+    static Network::Address SelectedServer;
     static Container RefreshContainer;
 
     static std::vector<ServerInfo> OnlineList;
