@@ -327,6 +327,22 @@ namespace Sentry
     }
 
     std::string
+    fastfiles ()
+    {
+      std::string r;
+
+      for (const std::string& z: Game::DB_GetLoadedZones ())
+      {
+        if (!r.empty ())
+          r += ", ";
+
+        r += z;
+      }
+
+      return r;
+    }
+
+    std::string
     connection ()
     {
       if (!Game::CL_IsCgameInitialized ())

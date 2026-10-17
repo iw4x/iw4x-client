@@ -57,6 +57,11 @@ namespace Sentry
     std::string
     modded ();
 
+    // Return the fastfiles that are currently loaded.
+    //
+    std::string
+    fastfiles ();
+
     std::string
     connection ();
 
