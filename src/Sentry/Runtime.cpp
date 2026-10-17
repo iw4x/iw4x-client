@@ -133,7 +133,7 @@ namespace Sentry
       return false;
     }
 
-    attach (ctx_, engine::base_path ());
+    attach (ctx_, engine::base_path (), options_.database);
 
     scope_.publish ();
     record (trail::lifecycle, SENTRY_LEVEL_INFO, "the client started");
@@ -166,8 +166,11 @@ namespace Sentry
   runtime::
   refresh ()
   {
-    if (started_)
-      scope_.publish ();
+    if (!started_)
+      return;
+
+    scope_.publish ();
+    refresh_snapshots (ctx_, options_.database);
   }
 
   void

@@ -101,5 +101,13 @@ namespace Sentry
 
     std::filesystem::path
     base_path ();
+
+    // Return the stats file of the current mod.
+    //
+    std::filesystem::path
+    stats_path ();
+
+    std::filesystem::path
+    config_path ();
   }
 }
