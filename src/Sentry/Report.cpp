@@ -2,6 +2,8 @@
 
 #include "Types.hpp"
 
+#include "Guard.hpp"
+
 #include "Engine/State.hpp"
 
 namespace Sentry
@@ -16,103 +18,6 @@ namespace Sentry
     // its limit is dropped there, with nothing to show for it here.
     //
     constexpr std::uintmax_t attachments_limit (1023 * 1024 * 1024);
-
-    // Close a Windows handle when it goes out of scope.
-    //
-    class auto_handle
-    {
-    public:
-      explicit
-      auto_handle (HANDLE h = nullptr) noexcept: h_ (h) {}
-
-      auto_handle (auto_handle&& x) noexcept: h_ (x.release ()) {}
-
-      auto_handle&
-      operator= (auto_handle&& x) noexcept
-      {
-        reset (x.release ());
-        return *this;
-      }
-
-      auto_handle (const auto_handle&) = delete;
-      auto_handle& operator= (const auto_handle&) = delete;
-
-      ~auto_handle () noexcept {reset ();}
-
-      HANDLE
-      get () const noexcept {return h_;}
-
-      HANDLE
-      release () noexcept
-      {
-        HANDLE r (h_);
-        h_ = nullptr;
-        return r;
-      }
-
-      void
-      reset (HANDLE h = nullptr) noexcept
-      {
-        if (h_ != nullptr)
-          CloseHandle (h_);
-
-        h_ = h;
-      }
-
-    private:
-      HANDLE h_;
-    };
-
-    // Remove a file when it goes out of scope, unless cancelled.
-    //
-    class auto_rmfile
-    {
-    public:
-      explicit
-      auto_rmfile (std::filesystem::path p) noexcept: path_ (std::move (p)) {}
-
-      auto_rmfile (auto_rmfile&& x) noexcept: path_ (std::move (x.path_))
-      {
-        x.cancel ();
-      }
-
-      auto_rmfile&
-      operator= (auto_rmfile&& x) noexcept
-      {
-        if (this != &x)
-        {
-          remove ();
-          path_ = std::move (x.path_);
-          x.cancel ();
-        }
-
-        return *this;
-      }
-
-      auto_rmfile (const auto_rmfile&) = delete;
-      auto_rmfile& operator= (const auto_rmfile&) = delete;
-
-      ~auto_rmfile () noexcept {remove ();}
-
-      const std::filesystem::path&
-      path () const noexcept {return path_;}
-
-      void
-      cancel () noexcept {path_.clear ();}
-
-    private:
-      void
-      remove () noexcept
-      {
-        if (!path_.empty ())
-        {
-          std::error_code ec;
-          std::filesystem::remove (path_, ec);
-        }
-      }
-
-      std::filesystem::path path_;
-    };
 
     std::string
     json (sentry_value_t v)
@@ -249,10 +154,10 @@ namespace Sentry
     // See the envelope format at https://develop.sentry.dev/sdk/envelopes/.
     //
     auto_rmfile f (o.database / "external" / (id + ".envelope"));
-    std::filesystem::create_directories (f.path ().parent_path (), ec);
+    std::filesystem::create_directories (f.path.parent_path (), ec);
 
     {
-      std::ofstream os (f.path (), std::ios::binary | std::ios::trunc);
+      std::ofstream os (f.path, std::ios::binary | std::ios::trunc);
 
       sentry_value_t h (sentry_value_new_object ());
       set (h, "dsn", o.dsn);
@@ -294,7 +199,7 @@ namespace Sentry
     // Hand the envelope over. From here on the reporter removes it once it is
     // done with it.
     //
-    if (!launch (o.reporter, f.path ()))
+    if (!launch (o.reporter, f.path))
       return false;
 
     f.cancel ();
