@@ -2,6 +2,16 @@
 
 namespace Utils
 {
+  std::size_t InfoString::KeyHash::operator()(const std::string& key) const
+  {
+    return std::hash<std::string>()(String::ToLower(key));
+  }
+
+  bool InfoString::KeyEqual::operator()(const std::string& lhs, const std::string& rhs) const
+  {
+    return lhs.size() == rhs.size() && _strnicmp(lhs.data(), rhs.data(), lhs.size()) == 0;
+  }
+
   InfoString::InfoString(const std::string& buffer)
   {
     this->parse(buffer);
@@ -9,6 +19,10 @@ namespace Utils
 
   void InfoString::set(const std::string& key, const std::string& value)
   {
+    // Remove any existing key that only differs in case, so build() never
+    // emits both.
+    //
+    this->keyValuePairs_.erase(key);
     this->keyValuePairs_[key] = value;
   }
 
@@ -40,6 +54,9 @@ namespace Utils
       const auto& key = keyValues[i];
       const auto& value = keyValues[i + 1];
 
+      // Keep the first match ignoring case, the same as the engine's
+      // Info_ValueForKey() does.
+      //
       if (!this->keyValuePairs_.contains(key))
       {
         this->keyValuePairs_[key] = value;
@@ -73,6 +90,12 @@ namespace Utils
 
   nlohmann::json InfoString::to_json() const
   {
-    return this->keyValuePairs_;
+    nlohmann::json result = nlohmann::json::object();
+    for (const auto& [key, value] : this->keyValuePairs_)
+    {
+      result[key] = value;
+    }
+
+    return result;
   }
 }
