@@ -185,6 +185,11 @@ namespace Components
     }
   }
 
+  void Logger::PrintMessageSentry(const char* data)
+  {
+    Sentry::Print(data);
+  }
+
   void Logger::NetworkLog(const char* data, bool gLog)
   {
     if (!data)
@@ -236,6 +241,15 @@ namespace Components
   {
     __asm
     {
+      // Keep the console output for crash reports.
+      pushad
+
+      push[esp + 28h] // data
+      call PrintMessageSentry
+      add esp, 4h
+
+      popad
+
       mov eax, PipeCallback
       test eax, eax
       jz returnPrint

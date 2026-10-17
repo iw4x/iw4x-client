@@ -3,6 +3,7 @@
 #include "Types.hpp"
 
 #include "Breadcrumb.hpp"
+#include "Console.hpp"
 #include "Context.hpp"
 #include "Diagnostic.hpp"
 #include "Options.hpp"
@@ -45,6 +46,12 @@ namespace Sentry
     void
     leave (trail, sentry_level_t, const std::string& message);
 
+    // Add console output to what we attach to reports. This may be called
+    // from any thread.
+    //
+    void
+    print (std::string_view);
+
     void
     shutdown ();
 
@@ -58,6 +65,15 @@ namespace Sentry
     static void
     recovered (const sentry_envelope_t*, void*);
 
+    static sentry_value_t
+    before_send (sentry_value_t event, void* hint, void* data);
+
+    // Write the console output we attach if it changed since. If wait is
+    // false, then give up rather than wait for another thread.
+    //
+    void
+    write_console (bool wait);
+
     logging_sink sink_;
     options options_;
     context ctx_;
@@ -65,5 +81,9 @@ namespace Sentry
 
     bool started_ {false};
     unsigned recovered_ {0};
+
+    console console_ {256 * 1024};
+    std::mutex console_mutex_;
+    uint64_t console_written_ {0}; // Under console_mutex_.
   };
 }

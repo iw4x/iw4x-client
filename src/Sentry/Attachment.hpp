@@ -31,6 +31,26 @@ namespace Sentry
   std::span<const snapshot>
   snapshots () noexcept;
 
+  // A file that we generate ourselves, such as the recent console output. It
+  // lives next to the snapshot copies.
+  //
+  struct generated
+  {
+    const char* name;
+    const char* content_type;
+  };
+
+  std::span<const generated>
+  generated_attachments () noexcept;
+
+  // Write a generated attachment, replacing the previous one. Return false if
+  // we couldn't.
+  //
+  bool
+  write_generated (const std::filesystem::path& database,
+                   const char* name,
+                   std::string_view data);
+
   void
   attach (const context&,
           const std::filesystem::path& base,

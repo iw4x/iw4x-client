@@ -12,7 +12,6 @@ namespace Sentry
   {
     constexpr attachment table[] =
     {
-      {"logs/console_mp.log", "text/plain"},
       {"zone-conversion.log", "text/plain"},
     };
 
@@ -33,11 +32,44 @@ namespace Sentry
 
     taken copies[std::size (snapshot_table)];
 
+    constexpr generated generated_table[] =
+    {
+      {"console.log", "text/plain"},
+    };
+
+    std::filesystem::path
+    prepared_path (const std::filesystem::path& database, const char* name)
+    {
+      return database / "attachments" / name;
+    }
+
     std::filesystem::path
     snapshot_path (const std::filesystem::path& database, const snapshot& s)
     {
-      return database / "attachments" / s.name;
+      return prepared_path (database, s.name);
     }
+  }
+
+  std::span<const generated>
+  generated_attachments () noexcept
+  {
+    return generated_table;
+  }
+
+  bool
+  write_generated (const std::filesystem::path& database,
+                   const char* name,
+                   std::string_view data)
+  {
+    const std::filesystem::path p (prepared_path (database, name));
+
+    std::error_code ec;
+    std::filesystem::create_directories (p.parent_path (), ec);
+
+    std::ofstream os (p, std::ios::binary | std::ios::trunc);
+    os.write (data.data (), static_cast<std::streamsize> (data.size ()));
+
+    return os.good ();
   }
 
   std::span<const snapshot>
@@ -132,6 +164,23 @@ namespace Sentry
       }
 
       sentry_attachment_set_content_type (h, s.content_type);
+    }
+
+    for (const generated& g: generated_attachments ())
+    {
+      const std::filesystem::path p (prepared_path (database, g.name));
+
+      sentry_attachment_t* h (sentry_attach_filew (p.c_str ()));
+
+      if (h == nullptr)
+      {
+        ctx.report (severity::warning, facility::attachment,
+                    errc::attachment_missing,
+                    std::format ("unable to attach {}", g.name));
+        continue;
+      }
+
+      sentry_attachment_set_content_type (h, g.content_type);
     }
 
     for (const attachment& a: attachments ())
