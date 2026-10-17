@@ -731,13 +731,13 @@ namespace Components
     //
     Game::Sys_EnterCriticalSection(Game::CRITSECT_CINEMATIC_TARGET_CHANGE_COMMAND);
 
-    Utils::Hook::Call<bool()>(0x51BFC0)(); // R_Cinematic_BinkClose
-    Utils::Hook::Set<char>(0x69F95F0, '\0'); // Current video name
-    Utils::Hook::Set<int>(0x69F95EC, 0); // Pending video
-    Utils::Hook::Set<void*>(0x69F98E8, nullptr); // Hunk base
-    Utils::Hook::Set<void*>(0x69F9A84, nullptr); // Hunk memory
+    Game::R_Cinematic_BinkClose();
+    *Game::cinematicCurrentName = '\0';
+    *Game::cinematicPendingStart = 0;
+    Game::cinematicHunk->base = nullptr;
+    *Game::cinematicMemory = nullptr;
 
-    Utils::Hook::Call<void(void*)>(0x4291A0)(memory); // free
+    Game::Z_Free(memory);
 
     Game::Sys_LeaveCriticalSection(Game::CRITSECT_CINEMATIC_TARGET_CHANGE_COMMAND);
   }

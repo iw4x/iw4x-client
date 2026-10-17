@@ -422,6 +422,9 @@ namespace Game
   typedef bool(*R_Cinematic_StartPlayback_Now_t)();
   extern R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now;
 
+  typedef bool(*R_Cinematic_BinkClose_t)();
+  extern R_Cinematic_BinkClose_t R_Cinematic_BinkClose;
+
   typedef void(*R_LoadGraphicsAssets_t)();
   extern R_LoadGraphicsAssets_t R_LoadGraphicsAssets;
 

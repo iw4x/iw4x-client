@@ -38,6 +38,11 @@ namespace Game
   WinVars_t* g_wv = reinterpret_cast<WinVars_t*>(0x64A3AC8);
   WinConData* s_wcd = reinterpret_cast<WinConData*>(0x64A3288);
 
+  char* cinematicCurrentName = reinterpret_cast<char*>(0x69F95F0);
+  int* cinematicPendingStart = reinterpret_cast<int*>(0x69F95EC);
+  CinematicHunk* cinematicHunk = reinterpret_cast<CinematicHunk*>(0x69F98E8);
+  void** cinematicMemory = reinterpret_cast<void**>(0x69F9A84);
+
   const char* origErrorMsg = reinterpret_cast<const char*>(0x79B124);
 
   XModel* G_GetModel(const int index)

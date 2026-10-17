@@ -83,6 +83,11 @@ namespace Game
   extern WinVars_t* g_wv;
   extern WinConData* s_wcd;
 
+  extern char* cinematicCurrentName;
+  extern int* cinematicPendingStart;
+  extern CinematicHunk* cinematicHunk;
+  extern void** cinematicMemory;
+
   extern const char* origErrorMsg;
 
   extern XModel* G_GetModel(int index);

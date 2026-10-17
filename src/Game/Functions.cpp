@@ -160,6 +160,7 @@ namespace Game
   R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = R_AddCmdDrawStretchPic_t(0x509770);
   R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = R_AllocStaticIndexBuffer_t(0x51E7A0);
   R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = R_Cinematic_StartPlayback_Now_t(0x51C5B0);
+  R_Cinematic_BinkClose_t R_Cinematic_BinkClose = R_Cinematic_BinkClose_t(0x51BFC0);
   R_RegisterFont_t R_RegisterFont = R_RegisterFont_t(0x505670);
   R_AddCmdDrawText_t R_AddCmdDrawText = R_AddCmdDrawText_t(0x509D80);
   R_AddCmdDrawConsoleText_t R_AddCmdDrawConsoleText = R_AddCmdDrawConsoleText_t(0x50A390);

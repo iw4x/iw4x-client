@@ -12109,6 +12109,13 @@ namespace Game
     FxEffectDef* fxs[256];
   };
 
+  struct CinematicHunk
+  {
+    void* base;
+    int atFront;
+    int end;
+  };
+
   struct WinConData
   {
     HWND hWnd;
