@@ -2,6 +2,7 @@
 #include "ConfigStrings.hpp"
 #include "Controller.hpp"
 #include "Events.hpp"
+#include "RawFiles.hpp"
 
 #include "../../Controller/Engine/Rumble.hpp"
 
@@ -544,13 +545,16 @@ namespace Components
     assert(graph);
     assert(rumbleFileName);
 
-    char buff[256]{};
+    // Size the buffer for whatever Com_LoadInfoString() may write into it.
+    // See RawFiles::LOAD_INFO_STRING_BUFFER_SIZE for details.
+    //
+    std::vector<char> buff(RawFiles::LOAD_INFO_STRING_BUFFER_SIZE);
     std::string path = std::format("rumble/{}", rumbleFileName);
 
     [[maybe_unused]] auto graphBefore = graph;
 
     strncpy(graph->graphName, rumbleFileName, 64);
-    auto data = Game::Com_LoadInfoString(path.data(), "rumble graph file", "RUMBLEGRAPHFILE", buff);
+    auto data = Game::Com_LoadInfoString(path.data(), "rumble graph file", "RUMBLEGRAPHFILE", buff.data());
 
     assert(graph == graphBefore);
 
@@ -618,10 +622,12 @@ namespace Components
     assert(rumbleName);
 
     std::string path = std::format("rumble/{}", rumbleName);
-    char buff[256]{}; // should be 64 but it ALWAYS goes overboard!
+    // As above.
+    //
+    std::vector<char> buff(RawFiles::LOAD_INFO_STRING_BUFFER_SIZE);
 
     [[maybe_unused]] auto infoPtr = info;
-    const char* str = Game::Com_LoadInfoString(path.data(), "rumble info file", "RUMBLE", buff);
+    const char* str = Game::Com_LoadInfoString(path.data(), "rumble info file", "RUMBLE", buff.data());
     assert(infoPtr == info);
 
     const std::string highRumbleFile = Game::Info_ValueForKey(str, "highRumbleFile");

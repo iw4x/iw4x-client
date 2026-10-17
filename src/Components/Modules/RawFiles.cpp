@@ -74,17 +74,29 @@ namespace Components
     }
 
     const auto identLen = static_cast<int>(std::strlen(ident));
+    if (fileLen < identLen || identLen >= static_cast<int>(LOAD_INFO_STRING_BUFFER_SIZE))
+    {
+      Game::FS_FCloseFile(fileHandle);
+      Game::Com_Error(Game::ERR_DROP, "\x15" "File [%s] is not a %s\n", fileName, fileDesc);
+      return nullptr;
+    }
+
     Game::FS_Read(loadBuffer, identLen, fileHandle);
     loadBuffer[identLen] = '\0';
 
     if (std::strncmp(loadBuffer, ident, identLen) != 0)
     {
+      Game::FS_FCloseFile(fileHandle);
       Game::Com_Error(Game::ERR_DROP, "\x15" "File [%s] is not a %s\n", fileName, fileDesc);
       return nullptr;
     }
 
-    if ((fileLen - identLen) >= 0x4000)
+    // Make sure the rest fits, terminator included. The caller's buffer is
+    // only LOAD_INFO_STRING_BUFFER_SIZE bytes.
+    //
+    if ((fileLen - identLen) >= static_cast<int>(LOAD_INFO_STRING_BUFFER_SIZE))
     {
+      Game::FS_FCloseFile(fileHandle);
       Game::Com_Error(Game::ERR_DROP, "\x15" "File [%s] is too long of a %s to parse\n", fileName, fileDesc);
       return nullptr;
     }

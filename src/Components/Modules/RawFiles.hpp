@@ -7,6 +7,13 @@ namespace Components
   public:
     RawFiles();
 
+    // The size of the loadBuffer every Com_LoadInfoString() caller must
+    // provide. The engine's own callers pass 0x2000-byte buffers and its
+    // fastfile path reads up to 0x2000 bytes, so our hook doesn't go past
+    // that either.
+    //
+    static constexpr std::size_t LOAD_INFO_STRING_BUFFER_SIZE = 0x2000;
+
     static char* ReadRawFile(const char* filename, char* buf, int size);
 
   private:
