@@ -252,6 +252,48 @@ namespace Components
     }, Scheduler::Pipeline::CLIENT);
   }
 
+  bool ServerList::MatchesFilter(const std::string& hostname)
+  {
+    // The lowered filter is cached since this is called once per server.
+    //
+    static std::string cachedFilter;
+    static std::string cachedNeedle;
+
+    const auto filter = Dvar::Var("ui_serverFilter").get<std::string>();
+
+    if (filter.empty())
+    {
+      return true;
+    }
+
+    if (filter != cachedFilter)
+    {
+      cachedFilter = filter;
+      cachedNeedle = Utils::String::ToLower(filter);
+    }
+
+    // Color codes and icons are deliberately not stripped: both sides are
+    // compared as the server sent them, so "iw4 abc" still finds "IW4 ^7abc"
+    // (the markup is just skipped over by the subsequence match below) and
+    // users can also search for a color or an icon.
+    //
+    const auto name = Utils::String::ToLower(hostname);
+
+    // This is the matching the console uses for its auto-complete with
+    // con_matchPrefixOnly disabled (0x4459E0): case-insensitive, and the typed
+    // characters have to occur in the candidate in order, but not necessarily
+    // next to each other.
+    //
+    auto next = cachedNeedle.begin();
+    for (const auto c : name)
+    {
+      if (next == cachedNeedle.end()) break;
+      if (c == *next) ++next;
+    }
+
+    return next == cachedNeedle.end();
+  }
+
   void ServerList::RefreshVisibleListInternal([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info, bool refresh)
   {
     Game::Dvar_SetBoolByName("ui_serverSelected", false);
@@ -300,6 +342,9 @@ namespace Components
 
       // Filter by gametype
       if (ui_joinGametype > 0 && (ui_joinGametype - 1) < *Game::gameTypeCount && Game::gameTypes[(ui_joinGametype - 1)].gameType != serverInfo->gametype) continue;
+
+      // Filter by server name
+      if (!MatchesFilter(serverInfo->hostname)) continue;
 
       VisibleList.push_back(i);
     }
@@ -1158,6 +1203,7 @@ namespace Components
     static Utils::Time::Interval cacheSaveInterval;
     static Utils::Time::Interval heartbeatInterval;
     static Utils::Time::Interval deadServerCheckInterval;
+    static std::string lastServerFilter;
     static bool wasOpen = false;
 
     // Skip update processing when the browser view is inactive.
@@ -1180,6 +1226,7 @@ namespace Components
     if (!wasOpen)
     {
       wasOpen = true;
+      lastServerFilter = Dvar::Var("ui_serverFilter").get<std::string>();
 
       auto* l (GetList ());
 
@@ -1199,6 +1246,19 @@ namespace Components
       // assumptions about prior activity, which tends to work until the one
       // time it doesn't.
       //
+      Scheduler::Once([]()
+      {
+        RefreshVisibleListInternal(UIScript::Token(), nullptr);
+      }, Scheduler::Pipeline::CLIENT);
+    }
+
+    // Live filtering. The filter dvar is edited from a popup, so rebuild the
+    // visible list as soon as its value changes.
+    //
+    if (auto filter = Dvar::Var("ui_serverFilter").get<std::string>(); filter != lastServerFilter)
+    {
+      lastServerFilter = std::move(filter);
+
       Scheduler::Once([]()
       {
         RefreshVisibleListInternal(UIScript::Token(), nullptr);
@@ -1452,6 +1512,9 @@ namespace Components
           1, 60, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Amount of server query frames per second");
         NETServerDeadTimeout = Dvar::Register<int>("net_serverDeadTimeout", 60,
           1, 604800, Dedicated::IsEnabled() ? Game::DVAR_NONE : Game::DVAR_ARCHIVE, "Seconds after which unresponsive servers are removed from cache");
+
+        Dvar::Register<const char*>("ui_serverFilter", "",
+          Game::DVAR_NONE, "Filter the server browser by server name");
       });
 
     // Fix ui_netsource dvar
