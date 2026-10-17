@@ -96,6 +96,7 @@ cto=30
 se_dsn=
 se_set=
 no_se=
+se_up=
 
 bcfg=
 
@@ -118,6 +119,7 @@ while test $# -ne 0; do
       diag "  --sentry-dsn <url>  Submit crash reports to this Sentry DSN."
       diag "  --sentry-file <f>   Load the Sentry configuration from this file (sentry.bash by default)."
       diag "  --no-sentry         Compile out crash reporting even if a DSN is configured."
+      diag "  --sentry-upload     Upload debug symbols and sources with sentry-cli after building."
       diag
       diag "By default this script will build the debug configuration."
       diag
@@ -203,6 +205,10 @@ while test $# -ne 0; do
       ;;
     --no-sentry)
       no_se=true
+      shift
+      ;;
+    --sentry-upload)
+      se_up=true
       shift
       ;;
     -*)
@@ -413,6 +419,10 @@ msvc_setup ()
 sentry_setup ()
 {
   if test "$no_se" = true; then
+    if test "$se_up" = true; then
+      error "--sentry-upload cannot be combined with --no-sentry"
+    fi
+
     se_dsn=
     se_txt="disabled (--no-sentry)"
     return
@@ -460,6 +470,81 @@ sentry_setup ()
     diag "info: no sentry dsn configured, crash reporting will be compiled out"
     diag "  info: run 'cp sentry.bash.example $se_file' and fill in the dsn to enable it"
   fi
+}
+
+# Check that we can upload the debug symbols before we spend time building.
+#
+# Note that this is done after sentry_setup() since the configuration file
+# may set the token.
+#
+sentry_upload_setup ()
+{
+  if test "$se_up" != true; then
+    return
+  fi
+
+  check_cmd sentry-cli "see https://docs.sentry.io/cli/installation/"
+
+  if test -z "${SENTRY_AUTH_TOKEN-}"; then
+    diag "error: no sentry auth token to upload debug symbols with"
+    diag "  info: set SENTRY_AUTH_TOKEN in $se_file or in the environment"
+    fail
+  fi
+}
+
+# Upload the debug symbols of the build, along with the sources they refer to,
+# so that Sentry can symbolicate its reports and show the code around each
+# frame.
+#
+# The PDBs refer to the sources by their path under Wine (Z:\home\...), which
+# sentry-cli can't open since it runs natively. However, a path that doesn't
+# start with / is relative to the current directory and, on Linux, a backslash
+# is just another character in a file name. So we create a directory with an
+# entry named after each such path, linking to the actual file, and run
+# sentry-cli from there.
+#
+upload_symbols ()
+{
+  diag "info: uploading debug symbols to sentry"
+
+  bd="$owd/build/bin/Win32/$cfg"
+  sd="$(mktemp -d)"
+
+  if test -z "$sd"; then
+    error "unable to create temporary directory"
+  fi
+
+  # Map each Z: path (the root of the Linux filesystem under Wine) back to
+  # the file it refers to. We skip what doesn't exist here, such as the
+  # sources of the CRT (which refer to Microsoft's build machines).
+  #
+  # Note that we only look at the PDBs of the modules: the others belong to
+  # static libraries, whose code is in the PDB of the module they are linked
+  # into.
+  #
+  for m in "$bd"/*.dll "$bd"/*.exe; do
+    p="${m%.*}.pdb"
+
+    if test -f "$p"; then
+      sentry-cli debug-files print-sources "$p"
+    fi
+  done | sed -n 's/^  \([Zz]:\\.*\)$/\1/p' | sort -u |
+  while IFS= read -r w; do
+    # shellcheck disable=SC1003
+    f="/$(printf '%s' "$w" | cut -c4- | tr '\\' '/')"
+
+    if test -f "$f" && ! test -e "$sd/$w"; then
+      ln -s "$f" "$sd/$w"
+    fi
+  done
+
+  # shellcheck disable=SC2164
+  run cd "$sd"
+  run sentry-cli debug-files upload --include-sources "$bd"
+
+  # shellcheck disable=SC2164
+  run cd "$owd"
+  run rm -rf "$sd"
 }
 
 gen_info ()
@@ -673,6 +758,10 @@ build ()
   gen_bbuild
   compile
 
+  if test "$se_up" = true; then
+    upload_symbols
+  fi
+
   diag
   diag "-------------------------------------------------------------------------"
   diag
@@ -725,6 +814,10 @@ bootstrap ()
   gen_bbuild
   compile
 
+  if test "$se_up" = true; then
+    upload_symbols
+  fi
+
   diag
   diag "-------------------------------------------------------------------------"
   diag
@@ -740,6 +833,7 @@ bootstrap ()
 main ()
 {
   sentry_setup
+  sentry_upload_setup
 
   if check_env; then
     build
