@@ -96,7 +96,7 @@ namespace Sentry
       {
         ctx.report (severity::warning, facility::attachment,
                     errc::attachment_missing,
-                    std::format ("{} could not be copied", s.name));
+                    std::format ("unable to write {}", t.string ()));
         continue;
       }
 
@@ -127,7 +127,7 @@ namespace Sentry
       {
         ctx.report (severity::warning, facility::attachment,
                     errc::attachment_missing,
-                    std::format ("{} could not be attached", s.name));
+                    std::format ("unable to attach {}", s.name));
         continue;
       }
 
@@ -144,7 +144,7 @@ namespace Sentry
       {
         ctx.report (severity::warning, facility::attachment,
                     errc::attachment_missing,
-                    std::format ("{} could not be attached", a.relative_path));
+                    std::format ("unable to attach {}", a.relative_path));
         continue;
       }
 
