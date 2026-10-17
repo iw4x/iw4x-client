@@ -24,7 +24,10 @@ namespace Sentry
     std::chrono::milliseconds refresh_interval {5000};
 
     bool debug {false};
-    bool sessions {true};
+    // Session tracking reports every run, crash or not, which is not
+    // something we send without asking.
+    //
+    bool sessions {false};
 
     bool
     configured () const noexcept {return !dsn.empty ();}
