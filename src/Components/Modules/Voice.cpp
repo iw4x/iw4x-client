@@ -370,7 +370,11 @@ namespace Components
   void Voice::CL_VoicePacket(Game::netadr_t* address, Game::msg_t* msg)
   {
     auto* clc = Game::CL_GetLocalClientConnection(0);
-    if (!Game::NET_CompareBaseAdr(clc->serverAddress, *address))
+
+    // Compare the full address (including the port), not just the IP, and
+    // only while we are actually connected.
+    //
+    if (Game::CL_GetLocalClientConnectionState(0) < Game::CA_CONNECTED || !Game::NET_CompareAdr(clc->serverAddress, *address))
     {
       Logger::Debug("Ignoring stray 'v' network message from '{}'", Game::NET_AdrToString(*address));
       return;
