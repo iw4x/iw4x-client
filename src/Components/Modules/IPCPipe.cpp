@@ -60,7 +60,10 @@ namespace Components
     this->type = IPCTYPE_SERVER;
     this->setName(name);
 
-    this->pipe = CreateNamedPipeA(this->pipeFile, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, sizeof(this->packet), sizeof(this->packet), NMPWAIT_USE_DEFAULT_WAIT, nullptr);
+    // Note that with FILE_FLAG_FIRST_PIPE_INSTANCE we fail rather than join a
+    // pipe (and its security descriptor) that someone else created first.
+    //
+    this->pipe = CreateNamedPipeA(this->pipeFile, PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS, PIPE_UNLIMITED_INSTANCES, sizeof(this->packet), sizeof(this->packet), NMPWAIT_USE_DEFAULT_WAIT, nullptr);
 
     if (INVALID_HANDLE_VALUE != this->pipe && this->pipe)
     {
