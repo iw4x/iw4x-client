@@ -50,12 +50,30 @@ namespace Components
 
   void Playlist::PlaylistRequest(const Network::Address& address, [[maybe_unused]] const std::string& data)
   {
+    // Addresses that recently sent a wrong password, with the time they did.
+    // We throttle them so that this can't be used as a fast password oracle.
+    //
+    static std::unordered_map<std::uint32_t, int> failedRequests;
+    constexpr auto failedRequestTimeout = 1000;
+
     const auto* password = *Game::g_password ? (*Game::g_password)->current.string : "";
 
     if (*password)
     {
-      if (password != data)
+      const auto time = Game::Sys_Milliseconds();
+      const auto ip = address.getIP().full;
+
+      if (const auto itr = failedRequests.find(ip); itr != failedRequests.end() && (time - itr->second) < failedRequestTimeout)
       {
+        return; // Flooding.
+      }
+
+      if (!Utils::Cryptography::CompareConstantTime(password, data))
+      {
+        std::erase_if(failedRequests, [&](const auto& entry) { return (time - entry.second) >= failedRequestTimeout; });
+        failedRequests[ip] = time;
+
+        Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
         Network::SendCommand(address, "playlistInvalidPassword");
         return;
       }
