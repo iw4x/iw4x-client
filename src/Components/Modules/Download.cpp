@@ -228,6 +228,16 @@ namespace Components
 
     Utils::WebIO webIO;
     webIO.setMaxResponseSize(std::max<std::size_t>(file.size, 1)); // Zero would mean no limit.
+    webIO.setFollowRedirects(false);
+
+    // The fasthost is chosen by the server, so don't let it point us at
+    // loopback or LAN services, unless the game server itself is on such a
+    // network.
+    //
+    if (SV_wwwDownload.get<bool>() && !download->target_.isLocal() && !download->target_.isLoopback())
+    {
+      webIO.setAllowPrivateHosts(false);
+    }
 
     webIO.setProgressCallback([&fDownload, &webIO](std::size_t bytes, std::size_t)
     {
@@ -294,7 +304,7 @@ namespace Components
 
     const auto listUrl = host + (download->isMap_ ? "/map" : "/list") + (download->isPrivate_ ? ("?password=" + download->hashedPassword_) : "");
 
-    const auto list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->setMaxResponseSize(MAX_MOD_LIST_SIZE)->get();
+    const auto list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->setMaxResponseSize(MAX_MOD_LIST_SIZE)->setFollowRedirects(false)->get();
     if (list.empty())
     {
       if (download->terminateThread_) return;

@@ -1,4 +1,7 @@
 #include <Shlwapi.h>
+#include <ws2tcpip.h>
+
+#pragma comment(lib, "ws2_32.lib")
 
 #include "WebIO.hpp"
 
@@ -11,7 +14,7 @@ namespace Utils
     this->setURL(url);
   }
 
-  WebIO::WebIO(const std::string& useragent) : cancel_(false), hSession_(nullptr), timeout_(5000), maxResponseSize_(0)  // 5 seconds timeout by default
+  WebIO::WebIO(const std::string& useragent) : cancel_(false), hSession_(nullptr), timeout_(5000), maxResponseSize_(0), followRedirects_(true), allowPrivateHosts_(true)  // 5 seconds timeout by default
   {
     this->openSession(useragent);
   }
@@ -259,14 +262,90 @@ namespace Utils
     return this;
   }
 
+  WebIO* WebIO::setFollowRedirects(bool follow)
+  {
+    this->followRedirects_ = follow;
+    return this;
+  }
+
+  WebIO* WebIO::setAllowPrivateHosts(bool allow)
+  {
+    this->allowPrivateHosts_ = allow;
+    return this;
+  }
+
+  bool WebIO::IsPrivateHost(const std::string& host)
+  {
+    if (host.empty()) return true;
+
+    addrinfo hints{};
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    addrinfo* result = nullptr;
+    if (getaddrinfo(host.data(), nullptr, &hints, &result) != 0 || !result)
+    {
+      // If we can't resolve it, we can't tell where it would go, so fail
+      // closed.
+      //
+      return true;
+    }
+
+    auto isPrivate = false;
+    for (const auto* info = result; info && !isPrivate; info = info->ai_next)
+    {
+      if (info->ai_family == AF_INET && info->ai_addr)
+      {
+        const auto* bytes = reinterpret_cast<const std::uint8_t*>(&reinterpret_cast<const sockaddr_in*>(info->ai_addr)->sin_addr);
+        isPrivate = bytes[0] == 0                                        // 0.0.0.0/8
+          || bytes[0] == 10                                              // 10.0.0.0/8
+          || bytes[0] == 127                                             // 127.0.0.0/8
+          || (bytes[0] == 100 && bytes[1] >= 64 && bytes[1] < 128)       // 100.64.0.0/10
+          || (bytes[0] == 169 && bytes[1] == 254)                        // 169.254.0.0/16
+          || (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] < 32)        // 172.16.0.0/12
+          || (bytes[0] == 192 && bytes[1] == 168)                        // 192.168.0.0/16
+          || bytes[0] >= 224;                                            // Multicast and reserved.
+      }
+      else if (info->ai_family == AF_INET6 && info->ai_addr)
+      {
+        const auto* bytes = reinterpret_cast<const sockaddr_in6*>(info->ai_addr)->sin6_addr.u.Byte;
+
+        static const std::uint8_t loopback[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+        static const std::uint8_t unspecified[16] = {};
+        static const std::uint8_t v4Mapped[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF };
+
+        isPrivate = !std::memcmp(bytes, loopback, sizeof(loopback))
+          || !std::memcmp(bytes, unspecified, sizeof(unspecified))
+          || !std::memcmp(bytes, v4Mapped, sizeof(v4Mapped))             // Mapped, don't bother.
+          || (bytes[0] & 0xFE) == 0xFC                                   // fc00::/7 unique local.
+          || (bytes[0] == 0xFE && (bytes[1] & 0xC0) == 0x80)             // fe80::/10 link-local.
+          || (bytes[0] == 0xFE && (bytes[1] & 0xC0) == 0xC0)             // fec0::/10 site-local.
+          || bytes[0] == 0xFF;                                           // Multicast.
+      }
+      else
+      {
+        isPrivate = true;
+      }
+    }
+
+    freeaddrinfo(result);
+    return isPrivate;
+  }
+
   std::string WebIO::execute(const char* command, const std::string& body, const params& headers, bool* success)
   {
     if (success) *success = false;
+
+    // Refuse private hosts if asked to. Note that WinINet resolves the host
+    // again when it connects, so this doesn't protect against DNS rebinding.
+    //
+    if (!this->allowPrivateHosts_ && IsPrivateHost(this->url_.server)) return {};
+
     if (!this->openConnection()) return {};
 
     static const char* acceptTypes[] = { "application/x-www-form-urlencoded", "application/json", nullptr };
 
-    DWORD dwFlag = INTERNET_FLAG_RELOAD | (this->isSecuredConnection() ? INTERNET_FLAG_SECURE : 0);
+    DWORD dwFlag = INTERNET_FLAG_RELOAD | (this->isSecuredConnection() ? INTERNET_FLAG_SECURE : 0) | (this->followRedirects_ ? 0 : INTERNET_FLAG_NO_AUTO_REDIRECT);
 
     InternetSetOptionA(this->hConnect_, INTERNET_OPTION_CONNECT_TIMEOUT, &this->timeout_, sizeof(this->timeout_));
     InternetSetOptionA(this->hConnect_, INTERNET_OPTION_RECEIVE_TIMEOUT, &this->timeout_, sizeof(this->timeout_));
