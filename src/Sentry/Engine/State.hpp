@@ -81,6 +81,20 @@ namespace Sentry
     std::string
     server_version ();
 
+    // The following describe the server we are hosting, if any.
+    //
+    std::string
+    players ();
+
+    std::string
+    bots ();
+
+    std::string
+    max_players ();
+
+    std::string
+    rotation ();
+
     std::string
     display_mode ();
 
