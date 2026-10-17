@@ -691,7 +691,7 @@ namespace Components
       {
         auto filename = path / file;
 
-        if (file.find("_svr_") != std::string::npos) // Files that are 'server only' are skipped
+        if (Utils::String::ToLower(file).find("_svr_") != std::string::npos) // Files that are 'server only' are skipped
         {
           continue;
         }
@@ -832,7 +832,10 @@ namespace Components
     }
     else
     {
-      if ((!url.ends_with(".iwd") && url != "mod.ff") || url.find("_svr_") != std::string::npos)
+      // The filesystem is case-insensitive, so the server-only check has to
+      // be as well.
+      //
+      if ((!url.ends_with(".iwd") && url != "mod.ff") || Utils::String::ToLower(url).find("_svr_") != std::string::npos)
       {
         ReplyError(c, 403);
         return {};
