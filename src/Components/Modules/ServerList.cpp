@@ -1449,21 +1449,34 @@ namespace Components
 
         std::lock_guard _(RefreshContainer.mutex);
 
-        auto offset = 0;
+        std::size_t offset = 0;
         const auto count = RefreshContainer.servers.size();
-        MasterEntry* entry;
+
+        // Return the entry at the specified offset or nullptr if it would go
+        // past the end of the packet.
+        //
+        const auto entryAt = [&data](const std::size_t at) -> const MasterEntry*
+        {
+          if (at > data.size() || data.size() - at < sizeof(MasterEntry))
+          {
+            return nullptr;
+          }
+
+          return reinterpret_cast<const MasterEntry*>(data.data() + at);
+        };
 
         // Find first entry
-        do
+        const MasterEntry* entry;
+        while ((entry = entryAt(offset)) != nullptr && !entry->HasSeparator() && !entry->IsEndToken())
         {
-          entry = reinterpret_cast<MasterEntry*>(const_cast<char*>(data.data()) + offset++);
-        } while (!entry->HasSeparator() && !entry->IsEndToken());
+          ++offset;
+        }
 
-        for (int i = 0; !entry[i].IsEndToken() && entry[i].HasSeparator(); ++i)
+        for (; (entry = entryAt(offset)) != nullptr && !entry->IsEndToken() && entry->HasSeparator(); offset += sizeof(MasterEntry))
         {
           Network::Address serverAddr = address;
-          serverAddr.setIP(entry[i].ip);
-          serverAddr.setPort(ntohs(entry[i].port));
+          serverAddr.setIP(entry->ip);
+          serverAddr.setPort(ntohs(entry->port));
           serverAddr.setType(Game::NA_IP);
 
           InsertRequest(serverAddr);
