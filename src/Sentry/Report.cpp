@@ -8,15 +8,14 @@ namespace Sentry
 {
   namespace
   {
-    // Relay (Sentry's ingestion service) by default rejects an envelope over
-    // 200 MiB, which also bounds every attachment in it. Keep some room for
-    // the event and the item headers.
+    // Our Sentry server (iw4x/self-hosted) rejects a request over 1 GiB, both
+    // in nginx and in Relay, which also bounds every attachment in it. Keep
+    // some room for the event and the item headers.
     //
-    // Note that sentry.io also rejects a compressed request over 40 MB, which
-    // fastfiles, being compressed already, will mostly hit first. A
-    // self-hosted Relay can raise all of this (see its limits section).
+    // Note that this has to stay in sync with the server: what we send over
+    // its limit is dropped there, with nothing to show for it here.
     //
-    constexpr std::uintmax_t attachments_limit (199 * 1024 * 1024);
+    constexpr std::uintmax_t attachments_limit (1023 * 1024 * 1024);
 
     // Close a Windows handle when it goes out of scope.
     //
