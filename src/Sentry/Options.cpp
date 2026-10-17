@@ -25,7 +25,16 @@ namespace Sentry
     std::string
     environment ()
     {
-      const std::string b (engine::branch ());
+      std::string b (engine::branch ());
+
+      // A release is built from a tag, in which case all we know is the
+      // remote branch it is on (say, origin/main). Note also that Sentry
+      // drops an environment with a slash in its name.
+      //
+      if (b.starts_with ("origin/"))
+        b.erase (0, 7);
+
+      std::ranges::replace (b, '/', '-');
 
       if (b.empty ())
         return "unknown";
