@@ -207,7 +207,18 @@ namespace Components
     va_end(ap);
 
     const auto time = Game::level->time / 1000;
-    const auto len = sprintf_s(string, "%3i:%i%i %s", time / 60, time % 60 / 10, time % 60 % 10, string2);
+    // Format the line, truncating if necessary. The prefix plus a message of
+    // up to 1023 characters may not fit, and sprintf_s() would invoke the
+    // invalid parameter handler (and terminate us) in that case.
+    //
+    if (_snprintf_s(string, _TRUNCATE, "%3i:%i%i %s", time / 60, time % 60 / 10, time % 60 % 10, string2) < 0)
+    {
+      // Keep the line terminated.
+      //
+      string[sizeof(string) - 2] = '\n';
+    }
+
+    const auto len = static_cast<int>(std::strlen(string));
 
     if (Game::level->logFile)
     {
