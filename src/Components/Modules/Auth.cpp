@@ -384,6 +384,29 @@ namespace Components
     }
   }
 
+  const char* Auth::ProtocolMismatchMessage(const int clientProtocol)
+  {
+    // Tell the player what to do about it. Note that we can't say which side
+    // is out of date: the protocol number went down once (0x96 to 0x95 in
+    // 2020, see 9047e7be), so a higher number doesn't necessarily mean a newer
+    // version. So we cover both cases instead.
+    //
+    return Utils::String::VA("error\n\x15Your IW4x version does not match this server's (protocol %i, server %i). "
+                             "Update IW4x and try again. If you are already on the latest version, the server is out of date.\n",
+                             clientProtocol, PROTOCOL);
+  }
+
+  __declspec(naked) void Auth::ProtocolMismatchStub()
+  {
+    __asm
+    {
+      push esi // Client protocol, as parsed by SV_DirectConnect.
+      call ProtocolMismatchMessage
+      add esp, 4
+      retn
+    }
+  }
+
   char* Auth::Info_ValueForKeyStub(const char* s, const char* key)
   {
     auto* value = Game::Info_ValueForKey(s, key);
@@ -702,6 +725,13 @@ namespace Components
     Utils::Hook(0x460EF5, Info_ValueForKeyStub, HOOK_CALL).install()->quick();
     Utils::Hook(0x460FAD, DirectConnectPrivateClientStub, HOOK_JUMP).install()->quick();
     Utils::Hook::Nop(0x460FAD + 5, 1);
+
+    // Replace the protocol mismatch error SV_DirectConnect sends. Its stock
+    // message is EXE_SERVER_IS_DIFFERENT_VER with a hardcoded "1.0" argument,
+    // which tells the player nothing. We keep the engine's check and only
+    // change what it says.
+    //
+    Utils::Hook(0x46058E, ProtocolMismatchStub, HOOK_CALL).install()->quick();
 
     Utils::Hook(0x41D3E3, SendConnectDataStub, HOOK_CALL).install()->quick();
 
