@@ -306,13 +306,16 @@ namespace Components
 
     const auto logError = [&](const std::string& view)
       {
+        // Note that view may contain server-supplied text, so we never use it
+        // as a format string.
+        //
         if ((*Game::sv_running)->current.value)
         {
-          Components::Logger::Error(Game::ERR_DROP, view);
+          Components::Logger::Error(Game::ERR_DROP, "{}", view);
         }
         else
         {
-          Components::Logger::Warning(Game::CON_CHANNEL_SCRIPT, view);
+          Components::Logger::Warning(Game::CON_CHANNEL_SCRIPT, "{}", view);
         }
       };
 
