@@ -265,7 +265,20 @@ namespace Components
       return;
     }
 
-    cl->lastPacketTime = *Game::svs_time;
+    // Make sure the full address (including the port) matches. Voice is sent
+    // from the same socket as the netchan, so a legitimate client always
+    // passes this.
+    //
+    // Note also that the packet carries no authenticator, so we no longer let
+    // it refresh lastPacketTime and keep the client alive.
+    //
+    // @@ Fully authenticating voice requires a protocol change.
+    //
+    if (!Game::NET_CompareAdr(from, cl->header.netchan.remoteAddress))
+    {
+      return;
+    }
+
     if (cl->header.state < Game::CS_ACTIVE)
     {
       SV_PreGameUserVoice(cl, msg);
