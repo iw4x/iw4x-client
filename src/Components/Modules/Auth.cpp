@@ -320,6 +320,26 @@ namespace Components
         return;
       }
 
+      // Make sure the other identity fields match the certificate as well.
+      //
+      // The engine also takes the player GUID from argv[1] (its first 16
+      // characters) and client_t::steamID from the 'steamid' key. Legitimate
+      // clients fill both from the same id as 'xuid', so anything else is a
+      // spoofing attempt.
+      //
+      {
+        const auto playerGuid = std::string(params.get(1)).substr(0, 16);
+        const std::string steamIdKey = Game::Info_ValueForKey(userInfo.data(), "steamid");
+
+        std::uint64_t steamIdValue{};
+        if (playerGuid != std::format("{:016x}", xuid) || !ParseEngineId(steamIdKey, true, &steamIdValue) || steamIdValue != xuid)
+        {
+          Logger::PrintFail2Ban("Failed connect attempt from IP address: {}\n", Network::AdrToString(address));
+          Network::Send(address, "error\nConnect identity doesn't match the certificate!");
+          return;
+        }
+      }
+
       // Verify the signature
       Utils::Cryptography::ECC::Key key;
       key.set(connectData.publickey());
