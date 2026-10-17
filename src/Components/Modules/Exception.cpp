@@ -160,8 +160,21 @@ namespace Components
     return Utils::String::Convert(result.str());
   }
 
+  // The only link we let the crash dialog open.
+  //
+  static std::wstring CrashDumpFolderLink;
+
   void Exception::DisplayErrorMessage(const std::wstring& title, const std::wstring& message, const std::string& crashDumpFolder)
   {
+    CrashDumpFolderLink = Utils::String::Convert(crashDumpFolder);
+
+    // Defuse any markup in the message. It contains server-controlled text
+    // (host name, map name, etc), and we don't want that to create hyperlinks.
+    //
+    std::wstring content = message;
+    std::ranges::replace(content, L'<', L'(');
+    std::ranges::replace(content, L'>', L')');
+
     const std::wstring footerText = std::format(
       L"Check the official repository for additional support.\n"
       L"Open the <a href=\"{}\">Crash Dump Folder</a> (and share these files with the support team).",
@@ -174,7 +187,7 @@ namespace Components
     taskDialogConfig.pszWindowTitle     = L"Unhandled Exception";
     taskDialogConfig.pszMainIcon        = MAKEINTRESOURCEW(-7); // Red bar with a shield icon
     taskDialogConfig.pszMainInstruction = title.c_str();
-    taskDialogConfig.pszContent         = message.c_str();
+    taskDialogConfig.pszContent         = content.c_str();
     taskDialogConfig.dwCommonButtons    = TDCBF_YES_BUTTON | TDCBF_NO_BUTTON;
     taskDialogConfig.nDefaultButton     = IDYES;
     taskDialogConfig.pszFooterIcon      = TD_INFORMATION_ICON;
@@ -193,7 +206,10 @@ namespace Components
     if (notification == TDN_HYPERLINK_CLICKED)
     {
       const wchar_t* link = reinterpret_cast<const wchar_t*>(lParam);
-      Utils::OpenUrl(Utils::String::Convert(link));
+      if (link && link == CrashDumpFolderLink)
+      {
+        Utils::OpenUrl(Utils::String::Convert(link));
+      }
     }
 
     if (notification == TDN_BUTTON_CLICKED)
