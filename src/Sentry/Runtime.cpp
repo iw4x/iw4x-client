@@ -91,6 +91,16 @@ namespace Sentry
                                 "process will go unreported",
                                 options_.daemon.string ()));
 
+    // Note that we hand the reporter over even if it is missing: the daemon
+    // then fails to launch it and drops the report, which is what we want
+    // since crashes are only sent once the player agrees to it.
+    //
+    if (!std::filesystem::exists (options_.reporter))
+      ctx_.report (severity::warning, facility::daemon, errc::reporter_missing,
+                   std::format ("{} is missing, so crashes that end the "
+                                "process will go unreported",
+                                options_.reporter.string ()));
+
     sentry_options_t* o (sentry_options_new ());
 
     sentry_options_set_dsn (o, options_.dsn.c_str ());
@@ -100,6 +110,8 @@ namespace Sentry
 
     sentry_options_set_database_pathw (o, options_.database.c_str ());
     sentry_options_set_handler_pathw (o, options_.daemon.c_str ());
+    sentry_options_set_external_crash_reporter_pathw (
+      o, options_.reporter.c_str ());
 
     sentry_options_set_crash_reporting_mode (o, options_.reporting);
     sentry_options_set_minidump_mode (o, options_.minidump);

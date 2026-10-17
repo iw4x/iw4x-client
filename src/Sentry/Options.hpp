@@ -13,6 +13,7 @@ namespace Sentry
 
     std::filesystem::path database;
     std::filesystem::path daemon;
+    std::filesystem::path reporter;
 
     sentry_minidump_mode_t minidump {SENTRY_MINIDUMP_MODE_SMART};
     sentry_crash_reporting_mode_t reporting {

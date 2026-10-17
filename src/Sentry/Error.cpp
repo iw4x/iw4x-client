@@ -11,6 +11,7 @@ namespace Sentry
     case errc::not_configured:        return "not-configured";
     case errc::already_started:       return "already-started";
     case errc::daemon_missing:        return "daemon-missing";
+    case errc::reporter_missing:      return "reporter-missing";
     case errc::database_unusable:     return "database-unusable";
     case errc::initialization_failed: return "initialization-failed";
     case errc::shutdown_failed:       return "shutdown-failed";

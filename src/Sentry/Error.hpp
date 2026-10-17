@@ -12,6 +12,7 @@ namespace Sentry
     already_started,
 
     daemon_missing,
+    reporter_missing,
     database_unusable,
 
     initialization_failed,

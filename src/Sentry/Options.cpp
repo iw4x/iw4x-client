@@ -83,6 +83,14 @@ namespace Sentry
     o.database = engine::base_path () / "sentry";
     o.daemon = module_directory () / "sentry-crash.exe";
 
+    // The Windows build of the crash reporter doesn't start under Wine, so
+    // there we launch the native Linux build through a script that Wine can
+    // execute directly.
+    //
+    o.reporter = Utils::IsWineEnvironment ()
+      ? engine::base_path () / "linux" / "crash-reporter"
+      : engine::base_path () / "crash-reporter" / "Sentry.CrashReporter.exe";
+
     o.minidump = minidump ();
     o.debug = Components::Flags::HasFlag ("sentrydebug");
 
