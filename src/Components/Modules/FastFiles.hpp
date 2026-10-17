@@ -11,6 +11,10 @@ namespace Components
     static std::string Current();
     static bool Ready();
     static bool Exists(const std::string& file);
+    // Return true if zone ships with the install (or the current mod), in
+    // which case a usermap must never be allowed to take its name.
+    //
+    static bool IsInstalledZone(const std::string& zone);
 
     static void LoadLocalizeZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
 
@@ -44,6 +48,7 @@ namespace Components
 
     static Key CurrentKey;
     static std::vector<std::string> ZonePaths;
+    static std::optional<std::string> GetInstalledZoneLocation(const char* file);
     static const char* GetZoneLocation(const char* file);
     static void LoadInitialZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);
     static void LoadDLCUIZones(Game::XZoneInfo *zoneInfo, unsigned int zoneCount, int sync);

@@ -3,6 +3,7 @@
 #include "Party.hpp"
 #include "Auth.hpp"
 #include "Download.hpp"
+#include "FastFiles.hpp"
 #include "Friends.hpp"
 #include "Controller.hpp"
 #include "ModList.hpp"
@@ -587,6 +588,15 @@ namespace Components
           }
           else if (isUsermap && usermapHash != Maps::GetUsermapHash(info.get("mapname")))
           {
+            // Make sure the usermap doesn't take the name of a zone that ships
+            // with the game. See FastFiles::GetZoneLocation() for details.
+            //
+            if (FastFiles::IsInstalledZone(info.get("mapname")))
+            {
+              ConnectError("Invalid join response: Usermap name collides with an installed zone.");
+              return;
+            }
+
             Command::Execute("closemenu popup_reconnectingtoparty");
             Download::InitiateMapDownload(info.get("mapname"), info.get("isPrivate") == "1");
           }
