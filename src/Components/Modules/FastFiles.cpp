@@ -1,6 +1,7 @@
 #include <zlib.h>
 
 #include "FastFiles.hpp"
+#include "Sentry.hpp"
 
 namespace Components
 {
@@ -366,6 +367,8 @@ namespace Components
 
   void FastFiles::ReadHeaderStub(unsigned int* header, int size)
   {
+    Sentry::Leave(::Sentry::trail::fastfile, SENTRY_LEVEL_INFO, std::format("loading fastfile {}", FastFiles::Current()));
+
     FastFiles::IsIW4xZone = false;
     FastFiles::LastByteRead = 0;
     Game::DB_ReadXFileUncompressed(header, size);
