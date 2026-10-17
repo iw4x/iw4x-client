@@ -16,6 +16,7 @@ namespace Sentry
       {"iw4x.build",    placement::tag, nullptr, engine::build_configuration, false},
       {"iw4x.role",     placement::tag, nullptr, engine::role,                true },
       {"iw4x.wine",     placement::tag, nullptr, engine::wine,                false},
+      {"iw4x.rawfiles", placement::tag, nullptr, [] {return engine::installed ("rawfiles");}, false},
       {"game.mod",      placement::tag, nullptr, engine::mod,                 true },
       {"game.modded",   placement::tag, nullptr, engine::modded,              false},
       {"game.map",      placement::tag, nullptr, engine::map,                 true },
@@ -44,6 +45,17 @@ namespace Sentry
       {"name",    placement::context, "server", engine::server_name,    false},
       {"address", placement::context, "server", engine::server_address, false},
       {"version", placement::context, "server", engine::server_version, false},
+
+      // What the launcher installed. Note that the client it installed isn't
+      // necessarily the one running (iw4x.version), such as with a
+      // development build.
+      //
+      {"client",     placement::context, "launcher", [] {return engine::installed ("client");},     false},
+      {"rawfiles",   placement::context, "launcher", [] {return engine::installed ("rawfiles");},   false},
+      {"dlc",        placement::context, "launcher", [] {return engine::installed ("dlc");},        false},
+      {"launcher",   placement::context, "launcher", [] {return engine::installed ("launcher");},   false},
+      {"client_x64", placement::context, "launcher", [] {return engine::installed ("client-x64");}, false},
+      {"assets_x64", placement::context, "launcher", [] {return engine::installed ("assets-x64");}, false},
 
       {"mode",         placement::context, "display", engine::display_mode, false},
       {"fullscreen",   placement::context, "display", engine::fullscreen,   false},
