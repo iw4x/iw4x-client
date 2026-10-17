@@ -44,6 +44,19 @@ namespace Components
 
       return errorClasses[0];
     }
+
+    // Sys_Error shows the error in a dialog and then keeps the game around
+    // until it is closed, which is neither a freeze nor something that goes
+    // through Com_Error. So capture it ourselves before showing the dialog.
+    //
+    int ShowErrorDialog(const char* message)
+    {
+      sentry_app_hang_pause();
+
+      theRuntime->capture(SENTRY_LEVEL_FATAL, "sys_error", message);
+
+      return Utils::Hook::Call<int(const char*)>(0x433940)(message);
+    }
   }
 
   ::Sentry::runtime* Sentry::Runtime()
@@ -134,6 +147,8 @@ namespace Components
         theRuntime->heartbeat();
       }
     }, Scheduler::Pipeline::MAIN, 1s);
+
+    Utils::Hook(0x43D5DF, ShowErrorDialog, HOOK_CALL).install()->quick(); // Sys_Error
 
     Scheduler::OnGameShutdown([]
     {
