@@ -12,6 +12,9 @@ namespace Components
 
   std::string RCon::Password;
 
+  int RCon::FailedWindowStart;
+  int RCon::FailedWindowCount;
+
   Dvar::Var RCon::RConPassword;
   Dvar::Var RCon::RConLogRequests;
   Dvar::Var RCon::RConTimeout;
@@ -179,8 +182,32 @@ namespace Components
       return;
     }
 
-    if (svPassword != password)
+    // Enforce a global budget for failed attempts. The per-address limit
+    // alone can be bypassed with many (or spoofed) addresses. Note that during
+    // such an attack this also locks out legitimate requests, which feels like
+    // the lesser evil.
+    //
+    constexpr auto failedWindowLength = 1000;
+    constexpr auto maxFailedPerWindow = 10;
+
+    const auto time = Game::Sys_Milliseconds();
+    if ((time - FailedWindowStart) >= failedWindowLength)
     {
+      FailedWindowStart = time;
+      FailedWindowCount = 0;
+    }
+
+    if (FailedWindowCount >= maxFailedPerWindow)
+    {
+      Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
+      Logger::Print(Game::CON_CHANNEL_NETWORK, "RCon request from {} dropped. Too many failed attempts!\n", Network::AdrToString(address));
+      return;
+    }
+
+    if (!Utils::Cryptography::CompareConstantTime(svPassword, password))
+    {
+      ++FailedWindowCount;
+
       Logger::PrintFail2Ban("Invalid packet from IP address: {}\n", Network::AdrToString(address));
       Logger::Print(Game::CON_CHANNEL_NETWORK, "Invalid RCon password sent from {}\n", Network::AdrToString(address));
       return;

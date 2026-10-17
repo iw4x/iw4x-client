@@ -43,6 +43,9 @@ namespace Components
 
     static std::string Password;
 
+    static int FailedWindowStart;
+    static int FailedWindowCount;
+
     static std::string RConOutputBuffer;
 
     static Dvar::Var RConPassword;

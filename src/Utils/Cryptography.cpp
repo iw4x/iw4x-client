@@ -273,6 +273,25 @@ namespace Utils
 
 #pragma endregion
 
+    bool CompareConstantTime(const std::string& a, const std::string& b)
+    {
+      const auto hashA = SHA256::Compute(a);
+      const auto hashB = SHA256::Compute(b);
+
+      if (hashA.size() != hashB.size())
+      {
+        return false;
+      }
+
+      std::uint8_t diff = 0;
+      for (std::size_t i = 0; i < hashA.size(); ++i)
+      {
+        diff |= static_cast<std::uint8_t>(hashA[i] ^ hashB[i]);
+      }
+
+      return diff == 0;
+    }
+
 #pragma region SHA512
 
     std::string SHA512::Compute(const std::string& data, bool hex)

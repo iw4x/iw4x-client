@@ -7,6 +7,12 @@ namespace Utils
     void Initialize();
     std::string GetEntropy();
 
+    // Return true if the two secrets are equal. Note that the comparison
+    // takes the same time whatever their content and length, so it doesn't
+    // leak either through timing.
+    //
+    [[nodiscard]] bool CompareConstantTime(const std::string& a, const std::string& b);
+
     class Token
     {
     public:
