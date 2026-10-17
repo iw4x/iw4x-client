@@ -80,6 +80,39 @@ namespace Components
       Logger::Error(Game::ERR_FATAL, "Model {} has an invalid version {} (should be 1)!", name, header.version);
     }
 
+    // Validate the header before we trust any of it. The file can come from
+    // downloaded content.
+    //
+    constexpr auto mainSectionMinSize = 48; // XModelSurfs and the allocation data pointer at +44.
+    static_assert(sizeof(Game::XModelSurfs) <= mainSectionMinSize);
+
+    for (int i = 0; i < ARRAYSIZE(header.sectionHeader); ++i)
+    {
+      const auto& section = header.sectionHeader[i];
+      if (section.size < 0 || section.offset < 0 || section.size > model.getSize() || section.offset > model.getSize() - section.size)
+      {
+        Logger::Error(Game::ERR_FATAL, "Model {} has an invalid section {}!", name, i);
+        return nullptr;
+      }
+    }
+
+    if (header.sectionHeader[Game::SECTION_MAIN].size < mainSectionMinSize)
+    {
+      Logger::Error(Game::ERR_FATAL, "Model {} has an invalid main section!", name);
+      return nullptr;
+    }
+
+    const auto fixupTotal = header.sectionHeader[Game::SECTION_FIXUP].size / static_cast<int>(sizeof(unsigned int));
+    for (int i = 0; i < 3; ++i)
+    {
+      const auto& section = header.sectionHeader[i];
+      if (section.fixupStart < 0 || section.fixupCount < 0 || section.fixupStart > fixupTotal || section.fixupCount > fixupTotal - section.fixupStart)
+      {
+        Logger::Error(Game::ERR_FATAL, "Model {} has invalid fixups for section {}!", name, i);
+        return nullptr;
+      }
+    }
+
     // Allocate section buffers
     header.sectionHeader[Game::SECTION_MAIN].buffer = Utils::Memory::Allocate(header.sectionHeader[Game::SECTION_MAIN].size);
     header.sectionHeader[Game::SECTION_INDEX].buffer = Utils::Memory::AllocateAlign(header.sectionHeader[Game::SECTION_INDEX].size, 16);
@@ -104,6 +137,16 @@ namespace Components
       for (int j = section->fixupStart; j < section->fixupStart + section->fixupCount; ++j)
       {
         unsigned int fixup = fixups[j];
+
+        // Make sure the fixup patches a whole DWORD inside the section and
+        // points into one of the sections we keep.
+        //
+        if ((fixup & 3) == static_cast<unsigned int>(Game::SECTION_FIXUP) || (fixup >> 3) > static_cast<unsigned int>(section->size) || static_cast<unsigned int>(section->size) - (fixup >> 3) < sizeof(DWORD))
+        {
+          Logger::Error(Game::ERR_FATAL, "Model {} has an invalid fixup!", name);
+          return nullptr;
+        }
+
         *reinterpret_cast<DWORD*>(reinterpret_cast<char*>(section->buffer) + (fixup >> 3)) += reinterpret_cast<DWORD>(header.sectionHeader[fixup & 3].buffer);
       }
     }
@@ -116,6 +159,24 @@ namespace Components
 
     AssertSize(Game::XSurface, 64);
     Game::XModelSurfs* modelSurfs = reinterpret_cast<Game::XModelSurfs*>(allocationData->mainArray);
+
+    {
+      // Make sure name and surfs point into the main section, with room for
+      // all the surfaces and a terminated name.
+      //
+      const auto* mainBegin = reinterpret_cast<const char*>(allocationData->mainArray);
+      const auto* mainEnd = mainBegin + header.sectionHeader[Game::SECTION_MAIN].size;
+      const auto* surfsBegin = reinterpret_cast<const char*>(modelSurfs->surfs);
+      const auto* nameBegin = modelSurfs->name;
+
+      if (surfsBegin < mainBegin || surfsBegin > mainEnd || static_cast<std::size_t>(mainEnd - surfsBegin) < static_cast<std::size_t>(modelSurfs->numsurfs) * 84
+        || nameBegin < mainBegin || nameBegin >= mainEnd || !std::memchr(nameBegin, '\0', static_cast<std::size_t>(mainEnd - nameBegin)))
+      {
+        Logger::Error(Game::ERR_FATAL, "Model {} has invalid surface data!", name);
+        return nullptr;
+      }
+    }
+
     Game::XSurface* tempSurfaces = allocator.allocateArray<Game::XSurface>(modelSurfs->numsurfs);
     char* surfaceData = reinterpret_cast<char*>(modelSurfs->surfs);
 
