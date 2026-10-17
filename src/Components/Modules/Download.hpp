@@ -14,6 +14,17 @@ namespace Components
     static void InitiateClientDownload(const std::string& mod, bool needPassword, bool map = false, bool downloadOnly = false);
     static void InitiateMapDownload(const std::string& map, bool needPassword);
 
+    // Return true if mod is a safe mod directory name (mods/<name>). The name
+    // comes from the server we join and ends up in a local path, so we accept
+    // no separators, drive letters, or dot segments in <name>.
+    //
+    static bool IsValidModName(const std::string& mod);
+
+    // Return true if map is a safe usermap name. As above, the name comes
+    // from the server and is used as a local directory and file name.
+    //
+    static bool IsValidMapName(const std::string& map);
+
     static void ReplyError(mg_connection* connection, int code, std::string messageOverride = {});
 
     static Dvar::Var SV_wwwDownload;

@@ -36,7 +36,46 @@ namespace Components
 
   namespace
   {
+    constexpr std::size_t MAX_DOWNLOAD_NAME_LENGTH = 64;
     constexpr std::size_t MAX_MOD_LIST_SIZE = 4 * 1024 * 1024;
+
+    bool IsSafeNameChar(const char c)
+    {
+      return (c >= 'a' && c <= 'z') ||
+             (c >= 'A' && c <= 'Z') ||
+             (c >= '0' && c <= '9') || c == '_'
+                                    || c == '-';
+    }
+  }
+
+  bool Download::IsValidModName(const std::string& mod)
+  {
+    // Make sure it looks like mods/<name>. We also accept a backslash since
+    // it's just as safe.
+    //
+    const auto prefix = Utils::String::ToLower(mod.substr(0, 5));
+    if (mod.size() <= 5 || mod.size() > MAX_DOWNLOAD_NAME_LENGTH || (prefix != "mods/" && prefix != "mods\\"))
+    {
+      return false;
+    }
+
+    const auto name = mod.substr(5);
+    if (name.starts_with('.') || Utils::String::Contains(name, ".."))
+    {
+      return false;
+    }
+
+    return std::ranges::all_of(name, [](const char c) { return IsSafeNameChar(c) || c == '.'; });
+  }
+
+  bool Download::IsValidMapName(const std::string& map)
+  {
+    if (map.empty() || map.size() > MAX_DOWNLOAD_NAME_LENGTH)
+    {
+      return false;
+    }
+
+    return std::ranges::all_of(map, IsSafeNameChar);
   }
 
   void Download::InitiateMapDownload(const std::string& map, bool needPassword)
@@ -47,6 +86,12 @@ namespace Components
   void Download::InitiateClientDownload(const std::string& mod, bool needPassword, bool map, bool downloadOnly)
   {
     if (CLDownload.running_) return;
+
+    if (map ? !IsValidMapName(mod) : !IsValidModName(mod))
+    {
+      Party::ConnectError(map ? "Invalid join response: Bad map name." : "Invalid join response: Bad mod name.");
+      return;
+    }
 
     Scheduler::Once([]
     {

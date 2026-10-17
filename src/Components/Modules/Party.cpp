@@ -581,12 +581,20 @@ namespace Components
           {
             ConnectError("A password is required to join this server! Set it at the bottom of the serverlist.");
           }
+          else if (isUsermap && !Download::IsValidMapName(info.get("mapname")))
+          {
+            ConnectError("Invalid join response: Bad map name.");
+          }
           else if (isUsermap && usermapHash != Maps::GetUsermapHash(info.get("mapname")))
           {
             Command::Execute("closemenu popup_reconnectingtoparty");
             Download::InitiateMapDownload(info.get("mapname"), info.get("isPrivate") == "1");
           }
 #ifdef CL_MOD_LOADING
+          else if (!info.get("fs_game").empty() && !Download::IsValidModName(info.get("fs_game")))
+          {
+            ConnectError("Invalid join response: Bad mod name.");
+          }
           else if (!info.get("fs_game").empty() && Utils::String::ToLower(mod) != Utils::String::ToLower(info.get("fs_game")))
           {
             Command::Execute("closemenu popup_reconnectingtoparty");
