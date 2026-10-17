@@ -51,3 +51,6 @@
 	path = deps/sentry-native
 	url = https://github.com/getsentry/sentry-native.git
 	branch = master
+[submodule "deps/sqlite"]
+	path = deps/sqlite
+	url = https://github.com/build2-packaging/sqlite.git
