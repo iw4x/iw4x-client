@@ -21,6 +21,7 @@ namespace Components
     static std::size_t BotDataIndex;
 
     static std::vector<botData> RemoteBotNames;
+    static bool AwaitingRemoteBotNames;
 
     static void UpdateBotNames();
 

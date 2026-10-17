@@ -21,6 +21,7 @@ namespace Components
   std::size_t Bots::BotDataIndex;
 
   std::vector<Bots::botData> Bots::RemoteBotNames;
+  bool Bots::AwaitingRemoteBotNames = false;
 
   struct BotMovementInfo
   {
@@ -72,6 +73,7 @@ namespace Components
     Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
 
     Logger::Print("Getting bots...\n");
+    AwaitingRemoteBotNames = true;
     Network::Send(master, "getbots");
   }
 
@@ -641,15 +643,43 @@ namespace Components
       const auto* masterServerName = (*Game::com_masterServerName)->current.string;
 
       Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
-      if (master == address)
+      // Only accept a single response, and only to a request we actually
+      // sent. Note that the source address alone proves little since UDP is
+      // easy to spoof.
+      //
+      if (master == address && AwaitingRemoteBotNames)
       {
-        auto botNames = Utils::String::Split(data, '\n');
-        Logger::Print("Got {} names from the master server\n", botNames.size());
+        AwaitingRemoteBotNames = false;
+        RemoteBotNames.clear();
 
-        for (const auto& entry : botNames)
+        constexpr std::size_t maxRemoteBotNames = 1024;
+
+        auto botNames = Utils::String::Split(data, '\n');
+        for (auto& entry : botNames)
         {
-          RemoteBotNames.emplace_back(entry, "BOT");
+          if (RemoteBotNames.size() >= maxRemoteBotNames)
+          {
+            break;
+          }
+
+          // Strip anything that could break out of the bot's connect
+          // userinfo string, which is where the names end up.
+          //
+          std::erase_if(entry, [](const char c)
+          {
+            return c == '\\' || c == '"' || c == ';' || c == '%' || static_cast<unsigned char>(c) < 0x20 || static_cast<unsigned char>(c) == 0x7F;
+          });
+
+          Utils::String::Trim(entry);
+          if (entry.empty())
+          {
+            continue;
+          }
+
+          RemoteBotNames.emplace_back(entry.substr(0, MAX_NAME_LENGTH - 1), "BOT");
         }
+
+        Logger::Print("Got {} names from the master server\n", RemoteBotNames.size());
       }
     });
 
