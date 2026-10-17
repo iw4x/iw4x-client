@@ -20,6 +20,10 @@ wn_dir="$HOME/.wine"
 #
 cfg="Debug"
 
+# Local Sentry configuration file. See sentry.bash.example for details.
+#
+se_file="sentry.bash"
+
 owd="$(pwd)"
 prog="$0"
 
@@ -60,6 +64,13 @@ run ()
   fi
 }
 
+update_submodules ()
+{
+  run git submodule update --init
+  run git submodule foreach --quiet \
+    'test $sm_path = deps/sentry-native || git submodule update --init --recursive'
+}
+
 # Check whether the specified command exists. If the hint is provided, print it
 # alongside the error.
 #
@@ -82,6 +93,9 @@ verb=
 force=
 to=300
 cto=30
+se_dsn=
+se_set=
+no_se=
 
 bcfg=
 
@@ -101,6 +115,9 @@ while test $# -ne 0; do
       diag "  --msvc-dir <dir>    Directory to install the msvc toolchain (~/.msvc by default)."
       diag "  --wine-dir <dir>    Directory to use for the wine prefix (~/.wine by default)."
       diag "  --timeout <sec>     Network operations timeout in seconds (300 by default)."
+      diag "  --sentry-dsn <url>  Submit crash reports to this Sentry DSN."
+      diag "  --sentry-file <f>   Load the Sentry configuration from this file (sentry.bash by default)."
+      diag "  --no-sentry         Compile out crash reporting even if a DSN is configured."
       diag
       diag "By default this script will build the debug configuration."
       diag
@@ -165,6 +182,27 @@ while test $# -ne 0; do
         error "value in seconds expected after --timeout; run $prog -h for details"
       fi
       to="$1"
+      shift
+      ;;
+    --sentry-dsn)
+      shift
+      if test $# -eq 0; then
+        error "url expected after --sentry-dsn; run $prog -h for details"
+      fi
+      se_dsn="$1"
+      shift
+      ;;
+    --sentry-file)
+      shift
+      if test $# -eq 0; then
+        error "file expected after --sentry-file; run $prog -h for details"
+      fi
+      se_file="$1"
+      se_set=true
+      shift
+      ;;
+    --no-sentry)
+      no_se=true
       shift
       ;;
     -*)
@@ -368,6 +406,62 @@ msvc_setup ()
   run cd "$owd"
 }
 
+# Load the local Sentry configuration, if there is one. The file is not
+# tracked by git since it carries the DSN of the project crash reports
+# are submitted to. See sentry.bash.example for the expected contents.
+#
+sentry_setup ()
+{
+  if test "$no_se" = true; then
+    se_dsn=
+    se_txt="disabled (--no-sentry)"
+    return
+  fi
+
+  se_txt="disabled"
+
+  if test -n "$se_dsn"; then
+    se_txt="enabled (--sentry-dsn)"
+    return
+  fi
+
+  if test "$se_set" = true && ! test -f "$se_file"; then
+    error "sentry configuration file '$se_file' does not exist"
+  fi
+
+  if test -f "$se_file"; then
+    diag "info: loading sentry configuration from $se_file"
+
+    # Make sure the file is sourced from the current directory when it
+    # is given as a bare name.
+    #
+    case "$se_file" in
+      /*|./*|../*) sf="$se_file"   ;;
+      *)           sf="./$se_file" ;;
+    esac
+
+    # Export everything the file sets so that sentry-cli and friends can
+    # pick the configuration up from the environment as well.
+    #
+    set -a
+    # shellcheck disable=SC1090
+    . "$sf"
+    set +a
+
+    se_txt="enabled ($se_file)"
+  else
+    se_txt="enabled (environment)"
+  fi
+
+  se_dsn="$SENTRY_DSN"
+
+  if test -z "$se_dsn"; then
+    se_txt="disabled"
+    diag "info: no sentry dsn configured, crash reporting will be compiled out"
+    diag "  info: run 'cp sentry.bash.example $se_file' and fill in the dsn to enable it"
+  fi
+}
+
 gen_info ()
 {
   diag "info: generating build information"
@@ -521,7 +615,15 @@ gen_bbuild ()
   #
   sed '/^[[:space:]]*prebuildcommands/,/^[[:space:]]*}/d; /^[[:space:]]*postbuildcommands/,/^[[:space:]]*}/d' premake5.lua > premake5-linux.lua
 
-  run wine tools/premake5.exe --file=premake5-linux.lua vs2026
+  pargs="--file=premake5-linux.lua"
+  if test -n "$se_dsn"; then
+    pargs="$pargs --sentry-dsn=$se_dsn"
+  fi
+
+  # Deliberate unquoted expansion for premake argument word splitting.
+  #
+  # shellcheck disable=SC2086
+  run wine tools/premake5.exe $pargs vs2026
   run rm -f premake5-linux.lua
 }
 
@@ -555,6 +657,7 @@ build ()
   diag "Build configuration: $cfg"
   diag "Wine prefix:         $wn_dir/"
   diag "MSVC install dir:    $mi_dir/"
+  diag "Crash reporting:     $se_txt"
   diag
   diag "To perform a from-scratch bootstrap, specify the --force option."
   diag
@@ -562,7 +665,7 @@ build ()
 
   if test -n "$submods"; then
     diag "info: updating git submodules"
-    run git submodule update --init --recursive
+    update_submodules
   fi
 
   gen_info
@@ -588,6 +691,7 @@ bootstrap ()
   diag "Build configuration: $cfg"
   diag "Wine prefix:         $wn_dir/"
   diag "MSVC install dir:    $mi_dir/"
+  diag "Crash reporting:     $se_txt"
   diag
   if test "$clean" = true; then
   diag "WARNING: --clean option will remove existing wine and msvc installations."
@@ -613,7 +717,7 @@ bootstrap ()
 
   if test -n "$submods"; then
     diag "info: updating git submodules"
-    run git submodule update --init --recursive
+    update_submodules
   fi
 
   gen_info
@@ -635,6 +739,8 @@ bootstrap ()
 
 main ()
 {
+  sentry_setup
+
   if check_env; then
     build
   else

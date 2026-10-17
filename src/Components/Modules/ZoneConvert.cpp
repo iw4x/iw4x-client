@@ -2,6 +2,8 @@
 
 #include "ZoneConvert.hpp"
 
+#include "../../Sentry/Report.hpp"
+
 using namespace std;
 
 namespace zone
@@ -1637,7 +1639,7 @@ namespace zone
       return {};
     }
 
-    vector<string>
+    vector<fs::path>
     spawn (const vector<const step*>& ss, progress& pg)
     {
       if (!fs::exists (converter_name))
@@ -1681,7 +1683,7 @@ namespace zone
       };
 
       vector<running> rs;
-      vector<string> failed;
+      vector<fs::path> failed;
 
       // next walks the not-yet-started part of ss. done is for the
       // progress bar and counts finished attempts, successful or
@@ -1793,7 +1795,7 @@ namespace zone
           fs::remove (s.to, ec);
 
           log ("could not convert \"{}\": {}", s.from.generic_string (), r);
-          failed.push_back (s.from.filename ().generic_string ());
+          failed.push_back (s.from);
         }
 
         // "Finished" here means this converter is no longer running. A
@@ -1806,7 +1808,7 @@ namespace zone
       return failed;
     }
 
-    vector<string>
+    vector<fs::path>
     execute (const plan& p, progress& pg)
     {
       // Most of the plan can simply be executed as we walk it.
@@ -1844,7 +1846,7 @@ namespace zone
       // lets spawn() assume it has some actual work, which makes its
       // concurrency calculation pleasantly straightforward.
       //
-      return ss.empty () ? vector<string> () : spawn (ss, pg);
+      return ss.empty () ? vector<fs::path> () : spawn (ss, pg);
     }
   }
 
@@ -1877,7 +1879,7 @@ namespace zone
 
       log ("{}: {} steps, {} of them conversions", ph.name, p.size (), n);
 
-      vector<string> f;
+      vector<fs::path> f;
 
       // There is no point flashing a window for a phase that just moves
       // a few files around. If there are conversions, though, they may
@@ -1903,19 +1905,33 @@ namespace zone
 
       // Individual conversion failures don't stop the batch. Maybe the
       // next fastfile is perfectly fine and there is little reason to
-      // throw that work away. So spawn() collects the names and we
+      // throw that work away. So spawn() collects the fastfiles and we
       // report the lot here once every converter has had its chance.
       //
       if (!f.empty ())
       {
         string ns;
 
-        for (const string& s: f)
-          ns.append (s).append ("\n");
+        for (const fs::path& s: f)
+          ns.append (s.filename ().generic_string ()).append ("\n");
 
-        fail ("{} of {} fastfiles could not be converted:\n\n{}\n"
-              "See \"{}\" for what {} said about them.",
-              f.size (), n, ns, log_file, converter_name);
+        string m (format ("{} of {} fastfiles could not be converted:\n\n{}\n"
+                          "See \"{}\" for what {} said about them.",
+                          f.size (), n, ns, log_file, converter_name));
+
+        // Offer to send the fastfiles along with the log, since we most
+        // likely need the fastfile itself to tell what went wrong. Note that
+        // the reporter shows up on its own, so this doesn't hold up fail().
+        //
+        vector<fs::path> as {fs::path (log_file)};
+        as.insert (as.end (), f.begin (), f.end ());
+
+        Sentry::offer (Sentry::discover (),
+                       "zone_conversion",
+                       format ("{} of {} fastfiles could not be converted", f.size (), n),
+                       as);
+
+        fail (m);
       }
     }
   }
