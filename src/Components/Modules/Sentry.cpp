@@ -3,6 +3,7 @@
 #include "Events.hpp"
 #include "Exception.hpp"
 #include "Scheduler.hpp"
+#include "TextRenderer.hpp"
 
 #include "../../Sentry/Engine/Dvar.hpp"
 
@@ -80,6 +81,14 @@ namespace Components
     if (theRuntime != nullptr)
     {
       theRuntime->leave(trail, level, message);
+    }
+  }
+
+  void Sentry::Print(const char* message)
+  {
+    if (theRuntime != nullptr && message != nullptr)
+    {
+      theRuntime->print(TextRenderer::StripColors(message));
     }
   }
 

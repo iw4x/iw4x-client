@@ -139,6 +139,7 @@ namespace Components
     static void G_LogPrintf_Hk(const char* fmt, ...);
     static void PrintMessage_Stub();
     static void PrintMessagePipe(const char* data);
+    static void PrintMessageSentry(const char* data);
     static void EnqueueMessage(const std::string& message);
 
     static void BuildOSPath_Stub();

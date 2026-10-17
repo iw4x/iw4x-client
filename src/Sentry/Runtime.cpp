@@ -3,6 +3,7 @@
 #include "Types.hpp"
 
 #include "Attachment.hpp"
+#include "Redact.hpp"
 #include "Report.hpp"
 #include "Engine/State.hpp"
 
@@ -62,6 +63,53 @@ namespace Sentry
 
     if (r != nullptr)
       ++r->recovered_;
+  }
+
+  sentry_value_t
+  runtime::
+  before_send (sentry_value_t e, void*, void* d)
+  {
+    runtime* r (static_cast<runtime*> (d));
+
+    if (r == nullptr)
+      return e;
+
+    // Note that we may be crashing, possibly in the middle of a print, so
+    // don't wait for anything.
+    //
+    r->write_console (false /* wait */);
+
+    return e;
+  }
+
+  void
+  runtime::
+  write_console (const bool wait)
+  {
+    std::unique_lock l (console_mutex_, std::defer_lock);
+
+    if (wait)
+      l.lock ();
+    else if (!l.try_lock ())
+      return;
+
+    std::optional<std::pair<std::string, uint64_t>> s;
+
+    if (wait)
+      s = console_.snapshot ();
+    else
+      s = console_.try_snapshot ();
+
+    if (!s || s->second == console_written_)
+      return;
+
+    // The console shows whatever the player types, which includes rcon
+    // passwords.
+    //
+    if (write_generated (options_.database,
+                         "console.log",
+                         redact_lines (std::move (s->first))))
+      console_written_ = s->second;
   }
 
   bool
@@ -131,6 +179,7 @@ namespace Sentry
     sentry_options_set_logger (o, &runtime::forward, this);
     sentry_options_set_debug (o, options_.debug ? 1 : 0);
     sentry_options_set_on_crashed_last_run (o, &runtime::recovered, this);
+    sentry_options_set_before_send (o, &runtime::before_send, this);
 
     if (sentry_init (o) != 0)
     {
@@ -177,6 +226,7 @@ namespace Sentry
 
     scope_.publish ();
     refresh_snapshots (ctx_, options_.database);
+    write_console (true /* wait */);
   }
 
   void
@@ -196,6 +246,13 @@ namespace Sentry
   {
     if (started_)
       record (t, l, m);
+  }
+
+  void
+  runtime::
+  print (const std::string_view s)
+  {
+    console_.append (s);
   }
 
   void
