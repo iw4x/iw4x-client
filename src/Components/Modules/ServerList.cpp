@@ -460,7 +460,20 @@ namespace Components
       {
         const auto host = "master.iw4x.io";
         const auto url = std::format("http://{}/v1/servers/iw4x?protocol={}", host, PROTOCOL);
-        const auto reply = Utils::WebIO("IW4x", url).setTimeout(5000)->get();
+        std::string reply;
+
+        try
+        {
+          // Cap the size. The list is fetched over plain HTTP, so we can't
+          // trust it.
+          //
+          reply = Utils::WebIO("IW4x", url).setTimeout(5000)->setMaxResponseSize(16 * 1024 * 1024)->get();
+        }
+        catch (const std::exception& ex)
+        {
+          Logger::PrintError(Game::CON_CHANNEL_ERROR, "Failed to fetch the master server list: {}\n", ex.what());
+          reply.clear();
+        }
 
         Scheduler::Once([reply, masterServerName, masterPort, url]()
         {

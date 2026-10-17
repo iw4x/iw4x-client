@@ -39,6 +39,10 @@ namespace Utils
     std::string get(bool* success = nullptr);
 
     WebIO* setTimeout(DWORD msec);
+    // Fail the request if the response body exceeds size bytes. Zero means
+    // no limit.
+    //
+    WebIO* setMaxResponseSize(std::size_t size);
 
     // FTP
     bool connect();
@@ -96,6 +100,8 @@ namespace Utils
     HINTERNET hFile_;
 
     DWORD timeout_;
+
+    std::size_t maxResponseSize_;
 
     Slot<void(size_t, size_t)> progressCallback;
 

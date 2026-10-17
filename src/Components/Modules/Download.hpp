@@ -104,6 +104,7 @@ namespace Components
     static void DownloadProgress(FileDownload* fDownload, std::size_t bytes);
 
     static void ModDownloader(ClientDownload* download);
+    static void ModDownloaderInternal(ClientDownload* download);
     static bool ParseModList(ClientDownload* download, const std::string& list);
     static bool DownloadFile(ClientDownload* download, unsigned int index);
 

@@ -34,6 +34,11 @@ namespace Components
 
 #pragma region Client
 
+  namespace
+  {
+    constexpr std::size_t MAX_MOD_LIST_SIZE = 4 * 1024 * 1024;
+  }
+
   void Download::InitiateMapDownload(const std::string& map, bool needPassword)
   {
     InitiateClientDownload(map, needPassword, true);
@@ -222,6 +227,8 @@ namespace Components
     fDownload.downloading = true;
 
     Utils::WebIO webIO;
+    webIO.setMaxResponseSize(std::max<std::size_t>(file.size, 1)); // Zero would mean no limit.
+
     webIO.setProgressCallback([&fDownload, &webIO](std::size_t bytes, std::size_t)
     {
       if(!fDownload.downloading || fDownload.download->terminateThread_)
@@ -256,11 +263,38 @@ namespace Components
   {
     if (!download) download = &CLDownload;
 
+    try
+    {
+      ModDownloaderInternal(download);
+    }
+    catch (const std::exception& ex)
+    {
+      Logger::PrintError(Game::CON_CHANNEL_ERROR, "Download failed: {}\n", ex.what());
+
+      if (download->terminateThread_) return;
+
+      if (download->thread_.joinable())
+      {
+        download->thread_.detach();
+      }
+
+      download->clear();
+
+      Scheduler::Once([]
+      {
+        Command::Execute("closemenu mod_download_popmenu");
+        Party::ConnectError("Failed to download the mod!");
+      }, Scheduler::Pipeline::CLIENT);
+    }
+  }
+
+  void Download::ModDownloaderInternal(ClientDownload* download)
+  {
     const auto host = "http://" + download->target_.getString();
 
     const auto listUrl = host + (download->isMap_ ? "/map" : "/list") + (download->isPrivate_ ? ("?password=" + download->hashedPassword_) : "");
 
-    const auto list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->get();
+    const auto list = Utils::WebIO("IW4x", listUrl).setTimeout(5000)->setMaxResponseSize(MAX_MOD_LIST_SIZE)->get();
     if (list.empty())
     {
       if (download->terminateThread_) return;

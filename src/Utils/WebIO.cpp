@@ -11,7 +11,7 @@ namespace Utils
     this->setURL(url);
   }
 
-  WebIO::WebIO(const std::string& useragent) : cancel_(false), hSession_(nullptr), timeout_(5000)  // 5 seconds timeout by default
+  WebIO::WebIO(const std::string& useragent) : cancel_(false), hSession_(nullptr), timeout_(5000), maxResponseSize_(0)  // 5 seconds timeout by default
   {
     this->openSession(useragent);
   }
@@ -253,6 +253,12 @@ namespace Utils
     return this;
   }
 
+  WebIO* WebIO::setMaxResponseSize(std::size_t size)
+  {
+    this->maxResponseSize_ = size;
+    return this;
+  }
+
   std::string WebIO::execute(const char* command, const std::string& body, const params& headers, bool* success)
   {
     if (success) *success = false;
@@ -310,8 +316,19 @@ namespace Utils
       contentLength = 0;
     }
 
+    if (this->maxResponseSize_ && contentLength > this->maxResponseSize_)
+    {
+      this->closeConnection();
+      return {};
+    }
+
+    // Cap the reservation. Content-Length is chosen by the remote end, so we
+    // don't trust it for large allocations.
+    //
+    constexpr DWORD maxReserve = 16 * 1024 * 1024;
+
     std::string returnBuffer;
-    returnBuffer.reserve(contentLength);
+    returnBuffer.reserve(std::min(contentLength, maxReserve));
 
     DWORD size{};
     char buffer[0x2001]{};
@@ -319,6 +336,12 @@ namespace Utils
     while (InternetReadFile(this->hFile_, buffer, sizeof(buffer) - 1, &size))
     {
       if (this->cancel_)
+      {
+        this->closeConnection();
+        return {};
+      }
+
+      if (this->maxResponseSize_ && returnBuffer.size() + size > this->maxResponseSize_)
       {
         this->closeConnection();
         return {};
