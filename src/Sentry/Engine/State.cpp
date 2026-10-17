@@ -441,5 +441,24 @@ namespace Sentry
 
       return ec ? std::filesystem::path (".") : w;
     }
+
+    std::filesystem::path
+    stats_path ()
+    {
+      // See Components::Stats::SprintfLiveStorageFilename().
+      //
+      const std::string m (read (Game::fs_gameDirVar));
+      const std::filesystem::path p (base_path () / "players");
+
+      return m.empty ()
+        ? p / BASEGAME_LEGACY ".stat"
+        : p / m / BASEGAME_LEGACY ".stat";
+    }
+
+    std::filesystem::path
+    config_path ()
+    {
+      return base_path () / "players" / CLIENT_CONFIG;
+    }
   }
 }
