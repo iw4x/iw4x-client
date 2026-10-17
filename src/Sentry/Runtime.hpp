@@ -46,6 +46,13 @@ namespace Sentry
     void
     leave (trail, sentry_level_t, const std::string& message);
 
+    // Tell the SDK that the main thread is still responding. It reports a
+    // freeze (once per freeze) if we don't for the hang timeout. Must be
+    // called from the main thread, regularly.
+    //
+    void
+    heartbeat ();
+
     // Add console output to what we attach to reports. This may be called
     // from any thread.
     //

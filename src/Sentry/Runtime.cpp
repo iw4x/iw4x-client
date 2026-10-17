@@ -229,6 +229,10 @@ namespace Sentry
     sentry_options_set_shutdown_timeout (
       o, static_cast<uint64_t> (options_.shutdown_timeout.count ()));
     sentry_options_set_auto_session_tracking (o, options_.sessions ? 1 : 0);
+
+    sentry_options_set_enable_app_hang_tracking (o, 1);
+    sentry_options_set_app_hang_timeout (
+      o, static_cast<uint64_t> (options_.hang_timeout.count ()));
     sentry_options_set_require_user_consent (o, 0);
 
     sentry_options_set_logger (o, &runtime::forward, this);
@@ -311,6 +315,22 @@ namespace Sentry
   {
     if (started_)
       record (t, l, m);
+  }
+
+  void
+  runtime::
+  heartbeat ()
+  {
+    if (!started_)
+      return;
+
+    // A debugger may stop the thread for as long as it likes, which is not
+    // a freeze. Note that the next heartbeat resumes detection.
+    //
+    if (IsDebuggerPresent () != FALSE)
+      sentry_app_hang_pause ();
+    else
+      sentry_app_hang_heartbeat ();
   }
 
   void
