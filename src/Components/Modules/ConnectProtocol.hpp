@@ -14,6 +14,7 @@ namespace Components
     static bool Evaluated;
     static std::string ConnectString;
 
+    static bool IsValidConnectString(const std::string& address);
     static void EvaluateProtocol();
     static bool InstallProtocol();
 

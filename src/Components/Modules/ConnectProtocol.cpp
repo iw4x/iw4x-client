@@ -6,6 +6,29 @@ namespace Components
   bool ConnectProtocol::Evaluated = false;
   std::string ConnectProtocol::ConnectString;
 
+  bool ConnectProtocol::IsValidConnectString(const std::string& address)
+  {
+    // The string ends up in a console command, so only allow what a
+    // host[:port] can contain. In particular, no ';', quotes, or whitespace.
+    //
+    if (address.empty() || address.size() > 256)
+    {
+      return false;
+    }
+
+    return std::ranges::all_of(address, [](const char c)
+    {
+      return (c >= 'a' && c <= 'z') ||
+             (c >= 'A' && c <= 'Z') ||
+             (c >= '0' && c <= '9') || c == '.'
+                                    || c == ':'
+                                    || c == '-'
+                                    || c == '_'
+                                    || c == '['
+                                    || c == ']';
+    });
+  }
+
   bool ConnectProtocol::IsEvaluated()
   {
     return Evaluated;
@@ -192,6 +215,18 @@ namespace Components
         cmdLine = cmdLine.substr(0, pos);
       }
 
+      // Cut the argument at its closing quote (or the next argument).
+      //
+      if (const auto end = cmdLine.find_first_of("\" "); end != std::string::npos)
+      {
+        cmdLine = cmdLine.substr(0, end);
+      }
+
+      if (!IsValidConnectString(cmdLine))
+      {
+        return;
+      }
+
       ConnectString = cmdLine;
     }
   }
@@ -212,6 +247,11 @@ namespace Components
     // IPC handler
     IPCPipe::On("connect", [](const std::string& data)
     {
+      if (!IsValidConnectString(data))
+      {
+        return;
+      }
+
       const auto* cmd = Utils::String::Format("connect {}", data);
       Command::Execute(cmd, false);
     });
