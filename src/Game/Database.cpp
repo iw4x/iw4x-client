@@ -107,6 +107,22 @@ namespace Game
     return false;
   }
 
+  std::vector<std::string> DB_GetLoadedZones()
+  {
+    auto zoneCount = Utils::Hook::Get<int>(0x1261BCC);
+    auto* zoneIndices = reinterpret_cast<char*>(0x16B8A34);
+    auto* zoneData = reinterpret_cast<char*>(0x14C0F80);
+
+    std::vector<std::string> zones;
+
+    for (int i = 0; i < zoneCount; ++i)
+    {
+      zones.emplace_back(zoneData + 4 + 0xA4 * (zoneIndices[i] & 0xFF));
+    }
+
+    return zones;
+  }
+
   void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides)
   {
     Sys_LockRead(db_hashCritSect);

@@ -39,6 +39,7 @@ namespace Sentry
       {"language", placement::context, "game", engine::language,   false},
       {"usermap",  placement::context, "game", engine::usermap,    false},
       {"iwds",     placement::context, "game", engine::custom_iwds, false},
+      {"fastfiles", placement::context, "game", engine::fastfiles, false},
 
       {"name",    placement::context, "server", engine::server_name,    false},
       {"address", placement::context, "server", engine::server_address, false},

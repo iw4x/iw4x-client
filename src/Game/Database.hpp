@@ -114,6 +114,7 @@ namespace Game
   extern XAssetType DB_GetXAssetNameType(const char* name);
   extern int DB_GetZoneIndex(const std::string& name);
   extern bool DB_IsZoneLoaded(const char* zone);
+  extern std::vector<std::string> DB_GetLoadedZones();
   extern void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides);
   extern XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType type);
   extern XAssetEntry* DB_FindXAssetEntry(XAssetType type, const char* name);
