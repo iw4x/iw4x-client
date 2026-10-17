@@ -152,6 +152,7 @@ namespace Components
     static void LoadFilters();
     static std::string NormalizeHostname(const std::string& hostname);
     static bool IsHostnameFiltered(const std::string& hostname);
+    static bool MatchesFilter(const std::string& hostname);
 
     static void LoadServerCache();
     static void SaveServerCache();
