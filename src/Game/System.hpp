@@ -59,6 +59,9 @@ namespace Game
   typedef void(*Sys_ShowConsole_t)();
   extern Sys_ShowConsole_t Sys_ShowConsole;
 
+  typedef void(*Sys_SetErrorText_t)(const char* text);
+  extern Sys_SetErrorText_t Sys_SetErrorText;
+
   typedef void(*Sys_SuspendOtherThreads_t)();
   extern Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads;
 

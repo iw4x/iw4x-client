@@ -12109,6 +12109,16 @@ namespace Game
     FxEffectDef* fxs[256];
   };
 
+  struct WinConData
+  {
+    HWND hWnd;
+    HWND hwndBuffer;
+    HWND codLogo;
+    HFONT hfBufferFont;
+    HWND hwndInputLine;
+    char errorString[512];
+  };
+
   struct WinVars_t
   {
     HINSTANCE__* reflib_library;

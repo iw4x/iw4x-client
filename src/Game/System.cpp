@@ -21,6 +21,7 @@ namespace Game
   Sys_DefaultInstallPath_t Sys_DefaultInstallPath = Sys_DefaultInstallPath_t(0x4326E0);
   Sys_SendPacket_t Sys_SendPacket = Sys_SendPacket_t(0x60FDC0);
   Sys_ShowConsole_t Sys_ShowConsole = Sys_ShowConsole_t(0x4305E0);
+  Sys_SetErrorText_t Sys_SetErrorText = Sys_SetErrorText_t(0x433940);
   Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads = Sys_SuspendOtherThreads_t(0x45A190);
   Sys_SetValue_t Sys_SetValue = Sys_SetValue_t(0x4B2F50);
   Sys_CreateFile_t Sys_CreateFile = Sys_CreateFile_t(0x4B2EF0);
