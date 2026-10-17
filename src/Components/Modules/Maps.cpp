@@ -376,20 +376,42 @@ namespace Components
 
   std::unordered_map<std::string, std::string> Maps::ParseCustomMapArena(const std::string& singleMapArena)
   {
-    static const std::regex regex("  (\\w*) *\"?((?:\\w| )*)\"?");
+    // This is a linear equivalent of the regex "  (\\w*) *\"?((?:\\w| )*)\"?".
+    // We don't use std::regex since under MSVC it recurses once per
+    // repetition, which overflows the stack on large (downloaded) arena files.
+    //
+    const auto isWord = [](const char c)
+    {
+      return (c >= 'a' && c <= 'z') ||
+             (c >= 'A' && c <= 'Z') ||
+             (c >= '0' && c <= '9') || c == '_';
+    };
+
     std::unordered_map<std::string, std::string> arena;
 
-    std::smatch m;
+    const auto size = singleMapArena.size();
+    auto pos = singleMapArena.find("  ");
 
-    std::string::const_iterator search_start(singleMapArena.cbegin());
-
-    while (std::regex_search(search_start, singleMapArena.cend(), m, regex))
+    while (pos != std::string::npos)
     {
-      if (m.size() > 2)
-      {
-        arena.emplace(m[1].str(), m[2].str());
-        search_start = m.suffix().first;
-      }
+      auto i = pos + 2;
+
+      const auto keyStart = i;
+      while (i < size && isWord(singleMapArena[i])) ++i;
+      const auto keyEnd = i;
+
+      while (i < size && singleMapArena[i] == ' ') ++i;
+      if (i < size && singleMapArena[i] == '"') ++i;
+
+      const auto valueStart = i;
+      while (i < size && (isWord(singleMapArena[i]) || singleMapArena[i] == ' ')) ++i;
+      const auto valueEnd = i;
+
+      if (i < size && singleMapArena[i] == '"') ++i;
+
+      arena.emplace(singleMapArena.substr(keyStart, keyEnd - keyStart), singleMapArena.substr(valueStart, valueEnd - valueStart));
+
+      pos = singleMapArena.find("  ", i);
     }
 
     return arena;
