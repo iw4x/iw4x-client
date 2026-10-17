@@ -108,6 +108,36 @@ namespace Sentry
           && !Components::Dedicated::IsRunning ();
       }
 
+      // Return true if we are hosting the server ourselves. Note that
+      // IsRunning() expects sv_running to be registered, which is not yet
+      // the case when we first publish the scope.
+      //
+      bool
+      hosting ()
+      {
+        return *Game::sv_running != nullptr
+          && Components::Dedicated::IsRunning ();
+      }
+
+      // Return the number of connected clients that are bots or players.
+      //
+      int
+      clients (bool bots)
+      {
+        int n (0);
+
+        for (int i (0); i != *Game::svs_clientCount; ++i)
+        {
+          const Game::client_s& c (Game::svs_clients[i]);
+
+          if (c.header.state >= Game::CS_CONNECTED &&
+              (c.bIsTestClient != 0) == bots)
+            ++n;
+        }
+
+        return n;
+      }
+
       // Return the versions of the components that the launcher installed,
       // by name. We only read them once since the launcher doesn't run along
       // with the game.
@@ -443,11 +473,7 @@ namespace Sentry
       if (remote ())
         return sanitize (Components::Party::GetHostName ());
 
-      // We are hosting the server ourselves. Note that IsRunning() expects
-      // sv_running to be registered, which is not yet the case when we first
-      // publish the scope.
-      //
-      if (*Game::sv_running != nullptr && Components::Dedicated::IsRunning ())
+      if (hosting ())
         return sanitize (displayed ("sv_hostname"));
 
       return {};
@@ -469,6 +495,30 @@ namespace Sentry
         return {};
 
       return Components::Dvar::Var ("sv_version").get<std::string> ();
+    }
+
+    std::string
+    players ()
+    {
+      return hosting () ? std::to_string (clients (false)) : std::string ();
+    }
+
+    std::string
+    bots ()
+    {
+      return hosting () ? std::to_string (clients (true)) : std::string ();
+    }
+
+    std::string
+    max_players ()
+    {
+      return hosting () ? displayed ("sv_maxclients") : std::string ();
+    }
+
+    std::string
+    rotation ()
+    {
+      return hosting () ? displayed ("sv_mapRotationCurrent") : std::string ();
     }
 
     std::string

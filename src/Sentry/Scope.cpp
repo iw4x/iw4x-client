@@ -45,6 +45,10 @@ namespace Sentry
       {"name",    placement::context, "server", engine::server_name,    false},
       {"address", placement::context, "server", engine::server_address, false},
       {"version", placement::context, "server", engine::server_version, false},
+      {"players",     placement::context, "server", engine::players,     false},
+      {"bots",        placement::context, "server", engine::bots,        false},
+      {"max_players", placement::context, "server", engine::max_players, false},
+      {"rotation",    placement::context, "server", engine::rotation,    false},
 
       // What the launcher installed. Note that the client it installed isn't
       // necessarily the one running (iw4x.version), such as with a
