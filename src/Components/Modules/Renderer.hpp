@@ -28,6 +28,8 @@ namespace Components
     static void PostVidRestart();
     static void PostVidRestartStub();
 
+    static void R_Cinematic_FreeMemory(void* memory);
+
     static void R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state, int samplerCode);
     static void StoreGfxBufContextPtrStub1();
     static void StoreGfxBufContextPtrStub2();

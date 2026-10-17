@@ -719,6 +719,29 @@ namespace Components
     return result;
   }
 
+  void Renderer::R_Cinematic_FreeMemory(void* memory)
+  {
+    // The cinematic thread decodes the playing video into this memory, which
+    // also holds the Bink handle. R_Cinematic_Shutdown means to stop the
+    // video first, but R_Shutdown marks the renderer as unregistered before
+    // calling it, so it never does and the thread ends up decoding into freed
+    // memory (say, when quitting or restarting the renderer during the
+    // intro). So close the video and drop any pending one while holding the
+    // thread's lock.
+    //
+    Game::Sys_EnterCriticalSection(Game::CRITSECT_CINEMATIC_TARGET_CHANGE_COMMAND);
+
+    Utils::Hook::Call<bool()>(0x51BFC0)(); // R_Cinematic_BinkClose
+    Utils::Hook::Set<char>(0x69F95F0, '\0'); // Current video name
+    Utils::Hook::Set<int>(0x69F95EC, 0); // Pending video
+    Utils::Hook::Set<void*>(0x69F98E8, nullptr); // Hunk base
+    Utils::Hook::Set<void*>(0x69F9A84, nullptr); // Hunk memory
+
+    Utils::Hook::Call<void(void*)>(0x4291A0)(memory); // free
+
+    Game::Sys_LeaveCriticalSection(Game::CRITSECT_CINEMATIC_TARGET_CHANGE_COMMAND);
+  }
+
   Renderer::Renderer()
   {
     if (Dedicated::IsEnabled()) return;
@@ -772,6 +795,9 @@ namespace Components
       Renderer::EndRecoverDeviceSignal();
       Game::DB_EndRecoverLostDevice();
     }, HOOK_CALL).install()->quick();
+
+    // Close the video before freeing its memory in R_Cinematic_Shutdown
+    Utils::Hook(0x51C966, Renderer::R_Cinematic_FreeMemory, HOOK_CALL).install()->quick();
 
     // Begin vid_restart
     Utils::Hook(0x4CA2FD, Renderer::PreVidRestart, HOOK_CALL).install()->quick();
