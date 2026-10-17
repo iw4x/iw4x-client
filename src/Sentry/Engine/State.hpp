@@ -62,6 +62,13 @@ namespace Sentry
     std::string
     fastfiles ();
 
+    // Return the version of a component (rawfiles, dlc, ...) as installed by
+    // the launcher, or empty if it is unknown, such as when the game wasn't
+    // installed with the launcher.
+    //
+    std::string
+    installed (const char* component);
+
     std::string
     connection ();
 

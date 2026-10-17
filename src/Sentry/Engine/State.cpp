@@ -16,6 +16,8 @@
 
 #include <intrin.h>
 
+#include <upstream/sqlite3.h>
+
 namespace Sentry
 {
   namespace engine
@@ -104,6 +106,81 @@ namespace Sentry
       {
         return Game::CL_IsCgameInitialized ()
           && !Components::Dedicated::IsRunning ();
+      }
+
+      // Return the versions of the components that the launcher installed,
+      // by name. We only read them once since the launcher doesn't run along
+      // with the game.
+      //
+      const std::map<std::string, std::string>&
+      components ()
+      {
+        static const std::map<std::string, std::string> r ([]
+        {
+          std::map<std::string, std::string> m;
+
+          // Note that the database stores the component as its index in
+          // the launcher's component_type enum.
+          //
+          constexpr const char* names[] =
+          {
+            "client", "rawfiles", "dlc", "helper", "launcher", "client-x64",
+            "assets-x64"
+          };
+
+          const std::filesystem::path p (base_path () / "cache" / "iw4x.db");
+
+          std::error_code ec;
+          if (!std::filesystem::exists (p, ec))
+            return m;
+
+          // Note that sqlite3_open_v2() may return a handle even if it fails,
+          // so take ownership first.
+          //
+          sqlite3* h (nullptr);
+          const int rc (sqlite3_open_v2 (
+                          reinterpret_cast<const char*> (p.u8string ().c_str ()),
+                          &h,
+                          SQLITE_OPEN_READONLY,
+                          nullptr));
+
+          const std::unique_ptr<sqlite3, decltype (&sqlite3_close)> db (
+            h, &sqlite3_close);
+
+          if (rc != SQLITE_OK)
+            return m;
+
+          // The launcher may be writing it as the game starts.
+          //
+          sqlite3_busy_timeout (db.get (), 100);
+
+          sqlite3_stmt* s (nullptr);
+          sqlite3_prepare_v2 (db.get (),
+                              "SELECT component, tag FROM component_versions",
+                              -1,
+                              &s,
+                              nullptr);
+
+          const std::unique_ptr<sqlite3_stmt, decltype (&sqlite3_finalize)> st (
+            s, &sqlite3_finalize);
+
+          if (st == nullptr)
+            return m;
+
+          while (sqlite3_step (st.get ()) == SQLITE_ROW)
+          {
+            const int c (sqlite3_column_int (st.get (), 0));
+            const unsigned char* t (sqlite3_column_text (st.get (), 1));
+
+            if (c >= 0 && c < static_cast<int> (std::size (names)) &&
+                t != nullptr)
+              m[names[c]] = reinterpret_cast<const char*> (t);
+          }
+
+          return m;
+        } ());
+
+        return r;
       }
     }
 
@@ -340,6 +417,15 @@ namespace Sentry
       }
 
       return r;
+    }
+
+    std::string
+    installed (const char* c)
+    {
+      const auto& cs (components ());
+      const auto i (cs.find (c));
+
+      return i != cs.end () ? i->second : std::string ();
     }
 
     std::string
