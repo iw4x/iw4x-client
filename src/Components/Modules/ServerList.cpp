@@ -342,6 +342,11 @@ namespace Components
 
     for (const auto& entry : list.GetArray())
     {
+      if (!entry.IsObject())
+      {
+        continue;
+      }
+
       if (!entry.HasMember("ip") || !entry.HasMember("port"))
       {
         continue;
@@ -352,7 +357,7 @@ namespace Components
         continue;
       }
 
-      if (!entry.HasMember("ip") || !entry["protocol"].IsInt())
+      if (!entry.HasMember("protocol") || !entry["protocol"].IsInt())
       {
         continue;
       }
