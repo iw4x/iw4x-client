@@ -772,6 +772,12 @@ namespace Components
 
   std::optional<std::string> Download::FileHandler(mg_connection* c, const mg_http_message* hm)
   {
+    if (!VerifyPassword(c, hm))
+    {
+      // Custom reply done in VerifyPassword
+      return {};
+    }
+
     std::string url(hm->uri.ptr, hm->uri.len);
 
     Utils::String::Replace(url, "\\", "/");
