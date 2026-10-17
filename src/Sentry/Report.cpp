@@ -69,6 +69,89 @@ namespace Sentry
 
       return true;
     }
+
+    // Return the path for the envelope of an event, where the crash daemon
+    // writes its own.
+    //
+    std::filesystem::path
+    envelope_path (const options& o, const std::string& id)
+    {
+      return o.database / "external" / (id + ".envelope");
+    }
+
+    // Hand a written envelope over to the reporter, which removes it once it
+    // is done with it. If we can't, then the envelope is removed as f goes
+    // out of scope.
+    //
+    bool
+    hand_over (const options& o, auto_rmfile& f)
+    {
+      if (!launch (o.reporter, f.path))
+        return false;
+
+      f.cancel ();
+      return true;
+    }
+
+    // Send an envelope the SDK produced, which is to say offer it to the
+    // player. See make_transport() for details.
+    //
+    void
+    send (sentry_envelope_t* e, void* s)
+    {
+      const options& o (*static_cast<const options*> (s));
+
+      const std::unique_ptr<sentry_envelope_t, decltype (&sentry_envelope_free)>
+        env (e, &sentry_envelope_free);
+
+      // Drop what carries no event, such as client reports: there is nothing
+      // to show the player, so nothing they could agree to.
+      //
+      const sentry_value_t ev (sentry_envelope_get_event (env.get ()));
+
+      if (sentry_value_is_null (ev))
+        return;
+
+      std::error_code ec;
+      if (!std::filesystem::exists (o.reporter, ec))
+        return;
+
+      // Note that the SDK only writes to a path in the ANSI code page, which
+      // won't do for an installation under, say, a user name with non-ASCII
+      // characters. So serialize it and write it ourselves.
+      //
+      size_t n (0);
+      const std::unique_ptr<char, decltype (&sentry_free)> d (
+        sentry_envelope_serialize (env.get (), &n), &sentry_free);
+
+      if (d == nullptr)
+        return;
+
+      auto_rmfile f (envelope_path (
+                       o,
+                       sentry_value_as_string (
+                         sentry_value_get_by_key (ev, "event_id"))));
+
+      std::filesystem::create_directories (f.path.parent_path (), ec);
+
+      {
+        std::ofstream os (f.path, std::ios::binary | std::ios::trunc);
+        os.write (d.get (), static_cast<std::streamsize> (n));
+
+        if (!os.good ())
+          return;
+      }
+
+      hand_over (o, f);
+    }
+  }
+
+  sentry_transport_t*
+  make_transport (const options& o)
+  {
+    sentry_transport_t* t (sentry_transport_new (&send));
+    sentry_transport_set_state (t, const_cast<options*> (&o));
+    return t;
   }
 
   bool
@@ -148,12 +231,12 @@ namespace Sentry
 
     const std::string ej (json (e));
 
-    // Write the envelope where the crash daemon writes its own. Until the
-    // reporter has it, it is ours to clean up if anything goes wrong.
+    // Write the envelope. Until the reporter has it, it is ours to clean up
+    // if anything goes wrong.
     //
     // See the envelope format at https://develop.sentry.dev/sdk/envelopes/.
     //
-    auto_rmfile f (o.database / "external" / (id + ".envelope"));
+    auto_rmfile f (envelope_path (o, id));
     std::filesystem::create_directories (f.path.parent_path (), ec);
 
     {
@@ -180,7 +263,9 @@ namespace Sentry
                                  sentry_value_new_uint64 (n));
         set (ah, "filename", p.filename ().string ());
         set (ah, "content_type",
-             p.extension () == ".log" ? "text/plain" : "application/octet-stream");
+             p.extension () == ".log"
+             ? "text/plain"
+             : "application/octet-stream");
 
         os << json (ah) << '\n';
 
@@ -196,13 +281,6 @@ namespace Sentry
         return false;
     }
 
-    // Hand the envelope over. From here on the reporter removes it once it is
-    // done with it.
-    //
-    if (!launch (o.reporter, f.path))
-      return false;
-
-    f.cancel ();
-    return true;
+    return hand_over (o, f);
   }
 }

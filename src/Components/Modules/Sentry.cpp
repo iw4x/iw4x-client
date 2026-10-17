@@ -59,6 +59,18 @@ namespace Components
 
     const auto& classification = Classify(error);
 
+    // Only a fatal error ends the game, which is worth asking the player to
+    // report. The others (being kicked, a script error, etc.) are common
+    // enough that asking every time would only get in the way, so we keep
+    // them as breadcrumbs for when something does go wrong.
+    //
+    if (error != Game::ERR_FATAL)
+    {
+      theRuntime->leave(::Sentry::trail::error, classification.level,
+        std::format("com_error.{}: {}", classification.name, message));
+      return;
+    }
+
     theRuntime->capture(classification.level,
       std::format("com_error.{}", classification.name), message);
   }
