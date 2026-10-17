@@ -71,8 +71,8 @@ namespace Sentry
       bool
       stock (std::string n)
       {
-        std::transform (n.begin (), n.end (), n.begin (),
-                        [] (unsigned char c) {return std::tolower (c);});
+        std::ranges::transform (n, n.begin (),
+                                [] (unsigned char c) {return std::tolower (c);});
 
         return n.starts_with ("iw_")
           || n.starts_with ("iw4x_")
@@ -406,7 +406,7 @@ namespace Sentry
     std::string
     processors ()
     {
-      const unsigned n (std::thread::hardware_concurrency ());
+      const unsigned n (std::jthread::hardware_concurrency ());
 
       return n != 0 ? std::to_string (n) : std::string ();
     }
