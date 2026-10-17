@@ -1098,6 +1098,18 @@ namespace Components
   {
     const auto rumbleIndex = entity->nextState.eventParm;
 
+    // Ignore rumble events with an invalid or unused index. Note that
+    // eventParm comes straight from the server snapshot.
+    //
+    if (event >= EV_PLAY_RUMBLE_ON_ENT && event <= EV_STOP_RUMBLE)
+    {
+      const auto* rumbleName = ConfigStrings::CL_GetRumbleConfigString(rumbleIndex);
+      if (!rumbleName || !*rumbleName)
+      {
+        return true;
+      }
+    }
+
     switch (event)
     {
     case EV_PLAY_RUMBLE_ON_ENT:

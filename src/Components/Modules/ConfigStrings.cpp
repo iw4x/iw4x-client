@@ -156,18 +156,44 @@ namespace Components
     SV_SetConfigString(index, data, Game::CS_WEAPONFILES_LAST, EXTRA_WEAPONS_FIRST);
   }
 
+  bool ConfigStrings::IsValidRumbleIndex(int index)
+  {
+    // Note that RUMBLE_LAST equals MAX_CONFIGSTRINGS because of the off-by-one
+    // in EXTRA_MODELCACHE_LAST. The layout is shared with the other end of the
+    // connection, so rather than shifting it we just never use the last slot.
+    //
+    // @@ Fix the layout if we ever change the protocol anyway.
+    //
+    return index >= 0 && RUMBLE_FIRST + index < MAX_CONFIGSTRINGS;
+  }
+
   const char* ConfigStrings::CL_GetRumbleConfigString(int index)
   {
+    if (!IsValidRumbleIndex(index))
+    {
+      return "";
+    }
+
     return CL_GetConfigString(RUMBLE_FIRST + index, Game::CS_LAST, Game::MAX_CONFIGSTRINGS);
   }
 
   unsigned int ConfigStrings::SV_GetRumbleConfigStringConst(int index)
   {
+    if (!IsValidRumbleIndex(index))
+    {
+      return 0;
+    }
+
     return SV_GetConfigString(RUMBLE_FIRST +index, Game::CS_LAST, Game::MAX_CONFIGSTRINGS);
   }
 
   void ConfigStrings::SV_SetRumbleConfigString(int index, const char* data)
   {
+    if (!IsValidRumbleIndex(index))
+    {
+      return;
+    }
+
     SV_SetConfigString(RUMBLE_FIRST + index, data, Game::CS_LAST, Game::MAX_CONFIGSTRINGS);
   }
 

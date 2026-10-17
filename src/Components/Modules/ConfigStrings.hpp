@@ -21,6 +21,9 @@ namespace Components
 
     ConfigStrings();
 
+    // Return true if index addresses a usable rumble configstring slot.
+    //
+    static bool IsValidRumbleIndex(int index);
     static const char* CL_GetRumbleConfigString(int index);
     static unsigned int SV_GetRumbleConfigStringConst(int index);
     static void SV_SetRumbleConfigString(int index, const char* data);
