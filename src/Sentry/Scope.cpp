@@ -17,6 +17,7 @@ namespace Sentry
       {"iw4x.role",     placement::tag, nullptr, engine::role,                true },
       {"iw4x.wine",     placement::tag, nullptr, engine::wine,                false},
       {"game.mod",      placement::tag, nullptr, engine::mod,                 true },
+      {"game.modded",   placement::tag, nullptr, engine::modded,              false},
       {"game.map",      placement::tag, nullptr, engine::map,                 true },
       {"game.gametype", placement::tag, nullptr, engine::gametype,            true },
       {"game.state",    placement::tag, nullptr, engine::connection,          true },
@@ -26,6 +27,7 @@ namespace Sentry
       {"build",             placement::context, "iw4x", engine::build_configuration, false},
       {"role",              placement::context, "iw4x", engine::role,                false},
       {"os",                placement::context, "iw4x", engine::operating_system,    false},
+      {"wine",              placement::context, "iw4x", engine::wine_version,        false},
       {"architecture",      placement::context, "iw4x", engine::architecture,        false},
       {"install_path",      placement::context, "iw4x", engine::install_path,        false},
       {"launch_parameters", placement::context, "iw4x", engine::launch_parameters,   false},
@@ -34,10 +36,29 @@ namespace Sentry
       {"gametype", placement::context, "game", engine::gametype,   false},
       {"mod",      placement::context, "game", engine::mod,        false},
       {"state",    placement::context, "game", engine::connection, false},
+      {"language", placement::context, "game", engine::language,   false},
+      {"usermap",  placement::context, "game", engine::usermap,    false},
+      {"iwds",     placement::context, "game", engine::custom_iwds, false},
 
       {"name",    placement::context, "server", engine::server_name,    false},
       {"address", placement::context, "server", engine::server_address, false},
       {"version", placement::context, "server", engine::server_version, false},
+
+      {"mode",         placement::context, "display", engine::display_mode, false},
+      {"fullscreen",   placement::context, "display", engine::fullscreen,   false},
+      {"refresh_rate", placement::context, "display", engine::refresh_rate, false},
+      {"vsync",        placement::context, "display", engine::vsync,        false},
+      {"max_fps",      placement::context, "display", engine::max_fps,      false},
+
+      // Note that gpu is one of the contexts that Sentry knows about, so we
+      // stick to its keys.
+      //
+      {"name",    placement::context, "gpu", engine::gpu,        false},
+      {"version", placement::context, "gpu", engine::gpu_driver, false},
+
+      {"cpu",        placement::context, "hardware", engine::cpu,        false},
+      {"processors", placement::context, "hardware", engine::processors, false},
+      {"memory",     placement::context, "hardware", engine::memory,     false},
     };
 
     bool

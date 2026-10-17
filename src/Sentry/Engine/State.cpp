@@ -4,12 +4,15 @@
 
 #include "../../Components/Modules/Dedicated.hpp"
 #include "../../Components/Modules/Dvar.hpp"
+#include "../../Components/Modules/Maps.hpp"
 #include "../../Components/Modules/Network.hpp"
 #include "../../Components/Modules/Party.hpp"
 #include "../../Components/Modules/TextRenderer.hpp"
 #include "../../Components/Modules/ZoneBuilder.hpp"
 
 #include <version.hpp>
+
+#include <intrin.h>
 
 namespace Sentry
 {
@@ -26,6 +29,54 @@ namespace Sentry
         const char* v ((*d)->current.string);
 
         return v != nullptr ? std::string (v) : std::string ();
+      }
+
+      // Return the value of a dvar the way the console shows it, which also
+      // covers the non-string types. Note that unlike Components::Dvar::Var we
+      // don't register the dvar if it doesn't exist.
+      //
+      std::string
+      displayed (const char* n)
+      {
+        const Game::dvar_t* d (Game::Dvar_FindVar (n));
+
+        if (d == nullptr)
+          return {};
+
+        const char* v (Game::Dvar_DisplayableValue (d));
+
+        return v != nullptr ? std::string (v) : std::string ();
+      }
+
+      std::optional<D3DADAPTER_IDENTIFIER9>
+      adapter ()
+      {
+        IDirect3D9* d (Game::d3d9 != nullptr ? *Game::d3d9 : nullptr);
+
+        if (d == nullptr)
+          return std::nullopt;
+
+        D3DADAPTER_IDENTIFIER9 r {};
+
+        if (FAILED (d->GetAdapterIdentifier (D3DADAPTER_DEFAULT, 0, &r)))
+          return std::nullopt;
+
+        return r;
+      }
+
+      // Return true if this is one of the IWDs that the game (including its
+      // DLC) or IW4x ships, such as iw_00, iw_dlc5_01, localized_english_iw00,
+      // or iw4x_00.
+      //
+      bool
+      stock (std::string n)
+      {
+        std::transform (n.begin (), n.end (), n.begin (),
+                        [] (unsigned char c) {return std::tolower (c);});
+
+        return n.starts_with ("iw_")
+          || n.starts_with ("iw4x_")
+          || n.starts_with ("localized_");
       }
 
       std::string
@@ -83,6 +134,44 @@ namespace Sentry
     }
 
     std::string
+    wine_version ()
+    {
+      HMODULE m (GetModuleHandleA ("ntdll.dll"));
+
+      if (m == nullptr)
+        return {};
+
+      using version_function = const char* (CDECL*) ();
+      using host_function = void (CDECL*) (const char**, const char**);
+
+      auto v (reinterpret_cast<version_function> (
+                GetProcAddress (m, "wine_get_version")));
+
+      if (v == nullptr)
+        return {};
+
+      std::string r (v ());
+
+      // The host is what Wine runs on, such as Linux with its kernel version.
+      //
+      auto h (reinterpret_cast<host_function> (
+                GetProcAddress (m, "wine_get_host_version")));
+
+      if (h != nullptr)
+      {
+        const char* s (nullptr);
+        const char* l (nullptr);
+
+        h (&s, &l);
+
+        if (s != nullptr && l != nullptr)
+          r += std::format (" on {} {}", s, l);
+      }
+
+      return r;
+    }
+
+    std::string
     architecture ()
     {
       return Utils::GetWindowsArchitecture ();
@@ -133,6 +222,63 @@ namespace Sentry
     }
 
     std::string
+    language ()
+    {
+      const char* l (Game::Win_GetLanguage ());
+
+      return l != nullptr ? std::string (l) : std::string ();
+    }
+
+    std::string
+    usermap ()
+    {
+      const std::string m (map ());
+
+      if (m.empty ())
+        return {};
+
+      return Components::Maps::IsUserMap (m) ? "yes" : "no";
+    }
+
+    // Return the IWDs that are loaded but that neither the game nor IW4x
+    // ships, such as the ones of a mod or of a user map, or the ones that
+    // the player dropped into the game directories.
+    //
+    std::string
+    custom_iwds ()
+    {
+      if (Game::fs_searchpaths == nullptr)
+        return {};
+
+      std::string r;
+
+      for (const Game::searchpath_s* s (*Game::fs_searchpaths);
+           s != nullptr;
+           s = s->next)
+      {
+        if (s->iwd == nullptr || stock (s->iwd->iwdBasename))
+          continue;
+
+        if (!r.empty ())
+          r += ", ";
+
+        r += std::format ("{}/{}", s->iwd->iwdGamename, s->iwd->iwdBasename);
+      }
+
+      return r;
+    }
+
+    std::string
+    modded ()
+    {
+      const bool m (!read (Game::fs_gameDirVar).empty ()
+                    || usermap () == "yes"
+                    || !custom_iwds ().empty ());
+
+      return m ? "yes" : "no";
+    }
+
+    std::string
     connection ()
     {
       if (!Game::CL_IsCgameInitialized ())
@@ -144,7 +290,17 @@ namespace Sentry
     std::string
     server_name ()
     {
-      return remote () ? sanitize (Components::Party::GetHostName ()) : std::string ();
+      if (remote ())
+        return sanitize (Components::Party::GetHostName ());
+
+      // We are hosting the server ourselves. Note that IsRunning() expects
+      // sv_running to be registered, which is not yet the case when we first
+      // publish the scope.
+      //
+      if (*Game::sv_running != nullptr && Components::Dedicated::IsRunning ())
+        return sanitize (displayed ("sv_hostname"));
+
+      return {};
     }
 
     std::string
@@ -163,6 +319,108 @@ namespace Sentry
         return {};
 
       return Components::Dvar::Var ("sv_version").get<std::string> ();
+    }
+
+    std::string
+    display_mode ()
+    {
+      return displayed ("r_mode");
+    }
+
+    std::string
+    fullscreen ()
+    {
+      return displayed ("r_fullscreen");
+    }
+
+    std::string
+    refresh_rate ()
+    {
+      return displayed ("r_displayRefresh");
+    }
+
+    std::string
+    vsync ()
+    {
+      return displayed ("r_vsync");
+    }
+
+    std::string
+    max_fps ()
+    {
+      return displayed ("com_maxfps");
+    }
+
+    std::string
+    gpu ()
+    {
+      const auto a (adapter ());
+
+      return a ? std::string (a->Description) : std::string ();
+    }
+
+    std::string
+    gpu_driver ()
+    {
+      const auto a (adapter ());
+
+      if (!a)
+        return {};
+
+      const LARGE_INTEGER& v (a->DriverVersion);
+
+      return std::format ("{}.{}.{}.{}",
+                          HIWORD (v.HighPart), LOWORD (v.HighPart),
+                          HIWORD (v.LowPart), LOWORD (v.LowPart));
+    }
+
+    std::string
+    cpu ()
+    {
+      static const std::string r ([]
+      {
+        int i[4] {};
+        __cpuid (i, 0x80000000);
+
+        if (static_cast<unsigned> (i[0]) < 0x80000004)
+          return std::string ();
+
+        // The brand string is spread over three leaves, 16 bytes each.
+        //
+        char b[49] {};
+
+        for (int l (0); l != 3; ++l)
+          __cpuid (reinterpret_cast<int*> (b + l * 16), 0x80000002 + l);
+
+        std::string s (b);
+
+        s.erase (0, s.find_first_not_of (' '));
+        s.erase (s.find_last_not_of (' ') + 1);
+
+        return s;
+      } ());
+
+      return r;
+    }
+
+    std::string
+    processors ()
+    {
+      const unsigned n (std::thread::hardware_concurrency ());
+
+      return n != 0 ? std::to_string (n) : std::string ();
+    }
+
+    std::string
+    memory ()
+    {
+      MEMORYSTATUSEX m {};
+      m.dwLength = sizeof (m);
+
+      if (GlobalMemoryStatusEx (&m) == FALSE)
+        return {};
+
+      return std::format ("{} MB", m.ullTotalPhys / (1024 * 1024));
     }
 
     std::filesystem::path
