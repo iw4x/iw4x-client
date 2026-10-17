@@ -57,6 +57,15 @@ namespace Components
       size /= 252;
       count = size;
       size *= 260;
+
+      // Make sure the elements fit. The count comes from the zone, and
+      // FxEffectStrings only has room for so many.
+      //
+      if (count < 0 || static_cast<std::size_t>(count) > ARRAYSIZE(Zones::FxEffectStrings))
+      {
+        Logger::Error(Game::ERR_DROP, "FX effect has too many elements ({}, max {})\n", count, ARRAYSIZE(Zones::FxEffectStrings));
+        return false;
+      }
     }
 
     bool result = Game::Load_Stream(atStreamStart, buffer, size);
@@ -104,6 +113,12 @@ namespace Components
 
     if (Zones::Version() >= VERSION_ALPHA2)
     {
+      if (Zones::FxEffectIndex < 0 || static_cast<std::size_t>(Zones::FxEffectIndex) >= ARRAYSIZE(Zones::FxEffectStrings))
+      {
+        Logger::Error(Game::ERR_DROP, "FX effect has too many elements (max {})\n", ARRAYSIZE(Zones::FxEffectStrings));
+        return;
+      }
+
       *Game::varXString = &Zones::FxEffectStrings[Zones::FxEffectIndex++];
       Game::Load_XString(false);
     }
