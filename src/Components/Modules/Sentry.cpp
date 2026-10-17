@@ -72,6 +72,11 @@ namespace Components
       return;
     }
 
+    // The game now waits for the player to dismiss the error, which is not
+    // a freeze.
+    //
+    sentry_app_hang_pause();
+
     theRuntime->capture(classification.level,
       std::format("com_error.{}", classification.name), message);
   }
@@ -118,6 +123,17 @@ namespace Components
     {
       theRuntime->refresh();
     }, Scheduler::Pipeline::MAIN, theRuntime->configuration().refresh_interval);
+
+    // Note that the first heartbeat decides which thread is watched, so it
+    // has to come from the main thread.
+    //
+    Scheduler::Loop([]
+    {
+      if (Game::Sys_IsMainThread())
+      {
+        theRuntime->heartbeat();
+      }
+    }, Scheduler::Pipeline::MAIN, 1s);
 
     Scheduler::OnGameShutdown([]
     {
