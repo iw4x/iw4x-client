@@ -297,8 +297,36 @@ namespace Sentry
     std::string
     launch_parameters ()
     {
+      // Strip the program before splitting the rest into arguments. We can't
+      // leave this to CommandLineToArgvW() since a launcher may start us with
+      // an unquoted program path, which it would then split at the first
+      // space in the installation path. So look for our own path instead.
+      //
+      std::wstring c (GetCommandLineW ());
+
+      std::wstring p (32768, L'\0');
+      p.resize (GetModuleFileNameW (nullptr, p.data (),
+                                    static_cast<DWORD> (p.size ())));
+
+      auto strip = [&c] (const std::wstring& s)
+      {
+        if (s.empty () ||
+            c.size () < s.size () ||
+            _wcsnicmp (c.c_str (), s.c_str (), s.size ()) != 0)
+          return false;
+
+        c.erase (0, s.size ());
+        return true;
+      };
+
+      // Note that CommandLineToArgvW() parses the first argument as the
+      // program, so we put a placeholder in its place.
+      //
+      if (strip (L'"' + p + L'"') || strip (p))
+        c.insert (0, L"_");
+
       int n (0);
-      wchar_t** v (CommandLineToArgvW (GetCommandLineW (), &n));
+      wchar_t** v (CommandLineToArgvW (c.c_str (), &n));
 
       if (v == nullptr)
         return {};
