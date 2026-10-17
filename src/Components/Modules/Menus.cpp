@@ -635,7 +635,10 @@ namespace Components
                 context->menuStack[j] = context->menuStack[j + 1];
               }
 
-              context->menuStack[context->openMenuCount] = nullptr;
+              // Clear the last entry, which we just shifted down. Note that
+              // openMenuCount itself may be past the end of the stack.
+              //
+              context->menuStack[context->openMenuCount - 1] = nullptr;
               context->openMenuCount--;
               assert(context->openMenuCount >= 0);
 
@@ -676,7 +679,9 @@ namespace Components
                 context->Menus[j] = context->Menus[j + 1];
               }
 
-              context->Menus[context->menuCount] = nullptr;
+              // As above, but menuCount may be past the end of the array.
+              //
+              context->Menus[context->menuCount - 1] = nullptr;
               context->menuCount--;
 
               i--;
@@ -771,6 +776,15 @@ namespace Components
 
     if (!overrode)
     {
+      // Make sure there is room for it. This is the same limit (MAX_MENUS)
+      // as UI_AddMenu() enforces.
+      //
+      if (Game::uiContext->menuCount < 0 || static_cast<std::size_t>(Game::uiContext->menuCount) >= ARRAYSIZE(Game::uiContext->Menus))
+      {
+        Logger::PrintError(Game::CON_CHANNEL_UI, "Cannot add menu {}: MAX_MENUS exceeded\n", name);
+        return;
+      }
+
       // A brand new menu! How fancy!
       // We add it to the standard uiContext
       OverridenMenus[name] = nullptr;
