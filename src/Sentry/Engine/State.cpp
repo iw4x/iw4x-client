@@ -50,18 +50,26 @@ namespace Sentry
         return v != nullptr ? std::string (v) : std::string ();
       }
 
-      std::optional<D3DADAPTER_IDENTIFIER9>
+      // Return the graphics adapter. Since it doesn't change, we only ask
+      // once Direct3D is up.
+      //
+      const std::optional<D3DADAPTER_IDENTIFIER9>&
       adapter ()
       {
+        static std::optional<D3DADAPTER_IDENTIFIER9> r;
+
+        if (r)
+          return r;
+
         IDirect3D9* d (Game::d3d9 != nullptr ? *Game::d3d9 : nullptr);
 
         if (d == nullptr)
-          return std::nullopt;
+          return r;
 
-        D3DADAPTER_IDENTIFIER9 r {};
+        D3DADAPTER_IDENTIFIER9 i {};
 
-        if (FAILED (d->GetAdapterIdentifier (D3DADAPTER_DEFAULT, 0, &r)))
-          return std::nullopt;
+        if (SUCCEEDED (d->GetAdapterIdentifier (D3DADAPTER_DEFAULT, 0, &i)))
+          r = i;
 
         return r;
       }
@@ -250,12 +258,21 @@ namespace Sentry
     std::string
     usermap ()
     {
+      // Note that IsUserMap() goes to the filesystem, so only ask again once
+      // the map changes.
+      //
+      static std::string last;
+      static std::string r;
+
       const std::string m (map ());
 
-      if (m.empty ())
-        return {};
+      if (m != last)
+      {
+        last = m;
+        r = m.empty () ? "" : Components::Maps::IsUserMap (m) ? "yes" : "no";
+      }
 
-      return Components::Maps::IsUserMap (m) ? "yes" : "no";
+      return r;
     }
 
     // Return the IWDs that are loaded but that neither the game nor IW4x
@@ -265,10 +282,23 @@ namespace Sentry
     std::string
     custom_iwds ()
     {
-      if (Game::fs_searchpaths == nullptr)
-        return {};
+      // We are asked twice for every publish of the scope (see modded()), so
+      // reuse what we found for a moment rather than walk the search paths
+      // again.
+      //
+      static std::chrono::steady_clock::time_point at;
+      static std::string r;
 
-      std::string r;
+      const auto now (std::chrono::steady_clock::now ());
+
+      if (now - at < std::chrono::seconds (1))
+        return r;
+
+      at = now;
+      r.clear ();
+
+      if (Game::fs_searchpaths == nullptr)
+        return r;
 
       for (const Game::searchpath_s* s (*Game::fs_searchpaths);
            s != nullptr;
