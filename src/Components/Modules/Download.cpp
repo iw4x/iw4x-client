@@ -207,11 +207,18 @@ namespace Components
     }
     else
     {
-      url = host + "/file/" + (download->isMap_ ? "map/" : "") + file.name
-        + (download->isPrivate_ ? ("?password=" + download->hashedPassword_) : "");
+      url = host + "/file/" + (download->isMap_ ? "map/" : "") + file.name;
     }
 
+    // Log the url before we add the password hash to it. The server accepts
+    // the hash on its own, so it's as good as the password itself.
+    //
     Logger::Print("Downloading from url {}\n", url);
+
+    if (!SV_wwwDownload.get<bool>() && download->isPrivate_)
+    {
+      url.append("?password=" + download->hashedPassword_);
+    }
 
     FileDownload fDownload;
     fDownload.file = file;
