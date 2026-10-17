@@ -10,6 +10,7 @@ namespace Sentry
     state,
     error,
     engine,
+    fastfile,
   };
 
   struct trail_kind

@@ -12,9 +12,11 @@ namespace Sentry
       {"default", "state"},
       {"error",   "error"},
       {"debug",   "engine"},
+      {"default", "fastfile"},
     };
 
-    static_assert (std::size (kinds) == static_cast<size_t> (trail::engine) + 1,
+    static_assert (std::size (kinds) ==
+                   static_cast<size_t> (trail::fastfile) + 1,
                    "every trail must name a breadcrumb type and category");
 
     const char*
