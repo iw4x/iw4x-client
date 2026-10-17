@@ -686,99 +686,118 @@ namespace Components
 
       auto count = 0;
 
-      AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
+      // Install the hook once and only act while a dump is running, so that
+      // fastfiles loaded later (e.g., downloaded mods or usermaps) never reach
+      // it. Ideally we would disconnect it instead, but Signal::disconnect()
+      // can't tell lambda slots apart.
+      //
+      static auto dumpActive = false;
+      static auto hookInstalled = false;
+
+      if (!hookInstalled)
       {
-        // they're basically the same right?
-        if (type == Game::ASSET_TYPE_PIXELSHADER || type == Game::ASSET_TYPE_VERTEXSHADER)
+        hookInstalled = true;
+        AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
         {
-          Utils::IO::CreateDir("userraw/shader_bin");
-
-          const char* formatString;
-          if (type == Game::ASSET_TYPE_PIXELSHADER)
+          if (!dumpActive)
           {
-            formatString = "userraw/shader_bin/%.ps";
-          }
-          else
-          {
-            formatString = "userraw/shader_bin/%.vs";
+            return;
           }
 
-          const auto path = std::format("{}{}", formatString, name);
-          if (Utils::IO::FileExists(path)) return;
-
-          Utils::Stream buffer(0x1000);
-          auto* dest = buffer.dest<Game::MaterialPixelShader>();
-          buffer.save(asset.pixelShader);
-
-          if (asset.pixelShader->prog.loadDef.program)
+          // they're basically the same right?
+          if (type == Game::ASSET_TYPE_PIXELSHADER || type == Game::ASSET_TYPE_VERTEXSHADER)
           {
-            buffer.saveArray(asset.pixelShader->prog.loadDef.program, asset.pixelShader->prog.loadDef.programSize);
-            Utils::Stream::ClearPointer(&dest->prog.loadDef.program);
-          }
-
-          Utils::IO::WriteFile(path, buffer.toBuffer());
-        }
-
-        if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
-        {
-          Utils::IO::CreateDir("userraw/techsets");
-          Utils::Stream buffer(0x1000);
-          auto* dest = buffer.dest<Game::MaterialTechniqueSet>();
-          buffer.save(asset.techniqueSet);
-
-          if (asset.techniqueSet->name)
-          {
-            buffer.saveString(asset.techniqueSet->name);
-            Utils::Stream::ClearPointer(&dest->name);
-          }
-
-          for (int i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
-          {
-            auto* technique = asset.techniqueSet->techniques[i];
-
-            if (technique)
+            // Make sure the name can't take us out of the dump directory. It
+            // comes straight from the fastfile.
+            //
+            if (name.empty() || name.find("..") != std::string::npos || name.find_first_of(":/\\") != std::string::npos)
             {
-              // Size-check is obsolete, as the structure is dynamic
-              buffer.align(Utils::Stream::ALIGN_4);
+              Logger::Print("Skipping shader with invalid name '{}'\n", name);
+              return;
+            }
 
-              auto* destTechnique = buffer.dest<Game::MaterialTechnique>();
-              buffer.save(technique, 8);
+            Utils::IO::CreateDir("userraw/shader_bin");
 
-              // Save_MaterialPassArray
-              auto* destPasses = buffer.dest<Game::MaterialPass>();
-              buffer.saveArray(technique->passArray, technique->passCount);
+            const auto* extension = (type == Game::ASSET_TYPE_PIXELSHADER) ? "ps" : "vs";
+            const auto path = std::format("userraw/shader_bin/{}.{}", name, extension);
+            if (Utils::IO::FileExists(path)) return;
 
-              for (std::uint16_t j = 0; j < technique->passCount; ++j)
+            Utils::Stream buffer(0x1000);
+            auto* dest = buffer.dest<Game::MaterialPixelShader>();
+            buffer.save(asset.pixelShader);
+
+            if (asset.pixelShader->prog.loadDef.program)
+            {
+              buffer.saveArray(asset.pixelShader->prog.loadDef.program, asset.pixelShader->prog.loadDef.programSize);
+              Utils::Stream::ClearPointer(&dest->prog.loadDef.program);
+            }
+
+            Utils::IO::WriteFile(path, buffer.toBuffer());
+          }
+
+          if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
+          {
+            Utils::IO::CreateDir("userraw/techsets");
+            Utils::Stream buffer(0x1000);
+            auto* dest = buffer.dest<Game::MaterialTechniqueSet>();
+            buffer.save(asset.techniqueSet);
+
+            if (asset.techniqueSet->name)
+            {
+              buffer.saveString(asset.techniqueSet->name);
+              Utils::Stream::ClearPointer(&dest->name);
+            }
+
+            for (int i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
+            {
+              auto* technique = asset.techniqueSet->techniques[i];
+
+              if (technique)
               {
-                AssertSize(Game::MaterialPass, 20);
+                // Size-check is obsolete, as the structure is dynamic
+                buffer.align(Utils::Stream::ALIGN_4);
 
-                Game::MaterialPass* destPass = &destPasses[j];
-                Game::MaterialPass* pass = &technique->passArray[j];
+                auto* destTechnique = buffer.dest<Game::MaterialTechnique>();
+                buffer.save(technique, 8);
 
-                if (pass->vertexDecl)
+                // Save_MaterialPassArray
+                auto* destPasses = buffer.dest<Game::MaterialPass>();
+                buffer.saveArray(technique->passArray, technique->passCount);
+
+                for (std::uint16_t j = 0; j < technique->passCount; ++j)
                 {
+                  AssertSize(Game::MaterialPass, 20);
 
+                  Game::MaterialPass* destPass = &destPasses[j];
+                  Game::MaterialPass* pass = &technique->passArray[j];
+
+                  if (pass->vertexDecl)
+                  {
+
+                  }
+
+                  if (pass->args)
+                  {
+                    buffer.align(Utils::Stream::ALIGN_4);
+                    buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
+                    Utils::Stream::ClearPointer(&destPass->args);
+                  }
                 }
 
-                if (pass->args)
+                if (technique->name)
                 {
-                  buffer.align(Utils::Stream::ALIGN_4);
-                  buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
-                  Utils::Stream::ClearPointer(&destPass->args);
+                  buffer.saveString(technique->name);
+                  Utils::Stream::ClearPointer(&destTechnique->name);
                 }
-              }
 
-              if (technique->name)
-              {
-                buffer.saveString(technique->name);
-                Utils::Stream::ClearPointer(&destTechnique->name);
+                Utils::Stream::ClearPointer(&dest->techniques[i]);
               }
-
-              Utils::Stream::ClearPointer(&dest->techniques[i]);
             }
           }
-        }
-      });
+        });
+      }
+
+      dumpActive = true;
 
       for (const auto& fastFile : fastFiles)
       {
@@ -804,6 +823,8 @@ namespace Components
 
         count++;
       }
+
+      dumpActive = false;
     });
 
 #ifdef DEBUG_MAT_LOG
