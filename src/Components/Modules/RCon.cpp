@@ -11,6 +11,7 @@ namespace Components
   std::vector<std::size_t> RCon::RConAddresses;
 
   std::string RCon::Password;
+  Network::Address RCon::PasswordTarget;
 
   int RCon::FailedWindowStart;
   int RCon::FailedWindowCount;
@@ -32,12 +33,14 @@ namespace Components
       {
         if (params->size() < 3) return;
         Password = params->get(2);
+        PasswordTarget = {}; // Bound on first use, see below.
         return;
       }
 
       if (std::strcmp(operation, "logout") == 0)
       {
         Password.clear();
+        PasswordTarget = {};
         return;
       }
 
@@ -55,6 +58,23 @@ namespace Components
 
       if (target.isValid())
       {
+        // Bind the password to the first server we use it with. It's sent in
+        // cleartext, so we don't want to hand it to whatever other server we
+        // happen to target later (say, the one we are connected to).
+        //
+        if (!Password.empty())
+        {
+          if (!PasswordTarget.isValid())
+          {
+            PasswordTarget = target;
+          }
+          else if (PasswordTarget != target)
+          {
+            Logger::Print("Your rcon password was used with {}, use 'rcon login' again to use it with {}\n", PasswordTarget.getString(), target.getString());
+            return;
+          }
+        }
+
         Network::SendCommand(target, "rcon", Password + " " + params->join(1));
         return;
       }
