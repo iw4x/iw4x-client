@@ -22,6 +22,9 @@ namespace Sentry
     wine ();
 
     std::string
+    wine_version ();
+
+    std::string
     architecture ();
 
     std::string
@@ -43,6 +46,18 @@ namespace Sentry
     gametype ();
 
     std::string
+    language ();
+
+    std::string
+    usermap ();
+
+    std::string
+    custom_iwds ();
+
+    std::string
+    modded ();
+
+    std::string
     connection ();
 
     std::string
@@ -53,6 +68,36 @@ namespace Sentry
 
     std::string
     server_version ();
+
+    std::string
+    display_mode ();
+
+    std::string
+    fullscreen ();
+
+    std::string
+    refresh_rate ();
+
+    std::string
+    vsync ();
+
+    std::string
+    max_fps ();
+
+    std::string
+    gpu ();
+
+    std::string
+    gpu_driver ();
+
+    std::string
+    cpu ();
+
+    std::string
+    processors ();
+
+    std::string
+    memory ();
 
     std::filesystem::path
     base_path ();
