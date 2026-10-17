@@ -70,7 +70,7 @@ BEGIN
 #endif
             VALUE "FileVersion", REVISION_STR
             VALUE "InternalName", "iw4x"
-            VALUE "LegalCopyright", "Copyright 2023 The IW4x Team. All rights reserved."
+            VALUE "LegalCopyright", "Copyright 2026 The IW4x Team. All rights reserved."
             VALUE "OriginalFilename", "iw4x.dll"
             VALUE "ProductName", "IW4x"
             VALUE "ProductVersion", REVISION_STR

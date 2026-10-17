@@ -8,8 +8,8 @@ To report a security issue, please [create a GitHub security advisory](https://d
 
 Alternatively, you may contact us directly through **Discord**:
 
-- Primary Contact: `louvenarde`
-- IW4x Discord Server: https://discord.com/invite/pV2qJscTXf
+- Primary Contact: `wroyca`
+- IW4x Discord Server: https://iw4x.io/discord
 
 Please mention that you are reporting a security vulnerability when contacting us for priority response.
 
