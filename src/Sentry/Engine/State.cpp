@@ -71,14 +71,14 @@ namespace Sentry
       // or iw4x_00.
       //
       bool
-      stock (std::string n)
+      stock (const std::string& n)
       {
-        std::ranges::transform (n, n.begin (),
-                                [] (unsigned char c) {return std::tolower (c);});
+        static const std::regex r (
+          "iw_[0-9]{2}|iw_dlc[0-9]+_[0-9]{2}|iw4x_[0-9]{2}|"
+          "localized_[a-z_]+_iw[0-9]{2}",
+          std::regex::icase | std::regex::optimize);
 
-        return n.starts_with ("iw_")
-          || n.starts_with ("iw4x_")
-          || n.starts_with ("localized_");
+        return std::regex_match (n, r);
       }
 
       std::string
