@@ -32,8 +32,8 @@ namespace Sentry
         std::string l (s, b, e - b);
         std::string k (l);
 
-        std::transform (k.begin (), k.end (), k.begin (),
-                        [] (unsigned char c) {return std::tolower (c);});
+        std::ranges::transform (k, k.begin (),
+                                [] (unsigned char c) {return std::tolower (c);});
 
         if (k.find ("password") != std::string::npos ||
             k.find ("rcon") != std::string::npos ||
