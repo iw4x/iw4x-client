@@ -8,9 +8,11 @@ mn_ver="11.0.0"
 mn_url="https://dl.winehq.org/wine/wine-mono"
 mw_url="https://github.com/mstorsjo/msvc-wine.git"
 
-# Default cache and installation directories.
+# Default cache and installation directories. The cache is per user, never a
+# shared location like /tmp that other local users can plant files in.
 #
-ca_dir="/tmp/msvc"
+cc_dir="${XDG_CACHE_HOME:-$HOME/.cache}/iw4x"
+ca_dir="$cc_dir/msvc"
 mi_dir="$HOME/.msvc"
 wn_dir="$HOME/.wine"
 
@@ -95,7 +97,7 @@ while test $# -ne 0; do
       diag "  --no-submodules     Don't update git submodules."
       diag "  --force             Perform a full bootstrap even if the environment is ready."
       diag "  --verbose           Print commands before they are executed."
-      diag "  --cache-dir <dir>   Directory to cache downloaded msvc components (/tmp/msvc by default)."
+      diag "  --cache-dir <dir>   Directory to cache downloaded msvc components (\$XDG_CACHE_HOME/iw4x/msvc by default)."
       diag "  --msvc-dir <dir>    Directory to install the msvc toolchain (~/.msvc by default)."
       diag "  --wine-dir <dir>    Directory to use for the wine prefix (~/.wine by default)."
       diag "  --timeout <sec>     Network operations timeout in seconds (300 by default)."
@@ -305,15 +307,26 @@ wine_setup ()
   mmsi="wine-mono-$mn_ver-x86.msi"
   murl="$mn_url/$mn_ver/$mmsi"
 
-  if ! test -f "/tmp/$mmsi"; then
+  run mkdir -p "$cc_dir"
+  run chmod 700 "$cc_dir"
+
+  mmsi_path="$cc_dir/$mmsi"
+
+  if ! test -f "$mmsi_path" || ! test -O "$mmsi_path"; then
     diag "info: downloading wine-mono $mn_ver"
-    download "$murl" "/tmp/$mmsi"
+
+    # Download to a private temporary file first so an interrupted download is
+    # never mistaken for a cached installer.
+    #
+    mmsi_tmp="$(mktemp "$mmsi_path.XXXXXX")" || fail
+    download "$murl" "$mmsi_tmp"
+    run mv -f "$mmsi_tmp" "$mmsi_path"
   else
     diag "info: using cached wine-mono installer"
   fi
 
   diag "info: installing wine-mono"
-  run msiexec /i "/tmp/$mmsi" /quiet
+  run msiexec /i "$mmsi_path" /quiet
 }
 
 msvc_setup ()
@@ -584,7 +597,7 @@ bootstrap ()
 
   if test "$clean" = true; then
     diag "info: cleaning build environment"
-    run rm -rf build/ msvc-wine/ "$wn_dir" "$mi_dir" /tmp/wine-mono-*.msi
+    run rm -rf build/ msvc-wine/ "$wn_dir" "$mi_dir" "$cc_dir"/wine-mono-*.msi
   fi
 
   sys_deps
