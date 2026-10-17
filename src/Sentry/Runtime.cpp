@@ -79,7 +79,62 @@ namespace Sentry
     //
     r->write_console (false /* wait */);
 
+    sentry_value_t cs (sentry_value_get_by_key (e, "contexts"));
+
+    if (sentry_value_is_null (cs))
+    {
+      cs = sentry_value_new_object ();
+      sentry_value_set_by_key (e, "contexts", cs);
+    }
+
+    sentry_value_set_by_key (cs, "process", r->process ());
+
     return e;
+  }
+
+  sentry_value_t
+  runtime::
+  process () const
+  {
+    using namespace std::chrono;
+
+    sentry_value_t r (sentry_value_new_object ());
+
+    auto set = [r] (const char* k, const int64_t v)
+    {
+      sentry_value_set_by_key (
+        r, k, sentry_value_new_int32 (static_cast<int32_t> (v)));
+    };
+
+    const steady_clock::time_point now (steady_clock::now ());
+
+    set ("uptime_seconds",
+         duration_cast<seconds> (now - started_at_).count ());
+
+    if (const steady_clock::rep m = map_at_.load (); m != 0)
+    {
+      const steady_clock::duration d (now.time_since_epoch () -
+                                      steady_clock::duration (m));
+
+      set ("map_seconds", duration_cast<seconds> (d).count ());
+    }
+
+    // We are a 32-bit process, so running out of address space (rather than
+    // memory) is a common way to crash with a large mod or map.
+    //
+    MEMORYSTATUSEX s {};
+    s.dwLength = sizeof (s);
+
+    if (GlobalMemoryStatusEx (&s) != FALSE)
+    {
+      constexpr uint64_t mib (1024 * 1024);
+
+      set ("address_space_used_mib",
+           (s.ullTotalVirtual - s.ullAvailVirtual) / mib);
+      set ("address_space_total_mib", s.ullTotalVirtual / mib);
+    }
+
+    return r;
   }
 
   void
@@ -227,6 +282,16 @@ namespace Sentry
     scope_.publish ();
     refresh_snapshots (ctx_, options_.database);
     write_console (true /* wait */);
+
+    if (std::string m (engine::map ()); m != map_)
+    {
+      map_at_.store (
+        m.empty ()
+        ? 0
+        : std::chrono::steady_clock::now ().time_since_epoch ().count ());
+
+      map_ = std::move (m);
+    }
   }
 
   void

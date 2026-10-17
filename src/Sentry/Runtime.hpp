@@ -74,6 +74,12 @@ namespace Sentry
     void
     write_console (bool wait);
 
+    // Return the process context: uptime, time on the current map, and
+    // address space usage. This may be called from any thread.
+    //
+    sentry_value_t
+    process () const;
+
     logging_sink sink_;
     options options_;
     context ctx_;
@@ -81,6 +87,16 @@ namespace Sentry
 
     bool started_ {false};
     unsigned recovered_ {0};
+
+    // When we started and when the current map was loaded (or its zero
+    // value if there is none), for the process context. Note that we only
+    // notice a map change on refresh.
+    //
+    const std::chrono::steady_clock::time_point started_at_ {
+      std::chrono::steady_clock::now ()};
+
+    std::string map_;
+    std::atomic<std::chrono::steady_clock::rep> map_at_ {0};
 
     console console_ {256 * 1024};
     std::mutex console_mutex_;
