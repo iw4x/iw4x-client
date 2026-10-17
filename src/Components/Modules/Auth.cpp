@@ -477,7 +477,11 @@ namespace Components
   {
     GuidToken.clear();
     ComputeToken.clear();
-    GuidKey = Utils::Cryptography::ECC::GenerateKey(512, GetMachineEntropy());
+    // Generate the identity key from the CSPRNG only. Hardware identifiers
+    // are neither secret nor random enough: if we derived the key from them,
+    // anyone who learns them could rebuild it.
+    //
+    GuidKey = Utils::Cryptography::ECC::GenerateKey(512);
     StoreKey();
   }
 
@@ -503,14 +507,6 @@ namespace Components
 
     if (GuidKey.isValid())
     {
-#ifdef REGENERATE_INVALID_KEY
-      auto machineKey = Utils::Cryptography::ECC::GenerateKey(512, GetMachineEntropy());
-      if (GetKeyHash(machineKey.getPublicKey()) != GetKeyHash())
-      {
-      // kill! The user has changed machine or copied files from another
-      Auth::GenerateKey();
-      }
-#endif
       //All good, nothing to do
     }
     else
