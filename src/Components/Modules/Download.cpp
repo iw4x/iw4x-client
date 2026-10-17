@@ -782,14 +782,28 @@ namespace Components
 
     Utils::String::Replace(url, "\\", "/");
 
-    if (url.size() <= 5)
+    if (!url.starts_with("/file/"))
     {
       ReplyError(c, 400);
       return {};
     }
 
-    url = url.substr(6); // Strip /file
+    url = url.substr(6); // Strip /file/
     Utils::String::Replace(url, "%20", " ");
+
+    // Make sure the request is a bare file name (optionally prefixed with
+    // map/), never a path. Note that we also reject control characters since
+    // a NUL would cut off the extension we check below.
+    //
+    {
+      const auto name = url.starts_with("map/") ? url.substr(4) : url;
+      if (name.empty() || Utils::String::Contains(name, "..") || Utils::String::Contains(name, ":") || Utils::String::Contains(name, "/")
+        || std::ranges::any_of(name, [](const char ch) { return static_cast<unsigned char>(ch) < 0x20; }))
+      {
+        ReplyError(c, 403);
+        return {};
+      }
+    }
 
     auto isMap = false;
     if (url.starts_with("map/"))
