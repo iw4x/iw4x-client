@@ -48,6 +48,22 @@ namespace zone
       ExitProcess (1);
     }
 
+    // As above but wait for the thread before exiting, since what it does
+    // (such as writing a report) shouldn't be cut short. Note that we show
+    // the message first so that the player doesn't wait on it for nothing.
+    //
+    [[noreturn]] void
+    fail (const string& m, jthread& t)
+    {
+      log (m);
+
+      MessageBoxA (nullptr, m.c_str (), "IW4x", MB_ICONERROR | MB_OK);
+
+      t.join ();
+
+      ExitProcess (1);
+    }
+
     template <typename A0, typename... A>
     [[noreturn]] void
     fail (const string_view& f, A0&& a0, A&&... a)
@@ -1920,18 +1936,24 @@ namespace zone
                           f.size (), n, ns, log_file, converter_name));
 
         // Offer to send the fastfiles along with the log, since we most
-        // likely need the fastfile itself to tell what went wrong. Note that
-        // the reporter shows up on its own, so this doesn't hold up fail().
+        // likely need the fastfile itself to tell what went wrong. Writing
+        // the report may take a while with large fastfiles, so do it while
+        // the player reads the message. Note that the reporter then shows up
+        // on its own.
         //
         vector<fs::path> as {fs::path (log_file)};
         as.insert (as.end (), f.begin (), f.end ());
 
-        Sentry::offer (Sentry::discover (),
-                       "zone_conversion",
-                       format ("{} of {} fastfiles could not be converted", f.size (), n),
-                       as);
+        jthread t (
+          [o = Sentry::discover (),
+           as = move (as),
+           d = format ("{} of {} fastfiles could not be converted",
+                       f.size (), n)] ()
+          {
+            Sentry::offer (o, "zone_conversion", d, as);
+          });
 
-        fail (m);
+        fail (m, t);
       }
     }
   }
