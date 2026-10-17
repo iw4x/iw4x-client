@@ -13,6 +13,11 @@ namespace Components
 
     static Dvar::Var SV_VotesRequired;
 
+    // The number of votes a single player may call. Same as the stock
+    // MAX_VOTE_COUNT.
+    //
+    static constexpr auto MAX_VOTE_COUNT = 3;
+
     static constexpr auto* CallVoteDesc = "%c \"GAME_VOTECOMMANDSARE\x15 map_restart, map_rotate, map <mapname>, g_gametype <typename>, typemap <typename> <mapname>, "
       "kick <player>, tempBanUser <player>\"";
 

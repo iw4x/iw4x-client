@@ -288,7 +288,7 @@ namespace Components
         return;
       }
 
-      if (ent->client->sess.voteCount >= VotesRequired())
+      if (ent->client->sess.voteCount >= MAX_VOTE_COUNT)
       {
         Game::SV_GameSendServerCommand(ent - Game::g_entities, Game::SV_CMD_CAN_IGNORE, VA("%c \"GAME_MAXVOTESCALLED\"", 0x65));
         return;
@@ -333,6 +333,7 @@ namespace Components
     if (shouldDisplay)
     {
       DisplayVote(ent);
+      ++ent->client->sess.voteCount;
     }
   }
 
