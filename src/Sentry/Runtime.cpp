@@ -3,6 +3,7 @@
 #include "Types.hpp"
 
 #include "Attachment.hpp"
+#include "Report.hpp"
 #include "Engine/State.hpp"
 
 namespace Sentry
@@ -112,6 +113,11 @@ namespace Sentry
     sentry_options_set_handler_pathw (o, options_.daemon.c_str ());
     sentry_options_set_external_crash_reporter_pathw (
       o, options_.reporter.c_str ());
+
+    // Everything else that we would send goes through the reporter as well,
+    // so that nothing leaves without the player agreeing to it.
+    //
+    sentry_options_set_transport (o, make_transport (options_));
 
     sentry_options_set_crash_reporting_mode (o, options_.reporting);
     sentry_options_set_minidump_mode (o, options_.minidump);
