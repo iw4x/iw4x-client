@@ -2,6 +2,8 @@
 
 #include "Types.hpp"
 
+#include "Redact.hpp"
+
 #include "Engine/State.hpp"
 
 namespace Sentry
@@ -14,44 +16,10 @@ namespace Sentry
       {"zone-conversion.log", "text/plain"},
     };
 
-    // Remove the lines of a config that may hold a password, such as the
-    // SOCKS proxy settings or a bind that logs into rcon. We remove the whole
-    // line since we can't tell where in a bind the password is.
-    //
-    std::string
-    redact (std::string s)
-    {
-      std::string r;
-      r.reserve (s.size ());
-
-      for (size_t b (0); b < s.size (); )
-      {
-        size_t e (s.find ('\n', b));
-        e = e != std::string::npos ? e + 1 : s.size ();
-
-        std::string l (s, b, e - b);
-        std::string k (l);
-
-        std::ranges::transform (k, k.begin (),
-                                [] (unsigned char c) {return std::tolower (c);});
-
-        if (k.find ("password") != std::string::npos ||
-            k.find ("rcon") != std::string::npos ||
-            k.find ("socks") != std::string::npos)
-          r += "// line removed since it may hold a password\r\n";
-        else
-          r += l;
-
-        b = e;
-      }
-
-      return r;
-    }
-
     constexpr snapshot snapshot_table[] =
     {
-      {CLIENT_CONFIG,             engine::config_path, redact,  "text/plain"},
-      {BASEGAME_LEGACY ".stat",   engine::stats_path,  nullptr, "application/octet-stream"},
+      {CLIENT_CONFIG,             engine::config_path, redact_lines, "text/plain"},
+      {BASEGAME_LEGACY ".stat",   engine::stats_path,  nullptr,      "application/octet-stream"},
     };
 
     // The source and modification time of the last copy we made of each

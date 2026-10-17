@@ -2,6 +2,8 @@
 
 #include "../Types.hpp"
 
+#include "../Redact.hpp"
+
 #include "../../Components/Modules/Dedicated.hpp"
 #include "../../Components/Modules/Dvar.hpp"
 #include "../../Components/Modules/Maps.hpp"
@@ -180,7 +182,23 @@ namespace Sentry
     std::string
     launch_parameters ()
     {
-      return Utils::String::Convert (Utils::GetLaunchParameters ());
+      int n (0);
+      wchar_t** v (CommandLineToArgvW (GetCommandLineW (), &n));
+
+      if (v == nullptr)
+        return {};
+
+      std::vector<std::string> as;
+
+      for (int i (1); i < n; ++i)
+        as.push_back (Utils::String::Convert (v[i]));
+
+      LocalFree (v);
+
+      // A server is commonly started with its rcon password on the command
+      // line, which is not something to send along.
+      //
+      return redact_arguments (as);
     }
 
     std::string
