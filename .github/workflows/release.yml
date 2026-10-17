@@ -71,6 +71,7 @@ jobs:
         run: |
           npm install -g @sentry/cli
           sentry-cli releases new "$env:SENTRY_RELEASE"
+          sentry-cli releases set-commits "$env:SENTRY_RELEASE" --auto --ignore-missing
           sentry-cli debug-files upload --include-sources build/bin/Win32/Release
           sentry-cli releases finalize "$env:SENTRY_RELEASE"
 
