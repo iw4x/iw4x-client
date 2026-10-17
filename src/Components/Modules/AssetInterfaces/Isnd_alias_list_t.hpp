@@ -13,5 +13,15 @@ namespace Assets
     void dump(Game::XAssetHeader header) override;
 
     Isnd_alias_list_t();
+
+    // Return true if name can be joined onto the dump directory without
+    // leaving it.
+    //
+    static bool IsSafeDumpName(const char* name);
+
+    // Return true if the alias list and every loaded sound it references have
+    // safe names. See IsSafeDumpName() for details.
+    //
+    static bool IsSafeToDump(const Game::snd_alias_list_t* asset);
   };
 }

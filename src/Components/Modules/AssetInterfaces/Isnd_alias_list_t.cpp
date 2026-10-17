@@ -37,8 +37,50 @@ namespace Assets
     }
   }
 
+  bool Isnd_alias_list_t::IsSafeDumpName(const char* name)
+  {
+    // Note that the exporter joins asset names onto its work path as-is, so
+    // a name from a third-party fastfile could otherwise write anywhere.
+    //
+    // @@ This really belongs in iw4of's get_work_path().
+    //
+    if (!name || !*name)
+    {
+      return true;
+    }
+
+    const std::string_view view(name);
+    return view.find("..") == std::string_view::npos && view.find(':') == std::string_view::npos && view.front() != '/' && view.front() != '\\';
+  }
+
+  bool Isnd_alias_list_t::IsSafeToDump(const Game::snd_alias_list_t* asset)
+  {
+    if (!asset || !IsSafeDumpName(asset->aliasName))
+    {
+      return false;
+    }
+
+    for (unsigned int i = 0; i < asset->count; ++i)
+    {
+      const auto* alias = &asset->head[i];
+      if (alias->soundFile && alias->soundFile->type == Game::snd_alias_type_t::SAT_LOADED && alias->soundFile->u.loadSnd
+        && !IsSafeDumpName(alias->soundFile->u.loadSnd->name))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   void Isnd_alias_list_t::dump(Game::XAssetHeader header)
   {
+    if (!IsSafeToDump(header.sound))
+    {
+      Components::Logger::Print("Refusing to dump sound with an unsafe asset name\n");
+      return;
+    }
+
     Components::ZoneBuilder::GetExporter()->write(Game::XAssetType::ASSET_TYPE_SOUND, header.data);
   }
 
