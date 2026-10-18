@@ -538,7 +538,13 @@ namespace Components
     char hashBuf[100] = { 0 };
     unsigned int hash = atoi(Game::MSG_ReadStringLine(msg, hashBuf, sizeof(hashBuf)));
 
-    if (!Maps::CheckMapInstalled(mapname, false, true) || hash && hash != Maps::GetUsermapHash(mapname))
+    // If we are still connecting, then the gamestate we have is for the
+    // previous map and loading it on top of the new one fails. So reconnect,
+    // the same as for a map we don't have.
+    //
+    const auto connecting = Game::CL_GetLocalClientConnectionState(0) < Game::CA_ACTIVE;
+
+    if (connecting || !Maps::CheckMapInstalled(mapname, false, true) || hash && hash != Maps::GetUsermapHash(mapname))
     {
       // Reconnecting forces the client to download the new map
       Command::Execute("disconnect", false);
