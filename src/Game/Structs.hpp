@@ -10888,7 +10888,8 @@ namespace Game
     bool isRunning;
     bool cgameInitialized;
     bool cgameInitCalled;
-    unsigned char __pad0[0x9AC];
+    bool mapPreloaded;
+    unsigned char __pad0[0x9AB];
     int keyCatchers;
     bool displayHUDWithKeycatchUI;
     connstate_t connectionState;

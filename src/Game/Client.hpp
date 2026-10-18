@@ -85,6 +85,9 @@ namespace Game
 
   extern clientUIActive_t* clientUIActives;
 
+  extern bool* cl_serverChangingMap;
+  extern char* loadingMapName;
+
   extern clientActive_t* clients;
 
   extern voiceCommunication_t* cl_voiceCommunication;

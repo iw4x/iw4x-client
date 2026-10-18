@@ -37,6 +37,9 @@ namespace Game
 
   clientUIActive_t* clientUIActives = reinterpret_cast<clientUIActive_t*>(0xB2BB88);
 
+  bool* cl_serverChangingMap = reinterpret_cast<bool*>(0xA1E874);
+  char* loadingMapName = reinterpret_cast<char*>(0x62E27A0);
+
   clientActive_t* clients = reinterpret_cast<clientActive_t*>(0xB2C698);
 
   GfxConfiguration* gfxCfg = reinterpret_cast<GfxConfiguration*>(0x66E1C90);
