@@ -504,6 +504,14 @@ namespace Controller
           return;
         }
 
+        // Only run the binding when the button goes down. The engine keeps
+        // track of a held button itself and every command we run is also
+        // sent to the server as a reliable command, so running it again on
+        // each repeat quickly overflows the client's command buffer.
+        //
+        if (e == key_event::repeated)
+          return;
+
         if (binding != nullptr)
         {
           if (binding[0] == '+')
