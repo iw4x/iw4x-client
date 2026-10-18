@@ -26,7 +26,7 @@ namespace Sentry
     // How long the main thread may go without a heartbeat before we consider
     // the game frozen.
     //
-    std::chrono::milliseconds hang_timeout {10000};
+    std::chrono::milliseconds hang_timeout {20000};
 
     bool debug {false};
     // Session tracking reports every run, crash or not, which is not
