@@ -412,16 +412,16 @@ namespace Components
     }
   }
 
-  // Note that we call the above stub through a volatile pointer since
-  // otherwise the optimizer sees that it doesn't touch any registers and
-  // assumes the call preserves them, which the engine function doesn't.
-  //
-  static auto (* volatile fs_fopen_file_read_for_thread) (const char*, int*, int)
-    (&FileSystem::FS_FOpenFileReadForThread);
-
   int FileSystem::
   FS_FOpenFileReadForThread_Hk (const char* filename, int* file, int thread)
   {
+    // Note that we call the above stub through a volatile pointer since
+    // otherwise the optimizer sees that it doesn't touch any registers and
+    // assumes the call preserves them, which the engine function doesn't.
+    //
+    static auto (* volatile fs_fopen_file_read_for_thread) (const char*, int*, int)
+      (&FS_FOpenFileReadForThread);
+
     int r (fs_fopen_file_read_for_thread (filename, file, thread));
 
     if (r == -1)
