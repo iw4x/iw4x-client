@@ -448,6 +448,43 @@ namespace Components
       : Game::SEH_GetCurrentLanguage ();
   }
 
+  // Explain why an image couldn't be loaded if it is missing.
+  //
+  // All the game says is that it couldn't load the image, which tells the
+  // player nothing. So if that's because its file is nowhere to be found (in
+  // any of the languages we look it up in, see above), we say so as well as
+  // what is the likely cause. Otherwise (the file is truncated, etc), we keep
+  // the original error.
+  //
+  void FileSystem::
+  Image_LoadError (Game::errorParm_t error, const char* fmt, const char* name)
+  {
+    std::string f (std::format ("images/{}.iwi", name));
+
+    if (Game::FS_FOpenFileReadForThread (f.c_str (), nullptr, Game::FS_THREAD_MAIN) != -1)
+    {
+      Game::Com_Error (error, fmt, name);
+      return;
+    }
+
+    std::string ls;
+    {
+      std::vector<int> v (lookup_languages ());
+      for (std::size_t i (0); i != v.size (); ++i)
+      {
+        if (i != 0)
+          ls += (i + 1 == v.size () ? " and " : ", ");
+
+        ls += Game::SEH_GetLanguageName (v[i]);
+      }
+    }
+
+    Logger::Error (error,
+                   "Couldn't load image '{}': {} is missing for {}. "
+                   "Your game files are likely incomplete.",
+                   name, f, ls);
+  }
+
   const char* FileSystem::Sys_DefaultCDPath_Hk()
   {
     return Sys_DefaultInstallPath_Hk();
@@ -594,6 +631,9 @@ namespace Components
       Utils::Hook (0x6432EF, SEH_GetCurrentLanguage_Hk, HOOK_CALL).install ()->quick (); // FS_FOpenFileReadForThread: SEH_GetCurrentLanguage().
       Utils::Hook (0x6433FB, SEH_GetCurrentLanguage_Hk, HOOK_CALL).install ()->quick (); // FS_FOpenFileReadForThread: SEH_GetCurrentLanguage().
     }
+
+    Utils::Hook (0x51F4C4, Image_LoadError, HOOK_CALL).install ()->quick (); // Delayed image load: Com_Error().
+    Utils::Hook (0x51F5AC, Image_LoadError, HOOK_CALL).install ()->quick (); // Load_Texture: Com_Error().
 
     // Make the exe run from a folder other than the game folder
     Utils::Hook::Nop(0x4290D8, 5); // FS_IsBasePathValid
