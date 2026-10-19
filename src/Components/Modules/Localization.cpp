@@ -335,6 +335,13 @@ namespace Components
 
   const char* Localization::LocalizeMapName(const char* mapName)
   {
+    // The game loads the arenas on first use, and so must we: we may be
+    // asked before any menu has needed them (say, when we connect on
+    // startup).
+    //
+    if (!Dedicated::IsEnabled())
+      Game::UI_LoadArenas();
+
     for (int i = 0; i < *Game::arenaCount; ++i)
     {
       if (!_stricmp(ArenaLength::NewArenas[i].mapName, mapName))

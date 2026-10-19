@@ -248,6 +248,9 @@ namespace Game
   typedef const char*(*UI_GetMapDisplayName_t)(const char* pszMap);
   extern UI_GetMapDisplayName_t UI_GetMapDisplayName;
 
+  typedef void(*UI_LoadArenas_t)();
+  extern UI_LoadArenas_t UI_LoadArenas;
+
   typedef const char* (*UI_GetGameTypeDisplayName_t)(const char* pszGameType);
   extern UI_GetGameTypeDisplayName_t UI_GetGameTypeDisplayName;
 

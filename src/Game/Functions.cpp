@@ -212,6 +212,7 @@ namespace Game
   UI_ReplaceConversions_t UI_ReplaceConversions = UI_ReplaceConversions_t(0x4E9740);
   UI_ParseInfos_t UI_ParseInfos = UI_ParseInfos_t(0x4027A0);
   UI_GetMapDisplayName_t UI_GetMapDisplayName = UI_GetMapDisplayName_t(0x420700);
+  UI_LoadArenas_t UI_LoadArenas = UI_LoadArenas_t(0x4A95B0);
   UI_GetGameTypeDisplayName_t UI_GetGameTypeDisplayName = UI_GetGameTypeDisplayName_t(0x4EB0B0);
   ParseConfigStringToStruct_t ParseConfigStringToStruct = ParseConfigStringToStruct_t(0x403B60);
 
