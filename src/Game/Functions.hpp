@@ -482,6 +482,9 @@ namespace Game
   typedef void(*SND_InitDriver_t)();
   extern SND_InitDriver_t SND_InitDriver;
 
+  typedef void(*SND_SetHWND_t)(HWND hwnd);
+  extern SND_SetHWND_t SND_SetHWND;
+
   typedef void(*SockadrToNetadr_t)(sockaddr *s, netadr_t *a);
   extern SockadrToNetadr_t SockadrToNetadr;
 

@@ -187,6 +187,7 @@ namespace Game
 
   SND_Init_t SND_Init = SND_Init_t(0x46A630);
   SND_InitDriver_t SND_InitDriver = SND_InitDriver_t(0x4F5090);
+  SND_SetHWND_t SND_SetHWND = SND_SetHWND_t(0x64B600);
 
   SockadrToNetadr_t SockadrToNetadr = SockadrToNetadr_t(0x4F8460);
 

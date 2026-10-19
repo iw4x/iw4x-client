@@ -151,10 +151,35 @@ namespace Components
     }
   }
 
+  // Initialize the sound driver once the game window exists.
+  //
+  // The game initializes the sound driver before it creates its window,
+  // leaving Miles to bind DirectSound to whatever window it can find by then
+  // and rebinding it to the game window once that one is created. This means
+  // DirectSound is bound to the splash screen if there is one and fails to
+  // initialize if there is no window at all (which we've seen happen). So we
+  // initialize it right after the renderer creates the window instead.
+  //
+  // Note that by then the game window has missed its chance to rebind it, so
+  // we do it ourselves.
+  //
+  void Sound::CL_InitRenderer ()
+  {
+    Game::CL_InitRenderer ();
+    Game::SND_InitDriver ();
+    Game::SND_SetHWND (Game::g_wv->hWnd);
+  }
+
   Sound::
   Sound ()
   {
     Utils::Hook (0x0463A80, Sound::Init, HOOK_JUMP).install ()->quick ();
     Utils::Hook (0x04A23E6, Sound::Loop, HOOK_JUMP).install ()->quick ();
+
+    if (!Dedicated::IsEnabled () && !ZoneBuilder::IsEnabled ())
+    {
+      Utils::Hook::Nop (0x60BE8E, 5); // Com_Init: SND_InitDriver().
+      Utils::Hook (0x60BE98, CL_InitRenderer, HOOK_CALL).install ()->quick (); // Com_Init: CL_InitRenderer().
+    }
   }
 }

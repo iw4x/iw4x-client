@@ -10,5 +10,7 @@ namespace Components
   private:
     static int  Init();
     static void Loop();
+
+    static void CL_InitRenderer();
   };
 }

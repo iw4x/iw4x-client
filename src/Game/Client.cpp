@@ -4,6 +4,7 @@ namespace Game
 {
   CL_GetClientName_t CL_GetClientName = CL_GetClientName_t(0x4563D0);
   CL_IsCgameInitialized_t CL_IsCgameInitialized = CL_IsCgameInitialized_t(0x43EB20);
+  CL_InitRenderer_t CL_InitRenderer = CL_InitRenderer_t(0x4F84C0);
   CL_ConnectFromParty_t CL_ConnectFromParty = CL_ConnectFromParty_t(0x433D30);
   CL_DownloadsComplete_t CL_DownloadsComplete = CL_DownloadsComplete_t(0x42CE90);
   CL_DrawStretchPicPhysical_t CL_DrawStretchPicPhysical = CL_DrawStretchPicPhysical_t(0x4FC120);
