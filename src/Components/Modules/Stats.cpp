@@ -224,6 +224,65 @@ namespace Components
     return Utils::Hook::Call<int(void*, void*, int, const char*)>(0x42C000)(state, ddlContext, unused, value);
   }
 
+  // Set our stats as the server tells us to (the N server command).
+  //
+  // The command is a list of offset and data pairs with each data byte
+  // encoded as a hex pair or as Z or O for 0 or 1. The game writes the data
+  // into our stats buffer without checking that we have the stats (we may
+  // not: when fs_game changes, vid_restart re-reads them after reinitializing
+  // cgame) nor that the data fits (only the offset is checked). So we make
+  // sure of both and ignore the command otherwise.
+  //
+  // Note that the game still validates the rest (the number of arguments,
+  // the encoding, etc).
+  //
+  void Stats::
+  CG_SetStatsFromServer (int localClientNum)
+  {
+    // The stats buffer is followed by its state.
+    //
+    constexpr std::size_t size (0x1FFC);
+
+    int c (Game::CL_ControllerIndexFromClientNum (localClientNum));
+
+    if (!Game::LiveStorage_DoWeHaveStats (c))
+    {
+      Logger::Warning (Game::CON_CHANNEL_CLIENT,
+                       "Ignoring stats from server: stats not fetched (cont {})\n",
+                       c);
+      return;
+    }
+
+    Command::ClientParams ps;
+
+    for (int i (1); i < ps.size (); i += 2)
+    {
+      std::size_t o (std::strtoul (ps.get (i), nullptr, 10));
+
+      // Leave an invalid offset to the game.
+      //
+      if (o >= size)
+        break;
+
+      std::size_t n (0);
+      for (const char* p (i + 1 < ps.size () ? ps.get (i + 1) : "");
+           *p != '\0';
+           p += (*p == 'Z' || *p == 'O' || p[1] == '\0' ? 1 : 2))
+        ++n;
+
+      if (n > size - o)
+      {
+        Logger::Warning (Game::CON_CHANNEL_CLIENT,
+                         "Ignoring stats from server: {} bytes at offset {} "
+                         "are out of bounds\n",
+                         n, o);
+        return;
+      }
+    }
+
+    Utils::Hook::Call<void (int)> (0x593900) (localClientNum);
+  }
+
   Stats::Stats()
   {
     // This UIScript should be added in the onClose code of the cac_popup menu,
@@ -276,6 +335,8 @@ namespace Components
     Scheduler::Once([](){
       MoveOldStatsToNewFolder();
     }, Components::Scheduler::Pipeline::MAIN);
+
+    Utils::Hook (0x594260, CG_SetStatsFromServer, HOOK_CALL).install ()->quick (); // CG_DeployServerCommand: N.
 
     // 'M' Seems to be used on Xbox only for parsing platform specific ranks
     ServerCommands::OnCommand('M', [](const Command::Params* params)

@@ -29,5 +29,7 @@ namespace Components
     static void HashFilenameStub();
 
     static int LiveStorage_DataSetValue_Stub(void* state, void* ddlContext, int unused, const char* value);
+
+    static void CG_SetStatsFromServer (int localClientNum);
   };
 }
