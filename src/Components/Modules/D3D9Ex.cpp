@@ -725,7 +725,13 @@ namespace Components
   HRESULT WINAPI D3D9Ex::D3D9::CreateDevice(UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters, IDirect3DDevice9** ppReturnedDeviceInterface)
   {
     HRESULT hres = m_pIDirect3D9->CreateDevice(Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface);
-    *ppReturnedDeviceInterface = new D3D9Ex::D3D9Device(*ppReturnedDeviceInterface);
+
+    // Only wrap the device if we got one. Otherwise we would return a wrapper
+    // around nothing (and leak it), while the caller expects null.
+    //
+    if (SUCCEEDED(hres))
+      *ppReturnedDeviceInterface = new D3D9Ex::D3D9Device(*ppReturnedDeviceInterface);
+
     return hres;
   }
 
