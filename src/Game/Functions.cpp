@@ -184,6 +184,7 @@ namespace Game
   SEH_StringEd_GetString_t SEH_StringEd_GetString = SEH_StringEd_GetString_t(0x44BB30);
   SEH_ReadCharFromString_t SEH_ReadCharFromString = SEH_ReadCharFromString_t(0x486560);
   SEH_GetCurrentLanguage_t SEH_GetCurrentLanguage = SEH_GetCurrentLanguage_t(0x4F6110);
+  SEH_GetLanguageName_t SEH_GetLanguageName = SEH_GetLanguageName_t(0x422570);
 
   SND_Init_t SND_Init = SND_Init_t(0x46A630);
   SND_InitDriver_t SND_InitDriver = SND_InitDriver_t(0x4F5090);

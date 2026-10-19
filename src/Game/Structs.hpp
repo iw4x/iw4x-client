@@ -6035,6 +6035,26 @@ namespace Game
     unsigned __int16 nextOverride;
   };
 
+  enum language_t
+  {
+    LANGUAGE_ENGLISH = 0x0,
+    LANGUAGE_FRENCH = 0x1,
+    LANGUAGE_GERMAN = 0x2,
+    LANGUAGE_ITALIAN = 0x3,
+    LANGUAGE_SPANISH = 0x4,
+    LANGUAGE_BRITISH = 0x5,
+    LANGUAGE_RUSSIAN = 0x6,
+    LANGUAGE_POLISH = 0x7,
+    LANGUAGE_KOREAN = 0x8,
+    LANGUAGE_TAIWANESE = 0x9,
+    LANGUAGE_JAPANESE = 0xA,
+    LANGUAGE_CHINESE = 0xB,
+    LANGUAGE_THAI = 0xC,
+    LANGUAGE_LEET = 0xD,
+    LANGUAGE_CZECH = 0xE,
+    MAX_LANGUAGES = 0xF,
+  };
+
   enum XFileLanguage : unsigned char
   {
     XLANG_NONE = 0x00,

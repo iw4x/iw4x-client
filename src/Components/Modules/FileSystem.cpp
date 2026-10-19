@@ -351,6 +351,103 @@ namespace Components
     return Game::FS_FileOpenReadText(file);
   }
 
+  // Look up localized files in other languages if the current language
+  // doesn't have them.
+  //
+  // The search path has the localized iwds of every language we have but the
+  // lookup only considers those of the current language. The localized zones,
+  // however, are those of the installation's language (see Win_GetLanguage())
+  // and ours fall back to English if we don't have them in that language (see
+  // FastFiles::LoadLocalizeZones()). So, say, with an English installation
+  // switched to Japanese, the zones refer to images that are only in the
+  // English iwds and the game fails to find them.
+  //
+  // So if the lookup fails, we retry it with the installation's language and
+  // then English in place of the current language for the localized iwds.
+  // Note that this way the current language still takes precedence.
+  //
+  // Note also that files are looked up from several threads (for example,
+  // images are loaded from the database thread), thus thread-local.
+  //
+  static thread_local int fallback_language (-1);
+
+  // Return the languages to look up localized files in, in order.
+  //
+  static std::vector<int>
+  lookup_languages ()
+  {
+    std::vector<int> r {Game::SEH_GetCurrentLanguage ()};
+
+    auto add = [&r] (int l)
+    {
+      if (std::ranges::find (r, l) == r.end ())
+        r.push_back (l);
+    };
+
+    if (const char* n = Game::Win_GetLanguage ())
+    {
+      auto ls (std::views::iota (0, static_cast<int> (Game::MAX_LANGUAGES)));
+      auto i (std::ranges::find_if (ls,
+                                    [n] (int l)
+      {
+        return std::strcmp (Game::SEH_GetLanguageName (l), n) == 0;
+      }));
+
+      if (i != ls.end ())
+        add (*i);
+    }
+
+    add (Game::LANGUAGE_ENGLISH);
+    return r;
+  }
+
+  __declspec (naked) int FileSystem::
+  FS_FOpenFileReadForThread (const char*, int*, int)
+  {
+    __asm
+    {
+      sub  esp, 0x33C
+      push 0x643276
+      ret
+    }
+  }
+
+  // Note that we call the above stub through a volatile pointer since
+  // otherwise the optimizer sees that it doesn't touch any registers and
+  // assumes the call preserves them, which the engine function doesn't.
+  //
+  static auto (* volatile fs_fopen_file_read_for_thread) (const char*, int*, int)
+    (&FileSystem::FS_FOpenFileReadForThread);
+
+  int FileSystem::
+  FS_FOpenFileReadForThread_Hk (const char* filename, int* file, int thread)
+  {
+    int r (fs_fopen_file_read_for_thread (filename, file, thread));
+
+    if (r == -1)
+    {
+      for (int l: lookup_languages () | std::views::drop (1))
+      {
+        fallback_language = l;
+        r = fs_fopen_file_read_for_thread (filename, file, thread);
+        fallback_language = -1;
+
+        if (r != -1)
+          break;
+      }
+    }
+
+    return r;
+  }
+
+  int FileSystem::
+  SEH_GetCurrentLanguage_Hk ()
+  {
+    return fallback_language != -1
+      ? fallback_language
+      : Game::SEH_GetCurrentLanguage ();
+  }
+
   const char* FileSystem::Sys_DefaultCDPath_Hk()
   {
     return Sys_DefaultInstallPath_Hk();
@@ -488,6 +585,15 @@ namespace Components
 
     // Make the exe run from a folder other than the game folder
     Utils::Hook(0x406D26, FS_FileOpenReadText_Hk, HOOK_CALL).install()->quick();
+
+    // Note that ZoneBuilder hooks FS_FOpenFileReadForThread() itself.
+    //
+    if (!ZoneBuilder::IsEnabled ())
+    {
+      Utils::Hook (Game::FS_FOpenFileReadForThread, FS_FOpenFileReadForThread_Hk, HOOK_JUMP).install ()->quick ();
+      Utils::Hook (0x6432EF, SEH_GetCurrentLanguage_Hk, HOOK_CALL).install ()->quick (); // FS_FOpenFileReadForThread: SEH_GetCurrentLanguage().
+      Utils::Hook (0x6433FB, SEH_GetCurrentLanguage_Hk, HOOK_CALL).install ()->quick (); // FS_FOpenFileReadForThread: SEH_GetCurrentLanguage().
+    }
 
     // Make the exe run from a folder other than the game folder
     Utils::Hook::Nop(0x4290D8, 5); // FS_IsBasePathValid
