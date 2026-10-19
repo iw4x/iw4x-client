@@ -1445,9 +1445,13 @@ namespace Components
 
   void ServerList::UpdateVisibleInfo()
   {
-    static auto servers = 0;
-    static auto players = 0;
-    static auto bots = 0;
+    // Start out of range so that the first update always formats the text.
+    // The placeholder set in the constructor predates the localized zones
+    // and is therefore English.
+    //
+    static auto servers = -1;
+    static auto players = -1;
+    static auto bots = -1;
 
     auto* list = GetList();
 
@@ -1469,7 +1473,24 @@ namespace Components
         players = newPlayers;
         bots = newBots;
 
-        Localization::Set("MPUI_SERVERQUERIED", std::format("Servers: {}\nPlayers: {} ({})", servers, players, bots));
+        // Take the labels from the localized zone, with &&1 to &&3 standing
+        // for the server, player, and bot counts. Note that Get() returns
+        // the key itself if the zone predates the string, in which case we
+        // fall back to the English layout.
+        //
+        const char* key ("MPUI_SERVERQUERIED_FORMAT");
+        std::string text (Localization::Get(key));
+
+        if (text == key)
+        {
+          text = "Servers: &&1\nPlayers: &&2 (&&3)";
+        }
+
+        Utils::String::Replace(text, "&&1", std::to_string(servers));
+        Utils::String::Replace(text, "&&2", std::to_string(players));
+        Utils::String::Replace(text, "&&3", std::to_string(bots));
+
+        Localization::Set("MPUI_SERVERQUERIED", text);
       }
     }
   }
