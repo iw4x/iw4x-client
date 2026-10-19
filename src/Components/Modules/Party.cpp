@@ -72,6 +72,52 @@ namespace Components
 
   void Party::Connect(Network::Address target, bool downloadOnly)
   {
+    // We send our stats to the server while connecting and the game refuses
+    // to read them once we have started, so we need them before we connect.
+    // They may not be loaded yet if, say, we were told to connect on startup.
+    // In this case, read them first and connect once they are in.
+    //
+    // Note that if we are asked to connect again while waiting, then we only
+    // keep the last target.
+    //
+    static std::optional<std::pair<Network::Address, bool>> pending;
+
+    if (!Game::LiveStorage_DoWeHaveStats(0))
+    {
+      const auto waiting = pending.has_value();
+      pending = std::make_pair(target, downloadOnly);
+
+      if (waiting)
+        return;
+
+      Game::LiveStorage_ReadStats(0);
+      Command::Execute("openmenu popup_reconnectingtoparty");
+
+      Scheduler::Schedule([start = Game::Sys_Milliseconds()]
+      {
+        if (Game::LiveStorage_DoWeHaveStats(0))
+        {
+          const auto [target, downloadOnly] = *pending;
+          pending.reset();
+          Connect(target, downloadOnly);
+          return true;
+        }
+
+        // Give up if they don't come in time rather than join without them.
+        //
+        if (Game::Sys_Milliseconds() - start > 10'000)
+        {
+          pending.reset();
+          ConnectError("Unable to read your stats.");
+          return true;
+        }
+
+        return false;
+      }, Scheduler::Pipeline::MAIN);
+
+      return;
+    }
+
     Node::Add(target);
 
     Container.valid = true;

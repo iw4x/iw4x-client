@@ -36,7 +36,7 @@ namespace Components
 
         // get stat buffer
         char* statbuffer = nullptr;
-        if (Utils::Hook::Call<int(int)>(0x444CA0)(0))
+        if (Game::LiveStorage_DoWeHaveStats(0))
         {
           statbuffer = &Utils::Hook::Call<char* (int)>(0x4C49F0)(0)[1240 * i];
         }
