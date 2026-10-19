@@ -46,14 +46,12 @@ namespace Components
     }
 
     // Sys_Error shows the error in a dialog and then keeps the game around
-    // until it is closed, which is neither a freeze nor something that goes
-    // through Com_Error. So capture it ourselves before showing the dialog,
-    // which is otherwise what Sys_SetErrorText does.
+    // until it is closed, which doesn't go through Com_Error. So capture it
+    // ourselves before showing the dialog, which is otherwise what
+    // Sys_SetErrorText does.
     //
     void SetErrorText(const char* text)
     {
-      sentry_app_hang_pause();
-
       theRuntime->capture(SENTRY_LEVEL_FATAL, "sys_error", text);
 
       Game::I_strncpyz(Game::s_wcd->errorString, text, sizeof(Game::s_wcd->errorString));
@@ -90,11 +88,6 @@ namespace Components
         std::format("com_error.{}: {}", classification.name, message));
       return;
     }
-
-    // The game now waits for the player to dismiss the error, which is not
-    // a freeze.
-    //
-    sentry_app_hang_pause();
 
     theRuntime->capture(classification.level,
       std::format("com_error.{}", classification.name), message);
@@ -142,17 +135,6 @@ namespace Components
     {
       theRuntime->refresh();
     }, Scheduler::Pipeline::MAIN, theRuntime->configuration().refresh_interval);
-
-    // Note that the first heartbeat decides which thread is watched, so it
-    // has to come from the main thread.
-    //
-    Scheduler::Loop([]
-    {
-      if (Game::Sys_IsMainThread())
-      {
-        theRuntime->heartbeat();
-      }
-    }, Scheduler::Pipeline::MAIN, 1s);
 
     Utils::Hook(Game::Sys_SetErrorText, SetErrorText, HOOK_JUMP).install()->quick();
 
