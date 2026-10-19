@@ -396,6 +396,37 @@ namespace Components
     }
   }
 
+  // The game draws a weapon item from the weapon and model indexes packed in
+  // the entity's item index, but doesn't check that the weapon is actually
+  // loaded and crashes if it isn't (0x5860B1). So we skip such an item, the
+  // same as the game does when the weapon has no model for that index.
+  //
+  // @@ Not clear how we end up with an item for a weapon we don't have.
+  //    Perhaps we should fail with a fatal error instead (which the crash
+  //    reporter would offer to send us) so that we can find out?
+  //
+  __declspec(naked) void Weapon::CG_DrawItem_Stub()
+  {
+    __asm
+    {
+      mov eax, 0x440EB0 // BG_GetWeaponDef
+      call eax
+
+      test eax, eax
+      jz null
+
+      // Game code
+      push 0x5860B1
+      ret
+
+    null:
+      add esp, 0x4
+
+      push 0x58615A // Exit function
+      ret
+    }
+  }
+
   // The game creates the view model tree from the animations of the hand
   // when the weapon is dual wielded. But it doesn't create those for a weapon
   // with noDualWield set and so, if a server or script hands out such a
@@ -613,6 +644,9 @@ namespace Components
 
     Utils::Hook(0x59E341, CG_UpdatePrimaryForAltModeWeapon_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x48BB25, CG_SelectWeaponIndex_Stub, HOOK_JUMP).install()->quick();
+
+    // Fix crash when drawing an item of a weapon that isn't loaded (0x5860B1)
+    Utils::Hook(0x5860AC, CG_DrawItem_Stub, HOOK_JUMP).install()->quick();
 
     AssertOffset(Game::playerState_s, Game::playerState_s::weapCommon.weapFlags, 0x2BC);
     Utils::Hook(0x56E825, WeaponEntCanBeGrabbed_Stub, HOOK_JUMP).install()->quick();
