@@ -423,12 +423,15 @@ namespace Game
 
   huffman_t* msgHuff = reinterpret_cast<huffman_t*>(0x1CB9EC0);
 
+  FxMarksSystem* fx_marksSystemPool = reinterpret_cast<FxMarksSystem*>(0x173FCD0);
+
   const char* logFileName = reinterpret_cast<const char*>(0x730130);
 
   DObjGetBoneIndex_t DObjGetBoneIndex = reinterpret_cast<DObjGetBoneIndex_t>(0x504F20);
   Com_GetClientDObj_t Com_GetClientDObj = reinterpret_cast<Com_GetClientDObj_t>(0x41FF50);
   CG_WeaponDObjHandle_t CG_WeaponDObjHandle = reinterpret_cast<CG_WeaponDObjHandle_t>(0x41DB70);
   CG_StopBoltedEffect_t CG_StopBoltedEffect = reinterpret_cast<CG_StopBoltedEffect_t>(0x44C230);
+  FX_ImpactMarkCallback_t FX_ImpactMarkCallback = reinterpret_cast<FX_ImpactMarkCallback_t>(0x5CFC70);
 
 
   const char* TableLookup(StringTable* stringtable, int row, int column)

@@ -11793,6 +11793,76 @@ namespace Game
     unsigned int pad1[14];
   };
 
+  struct FxMark
+  {
+    unsigned __int16 prevMark;
+    unsigned __int16 nextMark;
+    int frameCountDrawn;
+    int frameCountAlloc;
+    float origin[3];
+    float radius;
+    float texCoordAxis[3];
+    GfxColor color;
+    Material* material;
+    unsigned char context[7];
+    unsigned char unknown;
+    unsigned char pointCount;
+    unsigned __int16 triCount;
+    unsigned __int16 points;
+    unsigned __int16 tris;
+  };
+
+  static_assert(sizeof(FxMark) == 0x40);
+
+  struct FxPointGroup
+  {
+    unsigned __int16 points[2][3];
+    unsigned char context[7];
+    unsigned char pointCount;
+    unsigned __int16 next;
+  };
+
+  union FxPointGroupPool
+  {
+    FxPointGroupPool* nextFree;
+    FxPointGroup item;
+    char pad[24];
+  };
+
+  static_assert(sizeof(FxPointGroupPool) == 24);
+
+  struct FxTriGroup
+  {
+    char tris[2][32];
+    unsigned __int16 next;
+  };
+
+  union FxTriGroupPool
+  {
+    FxTriGroupPool* nextFree;
+    FxTriGroup item;
+  };
+
+  static_assert(sizeof(FxTriGroupPool) == 68);
+
+  struct FxMarksSystem
+  {
+    int frameCount;
+    unsigned __int16 firstFreeMarkHandle;
+    unsigned __int16 firstActiveWorldMarkHandle;
+    unsigned __int16 firstActiveMarkHandle;
+    unsigned __int16 entFirstMarkHandles[2048];
+    unsigned __int16 firstActiveMarkHandles[5];
+    FxPointGroupPool* firstFreePointGroup;
+    FxTriGroupPool* firstFreeTriGroup;
+    FxMark* marks;
+    FxPointGroupPool* pointGroups;
+    FxTriGroupPool* triGroups;
+  };
+
+  static_assert(offsetof(FxMarksSystem, firstFreePointGroup) == 0x1014);
+  static_assert(offsetof(FxMarksSystem, triGroups) == 0x1024);
+
   struct ClientEntSound
   {
     float origin[3];

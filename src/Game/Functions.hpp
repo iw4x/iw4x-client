@@ -63,6 +63,9 @@ namespace Game
   typedef char* (__cdecl* CG_StopBoltedEffect_t)(int localClientNum, int effectHandle, int dobjHandle, int tagName);
   extern CG_StopBoltedEffect_t CG_StopBoltedEffect;
 
+  typedef int(*FX_ImpactMarkCallback_t)(void* context, int pointCount, void* points, int triCount, void* tris, const float* origin, const float* texCoordAxis);
+  extern FX_ImpactMarkCallback_t FX_ImpactMarkCallback;
+
   typedef void(*CG_ScoresDown_f_t)();
   extern CG_ScoresDown_f_t CG_ScoresDown_f;
 
@@ -818,6 +821,8 @@ namespace Game
   extern bool* s_havePlaylists;
 
   extern huffman_t* msgHuff;
+
+  extern FxMarksSystem* fx_marksSystemPool;
 
   extern const char* logFileName;
 

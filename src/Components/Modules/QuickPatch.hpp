@@ -40,5 +40,7 @@ namespace Components
     static void VehicleFx_PlayerIndexCheck_Stub();
     static void VehicleCl_SetPlayerIndex_UpdateEntity_Stub();
     static void VehicleCl_SetPlayerIndex_ResetEntity_Stub();
+
+    static int FX_ImpactMarkCallback_Hk(void* context, int pointCount, void* points, int triCount, void* tris, const float* origin, const float* texCoordAxis);
   };
 }

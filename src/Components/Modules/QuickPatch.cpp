@@ -362,6 +362,62 @@ namespace Components
     }
   }
 
+  int QuickPatch::FX_ImpactMarkCallback_Hk(void* context, int pointCount, void* points, int triCount, void* tris, const float* origin, const float* texCoordAxis)
+  {
+    // Skip the mark if there is no room for it.
+    //
+    // To make room, the game frees the least recently drawn marks until it
+    // has the point and triangle groups as well as the mark it needs. But
+    // there are marks it never frees this way (of type 3 with the 0x80 flag
+    // set, which it caps at 16 per slot instead) and, if only such marks are
+    // left while the groups are still short, it goes on to free a null mark
+    // and crashes. So we check that the free groups plus those it can free
+    // cover this mark and drop the mark otherwise, the same as the game does
+    // when it hits that cap.
+    //
+    // Note that a point group holds one or two points, so the point count
+    // is an upper bound of the groups needed, while a triangle group always
+    // holds two triangles.
+    //
+    constexpr auto markCount = 512;
+    constexpr auto noHandle = 0xFFFF;
+
+    const auto& system = *Game::fx_marksSystemPool;
+
+    auto pointsNeeded = pointCount;
+    auto trisNeeded = (triCount + 1) / 2;
+    auto marksNeeded = system.firstFreeMarkHandle == noHandle ? 1 : 0;
+
+    for (auto* group = system.firstFreePointGroup; group && pointsNeeded > 0; group = group->nextFree) --pointsNeeded;
+    for (auto* group = system.firstFreeTriGroup; group && trisNeeded > 0; group = group->nextFree) --trisNeeded;
+
+    for (const auto& mark : std::span(system.marks, markCount))
+    {
+      if (pointsNeeded <= 0 && trisNeeded <= 0 && marksNeeded <= 0)
+      {
+        break;
+      }
+
+      // Skip free marks and those the game never frees to make room.
+      //
+      if (mark.frameCountDrawn == -1 || (mark.context[0] == 3 && (mark.context[4] & 0x80)))
+      {
+        continue;
+      }
+
+      --marksNeeded;
+      for (auto i = mark.points; i != noHandle; i = system.pointGroups[i].item.next) --pointsNeeded;
+      for (auto i = mark.tris; i != noHandle; i = system.triGroups[i].item.next) --trisNeeded;
+    }
+
+    if (pointsNeeded > 0 || trisNeeded > 0 || marksNeeded > 0)
+    {
+      return 0;
+    }
+
+    return Game::FX_ImpactMarkCallback(context, pointCount, points, triCount, tris, origin, texCoordAxis);
+  }
+
   Game::dvar_t* QuickPatch::Dvar_RegisterConMinicon(const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
   {
 #ifdef _DEBUG
@@ -467,6 +523,9 @@ namespace Components
     Utils::Hook::Nop(0x679EAB, 1);
     Utils::Hook(0x679E2C, QuickPatch::VehicleCl_SetPlayerIndex_ResetEntity_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook::Nop(0x679E31, 3);
+
+    // Fix crash when impact marks run out of room (0x5CC9D3)
+    Utils::Hook::Set<Game::FX_ImpactMarkCallback_t>(0x5CFDFA, QuickPatch::FX_ImpactMarkCallback_Hk);
 
     // Add ultrawide support
     Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
