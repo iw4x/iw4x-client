@@ -16,6 +16,11 @@ namespace Sentry
     std::filesystem::path reporter;
 
     sentry_minidump_mode_t minidump {SENTRY_MINIDUMP_MODE_SMART};
+
+    // Raw MINIDUMP_TYPE flags which, if present, take precedence over the
+    // minidump mode.
+    //
+    std::optional<sentry_minidump_flags_t> minidump_flags;
     sentry_crash_reporting_mode_t reporting {
       SENTRY_CRASH_REPORTING_MODE_NATIVE_WITH_MINIDUMP};
 

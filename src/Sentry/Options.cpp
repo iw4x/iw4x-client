@@ -56,6 +56,21 @@ namespace Sentry
 
       return SENTRY_MINIDUMP_MODE_SMART;
     }
+
+    // The smart mode only captures the memory that the stack and registers
+    // point into, but most of the game's state lives in its globals (say,
+    // what the renderer is drawing), without which many crashes cannot be
+    // traced back to their cause. So for this mode also capture the data
+    // segments, which makes a dump some 100MB larger.
+    //
+    std::optional<sentry_minidump_flags_t>
+    minidump_flags (sentry_minidump_mode_t m)
+    {
+      if (m != SENTRY_MINIDUMP_MODE_SMART)
+        return std::nullopt;
+
+      return MiniDumpWithIndirectlyReferencedMemory | MiniDumpWithDataSegs;
+    }
   }
 
   std::filesystem::path
@@ -101,6 +116,7 @@ namespace Sentry
       : engine::base_path () / "crash-reporter" / "Sentry.CrashReporter.exe";
 
     o.minidump = minidump ();
+    o.minidump_flags = minidump_flags (o.minidump);
     o.debug = Components::Flags::HasFlag ("sentrydebug");
 
     return o;

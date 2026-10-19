@@ -225,6 +225,9 @@ namespace Sentry
     sentry_options_set_crash_reporting_mode (o, options_.reporting);
     sentry_options_set_minidump_mode (o, options_.minidump);
 
+    if (options_.minidump_flags)
+      sentry_options_set_minidump_flags (o, *options_.minidump_flags);
+
     sentry_options_set_max_breadcrumbs (o, options_.breadcrumbs);
     sentry_options_set_shutdown_timeout (
       o, static_cast<uint64_t> (options_.shutdown_timeout.count ()));
