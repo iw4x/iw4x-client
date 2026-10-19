@@ -670,6 +670,16 @@ namespace Components
 #endif
           else
           {
+            // Report a missing DLC pack as a failed join rather than fail
+            // with the CheckMapInstalled() error below: that drops us back to
+            // the main menu and its message is lost on the way.
+            //
+            if (const auto message = Maps::GetMissingDlcError(Container.info.get("mapname")))
+            {
+              ConnectError(*message);
+              return;
+            }
+
             if (!Maps::CheckMapInstalled(Container.info.get("mapname"), true)) return;
 
             Container.motd = TextRenderer::StripMaterialTextIcons(info.get("sv_motd"));

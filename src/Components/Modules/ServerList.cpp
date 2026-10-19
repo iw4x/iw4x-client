@@ -1625,6 +1625,12 @@ namespace Components
         auto* serverInfo = GetCurrentServer();
         if (serverInfo)
         {
+          if (const auto message = Maps::GetMissingDlcError(serverInfo->mapname))
+          {
+            Game::ShowMessageBox(*message, "Error");
+            return;
+          }
+
           Party::Connect(serverInfo->addr);
         }
       });
