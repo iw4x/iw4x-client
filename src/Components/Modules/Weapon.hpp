@@ -34,6 +34,8 @@ namespace Components
 
     static void JavelinResetHook_Stub();
 
+    static void CG_CreateViewModelTree_Stub();
+
     static void WeaponEntCanBeGrabbed_Stub();
 
     static void BG_WeaponFireRecoil_Stub(void* ps, float* recoilSpeed, float* kickAVel, unsigned int* holdrand, Game::PlayerHandIndex hand);

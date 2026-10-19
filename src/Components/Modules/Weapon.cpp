@@ -396,6 +396,32 @@ namespace Components
     }
   }
 
+  // The game creates the view model tree from the animations of the hand
+  // when the weapon is dual wielded. But it doesn't create those for a weapon
+  // with noDualWield set and so, if a server or script hands out such a
+  // weapon dual wielded anyway, the tree ends up with no animations and the
+  // game crashes as soon as it animates it (0x651F37). So we fall back to the
+  // weapon's own animations in this case, which the game makes sure exist.
+  //
+  // Note that esi points to the weapon's entry in cg_weaponsStatic, the
+  // animations of the weapon followed by those of each hand.
+  //
+  __declspec(naked) void Weapon::CG_CreateViewModelTree_Stub()
+  {
+    __asm
+    {
+      cmp dword ptr[esp + 0x4], 0
+      jnz create
+
+      mov eax, [esi]
+      mov [esp + 0x4], eax
+
+    create:
+      mov eax, 0x4CE030 // Com_XAnimCreateSmallTree
+      jmp eax
+    }
+  }
+
   __declspec(naked) void Weapon::JavelinResetHook_Stub()
   {
     static DWORD PM_Weapon_OffHandEnd_t = 0x577A10;
@@ -595,6 +621,9 @@ namespace Components
     AssertOffset(Game::playerState_s, grenadeTimeLeft, 0x34);
     BGWeaponOffHandFix = Game::Dvar_RegisterBool("bg_weaponOffHandFix", true, Game::DVAR_CODINFO, "Reset grenadeTimeLeft after using off hand weapon");
     Utils::Hook(0x578F52, JavelinResetHook_Stub, HOOK_JUMP).install()->quick();
+
+    // Fix crash when a weapon with noDualWield is dual wielded (0x651F37)
+    Utils::Hook(0x59C0ED, CG_CreateViewModelTree_Stub, HOOK_CALL).install()->quick();
 
     CGRecoilMultiplier = Game::Dvar_RegisterFloat("cg_recoilMultiplier",
       1.0f, 0.0f, 1000.0f, Game::DVAR_CHEAT,
