@@ -376,6 +376,16 @@ namespace Components
     case Game::ASSET_TYPE_STRUCTURED_DATA_DEF:
       return FastFiles::Current() == "mod";
 
+    // Our localized zone loads after the stock ones and is there to replace
+    // some of their strings, not only to add new ones. Note that some of the
+    // stock strings are actually broken: the Microsoft Store French, Spanish,
+    // and Russian zones define NULL_EMPTY, which menus use for "no text", as
+    // an English map pack notice. Without this the first definition wins and
+    // every such replacement is silently ignored.
+    //
+    case Game::ASSET_TYPE_LOCALIZE_ENTRY:
+      return FastFiles::Current().starts_with("iw4x_localized_");
+
     default:
       return false;
     }
