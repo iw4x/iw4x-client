@@ -31,6 +31,22 @@ namespace Steam
     Callbacks::ResultHandlers[call] = result;
   }
 
+  void Callbacks::UnregisterCallback(Callbacks::Base* handler)
+  {
+    std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
+    std::erase(Callbacks::CallbackList, handler);
+  }
+
+  void Callbacks::UnregisterCallResult(uint64_t call, Callbacks::Base* result)
+  {
+    std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
+
+    if (auto i = Callbacks::ResultHandlers.find(call); i != Callbacks::ResultHandlers.end() && i->second == result)
+    {
+      Callbacks::ResultHandlers.erase(i);
+    }
+  }
+
   void Callbacks::ReturnCall(void* data, int size, int type, uint64_t call)
   {
     std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
@@ -61,8 +77,15 @@ namespace Steam
         Callbacks::ResultHandlers[result.call]->Run(result.data, false, result.call);
       }
 
-      for (auto callback : Callbacks::CallbackList)
+      // See RunCallback() for why we iterate over a copy.
+      //
+      const auto callbacks = Callbacks::CallbackList;
+
+      for (auto* callback : callbacks)
       {
+        if (std::ranges::find(Callbacks::CallbackList, callback) == Callbacks::CallbackList.end())
+          continue;
+
         if (callback && callback->GetICallback() == result.type)
         {
           callback->Run(result.data, false, 0);
@@ -80,8 +103,17 @@ namespace Steam
   {
     std::lock_guard<std::recursive_mutex> _(Callbacks::Mutex);
 
-    for (auto cb : Callbacks::CallbackList)
+    // A handler may register or unregister handlers while it runs (say,
+    // by destroying the object it belongs to), so iterate over a copy and
+    // skip those that are no longer registered by the time we get to them.
+    //
+    const auto callbacks = Callbacks::CallbackList;
+
+    for (auto* cb : callbacks)
     {
+      if (std::ranges::find(Callbacks::CallbackList, cb) == Callbacks::CallbackList.end())
+        continue;
+
       if (cb && cb->GetICallback() == callback)
       {
         cb->Run(data);
@@ -156,12 +188,18 @@ namespace Steam
       Callbacks::Uninitialize();
     }
 
-    void SteamAPI_UnregisterCallResult()
+    void SteamAPI_UnregisterCallResult(Callbacks::Base* result, uint64_t call)
     {
+      Callbacks::UnregisterCallResult(call, result);
     }
 
-    void SteamAPI_UnregisterCallback()
+    // The game unregisters its handlers before it destroys them (say, the
+    // game server ones when the server shuts down), so we must forget them
+    // or the next callback of their type calls into freed memory.
+    //
+    void SteamAPI_UnregisterCallback(Callbacks::Base* handler)
     {
+      Callbacks::UnregisterCallback(handler);
     }
 
 

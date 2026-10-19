@@ -94,6 +94,8 @@ namespace Steam
     static uint64_t RegisterCall();
     static void RegisterCallback(Base* handler, int callback);
     static void RegisterCallResult(uint64_t call, Base* result);
+    static void UnregisterCallback(Base* handler);
+    static void UnregisterCallResult(uint64_t call, Base* result);
     static void ReturnCall(void* data, int size, int type, uint64_t call);
     static void RunCallbacks();
 
@@ -115,8 +117,8 @@ namespace Steam
   STEAM_EXPORT void SteamAPI_RegisterCallback(Callbacks::Base* handler, int callback);
   STEAM_EXPORT void SteamAPI_RunCallbacks();
   STEAM_EXPORT void SteamAPI_Shutdown();
-  STEAM_EXPORT void SteamAPI_UnregisterCallResult();
-  STEAM_EXPORT void SteamAPI_UnregisterCallback();
+  STEAM_EXPORT void SteamAPI_UnregisterCallResult(Callbacks::Base* result, uint64_t call);
+  STEAM_EXPORT void SteamAPI_UnregisterCallback(Callbacks::Base* handler);
 
   STEAM_EXPORT bool SteamGameServer_Init();
   STEAM_EXPORT void SteamGameServer_RunCallbacks();
