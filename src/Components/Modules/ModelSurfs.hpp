@@ -10,7 +10,7 @@ namespace Components
 
   private:
     static std::unordered_map<void*, IUnknown*> BufferMap;
-    static std::unordered_map<std::string, Game::CModelAllocData*> AllocMap;
+    static std::unordered_map<Game::XModelSurfs*, Game::CModelAllocData*> AllocMap;
 
     static void ReleaseModelSurf(Game::XAssetHeader header);
 
@@ -21,7 +21,7 @@ namespace Components
     static void SetBuffer(char streamHandle, void* buffer, IUnknown** bufferOut, int* offsetOut);
 
     static void CreateBuffers(Game::XModelSurfs* surfs);
-    static Game::XModelSurfs* LoadXModelSurfaces(const std::string& name);
+    static Game::XModelSurfs* LoadXModelSurfaces(Game::XModelSurfs* asset);
     static bool LoadSurfaces(Game::XModel* model);
     static void XModelSurfsFixup(Game::XModel* model);
 

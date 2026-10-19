@@ -3,7 +3,7 @@
 namespace Components
 {
   std::unordered_map<void*, IUnknown*> ModelSurfs::BufferMap;
-  std::unordered_map<std::string, Game::CModelAllocData*> ModelSurfs::AllocMap;
+  std::unordered_map<Game::XModelSurfs*, Game::CModelAllocData*> ModelSurfs::AllocMap;
 
   IUnknown* ModelSurfs::GetBuffer(void* buffer)
   {
@@ -35,8 +35,9 @@ namespace Components
     }
   }
 
-  Game::XModelSurfs* ModelSurfs::LoadXModelSurfaces(const std::string& name)
+  Game::XModelSurfs* ModelSurfs::LoadXModelSurfaces(Game::XModelSurfs* asset)
   {
+    const std::string name = asset->name;
     Utils::Memory::Allocator allocator;
     const auto path = std::format("models/{}", name);
     FileSystem::FileReader model(path);
@@ -180,9 +181,15 @@ namespace Components
     Game::XSurface* tempSurfaces = allocator.allocateArray<Game::XSurface>(modelSurfs->numsurfs);
     char* surfaceData = reinterpret_cast<char*>(modelSurfs->surfs);
 
-    if (ModelSurfs::AllocMap.contains(modelSurfs->name))
+    // Note that we keep track of the allocation by the asset we load it for
+    // rather than by the name in the file, which is not necessarily the
+    // asset's. Some DLC files share their name with another (for example,
+    // models/copy_paper_box_lid11 says it is copy_paper_box_lod011), and so
+    // loading one would free the other's surfaces while still in use.
+    //
+    if (ModelSurfs::AllocMap.contains(asset))
     {
-      Game::CModelAllocData* allocData = ModelSurfs::AllocMap[modelSurfs->name];
+      Game::CModelAllocData* allocData = ModelSurfs::AllocMap[asset];
 
       if (allocData)
       {
@@ -193,7 +200,7 @@ namespace Components
       }
     }
 
-    ModelSurfs::AllocMap[modelSurfs->name] = allocationData;
+    ModelSurfs::AllocMap[asset] = allocationData;
     *reinterpret_cast<void**>(reinterpret_cast<char*>(allocationData->mainArray) + 44) = allocationData;
 
     for (int i = 0; i < modelSurfs->numsurfs; ++i)
@@ -229,7 +236,7 @@ namespace Components
       if (!surfs->surfs)
       {
         AssertOffset(Game::XModelLodInfo, partBits, 12);
-        Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs->name);
+        Game::XModelSurfs* newSurfs = ModelSurfs::LoadXModelSurfaces(surfs);
         if (!newSurfs) continue;
 
         surfs->surfs = newSurfs->surfs;
@@ -282,7 +289,7 @@ namespace Components
 
     if (hasCustomSurface && !ModelSurfs::AllocMap.empty())
     {
-      const auto allocData = ModelSurfs::AllocMap.find(header.modelSurfs->name);
+      const auto allocData = ModelSurfs::AllocMap.find(header.modelSurfs);
       if (allocData != ModelSurfs::AllocMap.end())
       {
         Utils::Memory::FreeAlign(allocData->second->indexBuffer);
