@@ -170,11 +170,122 @@ namespace Components
     Game::SND_SetHWND (Game::g_wv->hWnd);
   }
 
+  // Release the DirectSound interface in the slot and clear the slot.
+  //
+  void __stdcall Sound::ReleaseDirectSound (IUnknown** slot)
+  {
+    if (*slot != nullptr)
+    {
+      (*slot)->Release ();
+      *slot = nullptr;
+    }
+  }
+
+  // Fix a double release in Miles. When it fails to set up DirectSound
+  // (SetCooperativeLevel(), or CreateSoundBuffer() or SetFormat() on the
+  // primary buffer), it releases the DirectSound interface but leaves it in
+  // the driver. Its cleanup then releases it again, by which time the object
+  // is gone, and so we end up calling into whatever took its place. So we
+  // make each of these failure paths clear the interface after releasing it,
+  // which turns the crash into the failure it should have been (the game then
+  // carries on without sound).
+  //
+  // Note that this is how a missing window used to crash the game (see
+  // CL_InitRenderer() above) but DirectSound can fail here for other reasons
+  // as well (say, the device is in use exclusively).
+  //
+  // Note also that we patch the code in mss32.dll directly and only if it is
+  // the one the game ships with.
+  //
+  void Sound::PatchMiles ()
+  {
+    auto* m (reinterpret_cast<std::uint8_t*> (GetModuleHandleA ("mss32.dll")));
+    if (m == nullptr)
+      return;
+
+    // Each failure path loads the address of the interface slot (edi or a
+    // local) and then calls Release() through the vtable. We replace this with
+    // pushing the slot address and calling ReleaseDirectSound().
+    //
+    struct site
+    {
+      std::uint32_t             rva;
+      std::vector<std::uint8_t> code;
+      std::size_t               push; // Size of the slot push.
+    };
+
+    // The first two sites (SetCooperativeLevel() and CreateSoundBuffer()
+    // failures) have the slot address in edi:
+    //
+    //   8B 07          mov  eax, [edi]       ; IDirectSound*
+    //   8B 08          mov  ecx, [eax]       ; vtable
+    //   8B 51 08       mov  edx, [ecx+8]     ; Release()
+    //   50             push eax
+    //   FF D2          call edx
+    //
+    // The last one (SetFormat() failure) has it in a local:
+    //
+    //   8B 44 24 14    mov  eax, [esp+14h]   ; IDirectSound**
+    //   8B 00          mov  eax, [eax]       ; IDirectSound*
+    //   8B 08          mov  ecx, [eax]       ; vtable
+    //   8B 51 08       mov  edx, [ecx+8]     ; Release()
+    //   50             push eax
+    //   FF D2          call edx
+    //
+    // Which we turn into, respectively:
+    //
+    //   57             push edi
+    //   E8 xx xx xx xx call ReleaseDirectSound
+    //   90 90 90 90    nop
+    //
+    //   8B 44 24 14    mov  eax, [esp+14h]
+    //   50             push eax
+    //   E8 xx xx xx xx call ReleaseDirectSound
+    //   90 90 90 90    nop
+    //
+    const site sites[] =
+    {
+      {0x2E8F7, {0x8B, 0x07, 0x8B, 0x08, 0x8B, 0x51, 0x08, 0x50, 0xFF, 0xD2},                         1},
+      {0x2E91C, {0x8B, 0x07, 0x8B, 0x08, 0x8B, 0x51, 0x08, 0x50, 0xFF, 0xD2},                         1},
+      {0x2E941, {0x8B, 0x44, 0x24, 0x14, 0x8B, 0x00, 0x8B, 0x08, 0x8B, 0x51, 0x08, 0x50, 0xFF, 0xD2}, 5},
+    };
+
+    // Make sure all the sites match before we touch any of them.
+    //
+    for (const auto& s: sites)
+    {
+      if (!std::ranges::equal (std::span (m + s.rva, s.code.size ()), s.code))
+      {
+        Logger::Warning (Game::CON_CHANNEL_SOUND,
+                         "Unknown mss32.dll, not patching DirectSound release\n");
+        return;
+      }
+    }
+
+    for (const auto& s: sites)
+    {
+      auto* p (m + s.rva);
+
+      // Push the slot address: push edi for the first two sites and, for the
+      // last one, push eax after its mov eax, [esp+14h], which we keep.
+      //
+      if (s.push == 1)
+        Utils::Hook::Set<std::uint8_t> (p, 0x57);
+      else
+        Utils::Hook::Set<std::uint8_t> (p + 4, 0x50);
+
+      Utils::Hook (p + s.push, ReleaseDirectSound, HOOK_CALL).install ()->quick ();
+      Utils::Hook::Nop (p + s.push + 5, s.code.size () - s.push - 5);
+    }
+  }
+
   Sound::
   Sound ()
   {
     Utils::Hook (0x0463A80, Sound::Init, HOOK_JUMP).install ()->quick ();
     Utils::Hook (0x04A23E6, Sound::Loop, HOOK_JUMP).install ()->quick ();
+
+    PatchMiles ();
 
     if (!Dedicated::IsEnabled () && !ZoneBuilder::IsEnabled ())
     {
