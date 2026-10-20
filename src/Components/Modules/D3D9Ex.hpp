@@ -169,5 +169,6 @@ namespace Components
     static Dvar::Var RUseD3D9Ex;
 
     static IDirect3D9* CALLBACK Direct3DCreate9Stub(UINT sdk);
+    static bool R_InitDirect3D_Hk ();
   };
 }
