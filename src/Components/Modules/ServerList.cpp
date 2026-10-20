@@ -17,6 +17,27 @@
 
 namespace Components
 {
+  namespace
+  {
+    // Toasts draw their text as is, so look the strings up here. Note that
+    // Get() returns the key itself when the localized zone predates the
+    // string, in which case we keep the English text.
+    //
+    const char* LocalizedToastText(const char* key, const char* fallback)
+    {
+      const char* text (Localization::Get(key));
+      return std::strcmp(text, key) == 0 ? fallback : text;
+    }
+
+    void ShowServerBrowserToast(const char* key, const char* fallback)
+    {
+      Toast::Show("cardicon_headshot",
+                  LocalizedToastText("MPUI_SERVER_BROWSER_TOAST", "Server Browser"),
+                  LocalizedToastText(key, fallback),
+                  3000);
+    }
+  }
+
   bool ServerList::SortAsc = false;
   int ServerList::SortKey = static_cast<std::underlying_type_t<Column>>(Column::Players);
 
@@ -241,7 +262,7 @@ namespace Components
       }
     }
 
-    Toast::Show("cardicon_headshot", "Server Browser", "Servers refreshed", 3000);
+    ShowServerBrowserToast("MPUI_SERVERS_REFRESHED", "Servers refreshed");
   }
 
   void ServerList::RefreshVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
@@ -498,7 +519,7 @@ namespace Components
 
       if (!hasCachedServers)
       {
-        Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
+        ShowServerBrowserToast("MPUI_FETCHING_SERVERS", "Fetching servers...");
       }
 
       std::jthread([masterServerName, masterPort]()
@@ -1637,7 +1658,7 @@ namespace Components
         return; // defer refresh until after the cache load completes
       }
 
-      Toast::Show("cardicon_headshot", "Server Browser", "Servers refreshed", 3000);
+      ShowServerBrowserToast("MPUI_SERVERS_REFRESHED", "Servers refreshed");
       ServerList::Refresh();
     });
 
