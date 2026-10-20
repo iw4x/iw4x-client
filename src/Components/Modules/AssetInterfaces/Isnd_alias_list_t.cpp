@@ -16,6 +16,22 @@ namespace Assets
   {
     Game::snd_alias_list_t* asset = header.sound;
 
+    // An alias list is only registered with the zone after it has been
+    // marked, so aliases whose secondaries refer back to each other (or to
+    // themselves) would otherwise be loaded over and over. Remember the lists
+    // being marked and skip secondaries that name one of them.
+    //
+    static std::unordered_set<std::string> marking;
+
+    const std::string name(asset->aliasName ? asset->aliasName : "");
+    const bool inserted(marking.insert(name).second);
+
+    const auto _0 = gsl::finally([&name, inserted]
+    {
+      if (inserted)
+        marking.erase(name);
+    });
+
     for (unsigned int i = 0; i < asset->count; ++i)
     {
       Game::snd_alias_t* alias = &asset->head[i];
@@ -33,6 +49,14 @@ namespace Assets
           alias->volumeFalloffCurve->filename = "$default";
           builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND_CURVE, alias->volumeFalloffCurve);
         }
+      }
+
+      // The secondary alias is only referenced by name, so it has to be built
+      // into the zone as an asset of its own, like the sounds weapons refer to.
+      //
+      if (alias->secondaryAliasName && *alias->secondaryAliasName && !marking.contains(alias->secondaryAliasName))
+      {
+        builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_SOUND, alias->secondaryAliasName, false);
       }
     }
   }
