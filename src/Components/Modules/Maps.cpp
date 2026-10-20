@@ -13,6 +13,7 @@ namespace Components
   std::vector<std::pair<std::string, std::string>> Maps::DependencyList;
   std::vector<std::string> Maps::CurrentDependencies;
   std::vector<std::string> Maps::FoundCustomMaps;
+  int Maps::RotateConnectionState;
 
   Dvar::Var Maps::RListSModels;
 
@@ -566,7 +567,11 @@ namespace Components
     // previous map and loading it on top of the new one fails. So reconnect,
     // the same as for a map we don't have.
     //
-    const auto connecting = Game::CL_GetLocalClientConnectionState(0) < Game::CA_ACTIVE;
+    // Note that by now the game has already set the state to connected for
+    // the map change, so we check the one it had before (see
+    // SetConnectedStub() below).
+    //
+    const auto connecting = Maps::RotateConnectionState < Game::CA_ACTIVE;
 
     if (connecting || !Maps::CheckMapInstalled(mapname, false, true) || hash && hash != Maps::GetUsermapHash(mapname))
     {
@@ -600,6 +605,23 @@ namespace Components
     }
 
     Game::CL_DownloadsComplete(localClientNum);
+  }
+
+  // Remember the connection state before the game sets it to connected for a
+  // map change.
+  //
+  __declspec(naked) void Maps::SetConnectedStub()
+  {
+    __asm
+    {
+      push eax
+      mov eax, dword ptr [esi + 0B2C540h]
+      mov Maps::RotateConnectionState, eax
+      pop eax
+
+      mov dword ptr [esi + 0B2C540h], 5 // CA_CONNECTED
+      retn
+    }
   }
 
   __declspec(naked) void Maps::RotateCheckStub()
@@ -1033,6 +1055,8 @@ namespace Components
     // Download the map before a map rotation if necessary
     // Conflicts with Theater's SV map rotation check, but this one is safer!
     Utils::Hook(0x5AA91C, Maps::RotateCheckStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5AA907, Maps::SetConnectedStub, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x5AA90C, 5);
     Utils::Hook(0x5AC6E9, Maps::DownloadsComplete, HOOK_CALL).install()->quick(); // CL_ParseGamestate
 
     // Load usermap arena file
