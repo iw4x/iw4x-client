@@ -389,6 +389,27 @@ namespace zone
 
       return x64 ? arch::x64 : arch::x86;
     }
+
+    // Determine whether a fastfile is one of ours in a format the game no
+    // longer loads.
+    //
+    // Older IW4x versions wrote their fastfiles with their own magic and
+    // format version and installations can still have these lying around.
+    // The game refuses to load anything older than the current version, so
+    // such a file is of no use to anyone.
+    //
+    bool
+    outdated (const fs::path& f)
+    {
+      ifstream is (f, ios::binary);
+
+      uint32_t h[2] {};
+      is.read (reinterpret_cast<char*> (h), sizeof (h));
+
+      return is.gcount () == static_cast<streamsize> (sizeof (h)) &&
+             h[0] == XFILE_HEADER_IW4X                            &&
+             h[1] < XFILE_VERSION_IW4X;
+    }
   }
 
   // The groups.
@@ -844,6 +865,17 @@ namespace zone
         //
           if (probe (e.path ()) == arch::x64)
             continue;
+
+          // An old IW4x fastfile, on the other hand, is something the game
+          // would refuse to load. Installations that go back far enough
+          // still have these in here and, if we moved them, they would
+          // replace the current copy installed under converted_root.
+          //
+          if (outdated (e.path ()))
+          {
+            p.push_back ({action::drop, e.path (), {}});
+            continue;
+          }
 
           // There can already be a file with this name under
           // converted_root. In that case what we have here is the copy
