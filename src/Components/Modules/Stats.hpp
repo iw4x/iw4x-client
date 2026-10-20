@@ -31,5 +31,6 @@ namespace Components
     static int LiveStorage_DataSetValue_Stub(void* state, void* ddlContext, int unused, const char* value);
 
     static void CG_SetStatsFromServer (int localClientNum);
+    static void CG_InitUnlockedItems (int localClientNum);
   };
 }

@@ -283,6 +283,30 @@ namespace Components
     Utils::Hook::Call<void (int)> (0x593900) (localClientNum);
   }
 
+  // Record the items we unlocked since the last map before cgame forgets them.
+  //
+  // The game remembers which items were unlocked when cgame starts and, on
+  // disconnect, marks those unlocked since as new (and the titles and icons
+  // among them as unlocked). But cgame also starts again on each map change
+  // without us disconnecting, and then simply takes a new snapshot. So staying
+  // on a server through a map rotation, anything we unlocked before it never
+  // shows as new. We do what disconnecting would before the snapshot.
+  //
+  void Stats::
+  CG_InitUnlockedItems (int localClientNum)
+  {
+    // Nothing to compare against if the snapshot wasn't taken or if we have
+    // disconnected since.
+    //
+    if (Utils::Hook::Get<bool> (0xB2C645))
+    {
+      Utils::Hook::Call<void (int)> (0x60E160) (localClientNum); // Titles and icons.
+      Utils::Hook::Call<void (int)> (0x4DFF20) (localClientNum); // New items.
+    }
+
+    Utils::Hook::Call<void (int)> (0x483190) (localClientNum);
+  }
+
   Stats::Stats()
   {
     // This UIScript should be added in the onClose code of the cac_popup menu,
@@ -337,6 +361,7 @@ namespace Components
     }, Components::Scheduler::Pipeline::MAIN);
 
     Utils::Hook (0x594260, CG_SetStatsFromServer, HOOK_CALL).install ()->quick (); // CG_DeployServerCommand: N.
+    Utils::Hook (0x4E37C8, CG_InitUnlockedItems, HOOK_CALL).install ()->quick (); // CG_Init: snapshot unlocked items.
 
     // 'M' Seems to be used on Xbox only for parsing platform specific ranks
     ServerCommands::OnCommand('M', [](const Command::Params* params)
