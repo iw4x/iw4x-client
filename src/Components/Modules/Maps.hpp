@@ -100,6 +100,7 @@ namespace Components
     static std::vector<std::pair<std::string, std::string>> DependencyList;
     static std::vector<std::string> CurrentDependencies;
     static std::vector<std::string> FoundCustomMaps;
+    static int RotateConnectionState;
 
     static Dvar::Var RListSModels;
 
@@ -129,6 +130,7 @@ namespace Components
 
     static int TriggerReconnectForMap(Game::msg_t* msg, const char* mapname);
     static void RotateCheckStub();
+    static void SetConnectedStub();
     static void DownloadsComplete(int localClientNum);
     static void LoadNewMapCommand(char* buffer, size_t size, const char* format, const char* mapname, const char* gametype);
 
