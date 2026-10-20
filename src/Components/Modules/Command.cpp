@@ -218,6 +218,30 @@ namespace Components
       }
     }
 
+    // Every command we run while connected is also sent to the server as a
+    // reliable command so that scripts can be notified of it. A command run
+    // over and over (say, by a menu slider's action while dragging it) can
+    // then pile up faster than the server acknowledges it, and once more than
+    // 128 are pending the client drops with "Client command overflow".
+    //
+    // So once a good number of them are pending, skip the notify if the same
+    // one is already among them. Note that we don't skip notifies outright
+    // since they may well be input (+attack, etc) that scripts rely on.
+    //
+    const auto* clc = Game::clientConnections;
+    if (clc->reliableSequence - clc->reliableAcknowledge >= 64)
+    {
+      const auto n = std::strlen(cmd);
+      for (auto i = clc->reliableAcknowledge + 1; i <= clc->reliableSequence; ++i)
+      {
+        const char* c = clc->reliableCommands[i & 127];
+        if (std::strncmp(c, "nt ", 3) == 0 && std::strncmp(c + 3, cmd, n) == 0 && (c[3 + n] == '\0' || c[3 + n] == ' '))
+        {
+          return false;
+        }
+      }
+    }
+
     return true;
   }
 
