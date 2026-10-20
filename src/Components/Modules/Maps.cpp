@@ -544,8 +544,11 @@ namespace Components
     // the missing DLC error instead, the same as when joining such a server.
     //
     // Note that we cannot just fail with Com_Error(): it does disconnect,
-    // but its message is lost on the way back to the main menu. So we show
-    // the error ourselves once cgame is down.
+    // but its message is lost on the way back to the main menu. Instead, the
+    // disconnect command shows the "disconnected from server" error and we
+    // replace its message once cgame is down. Note that opening a popup of
+    // our own on top of it would leave the player with a black screen since
+    // only that error's popup returns to the main menu.
     //
     if (const auto message = Maps::GetMissingDlcError(mapname))
     {
@@ -556,7 +559,7 @@ namespace Components
         if (Game::CL_IsCgameInitialized())
           return false;
 
-        Game::ShowMessageBox(message, "Error");
+        Game::Dvar_SetStringByName("com_errorMessage", message.data());
         return true;
       }, Scheduler::Pipeline::MAIN);
 
