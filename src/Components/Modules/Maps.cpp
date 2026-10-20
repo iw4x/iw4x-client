@@ -627,6 +627,32 @@ namespace Components
     }
   }
 
+  // Ignore the server's request for our stats unless we are connected to it.
+  //
+  // The game starts sending them whatever the state, so a request that
+  // arrives after we have disconnected (say, from the server we just left
+  // after it rotated to a map we don't have) puts us back to connecting and
+  // we sit on a black screen until it times out.
+  //
+  __declspec(naked) void Maps::RequestStatsStub()
+  {
+    __asm
+    {
+      mov eax, dword ptr ds:[0B2C540h]
+      cmp eax, 6 // CA_SENDINGSTATS
+      je skip
+      cmp eax, 5 // CA_CONNECTED
+      jl skip
+
+      push 5AA94Ch
+      retn
+
+    skip:
+      push 5AA9A9h
+      retn
+    }
+  }
+
   __declspec(naked) void Maps::RotateCheckStub()
   {
     __asm
@@ -1060,6 +1086,7 @@ namespace Components
     Utils::Hook(0x5AA91C, Maps::RotateCheckStub, HOOK_CALL).install()->quick();
     Utils::Hook(0x5AA907, Maps::SetConnectedStub, HOOK_CALL).install()->quick();
     Utils::Hook::Nop(0x5AA90C, 5);
+    Utils::Hook(0x5AA943, Maps::RequestStatsStub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x5AC6E9, Maps::DownloadsComplete, HOOK_CALL).install()->quick(); // CL_ParseGamestate
 
     // Load usermap arena file

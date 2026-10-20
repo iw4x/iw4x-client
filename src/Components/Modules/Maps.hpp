@@ -131,6 +131,7 @@ namespace Components
     static int TriggerReconnectForMap(Game::msg_t* msg, const char* mapname);
     static void RotateCheckStub();
     static void SetConnectedStub();
+    static void RequestStatsStub();
     static void DownloadsComplete(int localClientNum);
     static void LoadNewMapCommand(char* buffer, size_t size, const char* format, const char* mapname, const char* gametype);
 
