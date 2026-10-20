@@ -11,6 +11,8 @@ namespace Components
 
   constexpr auto v_loop (0x4A23EB); // voice loop.
 
+  constexpr auto max_rate (0x66CF248); // loaded sound sample rate limit
+
   const char err[] ("Error: Failed to create DirectSound play buffer\n");
 
   // Patch a few bugs in the engine's DirectSound buffer initialization.
@@ -291,6 +293,15 @@ namespace Components
     {
       Utils::Hook::Nop (0x60BE8E, 5); // Com_Init: SND_InitDriver().
       Utils::Hook (0x60BE98, CL_InitRenderer, HOOK_CALL).install ()->quick (); // Com_Init: CL_InitRenderer().
+
+      // Loaded sounds with a sample rate above the driver's limit are
+      // downsampled as they are loaded. But this limit is only set when the
+      // driver is initialized and is 0 until then. Since we now initialize
+      // the driver after the renderer, the sounds in the fastfiles it loads
+      // (menus, turrets, etc) would be downsampled to nothing and play
+      // silent. So we lift the limit until the driver sets it.
+      //
+      Utils::Hook::Set<std::uint32_t> (max_rate, 0x7FFFFFFF);
     }
   }
 }
