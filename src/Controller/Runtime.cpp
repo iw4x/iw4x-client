@@ -275,7 +275,7 @@ namespace Controller
     engine::publish_glyph_style (
       dvars_,
       engine::active_glyph_family () == mapping::glyph_family::playstation);
-    engine::animate_stick_glyphs ();
+    engine::update_glyph_images ();
 
     apply_output_policy ();
 
