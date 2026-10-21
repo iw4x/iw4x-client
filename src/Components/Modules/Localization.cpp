@@ -1,5 +1,6 @@
 #include "Localization.hpp"
 #include "ArenaLength.hpp"
+#include "Controller.hpp"
 #include "GSC/Script.hpp"
 
 namespace Components
@@ -63,6 +64,14 @@ namespace Components
   const char* Localization::Get(const char* key)
   {
     if (!UseLocalization.get<bool>()) return key;
+
+    if (key && std::strncmp(key, "PLATFORM_", 9) == 0)
+    {
+      if (const auto* controllerString = Controller::PlatformString(key))
+      {
+        return controllerString;
+      }
+    }
 
     Game::LocalizeEntry* entry = nullptr;
 

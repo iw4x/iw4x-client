@@ -45,6 +45,10 @@ namespace Controller
         "gpad_style", 0, 0, 2, DVAR_ARCHIVE,
         "Which button glyphs to present: 0 follows the controller that is "
         "connected, 1 is PlayStation and 2 is Xbox");
+      d.glyph_style = Dvar_RegisterInt (
+        "gpad_glyph_style", 0, 0, 1, DVAR_ROM,
+        "The button glyphs presented, gpad_style resolved against the "
+        "controller in use: 0 is Xbox and 1 is PlayStation");
 
       d.haptics = Dvar_RegisterBool (
         "gpad_haptics", true, DVAR_ARCHIVE,
@@ -312,6 +316,15 @@ namespace Controller
     {
       if (d.present != nullptr && d.present->current.enabled != present)
         Dvar_SetBool (d.present, present);
+    }
+
+    void
+    publish_glyph_style (const dvars& d, bool playstation) noexcept
+    {
+      const int value (playstation ? 1 : 0);
+
+      if (d.glyph_style != nullptr && d.glyph_style->current.integer != value)
+        Dvar_SetInt (d.glyph_style, value);
     }
   }
 }
