@@ -1125,7 +1125,12 @@ namespace Components
         if (letter == '^' && (*curText == '\x01' || *curText == '\x02'))
         {
           RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
-          xa += DrawHudIcon(curText, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, finalColor.array[3]));
+
+          // Button glyphs drawn as translucent as the hint text around them
+          // wash out over the scene, so keep them solid while the text shows
+          // and only let them go as it fades out.
+          const auto iconAlpha = static_cast<unsigned char>(std::min(255, finalColor.array[3] * 2));
+          xa += DrawHudIcon(curText, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, iconAlpha));
 
           if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
             xa += xScale * padding;
