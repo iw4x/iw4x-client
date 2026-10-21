@@ -2,6 +2,7 @@
 
 #include "../Types.hpp"
 
+#include <algorithm>
 #include <cstring>
 #include <exception>
 
@@ -583,9 +584,57 @@ namespace Controller
         the_runtime->keys ().note_other_input ();
     }
 
-    void
-    animate_stick_glyphs () noexcept
+    namespace
     {
+      // A new image like the one given, filled from a loose .iwi the way the
+      // engine fills an image whose pixels are not in a zone, or nullptr if
+      // there is no such file.
+      //
+      Game::GfxImage*
+      load_loose_image (const Game::GfxImage& like, const char* name) noexcept
+      {
+        // The engine reports an image it cannot open as an error, so look
+        // for the file first: these images are optional.
+        //
+        const std::string path ("images/" + std::string (name) + ".iwi");
+
+        int file (0);
+        Game::FS_FOpenFileRead (path.c_str (), &file);
+
+        if (file == 0)
+          return nullptr;
+
+        Game::FS_FCloseFile (file);
+
+        auto* const image (Utils::Memory::GetAllocator ()->allocate<Game::GfxImage> ());
+        *image = like;
+        image->texture = {};
+        image->cardMemory = {};
+        image->delayLoadPixels = false;
+        image->name = name;
+
+        if (!Game::Image_LoadFromFileWithReader (
+              image, reinterpret_cast<Game::Reader_t> (image_file_reader_address)))
+        {
+          Utils::Memory::GetAllocator ()->free (image);
+          return nullptr;
+        }
+
+        return image;
+      }
+
+      // The material named once its zone is loaded, which comes after the
+      // controller starts, or nullptr until then.
+      //
+      Game::Material*
+      loaded_material (const char* name) noexcept
+      {
+        const Game::XAssetEntry* const e (
+          Game::DB_FindXAssetEntry (Game::ASSET_TYPE_MATERIAL, name));
+
+        return e != nullptr ? e->asset.header.material : nullptr;
+      }
+
       struct stick
       {
         const char* material;
@@ -596,14 +645,95 @@ namespace Controller
         bool loaded;
       };
 
-      static stick sticks[] {
+      stick sticks[] {
         {"button_lstick", "button_lstick2", nullptr, nullptr, nullptr, false},
         {"button_rstick", "button_rstick2", nullptr, nullptr, nullptr, false},
         {"button_ps3_l3", "button_ps3_l3_alt", nullptr, nullptr, nullptr, false},
         {"button_ps3_r3", "button_ps3_r3_alt", nullptr, nullptr, nullptr, false},
       };
 
-      // The console holds each frame for about this long.
+      // The console draws the buttons in hint text from its HUD font, a
+      // smaller glyph than the button images the HUD itself shows. Where a
+      // small image is there, text gets a copy of the button material that
+      // uses it.
+      //
+      struct text_glyph
+      {
+        const char* material;
+        const char* image;
+        Game::Material* m;
+        bool loaded;
+      };
+
+      text_glyph text_glyphs[] {
+        {"button_x", "button_x_small", nullptr, false},
+      };
+
+      void
+      load_stick (stick& s) noexcept
+      {
+        Game::Material* const m (loaded_material (s.material));
+
+        if (m == nullptr)
+          return;
+
+        s.loaded = true;
+
+        if (m->textureCount == 0 || m->textureTable[0].u.image == nullptr)
+          return;
+
+        Game::GfxImage* const down (
+          load_loose_image (*m->textureTable[0].u.image, s.pressed));
+
+        if (down == nullptr)
+        {
+          Components::Logger::Print ("controller: no {} image to animate {}\n",
+                                     s.pressed, s.material);
+          return;
+        }
+
+        s.m = m;
+        s.up = m->textureTable[0].u.image;
+        s.down = down;
+      }
+
+      void
+      load_text_glyph (text_glyph& g) noexcept
+      {
+        Game::Material* const base (loaded_material (g.material));
+
+        if (base == nullptr)
+          return;
+
+        g.loaded = true;
+
+        if (base->textureCount == 0 || base->textureTable[0].u.image == nullptr)
+          return;
+
+        Game::GfxImage* const image (
+          load_loose_image (*base->textureTable[0].u.image, g.image));
+
+        if (image == nullptr)
+          return;
+
+        auto* const textures (Utils::Memory::GetAllocator ()->allocateArray<Game::MaterialTextureDef> (
+          base->textureCount));
+
+        std::copy_n (base->textureTable, base->textureCount, textures);
+        textures[0].u.image = image;
+
+        auto* const m (Utils::Memory::GetAllocator ()->allocate<Game::Material> ());
+        *m = *base;
+        m->textureTable = textures;
+
+        g.m = m;
+      }
+    }
+
+    void
+    update_glyph_images () noexcept
+    {
+      // The console holds each stick frame for about this long.
       //
       constexpr int frame_time {400};
 
@@ -612,56 +742,29 @@ namespace Controller
       for (stick& s: sticks)
       {
         if (!s.loaded)
-        {
-          // The material comes with a zone loaded after the controller
-          // starts, so keep looking until it is there.
-          //
-          const Game::XAssetEntry* const e (
-            Game::DB_FindXAssetEntry (Game::ASSET_TYPE_MATERIAL, s.material));
-
-          if (e == nullptr || e->asset.header.material == nullptr)
-            continue;
-
-          s.loaded = true;
-
-          if (e->asset.header.material->textureCount == 0)
-            continue;
-
-          Game::Material* const m (e->asset.header.material);
-          Game::GfxImage* const up (m->textureTable[0].u.image);
-
-          if (up == nullptr)
-            continue;
-
-          // A second image like the first, filled from the loose .iwi the
-          // way the engine fills an image whose pixels are not in a zone.
-          //
-          auto* const down (Utils::Memory::GetAllocator ()->allocate<Game::GfxImage> ());
-          *down = *up;
-          down->texture = {};
-          down->cardMemory = {};
-          down->delayLoadPixels = false;
-          down->name = s.pressed;
-
-          using reader_t = Game::Reader_t;
-
-          if (!Game::Image_LoadFromFileWithReader (
-                down, reinterpret_cast<reader_t> (image_file_reader_address)))
-          {
-            Components::Logger::Print ("controller: no {} image to animate {}\n",
-                                       s.pressed, s.material);
-            Utils::Memory::GetAllocator ()->free (down);
-            continue;
-          }
-
-          s.m = m;
-          s.up = up;
-          s.down = down;
-        }
+          load_stick (s);
 
         if (s.m != nullptr)
           s.m->textureTable[0].u.image = pressed ? s.down : s.up;
       }
+
+      for (text_glyph& g: text_glyphs)
+      {
+        if (!g.loaded)
+          load_text_glyph (g);
+      }
+    }
+
+    Game::Material*
+    text_glyph_material (const char* name) noexcept
+    {
+      for (const text_glyph& g: text_glyphs)
+      {
+        if (std::strcmp (g.material, name) == 0)
+          return g.m;
+      }
+
+      return nullptr;
     }
 
     mapping::glyph_family
