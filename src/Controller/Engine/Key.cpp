@@ -203,6 +203,33 @@ namespace Controller
                cg->predictedPlayerState.sprintState.sprintButtonUpRequired != 0;
       }
 
+      // Spectating, the console moves to the next player with B and the
+      // previous one with A, where the PC game looks at the fire and aim
+      // buttons. Give B and A those commands while the player can cycle.
+      //
+      bool
+      spectator_can_cycle () noexcept
+      {
+        Game::cg_s* const cg (Game::CL_GetLocalClientGlobals (local_client));
+
+        return cg != nullptr &&
+               (cg->predictedPlayerState.otherFlags & Game::POF_SPEC_ALLOW_CYCLE) != 0;
+      }
+
+      const char*
+      spectator_command (engine_key k) noexcept
+      {
+        if (!spectator_can_cycle ())
+          return nullptr;
+
+        switch (k)
+        {
+          case engine_key::button_b: return "+attack";
+          case engine_key::button_a: return "+speed_throw";
+          default:                   return nullptr;
+        }
+      }
+
       float
       ads_lerp () noexcept
       {
@@ -288,6 +315,8 @@ namespace Controller
     dispatch (const canonical_sample& s) noexcept
     {
       const unsigned time (static_cast<unsigned> (Sys_Milliseconds ()));
+
+      restore_spectator_view ();
 
       aim::deadzone_params dz {
         aim::magnitude {read (dvars_.stick_deadzone_min, 0.2f)},
@@ -380,6 +409,45 @@ namespace Controller
     tick () noexcept
     {
       dispatch_buttons (buttons_, static_cast<unsigned> (Sys_Milliseconds ()));
+      restore_spectator_view ();
+    }
+
+    // Y switches the view of the player followed between first and third
+    // person, as on console. cg_thirdPerson is a cheat dvar only to the
+    // console command line, and the view goes back to first person as soon
+    // as the player stops spectating.
+    //
+    bool
+    key_dispatcher::
+    toggle_spectator_view (engine_key k) noexcept
+    {
+      if (k != engine_key::button_y || !spectator_can_cycle ())
+        return false;
+
+      static dvar_t* third_person {nullptr};
+
+      if (third_person == nullptr)
+        third_person = Dvar_FindVar ("cg_thirdPerson");
+
+      if (third_person == nullptr)
+        return false;
+
+      third_person_ = !read (third_person, false);
+      Dvar_SetBool (third_person, third_person_);
+      return true;
+    }
+
+    void
+    key_dispatcher::
+    restore_spectator_view () noexcept
+    {
+      if (!third_person_ || spectator_can_cycle ())
+        return;
+
+      third_person_ = false;
+
+      if (dvar_t* const third_person = Dvar_FindVar ("cg_thirdPerson"))
+        Dvar_SetBool (third_person, false);
     }
 
     void
@@ -539,7 +607,19 @@ namespace Controller
 
       ks.locSelInputState = LOC_SEL_INPUT_NONE;
 
-      const char* const binding (ks.keys[key].binding);
+      if (e == key_event::pressed && toggle_spectator_view (k))
+        return;
+
+      const char* binding (ks.keys[key].binding);
+
+      if (e == key_event::pressed)
+        spectator_commands_[key] = spectator_command (k);
+
+      if (spectator_commands_[key] != nullptr)
+        binding = spectator_commands_[key];
+
+      if (!down)
+        spectator_commands_[key] = nullptr;
 
       char cmd[1024];
 
