@@ -18,6 +18,11 @@ namespace Components
     static bool IsControllerInUse();
     static void OnMouseMove(int dx, int dy);
 
+    // The controller version of a PLATFORM_* localized string while the
+    // controller is the active input, or nullptr to use the normal string.
+    //
+    static const char* PlatformString(const char* key);
+
     static void PlayHapticEffect(const ::Controller::haptic::effect& effect);
     static void StopHapticEffect(std::uint32_t tag);
 

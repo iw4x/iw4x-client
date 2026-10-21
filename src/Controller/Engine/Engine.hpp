@@ -24,6 +24,7 @@ namespace Controller
     inline Game::AimAssistGlobals* const& aaGlobArray{Game::aaGlobArray};
     inline Game::GraphFloat* const& aaInputGraph{Game::aaInputGraph};
     inline int* const& g_waitingForKey{Game::g_waitingForKey};
+    inline Game::UiContext* const& uiContext{Game::uiContext};
 
     inline constexpr unsigned AIM_ASSIST_GRAPH_COUNT{Game::AIM_ASSIST_GRAPH_COUNT};
 
@@ -46,6 +47,7 @@ namespace Controller
     using Game::Key_SetBinding;
     using Game::UI_GetActiveMenu;
     using Game::UI_KeyEvent;
+    using Game::Menu_GetFocused;
     using Game::Cbuf_AddText;
     using Game::Cbuf_InsertText;
     using Game::CG_ScrollScoreboardUp;
@@ -66,6 +68,8 @@ namespace Controller
     inline constexpr auto K_DOWNARROW{Game::K_DOWNARROW};
     inline constexpr auto K_LEFTARROW{Game::K_LEFTARROW};
     inline constexpr auto K_RIGHTARROW{Game::K_RIGHTARROW};
+    inline constexpr auto K_F1{Game::K_F1};
+    inline constexpr auto K_F2{Game::K_F2};
 
     using Game::BG_GetWeaponDef;
     using Game::BG_GetViewModelWeaponIndex;
