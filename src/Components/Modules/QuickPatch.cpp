@@ -552,6 +552,14 @@ namespace Components
     Utils::Hook::Set<BYTE>(0x47DCB3, 0xEB);
     Utils::Hook::Set<BYTE>(0x4402B6, 0);
 
+    // Don't offer to set optimal settings when the hardware seems to have
+    // changed. The game compares it to what the config recorded, so it asks
+    // on every first start with a new config (say, of a mod) and its prompt
+    // ends up hidden behind the splash screen, which looks like a hang. Note
+    // that the game still records the new hardware, we only skip asking.
+    //
+    Utils::Hook::Set<DWORD>(0x64D346, 0xC3C032); // xor al, al; retn
+
     // hopefully allow alt-tab during game, used at least in alt-enter handling
     Utils::Hook::Set<DWORD>(0x45ACE0, 0xC301B0);
 
