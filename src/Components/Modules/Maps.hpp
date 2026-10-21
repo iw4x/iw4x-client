@@ -133,6 +133,7 @@ namespace Components
     static void SetConnectedStub();
     static void RequestStatsStub();
     static void DownloadsComplete(int localClientNum);
+    static void StartMatch(void* party, int localControllerIndex);
     static void LoadNewMapCommand(char* buffer, size_t size, const char* format, const char* mapname, const char* gametype);
 
     static const char* LoadArenaFileStub(const char* name, char* buffer, int size);

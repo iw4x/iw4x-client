@@ -590,6 +590,36 @@ namespace Components
     return false;
   }
 
+  // Make sure we have the map before starting a match we host.
+  //
+  // Starting a match tells the rest of the party to go and then loads the
+  // map selected in the lobby (ui_mapname). Nothing on the way checks that we
+  // actually have it and, for a DLC map we don't, we only find out when
+  // loading its zone, which is a fatal error. So check here, while we are
+  // still in the lobby, and show the same missing DLC error we show when
+  // joining a server on such a map.
+  //
+  // Note that cgame isn't running at this point, so we can show the popup
+  // directly (compare to TriggerReconnectForMap() above). Note also that the
+  // match is started by xpartygo as well as by the lobby's start timer, thus
+  // the two hooks.
+  //
+  // As far as we can tell, this is the only way to end up hosting a map we
+  // don't have: the map command (and so map_rotate) checks that the map
+  // exists first and we don't rotate while hosting a party anyway (see
+  // MapRotation::ShouldRotate()).
+  //
+  void Maps::StartMatch(void* party, int localControllerIndex)
+  {
+    if (const auto message = Maps::GetMissingDlcError((*Game::ui_mapname)->current.string))
+    {
+      Game::ShowMessageBox(*message, "Error");
+      return;
+    }
+
+    Utils::Hook::Call<void(void*, int)>(0x4DA110)(party, localControllerIndex);
+  }
+
   void Maps::DownloadsComplete(const int localClientNum)
   {
     // The game skips loading the map if it already did so ahead of time,
@@ -1088,6 +1118,8 @@ namespace Components
     Utils::Hook::Nop(0x5AA90C, 5);
     Utils::Hook(0x5AA943, Maps::RequestStatsStub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x5AC6E9, Maps::DownloadsComplete, HOOK_CALL).install()->quick(); // CL_ParseGamestate
+    Utils::Hook(0x5A96D6, Maps::StartMatch, HOOK_CALL).install()->quick(); // xpartygo command.
+    Utils::Hook(0x5B59DE, Maps::StartMatch, HOOK_CALL).install()->quick(); // Lobby start timer.
 
     // Load usermap arena file
     Utils::Hook(0x630A88, Maps::LoadArenaFileStub, HOOK_CALL).install()->quick();
