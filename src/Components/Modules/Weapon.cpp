@@ -509,6 +509,36 @@ namespace Components
     }
   }
 
+  // Drop the weapon for dropItem() unless it has no world model to show.
+  //
+  // Some weapons are only ever held, so they have no world model (say, the
+  // airdrop marker) and dropping one is a fatal error when spawning its item.
+  // The game's own drops only consider primary weapons, so it never runs into
+  // this, but scripts can ask for any weapon. In particular, the stock scripts
+  // drop the weapon a player was holding when spawning without checking that it
+  // can be dropped. We've seen this happen with Bot Warfare bots and that's our
+  // best guess: a bot somehow spawns with its killstreak marker in hand and
+  // takes the whole server down when it dies.
+  //
+  // So we refuse such a drop the same way Drop_Weapon() refuses an alternate
+  // fire weapon: warn and drop nothing (and so dropItem() returns undefined),
+  // leaving the player with the weapon.
+  //
+  // @@ The real fix belongs in Bot Warfare (its bots shouldn't end up holding
+  //    the marker like this). Remove this once it's fixed there?
+  //
+  Game::gentity_s* Weapon::Drop_Weapon_Hk(Game::gentity_s* ent, unsigned int weapon, unsigned int model)
+  {
+    const auto* def (Game::BG_GetWeaponDef(weapon));
+    if (!def->worldModel[static_cast<std::uint8_t>(model)])
+    {
+      Logger::Warning(Game::CON_CHANNEL_SCRIPT, "Drop_Weapon(): Trying to drop weapon '{}' with no world model.\n", Game::BG_GetWeaponName(weapon));
+      return nullptr;
+    }
+
+    return Utils::Hook::Call<Game::gentity_s*(Game::gentity_s*, unsigned int, unsigned int)>(0x42EB00)(ent, weapon, model);
+  }
+
   void Weapon::PlayerCmd_InitialWeaponRaise(const Game::scr_entref_t entref)
   {
     auto* ent = GSC::Script::Scr_GetPlayerEntity(entref);
@@ -668,6 +698,10 @@ namespace Components
       "The scale applied to the player recoil when firing");
     Utils::Hook(0x44D90B, BG_WeaponFireRecoil_Stub, HOOK_CALL).install()->quick();
     Utils::Hook(0x4FB2D7, BG_WeaponFireRecoil_Stub, HOOK_CALL).install()->quick();
+
+    // Don't drop a weapon with no world model (see Drop_Weapon_Hk() for details).
+    AssertOffset(Game::WeaponDef, worldModel, 0x1D8);
+    Utils::Hook(0x5DDA2F, Drop_Weapon_Hk, HOOK_CALL).install()->quick(); // PlayerCmd_dropItem
 
     AddScriptMethods();
   }

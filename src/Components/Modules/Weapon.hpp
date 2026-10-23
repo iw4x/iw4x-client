@@ -41,6 +41,8 @@ namespace Components
 
     static void BG_WeaponFireRecoil_Stub(void* ps, float* recoilSpeed, float* kickAVel, unsigned int* holdrand, Game::PlayerHandIndex hand);
 
+    static Game::gentity_s* Drop_Weapon_Hk(Game::gentity_s* ent, unsigned int weapon, unsigned int model);
+
     static void PlayerCmd_InitialWeaponRaise(Game::scr_entref_t entref);
     static void PlayerCmd_FreezeControlsAllowLook(Game::scr_entref_t entref);
 
