@@ -1,5 +1,6 @@
 #include "TextRenderer.hpp"
 #include "Console.hpp"
+#include "Controller.hpp"
 #include "Events.hpp"
 
 namespace Game
@@ -933,6 +934,19 @@ namespace Components
     return w;
   }
 
+  bool TextRenderer::IsButtonGlyph(const char* text)
+  {
+    // After the caret: the icon type, width, height, name length, then the
+    // material name.
+    if (!text[0] || !text[1] || !text[2] || !text[3])
+    {
+      return false;
+    }
+
+    const std::string_view name(text + 4, static_cast<unsigned char>(text[3]));
+    return name.starts_with("button_") || name.starts_with("dpad_");
+  }
+
   float TextRenderer::DrawHudIcon(const char*& text, const float x, const float y, const float sinAngle, const float cosAngle, const Game::Font_s* font, const float xScale, const float yScale, const unsigned color)
   {
     float s0, s1, t0, t1;
@@ -991,6 +1005,11 @@ namespace Components
     text += materialNameLen;
 
     auto* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, materialName.data()).material;
+    if (auto* textMaterial = Controller::TextGlyphMaterial(materialName.data()))
+    {
+      material = textMaterial;
+    }
+
     if (material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || std::strcmp(material->techniqueSet->name, "2d") != 0)
     {
       material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
@@ -1125,7 +1144,17 @@ namespace Components
         if (letter == '^' && (*curText == '\x01' || *curText == '\x02'))
         {
           RotateXY(cosAngle, sinAngle, startX, startY, xa, xy, &xRot, &yRot);
-          xa += DrawHudIcon(curText, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, finalColor.array[3]));
+
+          // Button glyphs drawn as translucent as the hint text around them
+          // wash out over the scene, so keep them solid while the text shows
+          // and only let them go as it fades out. Other icons, such as the
+          // kill feed's, keep the text's alpha.
+          auto iconAlpha = finalColor.array[3];
+          if (IsButtonGlyph(curText))
+          {
+            iconAlpha = static_cast<unsigned char>(std::min(255, iconAlpha * 2));
+          }
+          xa += DrawHudIcon(curText, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, ColorRgba(255, 255, 255, iconAlpha));
 
           if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
             xa += xScale * padding;

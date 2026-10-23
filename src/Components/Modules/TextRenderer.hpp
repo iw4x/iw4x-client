@@ -268,6 +268,7 @@ namespace Components
     static void GlowColor(Game::GfxColor* result, Game::GfxColor baseColor, Game::GfxColor forcedGlowColor, int renderFlags);
     static unsigned R_FontGetRandomLetter(int seed);
     static void DrawTextFxExtraCharacter(Game::Material* material, int charIndex, float x, float y, float w, float h, float sinAngle, float cosAngle, unsigned color);
+    static bool IsButtonGlyph(const char* text);
     static float DrawHudIcon(const char*& text, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
     static void RotateXY(float cosAngle, float sinAngle, float pivotX, float pivotY, float x, float y, float* outX, float* outY);
     static void UpdateColorTable();

@@ -2,6 +2,7 @@
 
 #include "../Types.hpp"
 
+#include <algorithm>
 #include <cstring>
 #include <exception>
 
@@ -43,6 +44,17 @@ namespace Controller
       constexpr auto cl_mouse_event_address {0x4D7C50};
 
       constexpr auto ui_bypass_mouse_call {0x48E527};
+
+      constexpr auto menu_prev_cursor_focus_call {0x639F91};
+      constexpr auto menu_next_cursor_focus_call {0x63A03F};
+      constexpr auto menu_focus_first_call {0x63BF8B};
+      constexpr auto menu_set_focus_call {0x63C0E7};
+      constexpr auto menu_set_focus_by_dvar_call {0x63C1D3};
+      constexpr auto ui_placement_address {0x48E980};
+      constexpr auto scr_place_apply_x_address {0x4B9620};
+      constexpr auto scr_place_apply_y_address {0x4F1430};
+
+      constexpr auto image_file_reader_address {0x42ECA0};
 
       constexpr auto cl_mouse_move_call {0x5A6DAE};
       constexpr auto cl_remote_control_move_call {0x5A6D4E};
@@ -236,6 +248,74 @@ namespace Controller
           (the_runtime != nullptr && the_runtime->keys ().in_use ());
       }
 
+      // Moving through a menu with the arrow keys, and the focusFirst,
+      // setFocus and setFocusByDvar scripts, only give a text item focus when
+      // the point they test is over it: the cursor, or the item's unplaced
+      // rectangle. That works with a mouse at hand but not with the cursor
+      // hidden for a controller: the open choice list of a setting neither
+      // highlights the current value nor moves off its invisible close
+      // button. Test the item at its own centre instead while a controller
+      // drives the menu.
+      //
+      void
+      menu_cursor_focus_point (const Game::itemDef_s* item, float* point) noexcept
+      {
+        if (the_runtime == nullptr || !the_runtime->keys ().in_use () ||
+            item == nullptr || item->type != Game::ITEM_TYPE_TEXT)
+          return;
+
+        using placement_t = const Game::ScreenPlacement* (*) (int);
+        using apply_t = float (*) (const Game::ScreenPlacement*, float, int);
+
+        const auto ui_placement (reinterpret_cast<placement_t> (ui_placement_address));
+        const auto apply_x (reinterpret_cast<apply_t> (scr_place_apply_x_address));
+        const auto apply_y (reinterpret_cast<apply_t> (scr_place_apply_y_address));
+
+        const Game::ScreenPlacement* const p (ui_placement (0));
+
+        // The test places the item's text rectangle on screen and the cursor
+        // as a full screen point, so place the rectangle the same way and
+        // turn its centre back into such a point.
+        //
+        const Game::rectDef_s& r (item->textRect[0]);
+
+        float x (r.x), y (r.y - r.h), w (r.w), h (r.h);
+        Game::ScrPlace_ApplyRect (p, &x, &y, &w, &h, r.horzAlign, r.vertAlign);
+
+        constexpr int full_screen (4);
+
+        const float x0 (apply_x (p, 0.0f, full_screen));
+        const float y0 (apply_y (p, 0.0f, full_screen));
+        const float sx (apply_x (p, 1.0f, full_screen) - x0);
+        const float sy (apply_y (p, 1.0f, full_screen) - y0);
+
+        if (sx == 0.0f || sy == 0.0f)
+          return;
+
+        point[0] = (x + w * 0.5f - x0) / sx;
+        point[1] = (y + h * 0.5f - y0) / sy;
+      }
+
+      __declspec (naked) void
+      item_set_focus_stub ()
+      {
+        __asm
+        {
+          pushad
+
+          lea eax, [esp + 0x20 + 0x4]
+          push eax
+          push ebx
+          call menu_cursor_focus_point
+          add esp, 0x8
+
+          popad
+
+          push 0x6392B0
+          retn
+        }
+      }
+
       void
       cl_mouse_move (int client, usercmd_s* cmd, float frame_time) noexcept
       {
@@ -391,27 +471,7 @@ namespace Controller
       keyname_t*
       localized_key_names () noexcept
       {
-        static Game::dvar_t* style {nullptr};
-
-        if (style == nullptr)
-          style = Dvar_FindVar ("gpad_style");
-
-        std::optional<mapping::glyph_family> chosen;
-
-        switch (read (style, 0))
-        {
-          case 1: chosen = mapping::glyph_family::playstation; break;
-          case 2: chosen = mapping::glyph_family::xbox; break;
-          default: break;
-        }
-
-        const Controller::family device (
-          the_runtime != nullptr && the_runtime->active () != no_device
-          ? the_runtime->latest ().family
-          : Controller::family::unknown);
-
-        return mapping::glyph_family_for (device, chosen) ==
-               mapping::glyph_family::playstation
+        return active_glyph_family () == mapping::glyph_family::playstation
           ? combined_glyphs_playstation
           : combined_glyphs_xbox;
       }
@@ -524,6 +584,214 @@ namespace Controller
         the_runtime->keys ().note_other_input ();
     }
 
+    namespace
+    {
+      // A new image like the one given, filled from a loose .iwi the way the
+      // engine fills an image whose pixels are not in a zone, or nullptr if
+      // there is no such file.
+      //
+      Game::GfxImage*
+      load_loose_image (const Game::GfxImage& like, const char* name) noexcept
+      {
+        // The engine reports an image it cannot open as an error, so look
+        // for the file first: these images are optional.
+        //
+        const std::string path ("images/" + std::string (name) + ".iwi");
+
+        int file (0);
+        Game::FS_FOpenFileRead (path.c_str (), &file);
+
+        if (file == 0)
+          return nullptr;
+
+        Game::FS_FCloseFile (file);
+
+        auto* const image (Utils::Memory::GetAllocator ()->allocate<Game::GfxImage> ());
+        *image = like;
+        image->texture = {};
+        image->cardMemory = {};
+        image->delayLoadPixels = false;
+        image->name = name;
+
+        if (!Game::Image_LoadFromFileWithReader (
+              image, reinterpret_cast<Game::Reader_t> (image_file_reader_address)))
+        {
+          Utils::Memory::GetAllocator ()->free (image);
+          return nullptr;
+        }
+
+        return image;
+      }
+
+      // The material named once its zone is loaded, which comes after the
+      // controller starts, or nullptr until then.
+      //
+      Game::Material*
+      loaded_material (const char* name) noexcept
+      {
+        const Game::XAssetEntry* const e (
+          Game::DB_FindXAssetEntry (Game::ASSET_TYPE_MATERIAL, name));
+
+        return e != nullptr ? e->asset.header.material : nullptr;
+      }
+
+      struct stick
+      {
+        const char* material;
+        const char* pressed;
+        Game::Material* m;
+        Game::GfxImage* up;
+        Game::GfxImage* down;
+        bool loaded;
+      };
+
+      stick sticks[] {
+        {"button_lstick", "button_lstick2", nullptr, nullptr, nullptr, false},
+        {"button_rstick", "button_rstick2", nullptr, nullptr, nullptr, false},
+        {"button_ps3_l3", "button_ps3_l3_alt", nullptr, nullptr, nullptr, false},
+        {"button_ps3_r3", "button_ps3_r3_alt", nullptr, nullptr, nullptr, false},
+      };
+
+      // The console draws the buttons in hint text from its HUD font, a
+      // smaller glyph than the button images the HUD itself shows. Where a
+      // small image is there, text gets a copy of the button material that
+      // uses it.
+      //
+      struct text_glyph
+      {
+        const char* material;
+        const char* image;
+        Game::Material* m;
+        bool loaded;
+      };
+
+      text_glyph text_glyphs[] {
+        {"button_x", "button_x_small", nullptr, false},
+      };
+
+      void
+      load_stick (stick& s) noexcept
+      {
+        Game::Material* const m (loaded_material (s.material));
+
+        if (m == nullptr)
+          return;
+
+        s.loaded = true;
+
+        if (m->textureCount == 0 || m->textureTable[0].u.image == nullptr)
+          return;
+
+        Game::GfxImage* const down (
+          load_loose_image (*m->textureTable[0].u.image, s.pressed));
+
+        if (down == nullptr)
+        {
+          Components::Logger::Print ("controller: no {} image to animate {}\n",
+                                     s.pressed, s.material);
+          return;
+        }
+
+        s.m = m;
+        s.up = m->textureTable[0].u.image;
+        s.down = down;
+      }
+
+      void
+      load_text_glyph (text_glyph& g) noexcept
+      {
+        Game::Material* const base (loaded_material (g.material));
+
+        if (base == nullptr)
+          return;
+
+        g.loaded = true;
+
+        if (base->textureCount == 0 || base->textureTable[0].u.image == nullptr)
+          return;
+
+        Game::GfxImage* const image (
+          load_loose_image (*base->textureTable[0].u.image, g.image));
+
+        if (image == nullptr)
+          return;
+
+        auto* const textures (Utils::Memory::GetAllocator ()->allocateArray<Game::MaterialTextureDef> (
+          base->textureCount));
+
+        std::copy_n (base->textureTable, base->textureCount, textures);
+        textures[0].u.image = image;
+
+        auto* const m (Utils::Memory::GetAllocator ()->allocate<Game::Material> ());
+        *m = *base;
+        m->textureTable = textures;
+
+        g.m = m;
+      }
+    }
+
+    void
+    update_glyph_images () noexcept
+    {
+      // The console holds each stick frame for about this long.
+      //
+      constexpr int frame_time {400};
+
+      const bool pressed ((Sys_Milliseconds () / frame_time) % 2 != 0);
+
+      for (stick& s: sticks)
+      {
+        if (!s.loaded)
+          load_stick (s);
+
+        if (s.m != nullptr)
+          s.m->textureTable[0].u.image = pressed ? s.down : s.up;
+      }
+
+      for (text_glyph& g: text_glyphs)
+      {
+        if (!g.loaded)
+          load_text_glyph (g);
+      }
+    }
+
+    Game::Material*
+    text_glyph_material (const char* name) noexcept
+    {
+      for (const text_glyph& g: text_glyphs)
+      {
+        if (std::strcmp (g.material, name) == 0)
+          return g.m;
+      }
+
+      return nullptr;
+    }
+
+    mapping::glyph_family
+    active_glyph_family () noexcept
+    {
+      static Game::dvar_t* style {nullptr};
+
+      if (style == nullptr)
+        style = Dvar_FindVar ("gpad_style");
+
+      std::optional<mapping::glyph_family> chosen;
+
+      switch (read (style, 0))
+      {
+        case 1: chosen = mapping::glyph_family::playstation; break;
+        case 2: chosen = mapping::glyph_family::xbox; break;
+        default: break;
+      }
+
+      const Controller::family device (
+        the_runtime != nullptr && the_runtime->active () != no_device
+        ? the_runtime->latest ().family
+        : Controller::family::unknown);
+
+      return mapping::glyph_family_for (device, chosen);
+    }
+
     bool
     should_use (const Game::gentity_s* player, unsigned held) noexcept
     {
@@ -572,6 +840,11 @@ namespace Controller
       Utils::Hook (cl_key_event_call, cl_key_event, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_mouse_event_call, cl_mouse_event, HOOK_CALL).install ()->quick ();
       Utils::Hook (ui_bypass_mouse_call, ui_bypass_mouse_input, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_prev_cursor_focus_call, item_set_focus_stub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_next_cursor_focus_call, item_set_focus_stub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_focus_first_call, item_set_focus_stub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_set_focus_call, item_set_focus_stub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_set_focus_by_dvar_call, item_set_focus_stub, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_mouse_move_call, cl_mouse_move_stub, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_remote_control_move_call, cl_remote_control_move_stub, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_location_selection_call, cl_location_selection_stub, HOOK_CALL).install ()->quick ();

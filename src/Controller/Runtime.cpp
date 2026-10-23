@@ -8,6 +8,7 @@
 #include "Trace.hpp"
 #include "Calibration/Normalize.hpp"
 #include "Engine/Command.hpp"
+#include "Engine/Hook.hpp"
 
 namespace Controller
 {
@@ -271,6 +272,10 @@ namespace Controller
     }
 
     engine::publish_present (dvars_, drivers_.size () != 0);
+    engine::publish_glyph_style (
+      dvars_,
+      engine::active_glyph_family () == mapping::glyph_family::playstation);
+    engine::update_glyph_images ();
 
     apply_output_policy ();
 

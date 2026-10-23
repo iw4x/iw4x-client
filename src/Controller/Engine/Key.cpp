@@ -71,7 +71,54 @@ namespace Controller
         {engine_key::dpad_right,   K_RIGHTARROW},
         {engine_key::apad_right,   K_RIGHTARROW},
         {engine_key::rstick_right, K_RIGHTARROW},
+
+        // The PC menus put on F1 and F2 what the console menus put on Y and
+        // X: game summary, clearing killstreaks and viewing challenges.
+        //
+        {engine_key::button_y,     K_F1},
+        {engine_key::button_x,     K_F2},
       };
+
+      bool
+      handles_key (const Game::ItemKeyHandler* h, int key) noexcept
+      {
+        for (; h != nullptr; h = h->next)
+          if (h->key == key)
+            return true;
+
+        return false;
+      }
+
+      // Whether the focused menu, or its focused item, has a handler of its
+      // own for this key, as the lobby has for the D-pad. Such a key is passed
+      // through as it is rather than as the keyboard key it stands for.
+      //
+      bool
+      focused_menu_handles (int key) noexcept
+      {
+        const Game::menuDef_t* const menu (Menu_GetFocused (uiContext));
+
+        if (menu == nullptr)
+          return false;
+
+        if (handles_key (menu->onKey, key))
+          return true;
+
+        constexpr int visible (0x4);
+        constexpr int focused (0x2);
+
+        for (int i (0); i != menu->itemCount; ++i)
+        {
+          const Game::itemDef_s* const item (menu->items[i]);
+          const int flags (item->window.dynamicFlags[0]);
+
+          if ((flags & visible) != 0 && (flags & focused) != 0 &&
+              handles_key (item->onKey, key))
+            return true;
+        }
+
+        return false;
+      }
 
       bool
       is_dpad (engine_key k) noexcept
@@ -154,6 +201,33 @@ namespace Controller
 
         return cg != nullptr &&
                cg->predictedPlayerState.sprintState.sprintButtonUpRequired != 0;
+      }
+
+      // Spectating, the console moves to the next player with B and the
+      // previous one with A, where the PC game looks at the fire and aim
+      // buttons. Give B and A those commands while the player can cycle.
+      //
+      bool
+      spectator_can_cycle () noexcept
+      {
+        Game::cg_s* const cg (Game::CL_GetLocalClientGlobals (local_client));
+
+        return cg != nullptr &&
+               (cg->predictedPlayerState.otherFlags & Game::POF_SPEC_ALLOW_CYCLE) != 0;
+      }
+
+      const char*
+      spectator_command (engine_key k) noexcept
+      {
+        if (!spectator_can_cycle ())
+          return nullptr;
+
+        switch (k)
+        {
+          case engine_key::button_b: return "+attack";
+          case engine_key::button_a: return "+speed_throw";
+          default:                   return nullptr;
+        }
       }
 
       float
@@ -241,6 +315,8 @@ namespace Controller
     dispatch (const canonical_sample& s) noexcept
     {
       const unsigned time (static_cast<unsigned> (Sys_Milliseconds ()));
+
+      restore_spectator_view ();
 
       aim::deadzone_params dz {
         aim::magnitude {read (dvars_.stick_deadzone_min, 0.2f)},
@@ -333,6 +409,45 @@ namespace Controller
     tick () noexcept
     {
       dispatch_buttons (buttons_, static_cast<unsigned> (Sys_Milliseconds ()));
+      restore_spectator_view ();
+    }
+
+    // Y switches the view of the player followed between first and third
+    // person, as on console. cg_thirdPerson is a cheat dvar only to the
+    // console command line, and the view goes back to first person as soon
+    // as the player stops spectating.
+    //
+    bool
+    key_dispatcher::
+    toggle_spectator_view (engine_key k) noexcept
+    {
+      if (k != engine_key::button_y || !spectator_can_cycle ())
+        return false;
+
+      static dvar_t* third_person {nullptr};
+
+      if (third_person == nullptr)
+        third_person = Dvar_FindVar ("cg_thirdPerson");
+
+      if (third_person == nullptr)
+        return false;
+
+      third_person_ = !read (third_person, false);
+      Dvar_SetBool (third_person, third_person_);
+      return true;
+    }
+
+    void
+    key_dispatcher::
+    restore_spectator_view () noexcept
+    {
+      if (!third_person_ || spectator_can_cycle ())
+        return;
+
+      third_person_ = false;
+
+      if (dvar_t* const third_person = Dvar_FindVar ("cg_thirdPerson"))
+        Dvar_SetBool (third_person, false);
     }
 
     void
@@ -492,7 +607,19 @@ namespace Controller
 
       ks.locSelInputState = LOC_SEL_INPUT_NONE;
 
-      const char* const binding (ks.keys[key].binding);
+      if (e == key_event::pressed && toggle_spectator_view (k))
+        return;
+
+      const char* binding (ks.keys[key].binding);
+
+      if (e == key_event::pressed)
+        spectator_commands_[key] = spectator_command (k);
+
+      if (spectator_commands_[key] != nullptr)
+        binding = spectator_commands_[key];
+
+      if (!down)
+        spectator_commands_[key] = nullptr;
 
       char cmd[1024];
 
@@ -600,20 +727,20 @@ namespace Controller
     key_dispatcher::
     menu_key_event (engine_key k, bool down) noexcept
     {
-      if (*g_waitingForKey != 0)
+      int key (static_cast<int> (k));
+
+      if (*g_waitingForKey == 0 && !focused_menu_handles (key))
       {
-        UI_KeyEvent (local_client, static_cast<int> (k), down ? 1 : 0);
-        return;
+        const auto m (std::find_if (std::begin (menu_keys), std::end (menu_keys),
+                                    [k] (const menu_key& m) { return m.controller == k; }));
+
+        if (m == std::end (menu_keys))
+          return;
+
+        key = m->keyboard;
       }
 
-      for (const menu_key& m: menu_keys)
-      {
-        if (m.controller == k)
-        {
-          UI_KeyEvent (local_client, m.keyboard, down ? 1 : 0);
-          return;
-        }
-      }
+      UI_KeyEvent (local_client, key, down ? 1 : 0);
     }
 
     bool

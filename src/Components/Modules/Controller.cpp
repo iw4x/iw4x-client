@@ -4,6 +4,7 @@
 #include "ZoneBuilder.hpp"
 
 #include "../../Controller/Engine/Hook.hpp"
+#include "../../Controller/Mapping/Platform.hpp"
 
 namespace Components
 {
@@ -37,6 +38,28 @@ namespace Components
   void Controller::OnMouseMove(const int dx, const int dy)
   {
     ::Controller::engine::note_mouse_move(dx, dy);
+  }
+
+  const char* Controller::PlatformString(const char* key)
+  {
+    if (!IsControllerInUse())
+    {
+      return nullptr;
+    }
+
+    // The controller strings are English.
+    //
+    if (Game::SEH_GetCurrentLanguage() != 0)
+    {
+      return nullptr;
+    }
+
+    return ::Controller::mapping::platform_string(key, ::Controller::engine::active_glyph_family());
+  }
+
+  Game::Material* Controller::TextGlyphMaterial(const char* name)
+  {
+    return ::Controller::engine::text_glyph_material(name);
   }
 
   void Controller::SubmitRumble()
