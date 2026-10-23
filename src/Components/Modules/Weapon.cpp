@@ -500,7 +500,11 @@ namespace Components
 
     for (size_t axis = 0; axis < 3; axis++)
     {
-      recoilSpeed [axis] = adjustedRecoilSpeed[axis] * CGRecoilMultiplier->current.value;
+      // Note that the game adds the gun kick to the speed left over from the
+      // previous shots (so that it builds up during automatic fire) while it
+      // assigns the view kick. So we do the same.
+      //
+      recoilSpeed [axis] += adjustedRecoilSpeed[axis] * CGRecoilMultiplier->current.value;
       kickAVel [axis] = adjustedKick[axis] * CGRecoilMultiplier->current.value;
     }
   }
