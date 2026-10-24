@@ -14,6 +14,7 @@ namespace Components
     {
     public:
       Game::Material* image;
+      std::string imageName;
       std::string title;
       std::string desc;
       int length;

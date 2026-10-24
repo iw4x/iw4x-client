@@ -6,16 +6,21 @@ namespace Components
   std::queue<Toast::UIToast> Toast::Queue;
   std::mutex Toast::Mutex;
 
+  // Note that we only look the material up when drawing the toast. It can
+  // stay queued for a while and, if the game reloads its fastfiles in the
+  // meantime (say, when switching mods), a material we looked up now would be
+  // freed by the time we draw it.
+  //
   void Toast::Show(const std::string& image, const std::string& title, const std::string& description, int length, const Utils::Slot<void()>& callback)
   {
-    Game::Material* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, image.data()).material;
-    return Show(material, title, description, length, callback);
+    std::lock_guard _(Mutex);
+    Queue.push({nullptr, image, Utils::String::ToUpper(title), description, length, 0, callback});
   }
 
   void Toast::Show(Game::Material* material, const std::string& title, const std::string& description, int length, const Utils::Slot<void()>& callback)
   {
     std::lock_guard _(Mutex);
-    Queue.push({material, Utils::String::ToUpper(title), description, length, 0, callback});
+    Queue.push({material, {}, Utils::String::ToUpper(title), description, length, 0, callback});
   }
 
   void Toast::Draw(UIToast* toast)
@@ -100,7 +105,7 @@ namespace Components
     Game::CL_DrawStretchPicPhysical(static_cast<float>(width / 2 - bWidth / 2), static_cast<float>(height + bHeight / 2), bWidth * 1.0f, border * 1.0f, 0, 0, 1.0f, 1.0f, borderColor, Game::sharedUiInfo->assets.whiteMaterial); // Bottom
 
     // Image
-    Game::Material* image = toast->image;
+    Game::Material* image = toast->imageName.empty() ? toast->image : Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, toast->imageName.data()).material;
     if (!Materials::IsValid(image))
     {
       image = Game::DB_FindXAssetDefaultHeaderInternal(Game::XAssetType::ASSET_TYPE_MATERIAL).material;
