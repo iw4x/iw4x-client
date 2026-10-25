@@ -46,6 +46,7 @@ namespace Components
   ServerList::Container ServerList::RefreshContainer;
 
   std::vector<ServerList::ServerInfo> ServerList::OnlineList;
+  std::unordered_map<Network::Address, int> ServerList::VerifiedClients;
   std::vector<ServerList::ServerInfo> ServerList::OfflineList;
   std::vector<ServerList::ServerInfo> ServerList::FavouriteList;
 
@@ -159,6 +160,16 @@ namespace Components
 
     case Column::Players:
     {
+      // Show the number of players the master server counted alongside the
+      // one the server reports. Note that, for now, it's only a hint: it
+      // only counts players whose game reports where they play, so it's low
+      // until most players have updated.
+      //
+      if (server->verifiedClients >= 0)
+      {
+        return Utils::String::VA("%i/%i (%i) [%i]", server->clients, server->maxClients, server->bots, server->verifiedClients);
+      }
+
       return Utils::String::VA("%i/%i (%i)", server->clients, server->maxClients, server->bots);
     }
 
@@ -405,6 +416,7 @@ namespace Components
     Logger::Print("Response from the master server contains {} servers\n", list.Size());
 
     std::size_t count = 0;
+    VerifiedClients.clear();
 
     for (const auto& entry : list.GetArray())
     {
@@ -439,6 +451,15 @@ namespace Components
       // Using VA because it's faster
       Network::Address server(Utils::String::VA("%s:%u", entry["ip"].GetString(), entry["port"].GetInt()));
       server.setType(Game::NA_IP); // Just making sure...
+
+      // Remember the number of players the master server counted from the
+      // clients themselves. The server reports its own count when we query
+      // it, but it can report whatever it likes. See Presence for details.
+      //
+      if (entry.HasMember("verified_clients") && entry["verified_clients"].IsInt())
+      {
+        VerifiedClients[server] = entry["verified_clients"].GetInt();
+      }
 
       InsertRequest(server);
       ++count;
@@ -769,6 +790,7 @@ namespace Components
         s.version       = entry.value ("version", "");
         s.clients       = entry.value ("clients", 0);
         s.bots          = entry.value ("bots", 0);
+        s.verifiedClients = entry.value ("verifiedClients", -1);
         s.maxClients    = entry.value ("maxClients", 0);
         s.password      = entry.value ("password", false);
         s.ping          = entry.value ("ping", 999);
@@ -828,6 +850,7 @@ namespace Components
       e["version"]       = s.version;
       e["clients"]       = s.clients;
       e["bots"]          = s.bots;
+      e["verifiedClients"] = s.verifiedClients;
       e["maxClients"]    = s.maxClients;
       e["password"]      = s.password;
       e["ping"]          = s.ping;
@@ -1009,6 +1032,9 @@ namespace Components
       server.matchType = std::strtol(info.get("matchtype").data(), nullptr, 10);
       server.clients = std::strtol(info.get("clients").data(), nullptr, 10);
       server.bots = std::strtol(info.get("bots").data(), nullptr, 10);
+
+      const auto verified = VerifiedClients.find(address);
+      server.verifiedClients = verified != VerifiedClients.end() ? verified->second : -1;
       server.securityLevel = std::strtol(info.get("securityLevel").data(), nullptr, 10);
       server.maxClients = std::strtol(info.get("sv_maxclients").data(), nullptr, 10);
       server.password = info.get("isPrivate") == "1"s;
