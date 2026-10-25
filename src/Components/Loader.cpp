@@ -45,6 +45,7 @@
 #include "Modules/PlayerMovement.hpp"
 #include "Modules/PlayerName.hpp"
 #include "Modules/Playlist.hpp"
+#include "Modules/Presence.hpp"
 #include "Modules/QuickPatch.hpp"
 #include "Modules/RawFiles.hpp"
 #include "Modules/RawMouse.hpp"
@@ -160,6 +161,7 @@ namespace Components
     Register(new PlayerMovement());
     Register(new PlayerName());
     Register(new Playlist());
+    Register(new Presence());
     Register(new QuickPatch());
     Register(new RawFiles());
     Register(new RawMouse());
