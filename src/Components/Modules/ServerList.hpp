@@ -19,6 +19,7 @@ namespace Components
       int clients;
       int bots;
       int verifiedClients; // Counted by the master server, -1 if unknown.
+      int reportedClients; // Reported by the server itself.
       int maxClients;
       bool password;
       int ping;

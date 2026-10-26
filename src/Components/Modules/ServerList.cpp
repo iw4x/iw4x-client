@@ -781,6 +781,7 @@ namespace Components
         s.clients       = entry.value ("clients", 0);
         s.bots          = entry.value ("bots", 0);
         s.verifiedClients = entry.value ("verifiedClients", -1);
+        s.reportedClients = entry.value ("reportedClients", s.clients);
         s.maxClients    = entry.value ("maxClients", 0);
         s.password      = entry.value ("password", false);
         s.ping          = entry.value ("ping", 999);
@@ -841,6 +842,7 @@ namespace Components
       e["clients"]       = s.clients;
       e["bots"]          = s.bots;
       e["verifiedClients"] = s.verifiedClients;
+      e["reportedClients"] = s.reportedClients;
       e["maxClients"]    = s.maxClients;
       e["password"]      = s.password;
       e["ping"]          = s.ping;
@@ -1088,6 +1090,8 @@ namespace Components
       // tell the master server, but we would rather that than let servers
       // inflate their count.
       //
+      server.reportedClients = server.clients;
+
       if (server.verifiedClients >= 0)
       {
         server.clients = std::min(server.clients, server.verifiedClients);
