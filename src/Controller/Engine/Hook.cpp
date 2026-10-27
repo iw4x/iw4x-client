@@ -3,6 +3,7 @@
 #include "../Types.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <cstring>
 #include <exception>
 
@@ -53,8 +54,6 @@ namespace Controller
       constexpr auto ui_placement_address {0x48E980};
       constexpr auto scr_place_apply_x_address {0x4B9620};
       constexpr auto scr_place_apply_y_address {0x4F1430};
-
-      constexpr auto image_file_reader_address {0x42ECA0};
 
       constexpr auto cl_mouse_move_call {0x5A6DAE};
       constexpr auto cl_remote_control_move_call {0x5A6D4E};
@@ -594,12 +593,13 @@ namespace Controller
       load_loose_image (const Game::GfxImage& like, const char* name) noexcept
       {
         // The engine reports an image it cannot open as an error, so look
-        // for the file first: these images are optional.
+        // for the file first, the way the loader below opens it: these
+        // images are optional.
         //
         const std::string path ("images/" + std::string (name) + ".iwi");
 
         int file (0);
-        Game::FS_FOpenFileRead (path.c_str (), &file);
+        Game::FS_FOpenFileReadDatabase (path.c_str (), &file);
 
         if (file == 0)
           return nullptr;
@@ -614,7 +614,7 @@ namespace Controller
         image->name = name;
 
         if (!Game::Image_LoadFromFileWithReader (
-              image, reinterpret_cast<Game::Reader_t> (image_file_reader_address)))
+              image, reinterpret_cast<Game::Reader_t> (Game::FS_FOpenFileReadDatabase)))
         {
           Utils::Memory::GetAllocator ()->free (image);
           return nullptr;
@@ -623,8 +623,9 @@ namespace Controller
         return image;
       }
 
-      // The material named once its zone is loaded, which comes after the
-      // controller starts, or nullptr until then.
+      // The material named as its zone has it now, or nullptr while no
+      // loaded zone does. Zones come and go, with a map or with fs_game, so
+      // this is looked up again every frame rather than kept.
       //
       Game::Material*
       loaded_material (const char* name) noexcept
@@ -639,17 +640,20 @@ namespace Controller
       {
         const char* material;
         const char* pressed;
-        Game::Material* m;
+
+        // The zone's own image of the material as last seen, and the pressed
+        // image loaded for it. The pressed image is ours and outlives zones.
+        //
         Game::GfxImage* up;
         Game::GfxImage* down;
-        bool loaded;
+        bool tried;
       };
 
       stick sticks[] {
-        {"button_lstick", "button_lstick2", nullptr, nullptr, nullptr, false},
-        {"button_rstick", "button_rstick2", nullptr, nullptr, nullptr, false},
-        {"button_ps3_l3", "button_ps3_l3_alt", nullptr, nullptr, nullptr, false},
-        {"button_ps3_r3", "button_ps3_r3_alt", nullptr, nullptr, nullptr, false},
+        {"button_lstick", "button_lstick2", nullptr, nullptr, false},
+        {"button_rstick", "button_rstick2", nullptr, nullptr, false},
+        {"button_ps3_l3", "button_ps3_l3_alt", nullptr, nullptr, false},
+        {"button_ps3_r3", "button_ps3_r3_alt", nullptr, nullptr, false},
       };
 
       // The console draws the buttons in hint text from its HUD font, a
@@ -657,76 +661,109 @@ namespace Controller
       // small image is there, text gets a copy of the button material that
       // uses it.
       //
+      // The copy is written here, on the main thread, and read by the text
+      // renderer, so it is published with release and read with acquire.
+      // A copy made from a material that has since gone is not freed, as the
+      // renderer may still be drawing with it; this only happens when a
+      // zone with the material is reloaded.
+      //
       struct text_glyph
       {
         const char* material;
         const char* image;
-        Game::Material* m;
-        bool loaded;
+
+        Game::GfxImage* small_image;
+        bool tried;
+
+        // What the copy was made from, to tell when the zone has reloaded it.
+        //
+        const Game::Material* base;
+        const Game::MaterialTextureDef* base_textures;
+
+        std::atomic<Game::Material*> m;
       };
 
       text_glyph text_glyphs[] {
-        {"button_x", "button_x_small", nullptr, false},
+        {"button_x", "button_x_small", nullptr, false, nullptr, nullptr, nullptr},
       };
 
       void
-      load_stick (stick& s) noexcept
+      update_stick (stick& s, bool pressed) noexcept
       {
         Game::Material* const m (loaded_material (s.material));
 
-        if (m == nullptr)
+        if (m == nullptr || m->textureCount == 0 || m->textureTable[0].u.image == nullptr)
           return;
 
-        s.loaded = true;
+        Game::GfxImage* const shown (m->textureTable[0].u.image);
 
-        if (m->textureCount == 0 || m->textureTable[0].u.image == nullptr)
-          return;
+        // Anything other than our two images is the zone's own, loaded
+        // afresh: take it as the up image.
+        //
+        if (shown != s.down && shown != s.up)
+          s.up = shown;
 
-        Game::GfxImage* const down (
-          load_loose_image (*m->textureTable[0].u.image, s.pressed));
-
-        if (down == nullptr)
+        if (s.down == nullptr)
         {
-          Components::Logger::Print ("controller: no {} image to animate {}\n",
-                                     s.pressed, s.material);
-          return;
+          if (s.tried)
+            return;
+
+          s.tried = true;
+          s.down = load_loose_image (*s.up, s.pressed);
+
+          if (s.down == nullptr)
+          {
+            Components::Logger::Print ("controller: no {} image to animate {}\n",
+                                       s.pressed, s.material);
+            return;
+          }
         }
 
-        s.m = m;
-        s.up = m->textureTable[0].u.image;
-        s.down = down;
+        m->textureTable[0].u.image = pressed ? s.down : s.up;
       }
 
       void
-      load_text_glyph (text_glyph& g) noexcept
+      update_text_glyph (text_glyph& g) noexcept
       {
-        Game::Material* const base (loaded_material (g.material));
+        const Game::Material* const base (loaded_material (g.material));
 
-        if (base == nullptr)
+        if (base == nullptr || base->textureCount == 0 ||
+            base->textureTable[0].u.image == nullptr)
+        {
+          g.m.store (nullptr, std::memory_order_release);
+          g.base = nullptr;
+          return;
+        }
+
+        if (base == g.base && base->textureTable == g.base_textures &&
+            g.m.load (std::memory_order_relaxed) != nullptr)
           return;
 
-        g.loaded = true;
+        if (g.small_image == nullptr)
+        {
+          if (g.tried)
+            return;
 
-        if (base->textureCount == 0 || base->textureTable[0].u.image == nullptr)
-          return;
+          g.tried = true;
+          g.small_image = load_loose_image (*base->textureTable[0].u.image, g.image);
 
-        Game::GfxImage* const image (
-          load_loose_image (*base->textureTable[0].u.image, g.image));
-
-        if (image == nullptr)
-          return;
+          if (g.small_image == nullptr)
+            return;
+        }
 
         auto* const textures (Utils::Memory::GetAllocator ()->allocateArray<Game::MaterialTextureDef> (
           base->textureCount));
 
         std::copy_n (base->textureTable, base->textureCount, textures);
-        textures[0].u.image = image;
+        textures[0].u.image = g.small_image;
 
         auto* const m (Utils::Memory::GetAllocator ()->allocate<Game::Material> ());
         *m = *base;
         m->textureTable = textures;
 
-        g.m = m;
+        g.base = base;
+        g.base_textures = base->textureTable;
+        g.m.store (m, std::memory_order_release);
       }
     }
 
@@ -740,19 +777,10 @@ namespace Controller
       const bool pressed ((Sys_Milliseconds () / frame_time) % 2 != 0);
 
       for (stick& s: sticks)
-      {
-        if (!s.loaded)
-          load_stick (s);
-
-        if (s.m != nullptr)
-          s.m->textureTable[0].u.image = pressed ? s.down : s.up;
-      }
+        update_stick (s, pressed);
 
       for (text_glyph& g: text_glyphs)
-      {
-        if (!g.loaded)
-          load_text_glyph (g);
-      }
+        update_text_glyph (g);
     }
 
     Game::Material*
@@ -761,7 +789,7 @@ namespace Controller
       for (const text_glyph& g: text_glyphs)
       {
         if (std::strcmp (g.material, name) == 0)
-          return g.m;
+          return g.m.load (std::memory_order_acquire);
       }
 
       return nullptr;

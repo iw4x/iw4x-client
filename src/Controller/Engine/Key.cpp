@@ -316,8 +316,6 @@ namespace Controller
     {
       const unsigned time (static_cast<unsigned> (Sys_Milliseconds ()));
 
-      restore_spectator_view ();
-
       aim::deadzone_params dz {
         aim::magnitude {read (dvars_.stick_deadzone_min, 0.2f)},
         aim::magnitude {read (dvars_.stick_deadzone_max, 0.01f)},
@@ -409,45 +407,6 @@ namespace Controller
     tick () noexcept
     {
       dispatch_buttons (buttons_, static_cast<unsigned> (Sys_Milliseconds ()));
-      restore_spectator_view ();
-    }
-
-    // Y switches the view of the player followed between first and third
-    // person, as on console. cg_thirdPerson is a cheat dvar only to the
-    // console command line, and the view goes back to first person as soon
-    // as the player stops spectating.
-    //
-    bool
-    key_dispatcher::
-    toggle_spectator_view (engine_key k) noexcept
-    {
-      if (k != engine_key::button_y || !spectator_can_cycle ())
-        return false;
-
-      static dvar_t* third_person {nullptr};
-
-      if (third_person == nullptr)
-        third_person = Dvar_FindVar ("cg_thirdPerson");
-
-      if (third_person == nullptr)
-        return false;
-
-      third_person_ = !read (third_person, false);
-      Dvar_SetBool (third_person, third_person_);
-      return true;
-    }
-
-    void
-    key_dispatcher::
-    restore_spectator_view () noexcept
-    {
-      if (!third_person_ || spectator_can_cycle ())
-        return;
-
-      third_person_ = false;
-
-      if (dvar_t* const third_person = Dvar_FindVar ("cg_thirdPerson"))
-        Dvar_SetBool (third_person, false);
     }
 
     void
@@ -607,19 +566,7 @@ namespace Controller
 
       ks.locSelInputState = LOC_SEL_INPUT_NONE;
 
-      if (e == key_event::pressed && toggle_spectator_view (k))
-        return;
-
       const char* binding (ks.keys[key].binding);
-
-      if (e == key_event::pressed)
-        spectator_commands_[key] = spectator_command (k);
-
-      if (spectator_commands_[key] != nullptr)
-        binding = spectator_commands_[key];
-
-      if (!down)
-        spectator_commands_[key] = nullptr;
 
       char cmd[1024];
 
@@ -639,6 +586,14 @@ namespace Controller
         if (e == key_event::repeated)
           return;
 
+        // Remember the command a spectator press ran, so that only it comes
+        // back up on release. A press a menu took never gets here.
+        //
+        spectator_commands_[key] = spectator_command (k);
+
+        if (spectator_commands_[key] != nullptr)
+          binding = spectator_commands_[key];
+
         if (binding != nullptr)
         {
           if (binding[0] == '+')
@@ -652,6 +607,12 @@ namespace Controller
       }
       else
       {
+        if (spectator_commands_[key] != nullptr)
+        {
+          binding = spectator_commands_[key];
+          spectator_commands_[key] = nullptr;
+        }
+
         if (binding != nullptr && binding[0] == '+')
         {
           sprintf_s (cmd, "-%s %i %i\n", &binding[1], key, time);
