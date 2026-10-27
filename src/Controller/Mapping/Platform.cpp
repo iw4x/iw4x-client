@@ -40,8 +40,6 @@ namespace Controller
         {"PLATFORM_UI_CLEAR_KILLSTREAKS",   "\x04 Clear Kill Streaks"},
         {"PLATFORM_FOLLOWNEXTPLAYER",       "\x02 Next"},
         {"PLATFORM_FOLLOWPREVIOUSPLAYER",   "\x01 Previous"},
-        {"PLATFORM_THIRDPERSON",            "\x04 Third Person"},
-        {"PLATFORM_FIRSTPERSON",            "\x04 First Person"},
         {"PLATFORM_CALL_NUKE",              "Press and hold ^3&&1^7 for Nuclear Strike."},
         {"PLATFORM_DETONATE",               "Press ^3&&1^7 to detonate"},
         {"PLATFORM_GET_AUTO_SHOT",          "Press and hold ^3&&1^7 to pick up an Auto Shotgun."},

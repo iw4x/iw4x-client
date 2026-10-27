@@ -78,12 +78,6 @@ namespace Controller
       menu_key_event (mapping::engine_key, bool down) noexcept;
 
       bool
-      toggle_spectator_view (mapping::engine_key) noexcept;
-
-      void
-      restore_spectator_view () noexcept;
-
-      bool
       scoreboard_key_event (mapping::engine_key) noexcept;
 
       const context& ctx_;
@@ -95,10 +89,6 @@ namespace Controller
       // comes back up with the same one.
       //
       std::array<const char*, 256> spectator_commands_ {};
-
-      // Whether Y put the view of the player followed in third person.
-      //
-      bool third_person_ {false};
 
       bool reported_deadzone_ {false};
 

@@ -943,7 +943,18 @@ namespace Components
       return false;
     }
 
-    const std::string_view name(text + 4, static_cast<unsigned char>(text[3]));
+    // The name can be cut short, so stop at the terminator as DrawHudIcon
+    // does rather than trust the length.
+    const auto nameLen = static_cast<uint8_t>(text[3]);
+    for (auto i = 0u; i < nameLen; i++)
+    {
+      if (text[4 + i] == 0)
+      {
+        return false;
+      }
+    }
+
+    const std::string_view name(text + 4, nameLen);
     return name.starts_with("button_") || name.starts_with("dpad_");
   }
 
