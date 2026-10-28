@@ -272,9 +272,9 @@ namespace Controller
     }
 
     engine::publish_present (dvars_, drivers_.size () != 0);
-    engine::publish_glyph_style (
+    engine::publish_type (
       dvars_,
-      engine::active_glyph_family () == mapping::glyph_family::playstation);
+      engine::controller_glyph_family () == mapping::glyph_family::playstation);
     engine::update_glyph_images ();
 
     apply_output_policy ();

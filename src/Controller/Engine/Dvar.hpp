@@ -16,7 +16,7 @@ namespace Controller
       dvar_t* in_use {};
       dvar_t* rumble {};
       dvar_t* style {};
-      dvar_t* glyph_style {};
+      dvar_t* type {};
 
       dvar_t* haptics {};
       dvar_t* haptic_intensity {};
@@ -100,12 +100,11 @@ namespace Controller
     void
     publish_present (const dvars&, bool present) noexcept;
 
-    // Publish the glyph family button prompts are drawn in (gpad_style
-    // resolved against the active controller) for menus to pick matching
-    // artwork.
+    // Publish the kind of controller in use, which menus follow for their
+    // artwork when gpad_style leaves the choice to the controller.
     //
     void
-    publish_glyph_style (const dvars&, bool playstation) noexcept;
+    publish_type (const dvars&, bool playstation) noexcept;
 
     inline bool
     read (dvar_t* d, bool fallback) noexcept
