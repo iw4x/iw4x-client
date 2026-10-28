@@ -46,9 +46,10 @@ namespace Controller
         "Which button glyphs to present: 0 follows the controller that is "
         "connected, 1 is PlayStation and 2 is Xbox");
       d.type = Dvar_RegisterInt (
-        "gpad_type", 0, 0, 1, DVAR_ROM,
+        "gpad_type", 2, 1, 2, DVAR_ROM,
         "The kind of controller in use, for menus to follow when gpad_style "
-        "is 0: 0 is Xbox, or none, and 1 is PlayStation");
+        "is 0, numbered as gpad_style: 1 is PlayStation and 2 is Xbox, or "
+        "none");
 
       d.haptics = Dvar_RegisterBool (
         "gpad_haptics", true, DVAR_ARCHIVE,
@@ -321,7 +322,7 @@ namespace Controller
     void
     publish_type (const dvars& d, bool playstation) noexcept
     {
-      const int value (playstation ? 1 : 0);
+      const int value (playstation ? 1 : 2);
 
       if (d.type != nullptr && d.type->current.integer != value)
         Dvar_SetInt (d.type, value);
