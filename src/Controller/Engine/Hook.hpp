@@ -28,6 +28,11 @@ namespace Controller
     mapping::glyph_family
     active_glyph_family () noexcept;
 
+    // The glyph family of the active controller, whatever gpad_style says.
+    //
+    mapping::glyph_family
+    controller_glyph_family () noexcept;
+
     // Flick the thumbstick glyphs between their up and pressed images, as
     // the console prompts do, and load the small glyphs hint text uses.
     //

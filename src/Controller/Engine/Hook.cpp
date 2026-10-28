@@ -812,12 +812,18 @@ namespace Controller
         default: break;
       }
 
+      return chosen ? *chosen : controller_glyph_family ();
+    }
+
+    mapping::glyph_family
+    controller_glyph_family () noexcept
+    {
       const Controller::family device (
         the_runtime != nullptr && the_runtime->active () != no_device
         ? the_runtime->latest ().family
         : Controller::family::unknown);
 
-      return mapping::glyph_family_for (device, chosen);
+      return mapping::glyph_family_for (device, std::nullopt);
     }
 
     bool
