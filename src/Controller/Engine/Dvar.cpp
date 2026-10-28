@@ -322,6 +322,13 @@ namespace Controller
     void
     publish_type (const dvars& d, bool playstation) noexcept
     {
+      // Use the gpad_style numbering (1 for PlayStation, 2 for Xbox) so that
+      // a menu can test both dvars against the same value.
+      //
+      // Note that there is no value for "no controller": with no device
+      // active we report Xbox, which keeps the menu button art drawn while
+      // gpad_in_use is still set after the pad is unplugged.
+      //
       const int value (playstation ? 1 : 2);
 
       if (d.type != nullptr && d.type->current.integer != value)
