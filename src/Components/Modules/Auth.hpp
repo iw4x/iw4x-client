@@ -22,6 +22,11 @@ namespace Components
 
     static std::string GetMachineEntropy();
 
+    /// Mirrors the engine's private slot test: the client's password key
+    /// equals sv_privatePassword. Note that this holds for every client while
+    /// the server has no private password.
+    static bool HasReservedSlotAccess(const char* password);
+
   private:
 
     class TokenIncrementing

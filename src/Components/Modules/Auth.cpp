@@ -6,6 +6,7 @@
 #include "Bans.hpp"
 #include "Bots.hpp"
 #include "Friends.hpp"
+#include "Queue.hpp"
 #include "Toast.hpp"
 
 namespace Components
@@ -361,6 +362,13 @@ namespace Components
       }
 
       Logger::Debug("Verified XUID {:#X} ({}) from {}", xuid, userLevel, address.getString());
+
+      if (!Queue::AllowConnect(address, Game::Info_ValueForKey(userInfo.data(), "password")))
+      {
+        Network::Send(address, "error\nEXE_SERVERISFULL");
+        return;
+      }
+
       Game::SV_DirectConnect(*address.get());
     }
 #endif
@@ -407,11 +415,16 @@ namespace Components
     }
   }
 
+  bool Auth::HasReservedSlotAccess(const char* password)
+  {
+    return std::strcmp((*Game::sv_privatePassword)->current.string, password) == 0;
+  }
+
   char* Auth::Info_ValueForKeyStub(const char* s, const char* key)
   {
     auto* value = Game::Info_ValueForKey(s, key);
 
-    HasAccessToReservedSlot = std::strcmp((*Game::sv_privatePassword)->current.string, value) == 0;
+    HasAccessToReservedSlot = HasReservedSlotAccess(value);
 
     // This stub runs right before the 'server is full check' so we can call this here
     Bots::SV_DirectConnect_Full_Check();

@@ -9,6 +9,15 @@ namespace Components
 
     static void SV_DirectConnect_Full_Check();
 
+    /// Number of slots a client can take right now, counting the test client
+    /// sv_replaceBots would drop for it. Clients without the private password
+    /// cannot use the slots sv_privateClients reserves.
+    static std::size_t FreeSlots(bool privileged = false);
+
+    /// Whether sv_privateClients reserves slots clients without the private
+    /// password cannot take.
+    static bool HasPrivateSlots();
+
   private:
     using botData = std::pair<std::string, std::string>;
 
@@ -45,6 +54,9 @@ namespace Components
     static int SV_GetClientPing_Hk(int clientNum);
 
     static bool IsFull();
+
+    static int FindReplaceableBot();
+    static int GetFirstPublicSlot();
 
     static void CleanBotArray();
 

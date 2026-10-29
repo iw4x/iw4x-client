@@ -531,6 +531,64 @@ namespace Components
     return i == *Game::svs_clientCount;
   }
 
+  int Bots::FindReplaceableBot()
+  {
+    for (auto i = 0; i < (*Game::sv_maxclients)->current.integer; ++i)
+    {
+      if (Game::svs_clients[i].bIsTestClient)
+      {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  /// The engine starts a client without the private password at
+  /// sv_privateClients, and treats everyone as privileged when the server has
+  /// no private password at all.
+  int Bots::GetFirstPublicSlot()
+  {
+    static const Game::dvar_t* privateClients = nullptr;
+    if (!privateClients)
+    {
+      privateClients = Game::Dvar_FindVar("sv_privateClients");
+    }
+
+    if (!privateClients || !*(*Game::sv_privatePassword)->current.string)
+    {
+      return 0;
+    }
+
+    return std::clamp(privateClients->current.integer, 0, *Game::svs_clientCount);
+  }
+
+  bool Bots::HasPrivateSlots()
+  {
+    return GetFirstPublicSlot() > 0;
+  }
+
+  std::size_t Bots::FreeSlots(bool privileged)
+  {
+    const auto first = privileged ? 0 : GetFirstPublicSlot();
+
+    std::size_t free = 0;
+    for (auto i = first; i < *Game::svs_clientCount; ++i)
+    {
+      if (Game::svs_clients[i].header.state == Game::CS_FREE)
+      {
+        ++free;
+      }
+    }
+
+    if (free == 0 && sv_replaceBots->current.enabled && IsFull() && FindReplaceableBot() >= first)
+    {
+      return 1;
+    }
+
+    return free;
+  }
+
   void Bots::SV_DirectConnect_Full_Check()
   {
     if (!sv_replaceBots->current.enabled || !IsFull())
@@ -538,15 +596,12 @@ namespace Components
       return;
     }
 
-    for (auto i = 0; i < (*Game::sv_maxclients)->current.integer; ++i)
+    const auto bot = FindReplaceableBot();
+    if (bot >= 0)
     {
-      auto* cl = &Game::svs_clients[i];
-      if (cl->bIsTestClient)
-      {
-        Game::SV_DropClient(cl, "EXE_DISCONNECTED", false);
-        cl->header.state = Game::CS_FREE;
-        return;
-      }
+      auto* cl = &Game::svs_clients[bot];
+      Game::SV_DropClient(cl, "EXE_DISCONNECTED", false);
+      cl->header.state = Game::CS_FREE;
     }
   }
 
