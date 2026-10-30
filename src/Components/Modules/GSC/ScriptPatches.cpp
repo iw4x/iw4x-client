@@ -98,6 +98,15 @@ namespace Components::GSC
 
   ScriptPatches::ScriptPatches()
   {
+    // Give the script compiler more room. Scr_BeginLoadScripts() makes it a
+    // 1.5MB hunk, which holds the source of every script until they are all
+    // compiled, and a mod with a lot of scripts runs out of it ("out of
+    // memory for 'Scr_BeginLoadScripts'"). Note that the hunk only reserves
+    // the address space and commits what it uses, so this costs us nothing
+    // unless a mod actually needs it.
+    //
+    Utils::Hook::Set<DWORD>(0x4E1EDA, 0x1000000);
+
     // Fix format string in Scr_RandomFloatRange
     Utils::Hook::Set<const char*>(0x5F10C6, "Scr_RandomFloatRange parms: %f %f ");
 
