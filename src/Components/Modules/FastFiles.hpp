@@ -78,6 +78,8 @@ namespace Components
     static void DB_BuildOSPath_FromSource_Default(const char* zoneName, Game::FF_DIR source, unsigned int size, char* filename);
     static void DB_BuildOSPath_FromSource_Custom(const char* zoneName, Game::FF_DIR source, unsigned int size, char* filename);
     static Game::Sys_File Sys_CreateFile_Stub(const char* dir, const char* filename);
+
+    static void Sys_Error_MissingZone (const char* format, const char* zone);
     static bool DB_FileExists_Hk(const char* zoneName, Game::FF_DIR source);
   };
 }

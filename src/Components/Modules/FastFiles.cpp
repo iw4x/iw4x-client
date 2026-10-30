@@ -567,6 +567,57 @@ namespace Components
     return false;
   }
 
+  // Explain to the player that a zone the game can't do without is missing
+  // and exit. This replaces the zone loader's Sys_Error() call.
+  //
+  // There are three cases we've seen. If the zone is a map from a map pack
+  // the player doesn't have, we say so the same way as when they try to join
+  // a server running it. If we are still loading the initial zones, then
+  // most likely IW4x is not in the game's directory, for example, it was
+  // started from inside the launcher's archive, from a copy of our own files,
+  // or from a directory without zone/. Otherwise, the game files are probably
+  // incomplete. In all three cases the engine's error only names the zone,
+  // which doesn't help the player much.
+  //
+  // Note that we don't go through Sys_Error() since none of these is a bug
+  // and there is no point in asking the player to report it.
+  //
+  void FastFiles::Sys_Error_MissingZone (const char*, const char* zone)
+  {
+    const std::string file (std::format ("zone\\{}\\{}", Game::Win_GetLanguage (), zone));
+
+    std::string name (zone);
+    if (Utils::String::EndsWith (name, ".ff"))
+      name.resize (name.size () - 3);
+
+    std::string text;
+    if (const auto e = Maps::GetMissingDlcError (name))
+    {
+      text = *e;
+    }
+    else if (g_loadingInitialZones.get<bool> ())
+    {
+      text = std::format ("Could not find the game file '{}' in '{}'.\n\n"
+                          "IW4x must be installed in your Call of Duty: Modern "
+                          "Warfare 2 folder, the one with the 'main' and "
+                          "'zone' folders. If you started it from inside a zip "
+                          "archive, extract the archive first.",
+                          file,
+                          FileSystem::Sys_DefaultInstallPath_Hk ());
+    }
+    else
+    {
+      text = std::format ("Could not find the game file '{}'. Your game files "
+                          "are likely incomplete.",
+                          file);
+    }
+
+    Logger::Print ("{}\n", text);
+    MessageBoxA (GetActiveWindow (), text.c_str (), "Error", MB_ICONERROR);
+
+    TerminateProcess (GetCurrentProcess (), EXIT_FAILURE);
+  }
+
   Game::Sys_File FastFiles::Sys_CreateFile_Stub(const char* dir, const char* filename)
   {
     static_assert(sizeof(Game::Sys_File) == 4);
@@ -596,6 +647,7 @@ namespace Components
     g_loadingInitialZones = Dvar::Register<bool>("g_loadingInitialZones", true, Game::DVAR_NONE, "Is loading initial zones");
 
     Utils::Hook(0x5BC832, Sys_CreateFile_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook (0x5BC8A6, Sys_Error_MissingZone, HOOK_CALL).install ()->quick ();
 
     Utils::Hook(0x4CCDF0, DB_FileExists_Hk, HOOK_JUMP).install()->quick();
 
