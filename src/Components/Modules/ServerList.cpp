@@ -160,6 +160,16 @@ namespace Components
 
     case Column::Players:
     {
+      // Show the number of players the master server counted alongside the
+      // one the server reports. Note that, for now, it's only a hint: it
+      // only counts players whose game reports where they play, so it's low
+      // until most players have updated.
+      //
+      if (server->verifiedClients >= 0)
+      {
+        return Utils::String::VA("%i/%i (%i) [%i]", server->clients, server->maxClients, server->bots, server->verifiedClients);
+      }
+
       return Utils::String::VA("%i/%i (%i)", server->clients, server->maxClients, server->bots);
     }
 
@@ -1078,19 +1088,6 @@ namespace Components
       if (static_cast<std::size_t>(server.clients) > Game::MAX_CLIENTS || static_cast<std::size_t>(server.maxClients) > Game::MAX_CLIENTS)
       {
         return;
-      }
-
-      // Don't show more players than the master server counted. The server
-      // can report whatever it likes but the master server only counts the
-      // players whose game tells it where they play.
-      //
-      // Note that this undercounts players on older versions, which don't
-      // tell the master server, but we would rather that than let servers
-      // inflate their count.
-      //
-      if (server.verifiedClients >= 0)
-      {
-        server.clients = std::min(server.clients, server.verifiedClients);
       }
 
       // Check if already inserted and update in-place
