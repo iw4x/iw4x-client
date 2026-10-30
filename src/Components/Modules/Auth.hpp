@@ -22,12 +22,6 @@ namespace Components
 
     static std::string GetMachineEntropy();
 
-    // Sign the message with our key for the master server, returning our
-    // public key and token along with the signature. Return false if we don't
-    // have a key or token yet.
-    //
-    static bool SignForMaster(const std::string& message, std::string* publicKey, std::string* token, std::string* signature);
-
   private:
 
     class TokenIncrementing

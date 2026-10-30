@@ -538,24 +538,6 @@ namespace Components
     }
   }
 
-  bool Auth::SignForMaster(const std::string& message, std::string* publicKey, std::string* token, std::string* signature)
-  {
-    if (!GuidKey.isValid() || GuidToken.toString().empty())
-    {
-      return false;
-    }
-
-    // Note that, unlike when connecting to a server, we sign the message's
-    // SHA-512 digest rather than the message itself since that's what other
-    // ECDSA implementations (such as the master server's) expect.
-    //
-    *publicKey = GuidKey.getPublicKey();
-    *token = GuidToken.toString();
-    *signature = Utils::Cryptography::ECC::SignMessage(GuidKey, Utils::Cryptography::SHA512::Compute(message));
-
-    return !signature->empty();
-  }
-
   uint32_t Auth::GetSecurityLevel()
   {
     return GuidToken.toString().empty() ? 0 : GetZeroBits(GuidToken, GuidKey.getPublicKey());
