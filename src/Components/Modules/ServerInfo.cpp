@@ -78,14 +78,6 @@ namespace Components
         Dvar::Var("uiSi_ModName").set(serverInfo->mod.data() + 5);
       }
 
-      // Show how many players the master server verified next to how many the
-      // server reports, since the browser only shows the former. See
-      // ServerList::Insert() for details.
-      //
-      // @@ Localize once we have the strings.
-      //
-      Dvar::Var("uiSi_Players").set(serverInfo->verifiedClients >= 0 ? std::format("{} verified, {} reported", serverInfo->verifiedClients, serverInfo->reportedClients) : std::to_string(serverInfo->reportedClients));
-
       PlayerContainer.target = serverInfo->addr;
       Network::SendCommand(PlayerContainer.target, "getstatus");
     }
