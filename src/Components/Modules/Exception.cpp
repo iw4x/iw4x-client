@@ -11,6 +11,21 @@ namespace Components
     Game::longjmp_internal(env, status);
   }
 
+  // Show the error Com_Error() was handling when another one happened. This
+  // replaces its Sys_Error() call for such a recursive error.
+  //
+  // The game passes com_errorMessage, the localized version of the first
+  // error, as the format and the original message as the argument. We've
+  // seen com_errorMessage come out empty (with an image that failed to load
+  // during startup), leaving the player with an empty dialog and us with an
+  // empty report. So we show the original message when that happens. Note
+  // that neither is a format string: either may well contain a '%'.
+  //
+  void Exception::Sys_Error_Recursive_Hk (const char* format, const char* message)
+  {
+    Game::Sys_Error ("%s", *format != '\0' ? format : message);
+  }
+
   LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
   {
     // Pass on harmless errors
@@ -60,6 +75,7 @@ namespace Components
     ::SetUnhandledExceptionFilter(&ExceptionFilter);
 
     Utils::Hook(0x4B241F, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook (0x4B2317, Sys_Error_Recursive_Hk, HOOK_CALL).install ()->quick (); // Com_Error()
     Utils::Hook(0x61DB44, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
     Utils::Hook(0x61F17D, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
     Utils::Hook(0x61F248, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
