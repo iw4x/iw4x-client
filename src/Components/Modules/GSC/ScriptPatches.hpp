@@ -12,6 +12,7 @@ namespace Components::GSC
 
     static void Scr_TableLookupIStringByRow_Hk();
 
+    static std::string DescribeFrames ();
     static void ReportCorruptState (const std::string& logger, const std::string& details);
 
     static unsigned int VM_ArchiveStack_Hk ();

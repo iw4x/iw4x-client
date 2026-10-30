@@ -13,6 +13,8 @@ namespace Components::GSC
   Game::scrParserGlob_t ScriptError::ScrParserGlob;
   Game::scrParserPub_t ScriptError::ScrParserPub;
 
+  std::vector<ScriptError::ThreadStart> ScriptError::ThreadStarts;
+
   int ScriptError::Scr_IsInOpcodeMemory(const char* pos)
   {
     assert(Game::scrVarPub->programBuffer);
@@ -601,6 +603,39 @@ namespace Components::GSC
     }
   }
 
+  // Remember where the thread (function) that we are about to emit starts,
+  // along with its name and file. See DescribeCodePos() for details.
+  //
+  // Note that we copy the name since EmitThreadInternal() releases it right
+  // away. Note also that we keep the list sorted by position even though the
+  // compiler emits the threads in order, so that a lookup can't go wrong.
+  //
+  void ScriptError::RecordThreadStart (const Game::sval_u* node)
+  {
+    ThreadStart t {
+      Game::TempMalloc (0),
+      ScrParserPub.scriptfilename != nullptr ? ScrParserPub.scriptfilename : "",
+      Game::SL_ConvertToString (static_cast<unsigned short> (node[1].stringValue))};
+
+    const auto i (std::ranges::upper_bound (ThreadStarts, t.pos, {}, &ThreadStart::pos));
+    ThreadStarts.insert (i, std::move (t));
+  }
+
+  std::string ScriptError::DescribeCodePos (const char* pos)
+  {
+    const auto offset (pos - Game::scrVarPub->programBuffer);
+
+    // Find the last thread that starts at or before the position.
+    //
+    auto i (std::ranges::upper_bound (ThreadStarts, pos, {}, &ThreadStart::pos));
+
+    if (i == ThreadStarts.begin ())
+      return std::format ("{}", offset);
+
+    --i;
+    return std::format ("{}::{}+{:#x} ({})", i->file, i->name, pos - i->pos, offset);
+  }
+
   __declspec(naked) void ScriptError::EmitThreadInternal_Stub()
   {
     __asm
@@ -609,6 +644,10 @@ namespace Components::GSC
 
       push [esp + 0x20 + 0x8] // sourcePos
       call AddThreadStartOpcodePos
+      add esp, 0x4
+
+      push [esp + 0x20 + 0x4] // node
+      call RecordThreadStart
       add esp, 0x4
 
       popad
@@ -866,6 +905,11 @@ namespace Components::GSC
   void ScriptError::MT_Reset_Stub()
   {
     Utils::Hook::Call<void()>(0x4D9620)();
+
+    // We are about to compile the scripts from scratch, so forget the
+    // threads of the previous ones.
+    //
+    ThreadStarts.clear ();
 
     Scr_InitOpcodeLookup();
     Game::Engine::Hunk_InitDebugMemory();

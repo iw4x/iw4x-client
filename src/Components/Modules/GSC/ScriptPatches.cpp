@@ -1,6 +1,7 @@
 #include <Components/Modules/Sentry.hpp>
 #include "ScriptPatches.hpp"
 #include "Script.hpp"
+#include "ScriptError.hpp"
 
 using namespace Utils::String;
 
@@ -44,6 +45,23 @@ namespace Components::GSC
     Game::Scr_AddIString(value);
   }
 
+  // Return the frames of the running thread, innermost first, as the script
+  // functions they are in. See ScriptError::DescribeCodePos() for details.
+  //
+  std::string ScriptPatches::DescribeFrames ()
+  {
+    const auto& fs (*reinterpret_cast<Game::function_stack_t*> (0x2040CD4));
+
+    std::string r (ScriptError::DescribeCodePos (fs.pos));
+    for (int i (Game::scrVmPub->function_count - 1); i > 0; --i)
+    {
+      r += ", ";
+      r += ScriptError::DescribeCodePos (Game::scrVmPub->function_frame_start[i].fs.pos);
+    }
+
+    return r;
+  }
+
   // Log and report that the script state is corrupt and end the match.
   //
   void ScriptPatches::ReportCorruptState (const std::string& logger, const std::string& details)
@@ -78,23 +96,12 @@ namespace Components::GSC
 
     if (fs.top < fs.startTop)
     {
-      // Describe the frames as offsets into the program buffer, innermost
-      // first. The positions are only meaningful together with the scripts,
-      // but that's what we have outside of developer mode.
-      //
-      const auto* program (Game::scrVarPub->programBuffer);
-
-      std::string frames (std::format ("{}", fs.pos - program));
-      for (int i (Game::scrVmPub->function_count - 1); i > 0; --i)
-        frames += std::format (" {}", Game::scrVmPub->function_frame_start[i].fs.pos - program);
-
       const auto details (
         std::format ("script stack is corrupt: top is {} values below the "
-                     "start of the frame (frames {}, positions {}, fs_game "
-                     "'{}')",
+                     "start of the frame (frames {}: {}; fs_game '{}')",
                      fs.startTop - fs.top,
                      Game::scrVmPub->function_count,
-                     frames,
+                     DescribeFrames (),
                      (*Game::fs_gameDirVar)->current.string));
 
       ReportCorruptState ("script_stack", details);
@@ -110,16 +117,23 @@ namespace Components::GSC
   // without mods. This is most likely the same corruption that
   // VM_ArchiveStack_Hk() detects, only noticed before any thread waits, so we
   // handle it the same way. Note that the caller is what we are after: it is
-  // where the bad id comes from (or at least passes through).
+  // where the bad id comes from (or at least passes through). If a script is
+  // running, we also describe its frames, which is where to look next.
   //
   void ScriptPatches::RemoveRefToObject_Bad (unsigned int id, unsigned int caller)
   {
+    const auto frames (Game::scrVmPub->function_count > 0
+                       ? DescribeFrames ()
+                       : std::string ("none"));
+
     ReportCorruptState (
       "script_object",
       std::format ("script object id {:#x} is out of range (called from "
-                   "{:#x}, fs_game '{}')",
+                   "{:#x}, frames {}: {}; fs_game '{}')",
                    id,
                    caller,
+                   Game::scrVmPub->function_count,
+                   frames,
                    (*Game::fs_gameDirVar)->current.string));
   }
 

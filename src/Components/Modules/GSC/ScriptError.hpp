@@ -12,7 +12,28 @@ namespace Components::GSC
 
     static void RuntimeError(const char* codePos, unsigned int index, const char* msg, const char* dialogMessage);
 
+    // Return the code position as file::function+offset followed by the
+    // offset into the program buffer, or just the latter if the position is
+    // before any function we know about.
+    //
+    // Unlike the opcode lookup, this works outside of developer mode, which
+    // is what we have in crash reports. Note that we only know the function
+    // the position falls into, not the line.
+    //
+    static std::string DescribeCodePos (const char* pos);
+
   private:
+    struct ThreadStart
+    {
+      const char* pos;
+      std::string file;
+      std::string name;
+    };
+
+    static std::vector<ThreadStart> ThreadStarts;
+
+    static void RecordThreadStart (const Game::sval_u* node);
+
     // Replacement for variables not present in currently available structs
     static int Developer_;
 
