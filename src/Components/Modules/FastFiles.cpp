@@ -618,6 +618,25 @@ namespace Components
     TerminateProcess (GetCurrentProcess (), EXIT_FAILURE);
   }
 
+  // Say which zone the game failed to read. This replaces the Sys_Error()
+  // call of the engine's dirty disc handler, which only says "Disc read
+  // error.".
+  //
+  // The handler does print the zone but on the database thread, which
+  // doesn't make it into the console log before the error. So all we've
+  // seen in reports is the message, with the game loading anything from
+  // common_mp to a map. Most likely the file is damaged but, until we know
+  // which ones fail, we still let the player report it.
+  //
+  void FastFiles::Sys_Error_DirtyDisc (const char*)
+  {
+    const auto* zone (reinterpret_cast<const char*> (*reinterpret_cast<std::uintptr_t*> (0x112A680) + 4));
+
+    Game::Sys_Error ("Could not read the game file '%s.ff'. It is probably "
+                     "damaged, so verify your game files or reinstall them.",
+                     zone);
+  }
+
   Game::Sys_File FastFiles::Sys_CreateFile_Stub(const char* dir, const char* filename)
   {
     static_assert(sizeof(Game::Sys_File) == 4);
@@ -648,6 +667,7 @@ namespace Components
 
     Utils::Hook(0x5BC832, Sys_CreateFile_Stub, HOOK_CALL).install()->quick();
     Utils::Hook (0x5BC8A6, Sys_Error_MissingZone, HOOK_CALL).install ()->quick ();
+    Utils::Hook (0x4CF850, Sys_Error_DirtyDisc, HOOK_CALL).install ()->quick ();
 
     Utils::Hook(0x4CCDF0, DB_FileExists_Hk, HOOK_JUMP).install()->quick();
 

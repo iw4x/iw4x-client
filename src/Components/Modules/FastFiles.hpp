@@ -80,6 +80,7 @@ namespace Components
     static Game::Sys_File Sys_CreateFile_Stub(const char* dir, const char* filename);
 
     static void Sys_Error_MissingZone (const char* format, const char* zone);
+    static void Sys_Error_DirtyDisc (const char* message);
     static bool DB_FileExists_Hk(const char* zoneName, Game::FF_DIR source);
   };
 }
