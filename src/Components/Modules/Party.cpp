@@ -8,6 +8,7 @@
 #include "Controller.hpp"
 #include "ModList.hpp"
 #include "Node.hpp"
+#include "Queue.hpp"
 #include "ServerList.hpp"
 #include "Stats.hpp"
 #include "TextRenderer.hpp"
@@ -70,8 +71,26 @@ namespace Components
     return Container.target;
   }
 
+  void Party::SendInfoRequest(const std::string& extraTokens)
+  {
+    if (!Container.valid)
+    {
+      Container.valid = true;
+      Container.joinTime = Game::Sys_Milliseconds();
+    }
+
+    Network::SendCommand(Container.target, "getinfo", Container.challenge + extraTokens);
+  }
+
+  void Party::CancelInfoRequest()
+  {
+    Container.valid = false;
+  }
+
   void Party::Connect(Network::Address target, bool downloadOnly)
   {
+    Queue::Cancel();
+
     // We send our stats to the server while connecting and the game refuses
     // to read them once we have started, so we need them before we connect.
     // They may not be loaded yet if, say, we were told to connect on startup.
@@ -159,6 +178,7 @@ namespace Components
 
   void Party::ConnectError(const std::string& message)
   {
+    Queue::Cancel();
     Command::Execute("closemenu popup_reconnectingtoparty");
     Dvar::Var("partyend_reason").set(message);
     Command::Execute("openmenu menu_xboxlive_partyended");
@@ -559,6 +579,7 @@ namespace Components
       else if (Dvar::Var("sv_running").get<bool>()) // Match hosting
       {
         info.set("matchtype",  std::to_string(JoinContainer::MatchType::DEDICATED_MATCH));
+        Queue::AddInfoKeys(address, data, info);
       }
       else
       {
@@ -704,11 +725,12 @@ namespace Components
                     return;
                   }
 
-                  if (clients >= maxClients)
+                  const auto decision = Queue::OnServerInfo(Container.target, Container.info, clients >= maxClients);
+                  if (decision == Queue::Decision::Full)
                   {
                     ConnectError("@EXE_SERVERISFULL");
                   }
-                  else
+                  else if (decision == Queue::Decision::Connect)
                   {
                     Dvar::Var("xblive_privateserver").set(true);
                     ServerVersion.set(version);

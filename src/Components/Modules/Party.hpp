@@ -9,6 +9,13 @@ namespace Components
 
     static Network::Address Target();
     static void Connect(Network::Address target, bool downloadOnly = false);
+
+    /// Sends another getinfo for the current target with the same challenge,
+    /// optionally carrying extra tokens. Used by the server queue heartbeat.
+    static void SendInfoRequest(const std::string& extraTokens);
+
+    /// Ignores the response to the getinfo request that is still outstanding.
+    static void CancelInfoRequest();
     static const char* GetLobbyInfo(SteamID lobby, const std::string& key);
     static void RemoveLobby(SteamID lobby);
 
