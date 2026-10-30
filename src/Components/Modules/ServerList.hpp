@@ -18,7 +18,6 @@ namespace Components
       std::size_t hash;
       int clients;
       int bots;
-      int verifiedClients; // Counted by the master server, -1 if unknown.
       int maxClients;
       bool password;
       int ping;
@@ -174,8 +173,6 @@ namespace Components
     static std::vector<ServerInfo> OnlineList;
     static std::vector<ServerInfo> OfflineList;
     static std::vector<ServerInfo> FavouriteList;
-
-    static std::unordered_map<Network::Address, int> VerifiedClients;
 
     static std::vector<unsigned int> VisibleList;
 
