@@ -1438,7 +1438,7 @@ namespace Components
       Utils::Hook::Set<int*>(0x5BC759, g_copyInfo_new);
       Utils::Hook::Set<int>(0x5BB9AD, newLimit); // limit check
 
-      // hunk size (was 300 MiB)
+      // PMem pool size (stock is 300 MiB). Maps sets the client's pool and skips it for ZoneBuilder.
       Utils::Hook::Set<DWORD>(0x64A029, 0x38400000); // 900 MiB
       Utils::Hook::Set<DWORD>(0x64A057, 0x38400000);
 

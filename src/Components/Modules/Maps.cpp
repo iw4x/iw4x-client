@@ -948,8 +948,13 @@ namespace Components
     // with "Need N more bytes of ram for alloc to succeed". PMem_Init only reserves this range
     // (MEM_RESERVE) and commits as zones load, but on a 32-bit client the reservation is not
     // free: it is address space that nothing else can use for the life of the process.
-    Utils::Hook::Set<DWORD>(0x64A029, 0x28000000); // 640 MiB
-    Utils::Hook::Set<DWORD>(0x64A057, 0x28000000);
+    //
+    // ZoneBuilder sets its own, larger pool and is constructed before us, so leave it alone.
+    if (!ZoneBuilder::IsEnabled())
+    {
+      Utils::Hook::Set<DWORD>(0x64A029, 0x28000000); // 640 MiB
+      Utils::Hook::Set<DWORD>(0x64A057, 0x28000000);
+    }
 
     // Intercept BSP name resolving
     Utils::Hook(0x4C5979, Maps::GetBSPName, HOOK_CALL).install()->quick();
