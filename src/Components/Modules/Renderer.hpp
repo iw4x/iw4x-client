@@ -28,6 +28,9 @@ namespace Components
     static void PostVidRestart();
     static void PostVidRestartStub();
 
+    static bool RB_RecoverDevice (HRESULT result);
+    static void RB_SwapBuffers_PresentFailedStub ();
+
     static void R_Cinematic_FreeMemory(void* memory);
 
     static Game::dvar_t* RegisterDisplayModeDvar(const char* dvarName, const char** valueList, int defaultIndex, unsigned __int16 flags, const char* description);

@@ -21,6 +21,16 @@ namespace Components
   Dvar::Var Renderer::r_drawLights;
   Dvar::Var Renderer::r_drawClipmap;
 
+  namespace
+  {
+    // Whether we asked for a vid_restart to replace a device that is gone
+    // for good and, once it's done, when. See RB_RecoverDevice() for
+    // details.
+    //
+    std::atomic<bool> replacingDevice (false);
+    std::atomic<int> replacedDeviceAt (0);
+  }
+
   float pink[4] = { 1.0f, 0.5f, 0.0f, 1.0f };
   float cyan[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
   float red[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -109,6 +119,74 @@ namespace Components
   void Renderer::PostVidRestart()
   {
     Renderer::EndRecoverDeviceSignal();
+
+    // If this is the restart we asked for to replace a lost device, note
+    // when it was done. See RB_RecoverDevice() for details.
+    //
+    if (replacingDevice.exchange (false))
+      replacedDeviceAt = Game::Sys_Milliseconds ();
+  }
+
+  // Ask for the renderer to be restarted if Present() says the device is gone
+  // for good and return true if we did (or already have), in which case the
+  // failure is not an error. This is called on the render thread for any
+  // failure other than a lost device, which RB_SwapBuffers() otherwise makes
+  // a fatal error.
+  //
+  // The engine only knows how to recover a lost device, which it does by
+  // resetting it. A device the driver has given up on (an internal error,
+  // usually because the GPU was reset) or, with D3D9Ex, a removed or hung
+  // one can't be reset, only replaced, which is what vid_restart does. Until
+  // it runs, presenting to the old device just keeps failing.
+  //
+  // Note that if the new device is gone too right after, then something is
+  // more wrong than a GPU reset. So we let the error through rather than
+  // restart over and over.
+  //
+  bool Renderer::RB_RecoverDevice (HRESULT result)
+  {
+    if (result != D3DERR_DRIVERINTERNALERROR &&
+        result != D3DERR_DEVICEREMOVED &&
+        result != D3DERR_DEVICEHUNG)
+      return false;
+
+    if (replacingDevice)
+      return true;
+
+    if (const int at (replacedDeviceAt); at != 0 && Game::Sys_Milliseconds () - at < 30000)
+      return false;
+
+    replacingDevice = true;
+
+    Logger::Print ("Restarting the renderer since the graphics device was lost (error {:#x})\n",
+                   static_cast<std::uint32_t> (result));
+
+    Scheduler::Once ([] {Command::Execute ("vid_restart", false);}, Scheduler::Pipeline::MAIN);
+    return true;
+  }
+
+  __declspec(naked) void Renderer::RB_SwapBuffers_PresentFailedStub ()
+  {
+    __asm
+    {
+      cmp eax, 0x88760868 // D3DERR_DEVICELOST
+      je done
+
+      push eax
+      push eax
+      call Renderer::RB_RecoverDevice
+      add esp, 0x4
+      test al, al
+      pop eax
+      jnz done
+
+      push 0x536AAB // The fatal error.
+      retn
+
+    done:
+      push 0x536AC1
+      retn
+    }
   }
 
   __declspec(naked) void Renderer::PostVidRestartStub()
@@ -836,6 +914,9 @@ namespace Components
 
     // End vid_restart
     Utils::Hook(0x4CA3A7, Renderer::PostVidRestartStub, HOOK_CALL).install()->quick();
+
+    Utils::Hook (0x536AA4, Renderer::RB_SwapBuffers_PresentFailedStub, HOOK_JUMP).install ()->quick (); // RB_SwapBuffers
+    Utils::Hook::Nop (0x536AA9, 2);
 
     Events::OnDvarInit([]
     {
