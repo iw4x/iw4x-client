@@ -1544,9 +1544,12 @@ namespace Components
       }, Components::Scheduler::Pipeline::MAIN);
 
 
-    // Increase HunkMemory for people with heavy-loaded menus
-    // Original is 0xA00000
-    Utils::Hook::Set<uint32_t>(0x420830 + 6, 0xB00000);
+    // Hunk size (stock is 0xA00000). First raised to 0xB00000 for heavy-loaded menus. Large
+    // ported maps also exhaust it once PMem is big enough to let them get that far, dying on
+    // allocations of a few hundred bytes: "Hunk_AllocAlign failed on 380 bytes (total 11 MB...)".
+    // Like PMem, Com_InitHunkMemory reserves this and commits on demand, so the cost is
+    // address space rather than memory.
+    Utils::Hook::Set<uint32_t>(0x420830 + 6, 0x4000000); // 64 MiB
 
     // Don't open connect menu twice - it gets stuck!
     Utils::Hook::Nop(0x428E48, 5);
