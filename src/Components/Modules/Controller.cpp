@@ -1,6 +1,7 @@
 #include "Controller.hpp"
 
 #include "Dedicated.hpp"
+#include "Renderer.hpp"
 #include "ZoneBuilder.hpp"
 
 #include "../../Controller/Engine/Hook.hpp"
@@ -168,6 +169,11 @@ namespace Components
 
     theRuntime = std::make_unique<::Controller::runtime>(developer);
     ::Controller::engine::install(*theRuntime);
+
+    Renderer::OnDeviceRecoveryBegin([]
+    {
+      ::Controller::engine::release_glyph_images();
+    });
   }
 
   Controller::~Controller()

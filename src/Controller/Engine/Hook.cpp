@@ -624,6 +624,16 @@ namespace Controller
         return image;
       }
 
+      // Release the texture of an image load_loose_image() made, and free the
+      // image itself.
+      //
+      void
+      free_loose_image (Game::GfxImage* image) noexcept
+      {
+        Game::Image_Release (image);
+        Utils::Memory::GetAllocator ()->free (image);
+      }
+
       // The material named as its zone has it now, or nullptr while no
       // loaded zone does. Zones come and go, with a map or with fs_game, so
       // this is looked up again every frame rather than kept.
@@ -755,6 +765,38 @@ namespace Controller
 
       for (text_glyph& g: text_glyphs)
         update_text_glyph (g);
+    }
+
+    void
+    release_glyph_images () noexcept
+    {
+      // Put the zone's own image back wherever ours is shown before we free
+      // it, since the zone may well outlive the device. Note that the up
+      // image is always there when the pressed one is.
+      //
+      for (stick& s: sticks)
+      {
+        if (s.down != nullptr)
+        {
+          if (Game::Material* const m = loaded_material (s.material);
+              m != nullptr && m->textureCount != 0 &&
+              m->textureTable[0].u.image == s.down)
+            m->textureTable[0].u.image = s.up;
+
+          free_loose_image (s.down);
+          s.down = nullptr;
+        }
+
+        s.tried = false;
+      }
+
+      for (text_glyph& g: text_glyphs)
+      {
+        if (Game::GfxImage* const i = g.small_image.exchange (nullptr))
+          free_loose_image (i);
+
+        g.tried = false;
+      }
     }
 
     // Note that we make the copy here, from the material the text renderer

@@ -39,6 +39,18 @@ namespace Controller
     void
     update_glyph_images () noexcept;
 
+    // Release the images we loaded for the glyphs and forget them, so that
+    // they are loaded again, from the new device, once there is one. Must be
+    // called before the renderer destroys the device, with the render thread
+    // idle.
+    //
+    // Note that the engine only releases and restores its own images, so a
+    // texture of ours kept across the restart would be one of the destroyed
+    // device, which the new one fails to draw with.
+    //
+    void
+    release_glyph_images () noexcept;
+
     // Return the material hint text draws the named button glyph with
     // instead of base, the HUD one it found for the name, or nullptr to draw
     // base. Must be called from the render thread, and the result is only
