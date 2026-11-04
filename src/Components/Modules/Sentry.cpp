@@ -52,7 +52,7 @@ namespace Components
     //
     void SetErrorText(const char* text)
     {
-      theRuntime->capture(SENTRY_LEVEL_FATAL, "sys_error", text);
+      theRuntime->capture_with_minidump(SENTRY_LEVEL_FATAL, "sys_error", text);
 
       Game::I_strncpyz(Game::s_wcd->errorString, text, sizeof(Game::s_wcd->errorString));
 
@@ -89,7 +89,7 @@ namespace Components
       return;
     }
 
-    theRuntime->capture(classification.level,
+    theRuntime->capture_with_minidump(classification.level,
       std::format("com_error.{}", classification.name), message);
   }
 

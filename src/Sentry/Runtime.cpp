@@ -3,6 +3,7 @@
 #include "Types.hpp"
 
 #include "Attachment.hpp"
+#include "Guard.hpp"
 #include "Redact.hpp"
 #include "Report.hpp"
 #include "Engine/State.hpp"
@@ -21,6 +22,51 @@ namespace Sentry
       case SENTRY_LEVEL_WARNING: return severity::warning;
       default:                   return severity::info;
       }
+    }
+
+    // Write a minidump of this process to the file, replacing it. Return
+    // false if we couldn't.
+    //
+    // We only include the threads, their stacks, and the modules, which is
+    // enough to tell what each thread was doing and keeps the dump to a few
+    // hundred kilobytes. Note that we write it from another thread so that
+    // the calling one is captured where it stands rather than in the middle
+    // of writing its own dump.
+    //
+    bool
+    write_minidump (const std::filesystem::path& p)
+    {
+      const HANDLE h (CreateFileW (p.c_str (),
+                                   GENERIC_WRITE,
+                                   0,
+                                   nullptr,
+                                   CREATE_ALWAYS,
+                                   FILE_ATTRIBUTE_NORMAL,
+                                   nullptr));
+
+      if (h == INVALID_HANDLE_VALUE)
+        return false;
+
+      const auto_handle f (h);
+
+      const MINIDUMP_TYPE t (static_cast<MINIDUMP_TYPE> (
+        MiniDumpNormal | MiniDumpWithThreadInfo | MiniDumpWithUnloadedModules));
+
+      bool r (false);
+      {
+        std::jthread w ([&r, h = f.get (), t] ()
+        {
+          r = MiniDumpWriteDump (GetCurrentProcess (),
+                                 GetCurrentProcessId (),
+                                 h,
+                                 t,
+                                 nullptr,
+                                 nullptr,
+                                 nullptr) != FALSE;
+        });
+      }
+
+      return r;
     }
   }
 
@@ -306,6 +352,40 @@ namespace Sentry
 
     sentry_capture_event (
       sentry_value_new_message_event (l, n.c_str (), m.c_str ()));
+  }
+
+  void
+  runtime::
+  capture_with_minidump (const sentry_level_t l,
+                         const std::string& n,
+                         const std::string& m)
+  {
+    if (!started_)
+      return;
+
+    const sentry_value_t e (
+      sentry_value_new_message_event (l, n.c_str (), m.c_str ()));
+
+    // Note that the SDK reads the dump into the envelope, which our transport
+    // writes out before the capture returns. So we can remove it right after.
+    //
+    std::error_code ec;
+    std::filesystem::create_directories (options_.database / "attachments", ec);
+
+    const auto_rmfile f (options_.database / "attachments" / "fatal.dmp");
+
+    if (!write_minidump (f.path))
+    {
+      sentry_capture_event (e);
+      return;
+    }
+
+    sentry_scope_t* const s (sentry_local_scope_new ());
+    sentry_attachment_t* const a (
+      sentry_scope_attach_filew (s, f.path.c_str ()));
+    sentry_attachment_set_type (a, SENTRY_ATTACHMENT_TYPE_MINIDUMP);
+
+    sentry_scope_capture_event (s, e);
   }
 
   void

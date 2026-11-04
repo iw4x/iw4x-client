@@ -43,6 +43,16 @@ namespace Sentry
     capture (sentry_level_t, const std::string& logger,
              const std::string& message);
 
+    // As capture() but also attach a minidump with the stack of every
+    // thread, for an error that ends the game. Unlike a crash, such an error
+    // is raised wherever the problem shows rather than where it is, so what
+    // the other threads were doing tells us more than the message. This may
+    // be called from any thread.
+    //
+    void
+    capture_with_minidump (sentry_level_t, const std::string& logger,
+                           const std::string& message);
+
     void
     leave (trail, sentry_level_t, const std::string& message);
 
