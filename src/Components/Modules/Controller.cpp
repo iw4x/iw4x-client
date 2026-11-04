@@ -57,9 +57,9 @@ namespace Components
     return ::Controller::mapping::platform_string(key, ::Controller::engine::active_glyph_family());
   }
 
-  Game::Material* Controller::TextGlyphMaterial(const char* name)
+  Game::Material* Controller::TextGlyphMaterial(const char* name, const Game::Material* base)
   {
-    return ::Controller::engine::text_glyph_material(name);
+    return ::Controller::engine::text_glyph_material(name, base);
   }
 
   void Controller::SubmitRumble()

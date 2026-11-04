@@ -6,6 +6,7 @@
 #include <atomic>
 #include <cstring>
 #include <exception>
+#include <limits>
 
 #include "../Mapping/Glyph.hpp"
 #include "../Mapping/Key.hpp"
@@ -661,30 +662,26 @@ namespace Controller
       // small image is there, text gets a copy of the button material that
       // uses it.
       //
-      // The copy is written here, on the main thread, and read by the text
-      // renderer, so it is published with release and read with acquire.
-      // A copy made from a material that has since gone is not freed, as the
-      // renderer may still be drawing with it; this only happens when a
-      // zone with the material is reloaded.
+      // The small image is loaded here, on the main thread, and read by the
+      // text renderer on the render thread, so it is published with release
+      // and read with acquire. The copy itself is only ever touched by the
+      // render thread, see text_glyph_material() for details.
       //
       struct text_glyph
       {
         const char* material;
         const char* image;
 
-        Game::GfxImage* small_image;
+        std::atomic<Game::GfxImage*> small_image;
         bool tried;
 
-        // What the copy was made from, to tell when the zone has reloaded it.
-        //
-        const Game::Material* base;
-        const Game::MaterialTextureDef* base_textures;
-
-        std::atomic<Game::Material*> m;
+        Game::Material copy;
+        Game::MaterialTextureDef textures[
+          std::numeric_limits<decltype (Game::Material::textureCount)>::max ()];
       };
 
       text_glyph text_glyphs[] {
-        {"button_x", "button_x_small", nullptr, false, nullptr, nullptr, nullptr},
+        {"button_x", "button_x_small", nullptr, false, {}, {}},
       };
 
       void
@@ -722,48 +719,25 @@ namespace Controller
         m->textureTable[0].u.image = pressed ? s.down : s.up;
       }
 
+      // Load the small image once the button material is there to take its
+      // format from. The image is ours and outlives the zones.
+      //
       void
       update_text_glyph (text_glyph& g) noexcept
       {
+        if (g.tried)
+          return;
+
         const Game::Material* const base (loaded_material (g.material));
 
         if (base == nullptr || base->textureCount == 0 ||
             base->textureTable[0].u.image == nullptr)
-        {
-          g.m.store (nullptr, std::memory_order_release);
-          g.base = nullptr;
-          return;
-        }
-
-        if (base == g.base && base->textureTable == g.base_textures &&
-            g.m.load (std::memory_order_relaxed) != nullptr)
           return;
 
-        if (g.small_image == nullptr)
-        {
-          if (g.tried)
-            return;
-
-          g.tried = true;
-          g.small_image = load_loose_image (*base->textureTable[0].u.image, g.image);
-
-          if (g.small_image == nullptr)
-            return;
-        }
-
-        auto* const textures (Utils::Memory::GetAllocator ()->allocateArray<Game::MaterialTextureDef> (
-          base->textureCount));
-
-        std::copy_n (base->textureTable, base->textureCount, textures);
-        textures[0].u.image = g.small_image;
-
-        auto* const m (Utils::Memory::GetAllocator ()->allocate<Game::Material> ());
-        *m = *base;
-        m->textureTable = textures;
-
-        g.base = base;
-        g.base_textures = base->textureTable;
-        g.m.store (m, std::memory_order_release);
+        g.tried = true;
+        g.small_image.store (
+          load_loose_image (*base->textureTable[0].u.image, g.image),
+          std::memory_order_release);
       }
     }
 
@@ -783,13 +757,38 @@ namespace Controller
         update_text_glyph (g);
     }
 
+    // Note that we make the copy here, from the material the text renderer
+    // is about to draw, rather than keep one made from the material as we
+    // saw it last. The copy shares the base's technique set and textures, so
+    // one kept across a zone reload would hand the render thread whatever is
+    // left of them. And telling a reloaded material from the old one is not
+    // reliable either since the zone may well end up at the same address.
+    //
+    // Overwriting the copy while the render thread may still have it batched
+    // is fine: we only do so from the render thread itself and, until the
+    // zone changes, with the same contents.
+    //
     Game::Material*
-    text_glyph_material (const char* name) noexcept
+    text_glyph_material (const char* name, const Game::Material* base) noexcept
     {
-      for (const text_glyph& g: text_glyphs)
+      for (text_glyph& g: text_glyphs)
       {
-        if (std::strcmp (g.material, name) == 0)
-          return g.m.load (std::memory_order_acquire);
+        if (std::strcmp (g.material, name) != 0)
+          continue;
+
+        Game::GfxImage* const image (g.small_image.load (std::memory_order_acquire));
+
+        if (image == nullptr || base == nullptr || base->textureCount == 0 ||
+            base->info.name == nullptr || std::strcmp (base->info.name, name) != 0)
+          return nullptr;
+
+        std::copy_n (base->textureTable, base->textureCount, g.textures);
+        g.textures[0].u.image = image;
+
+        g.copy = *base;
+        g.copy.textureTable = g.textures;
+
+        return &g.copy;
       }
 
       return nullptr;

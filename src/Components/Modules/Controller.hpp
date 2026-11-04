@@ -23,10 +23,10 @@ namespace Components
     //
     static const char* PlatformString(const char* key);
 
-    // The material hint text draws a button glyph with, or nullptr for the
-    // one named.
+    // The material hint text draws a button glyph with instead of base, the
+    // one named, or nullptr to draw base.
     //
-    static Game::Material* TextGlyphMaterial(const char* name);
+    static Game::Material* TextGlyphMaterial(const char* name, const Game::Material* base);
 
     static void PlayHapticEffect(const ::Controller::haptic::effect& effect);
     static void StopHapticEffect(std::uint32_t tag);

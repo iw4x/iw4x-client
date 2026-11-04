@@ -1016,7 +1016,7 @@ namespace Components
     text += materialNameLen;
 
     auto* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, materialName.data()).material;
-    if (auto* textMaterial = Controller::TextGlyphMaterial(materialName.data()))
+    if (auto* textMaterial = Controller::TextGlyphMaterial(materialName.data(), material))
     {
       material = textMaterial;
     }

@@ -39,10 +39,12 @@ namespace Controller
     void
     update_glyph_images () noexcept;
 
-    // The material hint text draws the named button glyph with instead of
-    // the HUD one, or nullptr to draw that.
+    // Return the material hint text draws the named button glyph with
+    // instead of base, the HUD one it found for the name, or nullptr to draw
+    // base. Must be called from the render thread, and the result is only
+    // good until the next call.
     //
     Game::Material*
-    text_glyph_material (const char* name) noexcept;
+    text_glyph_material (const char* name, const Game::Material* base) noexcept;
   }
 }
