@@ -27,6 +27,7 @@
 #include "Modules/Events.hpp"
 #include "Modules/Exception.hpp"
 #include "Modules/FastFiles.hpp"
+#include "Modules/ForceUAV.hpp"
 #include "Modules/Friends.hpp"
 #include "Modules/Huffman.hpp"
 #include "Modules/IPCPipe.hpp"
@@ -139,6 +140,7 @@ namespace Components
     Register(new Events());
     Register(new FastFiles());
     Register(new FileSystem());
+    Register(new ForceUAV());
     Register(new Friends());
     Register(new Rumble());
     Register(new Huffman());

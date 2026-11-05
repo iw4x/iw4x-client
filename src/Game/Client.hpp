@@ -108,6 +108,8 @@ namespace Game
   extern cg_s* cgArray;
   extern cgs_t* cgsArray;
   extern cgEntity_s* cg_entitiesArray;
+  extern CompassActor* s_compassActors;
+  extern CompassVehicle* s_compassVehicles;
   extern dvar_t** cl_paused;
 
   extern void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer);

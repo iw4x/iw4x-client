@@ -27,6 +27,8 @@ namespace Game
   CG_ScoresUp_f_t CG_ScoresUp_f = CG_ScoresUp_f_t(0x5802C0);
   CG_ScrollScoreboardUp_t CG_ScrollScoreboardUp = CG_ScrollScoreboardUp_t(0x47A5C0);
   CG_ScrollScoreboardDown_t CG_ScrollScoreboardDown = CG_ScrollScoreboardDown_t(0x493B50);
+  CG_CompassDrawEnemies_t CG_CompassDrawEnemies = CG_CompassDrawEnemies_t(0x46CCA0);
+  CG_CompassDrawVehicles_t CG_CompassDrawVehicles = CG_CompassDrawVehicles_t(0x409110);
   CG_GetTeamName_t CG_GetTeamName = CG_GetTeamName_t(0x4B6210);
   CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString = CG_SetupWeaponConfigString_t(0x4BD520);
 

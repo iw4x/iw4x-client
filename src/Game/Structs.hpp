@@ -7903,6 +7903,55 @@ namespace Game
     COMPASS_TYPE_FULL = 0x1,
   };
 
+  enum CompassActorFlags
+  {
+    COMPASS_ACTOR_ENEMY = 1 << 0,
+  };
+
+  struct CompassActor
+  {
+    int lastUpdate;
+    float lastPos[3];
+    float lastEnemyPos[3];
+    float lastYaw;
+    int pingTime;
+    int beginFadeTime;
+    int beginRadarFadeTime;
+    int beginVoiceFadeTime;
+    unsigned int flags;
+    int team;
+    int perks;
+  };
+
+  static_assert(sizeof(CompassActor) == 0x3C);
+  static_assert(offsetof(CompassActor, lastEnemyPos) == 0x10);
+  static_assert(offsetof(CompassActor, beginRadarFadeTime) == 0x28);
+  static_assert(offsetof(CompassActor, flags) == 0x30);
+
+  constexpr auto MAX_COMPASS_ACTORS = 26;
+
+  struct CompassVehicle
+  {
+    char pad0[4];
+    int lastUpdate;
+    int beginFadeTime;
+    int beginRadarFadeTime;
+    float lastPos[3];
+    float lastEnemyPos[3];
+    float lastYaw;
+    float lastEnemyYaw;
+    bool isFriendly;
+    char pad1[3];
+  };
+
+  static_assert(sizeof(CompassVehicle) == 0x34);
+  static_assert(offsetof(CompassVehicle, beginRadarFadeTime) == 0x0C);
+  static_assert(offsetof(CompassVehicle, lastEnemyPos) == 0x1C);
+  static_assert(offsetof(CompassVehicle, lastEnemyYaw) == 0x2C);
+  static_assert(offsetof(CompassVehicle, isFriendly) == 0x30);
+
+  constexpr auto MAX_COMPASS_VEHICLES = 32;
+
   struct clientConnection_t
   {
     int qport;
