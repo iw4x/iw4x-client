@@ -48,6 +48,8 @@ namespace Game
   cg_s* cgArray = reinterpret_cast<cg_s*>(0x7F0F78);
   cgs_t* cgsArray = reinterpret_cast<cgs_t*>(0x7ED3B8);
   cgEntity_s* cg_entitiesArray = reinterpret_cast<cgEntity_s*>(0x8F3CA8);
+  CompassActor* s_compassActors = reinterpret_cast<CompassActor*>(0x7D7FA8);
+  CompassVehicle* s_compassVehicles = reinterpret_cast<CompassVehicle*>(0x7D85C0);
   dvar_t** cl_paused = reinterpret_cast<dvar_t**>(0x9FBE4C);
 
   voiceCommunication_t* cl_voiceCommunication = reinterpret_cast<voiceCommunication_t*>(0x1079DA0);
