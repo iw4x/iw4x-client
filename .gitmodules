@@ -1,56 +1,49 @@
-[submodule "deps/zlib"]
-	path = deps/zlib
-	url = https://github.com/madler/zlib.git
-	branch = develop
-[submodule "deps/libtommath"]
-	path = deps/libtommath
-	url = https://github.com/libtom/libtommath.git
-	branch = develop
-[submodule "deps/libtomcrypt"]
-	path = deps/libtomcrypt
-	url = https://github.com/libtom/libtomcrypt.git
-	branch = develop
-[submodule "deps/pdcurses"]
-	path = deps/pdcurses
-	url = https://github.com/wmcbrine/PDCurses.git
-	branch = master
-[submodule "deps/mongoose"]
-	path = deps/mongoose
-	url = https://github.com/cesanta/mongoose.git
-	branch = 7.10
-[submodule "deps/protobuf"]
-	path = deps/protobuf
-	url = https://github.com/google/protobuf.git
-	branch = 3.20.x
-[submodule "deps/udis86"]
-	path = deps/udis86
-	url = https://github.com/vmt/udis86.git
+[submodule "deps/companion"]
+	path = deps/companion
+	url = https://github.com/iw4x/companion.git
+[submodule "deps/discord-rpc"]
+	path = deps/discord-rpc
+	url = https://github.com/discord/discord-rpc.git
 [submodule "deps/dxsdk"]
 	path = deps/dxsdk
 	url = https://github.com/devKlausS/dxsdk.git
 [submodule "deps/GSL"]
 	path = deps/GSL
 	url = https://github.com/microsoft/GSL.git
-[submodule "deps/nlohmannjson"]
-	path = deps/json
-	url = https://github.com/nlohmann/json.git
-	branch = v3.11.2
-[submodule "deps/discord-rpc"]
-	path = deps/discord-rpc
-	url = https://github.com/discord/discord-rpc.git
-[submodule "deps/rapidjson"]
-	path = deps/rapidjson
-	url = https://github.com/Tencent/rapidjson.git
 [submodule "deps/iw4-open-formats"]
 	path = deps/iw4-open-formats
 	url = https://github.com/iw4x/iw4-open-formats.git
-[submodule "deps/companion"]
-	path = deps/companion
-	url = https://github.com/iw4x/companion.git
+[submodule "deps/json"]
+	path = deps/json
+	url = https://github.com/nlohmann/json.git
+[submodule "deps/libtomcrypt"]
+	path = deps/libtomcrypt
+	url = https://github.com/libtom/libtomcrypt.git
+[submodule "deps/libtommath"]
+	path = deps/libtommath
+	url = https://github.com/libtom/libtommath.git
+[submodule "deps/mongoose"]
+	path = deps/mongoose
+	url = https://github.com/cesanta/mongoose.git
+[submodule "deps/pdcurses"]
+	path = deps/pdcurses
+	url = https://github.com/wmcbrine/PDCurses.git
+[submodule "deps/protobuf"]
+	path = deps/protobuf
+	url = https://github.com/google/protobuf.git
+	branch = 3.20.x
+[submodule "deps/rapidjson"]
+	path = deps/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
 [submodule "deps/sentry-native"]
 	path = deps/sentry-native
 	url = https://github.com/getsentry/sentry-native.git
-	branch = master
 [submodule "deps/sqlite"]
 	path = deps/sqlite
 	url = https://github.com/build2-packaging/sqlite.git
+[submodule "deps/udis86"]
+	path = deps/udis86
+	url = https://github.com/vmt/udis86.git
+[submodule "deps/zlib"]
+	path = deps/zlib
+	url = https://github.com/madler/zlib.git
