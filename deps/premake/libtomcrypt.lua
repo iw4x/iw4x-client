@@ -23,11 +23,6 @@ targets:static_library ("libtomcrypt",
     "USE_LTM"
   },
 
-  -- Many sources compile to nothing in our configuration, so silence the
-  -- librarian warning about objects without public symbols (LNK4221).
-  --
-  linkoptions = {"-IGNORE:4221"},
-
   export =
   {
     includedirs  = {"src/headers"},

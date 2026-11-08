@@ -9,10 +9,6 @@ targets:static_library ("libtommath",
 
   files = {"*.c"},
 
-  -- As in libtomcrypt.
-  --
-  linkoptions = {"-IGNORE:4221"},
-
   export =
   {
     includedirs = {"."},
