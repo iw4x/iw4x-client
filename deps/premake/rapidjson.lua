@@ -1,23 +1,17 @@
-rapidjson = {
-  source = path.join(dependencies.basePath, "rapidjson"),
-}
+-- RapidJSON.
+--
+-- Note that each consumer decides whether to enable the std::string
+-- support (RAPIDJSON_HAS_STDSTRING). iw4-open-formats can't, since it
+-- provides its own.
+--
+local targets = ...
 
-function rapidjson.import()
-  defines {
-    "RAPIDJSON_HAS_STDSTRING"
+targets:binless_library ("rapidjson",
+{
+  directory = "rapidjson",
+
+  export =
+  {
+    includedirs = {"include"}
   }
-
-  rapidjson.includes()
-end
-
-function rapidjson.includes()
-  includedirs {
-    path.join(rapidjson.source, "include"),
-  }
-end
-
-function rapidjson.project()
-
-end
-
-table.insert(dependencies, rapidjson)
+})

@@ -1,18 +1,13 @@
-fonts = {
-  source = path.join(dependencies.basePath, "extra/font"),
-}
+-- Fonts embedded into the client as C++ headers.
+--
+local targets = ...
 
-function fonts.import()
-  fonts.includes()
-end
+targets:binless_library ("fonts",
+{
+  directory = "extra/font",
 
-function fonts.includes()
-  includedirs {
-    fonts.source,
+  export =
+  {
+    includedirs = {"."}
   }
-end
-
-function fonts.project()
-end
-
-table.insert(dependencies, fonts)
+})

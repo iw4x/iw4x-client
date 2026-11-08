@@ -52,10 +52,11 @@ To use the `iw4x.dll`, you must have a valid Modern Warfare 2 installation with 
 
 | Argument                    | Description                                    |
 |:----------------------------|:-----------------------------------------------|
-| `--copy-to=PATH`            | Optional, copy the DLL to a custom folder after build, define the path here if wanted. |
-| `--copy-pdb`                | Copy debug information for binaries as well to the path given via --copy-to. |
-| `--disable-binary-check`    | Do not perform integrity checks on the exe. |
+| `--copy-to=PATH`            | Copy the binaries into `PATH` after each build. |
+| `--copy-pdb`                | Copy the debug information along with the binaries (requires `--copy-to`). |
+| `--disable-binary-check`    | Don't verify that the game executable is the supported one. |
 | `--sentry-dsn=URL`          | Submit crash reports to this Sentry DSN. Crash reporting is compiled out when it is not given. |
+| `--no-buildinfo`            | Don't regenerate the build information (`version.h`) before each build. `generate-linux.sh` passes it since the build can't run git under Wine. |
 
 ## Command line arguments
 

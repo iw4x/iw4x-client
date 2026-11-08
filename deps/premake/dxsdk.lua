@@ -1,19 +1,17 @@
-dxsdk = {
-  source = path.join(dependencies.basePath, "dxsdk"),
-}
+-- DirectX SDK headers and x86 libraries.
+--
+-- Note that the client links the SDK libraries it needs with #pragma
+-- comment (lib), so the export only adds their directory.
+--
+local targets = ...
 
-function dxsdk.import()
-  libdirs {path.join(dxsdk.source, "Lib/x86")}
-  dxsdk.includes()
-end
+targets:binless_library ("dxsdk",
+{
+  directory = "dxsdk",
 
-function dxsdk.includes()
-  includedirs {
-    path.join(dxsdk.source, "Include"),
+  export =
+  {
+    includedirs = {"Include"},
+    libdirs     = {"Lib/x86"}
   }
-end
-
-function dxsdk.project()
-end
-
-table.insert(dependencies, dxsdk)
+})

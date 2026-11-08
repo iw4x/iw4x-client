@@ -1,44 +1,33 @@
-iw4_open_formats = {
-  source = path.join(dependencies.basePath, "iw4-open-formats"),
-}
+-- IW4 asset formats.
+--
+local targets = ...
 
-function iw4_open_formats.import()
-  links "iw4-open-formats"
+targets:static_library ("iw4-open-formats",
+{
+  directory    = "iw4-open-formats",
+  language     = "C++",
+  dependencies = {"libtomcrypt", "libtommath", "rapidjson", "zlib"},
 
-  iw4_open_formats.includes()
-end
+  -- We maintain this library, so it builds with our warnings.
+  --
+  warnings = "Extra",
 
-function iw4_open_formats.includes()
-  includedirs {
-    path.join(iw4_open_formats.source, "include")
+  -- Note that the precompiled header is named the way the sources include
+  -- it.
+  --
+  pchheader = "std_include.hpp",
+  pchsource = "src/iw4-of/std_include.cpp",
+
+  files =
+  {
+    "src/iw4-of/**.hpp",
+    "src/iw4-of/**.cpp"
+  },
+
+  includedirs = {"src/iw4-of"},
+
+  export =
+  {
+    includedirs = {"include"}
   }
-end
-
-function iw4_open_formats.project()
-  project "iw4-open-formats"
-    language "C++"
-  
-    iw4_open_formats.includes()
-
-    pchheader "std_include.hpp"
-    pchsource (path.join(iw4_open_formats.source, "src/iw4-of/std_include.cpp"))
-
-    files {
-      path.join(iw4_open_formats.source, "src/iw4-of/**.hpp"),
-      path.join(iw4_open_formats.source, "src/iw4-of/**.cpp"),
-    }
-
-    includedirs {
-      path.join(iw4_open_formats.source, "src/iw4-of"),
-      path.join(iw4_open_formats.source, "include"),
-    }
-
-    libtomcrypt.includes()
-    libtommath.includes()
-    rapidjson.includes()
-    zlib.includes()
-
-    kind "StaticLib"
-end
-
-table.insert(dependencies, iw4_open_formats)
+})

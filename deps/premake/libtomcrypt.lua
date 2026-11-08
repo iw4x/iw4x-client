@@ -1,62 +1,48 @@
-libtomcrypt = {
-  source = path.join(dependencies.basePath, "libtomcrypt"),
-}
+-- LibTomCrypt, with LibTomMath as its math provider.
+--
+local targets = ...
 
-function libtomcrypt.import()
-  links {"libtomcrypt"}
+targets:static_library ("libtomcrypt",
+{
+  directory = "libtomcrypt",
+  language  = "C",
 
-  libtomcrypt.includes()
-end
+  files = {"src/**.c"},
 
-function libtomcrypt.includes()
-  includedirs {
-    path.join(libtomcrypt.source, "src/headers")
+  removefiles =
+  {
+    "src/**/*_test.c",
+    "src/**/*tab.c",        -- Included by the sources that use them.
+    "src/encauth/ocb3/**.c" -- @@ Why is OCB3 left out?
+  },
+
+  defines =
+  {
+    "_CRT_SECURE_NO_WARNINGS",
+    "LTC_SOURCE",
+    "USE_LTM"
+  },
+
+  -- Many sources compile to nothing in our configuration, so silence the
+  -- librarian warning about objects without public symbols (LNK4221).
+  --
+  linkoptions = {"-IGNORE:4221"},
+
+  export =
+  {
+    includedirs  = {"src/headers"},
+    dependencies = {"libtommath"},
+
+    -- Note that these change the declarations in the headers, so the
+    -- library and its consumers must agree on them.
+    --
+    defines =
+    {
+      "LTC_NO_FAST",
+      "LTC_NO_PROTOTYPES",
+      "LTC_NO_RSA_BLINDING",
+      "LTC_NO_FILE",
+      "ARGTYPE=4"
+    }
   }
-
-  defines {
-    "LTC_NO_FAST",
-    "LTC_NO_PROTOTYPES",
-    "LTC_NO_RSA_BLINDING",
-    "LTC_NO_FILE",
-    "ARGTYPE=4",
-  }
-end
-
-function libtomcrypt.project()
-  project "libtomcrypt"
-    language "C"
-
-    libtomcrypt.includes()
-    libtommath.import()
-
-    files {
-      path.join(libtomcrypt.source, "src/**.c"),
-    }
-
-    removefiles {
-      path.join(libtomcrypt.source, "src/**/*_test.c"),
-      path.join(libtomcrypt.source, "src/**/*tab.c"),
-      path.join(libtomcrypt.source, "src/encauth/ocb3/**.c"),
-    }
-
-    defines {
-      "_CRT_SECURE_NO_WARNINGS",
-      "LTC_SOURCE",
-      "_LIB",
-      "USE_LTM"
-    }
-
-    removedefines {
-      "_DLL",
-      "_USRDLL"
-    }
-
-    linkoptions {
-      "-IGNORE:4221"
-    }
-
-    warnings "Off"
-    kind "StaticLib"
-end
-
-table.insert(dependencies, libtomcrypt)
+})

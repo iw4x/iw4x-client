@@ -1,308 +1,312 @@
--- Quote the given string input as a C string
-function cstrquote(value)
-  if value == nil then
-    return "\"\""
+-- Visual Studio solution of the client and its third-party libraries.
+--
+-- Generate it in build/ with, for example:
+--
+--   tools\premake5 vs2022
+--
+-- Note that the third-party libraries come from the submodules in deps/,
+-- which generate.bat and generate-linux.sh fetch first.
+--
+local module_directory = path.join (_MAIN_SCRIPT_DIR, "premake")
+
+local target_set = dofile (path.join (module_directory, "target.lua"))
+local revision   = dofile (path.join (module_directory, "revision.lua"))
+local c_literal  = dofile (path.join (module_directory, "c-literal.lua"))
+
+-- The build directory holds the solution along with everything the build
+-- produces. Files generated from the sources go into src/ under it, which
+-- mirrors their place in the source tree.
+--
+local build_directory     = path.join (_MAIN_SCRIPT_DIR, "build")
+local generated_directory = path.join (build_directory, "src")
+
+newoption
+{
+  trigger     = "copy-to",
+  value       = "PATH",
+  description = "Copy the binaries into PATH after each build"
+}
+
+newoption
+{
+  trigger     = "copy-pdb",
+  description = "Copy the debug information as well (requires --copy-to)"
+}
+
+newoption
+{
+  trigger     = "disable-binary-check",
+  description = "Don't verify that the game executable is the supported one"
+}
+
+newoption
+{
+  trigger     = "sentry-dsn",
+  value       = "URL",
+  description = "Submit crash reports to URL (compiled out by default)"
+}
+
+newoption
+{
+  trigger     = "no-buildinfo",
+  description = "Don't regenerate the build information before each build"
+}
+
+-- Note that the version action exits as soon as it is done, so that the
+-- version is the last line of its output (premake reports the completion of
+-- an action otherwise).
+--
+newaction
+{
+  trigger     = "version",
+  description = "Print the version of the source tree",
+
+  execute = function ()
+    print (revision.load (_MAIN_SCRIPT_DIR):version ())
+    os.exit (0)
   end
-  result = value:gsub("\\", "\\\\")
-  result = result:gsub("\"", "\\\"")
-  result = result:gsub("\n", "\\n")
-  result = result:gsub("\t", "\\t")
-  result = result:gsub("\r", "\\r")
-  result = result:gsub("\a", "\\a")
-  result = result:gsub("\b", "\\b")
-  result = "\"" .. result .. "\""
-  return result
+}
+
+newaction
+{
+  trigger     = "generate-buildinfo",
+  description = "Generate the build information headers (version.h, etc)",
+
+  execute = function ()
+    local r = revision.load (_MAIN_SCRIPT_DIR)
+
+    print ("info: generating build information for " .. r:version ())
+
+    r:write (generated_directory)
+  end
+}
+
+-- Verify the options before we act on them.
+--
+if _OPTIONS["copy-pdb"] and not _OPTIONS["copy-to"] then
+  premake.error ("--copy-pdb specified without --copy-to")
 end
 
-dependencies = {
-  basePath = "./deps"
-}
-
-function dependencies.load()
-  dir = path.join(dependencies.basePath, "premake/*.lua")
-  deps = os.matchfiles(dir)
-
-  for i, dep in pairs(deps) do
-    dep = dep:gsub(".lua", "")
-    require(dep)
-  end
-end
-
-function dependencies.imports()
-  for i, proj in pairs(dependencies) do
-    if type(i) == 'number' then
-      proj.import()
-    end
-  end
-end
-
-function dependencies.projects()
-  for i, proj in pairs(dependencies) do
-    if type(i) == 'number' then
-      proj.project()
-    end
-  end
-end
-
-newoption {
-  trigger = "copy-to",
-  description = "Optional, copy the DLL to a custom folder after build, define the path here if wanted.",
-  value = "PATH"
-}
-
-newoption {
-  trigger = "copy-pdb",
-  description = "Copy debug information for binaries as well to the path given via --copy-to."
-}
-
-newoption {
-  trigger = "disable-binary-check",
-  description = "Do not perform integrity checks on the exe."
-}
-
-newoption {
-  trigger = "sentry-dsn",
-  description = "Sentry DSN that crash reports are submitted to. Crash reporting is compiled out when this is not given.",
-  value = "URL"
-}
-
-newaction {
-  trigger = "version",
-  description = "Returns the version string for the current commit of the source code.",
-  onWorkspace = function(wks)
-    local revNumber = getRevisionNumber()
-    local branchName = getBranchName()
-
-    local version = "r" .. revNumber
-    if branchName ~= "develop" then
-      version = version .. "-" .. branchName
-    end
-
-    print(version)
-    os.exit(0)
-  end
-}
-
-function getBranchName()
-  -- get current branch name
-  local proc = assert(io.popen("git branch --show-current"))
-  local branchName = proc:read('*l')
-
-  -- branch for ci
-  if branchName == nil or branchName == '' then
-    proc = assert(io.popen("git show -s --pretty=%d HEAD"))
-    local branchInfo = proc:read('*l')
-    m = string.match(branchInfo, ".+,.+, ([^)]+)")
-    if m ~= nil then
-      branchName = m
-    end
-  end
-
-  if branchName == nil then
-    branchName = "develop"
-  end
-
-  return branchName
-end
-
-function getRevisionNumber()
-  local proc = assert(io.popen("git rev-list --count HEAD", "r"))
-  return assert(proc:read('*a')):gsub("%s+", "")
-end
-
-newaction {
-  trigger = "generate-buildinfo",
-  description = "Sets up build information file. Output will be stored in version.h.",
-  onWorkspace = function(wks)
-    -- get revision number
-    local revNumber = getRevisionNumber()
-    local branchName = getBranchName()
-
-    print("Detected branch: " .. branchName)
-
-    -- get old version number from version.hpp if any
-    local oldVersion = "(none)"
-    local oldVersionHeader = io.open(wks.location .. "/src/version.h", "r")
-    if oldVersionHeader ~= nil then
-      local oldVersionHeaderContent = assert(oldVersionHeader:read('*l'))
-      while oldVersionHeaderContent do
-        m = string.match(oldVersionHeaderContent, "#define REVISION (.+)%s*$")
-        if m ~= nil then
-          oldVersion = m
-        end
-
-        oldVersionHeaderContent = oldVersionHeader:read('*l')
-      end
-    end
-
-    -- generate version.hpp with a revision number if not equal
-    if oldVersion ~= revNumber then
-      print ("Update " .. oldVersion .. " -> " .. revNumber)
-      local versionHeader = assert(io.open(wks.location .. "/src/version.h", "w"))
-      versionHeader:write("/*\n")
-      versionHeader:write(" * Automatically generated by premake5.\n")
-      versionHeader:write(" * Do not touch!\n")
-      versionHeader:write(" */\n")
-      versionHeader:write("\n")
-      versionHeader:write("#define GIT_BRANCH " .. cstrquote(branchName) .. "\n")
-      versionHeader:write("\n")
-      versionHeader:write("// Revision definition\n")
-      versionHeader:write("#define REVISION " .. revNumber .. "\n")
-      versionHeader:write("#define REVISION_STR \"r" .. revNumber .. "\"\n")
-      versionHeader:write("\n")
-      if branchName == "develop" then
-        versionHeader:write("// Branch-specific definitions\n")
-        versionHeader:write("#define EXPERIMENTAL_BUILD" .. "\n")
-      end
-      versionHeader:close()
-
-      local versionHeader = assert(io.open(wks.location .. "/src/version.hpp", "w"))
-      versionHeader:write("/*\n")
-      versionHeader:write(" * Automatically generated by premake5.\n")
-      versionHeader:write(" * Do not touch!\n")
-      versionHeader:write(" *\n")
-      versionHeader:write(" * This file exists for reasons of complying with our coding standards.\n")
-      versionHeader:write(" *\n")
-      versionHeader:write(" * The Resource Compiler will ignore any content from C++ header files if they're not from STDInclude.hpp.\n")
-      versionHeader:write(" * That's the reason why we now place all version info in version.h instead.\n")
-      versionHeader:write(" */\n")
-      versionHeader:write("\n")
-      versionHeader:write("#include \".\\version.h\"\n")
-      versionHeader:close()
-    end
-  end
-}
-
-dependencies.load()
+-- Load the third-party targets.
+--
+local targets = target_set.new (path.join (_MAIN_SCRIPT_DIR, "deps"))
+targets:load (path.join (_MAIN_SCRIPT_DIR, "deps/premake"))
 
 workspace "iw4x"
-  startproject "iw4x"
-  location "./build"
+  location (build_directory)
   objdir "%{wks.location}/obj"
   targetdir "%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}"
+  startproject "iw4x"
 
+  -- The game is a 32-bit Windows executable, so this is the only platform.
+  --
   configurations {"Debug", "Release"}
+  platforms {"Win32"}
+  architecture "x86"
+  systemversion "latest"
 
   language "C++"
   cppdialect "C++20"
-
-  architecture "x86"
-  platforms "Win32"
-
-  systemversion "latest"
-  symbols "On"
-  staticruntime "On"
-  editandcontinue "Off"
-  warnings "Extra"
   characterset "ASCII"
+  staticruntime "On"
+  warnings "Extra"
+  defines {"_WINDOWS", "WIN32"}
+
+  -- Produce debug information in both configurations since we symbolicate
+  -- the crash reports with it.
+  --
+  symbols "On"
+  editandcontinue "Off"
 
   incrementallink "Off"
   minimalrebuild "Off"
   multiprocessorcompile "On"
-  enable64bitchecks "Off"
-
-  filter "platforms:Win*"
-    defines {"_WINDOWS", "WIN32"}
-  filter {}
-
-  filter "configurations:Release"
-    optimize "Size"
-    buildoptions {"/GL", "/Oy-"}
-    linkoptions {"/IGNORE:4702", "/LTCG"}
-    defines {"NDEBUG"}
-    fatalwarnings { "all" }
-    rtti ("Off")
-  filter {}
 
   filter "configurations:Debug"
     optimize "Debug"
     defines {"DEBUG", "_DEBUG"}
+
+  -- Note that a release build has no RTTI. The debug build keeps it for the
+  -- component names that it prints (see Components::Component).
+  --
+  -- With link-time code generation (/GL and /LTCG) the code is generated by
+  -- the linker, which then issues the unreachable code warnings (C4702). We
+  -- ignore them for now.
+  --
+  -- @@ Find out which code they come from and whether it is ours.
+  --
+  -- Keep the frame pointers (/Oy-) since the crash reports walk the stacks
+  -- with them.
+  --
+  filter "configurations:Release"
+    optimize "Size"
+    rtti "Off"
+    defines {"NDEBUG"}
+    fatalwarnings {"All"}
+    buildoptions {"/GL", "/Oy-"}
+    linkoptions {"/IGNORE:4702", "/LTCG"}
+
   filter {}
 
-  project "iw4x"
-    kind "SharedLib"
-    language "C++"
-    files {
-      "./src/**.rc",
-      "./src/**.hpp",
-      "./src/**.cpp",
-    }
-    includedirs {
-      "%{prj.location}/src",
-      "./src",
-      "./lib/include",
-    }
-    resincludedirs {
-      "$(ProjectDir)src" -- fix for VS IDE
-    }
+project "iw4x"
+  kind "SharedLib"
 
-    -- Debug flags
-    if _OPTIONS["disable-binary-check"] then
-      defines {"DISABLE_BINARY_CHECK"}
+  files
+  {
+    "src/**.rc",
+    "src/**.hpp",
+    "src/**.cpp"
+  }
+
+  -- We put the generated directory first so that its version.h takes
+  -- precedence over the one generate-linux.sh writes into the source tree.
+  --
+  includedirs
+  {
+    generated_directory,
+    "src",
+    "lib/include"
+  }
+
+  -- Spell the generated directory with $(ProjectDir) as well, which the
+  -- Visual Studio resource editor needs to open Resource.rc.
+  --
+  resincludedirs {"$(ProjectDir)src"}
+
+  -- Note that the precompiled header is named the way the sources include
+  -- it. The forced include makes it the first include of every source.
+  --
+  pchheader "STDInclude.hpp"
+  pchsource "src/STDInclude.cpp"
+  forceincludes {"STDInclude.hpp"}
+
+  defines {"RAPIDJSON_HAS_STDSTRING"}
+
+  if _OPTIONS["disable-binary-check"] then
+    defines {"DISABLE_BINARY_CHECK"}
+  end
+
+  -- Treat an empty DSN as none, which is what CI passes when the secret
+  -- isn't set.
+  --
+  if _OPTIONS["sentry-dsn"] and _OPTIONS["sentry-dsn"] ~= "" then
+    defines {"IW4X_SENTRY_DSN=" .. c_literal (_OPTIONS["sentry-dsn"])}
+  end
+
+  -- Keep identical functions apart (/OPT:NOICF). With folding, a frame of
+  -- a crash report can name another function that has the same code.
+  --
+  filter "configurations:Release"
+    linkoptions {"/OPT:NOICF"}
+
+  filter {}
+
+  -- Import the third-party libraries that the client uses directly. We get
+  -- the libraries they depend on through their exports (see
+  -- premake/target.lua).
+  --
+  local libraries =
+  {
+    "companion",
+    "discord-rpc",
+    "dxsdk",
+    "fonts",
+    "gsl",
+    "iw4-open-formats",
+    "json",
+    "libtomcrypt",
+    "libtommath",
+    "mongoose",
+    "pdcurses",
+    "protobuf",
+    "rapidjson",
+    "sentry",
+    "sqlite",
+    "udis86",
+    "zlib"
+  }
+
+  targets:import (libraries, "iw4x")
+
+  -- Regenerate the build information before each build so that it follows
+  -- the commits. We run the same premake on the same script, which knows
+  -- where the generated directory is.
+  --
+  -- Note that this needs a Windows git on PATH, which a build under Wine
+  -- normally lacks (see --no-buildinfo).
+  --
+  if not _OPTIONS["no-buildinfo"] then
+    prebuildcommands
+    {
+      string.format ("\"%s\" --file=\"%s\" generate-buildinfo",
+                     path.translate (_PREMAKE_COMMAND),
+                     path.translate (_MAIN_SCRIPT))
+    }
+  end
+
+  -- Copy the binaries of the build, which include those of the Sentry
+  -- helpers, into the directory specified with --copy-to.
+  --
+  -- Note that cmd.exe carries on after a failed command and the build only
+  -- sees the status of the last one. So we make each command exit on
+  -- failure.
+  --
+  if _OPTIONS["copy-to"] then
+    local d = path.translate (path.getabsolute (_OPTIONS["copy-to"]))
+
+    local copy = function (pattern)
+      return string.format ("copy /y \"$(TargetDir)%s\" \"%s\" || exit /b 1",
+                            pattern, d)
     end
 
-    if _OPTIONS["sentry-dsn"] then
-      defines {"IW4X_SENTRY_DSN=" .. cstrquote(_OPTIONS["sentry-dsn"])}
+    postbuildcommands
+    {
+      string.format ("if not exist \"%s\" mkdir \"%s\" || exit /b 1", d, d)
+    }
+
+    if _OPTIONS["copy-pdb"] then
+      postbuildcommands {copy ("*.pdb")}
     end
 
-    filter "configurations:Release"
-      linkoptions {"/OPT:NOICF"}
-    filter {}
-
-    -- Pre-compiled header
-    pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
-    pchsource "src/STDInclude.cpp" -- real path
-    forceincludes  { "STDInclude.hpp" }
-
-    dependencies.imports()
-
-        -- Pre-build
-        local cwd = os.getcwd()
-        prebuildcommands {
-            "cd " .. _MAIN_SCRIPT_DIR,
-            "tools\\premake5 generate-buildinfo",
-            "cd " .. cwd,
-        }
-
-    -- Post-build
-    if _OPTIONS["copy-to"] then
-      saneCopyToPath = string.gsub(_OPTIONS["copy-to"] .. "\\", "\\\\", "\\")
-      postbuildcommands {
-        "if not exist \"" .. saneCopyToPath .. "\" mkdir \"" .. saneCopyToPath .. "\"",
-      }
-
-      if _OPTIONS["copy-pdb"] then
-        postbuildcommands {
-          "copy /y \"$(TargetDir)*.pdb\" \"" .. saneCopyToPath .. "\"",
-        }
-      end
-
-      postbuildcommands {
-        "copy /y \"$(TargetDir)*.exe\" \"" .. saneCopyToPath .. "\"",
-      }
-
-      -- This has to be the last one, as otherwise VisualStudio will succeed building even if copying fails
-      postbuildcommands {
-        "copy /y \"$(TargetDir)*.dll\" \"" .. saneCopyToPath .. "\"",
-      }
-    end
-
+    postbuildcommands
+    {
+      copy ("*.exe"),
+      copy ("*.dll")
+    }
+  end
 
 group "External Dependencies"
-dependencies.projects()
+  targets:define ()
 
+group ""
+
+-- Compile the client messages (src/Proto/*.proto) into the generated
+-- directory, where the client includes them from as <proto/...>.
+--
+-- Note that the rule runs in the protobuf project (see deps/premake/
+-- protobuf.lua), which lives in the build directory like every project.
+--
 rule "ProtobufCompiler"
   display "Protobuf compiler"
-  location "./build"
+  location (build_directory)
   fileExtension ".proto"
-  buildmessage "Compiling %(Identity) with protoc..."
-  buildcommands {
-    '@echo off',
-    'path "$(SolutionDir)\\..\\tools"',
-    'if not exist "$(ProjectDir)\\src\\proto" mkdir "$(ProjectDir)\\src\\proto"',
-    'protoc --error_format=msvs -I=%(RelativeDir) --cpp_out=src\\proto %(Identity)',
+  buildmessage "protoc %(Identity)"
+
+  buildcommands
+  {
+    "if not exist \"$(ProjectDir)src\\proto\" " ..
+    "mkdir \"$(ProjectDir)src\\proto\"",
+
+    string.format ("\"$(ProjectDir)%s\" --error_format=msvs " ..
+                   "-I=%%(RelativeDir) --cpp_out=src\\proto %%(Identity)",
+                   path.translate (
+                     path.getrelative (build_directory,
+                                       path.join (_MAIN_SCRIPT_DIR,
+                                                  "tools/protoc.exe"))))
   }
-  buildoutputs {
-    '$(ProjectDir)\\src\\proto\\%(Filename).pb.cc',
-    '$(ProjectDir)\\src\\proto\\%(Filename).pb.h',
+
+  buildoutputs
+  {
+    "$(ProjectDir)src\\proto\\%(Filename).pb.cc",
+    "$(ProjectDir)src\\proto\\%(Filename).pb.h"
   }
