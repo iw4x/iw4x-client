@@ -1,33 +1,20 @@
-mongoose = {
-  source = path.join(dependencies.basePath, "mongoose"),
-}
+-- Mongoose embedded web server.
+--
+local targets = ...
 
-function mongoose.import()
-  links "mongoose"
+targets:static_library ("mongoose",
+{
+  directory = "mongoose",
+  language  = "C",
 
-  mongoose.includes()
-end
+  files =
+  {
+    "mongoose.c",
+    "mongoose.h"
+  },
 
-function mongoose.includes()
-  includedirs {
-    mongoose.source,
+  export =
+  {
+    includedirs = {"."}
   }
-end
-
-function mongoose.project()
-  project "mongoose"
-    language "C"
-
-    mongoose.includes()
-
-    files {
-      path.join(mongoose.source, "mongoose.c"),
-      path.join(mongoose.source, "mongoose.h"),
-    }
-
-    warnings "Off"
-
-    kind "StaticLib"
-end
-
-table.insert(dependencies, mongoose)
+})

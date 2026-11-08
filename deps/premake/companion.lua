@@ -1,19 +1,13 @@
-companion = {
-  source = path.join(dependencies.basePath, "companion"),
-}
+-- Companion protocol headers (libcompanion/protocol.hxx, etc).
+--
+local targets = ...
 
-function companion.import()
-  companion.includes()
-end
+targets:binless_library ("companion",
+{
+  directory = "companion",
 
-function companion.includes()
-  includedirs {
-    path.join(companion.source, "libcompanion"),
+  export =
+  {
+    includedirs = {"libcompanion"}
   }
-end
-
-function companion.project()
-
-end
-
-table.insert(dependencies, companion)
+})

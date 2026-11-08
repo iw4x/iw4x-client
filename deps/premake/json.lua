@@ -1,19 +1,13 @@
-json = {
-  source = path.join(dependencies.basePath, "json"),
-}
+-- JSON for Modern C++ (nlohmann/json), included as json.hpp.
+--
+local targets = ...
 
-function json.import()
-  json.includes()
-end
+targets:binless_library ("json",
+{
+  directory = "json",
 
-function json.includes()
-  includedirs {
-    path.join(json.source, "single_include/nlohmann")
+  export =
+  {
+    includedirs = {"single_include/nlohmann"}
   }
-end
-
-function json.project()
-  
-end
-
-table.insert(dependencies, json)
+})

@@ -1,35 +1,29 @@
-udis86 = {
-  source = path.join(dependencies.basePath, "udis86"),
-}
+-- udis86 disassembler.
+--
+-- Note that the instruction tables (itab.c and itab.h), which upstream
+-- generates with Python, are pregenerated in extra/udis86/.
+--
+local targets = ...
 
-function udis86.import()
-  links "udis86"
+targets:static_library ("udis86",
+{
+  directory = "udis86",
+  language  = "C",
 
-  udis86.includes()
-end
+  files =
+  {
+    "libudis86/*.c",
+    "../extra/udis86/libudis86/*.c"
+  },
 
-function udis86.includes()
-  includedirs {
-    udis86.source,
-    path.join(udis86.source, "libudis86"),
-    path.join(dependencies.basePath, "extra/udis86"),
-    path.join(dependencies.basePath, "extra/udis86/libudis86"),
-  }
-end
-
-function udis86.project()
-  project "udis86"
-    language "C"
-
-    udis86.includes()
-
-    files {
-      path.join(udis86.source, "libudis86/*.c"),
-      path.join(dependencies.basePath, "extra/udis86/libudis86/*.c"),
+  export =
+  {
+    includedirs =
+    {
+      ".",
+      "libudis86",
+      "../extra/udis86",
+      "../extra/udis86/libudis86"
     }
-
-    warnings "Off"
-    kind "StaticLib"
-end
-
-table.insert(dependencies, udis86)
+  }
+})

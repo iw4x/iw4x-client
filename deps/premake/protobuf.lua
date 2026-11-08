@@ -1,46 +1,37 @@
-protobuf = {
-  source = path.join(dependencies.basePath, "protobuf"),
-}
+-- Protocol Buffers runtime along with the client messages.
+--
+-- Note that the ProtobufCompiler rule (see premake5.lua) compiles the
+-- client messages (src/Proto/*.proto) into this library and writes the
+-- generated sources into the build directory.
+--
+local targets = ...
 
-function protobuf.import()
-  links {"protobuf"}
+targets:static_library ("protobuf",
+{
+  directory = "protobuf",
+  language  = "C++",
+  rules     = {"ProtobufCompiler"},
 
-  protobuf.includes()
-end
+  files =
+  {
+    "src/**.cc",
+    path.join (_MAIN_SCRIPT_DIR, "src/**.proto")
+  },
 
-function protobuf.includes()
-  includedirs {
-    path.join(protobuf.source, "src"),
+  -- Leave out the tests and the compiler along with error_listener.cc,
+  -- which has no definitions.
+  --
+  removefiles =
+  {
+    "src/**/*test.cc",
+    "src/google/protobuf/*test*.cc",
+    "src/google/protobuf/testing/**.cc",
+    "src/google/protobuf/compiler/**.cc",
+    "src/google/protobuf/util/internal/error_listener.cc"
+  },
+
+  export =
+  {
+    includedirs = {"src"}
   }
-end
-
-function protobuf.project()
-  project "protobuf"
-    language "C++"
-
-    protobuf.includes()
-
-    files {
-      path.join(protobuf.source, "src/**.cc"),
-      "./src/**.proto",
-    }
-    
-    removefiles {
-      path.join(protobuf.source, "src/**/*test.cc"),
-      path.join(protobuf.source, "src/google/protobuf/*test*.cc"),
-
-      path.join(protobuf.source, "src/google/protobuf/testing/**.cc"),
-      path.join(protobuf.source, "src/google/protobuf/compiler/**.cc"),
-
-      path.join(protobuf.source, "src/google/protobuf/arena_nc.cc"),
-      path.join(protobuf.source, "src/google/protobuf/util/internal/error_listener.cc"),
-      path.join(protobuf.source, "**/*_gcc.cc"),
-    }
-    
-    rules {"ProtobufCompiler"}
-
-    warnings "Off"
-    kind "StaticLib"
-end
-
-table.insert(dependencies, protobuf)
+})

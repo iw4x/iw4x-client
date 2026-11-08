@@ -1,19 +1,13 @@
-gsl = {
-  source = path.join(dependencies.basePath, "GSL"),
-}
+-- Guidelines Support Library.
+--
+local targets = ...
 
-function gsl.import()
-  gsl.includes()
-end
+targets:binless_library ("gsl",
+{
+  directory = "GSL",
 
-function gsl.includes()
-  includedirs {
-    path.join(gsl.source, "include"),
+  export =
+  {
+    includedirs = {"include"}
   }
-end
-
-function gsl.project()
-
-end
-
-table.insert(dependencies, gsl)
+})

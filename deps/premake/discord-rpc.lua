@@ -1,40 +1,34 @@
-discordrpc = {
-  source = path.join(dependencies.basePath, "discord-rpc"),
-}
+-- Discord Rich Presence.
+--
+local targets = ...
 
-function discordrpc.import()
-  links "discord-rpc"
-  discordrpc.includes()
-end
+targets:static_library ("discord-rpc",
+{
+  directory    = "discord-rpc",
+  language     = "C++",
+  cppdialect   = "C++17",
+  dependencies = {"rapidjson"},
 
-function discordrpc.includes()
-  includedirs {
-    path.join(discordrpc.source, "include"),
+  files =
+  {
+    "src/*.h",
+    "src/*.cpp"
+  },
+
+  -- Leave out the DLL entry point and the sources of other platforms.
+  --
+  removefiles =
+  {
+    "src/dllmain.cpp",
+    "src/*_linux.cpp",
+    "src/*_unix.cpp",
+    "src/*_osx.cpp"
+  },
+
+  defines = {"RAPIDJSON_HAS_STDSTRING"},
+
+  export =
+  {
+    includedirs = {"include"}
   }
-end
-
-function discordrpc.project()
-  project "discord-rpc"
-    language "C++"
-    cppdialect "C++17"
-
-    discordrpc.includes()
-    rapidjson.import();
-
-    files {
-      path.join(discordrpc.source, "src/*.h"),
-      path.join(discordrpc.source, "src/*.cpp"),
-    }
-    
-    removefiles {
-      path.join(discordrpc.source, "src/dllmain.cpp"),
-      path.join(discordrpc.source, "src/*_linux.cpp"),
-      path.join(discordrpc.source, "src/*_unix.cpp"),
-      path.join(discordrpc.source, "src/*_osx.cpp"),
-    }
-
-    warnings "Off"
-    kind "StaticLib"
-end
-
-table.insert(dependencies, discordrpc)
+})

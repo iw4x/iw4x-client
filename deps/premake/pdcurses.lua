@@ -1,34 +1,22 @@
-pdcurses = {
-  source = path.join(dependencies.basePath, "pdcurses"),
-}
+-- PDCurses with its Windows console port.
+--
+local targets = ...
 
-function pdcurses.import()
-  links {"pdcurses"}
+targets:static_library ("pdcurses",
+{
+  directory = "pdcurses",
+  language  = "C",
 
-  pdcurses.includes()
-end
+  files =
+  {
+    "pdcurses/*.c",
+    "pdcurses/*.h",
+    "wincon/*.c",
+    "wincon/*.h"
+  },
 
-function pdcurses.includes()
-  includedirs {pdcurses.source}
-end
-
-function pdcurses.project()
-  project "pdcurses"
-    language "C"
-
-    pdcurses.includes()
-
-    files
-    {
-      path.join(pdcurses.source, "pdcurses/*.c"),
-      path.join(pdcurses.source, "pdcurses/*.h"),
-      path.join(pdcurses.source, "wincon/*.c"),
-      path.join(pdcurses.source, "wincon/*.h"),
-    }
-
-    warnings "Off"
-
-    kind "StaticLib"
-end
-
-table.insert(dependencies, pdcurses)
+  export =
+  {
+    includedirs = {"."}
+  }
+})
