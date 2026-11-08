@@ -169,8 +169,7 @@ project "iw4x"
   includedirs
   {
     generated_directory,
-    "src",
-    "lib/include"
+    "src"
   }
 
   -- Spell the generated directory with $(ProjectDir) as well, which the
@@ -227,6 +226,7 @@ project "iw4x"
     "rapidjson",
     "sentry",
     "sqlite",
+    "stb",
     "udis86",
     "zlib"
   }
