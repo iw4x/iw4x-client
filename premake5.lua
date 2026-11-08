@@ -109,8 +109,13 @@ workspace "iw4x"
   cppdialect "C++20"
   characterset "ASCII"
   staticruntime "On"
-  warnings "Extra"
   defines {"_WINDOWS", "WIN32"}
+
+  -- Treat warnings as errors in both configurations. CI builds both and we
+  -- want a local debug build to fail on the same warnings as CI does.
+  --
+  warnings "Extra"
+  fatalwarnings {"All"}
 
   -- Produce debug information in both configurations since we symbolicate
   -- the crash reports with it.
@@ -144,7 +149,6 @@ workspace "iw4x"
     omitframepointer "Off"
     rtti "Off"
     defines {"NDEBUG"}
-    fatalwarnings {"All"}
     linkoptions {"/IGNORE:4702"}
 
   filter {}
