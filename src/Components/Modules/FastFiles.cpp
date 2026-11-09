@@ -132,7 +132,6 @@ namespace Components
     0xA7,0xD6,0x91,
   };
 
-
   // This has to be called only once, when the game starts
   void FastFiles::LoadInitialZones(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync)
   {
@@ -444,21 +443,6 @@ namespace Components
     }
   }
 
-  __declspec(naked) void FastFiles::AuthLoadInflateDecryptBase()
-  {
-    __asm
-    {
-      pushad
-      push ebx
-      call FastFiles::AuthLoadInflateDecryptBaseFunc
-      pop ebx
-      popad
-
-      push 5B96F0h
-      retn
-    }
-  }
-
   float FastFiles::GetFullLoadedFraction()
   {
     float singleProgress = 1.0f / FastFiles::MaxZones;
@@ -475,21 +459,9 @@ namespace Components
     Utils::Hook::Call<void(Game::XZoneInfo*, unsigned int)>(0x5BBAC0)(zoneInfo, zoneCount);
   }
 
-  __declspec(naked) void FastFiles::ReadXFile(void* /*buffer*/, int /*size*/)
-  {
-    __asm
-    {
-      mov eax, [esp + 4]
-      mov ecx, [esp + 8]
-
-      push 445468h
-      retn
-    }
-  }
-
   void FastFiles::ReadXFileStub(char* buffer, int size)
   {
-    FastFiles::ReadXFile(buffer, size);
+    FastFiles_ReadXFile(buffer, size);
 
     if (FastFiles::IsIW4xZone)
     {
@@ -727,7 +699,7 @@ namespace Components
     Utils::Hook(0x5B9912, FastFiles::AuthLoadInflateCompare, HOOK_CALL).install()->quick();
 
     // General read
-    Utils::Hook(0x5B98E4, FastFiles::AuthLoadInflateDecryptBase, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5B98E4, FastFiles_AuthLoadInflateDecryptBase, HOOK_CALL).install()->quick();
 
     // Fix fastfile progress
     Utils::Hook(0x4E5DE3, FastFiles::LoadZonesStub, HOOK_CALL).install()->quick();
@@ -825,4 +797,9 @@ namespace Components
       while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms);
     });
   }
+}
+
+void FastFiles_AuthLoadInflateDecryptBaseFunc(unsigned char* buffer)
+{
+  Components::FastFiles::AuthLoadInflateDecryptBaseFunc(buffer);
 }

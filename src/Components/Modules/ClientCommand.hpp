@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void ClientCommand_GiveAll_Stub();
+
+  void ClientCommand_GiveAll_Hk(std::uintptr_t* frame);
+}
+
 namespace Components
 {
   class ClientCommand : public Component
@@ -11,6 +18,8 @@ namespace Components
     static bool CheatsOk(const Game::gentity_s* ent);
 
   private:
+    friend void (::ClientCommand_GiveAll_Hk)(std::uintptr_t* frame);
+
     static std::unordered_map<std::string, std::function<void(Game::gentity_s*, const Command::ServerParams*)>> HandlersSV;
 
     static bool CheatsEnabled;
@@ -81,7 +90,6 @@ namespace Components
     static bool HasGiveAll(const Game::playerState_s* ps);
     static void SetGiveAll(Game::gentity_s* ent, bool enabled);
     static void GiveAll_Hk(std::uintptr_t* frame);
-    static void GiveAll_Stub();
     static void PatchGiveAll();
     static void GiveAllAmmo(Game::gentity_s* ent, bool refill);
     static int BG_GetAmmoPlayerMax_Hk(Game::playerState_s* ps, unsigned int weaponIndex, unsigned int weaponIndexToSkip);

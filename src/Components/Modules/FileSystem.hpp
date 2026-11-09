@@ -1,5 +1,13 @@
 #pragma once
 
+extern "C"
+{
+  void FileSystem_StartupStub();
+  int FileSystem_FS_FOpenFileReadForThread(const char* filename, int* file, int thread);
+
+  void FileSystem_RegisterFolders();
+}
+
 namespace Components
 {
   class FileSystem : public Component
@@ -113,6 +121,8 @@ namespace Components
     static bool FileRotate(const std::string& filename);
 
   private:
+    friend void (::FileSystem_RegisterFolders)();
+
     static std::mutex Mutex;
     static std::recursive_mutex FSMutex;
     static Utils::Memory::Allocator MemAllocator;
@@ -124,7 +134,6 @@ namespace Components
     static void RegisterFolder(const char* folder);
 
     static void RegisterFolders();
-    static void StartupStub();
     static int Cmd_Exec_f_Stub(const char* s0, const char* s1);
 
     static void FsStartupSync(const char* a1);
@@ -137,7 +146,6 @@ namespace Components
 
     static FILE* FS_FileOpenReadText_Hk(const char* file);
 
-    static int FS_FOpenFileReadForThread (const char* filename, int* file, int thread);
     static int FS_FOpenFileReadForThread_Hk (const char* filename, int* file, int thread);
     static int SEH_GetCurrentLanguage_Hk ();
     static void Image_LoadError (Game::errorParm_t error, const char* fmt, const char* name);

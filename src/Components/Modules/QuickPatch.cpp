@@ -4,6 +4,11 @@
 #include "TextRenderer.hpp"
 #include "Toast.hpp"
 
+extern "C"
+{
+  Game::dvar_t* QuickPatch_g_antilag;
+}
+
 namespace Components
 {
   Dvar::Var QuickPatch::UIMousePitch;
@@ -53,62 +58,6 @@ namespace Components
     }
   }
 
-  Game::dvar_t* QuickPatch::g_antilag;
-  __declspec(naked) void QuickPatch::ClientEventsFireWeapon_Stub()
-  {
-    __asm
-    {
-      // check g_antilag dvar value
-      mov eax, g_antilag;
-      cmp byte ptr [eax + 16], 1;
-
-      // do antilag if 1
-      je fireWeapon
-
-      // do not do antilag if 0
-      mov eax, 0x1A83554 // level.time
-      mov ecx, [eax]
-
-    fireWeapon:
-      push edx
-      push ecx
-      push edi
-      mov eax, 0x4A4D50 // FireWeapon
-      call eax
-      add esp, 0Ch
-      pop edi
-      pop ecx
-      retn
-    }
-  }
-
-  __declspec(naked) void QuickPatch::ClientEventsFireWeaponMelee_Stub()
-  {
-    __asm
-    {
-      // check g_antilag dvar value
-      mov eax, g_antilag;
-      cmp byte ptr [eax + 16], 1;
-
-      // do antilag if 1
-      je fireWeaponMelee
-
-      // do not do antilag if 0
-      mov eax, 0x1A83554 // level.time
-      mov edx, [eax]
-
-    fireWeaponMelee:
-      push edx
-      push edi
-      mov eax, 0x4F2470 // FireWeaponMelee
-      call eax
-      add esp, 8
-      pop edi
-      pop ecx
-      retn
-    }
-  }
-
   Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* dvarName, const char** /*valueList*/, int defaultIndex, unsigned __int16 flags, const char* description)
   {
     static const char* r_aspectRatioEnum[] =
@@ -134,37 +83,6 @@ namespace Components
   {
     // set the aspect ratio
     Utils::Hook::Set<float>(0x66E1C78, r_customAspectRatio.get<float>());
-  }
-
-  __declspec(naked) void QuickPatch::SetAspectRatio_Stub()
-  {
-    __asm
-    {
-      cmp eax, 4;
-      ja goToDefaultCase;
-      je useCustomRatio;
-
-      // execute switch statement code
-      push 0x5063FC;
-      retn;
-
-    goToDefaultCase:
-      push 0x5064FC;
-      retn;
-
-    useCustomRatio:
-      // set custom resolution
-      pushad;
-      call SetAspectRatio;
-      popad;
-
-      // set widescreen to 1
-      mov eax, 1;
-
-      // continue execution
-      push 0x506495;
-      retn;
-    }
   }
 
   BOOL QuickPatch::IsDynClassname_Stub(const char* classname)
@@ -210,20 +128,6 @@ namespace Components
     Game::Key_RemoveCatcher(0, ~Game::KEYCATCH_CONSOLE);
   }
 
-  __declspec(naked) void QuickPatch::CL_KeyEvent_ConsoleEscape_Stub()
-  {
-    __asm
-    {
-      pushad
-      call CL_KeyEvent_OnEscape
-      popad
-
-      // Exit CL_KeyEvent function
-      mov ebx, 0x4F66F2
-      jmp ebx
-    }
-  }
-
   void QuickPatch::R_AddImageToList_Hk(Game::XAssetHeader header, void* data)
   {
     auto* imageList = static_cast<Game::ImageList*>(data);
@@ -249,117 +153,6 @@ namespace Components
 
     SetEnvironmentVariableA("MW2_INSTALL", workingDir.string().data());
     Utils::Library::LaunchProcess(binary, commandLine, workingDir);
-  }
-
-  __declspec(naked) void QuickPatch::SND_GetAliasOffset_Stub()
-  {
-    using namespace Game;
-
-    static const char* msg = "SND_GetAliasOffset: Could not find sound alias '%s'";
-    using namespace Game;
-
-    __asm
-    {
-      // Check if snd_alias_t* is null immediately after call to Com_FindSoundAlias_FastFile
-      test eax, eax
-      jz error
-
-      // Game code hook skipped
-      mov ecx, eax
-      mov edx, dword ptr [ecx + 0x4]
-
-      // Resume function
-      push 0x437CB2
-      ret
-
-    error:
-      add esp, 0x4 // Com_FindSoundAlias_FastFile takes one argument
-
-      push [esi] // alias->aliasName
-      push msg
-      push ERR_DROP
-      call Com_Error // Going to longjmp back to safety
-      add esp, 0xC
-
-      xor eax, eax
-      pop esi
-      ret
-    }
-  }
-
-  // Fix out-of-bounds crash at 0x42854A
-  //
-  // The problem here is that vehicle playerIndex is packed and transmitted as a
-  // 5-bit field, which naturally allows for values up to 31 whereas the client
-  // array is strictly bounded by MAX_CLIENTS (18).
-  //
-  // https://github.com/iw4x/iw4x-client/issues/285#issuecomment-3458190361
-  //
-  // For whatever reason, the original implementation blindly uses this received
-  // value as a direct array index, and so we (in some situation) end up with an
-  // out-of-bounds memory read/write.
-  //
-  // NOTE:
-  //
-  // This is a tentative fix intended to finally address the issue. It may or may
-  // not fully resolve the problem depending on underlying conditions not yet
-  // accounted for.
-
-  __declspec(naked) void QuickPatch::VehicleFx_PlayerIndexCheck_Stub()
-  {
-    __asm
-    {
-      mov ecx, [esi + 0x38]
-      cmp ecx, 18
-      jb validIndex
-
-      test eax, eax
-      jmp done
-
-    validIndex:
-      imul ecx, ecx, 0x52C
-      cmp eax, [ecx + 0x8E77CC]
-
-    done:
-      push 0x428555
-      ret
-    }
-  }
-
-  __declspec(naked) void QuickPatch::VehicleCl_SetPlayerIndex_UpdateEntity_Stub()
-  {
-    __asm
-    {
-      cmp eax, 18
-      jb updateValid
-      xor eax, eax
-
-    updateValid:
-      mov [ebx + 0x38], eax
-      lea edi, [ebx + 0x1C]
-
-      push 0x679EAC
-      ret
-    }
-  }
-
-  __declspec(naked) void QuickPatch::VehicleCl_SetPlayerIndex_ResetEntity_Stub()
-  {
-    __asm
-    {
-      cmp ecx, 18
-      jb resetValid
-      xor ecx, ecx
-
-    resetValid:
-      mov [esi + 0x38], ecx
-
-      mov eax, 0x402500             // Com_DPrintf (args already on stack)
-      call eax
-
-      push 0x679E34
-      ret
-    }
   }
 
   int QuickPatch::FX_ImpactMarkCallback_Hk(void* context, int pointCount, void* points, int triCount, void* tris, const float* origin, const float* texCoordAxis)
@@ -503,25 +296,46 @@ namespace Components
 
   QuickPatch::QuickPatch()
   {
+    // QuickPatch.asm has its own copy of this offset.
+    //
+    AssertOffset(Game::dvar_t, current, 0x10);
+
     // Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
     Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
 
     // Hook escape handling on open console to change behaviour to close the console instead of only canceling autocomplete
-    Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x4F66A3, QuickPatch_CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
 
     // Intermission time dvar
     Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_NONE, "Time in seconds before match server loads the next map");
 
-    g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
-    Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeapon_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMelee_Stub, HOOK_JUMP).install()->quick();
+    QuickPatch_g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
+    Utils::Hook(0x5D6D56, QuickPatch_ClientEventsFireWeapon_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x5D6D6A, QuickPatch_ClientEventsFireWeaponMelee_Stub, HOOK_JUMP).install()->quick();
 
-    // Fix vehicle playerIndex out-of-bounds crash (0x42854A)
-    Utils::Hook(0x428541, QuickPatch::VehicleFx_PlayerIndexCheck_Stub, HOOK_JUMP).install()->quick();
+    // Fix out-of-bounds crash at 0x42854A
+    //
+    // The problem here is that vehicle playerIndex is packed and transmitted
+    // as a 5-bit field, which naturally allows for values up to 31 whereas the
+    // client array is strictly bounded by MAX_CLIENTS (18).
+    //
+    // https://github.com/iw4x/iw4x-client/issues/285#issuecomment-3458190361
+    //
+    // For whatever reason, the original implementation blindly uses this
+    // received value as a direct array index, and so we (in some situation)
+    // end up with an out-of-bounds memory read/write.
+    //
+    // NOTE:
+    //
+    // This is a tentative fix intended to finally address the issue. It may or
+    // may not fully resolve the problem depending on underlying conditions not
+    // yet accounted for.
+    //
+    Utils::Hook(0x428541, QuickPatch_VehicleFx_PlayerIndexCheck_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook::Nop(0x428546, 12);
-    Utils::Hook(0x679EA6, QuickPatch::VehicleCl_SetPlayerIndex_UpdateEntity_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x679EA6, QuickPatch_VehicleCl_SetPlayerIndex_UpdateEntity_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook::Nop(0x679EAB, 1);
-    Utils::Hook(0x679E2C, QuickPatch::VehicleCl_SetPlayerIndex_ResetEntity_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x679E2C, QuickPatch_VehicleCl_SetPlayerIndex_ResetEntity_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook::Nop(0x679E31, 3);
 
     // Fix crash when impact marks run out of room (0x5CC9D3)
@@ -529,7 +343,7 @@ namespace Components
 
     // Add ultrawide support
     Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5063F3, QuickPatch::SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x5063F3, QuickPatch_SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
 
     // Disable fullscreen mode on first launch
     Utils::Hook(0x4A6B14, QuickPatch::CL_InitRef_Hk, HOOK_CALL).install()->quick();
@@ -543,7 +357,7 @@ namespace Components
     Utils::Hook(0x4D6989, QuickPatch::Sys_SpawnQuitProcess_Hk, HOOK_CALL).install()->quick();
 
     // Fix crash as nullptr goes unchecked
-    Utils::Hook(0x437CAD, QuickPatch::SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x437CAD, QuickPatch_SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
 
     // remove system pre-init stuff (improper quit, disk full)
     Utils::Hook::Set<BYTE>(0x411350, 0xC3);
@@ -936,4 +750,14 @@ namespace Components
       Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
     }
   }
+}
+
+void QuickPatch_SetAspectRatio()
+{
+  Components::QuickPatch::SetAspectRatio();
+}
+
+void QuickPatch_CL_KeyEvent_OnEscape()
+{
+  Components::QuickPatch::CL_KeyEvent_OnEscape();
 }

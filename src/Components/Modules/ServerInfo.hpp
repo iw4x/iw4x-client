@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void ServerInfo_DrawScoreboardStub();
+
+  void ServerInfo_DrawScoreboardInfo(int localClientNum);
+}
+
 namespace Components
 {
   class ServerInfo : public Component
@@ -12,6 +19,8 @@ namespace Components
     static Utils::InfoString GetInfo();
 
   private:
+    friend void (::ServerInfo_DrawScoreboardInfo)(int localClientNum);
+
     class Container
     {
     public:
@@ -37,6 +46,5 @@ namespace Components
     static void SelectPlayer(unsigned int index);
 
     static void DrawScoreboardInfo(int localClientNum);
-    static void DrawScoreboardStub();
   };
 }

@@ -130,50 +130,6 @@ namespace Components
     }
   }
 
-  void __declspec(naked) ClanTags::ClientUserinfoChanged_Stub()
-  {
-    __asm
-    {
-      pushad
-
-      push [esp + 0x20 + 0x824] // clientNum
-      push ecx // s
-      call ClientUserinfoChanged
-      add esp, 0x8
-
-      popad
-
-      push 0x445334 // Return address
-      push 0x47C820 // Info_ValueForKey
-      // Jump to Info_ValueForKey & add return address
-      retn
-    }
-  }
-
-  void __declspec(naked) ClanTags::DrawPlayerNameOnScoreboard()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      push edi
-      push [ebp]
-
-      call GetClanTagWithName
-      add esp, 0x8
-
-      mov [esp + 0x20], eax
-
-      popad
-      pop edi
-
-      push 0x591247 // Return address
-      push 0x5909E0 // DrawListString
-      retn
-    }
-  }
-
   // s1 is always an empty string
   int ClanTags::PartyClient_Frame_Stub(const char* s0, [[maybe_unused]] const char* s1)
   {
@@ -189,29 +145,6 @@ namespace Components
   void ClanTags::PlayerCards_SetCachedPlayerData(Game::PlayerCardData* data, const int clientNum)
   {
     Game::I_strncpyz(data->clanAbbrev, ClientState[clientNum], sizeof(Game::PlayerCardData::clanAbbrev));
-  }
-
-  void __declspec(naked) ClanTags::PlayerCards_SetCachedPlayerData_Stub()
-  {
-    using namespace Game;
-
-    __asm
-    {
-      call I_strncpyz
-      add esp, 0xC
-
-      mov byte ptr [esi + 0x3C], 0x0
-
-      // Copy the clanName
-      push [esp + 0xC] // clientNum
-      push esi // g_PlayerCardCache
-      call PlayerCards_SetCachedPlayerData
-      add esp, 0x8
-
-      // Exit function
-      pop esi
-      ret
-    }
   }
 
   Game::PlayerCardData* ClanTags::PlayerCards_GetLiveProfileDataForClient_Stub(const unsigned int clientIndex)
@@ -256,16 +189,16 @@ namespace Components
 
     Utils::Hook(0x430B00, Dvar_InfoString_Stub, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x44532F, ClientUserinfoChanged_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x44532F, ClanTags_ClientUserinfoChanged_Stub, HOOK_JUMP).install()->quick();
 
     // clanName before playerName
-    Utils::Hook(0x591242, DrawPlayerNameOnScoreboard, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x591242, ClanTags_DrawPlayerNameOnScoreboard, HOOK_JUMP).install()->quick();
 
     Utils::Hook(0x49765B, PartyClient_Frame_Stub, HOOK_CALL).install()->quick();
     Utils::Hook(0x49767E, Party_UpdateClanName_Stub, HOOK_CALL).install()->quick();
 
     // clanName in the PlayerCard (GetPlayerCardClientData)
-    Utils::Hook(0x458DF4, PlayerCards_SetCachedPlayerData_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x458DF4, ClanTags_PlayerCards_SetCachedPlayerData_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x62EAB6, PlayerCards_GetLiveProfileDataForClient_Stub, HOOK_CALL).install()->quick();
     Utils::Hook(0x62EAC3, PlayerCards_GetLiveProfileDataForController_Stub, HOOK_CALL).install()->quick();
 
@@ -273,4 +206,19 @@ namespace Components
     Utils::Hook(0x586DD6, PlayerName::GetClientName, HOOK_CALL).install()->quick();
     Utils::Hook(0x586E2A, PlayerName::GetClientName, HOOK_CALL).install()->quick();
   }
+}
+
+void ClanTags_ClientUserinfoChanged(const char* s, int clientNum)
+{
+  Components::ClanTags::ClientUserinfoChanged(s, clientNum);
+}
+
+const char* ClanTags_GetClanTagWithName(int clientNum, const char* playerName)
+{
+  return Components::ClanTags::GetClanTagWithName(clientNum, playerName);
+}
+
+void ClanTags_PlayerCards_SetCachedPlayerData(Game::PlayerCardData* data, int clientNum)
+{
+  Components::ClanTags::PlayerCards_SetCachedPlayerData(data, clientNum);
 }

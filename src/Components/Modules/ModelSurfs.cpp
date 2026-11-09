@@ -328,81 +328,6 @@ namespace Components
     }
   }
 
-  __declspec(naked) void ModelSurfs::GetIndexBufferStub()
-  {
-    __asm
-    {
-      mov eax, [esp + 4h]
-      cmp al, 0FFh
-
-      jne returnSafe
-
-      jmp ModelSurfs::SetBuffer
-
-    returnSafe:
-      movzx eax, [esp + 4h]
-      mov edx, 4B4DE5h
-      jmp edx
-    }
-  }
-
-  __declspec(naked) void ModelSurfs::GetIndexBufferStub2()
-  {
-    __asm
-    {
-      mov eax, [esp + 4h]
-      cmp al, 0FFh
-
-      jne returnSafe
-
-      mov eax, [edi + 0Ch]
-      push eax
-      call ModelSurfs::GetBuffer
-      add esp, 4h
-      retn
-
-    returnSafe:
-      mov eax, 4FDC20h
-      jmp eax
-    }
-  }
-
-  __declspec(naked) void ModelSurfs::GetIndexBaseStub()
-  {
-    __asm
-    {
-      mov eax, [esp + 4h]
-      cmp al, 0FFh
-
-      jne returnSafe
-
-      xor eax, eax
-      retn
-
-    returnSafe:
-      mov eax, 48C5F0h
-      jmp eax
-    }
-  }
-
-  __declspec(naked) void ModelSurfs::GetVertexBufferStub()
-  {
-    __asm
-    {
-      mov eax, [esp + 4h]
-      cmp al, 0FFh
-
-      jne returnSafe
-
-      jmp ModelSurfs::SetBuffer
-
-    returnSafe:
-      movzx eax, [esp + 4h]
-      mov edx, 5BC055h
-      jmp edx
-    }
-  }
-
   ModelSurfs::ModelSurfs()
   {
     ModelSurfs::BufferMap.clear();
@@ -416,10 +341,10 @@ namespace Components
 
     // Install hooks
     Utils::Hook(0x47A6BD, ModelSurfs::XModelSurfsFixup, HOOK_CALL).install()->quick();
-    Utils::Hook(0x558F12, ModelSurfs::GetIndexBaseStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4B4DE0, ModelSurfs::GetIndexBufferStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x558E70, ModelSurfs::GetIndexBufferStub2, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5BC050, ModelSurfs::GetVertexBufferStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x558F12, ModelSurfs_GetIndexBaseStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x4B4DE0, ModelSurfs_GetIndexBufferStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x558E70, ModelSurfs_GetIndexBufferStub2, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5BC050, ModelSurfs_GetVertexBufferStub, HOOK_JUMP).install()->quick();
   }
 
   ModelSurfs::~ModelSurfs()
@@ -427,4 +352,14 @@ namespace Components
     assert(ModelSurfs::BufferMap.empty());
     assert(ModelSurfs::AllocMap.empty());
   }
+}
+
+void ModelSurfs_SetBuffer(char streamHandle, void* buffer, IUnknown** bufferOut, int* offsetOut)
+{
+  Components::ModelSurfs::SetBuffer(streamHandle, buffer, bufferOut, offsetOut);
+}
+
+IUnknown* ModelSurfs_GetBuffer(void* buffer)
+{
+  return Components::ModelSurfs::GetBuffer(buffer);
 }

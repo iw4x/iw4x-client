@@ -420,21 +420,6 @@ namespace Components
     CL_TogglePlayerMute(localClientNum, Game::sharedUiInfo->playerClientNums[clientNum]);
   }
 
-  __declspec(naked) void Voice::UI_Mute_Player_Stub()
-  {
-    __asm
-    {
-      push eax
-      call UI_Mute_player
-      add esp, 8 // Game already pushed localClientNum
-
-      pop edi
-      pop esi
-      add esp, 0xC00
-      ret
-    }
-  }
-
   Voice::Voice()
   {
     AssertOffset(Game::clientUIActive_t, connectionState, 0x9B8);
@@ -472,7 +457,7 @@ namespace Components
     Utils::Hook::Set<const char*>(0x62673F, "v");
     Utils::Hook(0x626787, SV_VoicePacket, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x45F041, UI_Mute_Player_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x45F041, Voice_UI_Mute_Player_Stub, HOOK_JUMP).install()->quick();
 
     Utils::Hook(0x4C6B50, Voice_UnmuteMember_Hk, HOOK_JUMP).install()->quick();
     Utils::Hook(0x43F460, CL_MutePlayer_Hk, HOOK_JUMP).install()->quick();
@@ -491,4 +476,9 @@ namespace Components
       }
     });
   }
+}
+
+void Voice_UI_Mute_player(int clientNum, int localClientNum)
+{
+  Components::Voice::UI_Mute_player(clientNum, localClientNum);
 }

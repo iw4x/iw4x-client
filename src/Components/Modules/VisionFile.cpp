@@ -106,32 +106,16 @@ namespace Components
     return true;
   }
 
-  __declspec(naked) bool VisionFile::LoadVisionSettingsFromBuffer_Stub()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      push [esp + 0x24 + 0x8] // settings
-      push ebx // filename
-      push [esp + 0x24 + 0xC] // buffer
-      call LoadVisionSettingsFromBuffer
-      add esp, 0xC
-
-      mov [esp + 0x20], eax
-      popad
-      pop eax
-
-      ret
-    }
-  }
-
   VisionFile::VisionFile()
   {
     AssertSize(Game::visField_t, 12);
 
     // Place hook in LoadVisionFile function
-    Utils::Hook(0x59A98A, LoadVisionSettingsFromBuffer_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x59A98A, VisionFile_LoadVisionSettingsFromBuffer_Stub, HOOK_CALL).install()->quick();
   }
+}
+
+bool VisionFile_LoadVisionSettingsFromBuffer(const char* buffer, const char* filename, Game::visionSetVars_t* settings)
+{
+  return Components::VisionFile::LoadVisionSettingsFromBuffer(buffer, filename, settings);
 }

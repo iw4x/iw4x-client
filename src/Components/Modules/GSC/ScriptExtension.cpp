@@ -3,10 +3,14 @@
 #include "ScriptExtension.hpp"
 #include "Script.hpp"
 
+extern "C"
+{
+  const char* ScriptExtension_ReplacedPos = nullptr;
+}
+
 namespace Components::GSC
 {
   std::unordered_map<const char*, const char*> ScriptExtension::ReplacedFunctions;
-  const char* ScriptExtension::ReplacedPos = nullptr;
 
   const char* ScriptExtension::GetCodePosForParam(int index)
   {
@@ -37,7 +41,7 @@ namespace Components::GSC
 
     if (const auto itr = ReplacedFunctions.find(pos); itr != ReplacedFunctions.end())
     {
-      ReplacedPos = itr->second;
+      ScriptExtension_ReplacedPos = itr->second;
     }
   }
 
@@ -55,51 +59,6 @@ namespace Components::GSC
     }
 
     ReplacedFunctions[what] = with;
-  }
-
-  __declspec(naked) void ScriptExtension::VMExecuteInternalStub()
-  {
-    __asm
-    {
-      pushad
-
-      push edx
-      call GetReplacedPos
-
-      pop edx
-      popad
-
-      cmp ReplacedPos, 0
-      jne SetPos
-
-      movzx eax, byte ptr [edx]
-      inc edx
-
-    Loc1:
-      cmp eax, 0x8B
-
-      push ecx
-
-      mov ecx, 0x2045094
-      mov [ecx], eax
-
-      mov ecx, 0x2040CD4
-      mov [ecx], edx
-
-      pop ecx
-
-      push 0x61E944
-      ret
-
-    SetPos:
-      mov edx, ReplacedPos
-      mov ReplacedPos, 0
-
-      movzx eax, byte ptr [edx]
-      inc edx
-
-      jmp Loc1
-    }
   }
 
   void ScriptExtension::AddFunctions()
@@ -137,7 +96,6 @@ namespace Components::GSC
 
       SetReplacedPos(what, with);
     });
-
 
     Script::AddFunction("GetSystemMilliseconds", [] // gsc: GetSystemMilliseconds()
     {
@@ -180,7 +138,7 @@ namespace Components::GSC
   {
     AddFunctions();
 
-    Utils::Hook(0x61E92E, VMExecuteInternalStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x61E92E, ScriptExtension_VMExecuteInternalStub, HOOK_JUMP).install()->quick();
     Utils::Hook::Nop(0x61E933, 1);
 
     Events::OnVMShutdown([]
@@ -188,4 +146,9 @@ namespace Components::GSC
       ReplacedFunctions.clear();
     });
   }
+}
+
+void ScriptExtension_GetReplacedPos(const char* pos)
+{
+  Components::GSC::ScriptExtension::GetReplacedPos(pos);
 }

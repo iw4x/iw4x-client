@@ -1,5 +1,31 @@
 #pragma once
 
+extern "C"
+{
+  extern int Zones_ZoneVersion;
+  extern Game::XAssetType Zones_currentAssetType;
+  extern Game::XAssetType Zones_previousAssetType;
+
+  void Zones_LoadXModelLodInfoStub();
+  void Zones_LoadImpactFxArray();
+  void Zones_GameMapSpPatchStub();
+  void Zones_LoadPathDataConstant();
+  void Zones_LoadXModelColSurfPtr();
+  int Zones_FS_FOpenFileReadForThreadOriginal(const char*, int*, int);
+  int Zones_FS_ReadOriginal(void*, size_t, int);
+  void Zones_FS_FCloseFileOriginal(int);
+  std::uint32_t Zones_FS_SeekOriginal(int, int, int);
+  void Zones_LoadMapTriggersModelPointer();
+  void Zones_LoadMapTriggersHullPointer();
+  void Zones_LoadMapTriggersSlabPointer();
+  void Zones_GetCurrentAssetTypeStub();
+
+  void Zones_LoadXModelLodInfo(int i);
+  int Zones_ImpactFxArrayCount();
+  bool Zones_CheckGameMapSp(int type);
+  int Zones_PathDataSize();
+}
+
 #define VERSION_ALPHA2 316
 #define VERSION_ALPHA3 318//319
 #define VERSION_ALPHA3_DEC 319
@@ -21,10 +47,13 @@ namespace Components
 
     static void SetVersion(int version);
 
-    static int Version() { return ZoneVersion; }
+    static int Version() { return Zones_ZoneVersion; }
 
   private:
-    static int ZoneVersion;
+    friend void (::Zones_LoadXModelLodInfo)(int i);
+    friend int (::Zones_ImpactFxArrayCount)();
+    friend bool (::Zones_CheckGameMapSp)(int type);
+    friend int (::Zones_PathDataSize)();
 
     static int FxEffectIndex;
     static char* FxEffectStrings[64];
@@ -33,13 +62,11 @@ namespace Components
     static std::mutex fileDataMutex;
 
     static bool CheckGameMapSp(int type);
-    static void GameMapSpPatchStub();
 
     static void LoadFxElemDefArrayStub(bool atStreamStart);
     static bool LoadFxElemDefStub(bool atStreamStart, Game::FxElemDef* fxElem, int size);
 
     static void LoadXModelLodInfo(int i);
-    static void LoadXModelLodInfoStub();
     static bool LoadXModel(bool atStreamStart, char* xmodel, int size);
     static bool LoadXSurfaceArray(bool atStreamStart, char* buffer, int size);
     static bool LoadGameWorldSp(bool atStreamStart, char* buffer, int size);
@@ -68,33 +95,22 @@ namespace Components
     static void LoadPathNodeArray(bool atStreamStart, char* buffer, int size);
     static void LoadPathnodeConstantTail(bool atStreamStart, char* buffer, int size);
     static void LoadExpressionSupportingDataPtr(bool atStreamStart);
-    static void LoadImpactFxArray();
     static int ImpactFxArrayCount();
-    static void LoadPathDataConstant();
-    static void GetCurrentAssetTypeStub();
     static int LoadRandomFxGarbage(bool atStreamStart, char* buffer, int size);
     static int LoadGfxXSurfaceArray(bool atStreamStart, char* buffer, int size);
     static int LoadGfxXSurfaceExtraData(bool atStreamStart);
     static int LoadGfxReflectionProbes(bool atStreamStart, char* buffer, int size);
     static void LoadGfxLightMapExtraData();
-    static void LoadXModelColSurfPtr();
     static int PathDataSize();
     static int LoadMaterialTechniqueArray(bool atStreamStart, int count);
     static int LoadMapEnts(bool atStreamStart, Game::MapEnts* buffer, int size);
     static void Load_ClipInfo(bool atStreamStart);
     static int LoadClipMap(bool atStreamStart);
     static uint32_t HashCRC32StringInt(const std::string& Value, uint32_t Initial);
-    static int FS_FOpenFileReadForThreadOriginal(const char*, int*, int);
     static int FS_FOpenFileReadForThreadHook(const char* file, int* filePointer, int thread);
-    static int FS_ReadOriginal(void*, size_t, int);
     static int FS_ReadHook(void* buffer, size_t size, int filePointer);
-    static void FS_FCloseFileOriginal(int);
     static void FS_FCloseFileHook(int filePointer);
-    static std::uint32_t FS_SeekOriginal(int, int, int);
     static std::uint32_t FS_SeekHook(int fileHandle, int seekPosition, int seekOrigin);
-    static void LoadMapTriggersModelPointer();
-    static void LoadMapTriggersHullPointer();
-    static void LoadMapTriggersSlabPointer();
     static void LoadFxWorldAsset(Game::FxWorld** asset);
     static void LoadXModelAsset(Game::XModel** asset);
     static void LoadMaterialAsset(Game::Material** asset);

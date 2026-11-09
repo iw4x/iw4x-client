@@ -71,7 +71,7 @@ namespace Game
   typedef int(*PC_Directive_evalfloat_t)(source_s* source);
   extern PC_Directive_evalfloat_t PC_Directive_evalfloat;
 
-  extern int PC_ReadLine(source_s* source, token_s* token, bool expandDefines);
-  extern void PC_PushIndent(source_s* source, int type, int skip);
-  extern void PC_PopIndent(source_s* source, int* type, int* skip);
+  extern "C" int PC_ReadLine(source_s* source, token_s* token, bool expandDefines);
+  extern "C" void PC_PushIndent(source_s* source, int type, int skip);
+  extern "C" void PC_PopIndent(source_s* source, int* type, int* skip);
 }

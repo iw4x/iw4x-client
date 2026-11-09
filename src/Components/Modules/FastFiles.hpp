@@ -1,5 +1,13 @@
 #pragma once
 
+extern "C"
+{
+  void FastFiles_AuthLoadInflateDecryptBase();
+  void FastFiles_ReadXFile(void* buffer, int size);
+
+  void FastFiles_AuthLoadInflateDecryptBaseFunc(unsigned char* buffer);
+}
+
 namespace Components
 {
   class FastFiles : public Component
@@ -25,6 +33,8 @@ namespace Components
     static symmetric_CTR CurrentCTR;
 
   private:
+    friend void (::FastFiles_AuthLoadInflateDecryptBaseFunc)(unsigned char* buffer);
+
     union Key
     {
       struct
@@ -61,12 +71,10 @@ namespace Components
 
     static void AuthLoadInitCrypto();
     static int AuthLoadInflateCompare(unsigned char* buffer, int length, unsigned char* ivValue);
-    static void AuthLoadInflateDecryptBase();
     static void AuthLoadInflateDecryptBaseFunc(unsigned char* buffer);
 
     static void LoadZonesStub(Game::XZoneInfo *zoneInfo, unsigned int zoneCount);
 
-    static void ReadXFile(void* buffer, int size);
     static void ReadXFileStub(char* buffer, int size);
 
 #ifdef DEBUG

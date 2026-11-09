@@ -1,5 +1,11 @@
 #pragma once
 
+extern "C"
+{
+  int Sound_Init();
+  void Sound_Loop();
+}
+
 namespace Components
 {
   class Sound : public Component
@@ -8,9 +14,6 @@ namespace Components
     Sound();
 
   private:
-    static int  Init();
-    static void Loop();
-
     static void __stdcall ReleaseDirectSound(IUnknown** slot);
     static void PatchMiles();
 

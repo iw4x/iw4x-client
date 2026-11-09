@@ -839,29 +839,29 @@ namespace Game
 
   void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize);
 
-  void Menu_FreeItem(itemDef_s* item);
-  void Menu_SetNextCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
-  void Menu_SetPrevCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
+  extern "C" void Menu_FreeItem(itemDef_s* item);
+  extern "C" void Menu_SetNextCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
+  extern "C" void Menu_SetPrevCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
   const char* TableLookup(StringTable* stringtable, int row, int column);
   const char* UI_LocalizeGameType(const char* gameType);
-  float UI_GetScoreboardLeft(void*);
+  extern "C" float UI_GetScoreboardLeft(void*);
 
-  bool PM_IsAdsAllowed(playerState_s* ps);
+  extern "C" bool PM_IsAdsAllowed(playerState_s* ps);
 
   void ShowMessageBox(const std::string& message, const std::string& title);
 
   unsigned int R_HashString(const char* string);
   unsigned int R_HashString(const char* string, size_t maxLen);
-  void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
-  void R_SetSunFromDvars(sunflare_t* sun);
+  extern "C" void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
+  extern "C" void R_SetSunFromDvars(sunflare_t* sun);
 
-  void IN_KeyUp(kbutton_t* button);
-  void IN_KeyDown(kbutton_t* button);
+  extern "C" void IN_KeyUp(kbutton_t* button);
+  extern "C" void IN_KeyDown(kbutton_t* button);
 
   void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count);
-  void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len);
+  extern "C" void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len);
 
-  void Image_Setup(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
+  extern "C" void Image_Setup(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
 
   void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out);
   void MatrixVecMultiply(const float(&mulMat)[3][3], const vec3_t& mulVec, vec3_t& solution);
@@ -869,29 +869,29 @@ namespace Game
   void QuatMultiply(const vec4_t* q1, const vec4_t* q2, vec4_t* res);
 
   void SortWorldSurfaces(GfxWorld* world);
-  void R_AddDebugLine(float* color, float* v1, float* v2);
-  void R_AddDebugString(float *color, float *pos, float scale, const char *str);
+  extern "C" void R_AddDebugLine(float* color, float* v1, float* v2);
+  extern "C" void R_AddDebugString(float *color, float *pos, float scale, const char *str);
   void R_AddDebugBounds(float* color, Bounds* b);
   void R_AddDebugBounds(float* color, Bounds* b, const float(*quat)[4]);
 
-  Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter);
-  bool SetupPulseFXVars(const char* text, int maxLength, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, bool* resultDrawRandChar, int* resultRandSeed, int* resultMaxLength, bool* resultDecaying, int* resultDecayTimeElapsed);
-  void RB_DrawChar(Material* material, float x, float y, float w, float h, float sinAngle, float cosAngle, Glyph* glyph, unsigned int color);
-  void RB_DrawStretchPicRotate(Material* material, float x, float y, float w, float h, float s0, float t0, float s1, float t1, float sinAngle, float cosAngle, unsigned int color);
-  char ModulateByteColors(char colorA, char colorB);
+  extern "C" Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter);
+  extern "C" bool SetupPulseFXVars(const char* text, int maxLength, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, bool* resultDrawRandChar, int* resultRandSeed, int* resultMaxLength, bool* resultDecaying, int* resultDecayTimeElapsed);
+  extern "C" void RB_DrawChar(Material* material, float x, float y, float w, float h, float sinAngle, float cosAngle, Glyph* glyph, unsigned int color);
+  extern "C" void RB_DrawStretchPicRotate(Material* material, float x, float y, float w, float h, float s0, float t0, float s1, float t1, float sinAngle, float cosAngle, unsigned int color);
+  extern "C" char ModulateByteColors(char colorA, char colorB);
 
   float GraphGetValueFromFraction(int knotCount, const float(*knots)[2], float fraction);
   float GraphFloat_GetValue(const GraphFloat* graph, const float fraction);
 
-  void AimAssist_UpdateTweakables(int localClientNum);
-  void AimAssist_UpdateAdsLerp(const AimInput* input);
+  extern "C" void AimAssist_UpdateTweakables(int localClientNum);
+  extern "C" void AimAssist_UpdateAdsLerp(const AimInput* input);
 
-  bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings);
+  extern "C" bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings);
 
-  int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType);
+  extern "C" int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType);
 
   void I_strncpyz_s(char* dest, std::size_t destsize, const char* src, std::size_t count);
   void I_strcpy(char* dest, std::size_t destsize, const char* src);
 
-  void Player_SwitchToWeapon(gentity_s* player);
+  extern "C" void Player_SwitchToWeapon(gentity_s* player);
 }

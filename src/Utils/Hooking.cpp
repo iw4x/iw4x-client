@@ -58,29 +58,7 @@ namespace Utils
   {
     Hook::Interceptor::IReturn[place] = *place;
     Hook::Interceptor::ICallbacks[place] = stub;
-    *place = Hook::Interceptor::InterceptionStub;
-  }
-
-  __declspec(naked) void Hook::Interceptor::InterceptionStub()
-  {
-    __asm
-    {
-      sub esp, 4h                             // Reserve space on the stack for the return address
-      pushad                                  // Store registers
-
-      lea eax, [esp + 20h]                    // Load initial stack pointer
-      push eax                                // Push it onto the stack
-
-      call Hook::Interceptor::RunCallback     // Run the callback based on the given stack pointer
-      call Hook::Interceptor::PopReturn       // Get the initial return address according to the stack pointer
-
-      add esp, 4h                             // Clear the stack
-
-      mov [esp + 20h], eax                    // Store the return address at the reserved space
-      popad                                   // Restore the registers
-
-      retn                                    // Return (jump to our return address)
-    }
+    *place = Hooking_InterceptionStub;
   }
 
   void Hook::Interceptor::RunCallback(void* place)
@@ -253,4 +231,14 @@ namespace Utils
   {
     Hook::RedirectJump(reinterpret_cast<void*>(place), stub);
   }
+}
+
+void Hooking_RunCallback(void* place)
+{
+  Utils::Hook::Interceptor::RunCallback(place);
+}
+
+void* Hooking_PopReturn(void* place)
+{
+  return Utils::Hook::Interceptor::PopReturn(place);
 }

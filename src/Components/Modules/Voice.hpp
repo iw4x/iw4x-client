@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void Voice_UI_Mute_Player_Stub();
+
+  void Voice_UI_Mute_player(int clientNum, int localClientNum);
+}
+
 namespace Components
 {
   class Voice : public Component
@@ -18,6 +25,8 @@ namespace Components
     };
 
   private:
+    friend void (::Voice_UI_Mute_player)(int clientNum, int localClientNum);
+
     static constexpr auto MAX_VOICE_PACKET_DATA = 256;
     static constexpr auto MAX_SERVER_QUEUED_VOICE_PACKETS = 40;
 
@@ -54,6 +63,5 @@ namespace Components
     static void CL_VoicePacket(Game::netadr_t* address, Game::msg_t* msg);
 
     static void UI_Mute_player(int clientNum, int localClientNum);
-    static void UI_Mute_Player_Stub();
   };
 }

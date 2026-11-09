@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void UIScript_RunMenuScriptStub();
+
+  bool UIScript_RunMenuScript(const char* name, const char** args);
+}
+
 namespace Components
 {
   class UIScript : public Component
@@ -32,9 +39,10 @@ namespace Components
     static void AddOwnerDraw(int ownerdraw, const std::function<void()>& callback);
 
   private:
+    friend bool (::UIScript_RunMenuScript)(const char* name, const char** args);
+
     static void OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key);
     static bool RunMenuScript(const char* name, const char** args);
-    static void RunMenuScriptStub();
 
     static std::unordered_map<std::string, UIScriptHandler> UIScripts;
     static std::unordered_map<int, std::function<void()>> UIOwnerDraws;

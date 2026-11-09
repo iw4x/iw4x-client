@@ -134,22 +134,6 @@ namespace Components
     return true;
   }
 
-  __declspec(naked) void Materials::ImageVersionCheck()
-  {
-    __asm
-    {
-      cmp eax, 9
-      je returnSafely
-
-      jmp Materials::ImageVersionCheckHook.original
-
-    returnSafely:
-      mov al, 1
-      add esp, 18h
-      retn
-    }
-  }
-
   int Materials::WriteDeathMessageIcon(char* string, int offset, Game::Material* material)
   {
     if (!material)
@@ -163,29 +147,6 @@ namespace Components
     strncpy_s(string + offset, 1024 - offset, material->info.name, length);
 
     return offset + length;
-  }
-
-  __declspec(naked) void Materials::DeathMessageStub()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      push edx // Material
-      push eax // offset
-      push ecx // String
-
-      call Materials::WriteDeathMessageIcon
-      add esp, 0Ch
-
-      mov [esp + 20h], eax
-      popad
-      pop eax
-
-      add esp, 8h
-      retn
-    }
   }
 
   int Materials::FormatImagePath(char* buffer, size_t size, int, int, const char* image)
@@ -233,10 +194,10 @@ namespace Components
   Materials::Materials()
   {
     // Allow codo images
-    Materials::ImageVersionCheckHook.initialize(0x53A456, Materials::ImageVersionCheck, HOOK_CALL)->install();
+    Materials::ImageVersionCheckHook.initialize(0x53A456, Materials_ImageVersionCheck, HOOK_CALL)->install();
 
     // Adapt death message to IW5 material format
-    Utils::Hook(0x5A30D9, Materials::DeathMessageStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x5A30D9, Materials_DeathMessageStub, HOOK_JUMP).install()->quick();
 
     // Resolve preview images to loadscreens
     Utils::Hook(0x53AC19, Materials::FormatImagePath, HOOK_CALL).install()->quick();
@@ -283,4 +244,9 @@ namespace Components
 
     Materials::ImageVersionCheckHook.uninstall();
   }
+}
+
+int Materials_WriteDeathMessageIcon(char* string, int offset, Game::Material* material)
+{
+  return Components::Materials::WriteDeathMessageIcon(string, offset, material);
 }

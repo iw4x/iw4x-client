@@ -1,5 +1,18 @@
 #pragma once
 
+extern "C"
+{
+  void Theatre_BaselineStoreStub();
+  void Theatre_BaselineToFileStub();
+  void Theatre_AdjustTimeDeltaStub();
+  void Theatre_ServerTimedOutStub();
+  void Theatre_UISetActiveMenuStub();
+
+  void Theatre_StoreBaseline(Game::msg_t* snapshotMsg);
+  void Theatre_WriteBaseline();
+  bool Theatre_AdjustTimeDelta();
+}
+
 namespace Components
 {
   class Theatre : public Component
@@ -10,6 +23,10 @@ namespace Components
     static void StopRecording();
 
   private:
+    friend void (::Theatre_StoreBaseline)(Game::msg_t* snapshotMsg);
+    friend void (::Theatre_WriteBaseline)();
+    friend bool (::Theatre_AdjustTimeDelta)();
+
     class DemoInfo
     {
     public:
@@ -48,11 +65,6 @@ namespace Components
 
     static void GamestateWriteStub(Game::msg_t* msg, char byte);
     static void RecordGamestateStub();
-    static void BaselineStoreStub();
-    static void BaselineToFileStub();
-    static void AdjustTimeDeltaStub();
-    static void ServerTimedOutStub();
-    static void UISetActiveMenuStub();
 
     static int CL_FirstSnapshot_Stub();
     static void SV_SpawnServer_Stub();

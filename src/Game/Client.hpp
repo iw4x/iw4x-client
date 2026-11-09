@@ -112,8 +112,8 @@ namespace Game
 
   extern void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer);
 
-  extern void CL_MouseMove(int localClientNum, Game::usercmd_s* cmd, float frametime_base);
+  extern "C" void CL_MouseMove(int localClientNum, Game::usercmd_s* cmd, float frametime_base);
 
-  extern void AdjustViewanglesForKeyboard(int localClientNum);
+  extern "C" void AdjustViewanglesForKeyboard(int localClientNum);
 
 }

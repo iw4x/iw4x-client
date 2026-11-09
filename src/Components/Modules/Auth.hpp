@@ -1,5 +1,17 @@
 #pragma once
 
+extern "C"
+{
+  extern bool Auth_HasAccessToReservedSlot;
+
+  void Auth_DirectConnectStub();
+  void Auth_ProtocolMismatchStub();
+  void Auth_DirectConnectPrivateClientStub();
+
+  void Auth_ParseConnectData(Game::msg_t* msg, Game::netadr_t* addr);
+  const char* Auth_ProtocolMismatchMessage(int clientProtocol);
+}
+
 namespace Components
 {
   class Auth : public Component
@@ -23,6 +35,8 @@ namespace Components
     static std::string GetMachineEntropy();
 
   private:
+    friend void (::Auth_ParseConnectData)(Game::msg_t* msg, Game::netadr_t* addr);
+    friend const char* (::Auth_ProtocolMismatchMessage)(int clientProtocol);
 
     class TokenIncrementing
     {
@@ -43,15 +57,10 @@ namespace Components
     static Utils::Cryptography::ECC::Key GuidKey;
     static std::vector<std::uint64_t> BannedUids;
 
-    static bool HasAccessToReservedSlot;
-
     static void SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char* format, int len);
     static void ParseConnectData(Game::msg_t* msg, Game::netadr_t* addr);
-    static void DirectConnectStub();
     static const char* ProtocolMismatchMessage(int clientProtocol);
-    static void ProtocolMismatchStub();
     static char* Info_ValueForKeyStub(const char* s, const char* key);
-    static void DirectConnectPrivateClientStub();
 
     static std::string GetGUIDFilePath();
 

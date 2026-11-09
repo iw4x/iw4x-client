@@ -3,6 +3,14 @@
 #define HOOK_JUMP true
 #define HOOK_CALL false
 
+extern "C"
+{
+  void Hooking_InterceptionStub();
+
+  void Hooking_RunCallback(void* place);
+  void* Hooking_PopReturn(void* place);
+}
+
 namespace Utils
 {
   class Hook
@@ -39,10 +47,12 @@ namespace Utils
       static void Install(void** place, void(*stub)());
 
     private:
+      friend void (::Hooking_RunCallback)(void* place);
+      friend void* (::Hooking_PopReturn)(void* place);
+
       static std::map<void*, void*> IReturn;
       static std::map<void*, void(*)()> ICallbacks;
 
-      static void InterceptionStub();
       static void RunCallback(void* place);
       static void* PopReturn(void* place);
     };

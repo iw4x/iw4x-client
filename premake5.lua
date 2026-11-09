@@ -160,8 +160,41 @@ project "iw4x"
   {
     "src/**.rc",
     "src/**.hpp",
-    "src/**.cpp"
+    "src/**.cpp",
+    "src/**.asm"
   }
+
+  -- Assemble the assembly sources with ml directly instead of through the
+  -- MASM build customization, for two reasons. Firstly, the customization
+  -- names the object after the file name without the extension, so Foo.asm
+  -- would overwrite the object of Foo.cpp. Secondly, it relies on
+  -- XamlTaskFactory, which MSBuild under Wine doesn't have.
+  --
+  -- We also prefix the object name with the name of the source directory
+  -- since the objects all go into the same directory and, for example,
+  -- Game/FileSystem.asm and Components/Modules/FileSystem.asm would
+  -- otherwise both produce FileSystem.asm.obj.
+  --
+  -- Note that we assemble with SafeSEH (/safeseh): without it the linker
+  -- silently omits the table of safe exception handlers from the image as
+  -- soon as one object lacks the marking. The custom build step passes its
+  -- .obj outputs to the linker.
+  --
+  local asm_object = "%{cfg.objdir}/%{file.directory:match ('[^/]+$')}." ..
+                     "%{file.basename}.asm.obj"
+
+  filter "files:**.asm"
+    buildmessage "%{file.name}"
+
+    buildcommands
+    {
+      "ml.exe /nologo /c /safeseh /Zi /W3 /WX " ..
+      "/Fo\"" .. asm_object .. "\" \"%{file.relpath}\""
+    }
+
+    buildoutputs {asm_object}
+
+  filter {}
 
   -- We put the generated directory first so that its version.h takes
   -- precedence over the one generate-linux.sh writes into the source tree.

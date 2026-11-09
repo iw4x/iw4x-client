@@ -1,5 +1,10 @@
 #pragma once
 
+extern "C"
+{
+  void Stats_HashFilenameStub();
+}
+
 namespace Components
 {
   class Stats : public Component
@@ -26,7 +31,6 @@ namespace Components
     static void MoveOldStatsToNewFolder();
 
     static uint32_t HashFilename();
-    static void HashFilenameStub();
 
     static int LiveStorage_DataSetValue_Stub(void* state, void* ddlContext, int unused, const char* value);
 

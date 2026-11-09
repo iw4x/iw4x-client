@@ -1,5 +1,18 @@
 #pragma once
 
+extern "C"
+{
+  extern void (*Logger_PipeCallback)(const std::string&);
+
+  void Logger_PrintMessage_Stub();
+  void Logger_BuildOSPath_Stub();
+
+  void Logger_PrintMessageSentry(const char* data);
+  void Logger_PrintMessagePipe(const char* data);
+  void Logger_NetworkLog(const char* data, bool gLog);
+  void Logger_RedirectOSPath(const char* file, char* folder);
+}
+
 namespace Components
 {
   class Logger : public Component
@@ -121,6 +134,11 @@ namespace Components
     }
 
   private:
+    friend void (::Logger_PrintMessageSentry)(const char* data);
+    friend void (::Logger_PrintMessagePipe)(const char* data);
+    friend void (::Logger_NetworkLog)(const char* data, bool gLog);
+    friend void (::Logger_RedirectOSPath)(const char* file, char* folder);
+
     static std::mutex MessageMutex;
     static std::vector<std::string> MessageQueue;
 
@@ -130,19 +148,16 @@ namespace Components
     static Dvar::Var IW4x_one_log;
     static Dvar::Var IW4x_fail2ban_location;
 
-    static void(*PipeCallback)(const std::string&);
 
     static void MessagePrint(int channel, const std::string& msg);
 
     static void Frame();
 
     static void G_LogPrintf_Hk(const char* fmt, ...);
-    static void PrintMessage_Stub();
     static void PrintMessagePipe(const char* data);
     static void PrintMessageSentry(const char* data);
     static void EnqueueMessage(const std::string& message);
 
-    static void BuildOSPath_Stub();
     static void RedirectOSPath(const char* file, char* folder);
 
     static void NetworkLog(const char* data, bool gLog);

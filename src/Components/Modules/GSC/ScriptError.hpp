@@ -1,5 +1,13 @@
 #pragma once
 
+extern "C"
+{
+  void ScriptError_EmitThreadInternal_Stub();
+
+  void ScriptError_AddThreadStartOpcodePos(unsigned int sourcePos);
+  void ScriptError_RecordThreadStart(const Game::sval_u* node);
+}
+
 namespace Components::GSC
 {
   class ScriptError : public Component
@@ -23,6 +31,9 @@ namespace Components::GSC
     static std::string DescribeCodePos (const char* pos);
 
   private:
+    friend void (::ScriptError_AddThreadStartOpcodePos)(unsigned int sourcePos);
+    friend void (::ScriptError_RecordThreadStart)(const Game::sval_u* node);
+
     struct ThreadStart
     {
       const char* pos;
@@ -62,8 +73,6 @@ namespace Components::GSC
 
     static void Scr_InitOpcodeLookup();
     static void Scr_ShutdownOpcodeLookup();
-
-    static void EmitThreadInternal_Stub();
 
     static Game::SourceBufferInfo* Scr_GetNewSourceBuffer();
     static void Scr_AddSourceBufferInternal(const char* extFilename, const char* codePos, char* sourceBuf, int len, bool doEolFixup, bool archive);

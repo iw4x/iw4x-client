@@ -75,27 +75,6 @@ namespace Components
     }
   }
 
-  __declspec(naked) void Elevators::PM_CorrectAllSolidStub()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      push [esp + 0x8 + 0x24]
-      push [esp + 0x8 + 0x24]
-      push eax
-      call PM_CorrectAllSolid
-      add esp, 0xC
-
-      mov [esp + 0x20], eax
-      popad
-      pop eax
-
-      ret
-    }
-  }
-
   Elevators::Elevators()
   {
     Events::OnDvarInit([]
@@ -111,7 +90,7 @@ namespace Components
       BG_Elevators = Game::Dvar_RegisterEnum("bg_elevators", values, ENABLED, Game::DVAR_CODINFO, "Elevators glitch settings");
     });
 
-    Utils::Hook(0x57369E, PM_CorrectAllSolidStub, HOOK_CALL).install()->quick(); // PM_GroundTrace
+    Utils::Hook(0x57369E, Elevators_PM_CorrectAllSolidStub, HOOK_CALL).install()->quick(); // PM_GroundTrace
 
     // Place hooks in PM_CheckDuck. If the elevators dvar is set to easy the
     // flags for duck/prone will always be removed from the player state
@@ -119,4 +98,9 @@ namespace Components
     Utils::Hook(0x570E0B, PM_Trace_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x570D70, PM_Trace_Hk, HOOK_CALL).install()->quick();
   }
+}
+
+int Elevators_PM_CorrectAllSolid(Game::pmove_s* move, Game::pml_t* pml, Game::trace_t* trace)
+{
+  return Components::Elevators::PM_CorrectAllSolid(move, pml, trace);
 }

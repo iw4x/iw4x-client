@@ -105,44 +105,4 @@ namespace Game
 
   const dvar_t** ip = reinterpret_cast<const dvar_t**>(0x64A1DF8);
   const dvar_t** port = reinterpret_cast<const dvar_t**>(0x64A3004);
-
-  __declspec(naked) void Dvar_SetVariant(dvar_t* /*dvar*/, DvarValue /*value*/, DvarSetSource /*source*/)
-  {
-    static DWORD Dvar_SetVariant_t = 0x647400;
-
-    __asm
-    {
-      pushad
-
-      mov eax, [esp + 0x4 + 0x20] // dvar
-      push [esp + 0x18 + 0x20] // source
-      push [esp + 0x18 + 0x20] // value
-      push [esp + 0x18 + 0x20] // value
-      push [esp + 0x18 + 0x20] // value
-      push [esp + 0x18 + 0x20] // value
-
-      call Dvar_SetVariant_t
-      add esp, 0x14
-
-      popad
-
-      retn
-    }
-  }
-
-  void Dvar_SetFromStringFromSource(const dvar_t* dvar, const char* string, DvarSetSource source)
-  {
-    static DWORD Dvar_SetFromStringFromSource_t = 0x648580;
-
-    __asm
-    {
-      pushad
-      mov esi, dvar
-      mov eax, string
-      push source
-      call Dvar_SetFromStringFromSource_t
-      add esp, 0x4
-      popad
-    }
-  }
 }

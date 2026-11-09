@@ -110,21 +110,6 @@ namespace Components
     }
   }
 
-  __declspec(naked) void ServerInfo::DrawScoreboardStub()
-  {
-    __asm
-    {
-      pushad
-      push eax
-      call DrawScoreboardInfo
-      pop eax
-      popad
-
-      push 591B70h
-      retn
-    }
-  }
-
   Utils::InfoString ServerInfo::GetHostInfo()
   {
     Utils::InfoString info;
@@ -191,7 +176,7 @@ namespace Components
     PlayerContainer.currentPlayer = 0;
 
     // Draw IP and hostname on the scoreboard
-    Utils::Hook(0x4FC6EA, DrawScoreboardStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x4FC6EA, ServerInfo_DrawScoreboardStub, HOOK_CALL).install()->quick();
 
     // Ignore native getStatus implementation
     Utils::Hook::Nop(0x62654E, 6);
@@ -352,4 +337,9 @@ namespace Components
   {
     PlayerContainer.playerList.clear();
   }
+}
+
+void ServerInfo_DrawScoreboardInfo(int localClientNum)
+{
+  Components::ServerInfo::DrawScoreboardInfo(localClientNum);
 }

@@ -22,6 +22,43 @@
 #include "../../Components/Modules/RawMouse.hpp"
 #include "../../Components/Modules/Scheduler.hpp"
 
+extern "C"
+{
+  void Controller_PlayerUseEntityStub ();
+  void Controller_CommandAssignmentStub ();
+  void Controller_ItemSetFocusStub ();
+  void Controller_MouseMoveStub ();
+  void Controller_RemoteControlMoveStub ();
+  void Controller_LocationSelectionStub ();
+  void Controller_WriteDeltaMovementStub ();
+  void Controller_ReadDeltaMovementStub1 ();
+  void Controller_ReadDeltaMovementStub2 ();
+  void Controller_LocalizedKeyNamesStub ();
+
+  bool Controller_ShouldUse (const Game::gentity_s* player, unsigned held);
+
+  int Controller_CommandAssignment (int client,
+                                    const char* command,
+                                    int (*keys_out)[2]);
+
+  void Controller_MenuCursorFocusPoint (const Game::itemDef_s* item,
+                                        float* point);
+
+  void Controller_MouseMove (int client,
+                             Game::usercmd_s* cmd,
+                             float frame_time);
+
+  void Controller_RemoteControlMove (int client, Game::usercmd_s* cmd);
+  bool Controller_LocationSelection (int client, Game::usercmd_s* cmd);
+
+  void Controller_ReadDeltaMovement (Game::msg_t* msg,
+                                     int key,
+                                     Game::usercmd_s* from,
+                                     Game::usercmd_s* to);
+
+  Game::keyname_t* Controller_LocalizedKeyNames ();
+}
+
 namespace Controller
 {
   namespace engine
@@ -59,9 +96,6 @@ namespace Controller
       constexpr auto cl_mouse_move_call {0x5A6DAE};
       constexpr auto cl_remote_control_move_call {0x5A6D4E};
       constexpr auto cl_location_selection_call {0x5A6D72};
-
-      constexpr auto cl_remote_control_move_address {0x5A6BA0};
-      constexpr auto cl_location_selection_address {0x5A67A0};
 
       constexpr auto write_delta_movement_patch {0x60E38D};
       constexpr auto write_delta_movement_return {0x60E40E};
@@ -128,39 +162,6 @@ namespace Controller
         }
       }
 
-      __declspec (naked) void
-      player_use_entity_stub ()
-      {
-        __asm
-        {
-          cmp eax, [ecx + 0x10]
-          jl skip
-
-          push eax
-          pushad
-
-          push eax
-          push edi
-          call should_use
-          add esp, 0x8
-
-          mov [esp + 0x20], eax
-
-          popad
-          pop eax
-
-          test al, al
-          jz skip
-
-          push 0x5FE39B
-          ret
-
-        skip:
-          push 0x5FE3AF
-          ret
-        }
-      }
-
       int
       command_assignment (int client,
                           const char* command,
@@ -177,28 +178,6 @@ namespace Controller
         (*keys_out)[1] = found[1];
 
         return static_cast<int> (count);
-      }
-
-      __declspec (naked) void
-      command_assignment_stub ()
-      {
-        __asm
-        {
-          push eax
-          pushad
-
-          push [esp + 0x20 + 0x4 + 0x8]
-          push [esp + 0x20 + 0x4 + 0x8]
-          push eax
-          call command_assignment
-          add esp, 0xC
-
-          mov [esp + 0x20], eax
-
-          popad
-          pop eax
-          ret
-        }
       }
 
       void
@@ -296,26 +275,6 @@ namespace Controller
         point[1] = (y + h * 0.5f - y0) / sy;
       }
 
-      __declspec (naked) void
-      item_set_focus_stub ()
-      {
-        __asm
-        {
-          pushad
-
-          lea eax, [esp + 0x20 + 0x4]
-          push eax
-          push ebx
-          call menu_cursor_focus_point
-          add esp, 0x8
-
-          popad
-
-          push 0x6392B0
-          retn
-        }
-      }
-
       void
       cl_mouse_move (int client, usercmd_s* cmd, float frame_time) noexcept
       {
@@ -325,45 +284,11 @@ namespace Controller
           Game::CL_MouseMove (client, cmd, frame_time);
       }
 
-      __declspec (naked) void
-      cl_mouse_move_stub ()
-      {
-        __asm
-        {
-          pushad
-
-          push [esp + 0x20 + 0x4]
-          push ebx
-          push eax
-          call cl_mouse_move
-          add esp, 0xC
-
-          popad
-          ret
-        }
-      }
-
       void
       cl_remote_control_move (int client, usercmd_s* cmd) noexcept
       {
         if (driving ())
           the_runtime->view ().apply_remote_move (client, *cmd);
-      }
-
-      __declspec (naked) void
-      cl_remote_control_move_stub ()
-      {
-        __asm
-        {
-          push edi
-          push eax
-
-          call cl_remote_control_move_address
-          call cl_remote_control_move
-
-          add esp, 0x8
-          ret
-        }
       }
 
       bool
@@ -373,47 +298,6 @@ namespace Controller
           the_runtime->view ().apply_location_selection (client);
 
         return true;
-      }
-
-      __declspec (naked) void
-      cl_location_selection_stub ()
-      {
-        __asm
-        {
-          push esi
-          push eax
-
-          call cl_location_selection_address
-
-          test al, al
-          jz done
-
-          call cl_location_selection
-
-        done:
-          add esp, 0x8
-          ret
-        }
-      }
-
-      __declspec (naked) void
-      write_delta_movement_stub ()
-      {
-        __asm
-        {
-          add esp, 0xC
-
-          mov dl, byte ptr [edi + 0x1A]
-          mov dh, byte ptr [edi + 0x1B]
-          mov [esp + 0x30], dx
-
-          mov dl, byte ptr [ebp + 0x1A]
-          mov dh, byte ptr [ebp + 0x1B]
-          mov [esp + 0x2C], dx
-
-          push 0x60E40E
-          retn
-        }
       }
 
       void
@@ -432,67 +316,12 @@ namespace Controller
         to->rightmove = d.right;
       }
 
-      __declspec (naked) void
-      read_delta_movement_stub_1 ()
-      {
-        __asm
-        {
-          push ebx
-          push ebp
-          push edi
-          push esi
-          call read_delta_movement
-          add esp, 0x10
-
-          push 0x4921BF
-          ret
-        }
-      }
-
-      __declspec (naked) void
-      read_delta_movement_stub_2 ()
-      {
-        __asm
-        {
-          push ebx
-          push ebp
-          push edi
-          push esi
-          call read_delta_movement
-          add esp, 0x10
-
-          push 3
-          push esi
-          push 0x492085
-          ret
-        }
-      }
-
       keyname_t*
       localized_key_names () noexcept
       {
         return active_glyph_family () == mapping::glyph_family::playstation
           ? combined_glyphs_playstation
           : combined_glyphs_xbox;
-      }
-
-      __declspec (naked) void
-      localized_key_names_stub ()
-      {
-        __asm
-        {
-          push eax
-          pushad
-
-          call localized_key_names
-          mov [esp + 0x20], eax
-
-          popad
-          pop eax
-
-          test edi, edi
-          ret
-        }
       }
 
       void
@@ -573,7 +402,7 @@ namespace Controller
         Utils::Hook::Set<keyname_t*> (keyname_table_slot_1, combined_key_names);
         Utils::Hook::Set<keyname_t*> (keyname_table_slot_2, combined_key_names);
         Utils::Hook::Set<keyname_t*> (keyname_table_slot_3, combined_key_names);
-        Utils::Hook (localized_keyname_call, localized_key_names_stub, HOOK_CALL).install ()->quick ();
+        Utils::Hook (localized_keyname_call, Controller_LocalizedKeyNamesStub, HOOK_CALL).install ()->quick ();
       }
     }
 
@@ -881,14 +710,14 @@ namespace Controller
     void
     install_protocol ()
     {
-      Utils::Hook (write_delta_movement_patch, write_delta_movement_stub, HOOK_JUMP).install ()->quick ();
+      Utils::Hook (write_delta_movement_patch, Controller_WriteDeltaMovementStub, HOOK_JUMP).install ()->quick ();
       Utils::Hook::Set<BYTE> (write_delta_field_width_1, 16);
       Utils::Hook::Set<BYTE> (write_delta_field_width_2, 16);
-      Utils::Hook (read_delta_movement_patch_1, read_delta_movement_stub_1, HOOK_JUMP).install ()->quick ();
-      Utils::Hook (read_delta_movement_patch_2, read_delta_movement_stub_2, HOOK_JUMP).install ()->quick ();
+      Utils::Hook (read_delta_movement_patch_1, Controller_ReadDeltaMovementStub1, HOOK_JUMP).install ()->quick ();
+      Utils::Hook (read_delta_movement_patch_2, Controller_ReadDeltaMovementStub2, HOOK_JUMP).install ()->quick ();
       Utils::Hook (cg_register_dvars_call, cg_register_dvars, HOOK_CALL).install ()->quick ();
       Utils::Hook (key_write_bindings_call, key_write_bindings, HOOK_CALL).install ()->quick ();
-      Utils::Hook (player_use_entity_patch, player_use_entity_stub, HOOK_JUMP).install ()->quick ();
+      Utils::Hook (player_use_entity_patch, Controller_PlayerUseEntityStub, HOOK_JUMP).install ()->quick ();
     }
 
     void
@@ -907,7 +736,7 @@ namespace Controller
       Utils::Hook::Set<BYTE> (aim_slowdown_enabled_flags, Game::DVAR_ARCHIVE);
       Utils::Hook::Set<BYTE> (aim_lockon_enabled_flags, Game::DVAR_ARCHIVE);
 
-      Utils::Hook (command_assignment_address, command_assignment_stub, HOOK_JUMP).install ()->quick ();
+      Utils::Hook (command_assignment_address, Controller_CommandAssignmentStub, HOOK_JUMP).install ()->quick ();
       Utils::Hook (menu_set_binding_call_1, menu_set_binding, HOOK_CALL).install ()->quick ();
       Utils::Hook (menu_set_binding_call_2, menu_set_binding, HOOK_CALL).install ()->quick ();
       Utils::Hook (menu_set_binding_call_3, menu_set_binding, HOOK_CALL).install ()->quick ();
@@ -915,14 +744,14 @@ namespace Controller
       Utils::Hook (cl_key_event_call, cl_key_event, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_mouse_event_call, cl_mouse_event, HOOK_CALL).install ()->quick ();
       Utils::Hook (ui_bypass_mouse_call, ui_bypass_mouse_input, HOOK_CALL).install ()->quick ();
-      Utils::Hook (menu_prev_cursor_focus_call, item_set_focus_stub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (menu_next_cursor_focus_call, item_set_focus_stub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (menu_focus_first_call, item_set_focus_stub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (menu_set_focus_call, item_set_focus_stub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (menu_set_focus_by_dvar_call, item_set_focus_stub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (cl_mouse_move_call, cl_mouse_move_stub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (cl_remote_control_move_call, cl_remote_control_move_stub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (cl_location_selection_call, cl_location_selection_stub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_prev_cursor_focus_call, Controller_ItemSetFocusStub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_next_cursor_focus_call, Controller_ItemSetFocusStub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_focus_first_call, Controller_ItemSetFocusStub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_set_focus_call, Controller_ItemSetFocusStub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_set_focus_by_dvar_call, Controller_ItemSetFocusStub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (cl_mouse_move_call, Controller_MouseMoveStub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (cl_remote_control_move_call, Controller_RemoteControlMoveStub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (cl_location_selection_call, Controller_LocationSelectionStub, HOOK_CALL).install ()->quick ();
 
       runtime* const r (&rt);
 
@@ -933,4 +762,57 @@ namespace Controller
         "controller engine hooks installed");
     }
   }
+}
+
+bool
+Controller_ShouldUse (const Game::gentity_s* player, unsigned held)
+{
+  return Controller::engine::should_use (player, held);
+}
+
+int
+Controller_CommandAssignment (int client,
+                              const char* command,
+                              int (*keys_out)[2])
+{
+  return Controller::engine::command_assignment (client, command, keys_out);
+}
+
+void
+Controller_MenuCursorFocusPoint (const Game::itemDef_s* item, float* point)
+{
+  Controller::engine::menu_cursor_focus_point (item, point);
+}
+
+void
+Controller_MouseMove (int client, Game::usercmd_s* cmd, float frame_time)
+{
+  Controller::engine::cl_mouse_move (client, cmd, frame_time);
+}
+
+void
+Controller_RemoteControlMove (int client, Game::usercmd_s* cmd)
+{
+  Controller::engine::cl_remote_control_move (client, cmd);
+}
+
+bool
+Controller_LocationSelection (int client, Game::usercmd_s* cmd)
+{
+  return Controller::engine::cl_location_selection (client, cmd);
+}
+
+void
+Controller_ReadDeltaMovement (Game::msg_t* msg,
+                              int key,
+                              Game::usercmd_s* from,
+                              Game::usercmd_s* to)
+{
+  Controller::engine::read_delta_movement (msg, key, from, to);
+}
+
+Game::keyname_t*
+Controller_LocalizedKeyNames ()
+{
+  return Controller::engine::localized_key_names ();
 }

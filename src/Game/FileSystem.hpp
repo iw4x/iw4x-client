@@ -89,5 +89,5 @@ namespace Game
 
   extern int FS_FOpenFileReadCurrentThread(const char* filename, int* file);
 
-  extern void FS_AddLocalizedGameDirectory(const char* path, const char* dir);
+  extern "C" void FS_AddLocalizedGameDirectory(const char* path, const char* dir);
 }

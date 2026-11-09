@@ -264,25 +264,6 @@ namespace Components
     return static_cast<std::uint16_t>((*Game::port)->current.unsignedInt);
   }
 
-  __declspec(naked) void Network::PacketErrorCheck()
-  {
-    __asm
-    {
-      cmp eax, 2746h
-      jz returnIgnore
-
-      cmp eax, WSAENETRESET
-      jz returnIgnore
-
-      push 465325h
-      retn
-
-    returnIgnore:
-      push 4654C6h
-      retn
-    }
-  }
-
   void Network::OnClientPacket(const std::string& command, const networkCallback& callback)
   {
     CL_Callbacks[Utils::String::ToLower(command)] = callback;
@@ -323,37 +304,6 @@ namespace Components
     return true;
   }
 
-  __declspec(naked) void Network::CL_HandleCommandStub()
-  {
-    __asm
-    {
-      lea eax, [esp + 0xC54] // address
-
-      pushad
-
-      push ebp // msg_t
-      push edi // command name
-      push eax // netadr_t pointer
-      call CL_HandleCommand
-      add esp, 0xC
-
-      test al, al
-
-      popad
-
-      jz unhandled
-
-      // Exit CL_DispatchConnectionlessPacket
-      push 0x5A9E0E
-      retn
-
-    unhandled:
-      // Proceed
-      push 0x5AA719
-      retn
-    }
-  }
-
   Network::Network()
   {
     AssertSize(Game::netadr_t, 20);
@@ -379,10 +329,10 @@ namespace Components
     Utils::Hook::Set<const char*>(0x4698E3, "%u.%u.%u.%u:%hu");
 
     // Prevent recvfrom error spam
-    Utils::Hook(0x46531A, PacketErrorCheck, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x46531A, Network_PacketErrorCheck, HOOK_JUMP).install()->quick();
 
     // Handle client packets
-    Utils::Hook(0x5AA703, CL_HandleCommandStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x5AA703, Network_CL_HandleCommandStub, HOOK_JUMP).install()->quick();
 
     // Disable unused OOB packets handlers just to be sure
     Utils::Hook::Set<std::uint8_t>(0x5AA5B6, 0xEB); // CL_SteamServerAuth
@@ -448,4 +398,9 @@ namespace Components
       Game::Com_PrintMessage(Game::CON_CHANNEL_CLIENT, printBuf, false);
     });
   }
+}
+
+bool Network_CL_HandleCommand(Game::netadr_t* address, const char* command, Game::msg_t* message)
+{
+  return Components::Network::CL_HandleCommand(address, command, message);
 }

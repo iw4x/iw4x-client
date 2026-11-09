@@ -1,5 +1,13 @@
 #pragma once
 
+extern "C"
+{
+  void ArenaLength_CompareMapNameStub1();
+  void ArenaLength_CompareMapNameStub2();
+  void ArenaLength_CompareMapNameStub3();
+  void ArenaLength_ReadVoteReferenceStub();
+}
+
 namespace Components
 {
   class ArenaLength : public Component
@@ -9,11 +17,5 @@ namespace Components
 
     static Game::newMapArena_t NewArenas[];
     static char* NewArenaInfos[];
-
-  private:
-    static void ArenaMapOffsetHook1();
-    static void ArenaMapOffsetHook2();
-    static void ArenaMapOffsetHook3();
-    static void ArenaMapOffsetHook4();
   };
 }

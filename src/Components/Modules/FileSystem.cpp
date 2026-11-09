@@ -265,23 +265,6 @@ namespace Components
     RegisterFolder("userraw");
   }
 
-  __declspec(naked) void FileSystem::StartupStub()
-  {
-    __asm
-    {
-      pushad
-      push esi
-      call FileSystem::RegisterFolders
-      pop esi
-      popad
-
-      mov edx, ds:63D0CC0h
-
-      push 48264Dh
-      retn
-    }
-  }
-
   int FileSystem::Cmd_Exec_f_Stub(const char* s0, [[maybe_unused]] const char* s1)
   {
     int f;
@@ -401,26 +384,15 @@ namespace Components
     return r;
   }
 
-  __declspec (naked) int FileSystem::
-  FS_FOpenFileReadForThread (const char*, int*, int)
-  {
-    __asm
-    {
-      sub  esp, 0x33C
-      push 0x643276
-      ret
-    }
-  }
-
   int FileSystem::
   FS_FOpenFileReadForThread_Hk (const char* filename, int* file, int thread)
   {
-    // Note that we call the above stub through a volatile pointer since
-    // otherwise the optimizer sees that it doesn't touch any registers and
-    // assumes the call preserves them, which the engine function doesn't.
+    // Note that we call the stub in FileSystem.asm through a volatile pointer
+    // since otherwise the optimizer sees that it doesn't touch any registers
+    // and assumes the call preserves them, which the engine function doesn't.
     //
     static auto (* volatile fs_fopen_file_read_for_thread) (const char*, int*, int)
-      (&FS_FOpenFileReadForThread);
+      (&FileSystem_FS_FOpenFileReadForThread);
 
     int r (fs_fopen_file_read_for_thread (filename, file, thread));
 
@@ -585,7 +557,7 @@ namespace Components
     Utils::Hook::Nop(0x6098F2, 5);
 
     // Register additional folders
-    Utils::Hook(0x482647, StartupStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x482647, FileSystem_StartupStub, HOOK_JUMP).install()->quick();
 
     // exec whitelist removal
     Utils::Hook::Nop(0x609685, 5);
@@ -668,4 +640,9 @@ namespace Components
   {
     assert(FileSystem::MemAllocator.empty());
   }
+}
+
+void FileSystem_RegisterFolders()
+{
+  Components::FileSystem::RegisterFolders();
 }

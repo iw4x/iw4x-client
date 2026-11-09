@@ -117,17 +117,4 @@ namespace Game
 
     SV_SendServerCommand(&svs_clients[clientNum], SV_CMD_RELIABLE, "%c %i %i", 'M', index, value);
   }
-
-  void SV_BotUserMove(client_s* client)
-  {
-    static DWORD SV_BotUserMove_t = 0x626E50;
-
-    __asm
-    {
-      pushad
-      mov edi, client
-      call SV_BotUserMove_t
-      popad
-    }
-  }
 }

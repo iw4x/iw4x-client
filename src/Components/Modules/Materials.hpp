@@ -1,5 +1,13 @@
 #pragma once
 
+extern "C"
+{
+  void Materials_ImageVersionCheck();
+  void Materials_DeathMessageStub();
+
+  int Materials_WriteDeathMessageIcon(char* string, int offset, Game::Material* material);
+}
+
 namespace Components
 {
   class Materials : public Component
@@ -19,14 +27,14 @@ namespace Components
     static bool IsValid(Game::Material* material);
 
   private:
+    friend int (::Materials_WriteDeathMessageIcon)(char* string, int offset, Game::Material* material);
+
     static std::vector<Game::GfxImage*> ImageTable;
     static std::vector<Game::Material*> MaterialTable;
 
     static Utils::Hook ImageVersionCheckHook;
-    static void ImageVersionCheck();
 
     static int WriteDeathMessageIcon(char* string, int offset, Game::Material* material);
-    static void DeathMessageStub();
 
 #ifdef DEBUG
     static void DumpImageCfg(int, const char*, const char* material);

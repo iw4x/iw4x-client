@@ -126,40 +126,4 @@ namespace Game
     scrVmPub->top->type = VAR_INTEGER;
     scrVmPub->top->u.intValue = value;
   }
-
-  void RuntimeErrorInternal(int channel, const char* codePos, unsigned int index, const char* msg)
-  {
-    static DWORD RuntimeErrorInternal_t = 0x61ABE0;
-
-    __asm
-    {
-      pushad
-      mov eax, msg
-      mov edi, channel
-      push index
-      push codePos
-      call RuntimeErrorInternal_t
-      add esp, 0x8
-      popad
-    }
-  }
-
-  __declspec(naked) void Scr_NotifyId(unsigned int /*id*/, unsigned __int16 /*stringValue*/, unsigned int /*paramcount*/)
-  {
-    static DWORD Scr_NotifyId_t = 0x61E670;
-
-    __asm
-    {
-      pushad
-
-      mov eax, [esp + 0x20 + 0xC] // paramcount
-      push [esp + 0x20 + 0x8] // stringValue
-      push [esp + 0x20 + 0x8] // id
-      call Scr_NotifyId_t
-      add esp, 0x8
-
-      popad
-      ret
-    }
-  }
 }

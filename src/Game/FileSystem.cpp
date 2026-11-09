@@ -49,18 +49,4 @@ namespace Game
     *file = 0;
     return -1;
   }
-
-  void FS_AddLocalizedGameDirectory(const char* path, const char* dir)
-  {
-    static DWORD FS_AddLocalizedGameDirectory_t = 0x642EF0;
-
-    __asm
-    {
-      pushad
-      mov ebx, path
-      mov eax, dir
-      call FS_AddLocalizedGameDirectory_t
-      popad
-    }
-  }
 }

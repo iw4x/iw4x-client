@@ -35,10 +35,14 @@
 #include "AssetInterfaces/IStructuredDataDefSet.hpp"
 #include "AssetInterfaces/IMaterialVertexDeclaration.hpp"
 
+extern "C"
+{
+  bool AssetHandler_ShouldSearchTempAssets = false;
+}
+
 namespace Components
 {
   thread_local int AssetHandler::BypassState = 0;
-  bool AssetHandler::ShouldSearchTempAssets = false;
   std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
   std::map<Game::XAssetType, Utils::Slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
   Utils::Signal<AssetHandler::RestrictCallback> AssetHandler::RestrictSignal;
@@ -142,84 +146,6 @@ namespace Components
     {
       // Maybe just decrement it?
       AssetHandler::BypassState = 0;
-    }
-  }
-
-  __declspec(naked) void AssetHandler::FindAssetStub()
-  {
-    __asm
-    {
-      push ecx
-      push ebx
-      push ebp
-      push esi
-      push edi
-
-      push eax
-      pushad
-
-      // Check if custom handler should be bypassed
-      call AssetHandler::HasThreadBypass
-
-      mov[esp + 20h], eax
-      popad
-      pop eax
-
-      test al, al
-      jnz checkTempAssets
-
-      mov ecx, [esp + 18h] // Asset type
-      mov ebx, [esp + 1Ch] // Filename
-
-      push eax
-      pushad
-
-      push ebx
-      push ecx
-
-      call AssetHandler::FindAsset
-
-      add esp, 8h
-
-      mov[esp + 20h], eax
-      popad
-      pop eax
-
-      test eax, eax
-      jnz finishFound
-
-      checkTempAssets :
-      mov al, AssetHandler::ShouldSearchTempAssets // check to see if enabled
-        test eax, eax
-        jz finishOriginal
-
-        mov ecx, [esp + 18h] // Asset type
-        mov ebx, [esp + 1Ch] // Filename
-
-        push ebx
-        push ecx
-
-        call AssetHandler::FindTemporaryAsset
-
-        add esp, 8h
-
-        test eax, eax
-        jnz finishFound
-
-        finishOriginal :
-      // Asset not found using custom handlers or in temp assets or bypasses were enabled
-      // redirect to DB_FindXAssetHeader
-      mov ebx, ds : 6D7190h // InterlockedDecrement
-        mov eax, 40793Bh
-        jmp eax
-
-        finishFound :
-      pop edi
-        pop esi
-        pop ebp
-        pop ebx
-        pop ecx
-        retn
     }
   }
 
@@ -330,36 +256,6 @@ namespace Components
     return (!restrict);
   }
 
-  __declspec(naked) void AssetHandler::AddAssetStub()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      push[esp + 2Ch]
-      push[esp + 2Ch]
-      call AssetHandler::IsAssetEligible
-      add esp, 8h
-
-      mov[esp + 20h], eax
-      popad
-      pop eax
-
-      test al, al
-      jz doNotLoad
-
-      mov eax, [esp + 8h]
-      sub esp, 14h
-      mov ecx, 5BB657h
-      jmp ecx
-
-      doNotLoad :
-      mov eax, [esp + 8h]
-        retn
-    }
-  }
-
   bool AssetHandler::ShouldOverrideAsset(Game::XAssetType type)
   {
     switch (type)
@@ -388,32 +284,6 @@ namespace Components
 
     default:
       return false;
-    }
-  }
-
-  __declspec(naked) void AssetHandler::OverrideAssetStub()
-  {
-    __asm
-    {
-      sub esp, 4
-      pushad
-      push ebp
-      call AssetHandler::ShouldOverrideAsset
-      add esp, 4
-
-      mov [esp + 20h], eax
-      popad
-
-      cmp byte ptr [esp], 0
-      lea esp, [esp + 4]
-      jnz overrideAsset
-
-      push 0x5BB8A4
-      retn
-
-    overrideAsset:
-      push 0x5BB876
-      retn
     }
   }
 
@@ -532,25 +402,6 @@ namespace Components
     AssetHandler::EmptyAssets.push_back({ type, name });
   }
 
-  __declspec(naked) void AssetHandler::StoreEmptyAssetStub()
-  {
-    __asm
-    {
-      pushad
-      push ebx
-      push eax
-
-      call AssetHandler::StoreEmptyAsset
-
-      pop eax
-      pop ebx
-      popad
-
-      push 5BB290h
-      retn
-    }
-  }
-
   void AssetHandler::MissingAssetError(int severity, const char* format, const char* type, const char* name)
   {
     if (Dedicated::IsEnabled() && Game::DB_GetXAssetNameType(type) == Game::ASSET_TYPE_TECHNIQUE_SET) return;
@@ -606,7 +457,7 @@ namespace Components
 
   void AssetHandler::ExposeTemporaryAssets(bool expose)
   {
-    AssetHandler::ShouldSearchTempAssets = expose;
+    AssetHandler_ShouldSearchTempAssets = expose;
   }
 
   AssetHandler::AssetHandler()
@@ -618,18 +469,18 @@ namespace Components
     AssetHandler::ClearTemporaryAssets();
 
     // DB_FindXAssetHeader
-    Utils::Hook(Game::DB_FindXAssetHeader, AssetHandler::FindAssetStub).install()->quick();
+    Utils::Hook(Game::DB_FindXAssetHeader, AssetHandler_FindAssetStub).install()->quick();
 
     // DB_ConvertOffsetToAlias
     Utils::Hook(0x4FDFA0, AssetHandler::OffsetToAlias, HOOK_JUMP).install()->quick();
 
     // DB_AddXAsset
-    Utils::Hook(0x5BB650, AssetHandler::AddAssetStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x5BB650, AssetHandler_AddAssetStub, HOOK_JUMP).install()->quick();
 
-    if (!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB89A, AssetHandler::OverrideAssetStub, HOOK_JUMP).install()->quick();
+    if (!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB89A, AssetHandler_OverrideAssetStub, HOOK_JUMP).install()->quick();
 
     // Store empty assets
-    Utils::Hook(0x5BB6EC, AssetHandler::StoreEmptyAssetStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5BB6EC, AssetHandler_StoreEmptyAssetStub, HOOK_CALL).install()->quick();
 
     // Intercept missing asset messages
     if (!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB3F2, AssetHandler::MissingAssetError, HOOK_CALL).install()->quick();
@@ -731,4 +582,34 @@ namespace Components
     AssetHandler::RestrictSignal.clear();
     AssetHandler::TypeCallbacks.clear();
   }
+}
+
+int AssetHandler_HasThreadBypass()
+{
+  return Components::AssetHandler::HasThreadBypass();
+}
+
+Game::XAssetHeader AssetHandler_FindAsset(Game::XAssetType type, const char* filename)
+{
+  return Components::AssetHandler::FindAsset(type, filename);
+}
+
+Game::XAssetHeader AssetHandler_FindTemporaryAsset(Game::XAssetType type, const char* filename)
+{
+  return Components::AssetHandler::FindTemporaryAsset(type, filename);
+}
+
+bool AssetHandler_IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset)
+{
+  return Components::AssetHandler::IsAssetEligible(type, asset);
+}
+
+bool AssetHandler_ShouldOverrideAsset(Game::XAssetType type)
+{
+  return Components::AssetHandler::ShouldOverrideAsset(type);
+}
+
+void AssetHandler_StoreEmptyAsset(Game::XAssetType type, const char* name)
+{
+  Components::AssetHandler::StoreEmptyAsset(type, name);
 }

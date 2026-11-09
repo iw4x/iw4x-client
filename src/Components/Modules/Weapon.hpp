@@ -1,6 +1,19 @@
 #pragma once
 
+extern "C"
+{
+  extern const Game::dvar_t* Weapon_BGWeaponOffHandFix;
 
+  void Weapon_LoadNoneWeaponHookStub();
+  void Weapon_CG_UpdatePrimaryForAltModeWeapon_Stub();
+  void Weapon_CG_SelectWeaponIndex_Stub();
+  void Weapon_WeaponEntCanBeGrabbed_Stub();
+  void Weapon_CG_DrawItem_Stub();
+  void Weapon_CG_CreateViewModelTree_Stub();
+  void Weapon_JavelinResetHook_Stub();
+
+  void* Weapon_LoadNoneWeaponHook();
+}
 
 namespace Components
 {
@@ -17,27 +30,17 @@ namespace Components
     static const Game::dvar_t* BGDisableDoubleTaps;
 
   private:
-    static const Game::dvar_t* BGWeaponOffHandFix;
+    friend void* (::Weapon_LoadNoneWeaponHook)();
+
     static const Game::dvar_t* CGRecoilMultiplier;
 
     static Game::WeaponCompleteDef* LoadWeaponCompleteDef(const char* name);
     static void PatchLimit();
     static void* LoadNoneWeaponHook();
-    static void LoadNoneWeaponHookStub();
 
     static void SaveRegisteredWeapons();
 
     static void PatchHintStrings();
-
-    static void CG_UpdatePrimaryForAltModeWeapon_Stub();
-    static void CG_SelectWeaponIndex_Stub();
-    static void CG_DrawItem_Stub();
-
-    static void JavelinResetHook_Stub();
-
-    static void CG_CreateViewModelTree_Stub();
-
-    static void WeaponEntCanBeGrabbed_Stub();
 
     static void BG_WeaponFireRecoil_Stub(void* ps, float* recoilSpeed, float* kickAVel, unsigned int* holdrand, Game::PlayerHandIndex hand);
 

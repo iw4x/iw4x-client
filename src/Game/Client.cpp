@@ -109,33 +109,4 @@ namespace Game
 
     CL_AddDebugStarWithText(point, color, MY_NULLTEXTCOLOR, nullptr, 1.0f, duration, fromServer);
   }
-
-  void CL_MouseMove(const int localClientNum, Game::usercmd_s* cmd, const float frametime_base)
-  {
-    static const DWORD CL_MouseMove_t = 0x5A6240;
-
-    __asm
-    {
-      pushad
-      mov ebx, cmd
-      mov eax, localClientNum
-      push frametime_base
-      call CL_MouseMove_t
-      add esp, 0x4
-      popad
-    }
-  }
-
-  void AdjustViewanglesForKeyboard(const int localClientNum)
-  {
-    static const DWORD AdjustViewanglesForKeyboard_t = 0x5A5D80;
-
-    __asm
-    {
-      pushad
-      mov eax, localClientNum
-      call AdjustViewanglesForKeyboard_t
-      popad
-    }
-  }
 }

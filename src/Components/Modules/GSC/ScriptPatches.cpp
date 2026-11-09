@@ -111,7 +111,7 @@ namespace Components::GSC
   }
 
   // Report the id passed to RemoveRefToObject() that can't be an object and
-  // end the match. See RemoveRefToObject_Stub() for details.
+  // end the match. See the RemoveRefToObject() hook below for details.
   //
   // We've seen RemoveRefToObject() crash on such an id in a private match
   // without mods. This is most likely the same corruption that
@@ -137,40 +137,6 @@ namespace Components::GSC
                    (*Game::fs_gameDirVar)->current.string));
   }
 
-  // Make sure the id passed to RemoveRefToObject() is an object, that is, it
-  // is in the parent part of the variable list (child ids start at 0x9002).
-  // Otherwise the function decrements a reference count somewhere in memory
-  // and, if we are lucky, crashes.
-  //
-  __declspec(naked) void ScriptPatches::RemoveRefToObject_Stub ()
-  {
-    __asm
-    {
-      mov eax, [esp + 0x4]
-      cmp eax, 0x9002
-      jae bad
-
-      // The code our jump replaces.
-      //
-      push esi
-      push edi
-      mov edi, [esp + 0xC]
-
-      push 0x437196
-      ret
-
-    bad:
-      push dword ptr [esp]
-      push eax
-      call RemoveRefToObject_Bad
-
-      // Shouldn't get here but if we do, skip the call rather than crash.
-      //
-      add esp, 0x8
-      ret
-    }
-  }
-
   ScriptPatches::ScriptPatches()
   {
     // Give the script compiler more room. Scr_BeginLoadScripts() makes it a
@@ -189,7 +155,13 @@ namespace Components::GSC
     Utils::Hook (0x62080B, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: waittillframeend.
     Utils::Hook (0x62101C, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: waittill.
 
-    Utils::Hook (0x437190, RemoveRefToObject_Stub, HOOK_JUMP).install ()->quick ();
+    // Make sure the id passed to RemoveRefToObject() is an object, that is,
+    // it is in the parent part of the variable list (child ids start at
+    // 0x9002). Otherwise the function decrements a reference count somewhere
+    // in memory and, if we are lucky, crashes. Should RemoveRefToObject_Bad()
+    // return, the stub skips the call rather than crash.
+    //
+    Utils::Hook (0x437190, ScriptPatches_RemoveRefToObject_Stub, HOOK_JUMP).install ()->quick ();
     Utils::Hook::Nop (0x437195, 1);
 
     // Correct builtin function pointer
@@ -206,4 +178,9 @@ namespace Components::GSC
       }
     });
   }
+}
+
+void ScriptPatches_RemoveRefToObject_Bad(unsigned int id, unsigned int caller)
+{
+  Components::GSC::ScriptPatches::RemoveRefToObject_Bad(id, caller);
 }

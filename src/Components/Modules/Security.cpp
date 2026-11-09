@@ -70,26 +70,6 @@ namespace Components
     Game::CL_SelectStringTableEntryInDvar_f();
   }
 
-  __declspec(naked) int Security::G_GetClientScore_Hk()
-  {
-    __asm
-    {
-      mov eax, [esp + 4] // index
-      mov ecx, ds:1A831A8h // level: &g_clients
-
-      test ecx, ecx
-      jz invalid_ptr
-
-      imul eax, 366Ch
-      mov eax, [eax + ecx + 3134h]
-      ret
-
-    invalid_ptr:
-      xor eax, eax
-      ret
-    }
-  }
-
   void Security::G_LogPrintf_Stub(const char* fmt)
   {
     Game::G_LogPrintf("%s", fmt);
@@ -130,43 +110,6 @@ namespace Components
     Utils::Hook::Call<void(Game::client_s*, Game::msg_t*)>(0x414D40)(client, msg);
   }
 
-  void UI_ReplaceDirective_Hook([[maybe_unused]] int localClientNum, char *message, char *hudElemString, const size_t hudElemStringLength)
-  {
-    const auto messageLength = strnlen_s(message, hudElemStringLength + 1);
-
-    if (messageLength > hudElemStringLength)
-    {
-      // Truncate the message to avoid an out of bounds write while iterating message
-      message[hudElemStringLength-1] = '\x00';
-      Logger::Print("Truncated an overextended UI_ReplaceDirective message ({}+ characters) regarding {}\n", messageLength, hudElemString);
-    }
-  }
-
-  __declspec(naked) void UI_ReplaceDirective_Stub()
-  {
-    _asm
-    {
-      pushad
-      push [esp + 0x10 + 0x20] // hudelemStringLength
-      push [esp + 0x10 + 0x20] // hudelemString
-      push [esp + 0x10 + 0x20] // message
-      push [esp + 0x10 + 0x20] // localClientNum
-
-      call UI_ReplaceDirective_Hook
-
-      add esp, 0x10
-      popad
-
-
-      // Original code
-      sub esp, 0x208
-
-      // Go back
-      push 0x412C36
-      retn;
-    }
-  }
-
   Security::Security()
   {
     // Exploit fixes
@@ -178,7 +121,7 @@ namespace Components
     }
 
     // Prevent out-of-bound write in UI_ReplaceDirective (Server->Client vulnerability)
-    Utils::Hook(0x412C30, UI_ReplaceDirective_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x412C30, Security_UI_ReplaceDirective_Stub, HOOK_JUMP).install()->quick();
 
     Utils::Hook::Set<std::uint8_t>(0x412370, 0xC3); // SV_SteamAuthClient
     Utils::Hook::Set<std::uint8_t>(0x5A8C70, 0xC3); // CL_HandleRelayPacket
@@ -189,7 +132,7 @@ namespace Components
     Utils::Hook::Set<void(*)()>(0x405959, SelectStringTableEntryInDvar_Stub);
 
     // Patch G_GetClientScore for uninitialized game
-    Utils::Hook(0x469AC0, G_GetClientScore_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x469AC0, Security_G_GetClientScore_Hk, HOOK_JUMP).install()->quick();
 
     // Requests can be malicious
     Utils::Hook(0x5B67ED, AtolAdjustPlayerLimit, HOOK_CALL).install()->quick(); // PartyHost_HandleJoinPartyRequest
@@ -216,5 +159,17 @@ namespace Components
     Utils::Hook::Nop(0x40F88C, 5);
     // Call to LiveStorage_FetchPlaylists from Live_Init
     Utils::Hook::Nop(0x420B54, 5);
+  }
+}
+
+void Security_UI_ReplaceDirective_Hook([[maybe_unused]] int localClientNum, char *message, char *hudElemString, const size_t hudElemStringLength)
+{
+  const auto messageLength = strnlen_s(message, hudElemStringLength + 1);
+
+  if (messageLength > hudElemStringLength)
+  {
+    // Truncate the message to avoid an out of bounds write while iterating message
+    message[hudElemStringLength-1] = '\x00';
+    Components::Logger::Print("Truncated an overextended UI_ReplaceDirective message ({}+ characters) regarding {}\n", messageLength, hudElemString);
   }
 }

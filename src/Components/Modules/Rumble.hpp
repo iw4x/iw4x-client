@@ -1,5 +1,18 @@
 #pragma once
 
+extern "C"
+{
+  void Rumble_CG_FireWeapon_FireSoundHk();
+  void Rumble_PlayNoteMappedSoundAliases_Stub();
+  void Rumble_CG_EntityEvents_Stub();
+  void Rumble_MeleeRumble_Stub();
+
+  void Rumble_CG_FireWeapon_Rumble(int localClientNum, Game::centity_s* cent, Game::WeaponDef* weaponDef, bool isPlayerView);
+  void Rumble_PlayNoteMappedRumbleAliases(int localClientNum, const char* noteName, Game::WeaponDef* weapDef);
+  bool Rumble_CG_EntityEvents_Hk(Game::centity_s* entity, int event);
+  void Rumble_MeleeRumble_Hook(Game::gentity_s* targetEntity, Game::WeaponDef* weaponDef);
+}
+
 namespace Components
 {
   class Rumble : public Component
@@ -13,6 +26,10 @@ namespace Components
     Rumble();
 
   private:
+    friend void (::Rumble_CG_FireWeapon_Rumble)(int localClientNum, Game::centity_s* cent, Game::WeaponDef* weaponDef, bool isPlayerView);
+    friend void (::Rumble_PlayNoteMappedRumbleAliases)(int localClientNum, const char* noteName, Game::WeaponDef* weapDef);
+    friend bool (::Rumble_CG_EntityEvents_Hk)(Game::centity_s* entity, int event);
+    friend void (::Rumble_MeleeRumble_Hook)(Game::gentity_s* targetEntity, Game::WeaponDef* weaponDef);
 
     enum rumble_entity_event_t
     {
@@ -59,11 +76,8 @@ namespace Components
     static void Scr_PlayRumbleOnPosition_Internal(rumble_entity_event_t);
 
     static void PlayNoteMappedRumbleAliases(int localClientNum, const char* noteName, Game::WeaponDef* weapDef);
-    static void PlayNoteMappedSoundAliases_Stub();
 
     static void MeleeRumble_Hook(Game::gentity_s* targetEntity, Game::WeaponDef* weaponDef);
-    static void MeleeRumble_Stub();
-
 
     static void CG_Turret_UpdateBarrelSpinRumble(int localClientNum, Game::centity_s* cent);
     static void CG_UpdateRumble(int localClientNum);
@@ -73,7 +87,6 @@ namespace Components
     static void CG_SetRumbleReceiver();
     static void CG_UpdateEntInfo_Hk(int localClientNum);
     static void CG_FireWeapon_Rumble(int localClientNum, Game::centity_s* cent, Game::WeaponDef* weaponDef, bool isPlayerView);
-    static void CG_FireWeapon_FireSoundHk();
     static int CG_LoadRumble(Game::RumbleGraph* rumbleGraphArray, Game::RumbleInfo* info, const char* rumbleName, int rumbleNameIndex);
     static void CG_RegisterRumbles(int localClientNum);
     static void CG_RegisterGraphics_Hk(int localClientNum, int b);
@@ -83,7 +96,6 @@ namespace Components
     static void CG_PlayRumbleLoopOnEntity(int localClientNum, const char* rumbleName, int entityIndex);
     static void CG_PlayRumbleOnClient(int localClientNum, const char* rumbleName);
     static void CG_PlayRumbleOnClientSafe(int localClientNum, const char* rumbleName);
-    static void CG_EntityEvents_Stub();
     static void CG_StopRumble(int localClientNum, int entityNum, const char* rumbleName);
     static bool CG_EntityEvents_Hk(Game::centity_s* entity, rumble_entity_event_t event);
     static void CG_StopAllRumbles();
@@ -91,7 +103,5 @@ namespace Components
     static int CCS_GetChecksum_Hk();
 
     static void InitDvars();
-
-
   };
 }

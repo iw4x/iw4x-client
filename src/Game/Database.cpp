@@ -156,48 +156,4 @@ namespace Game
 
     Sys_UnlockRead(db_hashCritSect);
   }
-
-  __declspec(naked) XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType /*type*/)
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      mov eax, 5BB210h
-      mov edi, [esp + 28h]
-      call eax
-
-      mov [esp + 20h], eax
-      popad
-      pop eax
-
-      retn
-    }
-  }
-
-  __declspec(naked) XAssetEntry* DB_FindXAssetEntry(XAssetType /*type*/, const char* /*name*/)
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      mov edi, [esp + 2Ch] // name
-      push edi
-
-      mov edi, [esp + 2Ch] // type
-
-      mov eax, 5BB1B0h
-      call eax
-
-      add esp, 4h
-
-      mov [esp + 20h], eax
-      popad
-      pop eax
-
-      retn
-    }
-  }
 }

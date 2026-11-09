@@ -72,30 +72,6 @@ namespace Game
     }
   }
 
-  const char* Com_LoadInfoString_FastFile(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer)
-  {
-    static DWORD Com_LoadInfoString_FastFile_t = 0x609B60;
-
-    const char* result{};
-
-    __asm
-    {
-      pushad
-
-      mov edi, fileName
-      mov ebx, loadBuffer
-      push ident
-      push fileDesc
-      call Com_LoadInfoString_FastFile_t
-      add esp, 0x8
-      mov result, eax
-
-      popad
-    }
-
-    return result;
-  }
-
   char* Com_GetCommandLine()
   {
     return reinterpret_cast<char*>(0x1AD7AB0);

@@ -1,5 +1,7 @@
 #pragma once
 
+extern "C" void Party_PartyMigrate_HandlePacket();
+
 namespace Components
 {
   class Party : public Component

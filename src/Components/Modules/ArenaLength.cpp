@@ -7,59 +7,12 @@ namespace Components
   Game::newMapArena_t ArenaLength::NewArenas[NEW_ARENA_COUNT];
   char* ArenaLength::NewArenaInfos[NEW_ARENA_COUNT];
 
-  __declspec(naked) void ArenaLength::ArenaMapOffsetHook1()
-  {
-    __asm
-    {
-      lea eax, [esi + Game::newMapArena_t::mapName]
-      push eax
-      push ebx
-
-      push 420725h
-      retn
-    }
-  }
-
-  __declspec(naked) void ArenaLength::ArenaMapOffsetHook2()
-  {
-    __asm
-    {
-      lea eax, [edi + Game::newMapArena_t::mapName]
-      push eax
-      push edx
-
-      push 49BD3Eh
-      retn
-    }
-  }
-
-  __declspec(naked) void ArenaLength::ArenaMapOffsetHook3()
-  {
-    __asm
-    {
-      lea eax, [esi + Game::newMapArena_t::mapName]
-      push eax
-      push edx
-
-      push 63279Eh
-      retn
-    }
-  }
-
-  __declspec(naked) void ArenaLength::ArenaMapOffsetHook4()
-  {
-    __asm
-    {
-      lea edi, [esi - Game::newMapArena_t::mapName]
-      lea edx, [eax + 1]
-
-      push 4064B8h
-      retn
-    }
-  }
-
   ArenaLength::ArenaLength()
   {
+    // ArenaLength.asm has its own copy of this offset.
+    //
+    AssertOffset(Game::newMapArena_t, mapName, 0xB00);
+
     // Reallocate ui_arenaInfos
     Utils::Hook::Set<char**>(0x4A95F0 + 3, ArenaLength::NewArenaInfos);
     Utils::Hook::Set<char**>(0x4A9620 + 3, ArenaLength::NewArenaInfos);
@@ -119,10 +72,10 @@ namespace Components
     Utils::Hook::Set<int>(0x631EBC, sizeof(Game::newMapArena_t));
     Utils::Hook::Set<int>(0x6327AF, sizeof(Game::newMapArena_t));
 
-    Utils::Hook(0x420720, ArenaLength::ArenaMapOffsetHook1, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x49BD39, ArenaLength::ArenaMapOffsetHook2, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x632799, ArenaLength::ArenaMapOffsetHook3, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x4064B2, ArenaLength::ArenaMapOffsetHook4, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x420720, ArenaLength_CompareMapNameStub1, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x49BD39, ArenaLength_CompareMapNameStub2, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x632799, ArenaLength_CompareMapNameStub3, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x4064B2, ArenaLength_ReadVoteReferenceStub, HOOK_JUMP).install()->quick();
 
     Utils::Hook::Set<BYTE>(0x4A95F8, sizeof(Game::newMapArena_t::mapName));
     Utils::Hook::Set<int>(0x42F22B, offsetof(Game::newMapArena_t, mapName) - offsetof(Game::newMapArena_t, other));

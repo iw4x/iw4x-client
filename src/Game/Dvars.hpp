@@ -163,6 +163,6 @@ namespace Game
   extern const dvar_t** ip;
   extern const dvar_t** port;
 
-  extern void Dvar_SetVariant(dvar_t* dvar, DvarValue value, DvarSetSource source);
-  extern void Dvar_SetFromStringFromSource(const dvar_t* dvar, const char* string, DvarSetSource source);
+  extern "C" void Dvar_SetVariant(dvar_t* dvar, DvarValue value, DvarSetSource source);
+  extern "C" void Dvar_SetFromStringFromSource(const dvar_t* dvar, const char* string, DvarSetSource source);
 }

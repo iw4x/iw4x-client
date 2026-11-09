@@ -96,17 +96,6 @@ namespace Components
     return voteDisplayString;
   }
 
-  __declspec(naked) void Vote::GetVoteTextStub()
-  {
-    __asm
-    {
-      push ebx
-      call Vote::GetVoteText
-      add esp, 4
-      ret
-    }
-  }
-
   bool Vote::IsInvalidVoteString(const std::string& input)
   {
     static const char* separators[] = { "\n", "\r", ";" };
@@ -392,7 +381,7 @@ namespace Components
     // Replicate g_allowVote
     Utils::Hook::Set<std::uint32_t>(0x5E3A4F, Game::DVAR_INTERNAL | Game::DVAR_CODINFO);
 
-    Utils::Hook(0x5928C0, Vote::GetVoteTextStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x5928C0, Vote_GetVoteTextStub, HOOK_JUMP).install()->quick();
 
     Events::OnDvarInit([]{
       Vote::SV_VotesRequired = Game::Dvar_RegisterInt("sv_votesRequired", 0, 0, 18, Game::DVAR_NONE, "Set the amount of votes required for a vote to pass.\n0 = (players / 2) + 1");
@@ -440,4 +429,9 @@ namespace Components
       Game::Cbuf_AddText(0, VA("callvote g_gametype %s\n", Game::sharedUiInfo->gameTypes[(*Game::ui_netGameType)->current.integer].gameType));
     });
   }
+}
+
+const char* Vote_GetVoteText(const char* voteString)
+{
+  return Components::Vote::GetVoteText(voteString);
 }
