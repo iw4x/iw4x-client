@@ -28,25 +28,6 @@ namespace Components
     }
   }
 
-  __declspec(naked) void PlayerName::ClientCleanName()
-  {
-    __asm
-    {
-      pushad
-
-      push [esp + 0x20 + 0x4] // length
-      push ecx // name
-      push edx // buffer
-
-      call UserInfoCopy
-      add esp, 0xC
-
-      popad
-
-      ret
-    }
-  }
-
   int PlayerName::GetClientName(int localClientNum, int index, char* buf, int size)
   {
     const auto result = Game::CL_GetClientName(localClientNum, index, buf, size);
@@ -110,29 +91,6 @@ namespace Components
     Game::SV_DropClient(drop, reason, false);
   }
 
-  __declspec(naked) void PlayerName::SV_UserinfoChangedStub()
-  {
-    __asm
-    {
-      call CopyClientNameCheck
-      test al, al
-
-      jnz returnSafe
-
-      pushad
-
-      push edi // drop
-      call DropClient
-      add esp, 0x4
-
-      popad
-
-    returnSafe:
-      push 0x401988
-      retn
-    }
-  }
-
   PlayerName::PlayerName()
   {
     sv_allowColoredNames = Dvar::Register<bool>("sv_allowColoredNames", true, Game::DVAR_NONE, "Allow colored names on the server");
@@ -141,8 +99,8 @@ namespace Components
     Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
 
     // Allow colored names ingame. Hook placed in ClientUserinfoChanged
-    Utils::Hook(0x445301, ClientCleanName, HOOK_CALL).install()->quick();
-    Utils::Hook(0x44533A, ClientCleanName, HOOK_CALL).install()->quick();
+    Utils::Hook(0x445301, PlayerName_ClientCleanName, HOOK_CALL).install()->quick();
+    Utils::Hook(0x44533A, PlayerName_ClientCleanName, HOOK_CALL).install()->quick();
 
     // Though, don't apply that to overhead names.
     Utils::Hook(0x581932, GetClientName, HOOK_CALL).install()->quick();
@@ -152,6 +110,26 @@ namespace Components
 
     // Detect invalid characters including '%' to prevent format string vulnerabilities.
     // Kicks the player as soon as possible
-    Utils::Hook(0x401983, SV_UserinfoChangedStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x401983, PlayerName_SV_UserinfoChangedStub, HOOK_JUMP).install()->quick();
   }
+}
+
+void PlayerName_UserInfoCopy(char* buffer, const char* name, int size)
+{
+  Components::PlayerName::UserInfoCopy(buffer, name, size);
+}
+
+bool PlayerName_CopyClientNameCheck(char* dest, const char* source, int size)
+{
+  return Components::PlayerName::CopyClientNameCheck(dest, source, size);
+}
+
+void PlayerName_DropClient(Game::client_s* drop)
+{
+  Components::PlayerName::DropClient(drop);
+}
+
+char* PlayerName_CleanStrStub(char* string)
+{
+  return Components::PlayerName::CleanStrStub(string);
 }

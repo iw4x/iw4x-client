@@ -61,7 +61,7 @@ namespace Components
     Utils::Hook::Set(0x4A74C9, &sv_configStrings[ARRAYSIZE(sv_configStrings)]);
 
     Utils::Hook(0x405BBE, ConfigStrings::SV_ClearConfigStrings, HOOK_CALL).install()->quick();
-    Utils::Hook(0x593CA4, ConfigStrings::CG_ParseConfigStrings, HOOK_CALL).install()->quick();
+    Utils::Hook(0x593CA4, ConfigStrings_CG_ParseConfigStrings, HOOK_CALL).install()->quick();
 
     // Weapon
     Utils::Hook(0x4BD52D, ConfigStrings::CL_GetWeaponConfigString, HOOK_CALL).install()->quick();
@@ -313,40 +313,19 @@ namespace Components
     return 0;
   }
 
-  __declspec(naked) void ConfigStrings::CG_ParseConfigStrings()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      call ConfigStrings::CG_ParseExtraConfigStrings
-
-      mov[esp + 20h], eax
-      popad
-
-      pop eax
-
-      test eax, eax
-      jz continueParsing
-
-      retn
-
-      continueParsing :
-      push 592960h
-        retn
-    }
-  }
-
   int ConfigStrings::SV_ClearConfigStrings(void* dest, int value, int size)
   {
     memset(Utils::Hook::Get<void*>(0x405B72), value, MAX_CONFIGSTRINGS * sizeof(uint16_t));
     return Utils::Hook::Call<int(void*, int, int)>(0x4C98D0)(dest, value, size); // Com_Memset
   }
 
-
   ConfigStrings::ConfigStrings()
   {
     PatchConfigStrings();
   }
+}
+
+int ConfigStrings_CG_ParseExtraConfigStrings()
+{
+  return Components::ConfigStrings::CG_ParseExtraConfigStrings();
 }

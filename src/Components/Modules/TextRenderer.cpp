@@ -698,31 +698,6 @@ namespace Components
     return HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CHAT, key);
   }
 
-  constexpr auto Message_Key = 0x5A7E50;
-  __declspec(naked) void TextRenderer::Message_Key_Stub()
-  {
-    __asm
-    {
-      pushad
-
-      push eax
-      push edi
-      call ChatHandleKeyDown
-      add esp, 0x8
-      test al,al
-      jnz skipHandling
-
-      popad
-      call Message_Key
-      ret
-
-    skipHandling:
-      popad
-      mov al, 1
-      ret
-    }
-  }
-
   float TextRenderer::GetMonospaceWidth(Game::Font_s* font, int rendererFlags)
   {
     if (rendererFlags & Game::TEXT_RENDERFLAG_FORCEMONOSPACE)
@@ -1594,25 +1569,6 @@ namespace Components
     return lenWithInvisibleTail;
   }
 
-  __declspec(naked) void TextRenderer::Field_AdjustScroll_PrintLen_Stub()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      push esi
-      push [esp + 0x8 + 0x24]
-      call SEH_PrintStrlenWithCursor
-      add esp, 0x8
-      mov [esp + 0x20], eax
-
-      popad
-      pop eax
-      ret
-    }
-  }
-
   void TextRenderer::PatchColorLimit(const char limit)
   {
     Utils::Hook::Set<char>(0x535629, limit); // DrawText2d
@@ -1659,28 +1615,6 @@ namespace Components
     }
 
     return true;
-  }
-
-  __declspec(naked) void TextRenderer::GetUnpackedColorByNameStub()
-  {
-    __asm
-    {
-      push [esp + 8h]
-      push [esp + 8h]
-      call TextRenderer::Dvar_GetUnpackedColorByName
-      add esp, 8h
-
-      test al, al
-      jnz continue
-
-      retn
-
-    continue:
-      push edi
-      mov edi, [esp + 8h]
-      push 406535h
-      retn
-    }
   }
 
   void TextRenderer::UpdateColorTable()
@@ -1781,10 +1715,10 @@ namespace Components
     g_ColorBlind_MyTeam = Game::Dvar_RegisterColor("g_ColorBlind_MyTeam", 1, 0.859f, 0.125f, 1, Game::DVAR_ARCHIVE, "Ally team color for colorblind mode");
 
     // Replace team colors with colorblind team colors when colorblind is enabled
-    Utils::Hook(0x406530, GetUnpackedColorByNameStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x406530, TextRenderer_GetUnpackedColorByNameStub, HOOK_JUMP).install()->quick();
 
     // Consider the cursor being inside the color escape sequence when getting the print length for a field
-    Utils::Hook(0x488CBD, Field_AdjustScroll_PrintLen_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x488CBD, TextRenderer_Field_AdjustScroll_PrintLen_Stub, HOOK_CALL).install()->quick();
 
     // Draw fonticon autocompletion for say field
     Utils::Hook(0x4CA1BD, Field_Draw_Say, HOOK_CALL).install()->quick();
@@ -1795,9 +1729,24 @@ namespace Components
 
     // Handle key inputs for console and chat
     Utils::Hook(0x4F685C, Console_Key_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4F6694, Message_Key_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4F684C, Message_Key_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x4F6694, TextRenderer_Message_Key_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x4F684C, TextRenderer_Message_Key_Stub, HOOK_CALL).install()->quick();
 
     PatchColorLimit(COLOR_LAST_CHAR);
   }
+}
+
+bool TextRenderer_ChatHandleKeyDown(int localClientNum, int key)
+{
+  return Components::TextRenderer::ChatHandleKeyDown(localClientNum, key);
+}
+
+int TextRenderer_SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field)
+{
+  return Components::TextRenderer::SEH_PrintStrlenWithCursor(string, field);
+}
+
+bool TextRenderer_Dvar_GetUnpackedColorByName(const char* name, float* expandedColor)
+{
+  return Components::TextRenderer::Dvar_GetUnpackedColorByName(name, expandedColor);
 }

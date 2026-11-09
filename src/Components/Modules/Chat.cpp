@@ -7,13 +7,16 @@
 #include "GSC/Script.hpp"
 #include "GSC/ScriptExtension.hpp"
 
+extern "C"
+{
+  bool Chat_SendChat;
+}
+
 namespace Components
 {
   Dvar::Var Chat::cg_chatWidth;
   Dvar::Var Chat::sv_disableChat;
   Dvar::Var Chat::sv_sayName;
-
-  bool Chat::SendChat;
 
   Utils::Concurrency::Container<Chat::muteList> Chat::MutedList;
   const char* Chat::MutedListFile = "userraw/muted-users.json";
@@ -31,7 +34,7 @@ namespace Components
 
   const char* Chat::EvaluateSay(char* text, Game::gentity_s* player, int mode)
   {
-    SendChat = true;
+    Chat_SendChat = true;
 
     const auto _0 = gsl::finally([]
     {
@@ -50,26 +53,26 @@ namespace Components
 
     if (text[msgIndex] == '/')
     {
-      SendChat = false;
+      Chat_SendChat = false;
       ++msgIndex;
     }
 
     if (IsMuted(player))
     {
-      SendChat = false;
+      Chat_SendChat = false;
       Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You are muted\"", 0x65));
     }
 
     if (sv_disableChat.get<bool>())
     {
-      SendChat = false;
+      Chat_SendChat = false;
       Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
     }
 
     // Message might be empty after the special characters or '/'
     if (text[msgIndex] == '\0')
     {
-      SendChat = false;
+      Chat_SendChat = false;
       return text;
     }
 
@@ -80,7 +83,7 @@ namespace Components
     {
       if (!ChatCallback(player, callback.getPos(), (text + msgIndex), mode))
       {
-        SendChat = false;
+        Chat_SendChat = false;
       }
     }
 
@@ -89,57 +92,6 @@ namespace Components
     Game::Scr_NotifyLevel(static_cast<std::uint16_t>(Game::SL_GetString("say", 0)), 2);
 
     return text;
-  }
-
-  __declspec(naked) void Chat::PreSayStub()
-  {
-    __asm
-    {
-      mov eax, [esp + 0x100 + 0x10]
-
-      push eax
-      pushad
-
-      push [esp + 0x100 + 0x30] // mode
-      push [esp + 0x100 + 0x2C] // player
-      push eax // text
-      call EvaluateSay
-      add esp, 0xC
-
-      mov [esp + 0x20], eax
-      popad
-      pop eax
-
-      mov [esp + 0x100 + 0x10], eax
-
-      jmp PlayerName::CleanStrStub
-    }
-  }
-
-  __declspec(naked) void Chat::PostSayStub()
-  {
-    __asm
-    {
-      // eax is used by the callee
-      push eax
-
-      xor eax, eax
-      mov al, SendChat
-
-      test al, al
-      jnz return
-
-      // Don't send the chat
-      pop eax
-      retn
-
-    return:
-      pop eax
-
-      // Jump to the target
-      push 5DF620h
-      retn
-    }
   }
 
   void Chat::CheckChatLineEnd(const char*& inputBuffer, char*& lineBuffer, float& len, const int chatHeight, const float chatWidth, char*& lastSpacePos, char*& lastFontIconPos, const int lastColor)
@@ -308,21 +260,6 @@ namespace Components
     if (Game::cgsArray[0].teamChatPos - Game::cgsArray[0].teamLastChatPos > chatHeight)
     {
       Game::cgsArray[0].teamLastChatPos = Game::cgsArray[0].teamChatPos + 1 - chatHeight;
-    }
-  }
-
-  __declspec(naked) void Chat::CG_AddToTeamChat_Stub()
-  {
-    __asm
-    {
-      pushad
-
-      push ecx
-      call CG_AddToTeamChat
-      add esp, 4h
-
-      popad
-      ret
     }
   }
 
@@ -669,12 +606,12 @@ namespace Components
     LoadMutedList();
 
     // Intercept chat sending
-    Utils::Hook(0x4D000B, PreSayStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4D00D4, PostSayStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4D0110, PostSayStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x4D000B, Chat_PreSayStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x4D00D4, Chat_PostSayStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x4D0110, Chat_PostSayStub, HOOK_CALL).install()->quick();
 
     // Change logic that does word splitting with new lines for chat messages to support fonticons
-    Utils::Hook(0x592E10, CG_AddToTeamChat_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x592E10, Chat_CG_AddToTeamChat_Stub, HOOK_JUMP).install()->quick();
 
     // Add back removed command from CoD4
     Command::Add("mp_QuickMessage", []() -> void
@@ -690,4 +627,14 @@ namespace Components
       SayCallbacks.clear();
     });
   }
+}
+
+const char* Chat_EvaluateSay(char* text, Game::gentity_s* player, int mode)
+{
+  return Components::Chat::EvaluateSay(text, player, mode);
+}
+
+void Chat_CG_AddToTeamChat(const char* text)
+{
+  Components::Chat::CG_AddToTeamChat(text);
 }

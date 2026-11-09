@@ -5,10 +5,17 @@
 #include "FastFiles.hpp"
 
 #pragma optimize( "", off )
+
+extern "C"
+{
+  int Zones_ZoneVersion;
+
+  Game::XAssetType Zones_currentAssetType = Game::XAssetType::ASSET_TYPE_INVALID;
+  Game::XAssetType Zones_previousAssetType = Game::XAssetType::ASSET_TYPE_INVALID;
+}
+
 namespace Components
 {
-  int Zones::ZoneVersion;
-
   int Zones::FxEffectIndex;
   char* Zones::FxEffectStrings[64];
 
@@ -44,9 +51,6 @@ namespace Components
     { "91","bg_shock_lookControl_fadeTime"},
     { "92","bg_shock_movement"}
   };
-
-  Game::XAssetType currentAssetType = Game::XAssetType::ASSET_TYPE_INVALID;
-  Game::XAssetType previousAssetType = Game::XAssetType::ASSET_TYPE_INVALID;
 
   bool Zones::LoadFxEffectDef(bool atStreamStart, char* buffer, int size)
   {
@@ -172,27 +176,9 @@ namespace Components
   {
     if (Zones::Version() >= VERSION_ALPHA2)
     {
-      int elSize = (Zones::ZoneVersion == VERSION_ALPHA2) ? 364 : 360;
+      int elSize = (Zones_ZoneVersion == VERSION_ALPHA2) ? 364 : 360;
       *Game::varXString = reinterpret_cast<char**>(reinterpret_cast<char*>(*Game::varXModel) + (elSize - 4) - (4 * (4 - i)));
       Game::Load_XString(false);
-    }
-  }
-
-  __declspec(naked) void Zones::LoadXModelLodInfoStub()
-  {
-    __asm
-    {
-      pushad
-
-      push edi
-      call Zones::LoadXModelLodInfo
-      add esp, 4h
-
-      popad
-
-      push 0x4EA703 // Return address
-      push 0x40D7A0 // Load_XModelSurfsFixup
-      retn
     }
   }
 
@@ -224,7 +210,7 @@ namespace Components
         std::memcpy(&tempSurfaces[i].vertListCount, source + 40, 8);
         std::memcpy(&tempSurfaces[i].partBits, source + 52, 24);
 
-        if (Zones::ZoneVersion >= 332)
+        if (Zones_ZoneVersion >= 332)
         {
           struct
           {
@@ -262,7 +248,7 @@ namespace Components
 
   void Zones::LoadWeaponCompleteDef()
   {
-    if (Zones::ZoneVersion < VERSION_ALPHA2)
+    if (Zones_ZoneVersion < VERSION_ALPHA2)
     {
       return Utils::Hook::Call<void(bool)>(0x4AE7B0)(true);
     }
@@ -272,20 +258,20 @@ namespace Components
 
     int size = 3112;
 
-    if (Zones::ZoneVersion >= 461)
+    if (Zones_ZoneVersion >= 461)
       size = 4124;
-    else if (Zones::ZoneVersion >= 460)
+    else if (Zones_ZoneVersion >= 460)
       size = 4120;
-    else if (Zones::ZoneVersion >= 365)
+    else if (Zones_ZoneVersion >= 365)
       size = 3124;
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
       size = 3120;
-    else if (Zones::ZoneVersion >= 332)
+    else if (Zones_ZoneVersion >= 332)
       size = 3068;
-    else if (Zones::ZoneVersion >= 318)
+    else if (Zones_ZoneVersion >= 318)
       size = 3156;
 
-    int offsetShift = (Zones::ZoneVersion >= 461) ? 4 : 0;
+    int offsetShift = (Zones_ZoneVersion >= 461) ? 4 : 0;
 
     // and do the stuff
     Game::Load_Stream(true, varWeaponCompleteDef, size);
@@ -307,7 +293,7 @@ namespace Components
     *Game::varXModelPtr = reinterpret_cast<Game::XModel**>(varWeaponCompleteDef + 16);
     Game::Load_XModelPtr(false);
 
-    if (Zones::ZoneVersion >= 359)
+    if (Zones_ZoneVersion >= 359)
     {
       auto count = (Zones::Version() >= 460) ? 52 : 56;
       for (int offset = 20; offset <= count; offset += 4)
@@ -332,11 +318,10 @@ namespace Components
       }
     }
 
-
     // 172
     // 32 scriptstrings, should not need to be loaded
 
-    if (Zones::ZoneVersion >= 359)
+    if (Zones_ZoneVersion >= 359)
     {
       auto stringCount = (Zones::Version() >= 460) ? 62 : 52;
       auto arraySize = stringCount * 4;
@@ -403,7 +388,7 @@ namespace Components
         Game::Load_FxEffectDefHandle(false);
       }
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       // 972
       *Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 908);
@@ -432,7 +417,7 @@ namespace Components
     }
 
     // 980
-    if (Zones::ZoneVersion >= 359)
+    if (Zones_ZoneVersion >= 359)
     {
       auto offset = (Zones::Version() >= 460) ? 1476 : 916;
       auto count = (Zones::Version() >= 461) ? 58 : (Zones::Version() >= 460) ? 57 : 52;
@@ -453,7 +438,7 @@ namespace Components
         Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
       }
 
-      if (Zones::ZoneVersion >= 318)
+      if (Zones_ZoneVersion >= 318)
       {
         for (int i = 0, offset = 1184; i < 2; ++i, offset += 4)
         {
@@ -497,7 +482,7 @@ namespace Components
         }
       }
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       if (*reinterpret_cast<void**>(varWeaponCompleteDef + 1128))
       {
@@ -571,7 +556,7 @@ namespace Components
         Game::Load_FxEffectDefHandle(false);
       }
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       // 1192
       for (int offset = 1136; offset <= 1148; offset += 4)
@@ -600,7 +585,7 @@ namespace Components
         Game::Load_MaterialHandle(false);
       }
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       // 1208
       static int matOffsets1[] = { 1152, 1156, 1372,1376,1380, 1384, 1388, 1392, 1400, 1408 };
@@ -631,7 +616,7 @@ namespace Components
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 2048);
       Game::Load_XString(false);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 1428);
       Game::Load_XString(false);
@@ -662,7 +647,7 @@ namespace Components
         Game::Load_MaterialHandle(false);
       }
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       for (int offset = 1716; offset <= 1728; offset += 4)
       {
@@ -687,7 +672,7 @@ namespace Components
       *Game::varPhysPresetPtr = reinterpret_cast<Game::PhysPreset**>(varWeaponCompleteDef + 2548);
       Game::Load_PhysPresetPtr(false);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       *Game::varPhysCollmapPtr = reinterpret_cast<Game::PhysCollmap**>(varWeaponCompleteDef + 1928);
       Game::Load_PhysCollmapPtr(false);
@@ -706,7 +691,7 @@ namespace Components
       *Game::varXModelPtr = reinterpret_cast<Game::XModel**>(varWeaponCompleteDef + 2656);
       Game::Load_XModelPtr(false);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       *Game::varXModelPtr = reinterpret_cast<Game::XModel**>(varWeaponCompleteDef + 2020);
       Game::Load_XModelPtr(false);
@@ -725,7 +710,7 @@ namespace Components
       *Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2668);
       Game::Load_FxEffectDefHandle(false);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       *Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2028);
       Game::Load_FxEffectDefHandle(false);
@@ -750,7 +735,7 @@ namespace Components
       *Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 2676);
       Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       *Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 2036);
       Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
@@ -778,7 +763,7 @@ namespace Components
       *Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2984);
       Game::Load_FxEffectDefHandle(false);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       *Game::varFxEffectDefHandle = reinterpret_cast<Game::FxEffectDef**>(varWeaponCompleteDef + 2304);
       Game::Load_FxEffectDefHandle(false);
@@ -824,7 +809,7 @@ namespace Components
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3196);
       Game::Load_XString(false);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       *Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 2340);
       Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
@@ -862,7 +847,7 @@ namespace Components
         Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3778 + offsetShift));
       }
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2524) == -1)
       {
@@ -890,7 +875,7 @@ namespace Components
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 2556) = vec2;
 
-        Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + ((Zones::ZoneVersion >= 318) ? 3076 : 3040)));
+        Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + ((Zones_ZoneVersion >= 318) ? 3076 : 3040)));
       }
 
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 2552);
@@ -901,7 +886,7 @@ namespace Components
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 2560) = vec2;
 
-        Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + ((Zones::ZoneVersion >= 318) ? 3078 : 3042)));
+        Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + ((Zones_ZoneVersion >= 318) ? 3078 : 3042)));
       }
     }
 
@@ -925,7 +910,7 @@ namespace Components
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3488 + offsetShift);
       Game::Load_XString(false);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 2608);
       Game::Load_XString(false);
@@ -1001,7 +986,7 @@ namespace Components
       *Game::varsnd_alias_list_name = reinterpret_cast<Game::snd_alias_list_t**>(varWeaponCompleteDef + 3592 + offsetShift);
       Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       *Game::varTracerDefPtr = reinterpret_cast<Game::TracerDef**>(varWeaponCompleteDef + 2780);
       Game::Load_TracerDefPtr(false);
@@ -1068,7 +1053,7 @@ namespace Components
         Game::Load_SndAliasCustom(*Game::varsnd_alias_list_name);
       }
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       for (int i = 0, offset = 2940; i < 6; ++i, offset += 4)
       {
@@ -1078,7 +1063,7 @@ namespace Components
     }
     else
     {
-      if (Zones::ZoneVersion >= 318)
+      if (Zones_ZoneVersion >= 318)
       {
         for (int i = 0, offset = 2972; i < 6; ++i, offset += 4)
         {
@@ -1118,12 +1103,12 @@ namespace Components
       *Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + 3752 + offsetShift);
       Game::Load_MaterialHandle(false);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 2988);
       Game::Load_XString(false);
 
-      if (Zones::ZoneVersion >= 365)
+      if (Zones_ZoneVersion >= 365)
       {
         varWeaponCompleteDef += 4;
       }
@@ -1197,7 +1182,7 @@ namespace Components
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 4012 + offsetShift);
       Game::Load_XString(false);
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3048) == -1)
       {
@@ -1265,7 +1250,7 @@ namespace Components
 
   void Zones::LoadPathDataTail()
   {
-    if (Zones::ZoneVersion >= VERSION_ALPHA2)
+    if (Zones_ZoneVersion >= VERSION_ALPHA2)
     {
       char* varPathData = reinterpret_cast<char*>(*Game::varPathData);
 
@@ -1394,14 +1379,14 @@ namespace Components
 
   bool Zones::LoadmenuDef_t(bool atStreamStart, char* buffer, int size)
   {
-    if (Zones::ZoneVersion != 359 && Zones::ZoneVersion >= VERSION_ALPHA2) size += 4;
+    if (Zones_ZoneVersion != 359 && Zones_ZoneVersion >= VERSION_ALPHA2) size += 4;
 
     bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
-    if (Zones::ZoneVersion >= VERSION_ALPHA2)
+    if (Zones_ZoneVersion >= VERSION_ALPHA2)
     {
-      std::memmove(buffer + 168, buffer + 172, (Zones::ZoneVersion != 359 ? 232 : 228));
-      AssetHandler::Relocate(buffer + 172, buffer + 168, (Zones::ZoneVersion != 359 ? 232 : 228));
+      std::memmove(buffer + 168, buffer + 172, (Zones_ZoneVersion != 359 ? 232 : 228));
+      AssetHandler::Relocate(buffer + 172, buffer + 168, (Zones_ZoneVersion != 359 ? 232 : 228));
 
       reinterpret_cast<Game::menuDef_t*>(buffer)->expressionData = nullptr;
     }
@@ -1411,7 +1396,7 @@ namespace Components
 
   void Zones::LoadWeaponAttach()
   {
-    if (Zones::ZoneVersion < VERSION_ALPHA2)
+    if (Zones_ZoneVersion < VERSION_ALPHA2)
     {
       return Utils::Hook::Call<void(bool)>(0x4F4160)(true);
     }
@@ -1465,13 +1450,13 @@ namespace Components
 
   bool Zones::LoadMaterialShaderArgumentArray(bool atStreamStart, Game::MaterialShaderArgument* argument, int size)
   {
-    // if (Zones::ZoneVersion >= 446 && currentAssetType == Game::XAssetType::ASSET_TYPE_FX) __debugbreak();
+    // if (Zones_ZoneVersion >= 446 && Zones_currentAssetType == Game::XAssetType::ASSET_TYPE_FX) __debugbreak();
     bool result = Game::Load_Stream(atStreamStart, argument, size);
 
     Game::MaterialPass* curPass = *Game::varMaterialPass;
     int count = curPass->perPrimArgCount + curPass->perObjArgCount + curPass->stableArgCount;
 
-    for (int i = 0; i < count && (Zones::ZoneVersion >= VERSION_ALPHA2); ++i)
+    for (int i = 0; i < count && (Zones_ZoneVersion >= VERSION_ALPHA2); ++i)
     {
       Game::MaterialShaderArgument* arg = &argument[i];
 
@@ -1709,7 +1694,7 @@ namespace Components
   {
     int count = 0;
 
-    if (Zones::ZoneVersion >= VERSION_ALPHA2)
+    if (Zones_ZoneVersion >= VERSION_ALPHA2)
     {
       size /= 16;
       count = size;
@@ -1718,7 +1703,7 @@ namespace Components
 
     bool result = Game::Load_Stream(atStreamStart, data, size);
 
-    if (Zones::ZoneVersion >= VERSION_ALPHA2)
+    if (Zones_ZoneVersion >= VERSION_ALPHA2)
     {
       for (int i = 0; i < count; ++i)
       {
@@ -1732,14 +1717,14 @@ namespace Components
 
   bool Zones::LoadGfxImage(bool atStreamStart, char* buffer, int size)
   {
-    if (Zones::ZoneVersion >= 332)
+    if (Zones_ZoneVersion >= 332)
     {
-      size = (Zones::ZoneVersion >= 359) ? 52 : 36;
+      size = (Zones_ZoneVersion >= 359) ? 52 : 36;
     }
 
     bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
-    if (Zones::ZoneVersion >= 332)
+    if (Zones_ZoneVersion >= 332)
     {
       AssetHandler::Relocate(buffer + (size - 4), buffer + 28, 4);
 
@@ -1821,7 +1806,6 @@ namespace Components
       break;
     }
 
-
     if (image->category > 7 || image->category < 0)
     {
 #ifdef DEBUG
@@ -1834,7 +1818,7 @@ namespace Components
   {
     int count = 0;
 
-    if (Zones::ZoneVersion >= 334)
+    if (Zones_ZoneVersion >= 334)
     {
       size /= 8;
       count = size;
@@ -1843,7 +1827,7 @@ namespace Components
 
     bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
-    if (Zones::ZoneVersion >= 334)
+    if (Zones_ZoneVersion >= 334)
     {
       for (int i = 0; i < count; ++i)
       {
@@ -1873,13 +1857,13 @@ namespace Components
   bool Zones::LoadMaterialTechnique(bool atStreamStart, char* buffer, int size)
   {
     // 359 and above adds an extra remapped techset ptr
-    if (Zones::ZoneVersion >= 359) size += 4;
+    if (Zones_ZoneVersion >= 359) size += 4;
     // 446 amd above adds an additional technique
-    if (Zones::ZoneVersion >= 446) size += 4;
+    if (Zones_ZoneVersion >= 446) size += 4;
 
     bool result = Game::Load_Stream(atStreamStart, buffer, size);
 
-    if (Zones::ZoneVersion >= 359)
+    if (Zones_ZoneVersion >= 359)
     {
       // This shouldn't make any difference.
       // The new entry is an additional remapped techset which is linked at runtime.
@@ -1916,7 +1900,7 @@ namespace Components
 
   bool Zones::LoadMaterial(bool atStreamStart, char* buffer, int size)
   {
-    // if (Zones::ZoneVersion >= 446 && currentAssetType == Game::ASSET_TYPE_XMODEL) __debugbreak();
+    // if (Zones_ZoneVersion >= 446 && Zones_currentAssetType == Game::ASSET_TYPE_XMODEL) __debugbreak();
 
     bool result = Game::Load_Stream(atStreamStart, buffer, (Zones::Version() >= 446) ? 104 : size);
 
@@ -1951,7 +1935,7 @@ namespace Components
       //check to fix distortion
       if (material->info.sortKey == 44) material->info.sortKey = 43;
     }
-    else if (Zones::ZoneVersion >= 359)
+    else if (Zones_ZoneVersion >= 359)
     {
       struct material339_s
       {
@@ -2058,7 +2042,7 @@ namespace Components
   {
     Game::Load_MaterialHandle(atStreamStart);
 
-    if (Zones::ZoneVersion >= 359)
+    if (Zones_ZoneVersion >= 359)
     {
       char* varsunflare_t = *reinterpret_cast<char**>(0x112A848);
 
@@ -2157,27 +2141,6 @@ namespace Components
     return 15;
   }
 
-  __declspec(naked) void Zones::LoadImpactFxArray()
-  {
-    __asm
-    {
-      push edi
-      pushad
-
-      push edi
-      call Zones::ImpactFxArrayCount
-      pop edi
-
-      mov [esp + 20h], eax
-
-      popad
-      pop edi
-
-      push 4447E0h
-      retn
-    }
-  }
-
   void Zones::LoadPathNodeArray(bool atStreamStart, char* buffer, int size)
   {
     if (Zones::Version() >= VERSION_ALPHA2)
@@ -2211,7 +2174,7 @@ namespace Components
   void Zones::SetVersion(int version)
   {
     AssetHandler::ClearRelocations();
-    Zones::ZoneVersion = version;
+    Zones_ZoneVersion = version;
   }
 
   __declspec(noinline) bool Zones::CheckGameMapSp(int type)
@@ -2230,30 +2193,6 @@ namespace Components
     return false;
   }
 
-  __declspec(naked) void Zones::GameMapSpPatchStub()
-  {
-    __asm
-    {
-      pushad
-
-      push eax
-      call Zones::CheckGameMapSp
-      add esp, 4h
-
-      test al, al
-      jnz returnSafe
-
-      popad
-      push 4189AEh
-      retn
-
-    returnSafe:
-      popad
-      push 41899Dh
-      retn
-    }
-  }
-
   int Zones::PathDataSize()
   {
     if (Zones::Version() >= VERSION_ALPHA2)
@@ -2264,46 +2203,6 @@ namespace Components
     return 136;
   }
 
-  __declspec(naked) void Zones::LoadPathDataConstant()
-  {
-    __asm
-    {
-      push esi
-      pushad
-
-      call Zones::PathDataSize
-
-      add [esp + 20h], eax
-
-      popad
-      pop esi
-
-      push 4D6A4Dh
-      retn
-    }
-  }
-
-  __declspec(naked) void Zones::GetCurrentAssetTypeStub()
-  {
-    __asm pushad;
-    previousAssetType = currentAssetType;
-    __asm popad;
-
-    __asm
-    {
-      // get asset type
-      mov eax, ds:0x112aa54
-      mov eax, [eax];
-
-      // log asset type
-      // mov previousAssetType, currentAssetType;
-      mov currentAssetType, eax;
-
-      // go back
-      push 0x418847;
-      retn;
-    }
-  }
   int Zones::LoadRandomFxGarbage(bool atStreamStart, char* buffer, int size)
   {
     int count = 0;
@@ -2454,39 +2353,6 @@ namespace Components
         gfxLightMapExtraPtr2 = reinterpret_cast<int*>(Game::DB_AllocStreamPos(0));
         Game::Load_Stream(true, gfxLightMapExtraPtr2, gfxLightMapExtraCount);
       }
-    }
-  }
-
-  __declspec(naked) void Zones::LoadXModelColSurfPtr()
-  {
-    static auto DB_ConvertOffsetToPointer_Address = 0x4A82B0;
-
-    __asm
-    {
-      cmp dword ptr[eax], 0;
-      je dontLoadAssetData;
-
-      cmp dword ptr[eax], 0xFFFFFFFF;
-      je loadAssetData;
-
-      // check if FF is below 446, still load data in that case
-      cmp Zones::ZoneVersion, 446;
-      jl loadAssetData;
-
-      // offset to pointer magic
-      pushad;
-      push eax;
-      call DB_ConvertOffsetToPointer_Address;
-      add esp, 4;
-      popad;
-
-    dontLoadAssetData:
-      push 0x4C870E;
-      retn;
-
-    loadAssetData:
-      push 0x4C86DD;
-      retn;
     }
   }
 
@@ -3056,20 +2922,9 @@ namespace Components
   std::unordered_map<int, Zones::FileData> Zones::fileDataMap;
   std::mutex Zones::fileDataMutex;
 
-  __declspec(naked) int Zones::FS_FOpenFileReadForThreadOriginal(const char*, int*, int)
-  {
-    __asm
-    {
-      sub esp, 0x33C
-
-      push 0x643276
-      ret
-    }
-  }
-
   int Zones::FS_FOpenFileReadForThreadHook(const char* file, int* filePointer, int thread)
   {
-    const auto retval = FS_FOpenFileReadForThreadOriginal(file, filePointer, thread);
+    const auto retval = Zones_FS_FOpenFileReadForThreadOriginal(file, filePointer, thread);
 
     if (file != nullptr && filePointer != nullptr && strlen(file) >= 4 && retval > 0)
     {
@@ -3177,18 +3032,6 @@ namespace Components
     return retval;
   }
 
-  __declspec(naked) int Zones::FS_ReadOriginal(void*, size_t, int)
-  {
-    __asm
-    {
-      push ecx
-      mov eax, [esp + 0x10]
-
-      push 0x4A04C5
-      ret
-    }
-  }
-
   int Zones::FS_ReadHook(void* buffer, size_t size, int filePointer)
   {
     std::lock_guard _(fileDataMutex);
@@ -3204,41 +3047,18 @@ namespace Components
       }
     }
 
-    return FS_ReadOriginal(buffer, size, filePointer);
-  }
-
-  __declspec(naked) void Zones::FS_FCloseFileOriginal(int)
-  {
-    __asm
-    {
-      mov eax, [esp + 4]
-      push esi
-
-      push 0x462005
-      ret
-    }
+    return Zones_FS_ReadOriginal(buffer, size, filePointer);
   }
 
   void Zones::FS_FCloseFileHook(int filePointer)
   {
     std::lock_guard _(fileDataMutex);
 
-    FS_FCloseFileOriginal(filePointer);
+    Zones_FS_FCloseFileOriginal(filePointer);
 
     if (const auto itr = fileDataMap.find(filePointer); itr != fileDataMap.end())
     {
       fileDataMap.erase(itr);
-    }
-  }
-  __declspec(naked) std::uint32_t Zones::FS_SeekOriginal(int, int, int)
-  {
-    __asm
-    {
-      push esi
-      mov esi, [esp + 8]
-
-      push 0x4A63D5
-      ret
     }
   }
   std::uint32_t Zones::FS_SeekHook(int fileHandle, int seekPosition, int seekOrigin)
@@ -3263,104 +3083,7 @@ namespace Components
       return itr->second.readPos;
     }
 
-    return FS_SeekOriginal(fileHandle, seekPosition, seekOrigin);
-  }
-
-  __declspec(naked) void Zones::LoadMapTriggersModelPointer()
-  {
-    static auto DB_ConvertOffsetToPointer_Address = 0x4A82B0;
-
-    __asm
-    {
-      cmp dword ptr[edx + 4], 0;
-      je dontLoadAssetData;
-
-      cmp dword ptr[edx + 4], 0xFFFFFFFF;
-      je loadAssetData;
-
-      // check if FF is below 446, still load data in that case
-      cmp Zones::ZoneVersion, 446;
-      jl loadAssetData;
-
-      // offset to pointer magic
-      pushad;
-      push eax;
-      call DB_ConvertOffsetToPointer_Address;
-      add esp, 4;
-      popad;
-
-    dontLoadAssetData:
-      push 0x43CBF3;
-      retn;
-
-    loadAssetData:
-      push 0x43CBC1;
-      retn;
-    }
-  }
-  __declspec(naked) void Zones::LoadMapTriggersHullPointer()
-  {
-    static auto DB_ConvertOffsetToPointer_Address = 0x4A82B0;
-
-    __asm
-    {
-      cmp dword ptr[eax + 0Ch], 0;
-      je dontLoadAssetData;
-
-      cmp dword ptr[eax + 0Ch], 0xFFFFFFFF;
-      je loadAssetData;
-
-      // check if FF is below 446, still load data in that case
-      cmp Zones::ZoneVersion, 446;
-      jl loadAssetData;
-
-      // offset to pointer magic
-      pushad;
-      push eax;
-      call DB_ConvertOffsetToPointer_Address;
-      add esp, 4;
-      popad;
-
-    dontLoadAssetData:
-      push 0x43CC2E;
-      retn;
-
-    loadAssetData:
-      push 0x43CBFE;
-      retn;
-    }
-  }
-  __declspec(naked) void Zones::LoadMapTriggersSlabPointer()
-  {
-    static auto DB_ConvertOffsetToPointer_Address = 0x4A82B0;
-
-    __asm
-    {
-      cmp dword ptr[eax + 14h], 0;
-      je dontLoadAssetData;
-
-      cmp dword ptr[eax + 14h], 0xFFFFFFFF;
-      je loadAssetData;
-
-      // check if FF is below 446, still load data in that case
-      cmp Zones::ZoneVersion, 446;
-      jl loadAssetData;
-
-      // offset to pointer magic
-      pushad;
-      push eax;
-      call DB_ConvertOffsetToPointer_Address;
-      add esp, 4;
-      popad;
-
-    dontLoadAssetData:
-      push 0x43CC6D;
-      retn;
-
-    loadAssetData:
-      push 0x43CC39;
-      retn;
-    }
+    return Zones_FS_SeekOriginal(fileHandle, seekPosition, seekOrigin);
   }
 
   void Zones::LoadFxWorldAsset(Game::FxWorld** asset)
@@ -3430,7 +3153,6 @@ namespace Components
     return Utils::Hook::Call<void(Game::XModel**)>(0x47A690)(asset);
   }
 
-
   void Zones::LoadMaterialAsset(Game::Material** asset)
   {
     if (asset && *asset && Zones::Version() >= 446)
@@ -3496,7 +3218,7 @@ namespace Components
 
   Zones::Zones()
   {
-    Zones::ZoneVersion = 0;
+    Zones_ZoneVersion = 0;
 
     if (ZoneBuilder::IsEnabled())
     {
@@ -3594,12 +3316,12 @@ namespace Components
     Utils::Hook(0x4039DE, Zones::LoadMaterialAsset, HOOK_CALL).install()->quick();
     Utils::Hook(0x4FCAEE, Zones::LoadXModelAsset, HOOK_CALL).install()->quick();
     Utils::Hook(0x5BA01E, Zones::LoadFxWorldAsset, HOOK_CALL).install()->quick();
-    Utils::Hook(0x43CBBB, Zones::LoadMapTriggersModelPointer, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x43CBF8, Zones::LoadMapTriggersHullPointer, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x43CC33, Zones::LoadMapTriggersSlabPointer, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x43CBBB, Zones_LoadMapTriggersModelPointer, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x43CBF8, Zones_LoadMapTriggersHullPointer, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x43CC33, Zones_LoadMapTriggersSlabPointer, HOOK_JUMP).install()->quick();
     Utils::Hook(0x47E1DD, Zones::LoadMapEnts, HOOK_CALL).install()->quick();
     Utils::Hook(0x4BF992, Zones::LoadClipMap, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4C86D8, Zones::LoadXModelColSurfPtr, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x4C86D8, Zones_LoadXModelColSurfPtr, HOOK_JUMP).install()->quick();
     Utils::Hook(0x44EB21, Zones::LoadGfxLightMapExtraData, HOOK_CALL).install()->quick();
     Utils::Hook(0x44EAD3, Zones::LoadGfxReflectionProbes, HOOK_CALL).install()->quick();
     Utils::Hook(0x4C08F8, Zones::LoadGfxXSurfaceExtraData, HOOK_CALL).install()->quick();
@@ -3607,7 +3329,7 @@ namespace Components
     Utils::Hook(0x45AE3D, Zones::LoadRandomFxGarbage, HOOK_CALL).install()->quick();
     Utils::Hook(0x495938, Zones::LoadFxElemDefArrayStub, HOOK_CALL).install()->quick();
     Utils::Hook(0x45ADA0, Zones::LoadFxElemDefStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4EA6FE, Zones::LoadXModelLodInfoStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x4EA6FE, Zones_LoadXModelLodInfoStub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x410D90, Zones::LoadXModel, HOOK_CALL).install()->quick();
     Utils::Hook(0x4925C8, Zones::LoadXSurfaceArray, HOOK_CALL).install()->quick();
     Utils::Hook(0x4F4D0D, Zones::LoadGameWorldSp, HOOK_CALL).install()->quick();
@@ -3623,9 +3345,9 @@ namespace Components
     Utils::Hook(0x49CE0D, Zones::LoadPhysPreset, HOOK_CALL).install()->quick();
     Utils::Hook(0x48E84D, Zones::LoadXModelSurfs, HOOK_CALL).install()->quick();
     Utils::Hook(0x4447C2, Zones::LoadImpactFx, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4447D0, Zones::LoadImpactFxArray, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x4447D0, Zones_LoadImpactFxArray, HOOK_JUMP).install()->quick();
     Utils::Hook(0x4D6A0B, Zones::LoadPathNodeArray, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4D6A47, Zones::LoadPathDataConstant, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x4D6A47, Zones_LoadPathDataConstant, HOOK_JUMP).install()->quick();
     Utils::Hook(0x463D6E, Zones::LoadPathnodeConstantTail, HOOK_CALL).install()->quick();
     Utils::Hook(0x4471AD, Zones::LoadGfxImage, HOOK_CALL).install()->quick();
     Utils::Hook(0x41A590, Zones::LoadExpressionSupportingDataPtr, HOOK_CALL).install()->quick();
@@ -3636,7 +3358,7 @@ namespace Components
     Utils::Hook(0x40330D, Zones::LoadMaterial, HOOK_CALL).install()->quick();
     Utils::Hook(0x4B8DC0, Zones::LoadGfxWorld, HOOK_CALL).install()->quick();
     Utils::Hook(0x4B8FF5, Zones::Loadsunflare_t, HOOK_CALL).install()->quick();
-    Utils::Hook(0x418998, Zones::GameMapSpPatchStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x418998, Zones_GameMapSpPatchStub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x427A1B, Zones::LoadPathDataTail, HOOK_JUMP).install()->quick();
 
     Utils::Hook(0x4B4EA1, Zones::ParseShellShock_Stub, HOOK_CALL).install()->quick();
@@ -3644,7 +3366,7 @@ namespace Components
 
     Utils::Hook(0x4F4D3B, []
     {
-      if (Zones::ZoneVersion >= VERSION_ALPHA3)
+      if (Zones_ZoneVersion >= VERSION_ALPHA3)
       {
         ZeroMemory(*Game::varPathData, sizeof(Game::PathData));
       }
@@ -3658,7 +3380,7 @@ namespace Components
     // Change stream for images
     Utils::Hook(0x4D3225, []()
     {
-      Game::DB_PushStreamPos((Zones::ZoneVersion >= 332) ? 3 : 0);
+      Game::DB_PushStreamPos((Zones_ZoneVersion >= 332) ? 3 : 0);
     }, HOOK_CALL).install()->quick();
 
     Utils::Hook(0x4597DD, Zones::LoadStatement, HOOK_CALL).install()->quick();
@@ -3666,3 +3388,23 @@ namespace Components
   }
 }
 #pragma optimize( "", on )
+
+void Zones_LoadXModelLodInfo(int i)
+{
+  Components::Zones::LoadXModelLodInfo(i);
+}
+
+int Zones_ImpactFxArrayCount()
+{
+  return Components::Zones::ImpactFxArrayCount();
+}
+
+bool Zones_CheckGameMapSp(int type)
+{
+  return Components::Zones::CheckGameMapSp(type);
+}
+
+int Zones_PathDataSize()
+{
+  return Components::Zones::PathDataSize();
+}

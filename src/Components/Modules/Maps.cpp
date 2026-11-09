@@ -6,6 +6,11 @@
 #include "Theatre.hpp"
 #include "GSC/Script.hpp"
 
+extern "C"
+{
+  int Maps_RotateConnectionState;
+}
+
 namespace Components
 {
   Maps::UserMapContainer Maps::UserMap;
@@ -13,7 +18,6 @@ namespace Components
   std::vector<std::pair<std::string, std::string>> Maps::DependencyList;
   std::vector<std::string> Maps::CurrentDependencies;
   std::vector<std::string> Maps::FoundCustomMaps;
-  int Maps::RotateConnectionState;
 
   Dvar::Var Maps::RListSModels;
 
@@ -297,23 +301,6 @@ namespace Components
     return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp->g_glassData;
   }
 
-  __declspec(naked) void Maps::GetWorldDataStub()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      call Maps::GetWorldData
-
-      mov[esp + 20h], eax
-      popad
-      pop eax
-
-      retn
-    }
-  }
-
   void Maps::LoadRawSun()
   {
     Game::R_FlushSun();
@@ -571,10 +558,10 @@ namespace Components
     // the same as for a map we don't have.
     //
     // Note that by now the game has already set the state to connected for
-    // the map change, so we check the one it had before (see
-    // SetConnectedStub() below).
+    // the map change, so we check the one it had before (see the
+    // Maps_SetConnectedStub hook below).
     //
-    const auto connecting = Maps::RotateConnectionState < Game::CA_ACTIVE;
+    const auto connecting = Maps_RotateConnectionState < Game::CA_ACTIVE;
 
     if (connecting || !Maps::CheckMapInstalled(mapname, false, true) || hash && hash != Maps::GetUsermapHash(mapname))
     {
@@ -638,110 +625,6 @@ namespace Components
     }
 
     Game::CL_DownloadsComplete(localClientNum);
-  }
-
-  // Remember the connection state before the game sets it to connected for a
-  // map change.
-  //
-  __declspec(naked) void Maps::SetConnectedStub()
-  {
-    __asm
-    {
-      push eax
-      mov eax, dword ptr [esi + 0B2C540h]
-      mov Maps::RotateConnectionState, eax
-      pop eax
-
-      mov dword ptr [esi + 0B2C540h], 5 // CA_CONNECTED
-      retn
-    }
-  }
-
-  // Ignore the server's request for our stats unless we are connected to it.
-  //
-  // The game starts sending them whatever the state, so a request that
-  // arrives after we have disconnected (say, from the server we just left
-  // after it rotated to a map we don't have) puts us back to connecting and
-  // we sit on a black screen until it times out.
-  //
-  __declspec(naked) void Maps::RequestStatsStub()
-  {
-    __asm
-    {
-      mov eax, dword ptr ds:[0B2C540h]
-      cmp eax, 6 // CA_SENDINGSTATS
-      je skip
-      cmp eax, 5 // CA_CONNECTED
-      jl skip
-
-      push 5AA94Ch
-      retn
-
-    skip:
-      push 5AA9A9h
-      retn
-    }
-  }
-
-  __declspec(naked) void Maps::RotateCheckStub()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      push[esp + 28h]
-      push ebp
-      call Maps::TriggerReconnectForMap
-      add esp, 8h
-
-      mov[esp + 20h], eax
-
-      popad
-      pop eax
-
-      test eax, eax
-      jnz skipRotation
-
-      push 487C50h // Rotate map
-
-      skipRotation :
-      retn
-    }
-  }
-
-  __declspec(naked) void Maps::SpawnServerStub()
-  {
-    __asm
-    {
-      pushad
-
-      push[esp + 24h]
-      call Maps::PrepareUsermap
-      pop eax
-
-      popad
-
-      push 4A7120h // SV_SpawnServer
-      retn
-    }
-  }
-
-  __declspec(naked) void Maps::LoadMapLoadscreenStub()
-  {
-    __asm
-    {
-      pushad
-
-      push[esp + 24h]
-      call Maps::PrepareUsermap
-      pop eax
-
-      popad
-
-      push 4D8030h // LoadMapLoadscreen
-      retn
-    }
   }
 
   void Maps::AddDlc(Maps::DLC dlc)
@@ -910,19 +793,6 @@ namespace Components
     }
   }
 
-  __declspec(naked) void Maps::HideModelStub()
-  {
-    __asm
-    {
-      pushad
-      call Maps::HideModel
-      popad
-
-      push 541E40h
-      retn
-    }
-  }
-
   void Maps::G_SpawnTurretHook(Game::gentity_s* ent, int unk, int unk2)
   {
     if (Maps::CurrentMainZone == "mp_backlot_sh"s || Maps::CurrentMainZone == "mp_con_spring"s ||
@@ -1083,19 +953,19 @@ namespace Components
     Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).install()->quick();
 
     // WorldData pointer replacement
-    Utils::Hook(0x4D90B6, Maps::GetWorldDataStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x4D90B6, Maps_GetWorldDataStub, HOOK_CALL).install()->quick();
 
     // Allow loading raw suns
     Utils::Hook(0x51B46A, Maps::LoadRawSun, HOOK_CALL).install()->quick();
 
     // Intercept map loading for usermap initialization
-    Utils::Hook(0x6245E3, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x62493E, Maps::SpawnServerStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x42CF58, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x487CDD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4CA3E9, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A9D51, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5B34DD, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x6245E3, Maps_SpawnServerStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x62493E, Maps_SpawnServerStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x42CF58, Maps_LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x487CDD, Maps_LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x4CA3E9, Maps_LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5A9D51, Maps_LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5B34DD, Maps_LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
 
     Command::Add("delayReconnect", []()
       {
@@ -1113,10 +983,23 @@ namespace Components
 
     // Download the map before a map rotation if necessary
     // Conflicts with Theater's SV map rotation check, but this one is safer!
-    Utils::Hook(0x5AA91C, Maps::RotateCheckStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5AA907, Maps::SetConnectedStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5AA91C, Maps_RotateCheckStub, HOOK_CALL).install()->quick();
+
+    // Remember the connection state before the game sets it to connected for
+    // a map change.
+    //
+    Utils::Hook(0x5AA907, Maps_SetConnectedStub, HOOK_CALL).install()->quick();
     Utils::Hook::Nop(0x5AA90C, 5);
-    Utils::Hook(0x5AA943, Maps::RequestStatsStub, HOOK_JUMP).install()->quick();
+
+    // Ignore the server's request for our stats unless we are connected to
+    // it.
+    //
+    // The game starts sending them whatever the state, so a request that
+    // arrives after we have disconnected (say, from the server we just left
+    // after it rotated to a map we don't have) puts us back to connecting
+    // and we sit on a black screen until it times out.
+    //
+    Utils::Hook(0x5AA943, Maps_RequestStatsStub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x5AC6E9, Maps::DownloadsComplete, HOOK_CALL).install()->quick(); // CL_ParseGamestate
     Utils::Hook(0x5A96D6, Maps::StartMatch, HOOK_CALL).install()->quick(); // xpartygo command.
     Utils::Hook(0x5B59DE, Maps::StartMatch, HOOK_CALL).install()->quick(); // Lobby start timer.
@@ -1125,7 +1008,7 @@ namespace Components
     Utils::Hook(0x630A88, Maps::LoadArenaFileStub, HOOK_CALL).install()->quick();
 
     // Allow hiding specific smodels
-    Utils::Hook(0x50E67C, Maps::HideModelStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x50E67C, Maps_HideModelStub, HOOK_CALL).install()->quick();
 
     // gsc: GetMapList()
     Components::GSC::Script::AddFunction(
@@ -1182,4 +1065,24 @@ namespace Components
     Maps::CurrentMainZone.clear();
     Maps::CurrentDependencies.clear();
   }
+}
+
+Game::G_GlassData* Maps_GetWorldData()
+{
+  return Components::Maps::GetWorldData();
+}
+
+int Maps_TriggerReconnectForMap(Game::msg_t* msg, const char* mapname)
+{
+  return Components::Maps::TriggerReconnectForMap(msg, mapname);
+}
+
+void Maps_PrepareUsermap(const char* mapname)
+{
+  Components::Maps::PrepareUsermap(mapname);
+}
+
+void Maps_HideModel()
+{
+  Components::Maps::HideModel();
 }

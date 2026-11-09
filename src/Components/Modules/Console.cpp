@@ -190,7 +190,6 @@ namespace Components
     return static_cast<float>(dpi) / unawareDpi;
   }
 
-
   const char* Console::Input()
   {
     if (!HasConsole)
@@ -566,22 +565,6 @@ namespace Components
     Utils::Hook::Set(0x64A38B8, totalChars - totalClearLength);
   }
 
-  void __declspec(naked) Console::Sys_PrintStub()
-  {
-    __asm
-    {
-      pushad
-      push edi
-      call MakeRoomForText
-      pop edi
-      popad
-
-      // Go back to AppendText
-      push 0x4F57F8
-      ret
-    }
-  }
-
   LRESULT CALLBACK Console::ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, unsigned int lParam)
   {
     switch (Msg)
@@ -662,7 +645,7 @@ namespace Components
 
     // Never reset text
     Utils::Hook::Nop(0x4F57DF, 0x4F57F6 - 0x4F57DF);
-    Utils::Hook(0x4F57DF, Sys_PrintStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x4F57DF, Console_Sys_PrintStub, HOOK_JUMP).install()->quick();
 
   }
 
@@ -720,24 +703,6 @@ namespace Components
     fflush(stderr);
 
     ExitProcess(1);
-  }
-
-  __declspec(naked) void Console::DrawSolidConsoleStub()
-  {
-    __asm
-    {
-      pushad
-      call Console::StoreSafeArea
-      popad
-
-      // We need esi preserved here, so we have to backup 'all' registers when storing the safearea
-      call Game::Con_DrawSolidConsole
-
-      pushad
-      call Console::RestoreSafeArea
-      popad
-      retn
-    }
   }
 
   float Console::GetConsoleScale()
@@ -947,7 +912,7 @@ namespace Components
     Utils::Hook::Nop(0x4F68EC, 2);
 
     // Patch safearea for ingame-console
-    Utils::Hook(0x5A50EF, DrawSolidConsoleStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5A50EF, Console_DrawSolidConsoleStub, HOOK_CALL).install()->quick();
 
     // Scale ingame-console with render resolution (raw pixels)
     con_scale = Dvar::Register<float>("con_scale", 0.0f, 0.0f, 4.0f, Game::DVAR_ARCHIVE, "Size multiplier of the ingame console. 0 derives it from the render resolution.");
@@ -1085,4 +1050,19 @@ namespace Components
       ConsoleThread.join();
     }
   }
+}
+
+void Console_MakeRoomForText(int addedCharacters)
+{
+  Components::Console::MakeRoomForText(addedCharacters);
+}
+
+void Console_StoreSafeArea()
+{
+  Components::Console::StoreSafeArea();
+}
+
+void Console_RestoreSafeArea()
+{
+  Components::Console::RestoreSafeArea();
 }

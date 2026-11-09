@@ -1,5 +1,22 @@
 #pragma once
 
+extern "C"
+{
+  extern bool AssetHandler_ShouldSearchTempAssets;
+
+  void AssetHandler_FindAssetStub();
+  void AssetHandler_AddAssetStub();
+  void AssetHandler_OverrideAssetStub();
+  void AssetHandler_StoreEmptyAssetStub();
+
+  int AssetHandler_HasThreadBypass();
+  Game::XAssetHeader AssetHandler_FindAsset(Game::XAssetType type, const char* filename);
+  Game::XAssetHeader AssetHandler_FindTemporaryAsset(Game::XAssetType type, const char* filename);
+  bool AssetHandler_IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset);
+  bool AssetHandler_ShouldOverrideAsset(Game::XAssetType type);
+  void AssetHandler_StoreEmptyAsset(Game::XAssetType type, const char* name);
+}
+
 namespace Components
 {
   class AssetHandler : public Component
@@ -44,8 +61,14 @@ namespace Components
     static void OffsetToAlias(Utils::Stream::Offset* offset);
 
   private:
+    friend int ::AssetHandler_HasThreadBypass();
+    friend Game::XAssetHeader (::AssetHandler_FindAsset)(Game::XAssetType type, const char* filename);
+    friend Game::XAssetHeader (::AssetHandler_FindTemporaryAsset)(Game::XAssetType type, const char* filename);
+    friend bool ::AssetHandler_IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset);
+    friend bool ::AssetHandler_ShouldOverrideAsset(Game::XAssetType type);
+    friend void ::AssetHandler_StoreEmptyAsset(Game::XAssetType type, const char* name);
+
     static thread_local int BypassState;
-    static bool ShouldSearchTempAssets;
 
     static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
 
@@ -62,13 +85,9 @@ namespace Components
     static Game::XAssetHeader FindAsset(Game::XAssetType type, const char* filename);
     static Game::XAssetHeader FindTemporaryAsset(Game::XAssetType type, const char* filename);
     static bool IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset);
-    static void FindAssetStub();
-    static void AddAssetStub();
     static bool ShouldOverrideAsset(Game::XAssetType type);
-    static void OverrideAssetStub();
 
     static void StoreEmptyAsset(Game::XAssetType type, const char* name);
-    static void StoreEmptyAssetStub();
 
     static void ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name);
 

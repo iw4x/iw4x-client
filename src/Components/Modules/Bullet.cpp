@@ -1,9 +1,13 @@
 #include "Bullet.hpp"
 
+extern "C"
+{
+  Game::dvar_t* Bullet_BGBulletRange;
+}
+
 namespace Components
 {
   Dvar::Var Bullet::BGSurfacePenetration;
-  Game::dvar_t* Bullet::BGBulletRange;
 
   float Bullet::ContactPointSave[3];
   float Bullet::VCSave[3];
@@ -36,20 +40,6 @@ namespace Components
     return 0.0f;
   }
 
-  __declspec(naked) void Bullet::Bullet_FireStub()
-  {
-    __asm
-    {
-      push eax
-      mov eax, BGBulletRange
-      fld dword ptr [eax + 0x10] // dvar_t.current.value
-      pop eax
-
-      push 0x440346
-      retn
-    }
-  }
-
   void Bullet::BG_srand_Hk(unsigned int* pHoldrand)
   {
     *pHoldrand = static_cast<unsigned int>(std::rand());
@@ -58,26 +48,6 @@ namespace Components
   void Bullet::BulletRicochet_Save(const float* contactPoint)
   {
     std::memcpy(ContactPointSave, contactPoint, sizeof(float[3]));
-  }
-
-  __declspec(naked) void Bullet::BulletRicochet_Stub()
-  {
-    __asm
-    {
-      pushad
-      push [esp + 0x20 + 0xC]
-      call BulletRicochet_Save
-      add esp, 0x4
-      popad
-
-      // Game's code
-      sub esp, 0x4C
-      push ebp
-      mov ebp, dword ptr [esp + 0x60]
-
-      push 0x5D5B08
-      ret
-    }
   }
 
   void Bullet::_VectorMA_Stub(float* va, float scale, float* vb, float* vc)
@@ -116,7 +86,7 @@ namespace Components
   {
     BGSurfacePenetration = Dvar::Register<float>("bg_surfacePenetration", 0.0f,
       0.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO, "Set to a value greater than 0 to override the surface penetration depth");
-    BGBulletRange = Game::Dvar_RegisterFloat("bg_bulletRange", 8192.0f,
+    Bullet_BGBulletRange = Game::Dvar_RegisterFloat("bg_bulletRange", 8192.0f,
       0.0f, std::numeric_limits<float>::max(), Game::DVAR_CODINFO, "Max range used when calculating the bullet end position");
 
     Utils::Hook(0x4F6980, BG_GetSurfacePenetrationDepthStub, HOOK_JUMP).install()->quick();
@@ -129,7 +99,7 @@ namespace Components
     std::memset(CalcRicochetSave, 0, sizeof(float[3]));
 
 #ifdef DEBUG_RIOT_SHIELD
-    Utils::Hook(0x5D5B00, BulletRicochet_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x5D5B00, Bullet_BulletRicochet_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook::Nop(0x5D5B00 + 5, 3);
 
     Utils::Hook(0x5D5BBA, CalcRicochet_Stub, HOOK_CALL).install()->quick();
@@ -139,4 +109,9 @@ namespace Components
     Utils::Hook(0x5D5C0B, Bullet_Fire_Stub, HOOK_CALL).install()->quick();
 #endif
   }
+}
+
+void Bullet_BulletRicochet_Save(const float* contactPoint)
+{
+  Components::Bullet::BulletRicochet_Save(contactPoint);
 }

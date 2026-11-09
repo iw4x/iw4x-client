@@ -89,5 +89,5 @@ namespace Game
   extern void SV_DropAllBots();
   extern int SV_GetClientStat(int clientNum, int index);
   extern void SV_SetClientStat(int clientNum, int index, int value);
-  extern void SV_BotUserMove(client_s* client);
+  extern "C" void SV_BotUserMove(client_s* client);
 }

@@ -42,31 +42,6 @@ namespace Components
     return result;
   }
 
-  void __declspec(naked) CardTitles::GetPlayerCardClientInfoStub()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      push esi
-      push eax
-      call GetPlayerCardClientInfo
-      add esp, 8
-
-      mov [esp + 20h], eax
-      popad
-      pop eax
-
-      pop esi
-      pop ebp
-      mov [ebx + 4], eax
-      pop ebx
-
-      retn
-    }
-  }
-
   const char* CardTitles::TableLookupByRowHook(Game::Operand* operand, tablelookuprequest_s* request)
   {
     std::uint8_t prefix = (request->tableRow >> (8 * 3)) & 0xFF;
@@ -117,39 +92,6 @@ namespace Components
     }
 
     return nullptr;
-  }
-
-  __declspec(naked) void CardTitles::TableLookupByRowHookStub()
-  {
-    __asm
-    {
-      push eax
-      pushad
-
-      push esi
-      push ebx
-
-      call TableLookupByRowHook
-      add esp, 8
-
-      mov [esp + 20h], eax
-      popad
-      pop eax
-
-      cmp eax, 0
-      jz originalTitle
-
-      pop ecx
-      mov ecx, dword ptr[esi + 4]
-      retn
-
-    originalTitle:
-      mov eax, [esi + 50h]
-      cmp eax, 3
-
-      push 62DCC7h
-      retn
-    }
   }
 
   void CardTitles::SendCustomTitlesToClients()
@@ -216,10 +158,20 @@ namespace Components
       return false;
     });
 
-    Utils::Hook(0x62EB26, GetPlayerCardClientInfoStub).install()->quick();
+    Utils::Hook(0x62EB26, CardTitles_GetPlayerCardClientInfoStub).install()->quick();
 
     // Table lookup stuff
-    Utils::Hook(0x62DCC1, TableLookupByRowHookStub).install()->quick();
+    Utils::Hook(0x62DCC1, CardTitles_TableLookupByRowHookStub).install()->quick();
     Utils::Hook::Nop(0x62DCC6, 1);
   }
+}
+
+int CardTitles_GetPlayerCardClientInfo(int lookupResult, Game::PlayerCardData* data)
+{
+  return Components::CardTitles::GetPlayerCardClientInfo(lookupResult, data);
+}
+
+const char* CardTitles_TableLookupByRowHook(Game::Operand* operand, Components::tablelookuprequest_s* request)
+{
+  return Components::CardTitles::TableLookupByRowHook(operand, request);
 }

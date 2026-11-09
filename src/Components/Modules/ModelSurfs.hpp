@@ -1,5 +1,16 @@
 #pragma once
 
+extern "C"
+{
+  void ModelSurfs_GetIndexBufferStub();
+  void ModelSurfs_GetIndexBufferStub2();
+  void ModelSurfs_GetIndexBaseStub();
+  void ModelSurfs_GetVertexBufferStub();
+
+  void ModelSurfs_SetBuffer(char streamHandle, void* buffer, IUnknown** bufferOut, int* offsetOut);
+  IUnknown* ModelSurfs_GetBuffer(void* buffer);
+}
+
 namespace Components
 {
   class ModelSurfs : public Component
@@ -9,6 +20,9 @@ namespace Components
     ~ModelSurfs();
 
   private:
+    friend void (::ModelSurfs_SetBuffer)(char streamHandle, void* buffer, IUnknown** bufferOut, int* offsetOut);
+    friend IUnknown* (::ModelSurfs_GetBuffer)(void* buffer);
+
     static std::unordered_map<void*, IUnknown*> BufferMap;
     static std::unordered_map<Game::XModelSurfs*, Game::CModelAllocData*> AllocMap;
 
@@ -24,10 +38,5 @@ namespace Components
     static Game::XModelSurfs* LoadXModelSurfaces(Game::XModelSurfs* asset);
     static bool LoadSurfaces(Game::XModel* model);
     static void XModelSurfsFixup(Game::XModel* model);
-
-    static void GetIndexBaseStub();
-    static void GetIndexBufferStub();
-    static void GetIndexBufferStub2();
-    static void GetVertexBufferStub();
   };
 }

@@ -430,21 +430,6 @@ namespace Components
     Game::SV_ClientThink(cl, &userCmd);
   }
 
-  __declspec(naked) void Bots::SV_BotUserMove_Hk()
-  {
-    __asm
-    {
-      pushad
-
-      push edi
-      call BotAiAction
-      add esp, 4
-
-      popad
-      ret
-    }
-  }
-
   void Bots::G_SelectWeaponIndex(int clientNum, unsigned int iWeaponIndex)
   {
     if (g_botai[clientNum].active)
@@ -477,28 +462,6 @@ namespace Components
           break;
         }
       }
-    }
-  }
-
-  __declspec(naked) void Bots::G_SelectWeaponIndex_Hk()
-  {
-    __asm
-    {
-      pushad
-
-      push [esp + 0x20 + 0x8]
-      push [esp + 0x20 + 0x8]
-      call G_SelectWeaponIndex
-      add esp, 0x8
-
-      popad
-
-      // Code skipped by hook
-      mov eax, [esp + 0x8]
-      push eax
-
-      push 0x441B85
-      retn
     }
   }
 
@@ -622,10 +585,10 @@ namespace Components
     // Intercept sprintf for the connect string
     Utils::Hook(0x48ADAB, BuildConnectString, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x627021, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x627241, SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x627021, Bots_SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x627241, Bots_SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x441B80, G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x441B80, Bots_G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
 
     // fix bots using objects (SV_IsClientBot)
     Utils::Hook(0x4D79C5, Player_UpdateActivate_stub, HOOK_CALL).install()->quick();
@@ -698,4 +661,14 @@ namespace Components
     // In case a loaded mod didn't call "BotStop" before the VM shutdown
     Events::OnVMShutdown(CleanBotArray);
   }
+}
+
+void Bots_BotAiAction(Game::client_s* cl)
+{
+  Components::Bots::BotAiAction(cl);
+}
+
+void Bots_G_SelectWeaponIndex(int clientNum, unsigned int iWeaponIndex)
+{
+  Components::Bots::G_SelectWeaponIndex(clientNum, iWeaponIndex);
 }

@@ -78,47 +78,11 @@ namespace Components
     Game::Com_AddStartupCommands();
   }
 
-  __declspec(naked) void Dedicated::PostInitializationStub()
-  {
-    __asm
-    {
-      pushad
-      call PostInitialization
-      popad
-
-      // Start Com_EvenLoop
-      mov eax, 43D140h
-      jmp eax
-    }
-  }
-
   void Dedicated::Com_ClampMsec(const int msec)
   {
     if (msec > 500 && msec < 500000)
     {
       Game::Com_PrintWarning(Game::CON_CHANNEL_SYSTEM, "Hitch warning: %i msec frame time\n", msec);
-    }
-  }
-
-  __declspec(naked) void Dedicated::Com_ClampMsec_Stub()
-  {
-    using namespace Game;
-
-    __asm
-    {
-      pushad
-
-      push ecx
-      call Com_ClampMsec
-      add esp, 0x4
-
-      popad
-
-      // Game's code
-      mov edx, dword ptr sv_running
-
-      push 0x47DDB8
-      ret
     }
   }
 
@@ -271,9 +235,9 @@ namespace Components
         });
 
         // Post initialization point
-        Utils::Hook(0x60BFBF, PostInitializationStub, HOOK_JUMP).install()->quick();
+        Utils::Hook(0x60BFBF, Dedicated_PostInitializationStub, HOOK_JUMP).install()->quick();
 
-        Utils::Hook(0x47DDB2, Com_ClampMsec_Stub, HOOK_JUMP).install()->quick(); // Com_Frame_Try_Block_Function
+        Utils::Hook(0x47DDB2, Dedicated_Com_ClampMsec_Stub, HOOK_JUMP).install()->quick(); // Com_Frame_Try_Block_Function
         Utils::Hook::Nop(0x47DDB2 + 5, 1);
 
         // Transmit custom data
@@ -318,4 +282,14 @@ namespace Components
       }
     }, Scheduler::Pipeline::SERVER, 15s);
   }
+}
+
+void Dedicated_PostInitialization()
+{
+  Components::Dedicated::PostInitialization();
+}
+
+void Dedicated_Com_ClampMsec(int msec)
+{
+  Components::Dedicated::Com_ClampMsec(msec);
 }

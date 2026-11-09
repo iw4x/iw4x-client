@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void Dvar_RegisterVariant_Stub();
+
+  void Dvar_OnRegisterVariant(Game::dvar_t* dvar);
+}
+
 namespace Components
 {
   class Dvar : public Component
@@ -40,6 +47,7 @@ namespace Components
     static Var Name;
 
   private:
+    friend void (::Dvar_OnRegisterVariant)(Game::dvar_t* dvar);
 
     static const Game::dvar_t* Dvar_RegisterName(const char* dvarName, const char* value, std::uint16_t flags, const char* description);
     static const Game::dvar_t* Dvar_RegisterSVNetworkFps(const char* dvarName, int value, int min, int max, std::uint16_t flags, const char* description);
@@ -54,7 +62,6 @@ namespace Components
     static void DvarSetFromStringByName_Stub(const char* dvarName, const char* value);
 
     static void OnRegisterVariant(Game::dvar_t* dvar);
-    static void Dvar_RegisterVariant_Stub();
 
     static const char* Dvar_EnumToString_Stub(const Game::dvar_t* dvar);
   };

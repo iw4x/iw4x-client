@@ -158,8 +158,6 @@ namespace Components
     Utils::Hook::Call<void()>(0x467CC0)(); // LiveSteam_Client_SteamDisconnect
   }
 
-
-
   void Events::Scr_ShutdownSystem_Hk(unsigned char sys)
   {
     ShutdownSystemTasks_.access([](Callback& tasks)
@@ -196,50 +194,6 @@ namespace Components
     }
   }
 
-  void __declspec(naked) Events::CL_CmdButtons_Stub()
-  {
-    static const DWORD CL_CmdButtons_t = 0x5A6510;
-
-    __asm
-    {
-      call CL_CmdButtons_t
-
-      pushad
-
-      push esi
-      call CL_CmdButtons
-      add esp, 0x4
-
-      popad
-      ret
-    }
-  }
-
-  void __declspec(naked) Events::CL_Disconnect_Stub()
-  {
-    static const DWORD original = 0x40354D;
-
-    __asm
-    {
-      // original code first
-      je end
-
-      push [esp + 4]
-      call original
-      add esp, 4
-
-      // Once all is done, call our hook
-      pushad
-      push ebx
-      call CL_Disconnect_Hk
-      add esp, 0x4
-      popad
-
-      end:
-        retn
-    }
-  }
-
   void Events::CL_Disconnect_Hk(bool wasConnected)
   {
     CL_DisconnectedTask_.access([&](CLDisconnectCallback& tasks)
@@ -256,25 +210,6 @@ namespace Components
     for (const auto& func : ClientKeyMoveTasks_)
     {
       func(cmd);
-    }
-  }
-
-  void __declspec(naked) Events::CL_KeyMove_Stub()
-  {
-    static const DWORD CL_KeyMove_t = 0x5A5F40;
-
-    __asm
-    {
-      call CL_KeyMove_t
-
-      pushad
-
-      push esi
-      call CL_KeyMove
-      add esp, 0x4
-
-      popad
-      ret
     }
   }
 
@@ -347,16 +282,6 @@ namespace Components
     });
   }
 
-  __declspec(naked) void Events::NET_OpenSocks_Hk()
-  {
-    __asm
-    {
-      mov eax, 64D900h
-      call eax
-      jmp NetworkStart
-    }
-  }
-
   Events::Events()
   {
     Utils::Hook(0x625235, ClientDisconnect_Hk, HOOK_CALL).install()->quick(); // SV_FreeClient
@@ -370,9 +295,9 @@ namespace Components
 
     Utils::Hook(0x60BE5B, CL_InitOnceForAllClients_HK, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
-    Utils::Hook(0x5A6D84, CL_CmdButtons_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5A6D84, Events_CL_CmdButtons_Stub, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x5A6D8B, CL_KeyMove_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5A6D8B, Events_CL_KeyMove_Stub, HOOK_CALL).install()->quick();
 
     Utils::Hook(0x4236A5, CL_InitCGame_Hk, HOOK_CALL).install()->quick(); // CL_InitCGame
 
@@ -380,10 +305,30 @@ namespace Components
 
     Utils::Hook(0x4D3665, SV_Init_Hk, HOOK_CALL).install()->quick(); // SV_Init
 
-    Utils::Hook(0x4FD4D4, NET_OpenSocks_Hk, HOOK_JUMP).install()->quick(); // NET_OpenIP
+    Utils::Hook(0x4FD4D4, Events_NET_OpenSocks_Hk, HOOK_JUMP).install()->quick(); // NET_OpenIP
 
     Utils::Hook(0x4B5422, UI_Init_Hk, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x403547, CL_Disconnect_Stub, HOOK_JUMP).install()->quick(); // CL_Disconnect but at the very end, whether we were connected or not
+    Utils::Hook(0x403547, Events_CL_Disconnect_Stub, HOOK_JUMP).install()->quick(); // CL_Disconnect but at the very end, whether we were connected or not
   }
+}
+
+void Events_CL_CmdButtons(Game::usercmd_s* cmd)
+{
+  Components::Events::CL_CmdButtons(cmd);
+}
+
+void Events_CL_Disconnect_Hk(bool wasConnected)
+{
+  Components::Events::CL_Disconnect_Hk(wasConnected);
+}
+
+void Events_CL_KeyMove(Game::usercmd_s* cmd)
+{
+  Components::Events::CL_KeyMove(cmd);
+}
+
+void Events_NetworkStart()
+{
+  Components::Events::NetworkStart();
 }

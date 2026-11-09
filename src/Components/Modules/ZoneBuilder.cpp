@@ -98,7 +98,6 @@ namespace Components
     info.allocFlags = 0;
     info.freeFlags = 0x20;
 
-
     Game::DB_LoadXAssets(&info, 1, true);
 
     AssetHandler::ClearTemporaryAssets();
@@ -287,7 +286,6 @@ namespace Components
       this->loadedAssets.push_back(asset);
     }
 
-
     return true;
   }
 
@@ -386,7 +384,6 @@ namespace Components
           Logger::Error(Game::ERR_FATAL, "Missing required asset '{}' ({}). Export failed!", name, Game::DB_GetXAssetTypeName(type));
         }
 
-
         // we alias the next 4 (aligned) bytes of the stream b/c DB_InsertPointer gives us a nice pointer to use as the alias
         // otherwise it would be a fuckfest trying to figure out where the alias is in the stream
         this->buffer.pushBlock(Game::XFILE_BLOCK_VIRTUAL);
@@ -461,7 +458,6 @@ namespace Components
     zoneBuffer = Utils::Compression::ZLib::Compress(zoneBuffer);
     outBuffer.append(zoneBuffer);
 
-
     // Make sure directory exists
     const auto directoryName = std::filesystem::path(destination).parent_path();
     Utils::IO::CreateDir(directoryName.string());
@@ -524,7 +520,6 @@ namespace Components
     {
       this->buffer.pushBlock(Game::XFILE_BLOCK_TEMP);
       this->buffer.align(Utils::Stream::ALIGN_4);
-
 
       this->store(asset.header);
       AssetHandler::ZoneSave(asset, this);
@@ -963,7 +958,6 @@ namespace Components
       Utils::Hook::Call<void()>(0x43D140)(); // Com_EventLoop
     }
 
-
     Utils::Hook::Call<void(unsigned int)>(0x502580)(static_cast<unsigned int>(__rdtsc())); // Netchan_Init
     Utils::Hook::Call<void()>(0x429080)(); // FS_InitFileSystem
     Utils::Hook::Call<void()>(0x4BFBE0)(); // Con_InitChannels
@@ -995,7 +989,6 @@ namespace Components
     Utils::Hook::Call<void()>(0x4454C0)();  // Item_SetupKeywordHash (for loading menus)
     Utils::Hook::Call<void()>(0x501BC0)();  // Menu_SetupKeywordHash (for loading menus)
     Utils::Hook::Call<void()>(0x4A1280)();  // something related to uiInfoArray
-
 
     Utils::Hook::Call<void(const char*)>(0x464A90)(*Game::sys_cmdline); // Com_ParseCommandLine
     Utils::Hook::Call<void()>(0x60C3D0)(); // Com_AddStartupCommands
@@ -1062,22 +1055,6 @@ namespace Components
     if (code == Game::ERR_FATAL)
     {
       ExitProcess(1);
-    }
-  }
-
-  __declspec(naked) void ZoneBuilder::SoftErrorAssetOverflow()
-  {
-    // fuck with the stack to return to before DB_AddXAsset
-    __asm
-    {
-      add esp, 12 // exit from DB_AllocXAssetEntry
-      pop edi
-      pop esi
-      pop ebp
-      pop ebx
-      add esp, 14h
-      mov eax, [esp + 8]
-      retn
     }
   }
 
@@ -1367,7 +1344,6 @@ namespace Components
     Logger::Print("Zone '{}' dumped", ZoneBuilder::DumpingZone);
     ZoneBuilder::DumpingZone = std::string();
   }
-
 
   std::function<void()> ZoneBuilder::LoadZoneWithTrace(const std::string& zone, OUT std::vector<NamedAsset>& assets)
   {

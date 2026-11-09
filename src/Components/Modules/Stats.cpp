@@ -199,15 +199,6 @@ namespace Components
     return 0xFC30D07E;
   }
 
-  __declspec(naked) void Stats::HashFilenameStub()
-  {
-    _asm
-    {
-      mov eax, 0xFC30D07E
-      retn
-    }
-  }
-
   int Stats::LiveStorage_DataSetValue_Stub(void* state, void* ddlContext, const int unused, const char* value)
   {
     Command::ClientParams params;
@@ -324,7 +315,7 @@ namespace Components
     // Now they're fixed, and so the hash is no longer constant. This is a problem for backward compatibility
     // So we overwrite the function used specifically for Steam storage to return always the same hash
     // The one we used to have our steam ID/filename combination
-    Utils::Hook(0x682DB0, HashFilenameStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x682DB0, Stats_HashFilenameStub, HOOK_JUMP).install()->quick();
 
     // TODO: Allow playerdata changes in setPlayerData UI script.
 

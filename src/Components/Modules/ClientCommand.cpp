@@ -755,19 +755,6 @@ namespace Components
     frame[site.target] = HasGiveAll(ps) ? reinterpret_cast<std::uintptr_t>(&GiveAllDvar) : reinterpret_cast<std::uintptr_t>(*Game::g_giveAll);
   }
 
-  __declspec(naked) void ClientCommand::GiveAll_Stub()
-  {
-    __asm
-    {
-      pushad
-      push esp
-      call GiveAll_Hk
-      add esp, 4
-      popad
-      ret
-    }
-  }
-
   void ClientCommand::PatchGiveAll()
   {
     Utils::Hook::Set<std::uint32_t>(0x5E4492, Game::DVAR_CHEAT | Game::DVAR_INTERNAL);
@@ -886,10 +873,10 @@ namespace Components
     //
     // Of course, we cannot put all of that at 0x43ACD4. We have five bytes
     // there and we need to preserve the register state around the original
-    // instruction. This is where GiveAll_Stub and PUSHAD come in.
+    // instruction. This is where ClientCommand_GiveAll_Stub and PUSHAD come in.
     //
-    // Each site is replaced with a near CALL to GiveAll_Stub. On x86
-    // this CALL takes five bytes. GiveAll_Stub then does:
+    // Each site is replaced with a near CALL to ClientCommand_GiveAll_Stub. On x86
+    // this CALL takes five bytes. ClientCommand_GiveAll_Stub then does:
     //
     //   pushad
     //   push esp
@@ -1168,7 +1155,7 @@ namespace Components
     for (const auto& site : sites)
     {
       GiveAllSites[site.address] = site;
-      Utils::Hook(site.address, GiveAll_Stub, HOOK_CALL).install()->quick();
+      Utils::Hook(site.address, ClientCommand_GiveAll_Stub, HOOK_CALL).install()->quick();
 
       if (site.size > 5)
       {
@@ -1339,4 +1326,9 @@ namespace Components
     AddDevelopmentCommands();
 #endif
   }
+}
+
+void ClientCommand_GiveAll_Hk(std::uintptr_t* frame)
+{
+  Components::ClientCommand::GiveAll_Hk(frame);
 }

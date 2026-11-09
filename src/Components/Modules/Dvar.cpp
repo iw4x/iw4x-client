@@ -355,27 +355,6 @@ namespace Components
 #endif
   }
 
-  __declspec(naked) void Dvar::Dvar_RegisterVariant_Stub()
-  {
-    __asm
-    {
-      pushad
-
-      push eax
-      call OnRegisterVariant
-      add esp, 0x4
-
-      popad
-
-      // Game's code
-      pop edi
-      pop esi
-      pop ebp
-      pop ebx
-      ret
-    }
-  }
-
   const char* Dvar::Dvar_EnumToString_Stub(const Game::dvar_t* dvar)
   {
     assert(dvar);
@@ -525,4 +504,9 @@ namespace Components
     // Fix crash
     Utils::Hook(0x4B7120, Dvar_EnumToString_Stub, HOOK_JUMP).install()->quick();
   }
+}
+
+void Dvar_OnRegisterVariant(Game::dvar_t* dvar)
+{
+  Components::Dvar::OnRegisterVariant(dvar);
 }

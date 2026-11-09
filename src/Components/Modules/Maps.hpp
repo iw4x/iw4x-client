@@ -1,5 +1,23 @@
 #pragma once
 
+extern "C"
+{
+  extern int Maps_RotateConnectionState;
+
+  void Maps_GetWorldDataStub();
+  void Maps_SetConnectedStub();
+  void Maps_RequestStatsStub();
+  void Maps_RotateCheckStub();
+  void Maps_SpawnServerStub();
+  void Maps_LoadMapLoadscreenStub();
+  void Maps_HideModelStub();
+
+  Game::G_GlassData* Maps_GetWorldData();
+  int Maps_TriggerReconnectForMap(Game::msg_t* msg, const char* mapname);
+  void Maps_PrepareUsermap(const char* mapname);
+  void Maps_HideModel();
+}
+
 namespace Components
 {
   class Maps : public Component
@@ -78,6 +96,11 @@ namespace Components
     static std::unordered_map<std::string, std::string> ParseCustomMapArena(const std::string& singleMapArena);
 
   private:
+    friend Game::G_GlassData* (::Maps_GetWorldData)();
+    friend int (::Maps_TriggerReconnectForMap)(Game::msg_t* msg, const char* mapname);
+    friend void (::Maps_PrepareUsermap)(const char* mapname);
+    friend void (::Maps_HideModel)();
+
     class DLC
     {
     public:
@@ -100,7 +123,6 @@ namespace Components
     static std::vector<std::pair<std::string, std::string>> DependencyList;
     static std::vector<std::string> CurrentDependencies;
     static std::vector<std::string> FoundCustomMaps;
-    static int RotateConnectionState;
 
     static Dvar::Var RListSModels;
 
@@ -117,7 +139,6 @@ namespace Components
     static int IgnoreEntityStub(const char* entity);
 
     static Game::G_GlassData* GetWorldData();
-    static void GetWorldDataStub();
 
     static void LoadRawSun();
 
@@ -125,13 +146,8 @@ namespace Components
     static void UpdateDlcStatus();
 
     static void PrepareUsermap(const char* mapname);
-    static void SpawnServerStub();
-    static void LoadMapLoadscreenStub();
 
     static int TriggerReconnectForMap(Game::msg_t* msg, const char* mapname);
-    static void RotateCheckStub();
-    static void SetConnectedStub();
-    static void RequestStatsStub();
     static void DownloadsComplete(int localClientNum);
     static void StartMatch(void* party, int localControllerIndex);
     static void LoadNewMapCommand(char* buffer, size_t size, const char* format, const char* mapname, const char* gametype);
@@ -139,7 +155,6 @@ namespace Components
     static const char* LoadArenaFileStub(const char* name, char* buffer, int size);
 
     static void HideModel();
-    static void HideModelStub();
 
     static void G_SpawnTurretHook(Game::gentity_s* ent, int unk, int unk2);
     static bool SV_SetTriggerModelHook(Game::gentity_s* ent);

@@ -1,5 +1,15 @@
 #pragma once
 
+extern "C"
+{
+  void Console_Sys_PrintStub();
+  void Console_DrawSolidConsoleStub();
+
+  void Console_MakeRoomForText(int addedCharacters);
+  void Console_StoreSafeArea();
+  void Console_RestoreSafeArea();
+}
+
 #include "Dvar.hpp"
 
 #define OUTPUT_HEIGHT 250
@@ -24,6 +34,9 @@ namespace Components
     static float GetConsoleScale();
 
   private:
+    friend void (::Console_MakeRoomForText)(int addedCharacters);
+    friend void (::Console_StoreSafeArea)();
+    friend void (::Console_RestoreSafeArea)();
 
     static constexpr int OUTPUT_BOX = 0x64;
     static constexpr int INPUT_BOX = 0x65;
@@ -78,7 +91,6 @@ namespace Components
 
     static void ConsoleRunner();
 
-    static void DrawSolidConsoleStub();
     static void StoreSafeArea();
     static void RestoreSafeArea();
 
@@ -106,7 +118,6 @@ namespace Components
     static HFONT CALLBACK ReplaceFont(int cHeight, int cWidth, int cEscapement, int cOrientation, int cWeight, DWORD bItalic, DWORD bUnderline, DWORD bStrikeOut, DWORD iCharSet, DWORD iOutPrecision, DWORD iClipPrecision, DWORD iQuality, DWORD iPitchAndFamily, LPCSTR pszFaceName);
     static void ApplyConsoleStyle();
     static void GetWindowPos(HWND hWnd, int* x, int* y);
-    static void Sys_PrintStub();
     static void MakeRoomForText(int addedCharacters);
     static float GetDpiScale(const HWND hWnd);
   };

@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void ModelCache_R_RegisterModel_Hook();
+
+  void ModelCache_R_RegisterModel_InitGraphics(const char* name, void* atAddress);
+}
+
 #include "Weapon.hpp"
 
 namespace Components
@@ -23,7 +30,6 @@ namespace Components
     static bool modelsHaveBeenReallocated;
 
     static void R_RegisterModel_InitGraphics(const char* name, void* atAddress);
-    static void R_RegisterModel_Hook();
 
     ModelCache();
   };

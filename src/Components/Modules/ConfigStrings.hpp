@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void ConfigStrings_CG_ParseConfigStrings();
+
+  int ConfigStrings_CG_ParseExtraConfigStrings();
+}
+
 #include "Weapon.hpp"
 #include "ModelCache.hpp"
 #include "Controller.hpp"
@@ -28,8 +35,9 @@ namespace Components
     static unsigned int SV_GetRumbleConfigStringConst(int index);
     static void SV_SetRumbleConfigString(int index, const char* data);
 
-
   private:
+    friend int (::ConfigStrings_CG_ParseExtraConfigStrings)();
+
     static void PatchConfigStrings();
 
     static void SV_SetConfigString(int index, const char* data, Game::ConfigString basegameLastPosition, int extendedFirstPosition);
@@ -45,7 +53,6 @@ namespace Components
     static void SV_SetWeaponConfigString(int index, const char* data);
 
     static int CG_ParseExtraConfigStrings();
-    static void CG_ParseConfigStrings();
     static int SV_ClearConfigStrings(void* dest, int value, int size);
   };
 }

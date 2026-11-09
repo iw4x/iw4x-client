@@ -7,18 +7,11 @@ namespace Game
     Utils::Hook::Call<void(T*)>(0x4A82B0)(pointer);
   }
 
+  extern "C" void** DB_InsertPointerInternal();
+
   template <typename T> static T** DB_InsertPointer()
   {
-    static auto DB_InsertPointer_t = 0x43B290;
-    T** result = nullptr;
-
-    __asm
-    {
-      call DB_InsertPointer_t;
-      mov result, eax;
-    }
-
-    return result;
+    return reinterpret_cast<T**>(DB_InsertPointerInternal());
   }
 
   typedef char*(*DB_AllocStreamPos_t)(int alignment);
@@ -116,6 +109,6 @@ namespace Game
   extern bool DB_IsZoneLoaded(const char* zone);
   extern std::vector<std::string> DB_GetLoadedZones();
   extern void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides);
-  extern XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType type);
-  extern XAssetEntry* DB_FindXAssetEntry(XAssetType type, const char* name);
+  extern "C" XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType type);
+  extern "C" XAssetEntry* DB_FindXAssetEntry(XAssetType type, const char* name);
 }

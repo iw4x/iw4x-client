@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void RemoteControl_CL_GetMouseMovementWithSensitivity_Stub();
+
+  void RemoteControl_ScaleMouseMovement(float* yaw, float* pitch);
+}
+
 namespace Components
 {
   class RemoteControl : public Component
@@ -8,6 +15,8 @@ namespace Components
     RemoteControl();
 
   private:
+    friend void (::RemoteControl_ScaleMouseMovement)(float* yaw, float* pitch);
+
     static Dvar::Var MRemoteControlSensitivity;
 
     static float PendingYaw;
@@ -19,6 +28,5 @@ namespace Components
     static float DeflectionLimit(unsigned int dvarAddress);
     static void  Steer(float* value, float limit, float& pending, float& deflection, float referenceSeconds, float step, float frameSeconds);
     static void  ScaleMouseMovement(float* yaw, float* pitch);
-    static void  CL_GetMouseMovementWithSensitivity_Stub();
   };
 }

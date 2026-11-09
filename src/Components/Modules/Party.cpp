@@ -251,15 +251,6 @@ namespace Components
     return PartyEnable.get<bool>();
   }
 
-  __declspec(naked) void PartyMigrate_HandlePacket()
-  {
-    __asm
-    {
-      mov eax, 0;
-      retn;
-    }
-  }
-
   void SV_SpawnServer_Com_SyncThreads_Hook()
   {
     Game::Com_SyncThreads(); // Com_SyncThreads
@@ -288,7 +279,7 @@ namespace Components
     Dvar::Register<bool>("xblive_privatematch", true, Game::DVAR_INIT, "private match");
 
     // Kill the party migrate handler - it's not necessary and has apparently been used in the past for trickery?
-    Utils::Hook(0x46AB70, PartyMigrate_HandlePacket, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x46AB70, Party_PartyMigrate_HandlePacket, HOOK_JUMP).install()->quick();
 
     // various changes to SV_DirectConnect-y stuff to allow non-party joinees
     Utils::Hook::Set<WORD>(0x460D96, 0x90E9);

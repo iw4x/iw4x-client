@@ -16,23 +16,6 @@ namespace Components
     gameModels_reallocated[index] = Utils::Hook::Call<Game::XModel * (const char*)>(0x50FA00)(name);
   }
 
-  __declspec(naked) void ModelCache::R_RegisterModel_Hook()
-  {
-    _asm
-    {
-      pushad;
-      push esi;
-      push eax;
-      call R_RegisterModel_InitGraphics;
-      pop esi;
-      pop eax;
-      popad;
-
-      push 0x58991B;
-      retn;
-    }
-  }
-
   ModelCache::ModelCache()
   {
     if (Flags::HasFlag("steamdemo") || Flags::HasFlag("retaildemo") || Flags::HasFlag("iw4x_legacydemo"))
@@ -98,7 +81,7 @@ namespace Components
     Utils::Hook::Set(0x592B3D + 3, reinterpret_cast<int>(ModelCache::gameModels_reallocated) - Game::CS_MODELS * sizeof(Game::XModel*));
 
     // This one is annoying to catch
-    Utils::Hook(0x589916, R_RegisterModel_Hook, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x589916, ModelCache_R_RegisterModel_Hook, HOOK_JUMP).install()->quick();
 
     // Patch limit
     Utils::Hook::Set(0x479080 + 1, ModelCache::G_MODELINDEX_LIMIT * sizeof(void*));
@@ -107,4 +90,9 @@ namespace Components
 
     modelsHaveBeenReallocated = true;
   }
+}
+
+void ModelCache_R_RegisterModel_InitGraphics(const char* name, void* atAddress)
+{
+  Components::ModelCache::R_RegisterModel_InitGraphics(name, atAddress);
 }

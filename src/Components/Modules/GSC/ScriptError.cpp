@@ -636,29 +636,6 @@ namespace Components::GSC
     return std::format ("{}::{}+{:#x} ({})", i->file, i->name, pos - i->pos, offset);
   }
 
-  __declspec(naked) void ScriptError::EmitThreadInternal_Stub()
-  {
-    __asm
-    {
-      pushad
-
-      push [esp + 0x20 + 0x8] // sourcePos
-      call AddThreadStartOpcodePos
-      add esp, 0x4
-
-      push [esp + 0x20 + 0x4] // node
-      call RecordThreadStart
-      add esp, 0x4
-
-      popad
-
-      cmp ds:0x1CFEEF0, 2
-
-      push 0x61A687
-      ret
-    }
-  }
-
   Game::SourceBufferInfo* ScriptError::Scr_GetNewSourceBuffer()
   {
     assert(ScrParserPub.sourceBufferLookup);
@@ -953,7 +930,7 @@ namespace Components::GSC
     p(0x612EA2, CompileError2); // ^^
 
     Utils::Hook(0x4227E0, Scr_PrintPrevCodePos, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x61A680, EmitThreadInternal_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x61A680, ScriptError_EmitThreadInternal_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook::Nop(0x61A680 + 5, 2);
 
     p(0x61228C, AddOpcodePos); // EmitGetInteger
@@ -1174,4 +1151,14 @@ namespace Components::GSC
     Utils::Hook(0x434260, CompileError, HOOK_JUMP).install()->quick();
 #endif
   }
+}
+
+void ScriptError_AddThreadStartOpcodePos(unsigned int sourcePos)
+{
+  Components::GSC::ScriptError::AddThreadStartOpcodePos(sourcePos);
+}
+
+void ScriptError_RecordThreadStart(const Game::sval_u* node)
+{
+  Components::GSC::ScriptError::RecordThreadStart(node);
 }

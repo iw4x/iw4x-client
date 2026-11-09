@@ -70,19 +70,6 @@ namespace Components
         NetSleep(50 - *Game::sv_timeResidual);
     }
 
-    void __declspec(naked) SVFrameWaitStub()
-    {
-      __asm
-      {
-        pushad
-        call SVFrameWaitFunc
-        popad
-
-        push 4CD420h
-        ret
-      }
-    }
-
     int ComTimeVal(int m)
     {
       auto d (Game::Sys_Milliseconds() - *Game::com_frameTime);
@@ -157,55 +144,6 @@ namespace Components
 
       return (*Game::com_frameTime - l);
     }
-
-    void __declspec(naked) ComFrameWaitStub()
-    {
-      __asm
-      {
-        push ecx
-        pushad
-
-        push edi
-        call ComFrameWait
-        add esp, 4
-
-        mov [esp + 20h], eax
-        popad
-        pop eax
-        mov ecx, eax
-
-        mov edx, 1AD7934h // sv_running
-        cmp byte ptr [edx + 10h], 0
-
-        push 47DDC1h
-        ret
-      }
-    }
-  }
-
-  __declspec(naked) void Threading::FrameEpilogueStub()
-  {
-    __asm
-    {
-      pop edi
-      pop esi
-      pop ebx
-      mov esp, ebp
-      pop ebp
-      retn
-    }
-  }
-
-  __declspec(naked) void Threading::PacketEventStub()
-  {
-    __asm
-    {
-      mov eax, 49F0B0h
-      call eax
-
-      mov eax, 458160h
-      jmp eax
-    }
   }
 
   Threading::Threading()
@@ -256,8 +194,8 @@ namespace Components
       Utils::Hook::Set<std::uint8_t>(0x647781, 0xEB);
 
       Utils::Hook(0x627695, 0x627040, HOOK_CALL).install()->quick();
-      Utils::Hook(0x43D1C7, PacketEventStub, HOOK_JUMP).install()->quick();
-      Utils::Hook(0x6272E3, FrameEpilogueStub, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x43D1C7, Threading_PacketEventStub, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x6272E3, Threading_FrameEpilogueStub, HOOK_JUMP).install()->quick();
     }
 
     // Hijack the appropriate waiter based on whether we are running a dedicated
@@ -265,11 +203,21 @@ namespace Components
     //
     if (Dedicated::IsEnabled())
     {
-      Utils::Hook(0x4BAAAD, FrameTime::SVFrameWaitStub, HOOK_CALL).install()->quick();
+      Utils::Hook(0x4BAAAD, Threading_SVFrameWaitStub, HOOK_CALL).install()->quick();
     }
     else
     {
-      Utils::Hook(0x47DD80, FrameTime::ComFrameWaitStub, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x47DD80, Threading_ComFrameWaitStub, HOOK_JUMP).install()->quick();
     }
   }
+}
+
+void Threading_SVFrameWaitFunc()
+{
+  Components::FrameTime::SVFrameWaitFunc();
+}
+
+int Threading_ComFrameWait(int m)
+{
+  return Components::FrameTime::ComFrameWait(m);
 }

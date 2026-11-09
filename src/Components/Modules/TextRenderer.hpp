@@ -1,5 +1,16 @@
 #pragma once
 
+extern "C"
+{
+  void TextRenderer_Message_Key_Stub();
+  void TextRenderer_Field_AdjustScroll_PrintLen_Stub();
+  void TextRenderer_GetUnpackedColorByNameStub();
+
+  bool TextRenderer_ChatHandleKeyDown(int localClientNum, int key);
+  int TextRenderer_SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field);
+  bool TextRenderer_Dvar_GetUnpackedColorByName(const char* name, float* expandedColor);
+}
+
 namespace Components
 {
   enum TextColor : int
@@ -132,6 +143,10 @@ namespace Components
     };
 
   private:
+    friend bool (::TextRenderer_ChatHandleKeyDown)(int localClientNum, int key);
+    friend int (::TextRenderer_SEH_PrintStrlenWithCursor)(const char* string, const Game::field_t* field);
+    friend bool (::TextRenderer_Dvar_GetUnpackedColorByName)(const char* name, float* expandedColor);
+
     struct FontIconTableEntry
     {
       std::string iconName;
@@ -252,14 +267,11 @@ namespace Components
     static bool AutocompleteHandleKeyDown(FontIconAutocompleteContext& context, int key, Game::ScreenPlacement* scrPlace, Game::field_t* edit);
     static void Console_Key_Hk(int localClientNum, int key);
     static bool ChatHandleKeyDown(int localClientNum, int key);
-    static void Message_Key_Stub();
 
     static int SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field);
-    static void Field_AdjustScroll_PrintLen_Stub();
 
     static void PatchColorLimit(char limit);
     static bool Dvar_GetUnpackedColorByName(const char* name, float* expandedColor);
-    static void GetUnpackedColorByNameStub();
 
     static Game::GfxImage* GetFontIconColorMap(const Game::Material* fontIconMaterial);
     static float DrawFontIcon(const FontIconInfo& fontIcon, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);

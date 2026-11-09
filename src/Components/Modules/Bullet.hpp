@@ -1,5 +1,15 @@
 #pragma once
 
+extern "C"
+{
+  extern Game::dvar_t* Bullet_BGBulletRange;
+
+  void Bullet_FireStub();
+  void Bullet_BulletRicochet_Stub();
+
+  void Bullet_BulletRicochet_Save(const float* contactPoint);
+}
+
 namespace Components
 {
   class Bullet : public Component
@@ -8,9 +18,10 @@ namespace Components
     Bullet();
 
   private:
+    friend void (::Bullet_BulletRicochet_Save)(const float* contactPoint);
+
     static Dvar::Var BGSurfacePenetration;
     // Can't use Var class inside assembly stubs
-    static Game::dvar_t* BGBulletRange;
 
     static float ContactPointSave[];
     static float VCSave[];
@@ -22,12 +33,9 @@ namespace Components
 
     static float BG_GetSurfacePenetrationDepthStub(const Game::WeaponDef* weapDef, int surfaceType);
 
-    static void Bullet_FireStub();
-
     static void BG_srand_Hk(unsigned int* pHoldrand);
 
     static void BulletRicochet_Save(const float* contactPoint);
-    static void BulletRicochet_Stub();
 
     static void CalcRicochet_Stub(const float* incoming, const float* normal, float* result);
 

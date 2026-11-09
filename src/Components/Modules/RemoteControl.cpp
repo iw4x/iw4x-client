@@ -11,7 +11,6 @@ namespace Components
   float RemoteControl::DeflectionPitch = 0.0f;
   int RemoteControl::LastTime = 0;
 
-  constexpr auto CL_GetMouseMovementWithSensitivity = 0x5A6170;
   constexpr auto mouseFrameTime = 0xB2BB58u;
   constexpr auto m_yaw = 0xA7FE78u;
   constexpr auto m_pitch = 0xA7FE80u;
@@ -245,40 +244,6 @@ namespace Components
     Steer(pitch, DeflectionLimit(m_pitch), PendingPitch, DeflectionPitch, referenceSeconds, step, elapsedSeconds);
   }
 
-  __declspec(naked) void RemoteControl::CL_GetMouseMovementWithSensitivity_Stub()
-  {
-    __asm
-    {
-      // This looks a little odd with the same offset twice. On entry the
-      // original arguments are at [esp + 4] and [esp + 8]. Push the second
-      // one first and the first one moves to [esp + 8], hence the repeat.
-      //
-      push [esp + 0x8]
-      push [esp + 0x8]
-      call CL_GetMouseMovementWithSensitivity
-      add esp, 0x8
-
-      // Now we have the exact values the original call would have produced.
-      // Save the registers before making our extra C++ call since the code
-      // around this call site knows nothing about it.
-      //
-      pushad
-
-      // And, yes, the offsets move again after each push. PUSHAD accounts
-      // for the first 0x20 bytes, then pushing pitch moves yaw by another
-      // word.
-      //
-      push [esp + 0x20 + 0x8]
-      push [esp + 0x24 + 0x4]
-      call ScaleMouseMovement
-      add esp, 0x8
-
-      popad
-
-      ret
-    }
-  }
-
   RemoteControl::RemoteControl()
   {
     if (Dedicated::IsEnabled())
@@ -289,7 +254,7 @@ namespace Components
     // not have this problem. So hook the one call made by
     // CL_RemoteControlMove and leave the ordinary path alone.
     //
-    Utils::Hook(0x5A6C5D, CL_GetMouseMovementWithSensitivity_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5A6C5D, RemoteControl_CL_GetMouseMovementWithSensitivity_Stub, HOOK_CALL).install()->quick();
 
     Events::OnDvarInit([]
     {
@@ -311,4 +276,9 @@ namespace Components
         "Mouse steering sensitivity for remote control (predator, sentry), relative to the stock feel. 0 restores the game's frame-rate dependent steering");
     });
   }
+}
+
+void RemoteControl_ScaleMouseMovement(float* yaw, float* pitch)
+{
+  Components::RemoteControl::ScaleMouseMovement(yaw, pitch);
 }

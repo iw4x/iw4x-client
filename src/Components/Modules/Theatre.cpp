@@ -389,19 +389,6 @@ namespace Components
     }
   }
 
-  __declspec(naked) void Theatre::BaselineStoreStub()
-  {
-    _asm
-    {
-      push edi
-      call StoreBaseline
-      pop edi
-
-      mov edx, 5ABEF5h
-      jmp edx
-    }
-  }
-
   void Theatre::WriteBaseline()
   {
     static unsigned char bufData[131072];
@@ -440,24 +427,6 @@ namespace Components
     }
   }
 
-  __declspec(naked) void Theatre::BaselineToFileStub()
-  {
-    __asm
-    {
-      pushad
-      call WriteBaseline
-      popad
-
-      // Restore overwritten operation
-      mov ecx, 0A5E9C4h
-      mov [ecx], 0
-
-      // Return to original code
-      push 5A863Ah
-      retn
-    }
-  }
-
   bool Theatre::AdjustTimeDelta()
   {
     if (Game::clientConnections->demoplaying)
@@ -477,69 +446,6 @@ namespace Components
     }
 
     return false;
-  }
-
-  __declspec(naked) void Theatre::AdjustTimeDeltaStub()
-  {
-    __asm
-    {
-      push eax
-      pushad
-      call AdjustTimeDelta
-      mov[esp + 20h], eax
-      popad
-      pop eax
-
-      test al, al
-      jz continue
-
-      // delta doesn't drift for demos
-      retn
-
-    continue:
-      push 5A1AD0h
-      retn
-    }
-  }
-
-  __declspec(naked) void Theatre::ServerTimedOutStub()
-  {
-    __asm
-    {
-      mov eax, 0xA5EA0C  // clientConnections.demoplaying
-      mov eax, [eax]
-      test al, al
-      jz continue
-
-      mov eax, 5A8E70h
-      jmp eax
-
-    continue:
-      mov eax, 0B2BB90h
-      push 5A8E08h
-      retn
-    }
-  }
-
-  __declspec(naked) void Theatre::UISetActiveMenuStub()
-  {
-    __asm
-    {
-      mov eax, 0xA5EA0C // clientConnections.demoplaying
-      mov eax, [eax]
-      test al, al
-      jz continue
-
-      mov eax, 4CB49Ch
-      jmp eax
-
-    continue:
-      mov ecx, [esp + 10h]
-      push 10h
-      push ecx
-      push 4CB3F6h
-      retn
-    }
   }
 
   void Theatre::CG_CompassDrawPlayerMapLocationSelector_Stub(const int localClientNum, Game::CompassType compassType, const Game::rectDef_s* parentRect, const Game::rectDef_s* rect, Game::Material* material, float* color)
@@ -942,11 +848,11 @@ namespace Components
 
     Utils::Hook(0x5A8370, GamestateWriteStub, HOOK_CALL).install()->quick();
     Utils::Hook(0x5A85D2, RecordGamestateStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5ABE36, BaselineStoreStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x5A8630, BaselineToFileStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x4CB3EF, UISetActiveMenuStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x50320E, AdjustTimeDeltaStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A8E03, ServerTimedOutStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x5ABE36, Theatre_BaselineStoreStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x5A8630, Theatre_BaselineToFileStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x4CB3EF, Theatre_UISetActiveMenuStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x50320E, Theatre_AdjustTimeDeltaStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x5A8E03, Theatre_ServerTimedOutStub, HOOK_JUMP).install()->quick();
 
     // Fix issue with locationSelectionInfo by disabling it
     Utils::Hook(0x5AC20F, CL_WriteDemoClientArchive_Hk, HOOK_CALL).install()->quick();
@@ -975,4 +881,19 @@ namespace Components
     Utils::Hook::Set<std::uint8_t>(0x5AC854, 2);
     Utils::Hook::Set<std::uint8_t>(0x5AC85A, 2);
   }
+}
+
+void Theatre_StoreBaseline(Game::msg_t* snapshotMsg)
+{
+  Components::Theatre::StoreBaseline(snapshotMsg);
+}
+
+void Theatre_WriteBaseline()
+{
+  Components::Theatre::WriteBaseline();
+}
+
+bool Theatre_AdjustTimeDelta()
+{
+  return Components::Theatre::AdjustTimeDelta();
 }

@@ -87,35 +87,6 @@ namespace Components
     Utils::Hook::Call<void(int, int, float*, int)>(0x4F58A0)(ownerDraw, flags, special, key);
   }
 
-  __declspec(naked) void UIScript::RunMenuScriptStub()
-  {
-    __asm
-    {
-      mov eax, esp
-      add eax, 8h
-      mov edx, eax // UIScript name
-      mov eax, [esp + 0C10h] // UIScript args
-
-      push eax
-      push edx
-      call RunMenuScript
-      add esp, 8h
-
-      test al, al
-      jz continue
-
-      // if returned
-      pop edi
-      pop esi
-      add esp, 0C00h
-      retn
-
-    continue:
-      mov eax, 45ED00h
-      jmp eax
-    }
-  }
-
   UIScript::UIScript()
   {
     AssertSize(Game::uiInfo_s, 0x22FC);
@@ -123,7 +94,7 @@ namespace Components
     if (Dedicated::IsEnabled()) return;
 
     // Install handler
-    Utils::Hook::RedirectJump(0x45EC59, RunMenuScriptStub);
+    Utils::Hook::RedirectJump(0x45EC59, UIScript_RunMenuScriptStub);
 
     // Install ownerdraw handler
     Utils::Hook(0x63D233, OwnerDrawHandleKeyStub, HOOK_CALL).install()->quick();
@@ -134,4 +105,9 @@ namespace Components
     UIScripts.clear();
     UIOwnerDraws.clear();
   }
+}
+
+bool UIScript_RunMenuScript(const char* name, const char** args)
+{
+  return Components::UIScript::RunMenuScript(name, args);
 }

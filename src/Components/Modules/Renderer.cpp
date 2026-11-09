@@ -49,20 +49,6 @@ namespace Components
   float once[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
   float multiple[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
 
-  __declspec(naked) void Renderer::BackendFrameStub()
-  {
-    __asm
-    {
-      pushad
-      call Renderer::BackendFrameHandler
-      popad
-
-      mov eax, ds:66E1BF0h
-      push 536A85h
-      retn
-    }
-  }
-
   void Renderer::BackendFrameHandler()
   {
     IDirect3DDevice9* device = *Game::dx_ptr;
@@ -165,43 +151,6 @@ namespace Components
     return true;
   }
 
-  __declspec(naked) void Renderer::RB_SwapBuffers_PresentFailedStub ()
-  {
-    __asm
-    {
-      cmp eax, 0x88760868 // D3DERR_DEVICELOST
-      je done
-
-      push eax
-      push eax
-      call Renderer::RB_RecoverDevice
-      add esp, 0x4
-      test al, al
-      pop eax
-      jnz done
-
-      push 0x536AAB // The fatal error.
-      retn
-
-    done:
-      push 0x536AC1
-      retn
-    }
-  }
-
-  __declspec(naked) void Renderer::PostVidRestartStub()
-  {
-    __asm
-    {
-      pushad
-      call Renderer::PostVidRestart
-      popad
-
-      push 4F84C0h
-      retn
-    }
-  }
-
   void Renderer::R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state, int samplerCode)
   {
     Logger::Error(Game::ERR_FATAL, "Tried to use sampler '{}' ({}) at the wrong time! Additional info:\nMaterial: '{}'\nTechnique '{}'\nTechnique slot: {}\nTechnique flags: {}\nPass: {}\nPixel shader: '{}'\n",
@@ -214,52 +163,6 @@ namespace Components
       state->passIndex,
       state->pixelShader && state->pixelShader->name ? state->pixelShader->name : "NULL"
     );
-  }
-
-  __declspec(naked) void Renderer::StoreGfxBufContextPtrStub1()
-  {
-    __asm
-    {
-      // Game's code
-      mov eax, dword ptr [eax * 4 + 0x66E600C]
-
-      // Show error
-      pushad
-
-      push edx
-      push [esp + 0x20 + 0x24 + 0x4]
-      push eax
-      call R_TextureFromCodeError
-      add esp, 0xC
-
-      popad
-
-      // Jump back in
-      push 0x54CAC1
-      ret
-    }
-  }
-
-  __declspec(naked) void Renderer::StoreGfxBufContextPtrStub2()
-  {
-    __asm
-    {
-      // original code
-      mov edx, dword ptr [eax * 4 + 0x66E600C]
-
-      // show error
-      pushad
-      push eax
-      push ebx
-      push edx
-      call R_TextureFromCodeError
-      add esp, 0xC
-      popad
-
-      // go back
-      push 0x54CFA4
-      retn
-    }
   }
 
   int Renderer::DrawTechsetForMaterial(int a1, float a2, float a3, const char* material, Game::vec4_t* color, int a6)
@@ -753,7 +656,6 @@ namespace Components
       color[1] = light->color[1];
       color[2] = light->color[2];
 
-
       Game::R_AddDebugLine(color, light->origin, to);
       Game::R_AddDebugString(color, light->origin, 1.0f, str.data());
     }
@@ -879,14 +781,14 @@ namespace Components
     Utils::Hook(0x546A09, FixSunShadowPartitionSize, HOOK_CALL).install()->quick();
 
     // Log broken materials
-    Utils::Hook(0x0054CAAA, Renderer::StoreGfxBufContextPtrStub1, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x0054CF8D, Renderer::StoreGfxBufContextPtrStub2, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x0054CAAA, Renderer_StoreGfxBufContextPtrStub1, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x0054CF8D, Renderer_StoreGfxBufContextPtrStub2, HOOK_JUMP).install()->quick();
 
     // Enhance cg_drawMaterial
     Utils::Hook::Set(0x005086DA, "^3solid^7");
     Utils::Hook(0x00580F53, Renderer::DrawTechsetForMaterial, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x536A80, Renderer::BackendFrameStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x536A80, Renderer_BackendFrameStub, HOOK_JUMP).install()->quick();
 
     // Begin device recovery (not D3D9Ex)
     Utils::Hook(0x508298, []
@@ -913,9 +815,9 @@ namespace Components
     Utils::Hook(0x4CA2FD, Renderer::PreVidRestart, HOOK_CALL).install()->quick();
 
     // End vid_restart
-    Utils::Hook(0x4CA3A7, Renderer::PostVidRestartStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x4CA3A7, Renderer_PostVidRestartStub, HOOK_CALL).install()->quick();
 
-    Utils::Hook (0x536AA4, Renderer::RB_SwapBuffers_PresentFailedStub, HOOK_JUMP).install ()->quick (); // RB_SwapBuffers
+    Utils::Hook (0x536AA4, Renderer_RB_SwapBuffers_PresentFailedStub, HOOK_JUMP).install ()->quick (); // RB_SwapBuffers
     Utils::Hook::Nop (0x536AA9, 2);
 
     Events::OnDvarInit([]
@@ -951,4 +853,24 @@ namespace Components
     Renderer::EndRecoverDeviceSignal.clear();
     Renderer::BeginRecoverDeviceSignal.clear();
   }
+}
+
+void Renderer_BackendFrameHandler()
+{
+  Components::Renderer::BackendFrameHandler();
+}
+
+bool Renderer_RB_RecoverDevice(HRESULT result)
+{
+  return Components::Renderer::RB_RecoverDevice(result);
+}
+
+void Renderer_PostVidRestart()
+{
+  Components::Renderer::PostVidRestart();
+}
+
+void Renderer_R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state, int samplerCode)
+{
+  Components::Renderer::R_TextureFromCodeError(sampler, state, samplerCode);
 }

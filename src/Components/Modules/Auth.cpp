@@ -8,6 +8,11 @@
 #include "Friends.hpp"
 #include "Toast.hpp"
 
+extern "C"
+{
+  bool Auth_HasAccessToReservedSlot;
+}
+
 namespace Components
 {
   namespace
@@ -87,8 +92,6 @@ namespace Components
     0xECD542EEE54FFCCF,
     0x759096E09CB2BECF,
   };
-
-  bool Auth::HasAccessToReservedSlot;
 
   void Auth::Frame()
   {
@@ -366,24 +369,6 @@ namespace Components
 #endif
   }
 
-  __declspec(naked) void Auth::DirectConnectStub()
-  {
-    __asm
-    {
-      pushad
-      lea eax, [esp + 20h]
-      push eax
-      push esi
-      call ParseConnectData
-      pop esi
-      pop eax
-      popad
-
-      push 6265FEh
-      retn
-    }
-  }
-
   const char* Auth::ProtocolMismatchMessage(const int clientProtocol)
   {
     // Tell the player what to do about it. Note that we can't say which side
@@ -396,56 +381,16 @@ namespace Components
                              clientProtocol, PROTOCOL);
   }
 
-  __declspec(naked) void Auth::ProtocolMismatchStub()
-  {
-    __asm
-    {
-      push esi // Client protocol, as parsed by SV_DirectConnect.
-      call ProtocolMismatchMessage
-      add esp, 4
-      retn
-    }
-  }
-
   char* Auth::Info_ValueForKeyStub(const char* s, const char* key)
   {
     auto* value = Game::Info_ValueForKey(s, key);
 
-    HasAccessToReservedSlot = std::strcmp((*Game::sv_privatePassword)->current.string, value) == 0;
+    Auth_HasAccessToReservedSlot = std::strcmp((*Game::sv_privatePassword)->current.string, value) == 0;
 
     // This stub runs right before the 'server is full check' so we can call this here
     Bots::SV_DirectConnect_Full_Check();
 
     return value;
-  }
-
-  __declspec(naked) void Auth::DirectConnectPrivateClientStub()
-  {
-    __asm
-    {
-      push eax
-
-      mov al, HasAccessToReservedSlot
-      test al, al
-
-      pop eax
-
-      je noAccess
-
-      // Set the number of private clients to 0 if the client has the right password
-      xor eax, eax
-      jmp safeContinue
-
-      noAccess :
-      mov eax, dword ptr[edx + 0x10]
-
-        safeContinue :
-        // Game code skipped by hook
-        add esp, 0xC
-
-        push 0x460FB3
-        ret
-    }
   }
 
   std::string Auth::GetGUIDFilePath()
@@ -707,7 +652,7 @@ namespace Components
     TokenContainer.cancel = false;
     TokenContainer.generating = false;
 
-    HasAccessToReservedSlot = false;
+    Auth_HasAccessToReservedSlot = false;
 
     Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", "");
 
@@ -721,9 +666,9 @@ namespace Components
     Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::DVAR_SERVERINFO, "Security level for GUID certificates (POW)");
 
     // Install registration hook
-    Utils::Hook(0x6265F9, DirectConnectStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x6265F9, Auth_DirectConnectStub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x460EF5, Info_ValueForKeyStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x460FAD, DirectConnectPrivateClientStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x460FAD, Auth_DirectConnectPrivateClientStub, HOOK_JUMP).install()->quick();
     Utils::Hook::Nop(0x460FAD + 5, 1);
 
     // Replace the protocol mismatch error SV_DirectConnect sends. Its stock
@@ -731,7 +676,7 @@ namespace Components
     // which tells the player nothing. We keep the engine's check and only
     // change what it says.
     //
-    Utils::Hook(0x46058E, ProtocolMismatchStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x46058E, Auth_ProtocolMismatchStub, HOOK_CALL).install()->quick();
 
     Utils::Hook(0x41D3E3, SendConnectDataStub, HOOK_CALL).install()->quick();
 
@@ -778,4 +723,14 @@ namespace Components
         Logger::Print("Token incrementation process canceled!\n");
       });
   }
+}
+
+void Auth_ParseConnectData(Game::msg_t* msg, Game::netadr_t* addr)
+{
+  Components::Auth::ParseConnectData(msg, addr);
+}
+
+const char* Auth_ProtocolMismatchMessage(int clientProtocol)
+{
+  return Components::Auth::ProtocolMismatchMessage(clientProtocol);
 }

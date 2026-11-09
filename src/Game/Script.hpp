@@ -236,9 +236,9 @@ namespace Game
 
   extern void Scr_AddBool(int value);
 
-  extern void RuntimeErrorInternal(int channel, const char* codePos, unsigned int index, const char* msg);
+  extern "C" void RuntimeErrorInternal(int channel, const char* codePos, unsigned int index, const char* msg);
 
-  extern void Scr_NotifyId(unsigned int id, unsigned __int16 stringValue, unsigned int paramcount);
+  extern "C" void Scr_NotifyId(unsigned int id, unsigned __int16 stringValue, unsigned int paramcount);
 
   extern scr_const_t* scr_const;
 

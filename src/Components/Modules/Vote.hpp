@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void Vote_GetVoteTextStub();
+
+  const char* Vote_GetVoteText(const char* voteString);
+}
+
 namespace Components
 {
   class Vote : public Component
@@ -8,6 +15,8 @@ namespace Components
     Vote();
 
   private:
+    friend const char* (::Vote_GetVoteText)(const char* voteString);
+
     using CommandHandler = std::function<bool(const Game::gentity_s* ent, const Command::ServerParams* params)>;
     static std::unordered_map<std::string, CommandHandler> VoteCommands;
 
@@ -26,7 +35,6 @@ namespace Components
     static int VotesRequired();
 
     static const char* GetVoteText(const char* voteString);
-    static void GetVoteTextStub();
 
     static bool HandleMapRestart(const Game::gentity_s* ent, const Command::ServerParams* params);
     static bool HandleMapRotate(const Game::gentity_s* ent, const Command::ServerParams* params);

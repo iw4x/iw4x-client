@@ -2,6 +2,20 @@
 
 namespace Components
 {
+  struct tablelookuprequest_s;
+}
+
+extern "C"
+{
+  void CardTitles_GetPlayerCardClientInfoStub();
+  void CardTitles_TableLookupByRowHookStub();
+
+  int CardTitles_GetPlayerCardClientInfo(int lookupResult, Game::PlayerCardData* data);
+  const char* CardTitles_TableLookupByRowHook(Game::Operand* operand, Components::tablelookuprequest_s* request);
+}
+
+namespace Components
+{
   struct tablelookuprequest_s
   {
     std::uint8_t padding[4];
@@ -49,14 +63,15 @@ namespace Components
     CardTitles();
 
   private:
+    friend int (::CardTitles_GetPlayerCardClientInfo)(int lookupResult, Game::PlayerCardData* data);
+    friend const char* (::CardTitles_TableLookupByRowHook)(Game::Operand* operand, tablelookuprequest_s* request);
+
     static Dvar::Var CustomTitle;
     static char CustomTitles[Game::MAX_CLIENTS][18];
 
     static CClient* GetClientByIndex(std::uint32_t index);
     static int GetPlayerCardClientInfo(int lookupResult, Game::PlayerCardData* data);
-    static void GetPlayerCardClientInfoStub();
     static const char* TableLookupByRowHook(Game::Operand* operand, tablelookuprequest_s* request);
-    static void TableLookupByRowHookStub();
 
     static void ParseCustomTitles(const char* msg);
   };

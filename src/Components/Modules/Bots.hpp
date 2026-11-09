@@ -1,5 +1,14 @@
 #pragma once
 
+extern "C"
+{
+  void Bots_SV_BotUserMove_Hk();
+  void Bots_G_SelectWeaponIndex_Hk();
+
+  void Bots_BotAiAction(Game::client_s* cl);
+  void Bots_G_SelectWeaponIndex(int clientNum, unsigned int iWeaponIndex);
+}
+
 namespace Components
 {
   class Bots : public Component
@@ -10,6 +19,9 @@ namespace Components
     static void SV_DirectConnect_Full_Check();
 
   private:
+    friend void (::Bots_BotAiAction)(Game::client_s* cl);
+    friend void (::Bots_G_SelectWeaponIndex)(int clientNum, unsigned int iWeaponIndex);
+
     using botData = std::pair<std::string, std::string>;
 
     static Game::dvar_t** aim_automelee_range;
@@ -35,10 +47,8 @@ namespace Components
     static void AddScriptMethods();
 
     static void BotAiAction(Game::client_s* cl);
-    static void SV_BotUserMove_Hk();
 
     static void G_SelectWeaponIndex(int clientNum, unsigned int iWeaponIndex);
-    static void G_SelectWeaponIndex_Hk();
 
     static bool Player_UpdateActivate_stub(int);
 

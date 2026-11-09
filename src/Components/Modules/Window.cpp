@@ -90,23 +90,6 @@ namespace Components
     return Window::NoBorder.get<bool>();
   }
 
-  __declspec(naked) void Window::StyleHookStub()
-  {
-    __asm
-    {
-      call Window::IsNoBorder
-      test al, al
-      jz setBorder
-
-      mov ebp, WS_VISIBLE | WS_POPUP
-      retn
-
-    setBorder:
-      mov ebp, WS_VISIBLE | WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX
-      retn
-    }
-  }
-
   void Window::DrawCursorStub(Game::ScreenPlacement* scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float* color, Game::Material* material)
   {
     if (Window::NativeCursor.get<bool>())
@@ -185,7 +168,7 @@ namespace Components
     Window::NoBorder = Dvar::Register<bool>("r_noborder", true, Game::DVAR_ARCHIVE, "Do not use a border in windowed mode");
     Window::NativeCursor = Dvar::Register<bool>("ui_nativeCursor", false, Game::DVAR_ARCHIVE, "Display native cursor");
 
-    Utils::Hook(0x507643, Window::StyleHookStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x507643, Window_StyleHookStub, HOOK_CALL).install()->quick();
 
     // Main window creation
     Utils::Hook::Nop(0x5076AA, 1);
@@ -256,4 +239,9 @@ namespace Components
 
     Window::EnableDpiAwareness();
   }
+}
+
+int Window_IsNoBorder()
+{
+  return Components::Window::IsNoBorder();
 }

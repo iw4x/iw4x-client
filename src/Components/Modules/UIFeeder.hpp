@@ -1,5 +1,24 @@
 #pragma once
 
+extern "C"
+{
+  void UIFeeder_SetItemSelectionStub();
+  void UIFeeder_GetItemTextStub();
+  void UIFeeder_GetItemCountStub();
+  void UIFeeder_HandleKeyStub();
+  void UIFeeder_MouseEnterStub();
+  void UIFeeder_MouseSelectStub();
+  void UIFeeder_PlaySoundStub();
+  void UIFeeder_CheckSelectionStub();
+
+  bool UIFeeder_SetItemSelection();
+  const char* UIFeeder_GetItemText();
+  unsigned int UIFeeder_GetItemCount();
+  bool UIFeeder_CheckFeeder();
+  bool UIFeeder_HandleClick(Game::itemDef_s* item);
+  int UIFeeder_CheckSelection(int feeder);
+}
+
 namespace Components
 {
   class UIFeeder : public Component
@@ -22,7 +41,6 @@ namespace Components
     static void Add(float feeder, GetItemCount_t itemCountCb, GetItemText_t itemTextCb, Select_t selectCb);
     static void Select(float feeder, unsigned int index);
 
-  private:
     struct Container
     {
       float feeder;
@@ -30,30 +48,28 @@ namespace Components
       int column;
     };
 
-    static Container Current;
+  private:
+    friend bool (::UIFeeder_SetItemSelection)();
+    friend const char* (::UIFeeder_GetItemText)();
+    friend unsigned int (::UIFeeder_GetItemCount)();
+    friend bool (::UIFeeder_CheckFeeder)();
+    friend bool (::UIFeeder_HandleClick)(Game::itemDef_s* item);
+    friend int (::UIFeeder_CheckSelection)(int feeder);
 
     static Dvar::Var UIMapLong;
     static Dvar::Var UIMapName;
     static Dvar::Var UIMapDesc;
 
-    static void GetItemCountStub();
     static unsigned int GetItemCount();
 
-    static void GetItemTextStub();
     static const char* GetItemText();
 
-    static void SetItemSelectionStub();
     static bool SetItemSelection();
 
     static bool CheckFeeder();
     static int CheckSelection(int feeder);
-    static void CheckSelectionStub();
 
-    static void MouseEnterStub();
-    static void MouseSelectStub();
     static bool HandleClick(Game::itemDef_s* item);
-    static void HandleKeyStub();
-    static void PlaySoundStub();
 
     static std::unordered_map<float, Callbacks> Feeders;
 
@@ -63,4 +79,9 @@ namespace Components
     static void ApplyMap([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
     static void ApplyInitialMap([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
   };
+}
+
+extern "C"
+{
+  extern Components::UIFeeder::Container UIFeeder_Current;
 }

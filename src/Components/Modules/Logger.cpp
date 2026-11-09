@@ -4,6 +4,11 @@
 #include "Events.hpp"
 #include "Sentry.hpp"
 
+extern "C"
+{
+  void (*Logger_PipeCallback)(const std::string&) = nullptr;
+}
+
 namespace Components
 {
   using namespace Utils::String;
@@ -17,7 +22,6 @@ namespace Components
   Dvar::Var Logger::IW4x_one_log;
   Dvar::Var Logger::IW4x_fail2ban_location;
 
-  void(*Logger::PipeCallback)(const std::string&) = nullptr;;
 
   bool Logger::IsConsoleReady()
   {
@@ -174,14 +178,14 @@ namespace Components
 
   void Logger::PipeOutput(void(*callback)(const std::string&))
   {
-    PipeCallback = callback;
+    Logger_PipeCallback = callback;
   }
 
   void Logger::PrintMessagePipe(const char* data)
   {
-    if (PipeCallback)
+    if (Logger_PipeCallback)
     {
-      PipeCallback(data);
+      Logger_PipeCallback(data);
     }
   }
 
@@ -237,50 +241,6 @@ namespace Components
     NetworkLog(string, true);
   }
 
-  __declspec(naked) void Logger::PrintMessage_Stub()
-  {
-    __asm
-    {
-      // Keep the console output for crash reports.
-      pushad
-
-      push[esp + 28h] // data
-      call PrintMessageSentry
-      add esp, 4h
-
-      popad
-
-      mov eax, PipeCallback
-      test eax, eax
-      jz returnPrint
-
-      pushad
-
-      push[esp + 28h]
-      call PrintMessagePipe
-      add esp, 4h
-
-      popad
-      ret
-
-    returnPrint:
-      pushad
-
-      push 0 // gLog
-      push[esp + 2Ch] // data
-      call NetworkLog
-      add esp, 8h
-
-      popad
-
-      push esi
-      mov esi, [esp + 0Ch]
-
-      push 4AA835h // Com_PrintMessage
-      ret
-    }
-  }
-
   void Logger::EnqueueMessage(const std::string& message)
   {
     std::unique_lock _(MessageMutex);
@@ -303,29 +263,6 @@ namespace Components
           }
         }
       }
-    }
-  }
-
-  __declspec(naked) void Logger::BuildOSPath_Stub()
-  {
-    __asm
-    {
-      pushad
-
-      push[esp + 20h + 8h]
-      push[esp + 20h + 10h]
-      call RedirectOSPath
-      add esp, 8h
-
-      popad
-
-      mov eax, [esp + 8h]
-      push ebp
-      push esi
-      mov esi, [esp + 0Ch]
-
-      push 64213Fh
-      retn
     }
   }
 
@@ -517,14 +454,14 @@ namespace Components
     // set logfile to 1 by default (logs enabled)
     Utils::Hook::Set<uint8_t>(0x60AE43 + 1, 1);
 
-    Utils::Hook(0x642139, BuildOSPath_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x642139, Logger_BuildOSPath_Stub, HOOK_JUMP).install()->quick();
 
     Utils::Hook(0x60A9A3, Com_OpenLogFile_Stub, HOOK_CALL).install()->quick();
 
     Scheduler::Loop(Frame, Scheduler::Pipeline::SERVER);
 
     Utils::Hook(Game::G_LogPrintf, G_LogPrintf_Hk, HOOK_JUMP).install()->quick();
-    Utils::Hook(Game::Com_PrintMessage, PrintMessage_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(Game::Com_PrintMessage, Logger_PrintMessage_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook(Game::Com_Printf, Print_Stub, HOOK_JUMP).install()->quick();
   
     Utils::Hook(0x5F67AE, LSP_LogString_Stub, HOOK_CALL).install()->quick(); // Scr_LogString
@@ -553,4 +490,24 @@ namespace Components
       Game::FS_FCloseFile(*Game::logfile);
     }
   }
+}
+
+void Logger_PrintMessageSentry(const char* data)
+{
+  Components::Logger::PrintMessageSentry(data);
+}
+
+void Logger_PrintMessagePipe(const char* data)
+{
+  Components::Logger::PrintMessagePipe(data);
+}
+
+void Logger_NetworkLog(const char* data, bool gLog)
+{
+  Components::Logger::NetworkLog(data, gLog);
+}
+
+void Logger_RedirectOSPath(const char* file, char* folder)
+{
+  Components::Logger::RedirectOSPath(file, folder);
 }

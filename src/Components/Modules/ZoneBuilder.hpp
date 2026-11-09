@@ -1,5 +1,10 @@
 #pragma once
 
+extern "C"
+{
+  void ZoneBuilder_SoftErrorAssetOverflow();
+}
+
 #include <api.hpp>
 
 #define XFILE_MAGIC_UNSIGNED 0x3030317566665749
@@ -168,7 +173,6 @@ namespace Components
 
     static BOOL APIENTRY EntryPoint(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nShowCmd*/);
     static void HandleError(Game::errorParm_t code, const char* fmt, ...);
-    static void SoftErrorAssetOverflow();
 
     static void AssumeMainThreadRole();
     static void ResetThreadRole();

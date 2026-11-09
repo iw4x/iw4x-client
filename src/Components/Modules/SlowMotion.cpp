@@ -18,22 +18,6 @@ namespace Components
     }
   }
 
-  __declspec(naked) void SlowMotion::Com_UpdateSlowMotion_Stub()
-  {
-    __asm
-    {
-      pushad
-
-      push [esp + 0x20 + 0x4]
-      call Com_UpdateSlowMotion
-      add esp, 0x4
-
-      popad
-
-      retn
-    }
-  }
-
   void SlowMotion::ScrCmd_SetSlowMotion_Stub()
   {
     auto duration = 1000;
@@ -90,9 +74,14 @@ namespace Components
 
     Delay = 0;
     Utils::Hook(0x5F5FF2, ScrCmd_SetSlowMotion_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x60B38A, Com_UpdateSlowMotion_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x60B38A, SlowMotion_Com_UpdateSlowMotion_Stub, HOOK_CALL).install()->quick();
 
     Utils::Hook(0x4A54ED, CG_DrawDisconnect_Stub, HOOK_CALL).install()->quick();
     Utils::Hook(0x4A54FB, CG_DrawDisconnect_Stub, HOOK_CALL).install()->quick();
   }
+}
+
+void SlowMotion_Com_UpdateSlowMotion(int timePassed)
+{
+  Components::SlowMotion::Com_UpdateSlowMotion(timePassed);
 }

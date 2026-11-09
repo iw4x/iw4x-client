@@ -735,7 +735,6 @@ namespace Components
       G_RumbleIndex(turretBarrelSpinRumble);
     }
 
-
     for (auto i = 0; i < 16; ++i)
     {
       if (!weapDef->notetrackRumbleMapKeys[i])
@@ -776,34 +775,6 @@ namespace Components
           CG_PlayRumbleOnClient(localClientNum, weaponDef->fireRumble);
         }
       }
-    }
-  }
-
-  void __declspec(naked) Rumble::CG_FireWeapon_FireSoundHk()
-  {
-    __asm
-    {
-      pushad;
-
-      push ebx // isPlayerView (bl)
-      push[esp + 0x34] // weapDef (arg_C)
-      push esi // cent
-      push[esp + 0x30] // localClientNum (arg_0)
-
-      call CG_FireWeapon_Rumble
-
-      add esp, 0x4 * 4
-
-      popad;
-
-      // OG code
-      sub esp, 0x10;
-      push ebp;
-      mov ebp, [esp + 0x24];
-
-      // Return
-      push 0x59D7D8;
-      retn;
     }
   }
 
@@ -862,7 +833,6 @@ namespace Components
         //  ar->source.entityNum == snap->clientNum ?
         //  snap->eFlags :
         //  entity->nextState.lerp.eFlags;
-
 
         // EF_LOOP_RUMBLE Seems to never be set
         // I don't know where to look for it
@@ -973,7 +943,6 @@ namespace Components
     }
   }
 
-
   void Rumble::LoadConstantRumbleConfigStrings()
   {
     static_assert(ARRAYSIZE(rumbleStrings) < Controller::RUMBLE_CONFIGSTRINGS_COUNT);
@@ -1039,32 +1008,6 @@ namespace Components
           }
         }
       }
-    }
-  }
-
-  void __declspec(naked) Rumble::PlayNoteMappedSoundAliases_Stub()
-  {
-    __asm
-    {
-      pushad
-      push edi // WeapDeff
-      push ecx // NoteName
-      push edx // LocalClientNum
-
-      call PlayNoteMappedRumbleAliases
-
-      pop edx
-      pop ecx
-      pop edi
-      popad
-
-      // original code
-      mov eax, [edi + 0x18]
-      cmp word ptr[eax], 0
-
-      // Go back
-      push 0x59C447
-      retn
     }
   }
 
@@ -1156,42 +1099,6 @@ namespace Components
     }
 
     return false;
-  }
-
-  __declspec(naked) void Rumble::CG_EntityEvents_Stub()
-  {
-    __asm
-    {
-      // We store EAX around cause we will need to restore it
-      push eax
-      pushad
-
-      push ebx // event
-      push[esp + 0xA8 + 0x20 + 0x4]
-
-      call CG_EntityEvents_Hk
-
-      add esp, 8
-      mov[esp + 0x20], eax
-
-      popad
-      pop eax
-
-      test al, al
-      jz processCgEvents
-
-      push 0x4DED0A
-      retn
-
-      processCgEvents :
-
-      // original code
-      mov edx, [0x9F5CE4]
-
-        // go back
-        push 0x4DCF8A
-        retn
-    }
   }
 
   void Rumble::CG_StopAllRumbles()
@@ -1348,44 +1255,16 @@ namespace Components
     }
   }
 
-  __declspec(naked) void Rumble::MeleeRumble_Stub()
-  {
-    __asm
-    {
-      pushad
-
-      push ebx
-      push esi
-      call MeleeRumble_Hook
-      add esp, 8
-
-      popad
-
-      // Original code
-      cmp     dword ptr[esi + 0x158], 0
-      je      goBack
-
-      // go back
-      push    0x05FCD7D
-      retn
-
-      // other condition
-      goBack :
-      push 0x5FCDA0
-        retn
-    }
-  }
-
   Rumble::Rumble()
   {
     if (ZoneBuilder::IsEnabled())
       return;
 
     // WeaponMelee rumble
-    Utils::Hook(0x5FCD74, MeleeRumble_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x5FCD74, Rumble_MeleeRumble_Stub, HOOK_JUMP).install()->quick();
 
     // Parse CG_EntityEvents for new events
-    Utils::Hook(0x4DCF84, CG_EntityEvents_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x4DCF84, Rumble_CG_EntityEvents_Stub, HOOK_JUMP).install()->quick();
 
     // CG_setRumbleReceiver
     Utils::Hook(0x486DEC, CG_SetRumbleReceiver, HOOK_CALL).install()->quick();
@@ -1395,7 +1274,7 @@ namespace Components
     Utils::Hook(0x4A75CC, SV_InitGameProgs_Hk, HOOK_CALL).install()->quick();
 
     // Rumble action
-    Utils::Hook(0x59D7D0, CG_FireWeapon_FireSoundHk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x59D7D0, Rumble_CG_FireWeapon_FireSoundHk, HOOK_JUMP).install()->quick();
 
     // CG_BulletHitClientShield
     Utils::Hook(0x42A611, CG_GetImpactEffectForWeapon_Hk, HOOK_CALL).install()->quick();
@@ -1407,8 +1286,7 @@ namespace Components
     Utils::Hook(0x4DE17D, CG_ExplosiveSplashOnShieldEvent, HOOK_CALL).install()->quick();
 
     // PlayNoteMappedRumbleAliases
-    Utils::Hook(0x59C440, PlayNoteMappedSoundAliases_Stub, HOOK_JUMP).install()->quick();
-
+    Utils::Hook(0x59C440, Rumble_PlayNoteMappedSoundAliases_Stub, HOOK_JUMP).install()->quick();
 
     // CG_Turret_UpdateBarrelSpinRumble
     Utils::Hook(0x5861B8, CG_Turret_UpdateBarrelSpinRumble, HOOK_CALL).install()->quick();
@@ -1420,7 +1298,6 @@ namespace Components
     // Frame rumble update
     Utils::Hook(0x47E035, SCR_UpdateRumble, HOOK_CALL).install()->quick();
     Utils::Hook(0x486BB6, CG_UpdateEntInfo_Hk, HOOK_CALL).install()->quick();
-
 
     // rumble loading
     Utils::Hook(0x43E1F8, BG_GetWeaponDef_RegisterRumble_Hk, HOOK_CALL).install()->quick();
@@ -1458,4 +1335,24 @@ namespace Components
 
   }
 
+}
+
+void Rumble_CG_FireWeapon_Rumble(int localClientNum, Game::centity_s* cent, Game::WeaponDef* weaponDef, bool isPlayerView)
+{
+  Components::Rumble::CG_FireWeapon_Rumble(localClientNum, cent, weaponDef, isPlayerView);
+}
+
+void Rumble_PlayNoteMappedRumbleAliases(int localClientNum, const char* noteName, Game::WeaponDef* weapDef)
+{
+  Components::Rumble::PlayNoteMappedRumbleAliases(localClientNum, noteName, weapDef);
+}
+
+bool Rumble_CG_EntityEvents_Hk(Game::centity_s* entity, int event)
+{
+  return Components::Rumble::CG_EntityEvents_Hk(entity, static_cast<Components::Rumble::rumble_entity_event_t>(event));
+}
+
+void Rumble_MeleeRumble_Hook(Game::gentity_s* targetEntity, Game::WeaponDef* weaponDef)
+{
+  Components::Rumble::MeleeRumble_Hook(targetEntity, weaponDef);
 }

@@ -1,5 +1,13 @@
 #pragma once
 
+extern "C"
+{
+  void Network_PacketErrorCheck();
+  void Network_CL_HandleCommandStub();
+
+  bool Network_CL_HandleCommand(Game::netadr_t* address, const char* command, Game::msg_t* message);
+}
+
 namespace Components
 {
   class Network : public Component
@@ -76,14 +84,12 @@ namespace Components
     static void OnClientPacketRaw(const std::string& command, const networkRawCallback& callback);
 
   private:
+    friend bool (::Network_CL_HandleCommand)(Game::netadr_t* address, const char* command, Game::msg_t* message);
+
     static std::unordered_map<std::string, networkCallback> CL_Callbacks;
     static std::unordered_map<std::string, networkRawCallback> CL_RawCallbacks;
 
-    static void PacketErrorCheck();
-
     static bool CL_HandleCommand(Game::netadr_t* address, const char* command, Game::msg_t* message);
-
-    static void CL_HandleCommandStub();
   };
 }
 
