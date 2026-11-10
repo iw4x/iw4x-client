@@ -1026,7 +1026,7 @@ namespace Components
       // more secure
       server.hostname = TextRenderer::StripMaterialTextIcons(server.hostname);
 
-      if (server.hostname.empty() || std::all_of(server.hostname.begin(), server.hostname.end(), isspace))
+      if (server.hostname.empty() || std::ranges::all_of(server.hostname, isspace))
       {
         // Invalid server name containing only emojis
         return;

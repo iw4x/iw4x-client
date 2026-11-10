@@ -97,8 +97,8 @@ namespace Controller
       std::erase_if (entries_, [this, &current] (const entry& e)
       {
         const bool gone (
-          std::none_of (current.begin (), current.end (),
-                        [&e] (const device_connection& d) {return d.id == e.device.id;}));
+          std::ranges::none_of (current,
+                                [&e] (const device_connection& d) {return d.id == e.device.id;}));
 
         if (gone)
           ctx_.report (severity::info, facility::driver, errc::none, e.device.id,
@@ -111,8 +111,8 @@ namespace Controller
       for (device_connection& d: current)
       {
         const bool bound (
-          std::any_of (entries_.begin (), entries_.end (),
-                       [&d] (const entry& e) {return e.device.id == d.id;}));
+          std::ranges::any_of (entries_,
+                               [&d] (const entry& e) {return e.device.id == d.id;}));
 
         if (bound)
           continue;

@@ -692,8 +692,8 @@ namespace Controller
 
       if (*g_waitingForKey == 0 && !focused_menu_handles (key))
       {
-        const auto m (std::find_if (std::begin (menu_keys), std::end (menu_keys),
-                                    [k] (const menu_key& m) { return m.controller == k; }));
+        const auto m (std::ranges::find_if (menu_keys,
+                                            [k] (const menu_key& m) { return m.controller == k; }));
 
         if (m == std::end (menu_keys))
           return;

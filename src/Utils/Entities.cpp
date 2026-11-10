@@ -39,7 +39,7 @@ namespace Utils
           model != "com_plasticcase_green_big_us_dirt"s // Team zones
         )
         {
-          if (std::find(models.begin(), models.end(), model) == models.end())
+          if (std::ranges::find(models, model) == models.end())
           {
             models.push_back(model);
           }
@@ -62,7 +62,7 @@ namespace Utils
 
         if (!weapon.empty())
         {
-          if (std::find(weapons.begin(), weapons.end(), weapon) == weapons.end())
+          if (std::ranges::find(weapons, weapon) == weapons.end())
           {
             weapons.push_back(weapon);
           }

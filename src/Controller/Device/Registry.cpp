@@ -59,11 +59,11 @@ namespace Controller
     {
       std::scoped_lock l (mutex_);
 
-      auto i (std::find_if (devices_.begin (), devices_.end (),
-                            [id] (const device_connection& d)
-                            {
-                              return d.id == id;
-                            }));
+      auto i (std::ranges::find_if (devices_,
+                                    [id] (const device_connection& d)
+                                    {
+                                      return d.id == id;
+                                    }));
 
       if (i == devices_.end ())
         return false;

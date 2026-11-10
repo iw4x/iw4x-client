@@ -63,7 +63,7 @@ namespace Components
     Utils::Memory::GetAllocator()->free(material->info.name);
     Utils::Memory::GetAllocator()->free(material);
 
-    auto mat = std::find(Materials::MaterialTable.begin(), Materials::MaterialTable.end(), material);
+    auto mat = std::ranges::find(Materials::MaterialTable, material);
     if (mat != Materials::MaterialTable.end())
     {
       Materials::MaterialTable.erase(mat);
@@ -91,7 +91,7 @@ namespace Components
     Utils::Memory::GetAllocator()->free(image->name);
     Utils::Memory::GetAllocator()->free(image);
 
-    auto img = std::find(Materials::ImageTable.begin(), Materials::ImageTable.end(), image);
+    auto img = std::ranges::find(Materials::ImageTable, image);
     if (img != Materials::ImageTable.end())
     {
       Materials::ImageTable.erase(img);

@@ -124,7 +124,7 @@ namespace Utils::String
 
   bool IsNumber(const std::string& str)
   {
-    return !str.empty() && std::find_if(str.begin(), str.end(), [](unsigned char input)
+    return !str.empty() && std::ranges::find_if(str, [](unsigned char input)
     {
       return !std::isdigit(input);
     }) == str.end();
@@ -133,7 +133,7 @@ namespace Utils::String
   // Trim from start
   std::string& LTrim(std::string& str)
   {
-    str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](const unsigned char input)
+    str.erase(str.begin(), std::ranges::find_if(str, [](const unsigned char input)
     {
       return !std::isspace(input);
     }));

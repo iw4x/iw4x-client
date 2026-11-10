@@ -552,7 +552,7 @@ namespace Controller
         {
           const std::span<haptic::frame> b (frames.data (), count);
 
-          std::fill (b.begin (), b.end (), haptic::frame {});
+          std::ranges::fill (b, haptic::frame {});
           fill (b);
 
           return place (s, count, b);

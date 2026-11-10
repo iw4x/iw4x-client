@@ -53,7 +53,7 @@ namespace Utils
           this->refMemory.erase(i);
         }
 
-        auto j = std::find(this->pool.begin(), this->pool.end(), data);
+        auto j = std::ranges::find(this->pool, data);
         if (j != this->pool.end())
         {
           Free(data);

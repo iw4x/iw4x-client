@@ -197,7 +197,7 @@ namespace Controller
 
       const float step (1.0f / static_cast<float> (rate));
 
-      std::fill (out.begin (), out.end (), frame {});
+      std::ranges::fill (out, frame {});
 
       bool effects (false);
 

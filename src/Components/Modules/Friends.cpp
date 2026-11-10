@@ -29,7 +29,7 @@ namespace Components
 
   void Friends::SortIndividualList(std::vector<Friends::Friend>* list)
   {
-    std::stable_sort(list->begin(), list->end(), [](Friends::Friend const& friend1, Friends::Friend const& friend2)
+    std::ranges::stable_sort(*list, [](Friends::Friend const& friend1, Friends::Friend const& friend2)
     {
       return friend1.cleanName.compare(friend2.cleanName) < 0;
     });
@@ -78,7 +78,7 @@ namespace Components
   {
     std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
 
-    auto entry = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [user](Friends::Friend entry)
+    auto entry = std::ranges::find_if(Friends::FriendsList, [user](Friends::Friend entry)
     {
       return (entry.userId.bits == user.bits);
     });
@@ -174,7 +174,7 @@ namespace Components
 
     const auto addId = [&](int id)
     {
-      if (std::find(ids.begin(), ids.end(), id) == ids.end())
+      if (std::ranges::find(ids, id) == ids.end())
       {
         ids.push_back(id);
       }
@@ -333,7 +333,7 @@ namespace Components
         }
       }
 
-      auto oldEntry = std::find_if(Friends::FriendsList.begin(), Friends::FriendsList.end(), [id](Friends::Friend entry)
+      auto oldEntry = std::ranges::find_if(Friends::FriendsList, [id](Friends::Friend entry)
       {
         return (entry.userId.bits == id.bits);
       });
@@ -348,7 +348,7 @@ namespace Components
     {
       SteamID id = i->userId;
 
-      auto oldEntry = std::find_if(steamFriends.begin(), steamFriends.end(), [id](Friends::Friend entry)
+      auto oldEntry = std::ranges::find_if(steamFriends, [id](Friends::Friend entry)
       {
         return (entry.userId.bits == id.bits);
       });

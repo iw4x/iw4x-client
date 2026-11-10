@@ -208,7 +208,7 @@ namespace Controller
 
       if (e.link == connection::unknown)
       {
-        if (std::find (unbound_.begin (), unbound_.end (), e.path) == unbound_.end ())
+        if (std::ranges::find (unbound_, e.path) == unbound_.end ())
           ctx_.report (severity::warning, facility::discovery,
                        errc::ambiguous_identity,
                        std::string ("HID device ") +
@@ -246,11 +246,11 @@ namespace Controller
     registry_.for_each ([&seen, &departed] (const device_connection& d)
     {
       const bool present (
-        std::any_of (seen.begin (), seen.end (),
-                     [&d] (const transport_binding& b)
-                     {
-                       return same_binding (d.binding, b);
-                     }));
+        std::ranges::any_of (seen,
+                             [&d] (const transport_binding& b)
+                             {
+                               return same_binding (d.binding, b);
+                             }));
 
       if (!present)
         departed.push_back (d.id);

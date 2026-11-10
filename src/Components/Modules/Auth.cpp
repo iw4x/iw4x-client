@@ -156,7 +156,7 @@ namespace Components
       return;
     }
 
-    if (std::find(BannedUids.begin(), BannedUids.end(), Steam::SteamUser()->GetSteamID().bits) != BannedUids.end())
+    if (std::ranges::find(BannedUids, Steam::SteamUser()->GetSteamID().bits) != BannedUids.end())
     {
       GenerateKey();
       Logger::Error(Game::ERR_SERVERDISCONNECT, "Your online profile is invalid. A new key has been generated.");

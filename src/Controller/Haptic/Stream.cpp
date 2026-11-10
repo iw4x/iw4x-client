@@ -87,7 +87,7 @@ namespace Controller
     stream::
     produce (std::span<std::byte> out) noexcept
     {
-      std::fill (block_.begin (), block_.end (), frame {});
+      std::ranges::fill (block_, frame {});
       mixer_.render (block_, rate_);
 
       return driver::encode_dualsense_haptics (block_, counter_, out);

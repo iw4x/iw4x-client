@@ -201,7 +201,7 @@ namespace Components
     BanList list;
     LoadBans(&list);
 
-    const auto entry = std::find_if(list.idList.begin(), list.idList.end(), [&id](const SteamID& entry)
+    const auto entry = std::ranges::find_if(list.idList, [&id](const SteamID& entry)
     {
       return id.bits == entry.bits;
     });
@@ -219,7 +219,7 @@ namespace Components
     BanList list;
     LoadBans(&list);
 
-    const auto entry = std::find_if(list.ipList.begin(), list.ipList.end(), [&ip](const Game::netIP_t& entry)
+    const auto entry = std::ranges::find_if(list.ipList, [&ip](const Game::netIP_t& entry)
     {
       return ip.full == entry.full;
     });

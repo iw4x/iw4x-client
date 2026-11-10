@@ -252,7 +252,7 @@ namespace Components
     if (name[0] == ',') name.erase(name.begin());
 
     // Fix forward slashes for FXEffectDef (and probably other assets)
-    std::replace(name.begin(), name.end(), '\\', '/');
+    std::ranges::replace(name, '\\', '/');
 
     if (this->findAsset(type, name) != -1 || this->findSubAsset(type, name).data) return true;
 
@@ -1202,30 +1202,30 @@ namespace Components
 
       std::vector<std::string> assetsToList[AssetCategory::COUNT]{};
 
-      std::sort(assets.begin(), assets.end(), [&](
-        const NamedAsset& a,
-        const NamedAsset& b
-        ) {
-          if (a.type == b.type)
-          {
+      std::ranges::sort(assets, [&](
+                          const NamedAsset& a,
+                          const NamedAsset& b
+                        ) {
+                          if (a.type == b.type)
+                          {
 
-            return a.name.compare(b.name) < 0;
-          }
-          else
-          {
-            const auto priorityA = typePriority[a.type];
-            const auto priorityB = typePriority[b.type];
+                            return a.name.compare(b.name) < 0;
+                          }
+                          else
+                          {
+                            const auto priorityA = typePriority[a.type];
+                            const auto priorityB = typePriority[b.type];
 
-            if (priorityA == priorityB)
-            {
-              return a.name.compare(b.name) < 0;
-            }
-            else
-            {
-              return priorityB < priorityA;
-            }
-          }
-        });
+                            if (priorityA == priorityB)
+                            {
+                              return a.name.compare(b.name) < 0;
+                            }
+                            else
+                            {
+                              return priorityB < priorityA;
+                            }
+                          }
+                        });
 
       std::unordered_set<NamedAsset, NamedAsset::Hash> assetsToSkip{};
       const std::function<void(std::unordered_set<iw4of::iw4_native_asset, iw4of::iw4_native_asset::hash>)> recursivelyAddChildren =

@@ -16,7 +16,7 @@ namespace Controller
       {
         std::string r (s);
 
-        std::transform (r.begin (), r.end (), r.begin (), [] (char c)
+        std::ranges::transform (r, r.begin (), [] (char c)
         {
           return static_cast<char> (
             std::tolower (static_cast<unsigned char> (c)));

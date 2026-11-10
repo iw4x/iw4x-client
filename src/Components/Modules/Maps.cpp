@@ -214,7 +214,7 @@ namespace Components
 
   void Maps::LoadAssetRestrict(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* restrict)
   {
-    if (std::find(Maps::CurrentDependencies.begin(), Maps::CurrentDependencies.end(), FastFiles::Current()) != Maps::CurrentDependencies.end()) // Shipment is a special case
+    if (std::ranges::find(Maps::CurrentDependencies, FastFiles::Current()) != Maps::CurrentDependencies.end()) // Shipment is a special case
     {
       switch (type)
       {

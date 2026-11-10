@@ -3163,7 +3163,7 @@ namespace Components
       };
 
       // replace broken materials with the default one as restricting them does not seem to work.
-      const auto itr = std::find(broken_materials.begin(), broken_materials.end(), (*asset)->info.name);
+      const auto itr = std::ranges::find(broken_materials, (*asset)->info.name);
       if (itr != broken_materials.end())
       {
         const auto name = (*asset)->info.name;
