@@ -104,6 +104,7 @@ jobs:
         env:
           MAKE_CONFIG: ${{ matrix.make_config }}
         run: |
+          git config --global --add safe.directory "$PWD"
           premake5 --mingw gmake
           make -C build/mingw -j"$(nproc)" config="$MAKE_CONFIG" \
             PROTOC="$PWD/build/host-protobuf/protoc"
