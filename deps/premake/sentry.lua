@@ -104,6 +104,10 @@ local common_defines =
   "_CRT_NONSTDC_NO_DEPRECATE"
 }
 
+local mingw_options = _OPTIONS["mingw"] and
+  {'-include "' .. path.join (_MAIN_SCRIPT_DIR,
+                              "deps/extra/sentry/mingw-thread.h") .. '"'} or nil
+
 -- System libraries that the library and the crash daemon link.
 --
 local common_links =
@@ -128,14 +132,15 @@ end
 
 targets:static_library ("sentry",
 {
-  directory   = "sentry-native",
-  language    = "C",
-  cdialect    = "C11",
-  dependson   = {"sentry-crash", "sentry-wer"},
-  files       = concat (common_sources,
+  directory    = "sentry-native",
+  language     = "C",
+  cdialect     = "C11",
+  buildoptions = mingw_options,
+  dependson    = {"sentry-crash", "sentry-wer"},
+  files        = concat (common_sources,
                         {"src/integrations/sentry_integration_wer.c"}),
-  includedirs = common_includedirs,
-  defines     = concat (common_defines, {"SENTRY_INTEGRATION_WER"}),
+  includedirs  = common_includedirs,
+  defines      = concat (common_defines, {"SENTRY_INTEGRATION_WER"}),
 
   export =
   {
@@ -147,12 +152,13 @@ targets:static_library ("sentry",
 
 targets:executable ("sentry-crash",
 {
-  directory   = "sentry-native",
-  language    = "C",
-  cdialect    = "C11",
-  includedirs = common_includedirs,
-  defines     = concat (common_defines, {"SENTRY_CRASH_DAEMON_STANDALONE"}),
-  links       = common_links,
+  directory    = "sentry-native",
+  language     = "C",
+  cdialect     = "C11",
+  buildoptions = mingw_options,
+  includedirs  = common_includedirs,
+  defines      = concat (common_defines, {"SENTRY_CRASH_DAEMON_STANDALONE"}),
+  links        = common_links,
 
   files = concat (common_sources,
                   {"src/backends/native/sentry_crash_daemon.c",
@@ -160,7 +166,8 @@ targets:executable ("sentry-crash",
 })
 
 -- Note that the module definition file names the entry points that
--- Windows Error Reporting looks up.
+-- Windows Error Reporting looks up. Note also that MinGW strips the
+-- stdcall suffixes from the exports with --kill-at.
 --
 targets:shared_library ("sentry-wer",
 {
@@ -170,6 +177,7 @@ targets:shared_library ("sentry-wer",
   includedirs = common_includedirs,
   defines     = common_defines,
   links       = {"wer"},
+  linkoptions = _OPTIONS["mingw"] and {"-Wl,--kill-at"} or nil,
 
   files =
   {

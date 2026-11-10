@@ -16,6 +16,8 @@ targets:static_library ("udis86",
     "../extra/udis86/libudis86/*.c"
   },
 
+  defines = {"HAVE_STRING_H=1"},
+
   export =
   {
     includedirs =

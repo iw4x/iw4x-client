@@ -10,7 +10,7 @@ targets:static_library ("protobuf",
 {
   directory = "protobuf",
   language  = "C++",
-  rules     = {"ProtobufCompiler"},
+  rules     = not _OPTIONS["mingw"] and {"ProtobufCompiler"} or nil,
 
   files =
   {

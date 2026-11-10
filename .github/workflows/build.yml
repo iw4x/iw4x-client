@@ -51,3 +51,69 @@ jobs:
             build/bin/Win32/${{matrix.configuration}}/sentry-crash.pdb
             build/bin/Win32/${{matrix.configuration}}/sentry-wer.dll
             build/bin/Win32/${{matrix.configuration}}/sentry-wer.pdb
+
+  build-mingw:
+    name: Build MinGW ${{ matrix.configuration }} binaries
+    runs-on: ubuntu-24.04
+    container: fedora:44
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        include:
+          - configuration: Debug
+            make_config: debug_win32
+          - configuration: Release
+            make_config: release_win32
+    steps:
+      - name: Install build dependencies
+        run: |
+          dnf install -y cmake curl-minimal gcc-c++ git gzip make tar unzip \
+            mingw32-binutils mingw32-gcc-c++ mingw32-winpthreads-static
+
+      - name: Check out files
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install Premake and UASM
+        run: |
+          tools_dir="$(mktemp -d)"
+          cd "$tools_dir"
+          curl -fsSLo premake.tar.gz https://github.com/premake/premake-core/releases/download/v5.0.0-beta8/premake-5.0.0-beta8-linux.tar.gz
+          curl -fsSLo uasm.zip https://github.com/Terraspace/UASM/releases/download/v2.57r/uasm257_linux64.zip
+          sha256sum -c <<'CHECKSUMS'
+          63edd3e7461eebdd45b500a3c7e8ad4e7a67d68f230010f9a97cbb71b4ec59c8  premake.tar.gz
+          d9fecb2226f66c7e48d81402fc13a67eda23507be9067a2983ee14ec7d68a94f  uasm.zip
+          CHECKSUMS
+          tar -xzf premake.tar.gz premake5
+          unzip -q uasm.zip uasm
+          chmod +x premake5 uasm
+          echo "$tools_dir" >> "$GITHUB_PATH"
+
+      - name: Build host protoc
+        run: |
+          cmake -S deps/protobuf/cmake -B build/host-protobuf \
+            -DCMAKE_BUILD_TYPE=Release -Dprotobuf_BUILD_TESTS=OFF
+          cmake --build build/host-protobuf --target protoc --parallel "$(nproc)"
+
+      - name: Build MinGW binaries
+        env:
+          MAKE_CONFIG: ${{ matrix.make_config }}
+        run: |
+          premake5 --mingw gmake
+          make -C build/mingw -j"$(nproc)" config="$MAKE_CONFIG" \
+            PROTOC="$PWD/build/host-protobuf/protoc"
+
+      - name: Upload MinGW binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: MinGW ${{ matrix.configuration }} binaries
+          if-no-files-found: error
+          path: |
+            build/mingw/bin/Win32/${{ matrix.configuration }}/iw4x.dll
+            build/mingw/bin/Win32/${{ matrix.configuration }}/sentry-crash.exe
+            build/mingw/bin/Win32/${{ matrix.configuration }}/sentry-wer.dll

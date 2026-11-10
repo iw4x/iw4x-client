@@ -290,7 +290,7 @@ namespace Steam
     static void RegisterCall(int32_t callId, uint32_t size, uint64_t call);
 
     static void RegisterCallback(int32_t callId, void* callback);
-    static inline void RegisterCallback(int32_t callId, void(*callback)(void*)) { RegisterCallback(callId, static_cast<void*>(callback)); }
+    static inline void RegisterCallback(int32_t callId, void(*callback)(void*)) { RegisterCallback(callId, reinterpret_cast<void*>(callback)); }
     static void UnregisterCallback(int32_t callId);
 
     static Friends15* SteamFriends;

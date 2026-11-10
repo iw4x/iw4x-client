@@ -47,9 +47,10 @@ namespace Steam
   {
   }
 
-  SteamID Matchmaking::GetLobbyByIndex(int iLobby)
+  SteamID* Matchmaking::GetLobbyByIndex(SteamID* result, int iLobby)
   {
-    return SteamID();
+    *result = SteamID();
+    return result;
   }
 
   unsigned __int64 Matchmaking::CreateLobby(int eLobbyType, int cMaxMembers)
@@ -102,9 +103,10 @@ namespace Steam
     return 1;
   }
 
-  SteamID Matchmaking::GetLobbyMemberByIndex(SteamID steamIDLobby, int iMember)
+  SteamID* Matchmaking::GetLobbyMemberByIndex(SteamID* result, SteamID steamIDLobby, int iMember)
   {
-    return SteamUser()->GetSteamID();
+    *result = SteamUser()->GetSteamID();
+    return result;
   }
 
   const char *Matchmaking::GetLobbyData(SteamID steamIDLobby, const char *pchKey)
@@ -185,9 +187,10 @@ namespace Steam
     return true;
   }
 
-  SteamID Matchmaking::GetLobbyOwner(SteamID steamIDLobby)
+  SteamID* Matchmaking::GetLobbyOwner(SteamID* result, SteamID steamIDLobby)
   {
-    return SteamUser()->GetSteamID();
+    *result = SteamUser()->GetSteamID();
+    return result;
   }
 
   bool Matchmaking::SetLobbyOwner(SteamID steamIDLobby, SteamID steamIDNewOwner)

@@ -24,7 +24,7 @@ namespace Steam
     virtual void SetPersonaName(const char *pchPersonaName);
     virtual int GetPersonaState();
     virtual int GetFriendCount(int eFriendFlags);
-    virtual SteamID GetFriendByIndex(int iFriend, int iFriendFlags);
+    virtual SteamID* GetFriendByIndex(SteamID* result, int iFriend, int iFriendFlags);
     virtual int GetFriendRelationship(SteamID steamIDFriend);
     virtual int GetFriendPersonaState(SteamID steamIDFriend);
     virtual const char* GetFriendPersonaName(SteamID steamIDFriend);
@@ -33,10 +33,10 @@ namespace Steam
     virtual const char* GetFriendPersonaNameHistory(SteamID steamIDFriend, int iPersonaName);
     virtual bool HasFriend(SteamID steamIDFriend, int eFriendFlags);
     virtual int GetClanCount();
-    virtual SteamID GetClanByIndex(int iClan);
+    virtual SteamID* GetClanByIndex(SteamID* result, int iClan);
     virtual const char* GetClanName(SteamID steamIDClan);
     virtual int GetFriendCountFromSource(SteamID steamIDSource);
-    virtual SteamID GetFriendFromSourceByIndex(SteamID steamIDSource, int iFriend);
+    virtual SteamID* GetFriendFromSourceByIndex(SteamID* result, SteamID steamIDSource, int iFriend);
     virtual bool IsUserInSource(SteamID steamIDUser, SteamID steamIDSource);
     virtual void SetInGameVoiceSpeaking(SteamID steamIDUser, bool bSpeaking);
     virtual void ActivateGameOverlay(const char *pchDialog);
@@ -53,7 +53,7 @@ namespace Steam
     virtual uint64_t SetPersonaName(const char *pchPersonaName) = 0;
     virtual int GetPersonaState() = 0;
     virtual int GetFriendCount(int iFriendFlags) = 0;
-    virtual SteamID GetFriendByIndex(int iFriend, int iFriendFlags) = 0;
+    virtual SteamID* GetFriendByIndex(SteamID* result, int iFriend, int iFriendFlags) = 0;
     virtual int GetFriendRelationship(SteamID steamIDFriend) = 0;
     virtual int GetFriendPersonaState(SteamID steamIDFriend) = 0;
     virtual const char* GetFriendPersonaName(SteamID steamIDFriend) = 0;
@@ -68,13 +68,13 @@ namespace Steam
     virtual int GetFriendsGroupMembersList(int16_t, SteamID *, int32_t) = 0;
     virtual bool HasFriend(SteamID steamIDFriend, int iFriendFlags) = 0;
     virtual int GetClanCount() = 0;
-    virtual SteamID GetClanByIndex(int iClan) = 0;
+    virtual SteamID* GetClanByIndex(SteamID* result, int iClan) = 0;
     virtual const char* GetClanName(SteamID steamIDClan) = 0;
     virtual const char* GetClanTag(SteamID steamIDClan) = 0;
     virtual bool GetClanActivityCounts(SteamID steamID, int *pnOnline, int *pnInGame, int *pnChatting) = 0;
     virtual uint64_t DownloadClanActivityCounts(SteamID groupIDs[], int nIds) = 0;
     virtual int GetFriendCountFromSource(SteamID steamIDSource) = 0;
-    virtual SteamID GetFriendFromSourceByIndex(SteamID steamIDSource, int iFriend) = 0;
+    virtual SteamID* GetFriendFromSourceByIndex(SteamID* result, SteamID steamIDSource, int iFriend) = 0;
     virtual bool IsUserInSource(SteamID steamIDUser, SteamID steamIDSource) = 0;
     virtual void SetInGameVoiceSpeaking(SteamID steamIDUser, bool bSpeaking) = 0;
     virtual void ActivateGameOverlay(const char *pchDialog) = 0;
@@ -88,9 +88,9 @@ namespace Steam
     virtual int GetLargeFriendAvatar(SteamID steamIDFriend) = 0;
     virtual bool RequestUserInformation(SteamID steamIDUser, bool bRequireNameOnly) = 0;
     virtual uint64_t RequestClanOfficerList(SteamID steamIDClan) = 0;
-    virtual SteamID GetClanOwner(SteamID steamIDClan) = 0;
+    virtual SteamID* GetClanOwner(SteamID* result, SteamID steamIDClan) = 0;
     virtual int GetClanOfficerCount(SteamID steamIDClan) = 0;
-    virtual SteamID GetClanOfficerByIndex(SteamID steamIDClan, int iOfficer) = 0;
+    virtual SteamID* GetClanOfficerByIndex(SteamID* result, SteamID steamIDClan, int iOfficer) = 0;
     virtual int GetUserRestrictions() = 0;
     virtual bool SetRichPresence(const char *pchKey, const char *pchValue) = 0;
     virtual void ClearRichPresence() = 0;
@@ -100,13 +100,13 @@ namespace Steam
     virtual void RequestFriendRichPresence(SteamID steamIDFriend) = 0;
     virtual bool InviteUserToGame(SteamID steamIDFriend, const char *pchConnectString) = 0;
     virtual int GetCoplayFriendCount() = 0;
-    virtual SteamID GetCoplayFriend(int iCoplayFriend) = 0;
+    virtual SteamID* GetCoplayFriend(SteamID* result, int iCoplayFriend) = 0;
     virtual int GetFriendCoplayTime(SteamID steamIDFriend) = 0;
     virtual uint32_t GetFriendCoplayGame(SteamID steamIDFriend) = 0;
     virtual uint64_t JoinClanChatRoom(SteamID steamIDClan) = 0;
     virtual bool LeaveClanChatRoom(SteamID steamIDClan) = 0;
     virtual int GetClanChatMemberCount(SteamID steamIDClan) = 0;
-    virtual SteamID GetChatMemberByIndex(SteamID steamIDClan, int iUser) = 0;
+    virtual SteamID* GetChatMemberByIndex(SteamID* result, SteamID steamIDClan, int iUser) = 0;
     virtual bool SendClanChatMessage(SteamID steamIDClanChat, const char *pchText) = 0;
     virtual int GetClanChatMessage(SteamID steamIDClanChat, int iMessage, void *prgchText, int cchTextMax, int *peChatEntryType, SteamID *pSteamIDChatter) = 0;
     virtual bool IsClanChatAdmin(SteamID steamIDClanChat, SteamID steamIDUser) = 0;
@@ -118,6 +118,13 @@ namespace Steam
     virtual int GetFriendMessage(SteamID steamIDFriend, int iMessageID, void *pvData, int cubData, int *peChatEntryType) = 0;
     virtual uint64_t GetFollowerCount(SteamID steamID) = 0;
     virtual uint64_t IsFollowing(SteamID steamID) = 0;
+
+    SteamID GetFriendByIndex(int iFriend, int iFriendFlags)
+    {
+      SteamID result;
+      GetFriendByIndex(&result, iFriend, iFriendFlags);
+      return result;
+    }
     virtual uint64_t EnumerateFollowingList(uint32_t unStartIndex) = 0;
   };
 }

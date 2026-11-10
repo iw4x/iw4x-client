@@ -66,6 +66,18 @@ namespace Utils
     Hook(DWORD place, DWORD stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
     Hook(DWORD place, void(*stub)(), bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
 
+    template <typename Stub> requires std::is_function_v<Stub>
+    Hook(void* place, Stub* stub, bool useJump = true)
+      : Hook(place, reinterpret_cast<void*>(stub), useJump) {}
+
+    template <typename Stub> requires std::is_function_v<Stub>
+    Hook(DWORD place, Stub* stub, bool useJump = true)
+      : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
+
+    template <typename Target, typename Stub> requires std::is_function_v<Target>
+    Hook(Target* place, Stub stub, bool useJump = true)
+      : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
+
     ~Hook();
 
     Hook* initialize(void* place, void* stub, bool useJump = true);

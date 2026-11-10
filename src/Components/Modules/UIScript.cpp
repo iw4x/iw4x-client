@@ -94,7 +94,7 @@ namespace Components
     if (Dedicated::IsEnabled()) return;
 
     // Install handler
-    Utils::Hook::RedirectJump(0x45EC59, UIScript_RunMenuScriptStub);
+    Utils::Hook::RedirectJump(0x45EC59, reinterpret_cast<void*>(UIScript_RunMenuScriptStub));
 
     // Install ownerdraw handler
     Utils::Hook(0x63D233, OwnerDrawHandleKeyStub, HOOK_CALL).install()->quick();

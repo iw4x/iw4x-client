@@ -26,6 +26,7 @@ namespace Components
 
     static bool IsPregame();
 
+#if defined(__cpp_rtti) || defined(_CPPRTTI)
     template <typename T>
     static T* GetInstance()
     {
@@ -39,6 +40,7 @@ namespace Components
 
       return nullptr;
     }
+#endif
 
   private:
     static bool Pregame;

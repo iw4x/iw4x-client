@@ -25,6 +25,7 @@
 #include <cctype>
 #include <chrono>
 #include <cinttypes>
+#include <csetjmp>
 #include <cmath>
 #include <cstring>
 #include <filesystem>
@@ -54,7 +55,7 @@
 // by name at load time (see Controller/Transport/XInputModule.hpp), so the import
 // library is deliberately not linked. A missing XInput runtime then degrades to
 // "no XInput" rather than stopping the process from loading.
-#include <XInput.h>
+#include <xinput.h>
 
 #include <dwmapi.h>
 #pragma comment (lib, "dwmapi.lib")
@@ -62,13 +63,13 @@
 #include <iphlpapi.h>
 #pragma comment (lib, "iphlpapi.lib")
 
-#include <SetupAPI.h>
+#include <setupapi.h>
 #pragma comment(lib, "Setupapi.lib")
 
 #include <hidsdi.h>
 #pragma comment(lib, "Hid.lib")
 
-#include <CommCtrl.h>
+#include <commctrl.h>
 #pragma comment(lib, "Comctl32.lib")
 
 // Ignore the warnings

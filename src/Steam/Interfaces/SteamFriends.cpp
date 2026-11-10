@@ -26,9 +26,10 @@ namespace Steam
     return 0;
   }
 
-  SteamID Friends::GetFriendByIndex(int iFriend, int iFriendFlags)
+  SteamID* Friends::GetFriendByIndex(SteamID* result, int iFriend, int iFriendFlags)
   {
-    return {};
+    *result = {};
+    return result;
   }
 
   int Friends::GetFriendRelationship(SteamID steamIDFriend)
@@ -71,9 +72,10 @@ namespace Steam
     return 0;
   }
 
-  SteamID Friends::GetClanByIndex(int iClan)
+  SteamID* Friends::GetClanByIndex(SteamID* result, int iClan)
   {
-    return SteamID();
+    *result = SteamID();
+    return result;
   }
 
   const char *Friends::GetClanName(SteamID steamIDClan)
@@ -86,9 +88,10 @@ namespace Steam
     return 0;
   }
 
-  SteamID Friends::GetFriendFromSourceByIndex(SteamID steamIDSource, int iFriend)
+  SteamID* Friends::GetFriendFromSourceByIndex(SteamID* result, SteamID steamIDSource, int iFriend)
   {
-    return {};
+    *result = {};
+    return result;
   }
 
   bool Friends::IsUserInSource(SteamID steamIDUser, SteamID steamIDSource)

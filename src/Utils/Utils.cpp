@@ -159,24 +159,50 @@ namespace Utils
     SetCurrentDirectoryW(binaryPath);
   }
 
+  static std::optional<std::string> GetEnvironmentValue (const char* name)
+  {
+    DWORD n (GetEnvironmentVariableA (name, nullptr, 0));
+
+    while (n != 0)
+    {
+      std::string r (n, '\0');
+
+      SetLastError (ERROR_SUCCESS);
+      DWORD m (GetEnvironmentVariableA (name, r.data (), n));
+
+      if (m == 0 && GetLastError () != ERROR_SUCCESS)
+        break;
+
+      // The value may have grown since the initial size query.
+      //
+      if (m >= n)
+      {
+        n = m;
+        continue;
+      }
+
+      r.resize (m);
+      return r;
+    }
+
+    return std::nullopt;
+  }
+
   /**
    * IW4x_INSTALL should point to where the IW4x rawfiles/client files are
    * or the current working dir
   */
   void SetEnvironment()
   {
-    char* buffer{};
-    std::size_t size{};
-    if (_dupenv_s(&buffer, &size, "IW4x_INSTALL") != 0 || buffer == nullptr)
+    const auto path = GetEnvironmentValue("IW4x_INSTALL");
+    if (!path)
     {
       SetLegacyEnvironment();
       return;
     }
 
-    const auto _0 = gsl::finally([&] { std::free(buffer); });
-
-    SetCurrentDirectoryA(buffer);
-    SetDllDirectoryA(buffer);
+    SetCurrentDirectoryA(path->c_str());
+    SetDllDirectoryA(path->c_str());
   }
 
   /**
@@ -184,23 +210,19 @@ namespace Utils
   */
   std::filesystem::path GetBaseFilesLocation()
   {
-    char* buffer{};
-    std::size_t size{};
-    if (_dupenv_s(&buffer, &size, "BASE_INSTALL") != 0 || buffer == nullptr)
+    const auto path = GetEnvironmentValue("BASE_INSTALL");
+    if (!path)
     {
       return {};
     }
 
-    const auto _0 = gsl::finally([&] { std::free(buffer); });
-
     try
     {
-      std::filesystem::path result = buffer;
-      return result;
+      return std::filesystem::path(*path);
     }
     catch (const std::exception& ex)
     {
-      printf("Failed to convert '%s' to native file system path. Got error '%s'\n", buffer, ex.what());
+      printf("Failed to convert '%s' to native file system path. Got error '%s'\n", path->c_str(), ex.what());
       return {};
     }
   }
@@ -234,15 +256,7 @@ namespace Utils
 
   void SafeShellExecute(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd)
   {
-    [=]
-    {
-      __try
-      {
-        ShellExecuteA(hwnd, lpOperation, lpFile, lpParameters, lpDirectory, nShowCmd);
-      }
-      __finally
-      {}
-    }();
+    ShellExecuteA(hwnd, lpOperation, lpFile, lpParameters, lpDirectory, nShowCmd);
 
     std::this_thread::yield();
   }

@@ -33,13 +33,13 @@ namespace Steam
     virtual void AddRequestLobbyListNumericalFilter(const char *pchKeyToMatch, int nValueToMatch, int eComparisonType);
     virtual void AddRequestLobbyListNearValueFilter(const char *pchKeyToMatch, int nValueToBeCloseTo);
     virtual void AddRequestLobbyListFilterSlotsAvailable(int nSlotsAvailable);
-    virtual SteamID GetLobbyByIndex(int iLobby);
+    virtual SteamID* GetLobbyByIndex(SteamID* result, int iLobby);
     virtual unsigned __int64 CreateLobby(int eLobbyType, int cMaxMembers);
     virtual unsigned __int64 JoinLobby(SteamID steamIDLobby);
     virtual void LeaveLobby(SteamID steamIDLobby);
     virtual bool InviteUserToLobby(SteamID steamIDLobby, SteamID steamIDInvitee);
     virtual int GetNumLobbyMembers(SteamID steamIDLobby);
-    virtual SteamID GetLobbyMemberByIndex(SteamID steamIDLobby, int iMember);
+    virtual SteamID* GetLobbyMemberByIndex(SteamID* result, SteamID steamIDLobby, int iMember);
     virtual const char *GetLobbyData(SteamID steamIDLobby, const char *pchKey);
     virtual bool SetLobbyData(SteamID steamIDLobby, const char *pchKey, const char *pchValue);
     virtual int GetLobbyDataCount(SteamID steamIDLobby);
@@ -56,7 +56,7 @@ namespace Steam
     virtual int GetLobbyMemberLimit(SteamID steamIDLobby);
     virtual bool SetLobbyType(SteamID steamIDLobby, int eLobbyType);
     virtual bool SetLobbyJoinable(SteamID steamIDLobby, bool bLobbyJoinable);
-    virtual SteamID GetLobbyOwner(SteamID steamIDLobby);
+    virtual SteamID* GetLobbyOwner(SteamID* result, SteamID steamIDLobby);
     virtual bool SetLobbyOwner(SteamID steamIDLobby, SteamID steamIDNewOwner);
   };
 }

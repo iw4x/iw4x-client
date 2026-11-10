@@ -46,7 +46,7 @@ namespace Utils
 
   void Hook::Interceptor::Install(void* place, void* stub)
   {
-    return Hook::Interceptor::Install(place, static_cast<void(*)()>(stub));
+    return Hook::Interceptor::Install(place, reinterpret_cast<void(*)()>(stub));
   }
 
   void Hook::Interceptor::Install(void* place, void(*stub)())
@@ -58,7 +58,7 @@ namespace Utils
   {
     Hook::Interceptor::IReturn[place] = *place;
     Hook::Interceptor::ICallbacks[place] = stub;
-    *place = Hooking_InterceptionStub;
+    *place = reinterpret_cast<void*>(Hooking_InterceptionStub);
   }
 
   void Hook::Interceptor::RunCallback(void* place)

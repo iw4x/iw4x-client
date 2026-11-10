@@ -169,7 +169,7 @@ namespace Assets
 
 
     // They are not subassets, because they don't get loaded automatically
-#define LoadWeapSound(sound) if (asset->weapDef->##sound##) builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, asset->weapDef->##sound##, false)
+#define LoadWeapSound(sound) if (asset->weapDef->sound) builder->loadAsset(Game::XAssetType::ASSET_TYPE_SOUND, asset->weapDef->sound, false)
 
     LoadWeapSound(pickupSound);
     LoadWeapSound(pickupSoundPlayer);

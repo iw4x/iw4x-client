@@ -203,7 +203,7 @@ namespace Components
     Utils::Hook(0x53AC19, Materials::FormatImagePath, HOOK_CALL).install()->quick();
 
     // Debug material comparison
-    Utils::Hook::Set<void*>(0x523894, Materials::MaterialComparePrint);
+    Utils::Hook::Set(0x523894, &Materials::MaterialComparePrint);
 
 #ifdef DEBUG
     if (Flags::HasFlag("dump"))

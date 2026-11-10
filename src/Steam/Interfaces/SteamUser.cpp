@@ -16,11 +16,9 @@ namespace Steam
     return true;
   }
 
-  SteamID User::GetSteamID()
+  SteamID* User::GetSteamID(SteamID* result)
   {
     static unsigned __int64 idBits = 0;
-
-    SteamID id;
 
     if (!idBits)
     {
@@ -34,8 +32,8 @@ namespace Steam
       }
     }
 
-    id.bits = idBits;
-    return id;
+    result->bits = idBits;
+    return result;
   }
 
   int User::InitiateGameConnection(void *pAuthBlob, int cbMaxAuthBlob, SteamID steamIDGameServer, unsigned int unIPServer, unsigned short usPortServer, bool bSecure)

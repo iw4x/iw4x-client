@@ -17,8 +17,15 @@ local c_literal  = dofile (path.join (module_directory, "c-literal.lua"))
 -- produces. Files generated from the sources go into src/ under it, which
 -- mirrors their place in the source tree.
 --
-local build_directory     = path.join (_MAIN_SCRIPT_DIR, "build")
+local mingw = _OPTIONS["mingw"]
+local build_directory = path.join (_MAIN_SCRIPT_DIR, "build", mingw and "mingw" or "")
 local generated_directory = path.join (build_directory, "src")
+
+newoption
+{
+  trigger     = "mingw",
+  description = "Generate a 32-bit MinGW-w64 GNU Make build"
+}
 
 newoption
 {
@@ -87,6 +94,22 @@ if _OPTIONS["copy-pdb"] and not _OPTIONS["copy-to"] then
   premake.error ("--copy-pdb specified without --copy-to")
 end
 
+if mingw and _ACTION and _ACTION ~= "gmake" and _ACTION ~= "generate-buildinfo" then
+  premake.error ("--mingw requires the gmake action")
+end
+
+if mingw and _OPTIONS["copy-to"] then
+  premake.error ("--copy-to is only supported by the Visual Studio build")
+end
+
+if mingw then
+  -- Premake adds /usr/lib32 for x86 GCC, which is a host directory and
+  -- should not be searched when cross-compiling with MinGW.
+  --
+  premake.override (premake.tools.gcc.libraryDirectories.architecture, "x86",
+                    function () return {} end)
+end
+
 -- Load the third-party targets.
 --
 local targets = target_set.new (path.join (_MAIN_SCRIPT_DIR, "deps"))
@@ -105,17 +128,37 @@ workspace "iw4x"
   architecture "x86"
   systemversion "latest"
 
+  if mingw then
+    system "windows"
+    toolset "gcc"
+    gccprefix "i686-w64-mingw32-"
+    makesettings {".DELETE_ON_ERROR:"}
+    -- Callbacks may enter with a four-byte aligned stack, so
+    -- realign it on entry to functions compiled by GCC.
+    --
+    buildoptions {"-mstackrealign"}
+    omitframepointer "Off"
+    linkoptions {"-static"}
+  end
+
   language "C++"
   cppdialect "C++20"
   characterset "ASCII"
   staticruntime "On"
   defines {"_WINDOWS", "WIN32"}
 
-  -- Treat warnings as errors in both configurations. CI builds both and we
-  -- want a local debug build to fail on the same warnings as CI does.
+  -- Treat warnings as errors in both configurations. CI builds both and
+  -- we want a local debug build to fail on the same warnings as CI
+  -- does.
+  --
+  -- Note that this is temporarily relaxed for MinGW until its warnings
+  -- have been addressed.
+  --
   --
   warnings "Extra"
-  fatalwarnings {"All"}
+  if not mingw then
+    fatalwarnings {"All"}
+  end
 
   -- Produce debug information in both configurations since we symbolicate
   -- the crash reports with it.
@@ -144,17 +187,51 @@ workspace "iw4x"
   -- them.
   --
   filter "configurations:Release"
-    optimize "Size"
-    linktimeoptimization "On"
+    -- Size optimization emitted unresolved constructor calls with MinGW GCC.
+    optimize (mingw and "Speed" or "Size")
     omitframepointer "Off"
     rtti "Off"
     defines {"NDEBUG"}
-    linkoptions {"/IGNORE:4702"}
+    -- GCC can fail during LTO when linking the 32-bit MinGW DLL.
+    if not mingw then
+      linktimeoptimization "On"
+      linkoptions {"/IGNORE:4702"}
+    end
 
   filter {}
 
 project "iw4x"
   kind "SharedLib"
+
+  if mingw then
+    targetprefix ""
+    links
+    {
+      "advapi32",
+      "avrt",
+      "cfgmgr32",
+      "comctl32",
+      "crypt32",
+      "d3d9",
+      "d3dx9",
+      "dbghelp",
+      "dwmapi",
+      "gdi32",
+      "hid",
+      "iphlpapi",
+      "ksuser",
+      "ntdll",
+      "ole32",
+      "rpcrt4",
+      "setupapi",
+      "shlwapi",
+      "urlmon",
+      "uuid",
+      "wininet",
+      "winmm",
+      "ws2_32"
+    }
+  end
 
   files
   {
@@ -181,16 +258,23 @@ project "iw4x"
   -- .obj outputs to the linker.
   --
   local asm_object = "%{cfg.objdir}/%{file.directory:match ('[^/]+$')}." ..
-                     "%{file.basename}.asm.obj"
+                     "%{file.basename}.asm." .. (mingw and "o" or "obj")
 
   filter "files:**.asm"
     buildmessage "%{file.name}"
 
-    buildcommands
-    {
-      "ml.exe /nologo /c /safeseh /Zi /W3 /WX " ..
-      "/Fo\"" .. asm_object .. "\" \"%{file.relpath}\""
-    }
+    if mingw then
+      buildcommands
+      {
+        '"$(UASM)" -q -coff -Fo"' .. asm_object .. '" "%{file.relpath}"'
+      }
+    else
+      buildcommands
+      {
+        "ml.exe /nologo /c /safeseh /Zi /W3 /WX " ..
+        "/Fo\"" .. asm_object .. "\" \"%{file.relpath}\""
+      }
+    end
 
     buildoutputs {asm_object}
 
@@ -208,7 +292,28 @@ project "iw4x"
   -- Spell the generated directory with $(ProjectDir) as well, which the
   -- Visual Studio resource editor needs to open Resource.rc.
   --
-  resincludedirs {"$(ProjectDir)src"}
+  if mingw then
+    makesettings {"UASM ?= uasm"}
+
+    filter "files:**/Resource.rc"
+      local resource_object = "%{cfg.objdir}/%{file.basename}.rc.o"
+      buildmessage "%{file.name}"
+      buildcommands
+      {
+        '$(RESCOMP) "$<" -O coff -o "$@" $(ALL_RESFLAGS)'
+      }
+      buildinputs
+      {
+        path.join (generated_directory, "version.h"),
+        path.join (generated_directory, "version.hpp"),
+        "src/iw4x.manifest"
+      }
+      buildoutputs {resource_object}
+
+    filter {}
+  else
+    resincludedirs {"$(ProjectDir)src"}
+  end
 
   -- Note that the precompiled header is named the way the sources include
   -- it. The forced include makes it the first include of every source.
@@ -233,10 +338,12 @@ project "iw4x"
   -- Keep identical functions apart (/OPT:NOICF). With folding, a frame of
   -- a crash report can name another function that has the same code.
   --
-  filter "configurations:Release"
-    linkoptions {"/OPT:NOICF"}
+  if not mingw then
+    filter "configurations:Release"
+      linkoptions {"/OPT:NOICF"}
 
-  filter {}
+    filter {}
+  end
 
   -- Import the third-party libraries that the client uses directly. We get
   -- the libraries they depend on through their exports (see
@@ -246,7 +353,6 @@ project "iw4x"
   {
     "companion",
     "discord-rpc",
-    "dxsdk",
     "fonts",
     "gsl",
     "iw4-open-formats",
@@ -264,22 +370,37 @@ project "iw4x"
     "zlib"
   }
 
+  if not mingw then
+    table.insert (libraries, "dxsdk")
+  end
+
   targets:import (libraries, "iw4x")
 
-  -- Regenerate the build information before each build so that it follows
-  -- the commits. We run the same premake on the same script, which knows
-  -- where the generated directory is.
+  -- Regenerate the build information before each build to reflect the
+  -- current commit. Use the same Premake script so that the generated
+  -- files are written to the correct directory.
   --
-  -- Note that this needs a Windows git on PATH, which a build under Wine
-  -- normally lacks (see --no-buildinfo).
+  -- Note that this requires a Windows Git on PATH, which is normally
+  -- unavailable when building under Wine (see --no-buildinfo).
   --
   if not _OPTIONS["no-buildinfo"] then
-    prebuildcommands
-    {
-      string.format ("\"%s\" --file=\"%s\" generate-buildinfo",
-                     path.translate (_PREMAKE_COMMAND),
-                     path.translate (_MAIN_SCRIPT))
-    }
+    local command = string.format ("\"%s\" --file=\"%s\" %sgenerate-buildinfo",
+                                   path.translate (_PREMAKE_COMMAND),
+                                   path.translate (_MAIN_SCRIPT),
+                                   mingw and "--mingw " or "")
+
+    if mingw then
+      makesettings
+      {
+        ".DEFAULT_GOAL := all",
+        "prebuild: src/version.hpp",
+        ".PHONY: force-buildinfo",
+        "src/version.h src/version.hpp &: force-buildinfo",
+        "\t$(SILENT) " .. command
+      }
+    else
+      prebuildcommands {command}
+    end
   end
 
   -- Copy the binaries of the build, which include those of the Sentry
@@ -324,27 +445,53 @@ group ""
 -- Note that the rule runs in the protobuf project (see deps/premake/
 -- protobuf.lua), which lives in the build directory like every project.
 --
-rule "ProtobufCompiler"
-  display "Protobuf compiler"
-  location (build_directory)
-  fileExtension ".proto"
-  buildmessage "protoc %(Identity)"
+if mingw then
+  project "protobuf"
+    makesettings {"PROTOC ?= protoc", ".DEFAULT_GOAL := all"}
 
-  buildcommands
-  {
-    "if not exist \"$(ProjectDir)src\\proto\" " ..
-    "mkdir \"$(ProjectDir)src\\proto\"",
+    local proto_directory = path.join (_MAIN_SCRIPT_DIR, "src/Proto")
+    local output_directory = path.join (generated_directory, "proto")
+    local input = path.getrelative (build_directory, proto_directory)
+    local output = path.getrelative (build_directory, output_directory)
 
-    string.format ("\"$(ProjectDir)%s\" --error_format=msvs " ..
-                   "-I=%%(RelativeDir) --cpp_out=src\\proto %%(Identity)",
-                   path.translate (
-                     path.getrelative (build_directory,
-                                       path.join (_MAIN_SCRIPT_DIR,
-                                                  "tools/protoc.exe"))))
-  }
+    for _, proto in ipairs (os.matchfiles (path.join (proto_directory, "*.proto"))) do
+      local name = path.getname (proto)
+      local base = path.join (output, path.getbasename (proto))
+      files {path.join (build_directory, base .. ".pb.cc")}
 
-  buildoutputs
-  {
-    "$(ProjectDir)src\\proto\\%(Filename).pb.cc",
-    "$(ProjectDir)src\\proto\\%(Filename).pb.h"
-  }
+      makesettings
+      {
+        "prebuild: " .. base .. ".pb.h",
+        base .. ".pb.cc " .. base .. ".pb.h &: " .. input .. "/" .. name,
+        "\t@echo protoc " .. name .. "\n" ..
+        "\t$(SILENT) mkdir -p \"$(@D)\"\n" ..
+        "\t$(SILENT) \"$(PROTOC)\" -I=\"" .. input ..
+        "\" --cpp_out=\"" .. output .. "\" \"$<\""
+      }
+    end
+else
+  rule "ProtobufCompiler"
+    display "Protobuf compiler"
+    location (build_directory)
+    fileExtension ".proto"
+    buildmessage "protoc %(Identity)"
+
+    buildcommands
+    {
+      "if not exist \"$(ProjectDir)src\\proto\" " ..
+      "mkdir \"$(ProjectDir)src\\proto\"",
+
+      string.format ("\"$(ProjectDir)%s\" --error_format=msvs " ..
+                     "-I=%%(RelativeDir) --cpp_out=src\\proto %%(Identity)",
+                     path.translate (
+                       path.getrelative (build_directory,
+                                         path.join (_MAIN_SCRIPT_DIR,
+                                                    "tools/protoc.exe"))))
+    }
+
+    buildoutputs
+    {
+      "$(ProjectDir)src\\proto\\%(Filename).pb.cc",
+      "$(ProjectDir)src\\proto\\%(Filename).pb.h"
+    }
+end
