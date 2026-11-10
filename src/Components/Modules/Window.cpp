@@ -152,7 +152,7 @@ namespace Components
       return cb->second(lParam, wParam);
     }
 
-    return Utils::Hook::Call<BOOL(__stdcall)(HWND, UINT, WPARAM, LPARAM)>(0x4731F0)(hWnd, Msg, wParam, lParam);
+    return reinterpret_cast<decltype(&Window::MessageHandler)>(0x4731F0)(hWnd, Msg, wParam, lParam);
   }
 
   void Window::EnableDpiAwareness()

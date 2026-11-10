@@ -22,9 +22,10 @@ namespace Steam
     return false;
   }
 
-  SteamID GameServer::GetSteamID()
+  SteamID* GameServer::GetSteamID(SteamID* result)
   {
-    return SteamID();
+    *result = SteamID();
+    return result;
   }
 
   bool GameServer::SendUserConnectAndAuthenticate(unsigned int unIPClient, const void *pvAuthBlob, unsigned int cubAuthBlobSize, SteamID *pSteamIDUser)
@@ -32,9 +33,10 @@ namespace Steam
     return true;
   }
 
-  SteamID GameServer::CreateUnauthenticatedUserConnection()
+  SteamID* GameServer::CreateUnauthenticatedUserConnection(SteamID* result)
   {
-    return SteamID();
+    *result = SteamID();
+    return result;
   }
 
   void GameServer::SendUserDisconnect(SteamID steamIDUser)

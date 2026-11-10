@@ -7,7 +7,7 @@ namespace Steam
   public:
     virtual int GetHSteamUser();
     virtual bool LoggedOn();
-    virtual SteamID GetSteamID();
+    virtual SteamID* GetSteamID(SteamID* result);
 
     virtual int InitiateGameConnection(void *pAuthBlob, int cbMaxAuthBlob, SteamID steamIDGameServer, unsigned int unIPServer, unsigned short usPortServer, bool bSecure);
     virtual void TerminateGameConnection(unsigned int unIPServer, unsigned short usPortServer);
@@ -22,5 +22,12 @@ namespace Steam
     virtual void EndAuthSession(SteamID steamID);
     virtual void CancelAuthTicket(unsigned int hAuthTicket);
     virtual unsigned int UserHasLicenseForApp(SteamID steamID, unsigned int appID);
+
+    SteamID GetSteamID()
+    {
+      SteamID result;
+      GetSteamID(&result);
+      return result;
+    }
   };
 }

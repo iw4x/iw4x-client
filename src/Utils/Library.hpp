@@ -30,7 +30,7 @@ namespace Utils
     template <typename T>
     [[nodiscard]] T getProc(const std::string& process) const
     {
-      if (!this->isValid()) T{};
+      if (!this->isValid()) return T{};
       return reinterpret_cast<T>(GetProcAddress(this->module_, process.data()));
     }
 
@@ -38,13 +38,13 @@ namespace Utils
     [[nodiscard]] std::function<T> get(const std::string& process) const
     {
       if (!this->isValid()) return std::function<T>();
-      return static_cast<T*>(this->getProc<void*>(process));
+      return this->getProc<T*>(process);
     }
 
     template <typename T, typename... Args>
     T invoke(const std::string& process, Args ... args) const
     {
-      auto method = this->get<T(__cdecl)(Args ...)>(process);
+      auto method = this->getProc<T(__cdecl*)(Args ...)>(process);
       if (method) return method(args...);
       return T();
     }
@@ -52,7 +52,7 @@ namespace Utils
     template <typename T, typename... Args>
     T invokePascal(const std::string& process, Args ... args) const
     {
-      auto method = this->get<T(__stdcall)(Args ...)>(process);
+      auto method = this->getProc<T(__stdcall*)(Args ...)>(process);
       if (method) return method(args...);
       return T();
     }
@@ -60,8 +60,8 @@ namespace Utils
     template <typename T, typename... Args>
     T invokeThis(const std::string& process, void* this_ptr, Args ... args) const
     {
-      auto method = this->get<T(__thiscall)(void*, Args ...)>(this_ptr, process);
-      if (method) return method(args...);
+      auto method = this->getProc<T(__thiscall*)(void*, Args ...)>(process);
+      if (method) return method(this_ptr, args...);
       return T();
     }
 

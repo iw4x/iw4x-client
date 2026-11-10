@@ -9,9 +9,9 @@ namespace Steam
     virtual void LogOff();
     virtual bool LoggedOn();
     virtual bool Secure();
-    virtual SteamID GetSteamID();
+    virtual SteamID* GetSteamID(SteamID* result);
     virtual bool SendUserConnectAndAuthenticate(unsigned int unIPClient, const void *pvAuthBlob, unsigned int cubAuthBlobSize, SteamID *pSteamIDUser);
-    virtual SteamID CreateUnauthenticatedUserConnection();
+    virtual SteamID* CreateUnauthenticatedUserConnection(SteamID* result);
     virtual void SendUserDisconnect(SteamID steamIDUser);
     virtual bool UpdateUserData(SteamID steamIDUser, const char *pchPlayerName, unsigned int uScore);
     virtual bool SetServerType(unsigned int unServerFlags, unsigned int unGameIP, unsigned short unGamePort, unsigned short unSpectatorPort, unsigned short usQueryPort, const char *pchGameDir, const char *pchVersion, bool bLANMode);

@@ -1,3 +1,5 @@
+#include <intrin.h>
+
 #include <Utils/Compression.hpp>
 
 #include "ZoneBuilder.hpp"

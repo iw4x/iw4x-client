@@ -11,6 +11,10 @@
 //
 #include "windows.h"
 
+#ifdef __MINGW32__
+ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "iw4x.manifest"
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 

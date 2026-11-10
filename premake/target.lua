@@ -70,20 +70,21 @@ end
 --
 local setting_types =
 {
-  warnings    = {apply = warnings},
-  cdialect    = {apply = cdialect},
-  cppdialect  = {apply = cppdialect},
-  pchheader   = {apply = pchheader},
-  pchsource   = {apply = pchsource,   path = true},
-  files       = {apply = files,       path = true, list = true},
-  removefiles = {apply = removefiles, path = true, list = true},
-  includedirs = {apply = includedirs, path = true, list = true},
-  defines     = {apply = defines,     list = true},
-  libdirs     = {apply = libdirs,     path = true, list = true, link = true},
-  links       = {apply = links,       list = true, link = true},
-  linkoptions = {apply = linkoptions, list = true},
-  rules       = {apply = rules,       list = true},
-  dependson   = {apply = dependson,   list = true}
+  warnings     = {apply = warnings},
+  buildoptions = {apply = buildoptions, list = true},
+  cdialect     = {apply = cdialect},
+  cppdialect   = {apply = cppdialect},
+  pchheader    = {apply = pchheader},
+  pchsource    = {apply = pchsource,   path = true},
+  files        = {apply = files,       path = true, list = true},
+  removefiles  = {apply = removefiles, path = true, list = true},
+  includedirs  = {apply = includedirs, path = true, list = true},
+  defines      = {apply = defines,     list = true},
+  libdirs      = {apply = libdirs,     path = true, list = true, link = true},
+  links        = {apply = links,       list = true, link = true},
+  linkoptions  = {apply = linkoptions, list = true},
+  rules        = {apply = rules,       list = true},
+  dependson    = {apply = dependson,   list = true}
 }
 
 -- Settings of a binary and of a library export, in the order we pass them
@@ -92,6 +93,7 @@ local setting_types =
 local binary_settings =
 {
   "warnings",
+  "buildoptions",
   "cdialect",
   "cppdialect",
   "pchheader",

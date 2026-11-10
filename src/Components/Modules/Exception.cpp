@@ -69,7 +69,7 @@ namespace Components
 
   Exception::Exception()
   {
-    SetFilterHook.initialize(::SetUnhandledExceptionFilter, SetUnhandledExceptionFilter_Stub, HOOK_JUMP);
+    SetFilterHook.initialize(reinterpret_cast<void*>(::SetUnhandledExceptionFilter), reinterpret_cast<void*>(SetUnhandledExceptionFilter_Stub), HOOK_JUMP);
     SetFilterHook.install();
 
     ::SetUnhandledExceptionFilter(&ExceptionFilter);

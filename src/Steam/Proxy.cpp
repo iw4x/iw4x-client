@@ -54,7 +54,7 @@ namespace Steam
     {
       auto* vftbl = this->interfacePtr->vftbl;
 
-      while (!::Utils::Memory::IsBadReadPtr(vftbl) && !::Utils::Memory::IsBadCodePtr(vftbl->func))
+      while (!::Utils::Memory::IsBadReadPtr(vftbl) && !::Utils::Memory::IsBadCodePtr(reinterpret_cast<const void*>(vftbl->func)))
       {
         std::string name;
         uint16_t params;

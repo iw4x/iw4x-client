@@ -314,15 +314,11 @@ namespace Components
 
   void Console::Destroy()
   {
-    __try
-    {
-      delwin(OutputWindow);
-      delwin(InputWindow);
-      delwin(InfoWindow);
-      endwin();
-      delscreen(SP);
-    }
-    __finally {}
+    delwin(OutputWindow);
+    delwin(InputWindow);
+    delwin(InfoWindow);
+    endwin();
+    delscreen(SP);
 
     OutputWindow = nullptr;
     InputWindow = nullptr;
@@ -596,7 +592,7 @@ namespace Components
       return 0;
     }
 
-    return Utils::Hook::Call<LRESULT CALLBACK(HWND, UINT, WPARAM, unsigned int)>(0x64DC50)(hWnd, Msg, wParam, lParam);
+    return reinterpret_cast<WNDPROC>(0x64DC50)(hWnd, Msg, wParam, lParam);
   }
 
   ATOM CALLBACK Console::RegisterClassHook(WNDCLASSA* lpWndClass)

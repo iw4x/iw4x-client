@@ -22,6 +22,28 @@ IW4x is distributed through the [IW4x Launcher](https://github.com/iw4x/launcher
 
 To use the `iw4x.dll`, you must have a valid Modern Warfare 2 installation with the [IW4x Rawfiles](https://github.com/iw4x/iw4x-rawfiles) installed.
 
+### Cross-compiling with MinGW-w64
+
+On Linux, we can cross-compile IW4x using MinGW-w64. This requires a native Premake 5.0.0-beta8 or later, GNU Make 4.3 or later, UASM, and a 32-bit MinGW-w64 GCC toolchain with POSIX threads and C++20 `<format>` support. The latter should provide `i686-w64-mingw32-g++` and `i686-w64-mingw32-windres`.
+
+We can then build IW4x as follows:
+
+```sh
+git submodule update --init
+premake5 --mingw gmake
+make -C build/mingw -j"$(nproc)" config=release_win32
+```
+
+For a Debug build, use `config=debug_win32`. The resulting DLL and Sentry helpers can be found under `build/mingw/bin/Win32/Release/` (or `Debug/`).
+
+Note that we need a native `protoc` 3.20.3 to match the bundled Protobuf runtime. If this version is not available on the host, we can build it from the bundled sources:
+
+```sh
+cmake -S deps/protobuf/cmake -B build/host-protobuf -Dprotobuf_BUILD_TESTS=OFF
+cmake --build build/host-protobuf --target protoc --parallel
+make -C build/mingw -j"$(nproc)" config=release_win32 PROTOC="$PWD/build/host-protobuf/protoc"
+```
+
 <details>
 <summary>Development Setup</summary>
 

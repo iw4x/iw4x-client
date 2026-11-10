@@ -1,5 +1,7 @@
 #pragma once
 
+#include <list>
+
 namespace Components
 {
   class StartupMessages : public Component

@@ -97,13 +97,13 @@ namespace Game
 
   extern GfxConfiguration* gfxCfg;
 
-  extern [[nodiscard]] int CL_GetMaxXP();
-  extern [[nodiscard]] clientConnection_t* CL_GetLocalClientConnection(int localClientNum);
-  extern [[nodiscard]] connstate_t CL_GetLocalClientConnectionState(int localClientNum);
-  extern [[nodiscard]] voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
-  extern [[nodiscard]] clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
-  extern [[nodiscard]] cg_s* CL_GetLocalClientGlobals(int localClientNum);
-  extern [[nodiscard]] centity_s* CG_GetEntity(int localClientNum, int entityIndex);
+  [[nodiscard]] extern int CL_GetMaxXP();
+  [[nodiscard]] extern clientConnection_t* CL_GetLocalClientConnection(int localClientNum);
+  [[nodiscard]] extern connstate_t CL_GetLocalClientConnectionState(int localClientNum);
+  [[nodiscard]] extern voiceCommunication_t* CL_GetLocalClientVoiceCommunication(int localClientNum);
+  [[nodiscard]] extern clientUIActive_t* CL_GetLocalClientUIGlobals(int localClientNum);
+  [[nodiscard]] extern cg_s* CL_GetLocalClientGlobals(int localClientNum);
+  [[nodiscard]] extern centity_s* CG_GetEntity(int localClientNum, int entityIndex);
 
   extern cg_s* cgArray;
   extern cgs_t* cgsArray;

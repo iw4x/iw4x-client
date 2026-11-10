@@ -896,7 +896,7 @@ namespace Game
     UIMENU_MIGRATION = 0xB,
   };
 
-  struct __declspec(align(4)) PhysPreset
+  struct alignas(4) PhysPreset
   {
     const char* name;
     int type;
@@ -1002,7 +1002,7 @@ namespace Game
     unsigned __int16 _2[1];
   };
 
-  struct __declspec(align(4)) XAnimPartTransFrames
+  struct alignas(4) XAnimPartTransFrames
   {
     float mins[3];
     float size[3];
@@ -1023,7 +1023,7 @@ namespace Game
     XAnimPartTransData u;
   };
 
-  struct __declspec(align(4)) XAnimDeltaPartQuatDataFrames2
+  struct alignas(4) XAnimDeltaPartQuatDataFrames2
   {
     __int16(*frames)[2];
     XAnimDynamicIndices indices;
@@ -1041,7 +1041,7 @@ namespace Game
     XAnimDeltaPartQuatData2 u;
   };
 
-  struct __declspec(align(4)) XAnimDeltaPartQuatDataFrames
+  struct alignas(4) XAnimDeltaPartQuatDataFrames
   {
     __int16(*frames)[4];
     XAnimDynamicIndices indices;
@@ -2273,7 +2273,7 @@ namespace Game
     char data[1];
   };
 
-  struct __declspec(align(4)) GfxImageLoadDef
+  struct alignas(4) GfxImageLoadDef
   {
     char levelCount;
     char pad[3];
@@ -3031,7 +3031,7 @@ namespace Game
     char sunPrimaryLightIndex;
   };
 
-  struct __declspec(align(4)) MapEnts
+  struct alignas(4) MapEnts
   {
     const char* name;
     const char* entityString;
@@ -3114,7 +3114,7 @@ namespace Game
     FxElemVec3Range totalDelta;
   };
 
-  const struct FxElemVelStateSample
+  struct FxElemVelStateSample
   {
     FxElemVelStateInFrame local;
     FxElemVelStateInFrame world;
@@ -3129,7 +3129,7 @@ namespace Game
     float scale;
   };
 
-  const struct FxElemVisStateSample
+  struct FxElemVisStateSample
   {
     FxElemVisualState base;
     FxElemVisualState amplitude;
@@ -3206,7 +3206,7 @@ namespace Game
     void* unknownDef;
   };
 
-  const struct FxElemDef
+  struct FxElemDef
   {
     int flags;
     FxSpawnDef spawn;
@@ -3295,7 +3295,7 @@ namespace Game
 
 #pragma warning(push)
 #pragma warning(disable: 4324)
-  struct __declspec(align(64)) clipMap_t
+  struct alignas(64) clipMap_t
   {
     const char* name;
     int isInUse;
@@ -3745,7 +3745,7 @@ namespace Game
     FxGlassSystem glassSys;
   };
 
-  struct __declspec(align(4)) GfxSky
+  struct alignas(4) GfxSky
   {
     int skySurfCount;
     int* skyStartSurfs;
@@ -3934,7 +3934,7 @@ namespace Game
     Bounds bounds;
   };
 
-  struct __declspec(align(4)) GfxBrushModel
+  struct alignas(4) GfxBrushModel
   {
     GfxBrushModelWritable writable;
     Bounds bounds;
@@ -4208,7 +4208,7 @@ namespace Game
     int exponent;
   };
 
-  struct __declspec(align(4)) GfxWorld
+  struct alignas(4) GfxWorld
   {
     const char* name;
     const char* baseName;
@@ -4255,7 +4255,7 @@ namespace Game
     char fogTypesAllowed;
   };
 
-  struct __declspec(align(4)) GfxLightImage
+  struct alignas(4) GfxLightImage
   {
     GfxImage* image;
     char samplerState;
@@ -4683,7 +4683,7 @@ namespace Game
     SetLocalVarData* setLocalVarData;
   };
 
-  struct __declspec(align(4)) MenuEventHandler
+  struct alignas(4) MenuEventHandler
   {
     EventData eventData;
     char eventType;
@@ -5086,7 +5086,7 @@ namespace Game
     char changeHints;
   };
 
-  struct __declspec(align(4)) WeaponDef
+  struct alignas(4) WeaponDef
   {
     const char* szOverlayName;
     XModel** gunXModel;
@@ -5639,7 +5639,7 @@ namespace Game
     LbColumnDef* columns;
   };
 
-  struct __declspec(align(4)) StructuredDataEnumEntry
+  struct alignas(4) StructuredDataEnumEntry
   {
     const char* string;
     unsigned __int16 index;
@@ -8000,7 +8000,7 @@ namespace Game
     int type; // last read token type
     int subtype; // last read token sub type
     unsigned long int intvalue; // integer value
-    long double floatvalue; // floating point value
+    double floatvalue; // The game stores this value as an 8-byte double.
     char* whitespace_p; // start of white space before token
     char* endwhitespace_p; // start of white space before token
     int line; // line the token was on
@@ -8061,6 +8061,12 @@ namespace Game
     int skip; // > 0 if skipping conditional code
     token_s token; //last read token
   };
+
+  AssertSize(token_s, 0x430);
+  AssertOffset(script_s, token, 0x78);
+  AssertOffset(script_s, next, 0x4A8);
+  AssertOffset(source_s, scriptstack, 0x84);
+  AssertOffset(source_s, token, 0xA0);
 
   struct directive_s
   {
@@ -8340,7 +8346,7 @@ namespace Game
     unsigned __int16 argCount;
   };
 
-  struct __declspec(align(4)) GfxGlassSurf
+  struct alignas(4) GfxGlassSurf
   {
     GfxDrawGroupSetup drawGroup;
     char pad;
@@ -8676,7 +8682,7 @@ namespace Game
     const void* displayCmds;
     GfxQuadMeshData* fullSceneViewMesh;
     GfxDrawList drawList[10];
-    //__declspec(align(16)) GfxCmdBufInput input;
+    //alignas(16) GfxCmdBufInput input;
     GfxRenderTargetId renderTargetId;
     bool useShadows;
     unsigned int sunShadowResolution;
@@ -8832,7 +8838,7 @@ namespace Game
     char lod;
   };
 
-  struct __declspec(align(4)) GfxSceneBrush
+  struct alignas(4) GfxSceneBrush
   {
     BModelDrawInfo info;
     unsigned __int16 entnum;
@@ -8867,7 +8873,7 @@ namespace Game
     GfxEntCellRefInfo* entInfo[4];
   };
 
-  struct __declspec(align(64)) GfxScene
+  struct alignas(64) GfxScene
   {
     GfxCodeSurf codeEmissiveSurfs[2048];
     GfxCodeSurf codeTransSurfs[640];
@@ -9795,7 +9801,7 @@ namespace Game
 
 #pragma warning(push)
 #pragma warning(disable: 4324)
-  struct __declspec(align(16)) AimAssistGlobals
+  struct alignas(16) AimAssistGlobals
   {
     AimAssistPlayerState ps;
     char _pad1[4];
@@ -11087,7 +11093,7 @@ namespace Game
     GfxCmdBuf cmdBuf;
   };
 
-  struct __declspec(align(4)) GfxDebugPoly
+  struct alignas(4) GfxDebugPoly
   {
     float color[4];
     int firstVert;
@@ -11480,7 +11486,7 @@ namespace Game
     EVENT_SAVE = 0x5,
   };
 
-  struct __declspec(align(4)) DevGraph
+  struct alignas(4) DevGraph
   {
     float(*knots)[2];
     unsigned __int16* knotCount;
@@ -11634,7 +11640,7 @@ namespace Game
     unsigned int value[1];
   };
 
-  volatile struct ProfileReadable
+  struct ProfileReadable
   {
     unsigned int hits;
     ProfileAtom total;
@@ -12019,7 +12025,7 @@ namespace Game
     SND_EQTYPE_INVALID = 0x5,
   };
 
-  struct __declspec(align(4)) SndEqParams
+  struct alignas(4) SndEqParams
   {
     SND_EQTYPE type;
     float gain;
@@ -12045,7 +12051,7 @@ namespace Game
     int fileLength;
   };
 
-  struct __declspec(align(4)) MssStreamReadInfo
+  struct alignas(4) MssStreamReadInfo
   {
     char path[256];
     int timeshift;

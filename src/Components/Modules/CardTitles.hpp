@@ -64,7 +64,7 @@ namespace Components
 
   private:
     friend int (::CardTitles_GetPlayerCardClientInfo)(int lookupResult, Game::PlayerCardData* data);
-    friend const char* (::CardTitles_TableLookupByRowHook)(Game::Operand* operand, tablelookuprequest_s* request);
+    friend const char* (::CardTitles_TableLookupByRowHook)(Game::Operand* operand, Components::tablelookuprequest_s* request);
 
     static Dvar::Var CustomTitle;
     static char CustomTitles[Game::MAX_CLIENTS][18];

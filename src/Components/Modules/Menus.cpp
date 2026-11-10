@@ -16,8 +16,8 @@ namespace Components
 #define ALLOCATED_BY_GAME true
 #define ALLOCATED_BY_IW4X false
 
-#define DUPLICATE_STRING_IF_EXISTS(obj, x) if (##obj->##x) ##obj->##x = Allocator.duplicateString(##obj->##x)
-#define FREE_STRING_IF_EXISTS(obj, x, fromTheGame) if (##obj->##x) FreeAllocatedString(##obj->##x, fromTheGame)
+#define DUPLICATE_STRING_IF_EXISTS(obj, x) if ((obj)->x) (obj)->x = Allocator.duplicateString((obj)->x)
+#define FREE_STRING_IF_EXISTS(obj, x, fromTheGame) if ((obj)->x) FreeAllocatedString((obj)->x, fromTheGame)
 
   /// This variable dispenses us from the horror of having a text file in IWD containing the menus we want to load
   std::vector<std::string> Menus::CustomIW4xMenus;
@@ -1487,7 +1487,7 @@ namespace Components
       {
         const auto menu = pair.second;
 
-#define CHECK_SD(x) if (menu->##x && menu->##x->supportingData) assert(menu->##x->supportingData == Menus::SupportingData)
+#define CHECK_SD(x) if (menu->x && menu->x->supportingData) assert(menu->x->supportingData == Menus::SupportingData)
 
         CHECK_SD(visibleExp);
         CHECK_SD(rectXExp);

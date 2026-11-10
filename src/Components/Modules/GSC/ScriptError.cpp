@@ -906,9 +906,9 @@ namespace Components::GSC
     std::vector<std::pair<std::size_t, void*>> patches;
     patches.reserve(200);
 
-    const auto p = [&patches](const std::size_t a, void* b)
+    const auto p = [&patches](const std::size_t a, auto b)
     {
-      patches.emplace_back(a, b);
+      patches.emplace_back(a, reinterpret_cast<void*>(b));
     };
 
     p(0x44AC44, Scr_Settings_Hk);
