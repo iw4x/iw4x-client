@@ -2,8 +2,6 @@
 
 using namespace Components;
 
-STEAM_IGNORE_WARNINGS_START
-
 namespace Steam
 {
   const char* Friends::GetPersonaName()
@@ -123,5 +121,3 @@ namespace Steam
   {
   }
 }
-
-STEAM_IGNORE_WARNINGS_END

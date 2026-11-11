@@ -1,7 +1,5 @@
 #include "SteamUtils.hpp"
 
-STEAM_IGNORE_WARNINGS_START
-
 namespace Steam
 {
   unsigned int Utils::GetSecondsSinceAppActive()
@@ -119,5 +117,3 @@ namespace Steam
     return false;
   }
 }
-
-STEAM_IGNORE_WARNINGS_END

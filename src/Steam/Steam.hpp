@@ -2,16 +2,6 @@
 
 #define STEAM_EXPORT extern "C" __declspec(dllexport)
 
-#ifdef _MSC_VER
-#define STEAM_IGNORE_WARNINGS_START __pragma(warning(push)) \
-                                    __pragma(warning(disable: 4100))
-
-#define STEAM_IGNORE_WARNINGS_END   __pragma(warning(pop))
-#else
-#define STEAM_IGNORE_WARNINGS_START
-#define STEAM_IGNORE_WARNINGS_END
-#endif
-
 // Steam's x86 MSVC ABI returns this aggregate from virtual functions via
 // a hidden pointer on the stack. We spell out this pointer in the interfaces
 // since MinGW does not use the same return convention.
