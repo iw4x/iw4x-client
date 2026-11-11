@@ -556,7 +556,7 @@ namespace Components
 
     [[maybe_unused]] auto graphBefore = graph;
 
-    strncpy(graph->graphName, rumbleFileName, 64);
+    Game::I_strncpyz(graph->graphName, rumbleFileName, sizeof(graph->graphName));
     auto data = Game::Com_LoadInfoString(path.data(), "rumble graph file", "RUMBLEGRAPHFILE", buff.data());
 
     assert(graph == graphBefore);
