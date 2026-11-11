@@ -405,11 +405,6 @@ namespace Components
 
     for (auto i = 0; i < Game::MAX_GENTITIES; ++i)
     {
-      if (&Game::g_entities[i] == nullptr)
-      {
-        continue;
-      }
-
       const auto* line = EntInfoLine(i);
       assert(line);
       Logger::Print(channel, "%s", line);
@@ -438,11 +433,6 @@ namespace Components
 
     for (auto i = 0; i < Game::MAX_GENTITIES; ++i)
     {
-      if (&Game::g_entities[i] == nullptr)
-      {
-        continue;
-      }
-
       const auto* line = EntInfoLine(i);
       const auto lineLen = std::strlen(line);
 

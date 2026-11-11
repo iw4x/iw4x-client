@@ -824,7 +824,7 @@ namespace Components
         continue;
       }
 
-      if (ar->sourceType == Game::RUMBLESOURCE_ENTITY && ar->source.pos)
+      if (ar->sourceType == Game::RUMBLESOURCE_ENTITY)
       {
         auto entity = Game::CG_GetEntity(localClientNum, ar->source.entityNum);
 
