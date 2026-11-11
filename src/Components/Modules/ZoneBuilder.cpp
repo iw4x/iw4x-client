@@ -39,7 +39,7 @@ namespace Components
     zoneName(name),
     destination(destination),
     dataMap("zone_source/" + sourceName + ".csv"),
-    branding{ nullptr },
+    branding{},
     assetDepth(0),
     iw4ofApi(getIW4OfApiParams())
   {
@@ -473,7 +473,7 @@ namespace Components
   void ZoneBuilder::Zone::saveData()
   {
     // Add header
-    Game::ZoneHeader zoneHeader = { 0 };
+    Game::ZoneHeader zoneHeader{};
     zoneHeader.assetList.assetCount = this->loadedAssets.size();
     Utils::Stream::ClearPointer(&zoneHeader.assetList.assets);
 

@@ -67,7 +67,7 @@ namespace Utils
 
   bool Memory::IsBadReadPtr(const void* ptr)
   {
-    MEMORY_BASIC_INFORMATION mbi = { nullptr };
+    MEMORY_BASIC_INFORMATION mbi{};
     if (VirtualQuery(ptr, &mbi, sizeof(mbi)))
     {
       DWORD mask = (PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY);
@@ -82,7 +82,7 @@ namespace Utils
 
   bool Memory::IsBadCodePtr(const void* ptr)
   {
-    MEMORY_BASIC_INFORMATION mbi = { nullptr };
+    MEMORY_BASIC_INFORMATION mbi{};
     if (VirtualQuery(ptr, &mbi, sizeof(mbi)))
     {
       DWORD mask = (PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY);
