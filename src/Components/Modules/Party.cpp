@@ -736,6 +736,13 @@ namespace Components
                   PlaylistContinue();
                 }
                 break;
+
+              // Rejected above.
+              //
+              case JoinContainer::MatchType::NO_MATCH:
+              case JoinContainer::MatchType::COUNT:
+                AssertUnreachable;
+                break;
             }
           }
         }
