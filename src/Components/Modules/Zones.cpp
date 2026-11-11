@@ -4,7 +4,9 @@
 
 #include "FastFiles.hpp"
 
+#ifdef _MSC_VER
 #pragma optimize( "", off )
+#endif
 
 extern "C"
 {
@@ -1223,8 +1225,10 @@ namespace Components
   }
 
 // Code-analysis has a bug, the first memcpy makes it believe size of tempVar is 44 instead of 84
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 6385)
+#endif
   bool Zones::LoadGameWorldSp(bool atStreamStart, char* buffer, int size)
   {
     if (Zones::Version() >= VERSION_ALPHA2)
@@ -1246,7 +1250,9 @@ namespace Components
 
     return result;
   }
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
   void Zones::LoadPathDataTail()
   {
@@ -1331,8 +1337,10 @@ namespace Components
   }
 
 // Code-analysis has a bug, the first memcpy makes it believe size of tempVar is 400 instead of 788
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 6385)
+#endif
   bool Zones::LoadVehicleDef(bool atStreamStart, char* buffer, int size)
   {
     if (Zones::Version() >= VERSION_ALPHA2)
@@ -1355,7 +1363,9 @@ namespace Components
 
     return result;
   }
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
   void Zones::LoadWeaponAttachStuff(DWORD* varWeaponAttachStuff, int count)
   {
@@ -3384,7 +3394,9 @@ namespace Components
     Utils::Hook(0x471A39, Zones::LoadWindowImage, HOOK_JUMP).install()->quick();
   }
 }
+#ifdef _MSC_VER
 #pragma optimize( "", on )
+#endif
 
 void Zones_LoadXModelLodInfo(int i)
 {

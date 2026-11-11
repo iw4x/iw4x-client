@@ -2749,8 +2749,10 @@ namespace Game
 
   union SoundAliasFlags
   {
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4201)
+#endif
     struct
     {
       unsigned int looping : 1;       // & 1  / 0x1           / 0000 0000 0000 0001
@@ -2763,7 +2765,9 @@ namespace Game
       unsigned int type : 2;          // & 384    / 0x180     / 0000 0001 1000 0000       // CONFIRMED IW4 IW5
       unsigned int channel : 6;       // & 32256  / 0x7E00    / 0111 1110 0000 0000       // CONFIRMED IW4 IW5
     };
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
     unsigned int intValue;
   };
 
@@ -3293,8 +3297,10 @@ namespace Game
     float linkMaxs[2];
   };
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4324)
+#endif
   struct alignas(64) clipMap_t
   {
     const char* name;
@@ -3346,7 +3352,9 @@ namespace Game
     DynEntityColl* dynEntCollList[2];
     unsigned int checksum;
   };
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
   struct ComPrimaryLight
   {
@@ -9799,8 +9807,10 @@ namespace Game
     AIM_MELEE_STATE_UPDATING = 0x2,
   };
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4324)
+#endif
   struct alignas(16) AimAssistGlobals
   {
     AimAssistPlayerState ps;
@@ -9838,7 +9848,9 @@ namespace Game
     float autoMeleeYawTarget;
     int lockOnTargetEnt;
   };
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
   enum ShockViewTypes
   {

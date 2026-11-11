@@ -21,10 +21,14 @@ namespace Game
   void Z_VirtualDecommitInternal(void* ptr, int size)
   {
     assert((size >= 0));
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 6250)
+#endif
     VirtualFree(ptr, size, MEM_DECOMMIT);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
   }
 
   void Z_VirtualCommitInternal(void* ptr, int size)
