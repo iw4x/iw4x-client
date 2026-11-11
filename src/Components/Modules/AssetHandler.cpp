@@ -420,9 +420,9 @@ namespace Components
       0x5BBFB8
     };
 
-    for (int i = 0; i < ARRAYSIZE(patches); ++i)
+    for (const auto patch : patches)
     {
-      Utils::Hook::Set<Game::XAssetEntry*>(patches[i], entryPool);
+      Utils::Hook::Set<Game::XAssetEntry*>(patch, entryPool);
     }
 
     Utils::Hook::Set<Game::XAssetEntry*>(0x5BAE91, entryPool + 1);

@@ -579,9 +579,9 @@ namespace Components
     {
       // 1208
       static int matOffsets1[] = { 1732, 1736, 1952, 1956, 1960, 1964, 1968, 1972, 1980, 1988, 2000, 2004, 2008, 2012 };
-      for (int i = 0; i < ARRAYSIZE(matOffsets1); ++i)
+      for (const auto offset : matOffsets1)
       {
-        *Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + matOffsets1[i]);
+        *Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + offset);
         Game::Load_MaterialHandle(false);
       }
     }
@@ -589,18 +589,18 @@ namespace Components
     {
       // 1208
       static int matOffsets1[] = { 1152, 1156, 1372,1376,1380, 1384, 1388, 1392, 1400, 1408 };
-      for (int i = 0; i < ARRAYSIZE(matOffsets1); ++i)
+      for (const auto offset : matOffsets1)
       {
-        *Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + matOffsets1[i]);
+        *Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + offset);
         Game::Load_MaterialHandle(false);
       }
     }
     else
     {           // 1208
       static int matOffsets1[] = { 1208, 1212, 1428, 1432, 1436, 1440, 1444, 1448, 1456, 1464 };
-      for (int i = 0; i < ARRAYSIZE(matOffsets1); ++i)
+      for (const auto offset : matOffsets1)
       {
-        *Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + matOffsets1[i]);
+        *Game::varMaterialHandle = reinterpret_cast<Game::Material**>(varWeaponCompleteDef + offset);
         Game::Load_MaterialHandle(false);
       }
     }

@@ -1186,10 +1186,10 @@ namespace Components
       };
 
       std::unordered_map<Game::XAssetType, int> typePriority{};
-      for (auto i = 0; i < ARRAYSIZE(typeOrder); i++)
+      for (std::size_t i = 0; i < ARRAYSIZE(typeOrder); i++)
       {
         const auto type = typeOrder[i];
-        typePriority.emplace(type, 1 + ARRAYSIZE(typeOrder) - i);
+        typePriority.emplace(type, static_cast<int>(1 + ARRAYSIZE(typeOrder) - i));
       }
 
       enum AssetCategory

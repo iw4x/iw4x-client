@@ -255,7 +255,7 @@ namespace Components
 
   bool Friends::IsClientInParty(int /*controller*/, int clientNum)
   {
-    if (clientNum < 0 || clientNum >= ARRAYSIZE(Dedicated::PlayerGuids)) return false;
+    if (clientNum < 0 || static_cast<std::size_t>(clientNum) >= ARRAYSIZE(Dedicated::PlayerGuids)) return false;
 
     std::lock_guard<std::recursive_mutex> _(Friends::Mutex);
     SteamID guid = Dedicated::PlayerGuids[clientNum][0];

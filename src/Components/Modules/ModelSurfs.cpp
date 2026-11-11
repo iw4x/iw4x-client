@@ -87,7 +87,7 @@ namespace Components
     constexpr auto mainSectionMinSize = 48; // XModelSurfs and the allocation data pointer at +44.
     static_assert(sizeof(Game::XModelSurfs) <= mainSectionMinSize);
 
-    for (int i = 0; i < ARRAYSIZE(header.sectionHeader); ++i)
+    for (std::size_t i = 0; i < ARRAYSIZE(header.sectionHeader); ++i)
     {
       const auto& section = header.sectionHeader[i];
       if (section.size < 0 || section.offset < 0 || section.size > model.getSize() || section.offset > model.getSize() - section.size)
@@ -121,7 +121,7 @@ namespace Components
     header.sectionHeader[Game::SECTION_FIXUP].buffer = allocator.allocateArray<char>(header.sectionHeader[Game::SECTION_FIXUP].size);
 
     // Load section data
-    for (int i = 0; i < ARRAYSIZE(header.sectionHeader); ++i)
+    for (std::size_t i = 0; i < ARRAYSIZE(header.sectionHeader); ++i)
     {
       model.seek(header.sectionHeader[i].offset, Game::FS_SEEK_SET);
       if (!model.read(header.sectionHeader[i].buffer, header.sectionHeader[i].size))

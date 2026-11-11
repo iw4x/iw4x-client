@@ -97,7 +97,7 @@ namespace Game
 
   centity_s* CG_GetEntity([[maybe_unused]] int localClientNum, int entityIndex)
   {
-    assert(entityIndex < MAX_GENTITIES);
+    AssertIn(entityIndex, MAX_GENTITIES);
     assert(localClientNum == 0);
 
     return &cg_entitiesArray[entityIndex].entity;
