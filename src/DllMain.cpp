@@ -16,6 +16,17 @@ namespace Main
     //
     Game::__security_init_cookie();
 
+#ifdef TRACY_ENABLE
+    // Start Tracy here, ahead of the IW4x initialization below, so that
+    // the profile covers that initialization as well. See
+    // deps/premake/tracy.lua for why starting it is up to us.
+    //
+    // Note that we leave the client running until the process exits, so
+    // there is no matching tracy::ShutdownProfiler() call.
+    //
+    tracy::StartupProfiler();
+#endif
+
     // Perform IW4x-specific initialization before transferring control
     // to the original C runtime startup. See DllMain() for context.
     //

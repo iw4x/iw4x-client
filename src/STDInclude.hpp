@@ -100,6 +100,7 @@ using namespace std::literals;
 #include <gsl/gsl>
 #include <json.hpp>
 #include <tomcrypt.h>
+#include <tracy/Tracy.hpp>
 
 #ifdef _MSC_VER
 #pragma warning(pop)

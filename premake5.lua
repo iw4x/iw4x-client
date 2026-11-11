@@ -59,6 +59,12 @@ newoption
   description = "Don't regenerate the build information before each build"
 }
 
+newoption
+{
+  trigger     = "profile",
+  description = "Build with Tracy (see README.md)"
+}
+
 -- Note that the version action exits as soon as it is done, so that the
 -- version is the last line of its output (premake reports the completion of
 -- an action otherwise).
@@ -380,6 +386,7 @@ project "iw4x"
     "sentry",
     "sqlite",
     "stb",
+    "tracy",
     "udis86",
     "zlib"
   }
