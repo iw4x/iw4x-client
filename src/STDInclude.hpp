@@ -50,7 +50,6 @@
 #include <unordered_set>
 
 #include <d3dx9tex.h>
-#pragma comment(lib, "D3dx9.lib")
 
 // XInput types only: the controller subsystem resolves the runtime's entry points
 // by name at load time (see Controller/Transport/XInputModule.hpp), so the import
@@ -59,19 +58,10 @@
 #include <xinput.h>
 
 #include <dwmapi.h>
-#pragma comment (lib, "dwmapi.lib")
-
 #include <iphlpapi.h>
-#pragma comment (lib, "iphlpapi.lib")
-
 #include <setupapi.h>
-#pragma comment(lib, "Setupapi.lib")
-
 #include <hidsdi.h>
-#pragma comment(lib, "Hid.lib")
-
 #include <commctrl.h>
-#pragma comment(lib, "Comctl32.lib")
 
 // Ignore the warnings
 #pragma warning(push)
@@ -141,19 +131,6 @@ using namespace std::literals;
 #include "Utils/Stream.hpp" // Breaks order on purpose
 
 #include "Components/Loader.hpp"
-
-// Libraries
-#pragma comment(lib, "Winmm.lib")
-#pragma comment(lib, "Crypt32.lib")
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "d3d9.lib")
-#pragma comment(lib, "Wininet.lib")
-#pragma comment(lib, "shlwapi.lib")
-#pragma comment(lib, "Urlmon.lib")
-#pragma comment(lib, "Advapi32.lib")
-#pragma comment(lib, "rpcrt4.lib")
-#pragma comment(lib, "dbghelp.lib")
-#pragma comment(lib, "ntdll.lib")
 
 #endif
 
