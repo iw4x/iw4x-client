@@ -15,6 +15,10 @@ extern "C"
 
 namespace Components
 {
+  // Helpers of the connect verification in ParseConnectData(), which debug
+  // builds skip.
+  //
+#ifndef DEBUG
   namespace
   {
     // The size of the buffer SV_DirectConnect() copies argv[2] into (with
@@ -75,6 +79,7 @@ namespace Components
       return true;
     }
   }
+#endif
 
   Auth::TokenIncrementing Auth::TokenContainer;
 
