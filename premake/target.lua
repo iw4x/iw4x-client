@@ -66,7 +66,9 @@ end
 -- Settings that a description may specify, each with the premake function
 -- it is passed to. A path setting is relative to the target directory and
 -- a link setting is what a library export passes to the binaries that link
--- the library.
+-- the library. An external setting is passed to its external function when
+-- a library export is imported by another target (see
+-- library:import_interface()).
 --
 local setting_types =
 {
@@ -78,7 +80,8 @@ local setting_types =
   pchsource    = {apply = pchsource,   path = true},
   files        = {apply = files,       path = true, list = true},
   removefiles  = {apply = removefiles, path = true, list = true},
-  includedirs  = {apply = includedirs, path = true, list = true},
+  includedirs  = {apply = includedirs, external = externalincludedirs,
+                  path = true, list = true},
   defines      = {apply = defines,     list = true},
   libdirs      = {apply = libdirs,     path = true, list = true, link = true},
   links        = {apply = links,       list = true, link = true},
@@ -242,8 +245,18 @@ function settings:apply ()
   self:apply_if (function (t) return true end)
 end
 
-function settings:apply_compile ()
-  self:apply_if (function (t) return not t.link end)
+-- Pass the settings other than the link ones to their premake functions. If
+-- external is true, then pass each to its external function if it has one.
+--
+function settings:apply_compile (external)
+  for _, s in ipairs (self.values_) do
+    local t = s.type
+
+    if not t.link then
+      local f = external and t.external or t.apply
+      f (s.value)
+    end
+  end
 end
 
 function settings:apply_link ()
@@ -286,7 +299,7 @@ function binary:define (name, k, linked, owner)
     warnings "Off"
 
     if owner ~= nil then
-      owner:import_interface ({})
+      owner:import_interface ({}, false)
     end
 
     self.settings_:apply ()
@@ -351,19 +364,25 @@ end
 
 -- Add the export of this library and of its interface dependencies to the
 -- project being defined. The seen table holds the libraries that are
--- already added.
+-- already added. If external is true, then the project is of another
+-- target and gets the include directories as external ones.
 --
-function library:import_interface (seen)
+-- Note that the compilers don't warn about the headers they find in the
+-- external include directories (with GCC they are -isystem directories).
+-- This way we see the warnings of a library only when we build the library
+-- itself, which imports its own export as non-external.
+--
+function library:import_interface (seen, external)
   if seen[self] then
     return
   end
 
   seen[self] = true
 
-  self.export_:apply_compile ()
+  self.export_:apply_compile (external)
 
   for _, n in ipairs (self.interface_) do
-    self.set_:find (n, self.name_):import_interface (seen)
+    self.set_:find (n, self.name_):import_interface (seen, true)
   end
 end
 
@@ -560,7 +579,7 @@ function target_set:import (names, user)
   for _, n in ipairs (names) do
     local l = self:find (n, user)
 
-    l:import_interface (interface)
+    l:import_interface (interface, true)
     l:import_link (link)
   end
 end
@@ -572,7 +591,7 @@ function target_set:import_interface (names, user)
   local interface = {}
 
   for _, n in ipairs (names) do
-    self:find (n, user):import_interface (interface)
+    self:find (n, user):import_interface (interface, true)
   end
 end
 
