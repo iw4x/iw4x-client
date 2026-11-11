@@ -657,7 +657,7 @@ namespace Assets
               {
                 index++;
 
-                if (index < 0 || index >= model->numBones)
+                if (index >= model->numBones)
                 {
                   Components::Logger::Print("Unexpected 'bone index' {} out of {} bones while working vertex list of: xmodel {} lod {} xmodelsurf {} surf #{}\n", index, model->numBones, model->name, lodIndex, lod->modelSurfs->name, surfIndex);
                   assert(false);
@@ -775,7 +775,7 @@ namespace Assets
 
               if (index == origin)
               {
-                if (index < 0 || index >= model->numBones)
+                if (index >= model->numBones)
                 {
                   assert(false);
                 }
