@@ -61,7 +61,7 @@ namespace Assets
     {
       for (char i = 0; i < 32; ++i)
       {
-        if (asset->hideTags[i] == NULL) break; // no more strings
+        if (asset->hideTags[i] == 0) break; // no more strings
         builder->addScriptString(asset->hideTags[i]);
       }
     }
@@ -70,7 +70,7 @@ namespace Assets
     {
       for (char i = 0; i < 16; ++i)
       {
-        if (asset->weapDef->notetrackSoundMapKeys[i] == NULL) break; // no more strings
+        if (asset->weapDef->notetrackSoundMapKeys[i] == 0) break; // no more strings
         builder->addScriptString(asset->weapDef->notetrackSoundMapKeys[i]);
       }
     }
@@ -79,7 +79,7 @@ namespace Assets
     {
       for (char i = 0; i < 16; ++i)
       {
-        if (asset->weapDef->notetrackSoundMapValues[i] == NULL) break; // no more strings
+        if (asset->weapDef->notetrackSoundMapValues[i] == 0) break; // no more strings
 
         const auto soundName = Game::SL_ConvertToString(asset->weapDef->notetrackSoundMapValues[i]);
 
@@ -93,7 +93,7 @@ namespace Assets
     {
       for (char i = 0; i < 16; ++i)
       {
-        if (asset->weapDef->notetrackRumbleMapKeys[i] == NULL) break; // no more strings
+        if (asset->weapDef->notetrackRumbleMapKeys[i] == 0) break; // no more strings
         builder->addScriptString(asset->weapDef->notetrackRumbleMapKeys[i]);
       }
     }
@@ -102,7 +102,7 @@ namespace Assets
     {
       for (char i = 0; i < 16; ++i)
       {
-        if (asset->weapDef->notetrackRumbleMapValues[i] == NULL) break; // no more strings
+        if (asset->weapDef->notetrackRumbleMapValues[i] == 0) break; // no more strings
         const auto rumbleName = Game::SL_ConvertToString(asset->weapDef->notetrackRumbleMapValues[i]);
 
         builder->loadAssetByName(Game::XAssetType::ASSET_TYPE_RAWFILE, std::format("rumble/{}", rumbleName), false);
