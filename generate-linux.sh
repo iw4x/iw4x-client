@@ -513,7 +513,7 @@ upload_symbols ()
 {
   diag "info: uploading debug symbols to sentry"
 
-  bd="$owd/build/bin/Win32/$cfg"
+  bd="$owd/build/bin/x64/$cfg"
   sd="$(mktemp -d)"
 
   if test -z "$sd"; then
@@ -677,7 +677,7 @@ gen_vscode ()
       "defines":[],
       "cStandard": "c23",
       "cppStandard": "c++23",
-      "intelliSenseMode": "windows-msvc-x86",
+      "intelliSenseMode": "windows-msvc-x64",
       "forcedInclude":[
         "$owd/src/STDInclude.hpp"
       ]

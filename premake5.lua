@@ -24,7 +24,7 @@ local generated_directory = path.join (build_directory, "src")
 newoption
 {
   trigger     = "mingw",
-  description = "Generate a 32-bit MinGW-w64 GNU Make build"
+  description = "Generate a 64-bit MinGW-w64 GNU Make build"
 }
 
 newoption
@@ -109,10 +109,11 @@ if mingw and _OPTIONS["copy-to"] then
 end
 
 if mingw then
-  -- Premake adds /usr/lib32 for x86 GCC, which is a host directory and
+  -- Premake adds /usr/lib64 for x86_64 GCC, which is a host directory and
   -- should not be searched when cross-compiling with MinGW.
   --
-  premake.override (premake.tools.gcc.libraryDirectories.architecture, "x86",
+  premake.override (premake.tools.gcc.libraryDirectories.architecture,
+                    "x86_64",
                     function () return {} end)
 end
 
@@ -127,22 +128,18 @@ workspace "iw4x"
   targetdir "%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}"
   startproject "iw4x"
 
-  -- The game is a 32-bit Windows executable, so this is the only platform.
+  -- The game is a 64-bit Windows executable, so this is the only platform.
   --
   configurations {"Debug", "Release"}
-  platforms {"Win32"}
-  architecture "x86"
+  platforms {"x64"}
+  architecture "x86_64"
   systemversion "latest"
 
   if mingw then
     system "windows"
     toolset "gcc"
-    gccprefix "i686-w64-mingw32-"
+    gccprefix "x86_64-w64-mingw32-"
     makesettings {".DELETE_ON_ERROR:"}
-    -- Callbacks may enter with a four-byte aligned stack, so
-    -- realign it on entry to functions compiled by GCC.
-    --
-    buildoptions {"-mstackrealign"}
     omitframepointer "Off"
     linkoptions {"-static"}
   end
@@ -198,7 +195,11 @@ workspace "iw4x"
     omitframepointer "Off"
     rtti "Off"
     defines {"NDEBUG"}
-    -- GCC can fail during LTO when linking the 32-bit MinGW DLL.
+
+    -- GCC failed during LTO when linking the 32-bit MinGW DLL.
+    --
+    -- @@ See if it links the 64-bit one.
+    --
     if not mingw then
       linktimeoptimization "On"
       linkoptions {"/IGNORE:4702"}
@@ -263,10 +264,7 @@ project "iw4x"
   -- Game/FileSystem.asm and Components/Modules/FileSystem.asm would
   -- otherwise both produce FileSystem.asm.obj.
   --
-  -- Note that we assemble with SafeSEH (/safeseh): without it the linker
-  -- silently omits the table of safe exception handlers from the image as
-  -- soon as one object lacks the marking. The custom build step passes its
-  -- .obj outputs to the linker.
+  -- Note that the custom build step passes its outputs to the linker.
   --
   local asm_object = "%{cfg.objdir}/%{file.directory:match ('[^/]+$')}." ..
                      "%{file.basename}.asm." .. (mingw and "o" or "obj")
@@ -277,12 +275,12 @@ project "iw4x"
     if mingw then
       buildcommands
       {
-        '"$(UASM)" -q -coff -Fo"' .. asm_object .. '" "%{file.relpath}"'
+        '"$(UASM)" -q -win64 -Fo"' .. asm_object .. '" "%{file.relpath}"'
       }
     else
       buildcommands
       {
-        "ml.exe /nologo /c /safeseh /Zi /W3 /WX " ..
+        "ml64.exe /nologo /c /Zi /W3 /WX " ..
         "/Fo\"" .. asm_object .. "\" \"%{file.relpath}\""
       }
     end
