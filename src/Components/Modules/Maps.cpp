@@ -563,7 +563,7 @@ namespace Components
     //
     const auto connecting = Maps_RotateConnectionState < Game::CA_ACTIVE;
 
-    if (connecting || !Maps::CheckMapInstalled(mapname, false, true) || hash && hash != Maps::GetUsermapHash(mapname))
+    if (connecting || !Maps::CheckMapInstalled(mapname, false, true) || (hash && hash != Maps::GetUsermapHash(mapname)))
     {
       // Reconnecting forces the client to download the new map
       Command::Execute("disconnect", false);

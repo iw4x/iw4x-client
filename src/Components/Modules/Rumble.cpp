@@ -415,7 +415,7 @@ namespace Components
         Controller::PlayHapticEffect(effect);
     }
 
-    if (!cg->nextSnap || cg->predictedPlayerState.clientNum == cg->localClientNum && cg->predictedPlayerState.pm_type != 5)
+    if (!cg->nextSnap || (cg->predictedPlayerState.clientNum == cg->localClientNum && cg->predictedPlayerState.pm_type != 5))
       CalcActiveRumbles(
         localClientNum,
         rumbleGlobArray[localClientNum].activeRumbles,
