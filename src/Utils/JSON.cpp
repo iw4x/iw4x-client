@@ -48,12 +48,6 @@ namespace Utils::JSON
     auto i = binarySize - 1;
     for (char bit : binaryFlags)
     {
-      if (i < 0)
-      {
-        Components::Logger::Print("Flag {} might not be properly translated, it seems to contain an error (invalid length)\n", binaryFlags);
-        break;
-      }
-
       auto isOne = bit == '1';
       input.set(i--, isOne);
     }
