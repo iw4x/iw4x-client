@@ -36,12 +36,12 @@ namespace Components
     // Side note: if you need a fastfile larger than 100MB, you're doing it wrong-
     // Well, decompressed maps can get way larger than 100MB, so let's increase that.
     buffer(0xC800000),
+    iw4ofApi(getIW4OfApiParams()),
     zoneName(name),
     destination(destination),
     dataMap("zone_source/" + sourceName + ".csv"),
     branding{},
-    assetDepth(0),
-    iw4ofApi(getIW4OfApiParams())
+    assetDepth(0)
   {
 
   }
