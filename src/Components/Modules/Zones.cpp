@@ -454,7 +454,7 @@ namespace Components
     {
       if (*reinterpret_cast<void**>(varWeaponCompleteDef + 1708))
       {
-        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1708) == -1)
+        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1708) == 0xFFFFFFFF)
         {
           *reinterpret_cast<void**>(varWeaponCompleteDef + 1708) = Game::DB_AllocStreamPos(3);
           *Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t***>(varWeaponCompleteDef + 1708);
@@ -469,7 +469,7 @@ namespace Components
 
       if (*reinterpret_cast<void**>(varWeaponCompleteDef + 1712))
       {
-        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1712) == -1)
+        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1712) == 0xFFFFFFFF)
         {
           *reinterpret_cast<void**>(varWeaponCompleteDef + 1712) = Game::DB_AllocStreamPos(3);
           *Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t***>(varWeaponCompleteDef + 1712);
@@ -486,7 +486,7 @@ namespace Components
     {
       if (*reinterpret_cast<void**>(varWeaponCompleteDef + 1128))
       {
-        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1128) == -1)
+        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1128) == 0xFFFFFFFF)
         {
           *reinterpret_cast<void**>(varWeaponCompleteDef + 1128) = Game::DB_AllocStreamPos(3);
           *Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t***>(varWeaponCompleteDef + 1128);
@@ -501,7 +501,7 @@ namespace Components
 
       if (*reinterpret_cast<void**>(varWeaponCompleteDef + 1132))
       {
-        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1132) == -1)
+        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1132) == 0xFFFFFFFF)
         {
           *reinterpret_cast<void**>(varWeaponCompleteDef + 1132) = Game::DB_AllocStreamPos(3);
           *Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t***>(varWeaponCompleteDef + 1132);
@@ -518,7 +518,7 @@ namespace Components
     {
       if (*reinterpret_cast<void**>(varWeaponCompleteDef + 1184))
       {
-        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1184) == -1)
+        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1184) == 0xFFFFFFFF)
         {
           *reinterpret_cast<void**>(varWeaponCompleteDef + 1184) = Game::DB_AllocStreamPos(3);
           *Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t***>(varWeaponCompleteDef + 1184);
@@ -533,7 +533,7 @@ namespace Components
 
       if (*reinterpret_cast<void**>(varWeaponCompleteDef + 1188))
       {
-        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1188) == -1)
+        if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 1188) == 0xFFFFFFFF)
         {
           *reinterpret_cast<void**>(varWeaponCompleteDef + 1188) = Game::DB_AllocStreamPos(3);
           *Game::varsnd_alias_list_name = *reinterpret_cast<Game::snd_alias_list_t***>(varWeaponCompleteDef + 1188);
@@ -828,7 +828,7 @@ namespace Components
 
     if (Zones::Version() >= 460)
     {
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3204) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3204) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 3204) = vec2;
@@ -839,7 +839,7 @@ namespace Components
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 3200);
       Game::Load_XString(false);
 
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3208) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3208) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 3208) = vec2;
@@ -849,7 +849,7 @@ namespace Components
     }
     else if (Zones_ZoneVersion >= 359)
     {
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2524) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2524) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 2524) = vec2;
@@ -860,7 +860,7 @@ namespace Components
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 2520);
       Game::Load_XString(false);
 
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2528) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2528) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 2528) = vec2;
@@ -870,7 +870,7 @@ namespace Components
     }
     else
     {
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2556) == -1) // 2564
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2556) == 0xFFFFFFFF) // 2564
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 2556) = vec2;
@@ -881,7 +881,7 @@ namespace Components
       *Game::varXString = reinterpret_cast<char**>(varWeaponCompleteDef + 2552);
       Game::Load_XString(false);
 
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2560) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 2560) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 2560) = vec2;
@@ -1151,7 +1151,7 @@ namespace Components
 
     if (Zones::Version() >= 460)
     {
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3780 + offsetShift) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3780 + offsetShift) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 3780 + offsetShift) = vec2;
@@ -1159,7 +1159,7 @@ namespace Components
         Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3776 + offsetShift));
       }
 
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3784 + offsetShift) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3784 + offsetShift) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 3784 + offsetShift) = vec2;
@@ -1184,7 +1184,7 @@ namespace Components
     }
     else if (Zones_ZoneVersion >= 359)
     {
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3048) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3048) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 3048) = vec2;
@@ -1192,7 +1192,7 @@ namespace Components
         Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3044));
       }
 
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3052) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3052) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 3052) = vec2;
@@ -1202,7 +1202,7 @@ namespace Components
     }
     else
     {
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3044) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3044) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 3044) = vec2;
@@ -1210,7 +1210,7 @@ namespace Components
         Game::Load_Stream(true, vec2, 8 * *reinterpret_cast<short*>(varWeaponCompleteDef + 3040));
       }
 
-      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3048) == -1)
+      if (*reinterpret_cast<DWORD*>(varWeaponCompleteDef + 3048) == 0xFFFFFFFF)
       {
         void* vec2 = Game::DB_AllocStreamPos(3);
         *reinterpret_cast<void**>(varWeaponCompleteDef + 3048) = vec2;
@@ -1365,7 +1365,7 @@ namespace Components
     {
       if (varWeaponAttachStuff[1] < 16 || varWeaponAttachStuff[1] == 39)
       {
-        if (varWeaponAttachStuff[2] == -1)
+        if (varWeaponAttachStuff[2] == 0xFFFFFFFF)
         {
           varWeaponAttachStuff[2] = reinterpret_cast<DWORD>(Game::DB_AllocStreamPos(0));
           *Game::varConstChar = reinterpret_cast<const char*>(varWeaponAttachStuff[2]);
