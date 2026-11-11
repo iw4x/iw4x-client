@@ -56,8 +56,6 @@ namespace Components
 #include "Modules/Logger.hpp"
 #include "Modules/Singleton.hpp"
 #include "Modules/UIScript.hpp"
-#include "Modules/ZoneBuilder.hpp"
-#include "Modules/ZoneConvert.hpp"
 
 #include "Modules/AssetHandler.hpp"
 #include "Modules/Dedicated.hpp"
@@ -67,7 +65,6 @@ namespace Components
 #include "Modules/Menus.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/Scheduler.hpp"
-#include "Modules/Zones.hpp"
 #include "Modules/Rumble.hpp"
 
 #include "Modules/GSC/GSC.hpp"
