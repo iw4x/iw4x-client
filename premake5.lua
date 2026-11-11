@@ -119,8 +119,12 @@ end
 
 -- Load the third-party targets.
 --
+-- Note that we skip iw4-open-formats: it describes 32-bit asset structures
+-- and only zone tools use it (see below).
+--
 local targets = target_set.new (path.join (_MAIN_SCRIPT_DIR, "deps"))
-targets:load (path.join (_MAIN_SCRIPT_DIR, "deps/premake"))
+targets:load (path.join (_MAIN_SCRIPT_DIR, "deps/premake"),
+              {"iw4-open-formats"})
 
 workspace "iw4x"
   location (build_directory)
@@ -253,6 +257,21 @@ project "iw4x"
     "src/**.asm"
   }
 
+  -- Zone tools.
+  --
+  -- These read and write 32-bit IW4x zones. On x64 we load stock zones
+  -- converted with OpenAssetTools instead. Note that Zones and ModelSurfs
+  -- only load what zone tools produce.
+  --
+  removefiles
+  {
+    "src/Components/Modules/AssetInterfaces/**",
+    "src/Components/Modules/ModelSurfs.*",
+    "src/Components/Modules/ZoneBuilder.*",
+    "src/Components/Modules/ZoneConvert.*",
+    "src/Components/Modules/Zones.*"
+  }
+
   -- Assemble the assembly sources with ml directly instead of through the
   -- MASM build customization, for two reasons. Firstly, the customization
   -- names the object after the file name without the extension, so Foo.asm
@@ -373,7 +392,6 @@ project "iw4x"
     "discord-rpc",
     "fonts",
     "gsl",
-    "iw4-open-formats",
     "json",
     "libtomcrypt",
     "libtommath",

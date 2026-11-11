@@ -38,7 +38,6 @@
 #include "Modules/Missile.hpp"
 #include "Modules/ModList.hpp"
 #include "Modules/ModelCache.hpp"
-#include "Modules/ModelSurfs.hpp"
 #include "Modules/NetworkDebug.hpp"
 #include "Modules/News.hpp"
 #include "Modules/Node.hpp"
@@ -97,10 +96,6 @@ namespace Components
     Pregame = true;
     Utils::Memory::GetAllocator()->clear();
 
-    // Before anything else.
-    //
-    Register(new ZoneConvert());
-
     // High priority
     Register(new Singleton());
 
@@ -113,7 +108,6 @@ namespace Components
     Register(new Logger());
     Register(new Sentry());
     Register(new UIScript());
-    Register(new ZoneBuilder());
 
     Register(new ConfigStrings()); // Needs to be there early !! Before modelcache & weapons
 
@@ -156,7 +150,6 @@ namespace Components
     Register(new Missile());
     Register(new ModList());
     Register(new ModelCache());
-    Register(new ModelSurfs());
     Register(new NetworkDebug());
     Register(new News());
     Register(new Node());
@@ -196,7 +189,6 @@ namespace Components
     Register(new Weapon());
     Register(new Window());
     Register(new WineD3D());
-    Register(new Zones());
 
     Register(new GSC::GSC());
 
