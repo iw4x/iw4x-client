@@ -1356,8 +1356,6 @@ namespace Components
     const auto challenge = Utils::Cryptography::Rand::GenerateChallenge();
     auto requestLimit = NETServerQueryLimit.get<int>();
 
-    bool hadPendingRequests = false;
-
     for (std::size_t i = 0; i < RefreshContainer.servers.size() && requestLimit > 0; ++i)
     {
       auto* server = &RefreshContainer.servers[i];
@@ -1366,7 +1364,6 @@ namespace Components
       // Found server we can send a request to
       server->sent = true;
       requestLimit--;
-      hadPendingRequests = true;
 
       server->sendTime = Game::Sys_Milliseconds();
       server->challenge = challenge;
