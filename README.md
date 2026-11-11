@@ -78,6 +78,7 @@ make -C build/mingw -j"$(nproc)" config=release_win32 PROTOC="$PWD/build/host-pr
 | `--copy-pdb`                | Copy the debug information along with the binaries (requires `--copy-to`). |
 | `--disable-binary-check`    | Don't verify that the game executable is the supported one. |
 | `--sentry-dsn=URL`          | Submit crash reports to this Sentry DSN. Crash reporting is compiled out when it is not given. |
+| `--profile`                 | Build with Tracy (see [Profiling](#profiling)). |
 | `--no-buildinfo`            | Don't regenerate the build information (`version.h`) before each build. `generate-linux.sh` passes it since the build can't run git under Wine. |
 
 ## Command line arguments
@@ -140,6 +141,50 @@ Create `user.bat` next to `generate.bat` containing:
 ```bat
 @echo off
 call generate.bat --sentry-dsn=https://...
+```
+
+## Profiling
+
+Profiling builds embed [Tracy](https://github.com/wolfpld/tracy), which streams
+timing data to its viewer over the network.
+
+### Enabling it in a development build
+
+Profiling is compiled out unless `--profile` is passed to premake.
+`generate-linux.sh` takes the same option:
+
+```sh
+sh generate-linux.sh --profile release
+```
+
+With the MinGW-w64 build from above, the option goes to premake:
+
+```sh
+premake5 --mingw --profile gmake
+make -C build/mingw -j"$(nproc)" config=release_win32
+```
+
+Note that make doesn't notice changed compiler flags, so remove
+`build/mingw` before adding `--profile` to an existing build directory
+and again before dropping it.
+
+On Windows, pass the option to `generate.bat`, for example from the
+`user.bat` described in [Crash reporting](#crash-reporting):
+
+```bat
+@echo off
+call generate.bat --profile
+```
+
+### Capturing a profile
+
+Start the game, then connect the viewer (`tracy-profiler`) to `127.0.0.1`.
+
+To record a profile without the viewer, use `tracy-capture`. For example,
+to save 30 seconds into `iw4x.tracy`:
+
+```sh
+tracy-capture -o iw4x.tracy -a 127.0.0.1 -s 30
 ```
 
 ## Disclaimer
