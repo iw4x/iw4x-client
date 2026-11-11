@@ -53,7 +53,7 @@ namespace Assets
           Components::Logger::Error(Game::ERR_FATAL, "Expected '{' to start a new segment, found '{}' instead.\n", value);
         }
 
-        if (efx->elemCount >= ARRAYSIZE(efx->elems))
+        if (static_cast<std::size_t>(efx->elemCount) >= ARRAYSIZE(efx->elems))
         {
           Components::Logger::Error(Game::ERR_FATAL, "Cannot have more than {} segments.\n", ARRAYSIZE(efx->elems));
         }

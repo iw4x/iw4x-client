@@ -403,7 +403,7 @@ namespace Components
       "Number,Type,Distance,Classname,Code Classname,Model,"
       "Targetname,Target,Script Noteworthy,Script Linkname,Team,ParentNum,Origin,Angles,SentToClients\n");
 
-    for (auto i = 0; i < Game::MAX_GENTITIES; ++i)
+    for (std::size_t i = 0; i < Game::MAX_GENTITIES; ++i)
     {
       const auto* line = EntInfoLine(i);
       assert(line);
@@ -431,7 +431,7 @@ namespace Components
     Game::FS_Write("Number,Type,Distance,Classname,Code Classname,Model,Targetname,Target,Script Noteworthy,Script Linkname,Team,Paren"
       "tNum,Origin,Angles,SentToClients\n", 147, h);
 
-    for (auto i = 0; i < Game::MAX_GENTITIES; ++i)
+    for (std::size_t i = 0; i < Game::MAX_GENTITIES; ++i)
     {
       const auto* line = EntInfoLine(i);
       const auto lineLen = std::strlen(line);

@@ -629,7 +629,7 @@ namespace Components
               Utils::Stream::ClearPointer(&dest->name);
             }
 
-            for (int i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
+            for (std::size_t i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
             {
               auto* technique = asset.techniqueSet->techniques[i];
 

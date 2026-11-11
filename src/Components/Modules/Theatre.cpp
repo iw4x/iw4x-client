@@ -417,7 +417,7 @@ namespace Components
     {
       const auto size = std::min(compressedSize - i, 1024);
 
-      if (i + size >= sizeof(cmpData))
+      if (static_cast<std::size_t>(i + size) >= sizeof(cmpData))
       {
         Logger::PrintError(Game::CON_CHANNEL_ERROR, "Writing compressed demo baseline exceeded buffer\n");
         break;

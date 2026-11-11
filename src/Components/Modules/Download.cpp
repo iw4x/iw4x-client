@@ -627,7 +627,7 @@ namespace Components
     std::vector<nlohmann::json> players;
 
     // Build player list
-    for (auto i = 0; i < Game::MAX_CLIENTS; ++i)
+    for (std::size_t i = 0; i < Game::MAX_CLIENTS; ++i)
     {
       std::unordered_map<std::string, nlohmann::json> playerInfo;
       // Insert default values

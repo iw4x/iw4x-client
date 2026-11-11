@@ -19,7 +19,7 @@ namespace Components
   {
 
   public:
-    static constexpr unsigned int MAX_ACTIVE_RUMBLES = 32;
+    static constexpr int MAX_ACTIVE_RUMBLES = 32;
 
     static Dvar::Var cl_debug_rumbles;
 
