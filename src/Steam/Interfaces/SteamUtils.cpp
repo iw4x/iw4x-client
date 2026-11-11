@@ -46,17 +46,17 @@ namespace Steam
     return "US";
   }
 
-  bool Utils::GetImageSize(int iImage, unsigned int *pnWidth, unsigned int *pnHeight)
+  bool Utils::GetImageSize(int /*iImage*/, unsigned int* /*pnWidth*/, unsigned int* /*pnHeight*/)
   {
     return false;
   }
 
-  bool Utils::GetImageRGBA(int iImage, unsigned char *pubDest, int nDestBufferSize)
+  bool Utils::GetImageRGBA(int /*iImage*/, unsigned char* /*pubDest*/, int /*nDestBufferSize*/)
   {
     return false;
   }
 
-  bool Utils::GetCSERIPPort(unsigned int *unIP, unsigned short *usPort)
+  bool Utils::GetCSERIPPort(unsigned int* /*unIP*/, unsigned short* /*usPort*/)
   {
     return false;
   }
@@ -81,17 +81,17 @@ namespace Steam
     Proxy::SetOverlayNotificationPosition(eNotificationPosition);
   }
 
-  bool Utils::IsAPICallCompleted(unsigned __int64 hSteamAPICall, bool *pbFailed)
+  bool Utils::IsAPICallCompleted(unsigned __int64 /*hSteamAPICall*/, bool* /*pbFailed*/)
   {
     return false;
   }
 
-  int Utils::GetAPICallFailureReason(unsigned __int64 hSteamAPICall)
+  int Utils::GetAPICallFailureReason(unsigned __int64 /*hSteamAPICall*/)
   {
     return -1;
   }
 
-  bool Utils::GetAPICallResult(unsigned __int64 hSteamAPICall, void *pCallback, int cubCallback, int iCallbackExpected, bool *pbFailed)
+  bool Utils::GetAPICallResult(unsigned __int64 /*hSteamAPICall*/, void* /*pCallback*/, int /*cubCallback*/, int /*iCallbackExpected*/, bool* /*pbFailed*/)
   {
     return false;
   }
@@ -105,7 +105,7 @@ namespace Steam
     return 0;
   }
 
-  void Utils::SetWarningMessageHook(void(*pFunction)(int hpipe, const char *message))
+  void Utils::SetWarningMessageHook(void(* /*pFunction*/)(int hpipe, const char *message))
   {
   }
 

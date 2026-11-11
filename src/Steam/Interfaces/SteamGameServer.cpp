@@ -28,7 +28,7 @@ namespace Steam
     return result;
   }
 
-  bool GameServer::SendUserConnectAndAuthenticate(unsigned int unIPClient, const void *pvAuthBlob, unsigned int cubAuthBlobSize, SteamID *pSteamIDUser)
+  bool GameServer::SendUserConnectAndAuthenticate(unsigned int /*unIPClient*/, const void* /*pvAuthBlob*/, unsigned int /*cubAuthBlobSize*/, SteamID* /*pSteamIDUser*/)
   {
     return true;
   }
@@ -39,33 +39,33 @@ namespace Steam
     return result;
   }
 
-  void GameServer::SendUserDisconnect(SteamID steamIDUser)
+  void GameServer::SendUserDisconnect(SteamID /*steamIDUser*/)
   {
   }
 
-  bool GameServer::UpdateUserData(SteamID steamIDUser, const char *pchPlayerName, unsigned int uScore)
-  {
-    return true;
-  }
-
-  bool GameServer::SetServerType(unsigned int unServerFlags, unsigned int unGameIP, unsigned short unGamePort, unsigned short unSpectatorPort, unsigned short usQueryPort, const char *pchGameDir, const char *pchVersion, bool bLANMode)
+  bool GameServer::UpdateUserData(SteamID /*steamIDUser*/, const char* /*pchPlayerName*/, unsigned int /*uScore*/)
   {
     return true;
   }
 
-  void GameServer::UpdateServerStatus(int cPlayers, int cPlayersMax, int cBotPlayers, const char *pchServerName, const char *pSpectatorServerName, const char *pchMapName)
+  bool GameServer::SetServerType(unsigned int /*unServerFlags*/, unsigned int /*unGameIP*/, unsigned short /*unGamePort*/, unsigned short /*unSpectatorPort*/, unsigned short /*usQueryPort*/, const char* /*pchGameDir*/, const char* /*pchVersion*/, bool /*bLANMode*/)
+  {
+    return true;
+  }
+
+  void GameServer::UpdateServerStatus(int /*cPlayers*/, int /*cPlayersMax*/, int /*cBotPlayers*/, const char* /*pchServerName*/, const char* /*pSpectatorServerName*/, const char* /*pchMapName*/)
   {
   }
 
-  void GameServer::UpdateSpectatorPort(unsigned short unSpectatorPort)
+  void GameServer::UpdateSpectatorPort(unsigned short /*unSpectatorPort*/)
   {
   }
 
-  void GameServer::SetGameType(const char *pchGameType)
+  void GameServer::SetGameType(const char* /*pchGameType*/)
   {
   }
 
-  bool GameServer::GetUserAchievementStatus(SteamID steamID, const char *pchAchievementName)
+  bool GameServer::GetUserAchievementStatus(SteamID /*steamID*/, const char* /*pchAchievementName*/)
   {
     return false;
   }
@@ -74,7 +74,7 @@ namespace Steam
   {
   }
 
-  bool GameServer::RequestUserGroupStatus(SteamID steamIDUser, SteamID steamIDGroup)
+  bool GameServer::RequestUserGroupStatus(SteamID /*steamIDUser*/, SteamID /*steamIDGroup*/)
   {
     return false;
   }
@@ -84,11 +84,11 @@ namespace Steam
     return 0;
   }
 
-  void GameServer::SetGameData(const char *pchGameData)
+  void GameServer::SetGameData(const char* /*pchGameData*/)
   {
   }
 
-  int GameServer::UserHasLicenseForApp(SteamID steamID, unsigned int appID)
+  int GameServer::UserHasLicenseForApp(SteamID /*steamID*/, unsigned int /*appID*/)
   {
     return 0;
   }
