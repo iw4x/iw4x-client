@@ -71,30 +71,54 @@ namespace Components
   void Scheduler::ScrPlace_EndFrame_Hk()
   {
     Utils::Hook::Call<void()>(0x4AA720)();
+
+    ZoneScopedN("Renderer pipeline");
+
     Execute(Pipeline::RENDERER);
   }
 
   void Scheduler::ServerFrame_Hk()
   {
     Utils::Hook::Call<void()>(0x471C50)();
+
+    ZoneScopedN("Server pipeline");
+
     Execute(Pipeline::SERVER);
   }
 
   void Scheduler::ClientFrame_Hk(const int localClientNum)
   {
     Utils::Hook::Call<void(int)>(0x5A8E80)(localClientNum);
+
+    ZoneScopedN("Client pipeline");
+
     Execute(Pipeline::CLIENT);
   }
 
   void Scheduler::MainFrame_Hk()
   {
     Utils::Hook::Call<void()>(0x47DCA0)();
-    Execute(Pipeline::MAIN);
+
+    {
+      ZoneScopedN("Main pipeline");
+
+      Execute(Pipeline::MAIN);
+    }
+
+    // Com_Frame() calls MainFrame_Hk() exactly once per iteration, which
+    // gives us one frame mark per game frame.
+    //
+    FrameMark;
   }
 
   void Scheduler::SysSetBlockSystemHotkeys_Hk(int block)
   {
-    Execute(Pipeline::QUIT);
+    {
+      ZoneScopedN("Quit pipeline");
+
+      Execute(Pipeline::QUIT);
+    }
+
     Utils::Hook::Call<void(int)>(0x46B370)(block);
   }
 
@@ -162,7 +186,12 @@ namespace Components
     {
       while (!Kill)
       {
-        Execute(Pipeline::ASYNC);
+        {
+          ZoneScopedN("Async pipeline");
+
+          Execute(Pipeline::ASYNC);
+        }
+
         std::this_thread::sleep_for(10ms);
       }
     });
