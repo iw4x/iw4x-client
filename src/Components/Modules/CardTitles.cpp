@@ -87,7 +87,7 @@ namespace Components
 
         // If the title was changed it already returned at this point so...
         // Remove prefix and data to make being readable to the normal lookuprequest
-        request->tableRow = static_cast<std::int32_t>(*(reinterpret_cast<WORD*>(&request->tableRow)));
+        request->tableRow &= 0xFFFF;
       }
     }
 
