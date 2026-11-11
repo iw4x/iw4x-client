@@ -293,8 +293,8 @@ function binary:define (name, k, linked, owner)
     language (self.language_)
 
     -- Turn the warnings off for third-party code since they are for
-    -- upstream to fix. A description can turn them back on (see
-    -- iw4-open-formats.lua).
+    -- upstream to fix. A description can turn them back on with its
+    -- warnings setting.
     --
     warnings "Off"
 

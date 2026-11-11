@@ -8,10 +8,6 @@ targets:static_library ("iw4-open-formats",
   language     = "C++",
   dependencies = {"libtomcrypt", "libtommath", "rapidjson", "zlib"},
 
-  -- We maintain this library, so it builds with our warnings.
-  --
-  warnings = "Extra",
-
   -- Note that the precompiled header is named the way the sources include
   -- it.
   --
