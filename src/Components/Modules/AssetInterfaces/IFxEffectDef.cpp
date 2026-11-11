@@ -43,7 +43,6 @@ namespace Assets
 
       Utils::Memory::Allocator allocator;
       Game::FxEditorEffectDef* efx = allocator.allocate<Game::FxEditorEffectDef>();
-      ZeroMemory(efx, sizeof(efx));
 
       for (efx->elemCount = 0; ; ++efx->elemCount)
       {
