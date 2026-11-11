@@ -243,7 +243,7 @@ namespace Utils
         struct
         {
           uint32_t offset : 28;
-          Game::XFILE_BLOCK_TYPES block : 4;
+          uint32_t block : 4;
         };
         uint32_t packed;
         void* pointer;
