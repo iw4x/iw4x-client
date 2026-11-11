@@ -156,6 +156,12 @@ workspace "iw4x"
   --
   --
   warnings "Extra"
+
+  -- Don't warn about the headers in the external include directories,
+  -- which are those of the third-party libraries (see premake/target.lua).
+  -- GCC doesn't warn about them either way.
+  --
+  externalwarnings "Off"
   if not mingw then
     fatalwarnings {"All"}
   end
@@ -300,12 +306,16 @@ project "iw4x"
   if mingw then
     makesettings {"UASM ?= uasm"}
 
+    -- Note that windres doesn't recognize -isystem, so we only pass it the
+    -- -I directories, which are the ones the resource script includes from.
+    --
     filter "files:**/Resource.rc"
       local resource_object = "%{cfg.objdir}/%{file.basename}.rc.o"
       buildmessage "%{file.name}"
       buildcommands
       {
-        '$(RESCOMP) "$<" -O coff -o "$@" $(ALL_RESFLAGS)'
+        '$(RESCOMP) "$<" -O coff -o "$@" $(RESFLAGS) $(DEFINES) ' ..
+        '$(filter -I%,$(INCLUDES))'
       }
       buildinputs
       {
