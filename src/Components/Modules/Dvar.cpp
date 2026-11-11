@@ -361,7 +361,7 @@ namespace Components
     assert(dvar->name);
     assert(dvar->type == Game::DVAR_TYPE_ENUM);
     assert(dvar->domain.enumeration.strings);
-    assert(dvar->current.integer >= 0 && dvar->current.integer < dvar->domain.enumeration.stringCount || dvar->current.integer == 0);
+    assert((dvar->current.integer >= 0 && dvar->current.integer < dvar->domain.enumeration.stringCount) || dvar->current.integer == 0);
 
     // Fix nullptr crash
     if (!dvar || dvar->domain.enumeration.stringCount == 0)

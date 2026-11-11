@@ -683,7 +683,7 @@ namespace Components::GSC
       for (i = 0; i <= len; ++i)
       {
         const auto c = *source++;
-        if (c == '\n' || c == '\r' && *source != '\n')
+        if (c == '\n' || (c == '\r' && *source != '\n'))
         {
           *dest = 0;
         }

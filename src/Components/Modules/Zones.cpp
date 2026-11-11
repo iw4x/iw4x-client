@@ -2670,10 +2670,7 @@ namespace Components
       if (varClipMap->triEdgeIsWalkable)
       {
         varClipMap->triEdgeIsWalkable = static_cast<char*>(Game::DB_AllocStreamPos(0));
-#pragma warning(push)
-#pragma warning(disable: 4554)
-        Game::Load_Stream(true, varClipMap->triEdgeIsWalkable, 0x1F + varClipMap->numTriIndices * 3 >> 3 & 0xFFFFFFFC);
-#pragma warning(pop)
+        Game::Load_Stream(true, varClipMap->triEdgeIsWalkable, ((0x1F + varClipMap->numTriIndices * 3) >> 3) & 0xFFFFFFFC);
       }
 
       if (varClipMap->collisionBorders)
