@@ -16,7 +16,6 @@ namespace Components
     {
     public:
       Var() : dvar_(nullptr) {}
-      Var(const Var& obj) { this->dvar_ = obj.dvar_; }
       Var(Game::dvar_t* dvar) : dvar_(dvar) {}
       Var(DWORD ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {}
       Var(const std::string& dvarName);
