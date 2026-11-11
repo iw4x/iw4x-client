@@ -13,6 +13,11 @@ extern "C"
 
 namespace Utils
 {
+  // Function type, such as void (int), that a game function has.
+  //
+  template <typename T>
+  concept Function = std::is_function_v<T>;
+
   class Hook
   {
   public:
@@ -89,17 +94,25 @@ namespace Utils
     void* getAddress();
     void quick();
 
-    template <typename T> static std::function<T> Call(DWORD function)
+    // Return the game function at the address as a pointer of the function
+    // type T.
+    //
+    // Note that we return a plain function pointer. Wrapped in std::function,
+    // a call to a constant address gets inlined by GCC down to a call to an
+    // integer, which it then replaces with a trap since the integer isn't a
+    // function.
+    //
+    template <Function T> static T* Call(DWORD function)
     {
-      return std::function<T>(reinterpret_cast<T*>(function));
+      return reinterpret_cast<T*>(function);
     }
 
-    template <typename T> static std::function<T> Call(FARPROC function)
+    template <Function T> static T* Call(FARPROC function)
     {
       return Call<T>(reinterpret_cast<DWORD>(function));
     }
 
-    template <typename T> static std::function<T> Call(void* function)
+    template <Function T> static T* Call(void* function)
     {
       return Call<T>(reinterpret_cast<DWORD>(function));
     }
