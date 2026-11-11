@@ -17,7 +17,6 @@ namespace Utils
     {
     public:
       Token() { this->tokenString.clear(); }
-      Token(const Token& obj) : tokenString(obj.tokenString) { }
       Token(const std::string& token) : tokenString(token.begin(), token.end()) { }
       Token(const std::basic_string<std::uint8_t>& token) : tokenString(token.begin(), token.end()) { }
 
