@@ -674,7 +674,15 @@ namespace Game
   typedef const char*(*StringTable_GetColumnValueForRow_t)(const StringTable*, int row, int column);
   extern StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow;
 
+  // The game's longjmp() never returns. GCC can carry this through the
+  // function pointer type, which it needs to see that our noreturn stub
+  // (Exception::LongJmp_Internal_Stub()) doesn't return either.
+  //
+#ifdef __GNUC__
+  typedef void(*longjmp_internal_t)(jmp_buf env, int status) __attribute__((noreturn));
+#else
   typedef void(*longjmp_internal_t)(jmp_buf env, int status);
+#endif
   extern longjmp_internal_t longjmp_internal;
 
   constexpr std::size_t STATIC_MAX_LOCAL_CLIENTS = 1;
