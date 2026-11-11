@@ -112,7 +112,7 @@ namespace Utils
     startupInfo.cb = sizeof(startupInfo);
 
     CreateProcessW(process.data(), const_cast<wchar_t*>(commandLine.data()), nullptr,
-      nullptr, false, NULL, nullptr, currentDir.wstring().data(),
+      nullptr, false, 0, nullptr, currentDir.wstring().data(),
       &startupInfo, &processInfo);
 
     if (processInfo.hThread && processInfo.hThread != INVALID_HANDLE_VALUE)

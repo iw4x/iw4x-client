@@ -239,7 +239,7 @@ namespace Utils
       wPort = static_cast<WORD>(atoi(this->url_.port.data()));
     }
 
-    this->hConnect_ = InternetConnectA(this->hSession_, this->url_.server.data(), wPort, this->username_.data(), this->password_.data(), dwService, dwFlag, NULL);
+    this->hConnect_ = InternetConnectA(this->hSession_, this->url_.server.data(), wPort, this->username_.data(), this->password_.data(), dwService, dwFlag, 0);
 
     return (this->hConnect_ && this->hConnect_ != INVALID_HANDLE_VALUE);
   }
@@ -351,7 +351,7 @@ namespace Utils
     InternetSetOptionA(this->hConnect_, INTERNET_OPTION_RECEIVE_TIMEOUT, &this->timeout_, sizeof(this->timeout_));
     InternetSetOptionA(this->hConnect_, INTERNET_OPTION_SEND_TIMEOUT, &this->timeout_, sizeof(this->timeout_));
 
-    this->hFile_ = HttpOpenRequestA(this->hConnect_, command, this->url_.document.data(), nullptr, nullptr, acceptTypes, dwFlag, NULL);
+    this->hFile_ = HttpOpenRequestA(this->hConnect_, command, this->url_.document.data(), nullptr, nullptr, acceptTypes, dwFlag, 0);
 
     if (!this->hFile_ || this->hFile_ == INVALID_HANDLE_VALUE)
     {
@@ -566,7 +566,7 @@ namespace Utils
     this->getDirectory(&tempDir);
     this->setRelativeDirectory(directory);
 
-    this->hFile_ = FtpFindFirstFileA(this->hConnect_, "*", &findFileData, INTERNET_FLAG_RELOAD, NULL);
+    this->hFile_ = FtpFindFirstFileA(this->hConnect_, "*", &findFileData, INTERNET_FLAG_RELOAD, 0);
 
     if (this->hFile_ && this->hFile_ != INVALID_HANDLE_VALUE)
     {
@@ -612,18 +612,18 @@ namespace Utils
 
   bool WebIO::downloadFile(const std::string& file, const std::string& localFile) const
   {
-    return (FtpGetFileA(this->hConnect_, file.data(), localFile.data(), FALSE, NULL, FTP_TRANSFER_TYPE_BINARY, NULL) == TRUE);
+    return (FtpGetFileA(this->hConnect_, file.data(), localFile.data(), FALSE, 0, FTP_TRANSFER_TYPE_BINARY, 0) == TRUE);
   }
 
   bool WebIO::uploadFile(const std::string& file, const std::string& localFile) const
   {
-    return (FtpPutFileA(this->hConnect_, localFile.data(), file.data(), FTP_TRANSFER_TYPE_BINARY, NULL) == TRUE);
+    return (FtpPutFileA(this->hConnect_, localFile.data(), file.data(), FTP_TRANSFER_TYPE_BINARY, 0) == TRUE);
   }
 
   bool WebIO::uploadFileData(const std::string& file, const std::string& data)
   {
     bool result = false;
-    this->hFile_ = FtpOpenFileA(this->hConnect_, file.data(), GENERIC_WRITE, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, NULL);
+    this->hFile_ = FtpOpenFileA(this->hConnect_, file.data(), GENERIC_WRITE, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
 
     if (this->hFile_)
     {
@@ -643,7 +643,7 @@ namespace Utils
   {
     data.clear();
 
-    this->hFile_ = FtpOpenFileA(this->hConnect_, file.data(), GENERIC_READ, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, NULL);
+    this->hFile_ = FtpOpenFileA(this->hConnect_, file.data(), GENERIC_READ, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
 
     if (this->hFile_)
     {

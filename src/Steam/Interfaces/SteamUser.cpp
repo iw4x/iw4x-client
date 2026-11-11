@@ -8,7 +8,7 @@ namespace Steam
 {
   int User::GetHSteamUser()
   {
-    return NULL;
+    return 0;
   }
 
   bool User::LoggedOn()
