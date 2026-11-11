@@ -328,6 +328,11 @@ project "iw4x"
     filter {}
   else
     resincludedirs {"$(ProjectDir)src"}
+
+    -- Don't generate a manifest since Resource.rc embeds iw4x.manifest,
+    -- which would collide with the one the linker generates.
+    --
+    manifest "Off"
   end
 
   -- Note that the precompiled header is named the way the sources include
