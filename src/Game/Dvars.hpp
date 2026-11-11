@@ -153,6 +153,7 @@ namespace Game
   extern const dvar_t** ui_joinGametype;
   extern const dvar_t** ui_netGameType;
   extern const dvar_t** ui_netSource;
+  extern const dvar_t** stringtable_debug;
 
   extern const dvar_t** loc_warnings;
   extern const dvar_t** loc_warningsAsErrors;

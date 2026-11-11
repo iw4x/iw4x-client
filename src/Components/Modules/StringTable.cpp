@@ -1,4 +1,5 @@
 #include "StringTable.hpp"
+#include "Events.hpp"
 #include "FastFiles.hpp"
 
 namespace Components
@@ -62,6 +63,17 @@ namespace Components
 
   StringTable::StringTable()
   {
+    // The game registers stringtable_debug in UI_Init(). Starting with +map
+    // makes CL_GetRankForXP() search the rank table before that, and
+    // StringTable_GetColumnValueForRow() reads this dvar unchecked on every
+    // empty cell it hits. So we register it here, with the same arguments,
+    // and UI_Init() picks up the existing one.
+    //
+    Events::OnDvarInit([]
+    {
+      *Game::stringtable_debug = Game::Dvar_RegisterInt("stringtable_debug", 0, 0, 2, Game::DVAR_NONE, "spam debug info for stringtable lookups");
+    });
+
     AssetHandler::OnFind(Game::XAssetType::ASSET_TYPE_STRINGTABLE, [](Game::XAssetType, const std::string& _filename)
     {
       Game::XAssetHeader header = { nullptr };

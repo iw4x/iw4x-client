@@ -96,6 +96,7 @@ namespace Game
   const dvar_t** ui_joinGametype = reinterpret_cast<const dvar_t**>(0x62E2840);
   const dvar_t** ui_netGameType = reinterpret_cast<const dvar_t**>(0x62E2838);
   const dvar_t** ui_netSource = reinterpret_cast<const dvar_t**>(0x62E27E8);
+  const dvar_t** stringtable_debug = reinterpret_cast<const dvar_t**>(0x62E4B58);
 
   const dvar_t** loc_warnings = reinterpret_cast<const dvar_t**>(0x62C8700);
   const dvar_t** loc_warningsAsErrors = reinterpret_cast<const dvar_t**>(0x62C86FC);
