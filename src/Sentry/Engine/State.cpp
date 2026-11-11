@@ -261,8 +261,7 @@ namespace Sentry
       using version_function = const char* (CDECL*) ();
       using host_function = void (CDECL*) (const char**, const char**);
 
-      auto v (reinterpret_cast<version_function> (
-                GetProcAddress (m, "wine_get_version")));
+      auto v (Utils::GetProc<version_function> (m, "wine_get_version"));
 
       if (v == nullptr)
         return {};
@@ -271,8 +270,7 @@ namespace Sentry
 
       // The host is what Wine runs on, such as Linux with its kernel version.
       //
-      auto h (reinterpret_cast<host_function> (
-                GetProcAddress (m, "wine_get_host_version")));
+      auto h (Utils::GetProc<host_function> (m, "wine_get_host_version"));
 
       if (h != nullptr)
       {

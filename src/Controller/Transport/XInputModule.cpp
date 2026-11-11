@@ -37,12 +37,12 @@ namespace Controller
         if (h == nullptr)
           continue;
 
-        auto get_state (reinterpret_cast<get_state_fn> (
-          GetProcAddress (h, "XInputGetState")));
-        auto get_caps (reinterpret_cast<get_caps_fn> (
-          GetProcAddress (h, "XInputGetCapabilities")));
-        auto set_state (reinterpret_cast<set_state_fn> (
-          GetProcAddress (h, "XInputSetState")));
+        auto get_state (
+          Utils::GetProc<get_state_fn> (h, "XInputGetState"));
+        auto get_caps (
+          Utils::GetProc<get_caps_fn> (h, "XInputGetCapabilities"));
+        auto set_state (
+          Utils::GetProc<set_state_fn> (h, "XInputSetState"));
 
         if (get_state == nullptr || get_caps == nullptr || set_state == nullptr)
         {
@@ -50,8 +50,8 @@ namespace Controller
           continue;
         }
 
-        auto get_state_ex (reinterpret_cast<get_state_fn> (
-          GetProcAddress (h, reinterpret_cast<const char*> (100))));
+        auto get_state_ex (Utils::GetProc<get_state_fn> (
+          h, reinterpret_cast<const char*> (100)));
 
         handle_ = h;
         name_ = name;

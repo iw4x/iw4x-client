@@ -130,7 +130,7 @@ namespace Utils
     if (!ntdll) return nullptr;
 
 
-    NtQueryInformationThread_t NtQueryInformationThread = NtQueryInformationThread_t(GetProcAddress(ntdll, "NtQueryInformationThread"));
+    NtQueryInformationThread_t NtQueryInformationThread = GetProc<NtQueryInformationThread_t>(ntdll, "NtQueryInformationThread");
     if (!NtQueryInformationThread) return nullptr;
 
     HANDLE dupHandle, currentProcess = GetCurrentProcess();
