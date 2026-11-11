@@ -2,8 +2,6 @@
 
 #include "Components/Modules/Auth.hpp"
 
-STEAM_IGNORE_WARNINGS_START
-
 namespace Steam
 {
   int User::GetHSteamUser()
@@ -95,5 +93,3 @@ namespace Steam
     return 0;
   }
 }
-
-STEAM_IGNORE_WARNINGS_END
