@@ -116,6 +116,19 @@ namespace Assets
     auto w = fontDef["textureWidth"].get<int>();
     auto h = fontDef["textureHeight"].get<int>();
 
+    // The image header stores the dimensions as shorts and the file size as
+    // an int, so the texture must fit both.
+    //
+    constexpr auto maxDimension = std::numeric_limits<short>::max();
+    constexpr auto maxFileSize = std::numeric_limits<int>::max() - sizeof(Game::GfxImageFileHeader);
+
+    if (w <= 0 || h <= 0 || w > maxDimension || h > maxDimension ||
+        static_cast<std::uint64_t>(w) * static_cast<std::uint64_t>(h) * 4 > maxFileSize)
+    {
+      Components::Logger::Error(Game::ERR_FATAL, "Texture size {}x{} of font {} is invalid\n", w, h, name);
+      return;
+    }
+
     auto size = fontDef["size"].get<int>();
     auto yOffset = fontDef["yOffset"].get<int>();
 
