@@ -22,6 +22,7 @@
 #include <dbghelp.h>
 
 #include <algorithm>
+#include <bit>
 #include <cctype>
 #include <chrono>
 #include <cinttypes>

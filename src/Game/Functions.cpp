@@ -524,7 +524,7 @@ namespace Game
     else
       v3 = 0;
 
-    (*out)[0] = *reinterpret_cast<float*>(&v3);
+    (*out)[0] = std::bit_cast<float>(v3);
 
     if (HIWORD(in.packed))
       v3 = ((HIWORD(in.packed) & 0x8000) << 16) | (((((HIWORD(in.packed) & 0x3FFF) << 14)
@@ -532,7 +532,7 @@ namespace Game
     else
       v3 = 0;
 
-    (*out)[1] = *reinterpret_cast<float*>(&v3);
+    (*out)[1] = std::bit_cast<float>(v3);
   }
 
   void MatrixVecMultiply(const float (& mulMat)[3][3], const vec3_t& mulVec, vec3_t& solution)
