@@ -187,32 +187,6 @@ namespace Components
       asset.vehDef->turretWeapon = nullptr;
     }
 
-    // Fix shader const stuff
-    if (type == Game::ASSET_TYPE_TECHNIQUE_SET && Zones::Version() >= 359 && Zones::Version() < 448)
-    {
-      for (int i = 0; i < 48; ++i)
-      {
-        if (asset.techniqueSet->techniques[i])
-        {
-          for (int j = 0; j < asset.techniqueSet->techniques[i]->passCount; ++j)
-          {
-            Game::MaterialPass* pass = &asset.techniqueSet->techniques[i]->passArray[j];
-
-            for (int k = 0; k < (pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount); ++k)
-            {
-              if (pass->args[k].type == Game::MaterialShaderArgumentType::MTL_ARG_LITERAL_PIXEL_CONST)
-              {
-                if (pass->args[k].u.codeConst.index == -28132)
-                {
-                  pass->args[k].u.codeConst.index = 2644;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
     if (type == Game::ASSET_TYPE_GFXWORLD && Zones::Version() >= 316)
     {
       asset.gfxWorld->sortKeyEffectDecal = 39;
