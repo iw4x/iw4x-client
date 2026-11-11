@@ -64,9 +64,11 @@
 #include <commctrl.h>
 
 // Ignore the warnings
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4100)
 #pragma warning(disable: 26812)
+#endif
 
 // Enable additional literals
 using namespace std::literals;
@@ -99,7 +101,9 @@ using namespace std::literals;
 #include <json.hpp>
 #include <tomcrypt.h>
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 #include "Utils/Memory.hpp" // Breaks order on purpose
 
