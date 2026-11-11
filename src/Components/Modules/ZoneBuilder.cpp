@@ -1330,6 +1330,9 @@ namespace Components
           case AssetCategory::DISAPPEARED:
             csv << "\n### The following assets disappeared while dumping but are mentioned in the zone:\n";
             break;
+          case AssetCategory::COUNT:
+            AssertUnreachable;
+            break;
         }
 
         for (const auto& asset : assetsToList[i])

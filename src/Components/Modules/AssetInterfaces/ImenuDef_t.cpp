@@ -168,12 +168,12 @@ namespace Assets
           switch (asset->entries[i].data.operand.dataType)
           {
             // Those types do not require additional data
-          case 0:
-          case 1:
+          case Game::VAL_INT:
+          case Game::VAL_FLOAT:
             break;
 
             // Expression string
-          case 2:
+          case Game::VAL_STRING:
             if (asset->entries[i].data.operand.internals.stringVal.string)
             {
               buffer->saveString(asset->entries[i].data.operand.internals.stringVal.string);
@@ -182,13 +182,17 @@ namespace Assets
             break;
 
             // Function
-          case 3:
+          case Game::VAL_FUNCTION:
             if (asset->entries[i].data.operand.internals.function)
             {
               buffer->align(Utils::Stream::ALIGN_4);
               this->save_Statement_s(asset->entries[i].data.operand.internals.function, builder);
               Utils::Stream::ClearPointer(&destEntries[i].data.operand.internals.function);
             }
+            break;
+
+          case Game::NUM_DATATYPES:
+            AssertUnreachable;
             break;
           }
         }

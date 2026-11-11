@@ -228,6 +228,9 @@ namespace Components
       case Game::XAssetType::ASSET_TYPE_FXWORLD:
         *restrict = true;
         return;
+
+      default:
+        break;
       }
     }
 
