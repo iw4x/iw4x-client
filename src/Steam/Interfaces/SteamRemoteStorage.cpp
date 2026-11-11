@@ -4,17 +4,17 @@ STEAM_IGNORE_WARNINGS_START
 
 namespace Steam
 {
-  bool RemoteStorage::FileWrite(const char *pchFile, const void *pvData, int cubData)
+  bool RemoteStorage::FileWrite(const char* /*pchFile*/, const void* /*pvData*/, int /*cubData*/)
   {
     return true;
   }
 
-  int RemoteStorage::GetFileSize(const char *pchFile)
+  int RemoteStorage::GetFileSize(const char* /*pchFile*/)
   {
     return 0;
   }
 
-  int RemoteStorage::FileRead(const char *pchFile, void *pvData, int cubDataToRead)
+  int RemoteStorage::FileRead([[maybe_unused]] const char* pchFile, void* /*pvData*/, int /*cubDataToRead*/)
   {
 #ifdef _DEBUG
     OutputDebugStringA(pchFile);
@@ -22,7 +22,7 @@ namespace Steam
     return 0;
   }
 
-  bool RemoteStorage::FileExists(const char *pchFile)
+  bool RemoteStorage::FileExists(const char* /*pchFile*/)
   {
     return false;
   }
@@ -32,7 +32,7 @@ namespace Steam
     return 0;
   }
 
-  const char *RemoteStorage::GetFileNameAndSize(int iFile, int *pnFileSizeInBytes)
+  const char *RemoteStorage::GetFileNameAndSize(int /*iFile*/, int *pnFileSizeInBytes)
   {
     *pnFileSizeInBytes = 0;
     return "";
