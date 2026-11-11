@@ -341,7 +341,7 @@ namespace Components
 
       const auto hash = Game::R_HashString(type.data());
 
-      for (char l = 0; l < material->textureCount; ++l)
+      for (int l = 0; l < material->textureCount; ++l)
       {
         if (material->textureTable[l].nameHash == hash)
         {

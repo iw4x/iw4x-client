@@ -165,7 +165,7 @@ namespace Assets
         {
           if (elemDef->visuals.markArray)
           {
-            for (char j = 0; j < elemDef->visualCount; ++j)
+            for (int j = 0; j < elemDef->visualCount; ++j)
             {
               if (elemDef->visuals.markArray[j].materials[0])
               {
@@ -183,7 +183,7 @@ namespace Assets
         {
           if (elemDef->visuals.array)
           {
-            for (char j = 0; j < elemDef->visualCount; ++j)
+            for (int j = 0; j < elemDef->visualCount; ++j)
             {
               this->markFxElemVisuals(&elemDef->visuals.array[j], elemDef->elemType, builder);
             }
@@ -354,7 +354,7 @@ namespace Assets
               Game::FxElemVisuals* destVisuals = buffer->dest<Game::FxElemVisuals>();
               buffer->saveArray(elemDef->visuals.array, elemDef->visualCount);
 
-              for (char j = 0; j < elemDef->visualCount; ++j)
+              for (int j = 0; j < elemDef->visualCount; ++j)
               {
                 this->saveFxElemVisuals(&elemDef->visuals.array[j], &destVisuals[j], elemDef->elemType, builder);
               }
