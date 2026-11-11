@@ -1,8 +1,6 @@
 #include <shlwapi.h>
 #include <ws2tcpip.h>
 
-#pragma comment(lib, "ws2_32.lib")
-
 #include "WebIO.hpp"
 
 namespace Utils

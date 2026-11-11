@@ -12,10 +12,6 @@
 #include <functiondiscoverykeys_devpkey.h>
 #include <avrt.h>
 
-#pragma comment(lib, "Cfgmgr32.lib")
-#pragma comment(lib, "Ole32.lib")
-#pragma comment(lib, "Avrt.lib")
-
 namespace Controller
 {
   namespace transport

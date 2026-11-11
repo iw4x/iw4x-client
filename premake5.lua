@@ -205,33 +205,38 @@ project "iw4x"
 
   if mingw then
     targetprefix ""
-    links
-    {
-      "advapi32",
-      "avrt",
-      "cfgmgr32",
-      "comctl32",
-      "crypt32",
-      "d3d9",
-      "d3dx9",
-      "dbghelp",
-      "dwmapi",
-      "gdi32",
-      "hid",
-      "iphlpapi",
-      "ksuser",
-      "ntdll",
-      "ole32",
-      "rpcrt4",
-      "setupapi",
-      "shlwapi",
-      "urlmon",
-      "uuid",
-      "wininet",
-      "winmm",
-      "ws2_32"
-    }
   end
+
+  -- Link the Windows libraries that the client uses. Note that d3dx9 comes
+  -- from the DirectX SDK with Visual Studio (see deps/premake/dxsdk.lua)
+  -- and from MinGW-w64 itself otherwise.
+  --
+  links
+  {
+    "advapi32",
+    "avrt",
+    "cfgmgr32",
+    "comctl32",
+    "crypt32",
+    "d3d9",
+    "d3dx9",
+    "dbghelp",
+    "dwmapi",
+    "gdi32",
+    "hid",
+    "iphlpapi",
+    "ksuser",
+    "ntdll",
+    "ole32",
+    "rpcrt4",
+    "setupapi",
+    "shlwapi",
+    "urlmon",
+    "uuid",
+    "wininet",
+    "winmm",
+    "ws2_32"
+  }
 
   files
   {
