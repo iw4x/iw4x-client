@@ -924,7 +924,8 @@ namespace Components
 
     if (!handled)
     {
-      mg_http_serve_opts opts = { .root_dir = BASEGAME "/html" }; // Serve local dir
+      mg_http_serve_opts opts{};
+      opts.root_dir = BASEGAME "/html"; // Serve local dir
       mg_http_serve_dir(c, hm, &opts);
     }
 
