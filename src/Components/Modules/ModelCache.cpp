@@ -43,8 +43,6 @@ namespace Components
         "attachModelIndex[5]",
       };
 
-      size_t currentBitOffset = 0;
-
       for (size_t i = 0; i < Game::clientStateFieldsCount; i++)
       {
         auto field = & Game::clientStateFields[i];
@@ -54,7 +52,6 @@ namespace Components
           assert(static_cast<size_t>(field->bits) == oldBitLength);
 
           Utils::Hook::Set(&field->bits, newBitLength);
-          currentBitOffset++;
         }
       }
     }

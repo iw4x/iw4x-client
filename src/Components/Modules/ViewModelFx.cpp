@@ -6,8 +6,6 @@
 
 namespace Components::ViewModelFxSetup
 {
-  static char cg_weaponsArray[32 * Weapon::WEAPON_LIMIT];
-
   void Add_GSC_Functions()
   {
     // 3arc function for iw game
