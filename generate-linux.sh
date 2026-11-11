@@ -97,6 +97,7 @@ se_dsn=
 se_set=
 no_se=
 se_up=
+prof=
 
 bcfg=
 
@@ -120,6 +121,7 @@ while test $# -ne 0; do
       diag "  --sentry-file <f>   Load the Sentry configuration from this file (sentry.bash by default)."
       diag "  --no-sentry         Compile out crash reporting even if a DSN is configured."
       diag "  --sentry-upload     Upload debug symbols and sources with sentry-cli after building."
+      diag "  --profile           Build with Tracy (see README.md)."
       diag
       diag "By default this script will build the debug configuration."
       diag
@@ -209,6 +211,10 @@ while test $# -ne 0; do
       ;;
     --sentry-upload)
       se_up=true
+      shift
+      ;;
+    --profile)
+      prof=true
       shift
       ;;
     -*)
@@ -697,6 +703,9 @@ gen_bbuild ()
   if test -n "$se_dsn"; then
     pargs="$pargs --sentry-dsn=$se_dsn"
   fi
+  if test "$prof" = true; then
+    pargs="$pargs --profile"
+  fi
 
   # Deliberate unquoted expansion for premake argument word splitting.
   #
@@ -735,6 +744,7 @@ build ()
   diag "Wine prefix:         $wn_dir/"
   diag "MSVC install dir:    $mi_dir/"
   diag "Crash reporting:     $se_txt"
+  diag "Profiling:           $(if test "$prof" = true; then echo enabled; else echo disabled; fi)"
   diag
   diag "To perform a from-scratch bootstrap, specify the --force option."
   diag
@@ -773,6 +783,7 @@ bootstrap ()
   diag "Wine prefix:         $wn_dir/"
   diag "MSVC install dir:    $mi_dir/"
   diag "Crash reporting:     $se_txt"
+  diag "Profiling:           $(if test "$prof" = true; then echo enabled; else echo disabled; fi)"
   diag
   if test "$clean" = true; then
   diag "WARNING: --clean option will remove existing wine and msvc installations."
