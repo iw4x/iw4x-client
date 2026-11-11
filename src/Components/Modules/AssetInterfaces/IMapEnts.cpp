@@ -82,7 +82,7 @@ namespace Assets
       Game::Stage* destStages = buffer->dest<Game::Stage>();
       buffer->saveArray(asset->stages, asset->stageCount);
 
-      for (char i = 0; i < asset->stageCount; ++i)
+      for (int i = 0; i < asset->stageCount; ++i)
       {
         Game::Stage* destStage = &destStages[i];
         Game::Stage* stage = &asset->stages[i];

@@ -229,7 +229,7 @@ namespace Components
     bool changed = false;
     short surfCount = 0;
 
-    for (char i = 0; i < model->numLods; ++i)
+    for (int i = 0; i < model->numLods; ++i)
     {
       Game::XModelSurfs* surfs = model->lodInfo[i].modelSurfs;
 

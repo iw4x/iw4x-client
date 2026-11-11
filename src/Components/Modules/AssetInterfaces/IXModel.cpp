@@ -45,7 +45,7 @@ namespace Assets
 
     if (asset->boneNames)
     {
-      for (char i = 0; i < asset->numBones; ++i)
+      for (int i = 0; i < asset->numBones; ++i)
       {
         builder->addScriptString(asset->boneNames[i]);
       }
@@ -105,7 +105,7 @@ namespace Assets
       unsigned short* destBoneNames = buffer->dest<unsigned short>();
       buffer->saveArray(asset->boneNames, asset->numBones);
 
-      for (char i = 0; i < asset->numBones; ++i)
+      for (int i = 0; i < asset->numBones; ++i)
       {
         builder->mapScriptString(destBoneNames[i]);
       }

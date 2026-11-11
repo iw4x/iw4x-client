@@ -53,7 +53,7 @@ namespace Components
 
     if (deleteImage)
     {
-      for (char i = 0; i < material->textureCount; ++i)
+      for (int i = 0; i < material->textureCount; ++i)
       {
         Materials::DeleteImage(material->textureTable[i].u.image);
       }
@@ -123,7 +123,7 @@ namespace Components
   {
     if (!material || !material->textureCount || !material->textureTable) return false;
 
-    for (char i = 0; i < material->textureCount; ++i)
+    for (int i = 0; i < material->textureCount; ++i)
     {
       if (!material->textureTable[i].u.image || !material->textureTable[i].u.image->texture.map)
       {

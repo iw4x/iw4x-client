@@ -12,7 +12,7 @@ namespace Assets
       {
         Game::pathnode_t* node = &asset->path.nodes[i];
 
-        for (char j = 0; j < 5; ++j)
+        for (int j = 0; j < 5; ++j)
         {
           builder->addScriptString((&node->constant.targetname)[j]);
         }
@@ -184,7 +184,7 @@ namespace Assets
 
           AssertSize(Game::pathnode_constant_t, 64);
 
-          for (char j = 0; j < 5; ++j)
+          for (int j = 0; j < 5; ++j)
           {
             builder->mapScriptString((&node->constant.targetname)[j]);
           }

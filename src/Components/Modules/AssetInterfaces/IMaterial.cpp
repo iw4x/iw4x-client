@@ -30,7 +30,7 @@ namespace Assets
 
     if (asset->textureTable)
     {
-      for (char i = 0; i < asset->textureCount; ++i)
+      for (int i = 0; i < asset->textureCount; ++i)
       {
         if (asset->textureTable[i].u.image)
         {
