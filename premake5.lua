@@ -151,20 +151,14 @@ workspace "iw4x"
   -- we want a local debug build to fail on the same warnings as CI
   -- does.
   --
-  -- Note that this is temporarily relaxed for MinGW until its warnings
-  -- have been addressed.
-  --
-  --
   warnings "Extra"
+  fatalwarnings {"All"}
 
   -- Don't warn about the headers in the external include directories,
   -- which are those of the third-party libraries (see premake/target.lua).
   -- GCC doesn't warn about them either way.
   --
   externalwarnings "Off"
-  if not mingw then
-    fatalwarnings {"All"}
-  end
 
   -- Produce debug information in both configurations since we symbolicate
   -- the crash reports with it.
