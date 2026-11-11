@@ -36,17 +36,17 @@ namespace Steam
 
   unsigned int Networking::CreateListenSocket(int nVirtualP2PPort, unsigned int nIP, unsigned short nPort, bool bAllowUseOfPacketRelay)
   {
-    return NULL;
+    return 0;
   }
 
   unsigned int Networking::CreateP2PConnectionSocket(SteamID steamIDTarget, int nVirtualPort, int nTimeoutSec, bool bAllowUseOfPacketRelay)
   {
-    return NULL;
+    return 0;
   }
 
   unsigned int Networking::CreateConnectionSocket(unsigned int nIP, unsigned short nPort, int nTimeoutSec)
   {
-    return NULL;
+    return 0;
   }
 
   bool Networking::DestroySocket(unsigned int hSocket, bool bNotifyRemoteEnd)

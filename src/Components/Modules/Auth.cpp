@@ -588,13 +588,13 @@ namespace Components
     std::string entropy{};
     DWORD volumeID;
     if (GetVolumeInformationA("C:\\",
-      NULL,
-      NULL,
+      nullptr,
+      0,
       &volumeID,
-      NULL,
-      NULL,
-      NULL,
-      NULL
+      nullptr,
+      nullptr,
+      nullptr,
+      0
     ))
     {
       // Drive info

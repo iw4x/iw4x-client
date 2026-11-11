@@ -579,7 +579,7 @@ namespace Components
       return this->pointerMap[pointer];
     }
 
-    return NULL;
+    return 0;
   }
 
   void ZoneBuilder::Zone::storePointer(const void* pointer)
