@@ -99,5 +99,9 @@ namespace Game
   extern cg_s* cgArray;
   extern cgs_t* cgsArray;
   extern cgEntity_s* cg_entitiesArray;
+
+  // Client info the cgame keeps, one per client.
+  //
+  extern clientInfo_t* cgClientInfo;
   extern dvar_t** cl_paused;
 }

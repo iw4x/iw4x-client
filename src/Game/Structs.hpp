@@ -10032,8 +10032,7 @@ namespace Game
     unsigned int playerCardNameplate;
   };
 
-  // @@ TODO: verify x64 size (0x52C on x86).
-  //
+  static_assert(sizeof(clientInfo_t) == 0x548);
 
   struct cgs_t
   {
