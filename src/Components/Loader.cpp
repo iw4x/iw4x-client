@@ -7,6 +7,7 @@
 #include "Modules/IPCPipe.hpp"
 #include "Modules/Network.hpp"
 #include "Modules/Logger.hpp"
+#include "Modules/Sentry.hpp"
 
 namespace Components
 {
@@ -34,6 +35,7 @@ namespace Components
     Register(new IPCPipe());
     Register(new Network());
     Register(new Logger());
+    Register(new Sentry());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).

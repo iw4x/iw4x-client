@@ -334,7 +334,6 @@ project "iw4x"
     "src/Components/Modules/Rumble.*",
     "src/Components/Modules/Scheduler.*",
     "src/Components/Modules/Security.*",
-    "src/Components/Modules/Sentry.*",
     "src/Components/Modules/ServerCommands.*",
     "src/Components/Modules/ServerDemo.*",
     "src/Components/Modules/ServerInfo.*",
@@ -364,7 +363,6 @@ project "iw4x"
     "src/Components/Modules/BotLib/**",
     "src/Components/Modules/GSC/**",
     "src/Controller/**",
-    "src/Sentry/**"
   }
 
   -- Assemble the assembly sources with ml directly instead of through the
