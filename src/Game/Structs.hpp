@@ -12302,6 +12302,9 @@ namespace Game
     char errorString[512];
   };
 
+  static_assert(offsetof(WinConData, hwndInputLine) == 0x20);
+  static_assert(offsetof(WinConData, errorString) == 0x28);
+
   struct WinVars_t
   {
     HINSTANCE__* reflib_library;
