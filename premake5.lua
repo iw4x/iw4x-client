@@ -291,7 +291,6 @@ project "iw4x"
     "src/Components/Modules/Chat.*",
     "src/Components/Modules/ClanTags.*",
     "src/Components/Modules/ClientCommand.*",
-    "src/Components/Modules/Command.*",
     "src/Components/Modules/ConfigStrings.*",
     "src/Components/Modules/ConnectProtocol.*",
     "src/Components/Modules/Console.*",

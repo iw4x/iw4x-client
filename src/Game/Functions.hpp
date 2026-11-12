@@ -75,7 +75,7 @@ namespace Game
   typedef int(*CL_GetSnapshot_t)(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot);
   extern CL_GetSnapshot_t CL_GetSnapshot;
 
-  typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function)(), cmd_function_s* allocedCmd, int isKey);
+  typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function)(), cmd_function_s* allocedCmd);
   extern Cmd_AddCommand_t Cmd_AddCommand;
 
   typedef void(*Cmd_AddServerCommand_t)(const char* name, void(*callback)(), cmd_function_s* data);
