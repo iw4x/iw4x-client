@@ -10,6 +10,7 @@
 #include "PlayerMovement.hpp"
 #include "Jump.hpp"
 #include "AimAssist.hpp"
+#include "DebugInfo.hpp"
 #include "Script.hpp"
 #include "Server.hpp"
 #include "System.hpp"
