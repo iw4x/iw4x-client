@@ -1,12 +1,5 @@
 #pragma once
 
-extern "C"
-{
-  void Dvar_RegisterVariant_Stub();
-
-  void Dvar_OnRegisterVariant(Game::dvar_t* dvar);
-}
-
 namespace Components
 {
   class Dvar : public Component
@@ -46,12 +39,11 @@ namespace Components
     static Var Name;
 
   private:
-    friend void (::Dvar_OnRegisterVariant)(Game::dvar_t* dvar);
-
     static const Game::dvar_t* Dvar_RegisterName(const char* dvarName, const char* value, std::uint16_t flags, const char* description);
     static const Game::dvar_t* Dvar_RegisterSVNetworkFps(const char* dvarName, int value, int min, int max, std::uint16_t flags, const char* description);
-    static const Game::dvar_t* Dvar_RegisterPerkExtendedMeleeRange(const char* dvarName, float value, float min, float max, std::uint16_t flags, const char* description);
-    static const Game::dvar_t* Dvar_RegisterAimLockonStrength(const char* dvarName, float value, float min, float max, std::uint16_t flags, const char* description);
+    static const Game::dvar_t* Dvar_RegisterDrawFps(const char* dvarName, const char** valueList, int defaultIndex, std::uint16_t flags, const char* description);
+    static const Game::dvar_t* Dvar_RegisterFov(const char* dvarName, float value, float min, float max, std::uint16_t flags, const char* description);
+    static const Game::dvar_t* Dvar_RegisterVolume(const char* dvarName, float value, float min, float max, std::uint16_t flags, const char* description);
 
     static void SetFromStringByNameExternal(const char* dvarName, const char* string);
     static void SetFromStringByNameSafeExternal(const char* dvarName, const char* string);
@@ -59,8 +51,6 @@ namespace Components
     static bool AreArchiveDvarsUnprotected();
     static bool IsSettingDvarsDisabled();
     static void DvarSetFromStringByName_Stub(const char* dvarName, const char* value);
-
-    static void OnRegisterVariant(Game::dvar_t* dvar);
 
     static const char* Dvar_EnumToString_Stub(const Game::dvar_t* dvar);
   };

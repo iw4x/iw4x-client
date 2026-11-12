@@ -301,7 +301,6 @@ project "iw4x"
     "src/Components/Modules/Discord.*",
     "src/Components/Modules/Discovery.*",
     "src/Components/Modules/Download.*",
-    "src/Components/Modules/Dvar.*",
     "src/Components/Modules/Elevators.*",
     "src/Components/Modules/Events.*",
     "src/Components/Modules/Exception.*",
