@@ -9,7 +9,7 @@ namespace Components
   // Called from News.cpp
   void Changelog::SetChangelog(const std::string& changelog)
   {
-    std::lock_guard _(Mutex);
+    std::scoped_lock _(Mutex);
     Lines.clear();
 
     if (changelog.empty())
@@ -29,13 +29,14 @@ namespace Components
 
   unsigned int Changelog::GetChangelogCount()
   {
-    return Lines.size();
+    std::scoped_lock _(Mutex);
+    return static_cast<unsigned int>(Lines.size());
   }
 
   // Omit column here
   const char* Changelog::GetChangelogText(unsigned int item, [[maybe_unused]] int column)
   {
-    std::lock_guard _(Mutex);
+    std::scoped_lock _(Mutex);
     if (item < Lines.size())
     {
       return Utils::String::Format("{}", Lines[item]);
