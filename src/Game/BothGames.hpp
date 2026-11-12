@@ -11,9 +11,6 @@ namespace Game
   typedef void*(*BG_LoadWeaponDef_LoadObj_t)(const char* name);
   extern BG_LoadWeaponDef_LoadObj_t BG_LoadWeaponDef_LoadObj;
 
-  typedef WeaponCompleteDef*(*BG_LoadWeaponCompleteDefInternal_t)(const char* folder, const char* name);
-  extern BG_LoadWeaponCompleteDefInternal_t BG_LoadWeaponCompleteDefInternal;
-
   typedef WeaponDef*(*BG_GetWeaponDef_t)(unsigned int weaponIndex);
   extern BG_GetWeaponDef_t BG_GetWeaponDef;
 
