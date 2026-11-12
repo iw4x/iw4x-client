@@ -2,14 +2,8 @@
 
 extern "C"
 {
-  extern void (*Logger_PipeCallback)(const std::string&);
-
-  void Logger_PrintMessage_Stub();
   void Logger_BuildOSPath_Stub();
 
-  void Logger_PrintMessageSentry(const char* data);
-  void Logger_PrintMessagePipe(const char* data);
-  void Logger_NetworkLog(const char* data, bool gLog);
   void Logger_RedirectOSPath(const char* file, char* folder);
 }
 
@@ -134,9 +128,6 @@ namespace Components
     }
 
   private:
-    friend void (::Logger_PrintMessageSentry)(const char* data);
-    friend void (::Logger_PrintMessagePipe)(const char* data);
-    friend void (::Logger_NetworkLog)(const char* data, bool gLog);
     friend void (::Logger_RedirectOSPath)(const char* file, char* folder);
 
     static std::mutex MessageMutex;
@@ -167,6 +158,9 @@ namespace Components
 
     static void AddServerCommands();
 
-    static void Com_OpenLogFile_Stub();
+    static bool InterceptPrintMessage(int channel, const char* msg);
+    static const Game::dvar_t* Dvar_RegisterLogfile(const char* dvarName, int value, int min, int max, std::uint16_t flags, const char* description);
+
+    static void (*PipeCallback)(const std::string&);
   };
 }

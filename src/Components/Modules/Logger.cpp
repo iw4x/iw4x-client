@@ -1,17 +1,13 @@
 #include "Logger.hpp"
-#include "Branding.hpp"
 #include "Console.hpp"
 #include "Events.hpp"
 #include "Sentry.hpp"
 
-extern "C"
-{
-  void (*Logger_PipeCallback)(const std::string&) = nullptr;
-}
-
 namespace Components
 {
   using namespace Utils::String;
+
+  void (*Logger::PipeCallback)(const std::string&) = nullptr;
 
   std::mutex Logger::MessageMutex;
   std::vector<std::string> Logger::MessageQueue;
@@ -109,7 +105,7 @@ namespace Components
   {
     const auto msg = "^1Error: " + std::vformat(fmt, args);
 
-    ++(*Game::com_errorPrintsCount);
+    ++Game::com_errorPrintsCount;
     MessagePrint(channel, msg);
 
     if (Game::cls->uiStarted && (*Game::com_fixedConsolePosition == 0))
@@ -178,15 +174,37 @@ namespace Components
 
   void Logger::PipeOutput(void(*callback)(const std::string&))
   {
-    Logger_PipeCallback = callback;
+    PipeCallback = callback;
   }
 
   void Logger::PrintMessagePipe(const char* data)
   {
-    if (Logger_PipeCallback)
+    if (PipeCallback)
     {
-      Logger_PipeCallback(data);
+      PipeCallback(data);
     }
+  }
+
+  // Pass each printed message to Sentry and then either to the pipe, which
+  // takes it, or to the network log.
+  //
+  bool Logger::InterceptPrintMessage([[maybe_unused]] int channel, const char* msg)
+  {
+    PrintMessageSentry(msg);
+
+    if (PipeCallback)
+    {
+      PrintMessagePipe(msg);
+      return true;
+    }
+
+    NetworkLog(msg, false);
+    return false;
+  }
+
+  const Game::dvar_t* Logger::Dvar_RegisterLogfile(const char* dvarName, [[maybe_unused]] int value, int min, int max, std::uint16_t flags, const char* description)
+  {
+    return Game::Dvar_RegisterInt(dvarName, 1, min, max, flags, description);
   }
 
   void Logger::PrintMessageSentry(const char* data)
@@ -388,84 +406,23 @@ namespace Components
       });
   }
 
-  void PrintAliasError(Game::conChannel_t channel, const char* originalMsg, const char* soundName, const char* lastErrorStr)
-  {
-    // We add a bit more info and we clear the sound stream when it happens
-    // to avoid spamming the error
-    const auto newMsg = std::format("{}Make sure you have the 'miles' folder in your game directory! Otherwise MP3 and other codecs will be unavailable.\n", originalMsg);
-    Game::Com_PrintError(channel, newMsg.c_str(), soundName, lastErrorStr);
-
-    for (size_t i = 0; i < ARRAYSIZE(Game::milesGlobal->streamReadInfo); i++)
-    {
-      if (0 == std::strncmp(Game::milesGlobal->streamReadInfo[i].path, soundName, ARRAYSIZE(Game::milesGlobal->streamReadInfo[i].path)))
-      {
-        Game::milesGlobal->streamReadInfo[i].path[0] = '\x00'; // This kills it and make sure it doesn't get played again for now
-        break;
-      }
-    }
-  }
-
-  void Logger::Com_OpenLogFile_Stub()
-  {
-    // 16 should be enough as realistically someone will probably not run as many servers
-    // the code below will try 16 times to find an open slot between any of the 'backup' slots
-    constexpr auto MAX_LOGFILE_CREATE_ATTEMPTS = 16;
-
-    std::string logfile;
-
-    if (!Game::Sys_IsMainThread() || *Game::opening_qconsole)
-    {
-      return;
-    }
-
-    *Game::opening_qconsole = true;
-
-    for (auto i = 0; i < MAX_LOGFILE_CREATE_ATTEMPTS; ++i)
-    {
-      logfile = (i == 0) ? Game::logFileName : std::format("{0}.{1:03}", Game::logFileName, i);
-
-      if (!FileSystem::FileRotate(logfile))
-      {
-        continue;
-      }
-
-      *Game::logfile = Game::FS_FOpenTextFileWrite(logfile.c_str());
-      if (*Game::logfile)
-      {
-        Game::Com_Printf(Game::CON_CHANNEL_SYSTEM, "\'%s\'\n", Game::Com_GetCommandLine());
-        const auto time = Utils::GetTime();
-        Game::Com_Printf(Game::CON_CHANNEL_SYSTEM, "Build %s. Logfile opened on %s\n", Branding::GetBuildNumber(), time.c_str());
-        break; // Stop attempting further backups
-      }
-    }
-
-    *Game::opening_qconsole = false;
-    *Game::com_consoleLogOpenFailed = *Game::logfile == 0;
-  }
-
   Logger::Logger()
   {
-    // Print sound aliases errors
-    if (!Dedicated::IsEnabled())
-    {
-      Utils::Hook(0x64BA67, PrintAliasError, HOOK_CALL).install()->quick();
-    }
-
     // set logfile to 1 by default (logs enabled)
-    Utils::Hook::Set<uint8_t>(0x60AE43 + 1, 1);
+    Utils::Hook(0x1401F4A75, Dvar_RegisterLogfile, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x642139, Logger_BuildOSPath_Stub, HOOK_JUMP).install()->quick();
-
-    Utils::Hook(0x60A9A3, Com_OpenLogFile_Stub, HOOK_CALL).install()->quick();
+    // See Logger.asm for the registers at the hook point, after
+    // FS_BuildOSPath() falls back to the default game folder.
+    //
+    Utils::Hook(0x140273B19, Logger_BuildOSPath_Stub, HOOK_JUMP).install()->quick();
 
     Scheduler::Loop(Frame, Scheduler::Pipeline::SERVER);
 
     Utils::Hook(Game::G_LogPrintf, G_LogPrintf_Hk, HOOK_JUMP).install()->quick();
-    Utils::Hook(Game::Com_PrintMessage, Logger_PrintMessage_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook(Game::Com_Printf, Print_Stub, HOOK_JUMP).install()->quick();
-  
-    Utils::Hook(0x5F67AE, LSP_LogString_Stub, HOOK_CALL).install()->quick(); // Scr_LogString
-    Utils::Hook(0x5F67EE, LSP_LogStringAboutUser_Stub, HOOK_CALL).install()->quick(); // ScrCmd_LogString_Stub
+    Game::Com_PrintMessageInterceptor = InterceptPrintMessage;
+
+    Utils::Hook(0x1401A3108, LSP_LogString_Stub, HOOK_JUMP).install()->quick(); // Scr_LogString
+    Utils::Hook(0x1401A3144, LSP_LogStringAboutUser_Stub, HOOK_JUMP).install()->quick(); // ScrCmd_LogString_Stub
 
     Events::OnSVInit(AddServerCommands);
     Events::OnDvarInit([]
@@ -484,27 +441,14 @@ namespace Components
     std::unique_lock lock_message(MessageMutex);
     MessageQueue.clear();
 
+    Game::Com_PrintMessageInterceptor = nullptr;
+
     // Flush the console log
-    if (*Game::logfile)
+    if (Game::logfile)
     {
-      Game::FS_FCloseFile(*Game::logfile);
+      Game::FS_FCloseFile(Game::logfile);
     }
   }
-}
-
-void Logger_PrintMessageSentry(const char* data)
-{
-  Components::Logger::PrintMessageSentry(data);
-}
-
-void Logger_PrintMessagePipe(const char* data)
-{
-  Components::Logger::PrintMessagePipe(data);
-}
-
-void Logger_NetworkLog(const char* data, bool gLog)
-{
-  Components::Logger::NetworkLog(data, gLog);
 }
 
 void Logger_RedirectOSPath(const char* file, char* folder)
