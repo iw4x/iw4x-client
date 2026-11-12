@@ -4,28 +4,6 @@
 
 namespace Components
 {
-  namespace
-  {
-    // Copy size bytes of data into memory the instruction at place reaches
-    // and make its rip-relative operand point there instead of from.
-    //
-    // Note that our own image may lie beyond the 32-bit reach of the game's
-    // operands, so their new targets can't live in it.
-    //
-    void PlaceData(uintptr_t place, uintptr_t from, const void* data, size_t size)
-    {
-      void* p (Utils::Hook::AllocateNear(place, size));
-      std::memcpy(p, data, size);
-      Utils::Hook::Displace(place, 7, from, reinterpret_cast<uintptr_t>(p));
-    }
-
-    void PlaceString(uintptr_t place, uintptr_t from, std::string_view text)
-    {
-      std::string s (text);
-      PlaceData(place, from, s.c_str(), s.size() + 1);
-    }
-  }
-
   Dvar::Var Branding::CGDrawVersion;
   Dvar::Var Branding::CGDrawVersionX;
   Dvar::Var Branding::CGDrawVersionY;
@@ -122,18 +100,18 @@ namespace Components
 
     // UI version string, replacing its "%s.%i" format.
     //
-    PlaceString(0x14026F26E, 0x1403A290C, "IW4x " REVISION_STR);
+    Utils::Hook::PlaceString(0x14026F26E, 7, 0x1403A290C, "IW4x " REVISION_STR);
 
     // Short version dvar default.
     //
-    PlaceString(0x1401F54FF, 0x140389580, REVISION_STR);
+    Utils::Hook::PlaceString(0x1401F54FF, 7, 0x140389580, REVISION_STR);
 
     Utils::Hook(0x1401E6960, GetBuildNumber, HOOK_JUMP).install()->quick();
 
     // UI version string color.
     //
     constexpr Game::vec4_t buildLocColor = {1.0f, 1.0f, 1.0f, 0.8f};
-    PlaceData(0x14026F28C, 0x1403A4E30, buildLocColor, sizeof(buildLocColor));
+    Utils::Hook::PlaceData(0x14026F28C, 7, 0x1403A4E30, buildLocColor, sizeof(buildLocColor));
 
     // Place UI version string in bottom right corner (ui_buildLocation).
     //
@@ -155,14 +133,14 @@ namespace Components
     if (Dedicated::IsEnabled())
     {
 #ifdef EXPERIMENTAL_BUILD
-      PlaceString(0x1402A7BD6, 0x1403A8A20, "IW4x " REVISION_STR "-develop: Dedicated");
+      Utils::Hook::PlaceString(0x1402A7BD6, 7, 0x1403A8A20, "IW4x " REVISION_STR "-develop: Dedicated");
 #else
-      PlaceString(0x1402A7BD6, 0x1403A8A20, "IW4x " REVISION_STR ": Dedicated");
+      Utils::Hook::PlaceString(0x1402A7BD6, 7, 0x1403A8A20, "IW4x " REVISION_STR ": Dedicated");
 #endif
     }
     else
     {
-      PlaceString(0x1402A7BD6, 0x1403A8A20, "IW4x (" REVISION_STR "): Console");
+      Utils::Hook::PlaceString(0x1402A7BD6, 7, 0x1403A8A20, "IW4x (" REVISION_STR "): Console");
     }
   }
 }
