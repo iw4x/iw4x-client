@@ -21,6 +21,7 @@
 #include "Modules/Changelog.hpp"
 #include "Modules/Chat.hpp"
 #include "Modules/ClanTags.hpp"
+#include "Modules/ClientCommand.hpp"
 
 namespace Components
 {
@@ -62,6 +63,7 @@ namespace Components
     Register(new Changelog());
     Register(new Chat());
     Register(new ClanTags());
+    Register(new ClientCommand());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order

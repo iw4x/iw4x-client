@@ -56,28 +56,40 @@ namespace Components
 
     enum class GiveAllSource
     {
-      StackArgument,
+      Stack,
       PlayerState,
       Entity,
       PredictedPlayerState,
     };
 
+    // Slots of the frame that ClientCommand_GiveAll_Stub saves, in the order
+    // its pushes leave them.
+    //
     enum GiveAllRegister
     {
-      REG_EDI,
-      REG_ESI,
-      REG_EBP,
-      REG_ESP,
-      REG_EBX,
-      REG_EDX,
-      REG_ECX,
-      REG_EAX,
+      REG_RAX,
+      REG_RCX,
+      REG_RDX,
+      REG_RBX,
+      REG_RSP,
+      REG_RBP,
+      REG_RSI,
+      REG_RDI,
+      REG_R8,
+      REG_R9,
+      REG_R10,
+      REG_R11,
+      REG_R12,
+      REG_R13,
+      REG_R14,
+      REG_R15,
+      REG_RFLAGS,
+      REG_RETURN,
     };
 
     struct GiveAllSite
     {
       std::uintptr_t address;
-      std::size_t size;
       GiveAllSource source;
       int location;
       GiveAllRegister target;
