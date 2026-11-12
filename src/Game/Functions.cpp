@@ -322,7 +322,7 @@ namespace Game
 
   GfxScene* scene = reinterpret_cast<GfxScene*>(0x148C26480);
 
-  int* g_console_field_width = reinterpret_cast<int*>(0x14041E028);
+  int* g_console_field_width = reinterpret_cast<int*>(0x14041E024);
   float* g_console_char_height = reinterpret_cast<float*>(0x14041E028);
 
   sharedUiInfo_t* sharedUiInfo = reinterpret_cast<sharedUiInfo_t*>(0x1465CE8C0);
