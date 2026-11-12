@@ -103,5 +103,9 @@ namespace Game
   // Client info the cgame keeps, one per client.
   //
   extern clientInfo_t* cgClientInfo;
+
+  // Player card data the cgame caches, MAX_CLIENTS cards per local client.
+  //
+  extern PlayerCardData* playerCardCache;
   extern dvar_t** cl_paused;
 }
