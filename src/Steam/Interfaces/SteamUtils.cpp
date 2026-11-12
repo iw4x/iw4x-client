@@ -23,11 +23,6 @@ namespace Steam
     if(!timeDelta.has_value())
     {
       unsigned int steamTime = static_cast<unsigned int>(time(nullptr));
-      if(Steam::Proxy::SteamUtils)
-      {
-        steamTime = Steam::Proxy::SteamUtils->GetServerRealTime();
-      }
-
       timeDelta.emplace(steamTime - (Game::Sys_Milliseconds() / 1000));
     }
 
@@ -36,11 +31,6 @@ namespace Steam
 
   const char* Utils::GetIPCountry()
   {
-    if (Steam::Proxy::SteamUtils)
-    {
-      return Steam::Proxy::SteamUtils->GetIPCountry();
-    }
-
     return "US";
   }
 
@@ -61,11 +51,6 @@ namespace Steam
 
   unsigned char Utils::GetCurrentBatteryPower()
   {
-    if (Steam::Proxy::SteamUtils)
-    {
-      return Steam::Proxy::SteamUtils->GetCurrentBatteryPower();
-    }
-
     return 255;
   }
 
@@ -74,9 +59,8 @@ namespace Steam
     return 10190;
   }
 
-  void Utils::SetOverlayNotificationPosition(int eNotificationPosition)
+  void Utils::SetOverlayNotificationPosition(int /*eNotificationPosition*/)
   {
-    Proxy::SetOverlayNotificationPosition(eNotificationPosition);
   }
 
   bool Utils::IsAPICallCompleted(unsigned __int64 /*hSteamAPICall*/, bool* /*pbFailed*/)
