@@ -124,6 +124,9 @@ namespace Game
 
   extern const dvar_t** nextmap;
 
+  extern const dvar_t** perk_diveVelocity;
+  extern const dvar_t** perk_diveDistanceCheck;
+
   extern const dvar_t** cl_voice;
   extern const dvar_t** cl_ingame;
   extern const dvar_t** cl_shownet;
