@@ -3,6 +3,7 @@
 #include "Loader.hpp"
 
 #include "Modules/Auth.hpp"
+#include "Modules/Exception.hpp"
 
 namespace Components
 {
@@ -26,6 +27,7 @@ namespace Components
     Register(new Auth());
     Register(new Command());
     Register(new Dvar());
+    Register(new Exception());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
