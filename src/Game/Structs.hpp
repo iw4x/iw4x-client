@@ -550,7 +550,9 @@ namespace Game
     CS_ITEMS = 4138, // Correct! CS_ITEMS is actually an item **COUNT**
 
     CS_LAST = CS_ITEMS,
-    MAX_CONFIGSTRINGS = 4139
+    CS_WEAPONFILES_EXTRA = 0x102B, // Weapons 1200 to 1399.
+    CS_WEAPONFILES_EXTRA_LAST = 0x10F2,
+    MAX_CONFIGSTRINGS = 0x10F3
   }; // Incomplete
 
   enum conChannel_t
