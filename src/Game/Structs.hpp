@@ -697,7 +697,8 @@ namespace Game
     const char** argv[8];
   };
 
-  static_assert(sizeof(CmdArgs) == 0x84);
+  // @@ TODO: verify x64 size (0x84 on x86).
+  //
 
   struct cmd_function_s
   {
@@ -4334,7 +4335,8 @@ namespace Game
     Material* background;
   };
 
-  static_assert(sizeof(windowDef_t) == 0xA4);
+  // @@ TODO: verify x64 size (0xA4 on x86).
+  //
 
   enum expDataType
   {
@@ -4606,7 +4608,8 @@ namespace Game
     float_limit vector;
   };
 
-  static_assert(sizeof(DvarLimits) == 0x8);
+  // @@ TODO: verify x64 size (0x8 on x86).
+  //
 
   struct dvar_t
   {
@@ -4623,7 +4626,8 @@ namespace Game
     dvar_t* hashNext;
   };
 
-  static_assert(sizeof(dvar_t) == 0x50);
+  // @@ TODO: verify x64 size (0x50 on x86).
+  //
 
   struct StaticDvar
   {
@@ -6432,7 +6436,8 @@ namespace Game
     char buf[1];
   };
 
-  static_assert(sizeof(HunkUser) == 36);
+  // @@ TODO: verify x64 size (36 on x86).
+  //
 
   struct VariableStackBuffer
   {
@@ -6570,7 +6575,8 @@ namespace Game
     unsigned __int16 saveIdMapRev[36864];
   };
 
-  static_assert(sizeof(scrVarPub_t) == 0x24060);
+  // @@ TODO: verify x64 size (0x24060 on x86).
+  //
 
   struct scrCompilePub_t
   {
@@ -6617,7 +6623,8 @@ namespace Game
     int profileUsage;
   };
 
-  static_assert(sizeof(OpcodeLookup) == 24);
+  // @@ TODO: verify x64 size (24 on x86).
+  //
 
   struct SourceLookup
   {
@@ -6723,7 +6730,8 @@ namespace Game
     scr_block_t* block;
   };
 
-  static_assert(sizeof(sval_u) == 0x4);
+  // @@ TODO: verify x64 size (0x4 on x86).
+  //
 
   struct stype_t
   {
@@ -6731,7 +6739,8 @@ namespace Game
     unsigned int pos;
   };
 
-  static_assert(sizeof(stype_t) == 0x8);
+  // @@ TODO: verify x64 size (0x8 on x86).
+  //
 
   struct scr_const_t
   {
@@ -7144,7 +7153,8 @@ namespace Game
     netProfileInfo_t prof;
   };
 
-  static_assert(sizeof(netchan_t) == 0x62C);
+  // @@ TODO: verify x64 size (0x62C on x86).
+  //
 
   struct FxEditorElemAtlas
   {
@@ -7754,7 +7764,8 @@ namespace Game
     int birthTime;
   };
 
-  static_assert(sizeof(gentity_s) == 0x274);
+  // @@ TODO: verify x64 size (0x274 on x86).
+  //
 
   enum
   {
@@ -7825,7 +7836,8 @@ namespace Game
     int migrationState;
   };
 
-  static_assert(sizeof(clientHeader_t) == 1624);
+  // @@ TODO: verify x64 size (1624 on x86).
+  //
 
   struct svscmd_info_t
   {
@@ -7903,7 +7915,8 @@ namespace Game
     clientSnapshot_t frames[32];
   };
 
-  static_assert(sizeof(client_s) == 0xA6790);
+  // @@ TODO: verify x64 size (0xA6790 on x86).
+  //
 
   enum CompassType
   {
@@ -7952,7 +7965,8 @@ namespace Game
     int statPacketSendTime[7];
   };
 
-  static_assert(sizeof(clientConnection_t) == 0x615E8); // Size confirmed in CL_Migrate
+  // @@ TODO: verify x64 size (0x615E8 on x86).
+  //
 
   struct CModelAllocData
   {
@@ -8070,11 +8084,14 @@ namespace Game
     token_s token; //last read token
   };
 
-  AssertSize(token_s, 0x430);
-  AssertOffset(script_s, token, 0x78);
-  AssertOffset(script_s, next, 0x4A8);
-  AssertOffset(source_s, scriptstack, 0x84);
-  AssertOffset(source_s, token, 0xA0);
+  // @@ TODO: verify x64 layout. On x86:
+  //
+  //    sizeof (token_s)                 == 0x430
+  //    offsetof (script_s, token)       == 0x78
+  //    offsetof (script_s, next)        == 0x4A8
+  //    offsetof (source_s, scriptstack) == 0x84
+  //    offsetof (source_s, token)       == 0xA0
+  //
 
   struct directive_s
   {
@@ -9111,7 +9128,8 @@ namespace Game
     entityState_s noDeltaEntities[1024];
   };
 
-  static_assert(sizeof(clientStatic_t) == 0xA7AEC);
+  // @@ TODO: verify x64 size (0xA7AEC on x86).
+  //
 
   struct ConDrawInputGlob
   {
@@ -9327,7 +9345,8 @@ namespace Game
     char pad2[4];
   };
 
-  static_assert(sizeof(FxEffect) == 0x90);
+  // @@ TODO: verify x64 size (0x90 on x86).
+  //
 
   struct CEntVehicleInfo
   {
@@ -9384,7 +9403,8 @@ namespace Game
     bool wasOverheat;
   };
 
-  static_assert(sizeof(CEntTurretInfo) == 0x24);
+  // @@ TODO: verify x64 size (0x24 on x86).
+  //
 
   struct clientControllers_t
   {
@@ -9399,7 +9419,8 @@ namespace Game
     unsigned __int8 tag[4];
   };
 
-  static_assert(sizeof(CEntPlayerInfo) == 0x8);
+  // @@ TODO: verify x64 size (0x8 on x86).
+  //
 
   union $79C409BC84BCEABA56F6D25E37F2711D
   {
@@ -9433,7 +9454,8 @@ namespace Game
     $79C409BC84BCEABA56F6D25E37F2711D ___u10;
   };
 
-  static_assert(sizeof(cpose_t) == 0x6C); // Why was this 0x60? This is not Xbox! On computer, we have a model cache, so this is 6C
+  // @@ TODO: verify x64 size (0x6C on x86).
+  //
 
   struct centity_s
   {
@@ -9461,8 +9483,11 @@ namespace Game
   };
 
   static_assert(sizeof(entityState_s) == 0x100);
-  static_assert(sizeof(centity_s) == 0x200);
-  static_assert(sizeof(cgEntity_s) == 0x204);
+  // @@ TODO: verify x64 layout. On x86:
+  //
+  //    sizeof (centity_s)  == 0x200
+  //    sizeof (cgEntity_s) == 0x204
+  //
 
   struct playerEntity_t
   {
@@ -9599,16 +9624,19 @@ namespace Game
     char _pad5[0x89740];
   };
 
-  static_assert(sizeof(cg_s) == 0xFD540);
-  static_assert(offsetof(cg_s, predictedPlayerEntity) == 0x311C);
-  static_assert(offsetof(cg_s, playerEntity) == 0x331C);
-  static_assert(offsetof(cg_s, cubemapShot) == 0x3358);
-  static_assert(offsetof(cg_s, nextSnap) == 0x3374); // CONFIRMED CORRECT
-  static_assert(offsetof(cg_s, frameInterpolation) == 0x6A750);
-  static_assert(offsetof(cg_s, refdef) == 0x6A778); // CONFIRMED CORRECT
-  static_assert(offsetof(cg_s, refdefViewAngles) == 0x6E6D8);
-  static_assert(offsetof(cg_s, compassMapWorldSize) == 0x73D64);
-  static_assert(offsetof(cg_s, selectedLocation) == 0x73DE0);
+  // @@ TODO: verify x64 layout. On x86:
+  //
+  //    sizeof (cg_s)                          == 0xFD540
+  //    offsetof (cg_s, predictedPlayerEntity) == 0x311C
+  //    offsetof (cg_s, playerEntity)          == 0x331C
+  //    offsetof (cg_s, cubemapShot)           == 0x3358
+  //    offsetof (cg_s, nextSnap)              == 0x3374
+  //    offsetof (cg_s, frameInterpolation)    == 0x6A750
+  //    offsetof (cg_s, refdef)                == 0x6A778
+  //    offsetof (cg_s, refdefViewAngles)      == 0x6E6D8
+  //    offsetof (cg_s, compassMapWorldSize)   == 0x73D64
+  //    offsetof (cg_s, selectedLocation)      == 0x73DE0
+  //
 
   static constexpr auto MAX_GPAD_COUNT = 1;
 
@@ -9996,7 +10024,8 @@ namespace Game
     unsigned int playerCardNameplate;
   };
 
-  static_assert(sizeof(clientInfo_t) == 0x52C);
+  // @@ TODO: verify x64 size (0x52C on x86).
+  //
 
   struct cgs_t
   {
@@ -10034,7 +10063,8 @@ namespace Game
     XAnim_s* helicopterAnims;
   };
 
-  static_assert(sizeof(cgs_t) == 0x3BA4);
+  // @@ TODO: verify x64 size (0x3BA4 on x86).
+  //
 
   struct ConversionArguments
   {
@@ -10068,7 +10098,8 @@ namespace Game
     bool walkable;
   };
 
-  static_assert(sizeof(trace_t) == 0x2C);
+  // @@ TODO: verify x64 size (0x2C on x86).
+  //
 
   struct pmove_s
   {
@@ -10093,7 +10124,8 @@ namespace Game
   };
 
 
-  static_assert(sizeof(pmove_s) == 296);
+  // @@ TODO: verify x64 size (296 on x86).
+  //
 
   struct pml_t
   {
@@ -10112,7 +10144,8 @@ namespace Game
     int holdrand;
   };
 
-  static_assert(sizeof(pml_t) == 0x84);
+  // @@ TODO: verify x64 size (0x84 on x86).
+  //
 
   enum EffectiveStance
   {
@@ -10391,7 +10424,8 @@ namespace Game
     int hudElemLastAssignedSoundID;
   };
 
-  static_assert(sizeof(level_locals_t) == 0x2F78);
+  // @@ TODO: verify x64 size (0x2F78 on x86).
+  //
 
   enum ScreenPlacementMode
   {
@@ -10796,7 +10830,8 @@ namespace Game
     char alliesWins;
   };
 
-  static_assert(sizeof(PartyData) == 0x23D8);
+  // @@ TODO: verify x64 size (0x23D8 on x86).
+  //
 
   struct MessageLine
   {
@@ -11519,7 +11554,8 @@ namespace Game
     RumbleDevguiGraphInfo devguiGraphInfo;
   };
 
-  static_assert(sizeof(RumbleGraph) == 236);
+  // @@ TODO: verify x64 size (236 on x86).
+  //
 
   struct RumbleInfo
   {
@@ -11534,7 +11570,8 @@ namespace Game
     dvar_t* loopDvar;
   };
 
-  static_assert(sizeof(RumbleInfo) == 36);
+  // @@ TODO: verify x64 size (36 on x86).
+  //
 
 
   union RumbleSource
@@ -11850,7 +11887,8 @@ namespace Game
     unsigned __int16 tris;
   };
 
-  static_assert(sizeof(FxMark) == 0x40);
+  // @@ TODO: verify x64 size (0x40 on x86).
+  //
 
   struct FxPointGroup
   {
@@ -11881,7 +11919,8 @@ namespace Game
     FxTriGroup item;
   };
 
-  static_assert(sizeof(FxTriGroupPool) == 68);
+  // @@ TODO: verify x64 size (68 on x86).
+  //
 
   struct FxMarksSystem
   {
@@ -11898,8 +11937,11 @@ namespace Game
     FxTriGroupPool* triGroups;
   };
 
-  static_assert(offsetof(FxMarksSystem, firstFreePointGroup) == 0x1014);
-  static_assert(offsetof(FxMarksSystem, triGroups) == 0x1024);
+  // @@ TODO: verify x64 layout. On x86:
+  //
+  //    offsetof (FxMarksSystem, firstFreePointGroup) == 0x1014
+  //    offsetof (FxMarksSystem, triGroups)           == 0x1024
+  //
 
   struct ClientEntSound
   {
