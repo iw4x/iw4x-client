@@ -49,12 +49,12 @@ namespace Utils
     }
   }
 
-  Hook* Hook::initialize(DWORD _place, void(*_stub)(), bool _useJump)
+  Hook* Hook::initialize(uintptr_t _place, void(*_stub)(), bool _useJump)
   {
     return this->initialize(_place, reinterpret_cast<void*>(_stub), _useJump);
   }
 
-  Hook* Hook::initialize(DWORD _place, void* _stub, bool _useJump)
+  Hook* Hook::initialize(uintptr_t _place, void* _stub, bool _useJump)
   {
     return this->initialize(reinterpret_cast<void*>(_place), _stub, _useJump);
   }
@@ -146,7 +146,7 @@ namespace Utils
     FlushInstructionCache(GetCurrentProcess(), place, length);
   }
 
-  void Hook::Nop(DWORD place, size_t length)
+  void Hook::Nop(uintptr_t place, size_t length)
   {
     Nop(reinterpret_cast<void*>(place), length);
   }
@@ -161,7 +161,7 @@ namespace Utils
     VirtualProtect(place, length + 1, oldProtect, &oldProtect);
   }
 
-  void Hook::SetString(DWORD place, const char* string, size_t length)
+  void Hook::SetString(uintptr_t place, const char* string, size_t length)
   {
     Hook::SetString(reinterpret_cast<void*>(place), string, length);
   }
@@ -171,7 +171,7 @@ namespace Utils
     Hook::SetString(place, string, strlen(static_cast<char*>(place)));
   }
 
-  void Hook::SetString(DWORD place, const char* string)
+  void Hook::SetString(uintptr_t place, const char* string)
   {
     Hook::SetString(reinterpret_cast<void*>(place), string);
   }
@@ -183,7 +183,7 @@ namespace Utils
     Utils::Hook::Set<int>(operandPtr, newOperand);
   }
 
-  void Hook::RedirectJump(DWORD place, void* stub)
+  void Hook::RedirectJump(uintptr_t place, void* stub)
   {
     Hook::RedirectJump(reinterpret_cast<void*>(place), stub);
   }
