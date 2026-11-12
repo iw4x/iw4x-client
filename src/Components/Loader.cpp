@@ -14,6 +14,7 @@
 #include "Modules/AssetHandler.hpp"
 #include "Modules/Bans.hpp"
 #include "Modules/Bots.hpp"
+#include "Modules/Branding.hpp"
 
 namespace Components
 {
@@ -48,6 +49,7 @@ namespace Components
     Register(new AssetHandler());
     Register(new Bans());
     Register(new Bots());
+    Register(new Branding());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
