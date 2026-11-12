@@ -1,38 +1,31 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN Bots_BotAiAction:PROC
-EXTERN Bots_G_SelectWeaponIndex:PROC
 
 .code
 
-Bots_SV_BotUserMove_Hk PROC
-  pushad
+Bots_SV_BotUserMoveStub PROC
+  push    rcx
+  sub     rsp, 28h
 
-  push    edi
+  lea     rcx, [rsi-212B8h]
   call    Bots_BotAiAction
-  add     esp, 4
 
-  popad
-  ret
-Bots_SV_BotUserMove_Hk ENDP
+  add     rsp, 28h
+  pop     rcx
 
-Bots_G_SelectWeaponIndex_Hk PROC
-  pushad
+  test    al, al
+  jnz     handled
 
-  push    dword ptr [esp+20h+8h]
-  push    dword ptr [esp+20h+8h]
-  call    Bots_G_SelectWeaponIndex
-  add     esp, 8h
+  xor     eax, eax
+  xorps   xmm0, xmm0
 
-  popad
+  mov     rdx, 14023BC46h
+  jmp     rdx
 
-  mov     eax, [esp+8h]
-  push    eax
-
-  push    441B85h
-  ret
-Bots_G_SelectWeaponIndex_Hk ENDP
+handled:
+  mov     rax, 14023BE5Dh
+  jmp     rax
+Bots_SV_BotUserMoveStub ENDP
 
 END
