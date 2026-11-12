@@ -14,31 +14,25 @@ namespace Game
   typedef void(*FS_FreeFileList_t)(const char** list, int allocTrackType);
   extern FS_FreeFileList_t FS_FreeFileList;
 
-  typedef int(*FS_FOpenFileAppend_t)(const char* filename);
-  extern FS_FOpenFileAppend_t FS_FOpenFileAppend;
-
-  typedef int(*FS_FOpenFileWrite_t)(const char* filename);
+  typedef fileHandle_t(*FS_FOpenFileWrite_t)(const char* filename);
   extern FS_FOpenFileWrite_t FS_FOpenFileWrite;
 
-  typedef int(*FS_FOpenTextFileWrite_t)(const char* filename);
-  extern FS_FOpenTextFileWrite_t FS_FOpenTextFileWrite;
-
-  typedef int(*FS_FOpenFileRead_t)(const char* filename, int* file);
+  typedef int(*FS_FOpenFileRead_t)(const char* filename, fileHandle_t* file);
   extern FS_FOpenFileRead_t FS_FOpenFileRead;
 
   typedef FILE*(*FS_FileOpenReadText_t)(const char* filename);
   extern FS_FileOpenReadText_t FS_FileOpenReadText;
 
-  typedef int(*FS_FOpenFileReadDatabase_t)(const char* filename, int* file);
+  typedef int(*FS_FOpenFileReadDatabase_t)(const char* filename, fileHandle_t* file);
   extern FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase;
 
-  typedef int(*FS_FOpenFileReadForThread_t)(const char* filename, int* file, int thread);
+  typedef int(*FS_FOpenFileReadForThread_t)(const char* filename, fileHandle_t* file, int thread);
   extern FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread;
 
-  typedef int(*FS_FOpenFileByMode_t)(const char* qpath, int* f, fsMode_t mode);
+  typedef int(*FS_FOpenFileByMode_t)(const char* qpath, fileHandle_t* f, fsMode_t mode);
   extern FS_FOpenFileByMode_t FS_FOpenFileByMode;
 
-  typedef int(*FS_FCloseFile_t)(int stream);
+  typedef int(*FS_FCloseFile_t)(fileHandle_t stream);
   extern FS_FCloseFile_t FS_FCloseFile;
 
   typedef bool(*FS_FileExists_t)(const char* file);
@@ -47,22 +41,22 @@ namespace Game
   typedef bool(*FS_WriteFile_t)(const char* filename, const char* folder, const void* buffer, int size);
   extern FS_WriteFile_t FS_WriteFile;
 
-  typedef int(*FS_WriteToDemo_t)(const void* buffer, int size, int file);
+  typedef int(*FS_WriteToDemo_t)(const void* buffer, int size, fileHandle_t file);
   extern FS_WriteToDemo_t FS_WriteToDemo;
 
-  typedef int(*FS_Write_t)(const void* buffer, int len, int h);
+  typedef int(*FS_Write_t)(const void* buffer, int len, fileHandle_t h);
   extern FS_Write_t FS_Write;
 
-  typedef int(*FS_Printf_t)(int file, const char* fmt, ...);
+  typedef int(*FS_Printf_t)(fileHandle_t file, const char* fmt, ...);
   extern FS_Printf_t FS_Printf;
 
-  typedef int(*FS_Read_t)(void* buffer, int len, int h);
+  typedef int(*FS_Read_t)(void* buffer, int len, fileHandle_t h);
   extern FS_Read_t FS_Read;
 
-  typedef int(*FS_Seek_t)(int fileHandle, int seekPosition, int seekOrigin);
+  typedef int(*FS_Seek_t)(fileHandle_t fileHandle, int seekPosition, int seekOrigin);
   extern FS_Seek_t FS_Seek;
 
-  typedef int(*FS_FTell_t)(int fileHandle);
+  typedef int(*FS_FTell_t)(fileHandle_t fileHandle);
   extern FS_FTell_t FS_FTell;
 
   typedef int(*FS_Remove_t)(char*);
@@ -70,9 +64,6 @@ namespace Game
 
   typedef int(*FS_Restart_t)(int localClientNum, int checksumFeed);
   extern FS_Restart_t FS_Restart;
-
-  typedef int(*FS_BuildPathToFile_t)(const char*, const char*, const char*, char**);
-  extern FS_BuildPathToFile_t FS_BuildPathToFile;
 
   typedef iwd_t* (*FS_IsShippedIWD_t)(const char* fullpath, const char* iwd);
   extern FS_IsShippedIWD_t FS_IsShippedIWD;
@@ -83,11 +74,12 @@ namespace Game
   typedef void(*FS_BuildOSPath_t)(const char* base, const char* game, const char* qpath, char* ospath);
   extern FS_BuildOSPath_t FS_BuildOSPath;
 
+  typedef void(*FS_AddLocalizedGameDirectory_t)(const char* path, const char* dir);
+  extern FS_AddLocalizedGameDirectory_t FS_AddLocalizedGameDirectory;
+
   extern searchpath_s** fs_searchpaths;
 
   extern char* fs_gamedir;
 
-  extern int FS_FOpenFileReadCurrentThread(const char* filename, int* file);
-
-  extern "C" void FS_AddLocalizedGameDirectory(const char* path, const char* dir);
+  extern int FS_FOpenFileReadCurrentThread(const char* filename, fileHandle_t* file);
 }

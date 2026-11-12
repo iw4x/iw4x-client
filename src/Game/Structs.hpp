@@ -26,6 +26,10 @@ namespace Game
 
   typedef unsigned __int16 scr_string_t;
 
+  // File system handle, 64-bit on x64.
+  //
+  typedef int64_t fileHandle_t;
+
   struct scr_entref_t
   {
     unsigned __int16 entnum;
