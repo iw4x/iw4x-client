@@ -83,4 +83,20 @@ namespace Game
   extern const char* origErrorMsg;
 
   extern XModel* G_GetModel(int index);
+
+  // Note that x64 compiles out the following functions, so these are our
+  // own versions of the x86 ones.
+  //
+
+  // Return the name of the entity's type, which must not be an event.
+  //
+  extern const char* G_GetEntityTypeName(const gentity_s* ent);
+
+  // Print the number, type, and classname of every entity in use.
+  //
+  extern void Svcmd_EntityList_f();
+
+  // Print the number, classname, and origin of every entity.
+  //
+  extern void G_PrintEntities();
 }

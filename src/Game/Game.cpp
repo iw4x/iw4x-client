@@ -39,6 +39,55 @@ namespace Game
 
   const char* origErrorMsg = reinterpret_cast<const char*>(0x140422B48);
 
+  const char* G_GetEntityTypeName(const gentity_s* ent)
+  {
+    // Entity type names, which outlive the x64 function that used them.
+    //
+    const char* const* names (reinterpret_cast<const char* const*>(0x140422AB0));
+
+    assert(ent->s.eType >= 0 && ent->s.eType < ET_EVENTS);
+    return names[ent->s.eType];
+  }
+
+  void Svcmd_EntityList_f()
+  {
+    for (int i (1); i < level->num_entities; ++i)
+    {
+      const gentity_s& e (g_entities[i]);
+
+      if (!e.r.isInUse)
+      {
+        continue;
+      }
+
+      Com_Printf(CON_CHANNEL_DONT_FILTER, "%3i: ", i);
+      Com_Printf(CON_CHANNEL_DONT_FILTER, "'%s'", BG_GetEntityTypeName(e.s.eType));
+
+      if (e.classname != 0)
+      {
+        Com_Printf(CON_CHANNEL_DONT_FILTER, ", '%s'", SL_ConvertToString(e.classname));
+      }
+
+      Com_Printf(CON_CHANNEL_DONT_FILTER, "\n");
+    }
+  }
+
+  void G_PrintEntities()
+  {
+    for (int i (0); i < level->num_entities; ++i)
+    {
+      const gentity_s& e (g_entities[i]);
+
+      Com_Printf(CON_CHANNEL_SERVER,
+                 "%4i: '%s', origin: %f %f %f\n",
+                 i,
+                 e.classname != 0 ? SL_ConvertToString(e.classname) : "",
+                 e.r.currentOrigin[0],
+                 e.r.currentOrigin[1],
+                 e.r.currentOrigin[2]);
+    }
+  }
+
   XModel* G_GetModel(const int index)
   {
     assert(index > 0);
