@@ -9582,9 +9582,9 @@ namespace Game
     CubemapShot cubemapShot;
     int cubemapSize;
     int renderScreen;
+    char pad0[8];
     int latestSnapshotNum;
     int latestSnapshotTime;
-    char pad0[4];
     snapshot_s* snap;
     snapshot_s* nextSnap;
     snapshot_s activeSnapshots[2];
@@ -9626,16 +9626,22 @@ namespace Game
     char _pad5[0x89740];
   };
 
-  // @@ TODO: verify x64 layout. On x86:
+  static_assert(offsetof(cg_s, latestSnapshotNum) == 0x3388);
+  static_assert(offsetof(cg_s, snap) == 0x3390);
+  static_assert(offsetof(cg_s, nextSnap) == 0x3398);
+  static_assert(offsetof(cg_s, activeSnapshots) == 0x33A0);
+  static_assert(offsetof(cg_s, frameInterpolation) == 0x6A778);
+  static_assert(offsetof(cg_s, time) == 0x6A780);
+  static_assert(offsetof(cg_s, refdef.view.org) == 0x6A7B8);
+  static_assert(offsetof(cg_s, refdefViewAngles) == 0x6EEC8);
+
+  // @@ TODO: verify rest of x64 layout. On x86:
   //
   //    sizeof (cg_s)                          == 0xFD540
   //    offsetof (cg_s, predictedPlayerEntity) == 0x311C
   //    offsetof (cg_s, playerEntity)          == 0x331C
   //    offsetof (cg_s, cubemapShot)           == 0x3358
-  //    offsetof (cg_s, nextSnap)              == 0x3374
-  //    offsetof (cg_s, frameInterpolation)    == 0x6A750
-  //    offsetof (cg_s, refdef)                == 0x6A778
-  //    offsetof (cg_s, refdefViewAngles)      == 0x6E6D8
+  //    offsetof (cg_s, latestSnapshotNum)     == 0x3368
   //    offsetof (cg_s, compassMapWorldSize)   == 0x73D64
   //    offsetof (cg_s, selectedLocation)      == 0x73DE0
   //
@@ -10063,6 +10069,9 @@ namespace Game
     bool entUpdateToggleContextKey;
     XAnim_s* helicopterAnims;
   };
+
+  static_assert(offsetof(cgs_t, serverCommandSequence) == 0x14);
+  static_assert(offsetof(cgs_t, processedSnapshotNum) == 0x18);
 
   // @@ TODO: verify x64 size (0x3BA4 on x86).
   //
