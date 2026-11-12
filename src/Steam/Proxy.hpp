@@ -9,8 +9,12 @@
 #define GAMEOVERLAY_LIB "gameoverlayrenderer.dll"
 #define STEAMCLIENT_LIB "steamclient.dll"
 #define STEAM_REGISTRY_PATH "Software\\Valve\\Steam"
-#define STEAM_REGISTRY_PROCESS_PATH "Software\\Valve\\Steam\\ActiveProcess"
 #endif
+
+// Note that WOW64 doesn't redirect HKEY_CURRENT_USER\Software\Valve, so
+// this path is the same for 32-bit and 64-bit processes.
+//
+#define STEAM_REGISTRY_PROCESS_PATH "Software\\Valve\\Steam\\ActiveProcess"
 
 namespace Steam
 {
