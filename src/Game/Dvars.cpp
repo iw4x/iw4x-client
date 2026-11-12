@@ -82,6 +82,10 @@ namespace Game
   const dvar_t** cg_chatTime = reinterpret_cast<const dvar_t**>(0x1406BB128);
   const dvar_t** cg_scoreboardHeight = reinterpret_cast<const dvar_t**>(0x1406BF958);
   const dvar_t** cg_scoreboardWidth = reinterpret_cast<const dvar_t**>(0x1406BF950);
+  const dvar_t** cg_drawFPS = reinterpret_cast<const dvar_t**>(0x140585388);
+  const dvar_t** cg_drawFPSLabels = reinterpret_cast<const dvar_t**>(0x1406BACE0);
+  const dvar_t** cg_drawSnapshot = reinterpret_cast<const dvar_t**>(0x1406BAD08);
+  const dvar_t** cg_drawViewpos = reinterpret_cast<const dvar_t**>(0x140589718);
 
   const dvar_t** version = reinterpret_cast<const dvar_t**>(0x141BD7920);
   const dvar_t** shortversion = reinterpret_cast<const dvar_t**>(0x141BD7928);
@@ -101,6 +105,7 @@ namespace Game
 
   const dvar_t** party_minplayers = reinterpret_cast<const dvar_t**>(0x140D09808);
   const dvar_t** party_maxplayers = reinterpret_cast<const dvar_t**>(0x140D09998);
+  const dvar_t** party_hostname = reinterpret_cast<const dvar_t**>(0x140D09890);
 
   const dvar_t** perk_diveVelocity = reinterpret_cast<const dvar_t**>(0x14043EDD8);
   const dvar_t** perk_diveDistanceCheck = reinterpret_cast<const dvar_t**>(0x14043EDE0);

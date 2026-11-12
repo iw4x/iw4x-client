@@ -143,6 +143,10 @@ namespace Game
   extern const dvar_t** cg_chatTime;
   extern const dvar_t** cg_scoreboardHeight;
   extern const dvar_t** cg_scoreboardWidth;
+  extern const dvar_t** cg_drawFPS;
+  extern const dvar_t** cg_drawFPSLabels;
+  extern const dvar_t** cg_drawSnapshot;
+  extern const dvar_t** cg_drawViewpos;
 
   extern const dvar_t** version;
   /// <summary>
@@ -165,6 +169,7 @@ namespace Game
 
   extern const dvar_t** party_minplayers;
   extern const dvar_t** party_maxplayers;
+  extern const dvar_t** party_hostname;
 
   extern const dvar_t** ip;
   extern const dvar_t** port;
