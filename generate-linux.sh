@@ -722,7 +722,7 @@ compile ()
     error "solution file $sln not found"
   fi
 
-  args="/p:Configuration=$cfg"
+  args="/p:Configuration=$cfg /p:Platform=x64"
   if test "$verb" = true; then
     args="$args /verbosity:detailed"
   fi
