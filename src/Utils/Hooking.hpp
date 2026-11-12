@@ -24,7 +24,7 @@ namespace Utils
       };
 
       Signature(void* _start, size_t _length) : start(_start), length(_length) {}
-      Signature(DWORD _start, size_t _length) : Signature(reinterpret_cast<void*>(_start), _length) {}
+      Signature(uintptr_t _start, size_t _length) : Signature(reinterpret_cast<void*>(_start), _length) {}
       Signature() : Signature(0x400000, 0x800000) {}
 
       void process();
@@ -41,16 +41,16 @@ namespace Utils
     Hook(void* place, void* stub, bool useJump = true) : Hook() { this->initialize(place, stub, useJump); }
     Hook(void* place, void(*stub)(), bool useJump = true) : Hook(place, reinterpret_cast<void*>(stub), useJump) {}
 
-    Hook(DWORD place, void* stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
-    Hook(DWORD place, DWORD stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
-    Hook(DWORD place, void(*stub)(), bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
+    Hook(uintptr_t place, void* stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
+    Hook(uintptr_t place, uintptr_t stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
+    Hook(uintptr_t place, void(*stub)(), bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
 
     template <typename Stub> requires std::is_function_v<Stub>
     Hook(void* place, Stub* stub, bool useJump = true)
       : Hook(place, reinterpret_cast<void*>(stub), useJump) {}
 
     template <typename Stub> requires std::is_function_v<Stub>
-    Hook(DWORD place, Stub* stub, bool useJump = true)
+    Hook(uintptr_t place, Stub* stub, bool useJump = true)
       : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
 
     template <typename Target, typename Stub> requires std::is_function_v<Target>
@@ -60,8 +60,8 @@ namespace Utils
     ~Hook();
 
     Hook* initialize(void* place, void* stub, bool useJump = true);
-    Hook* initialize(DWORD place, void* stub, bool useJump = true);
-    Hook* initialize(DWORD place, void(*stub)(), bool useJump = true); // For lambdas
+    Hook* initialize(uintptr_t place, void* stub, bool useJump = true);
+    Hook* initialize(uintptr_t place, void(*stub)(), bool useJump = true); // For lambdas
     Hook* install(bool unprotect = true, bool keepUnprotected = false);
     Hook* uninstall(bool unprotect = true);
 
@@ -76,32 +76,32 @@ namespace Utils
     // integer, which it then replaces with a trap since the integer isn't a
     // function.
     //
-    template <Function T> static T* Call(DWORD function)
+    template <Function T> static T* Call(uintptr_t function)
     {
       return reinterpret_cast<T*>(function);
     }
 
     template <Function T> static T* Call(FARPROC function)
     {
-      return Call<T>(reinterpret_cast<DWORD>(function));
+      return Call<T>(reinterpret_cast<uintptr_t>(function));
     }
 
     template <Function T> static T* Call(void* function)
     {
-      return Call<T>(reinterpret_cast<DWORD>(function));
+      return Call<T>(reinterpret_cast<uintptr_t>(function));
     }
 
     static void SetString(void* place, const char* string, size_t length);
-    static void SetString(DWORD place, const char* string, size_t length);
+    static void SetString(uintptr_t place, const char* string, size_t length);
 
     static void SetString(void* place, const char* string);
-    static void SetString(DWORD place, const char* string);
+    static void SetString(uintptr_t place, const char* string);
 
     static void Nop(void* place, size_t length);
-    static void Nop(DWORD place, size_t length);
+    static void Nop(uintptr_t place, size_t length);
 
     static void RedirectJump(void* place, void* stub);
-    static void RedirectJump(DWORD place, void* stub);
+    static void RedirectJump(uintptr_t place, void* stub);
 
     template <typename T> static void Set(void* place, T value)
     {
@@ -114,7 +114,7 @@ namespace Utils
       FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
     }
 
-    template <typename T> static void Set(DWORD place, T value)
+    template <typename T> static void Set(uintptr_t place, T value)
     {
       return Set<T>(reinterpret_cast<void*>(place), value);
     }
@@ -130,7 +130,7 @@ namespace Utils
       FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
     }
 
-    template <typename T> static void Xor(DWORD place, T value)
+    template <typename T> static void Xor(uintptr_t place, T value)
     {
       return Xor<T>(reinterpret_cast<void*>(place), value);
     }
@@ -146,7 +146,7 @@ namespace Utils
       FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
     }
 
-    template <typename T> static void Or(DWORD place, T value)
+    template <typename T> static void Or(uintptr_t place, T value)
     {
       return Or<T>(reinterpret_cast<void*>(place), value);
     }
@@ -162,7 +162,7 @@ namespace Utils
       FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
     }
 
-    template <typename T> static void And(DWORD place, T value)
+    template <typename T> static void And(uintptr_t place, T value)
     {
       return And<T>(reinterpret_cast<void*>(place), value);
     }
@@ -172,7 +172,7 @@ namespace Utils
       return *static_cast<T*>(place);
     }
 
-    template <typename T> static T Get(DWORD place)
+    template <typename T> static T Get(uintptr_t place)
     {
       return Get<T>(reinterpret_cast<void*>(place));
     }
