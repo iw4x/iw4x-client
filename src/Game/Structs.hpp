@@ -9452,15 +9452,15 @@ namespace Game
     unsigned __int8 isRagdoll;
     int ragdollHandle;
     int killcamRagdollHandle;
-    int physObjId;
+    intptr_t physObjId;
     float origin[3];
     float angles[3];
     Game::GfxSkinCacheEntry skinCacheEntry;
     $79C409BC84BCEABA56F6D25E37F2711D ___u10;
   };
 
-  // @@ TODO: verify x64 size (0x6C on x86).
-  //
+  static_assert(offsetof(cpose_t, origin) == 0x20);
+  static_assert(sizeof(cpose_t) == 0x78);
 
   struct centity_s
   {
@@ -9488,11 +9488,8 @@ namespace Game
   };
 
   static_assert(sizeof(entityState_s) == 0x100);
-  // @@ TODO: verify x64 layout. On x86:
-  //
-  //    sizeof (centity_s)  == 0x200
-  //    sizeof (cgEntity_s) == 0x204
-  //
+  static_assert(offsetof(centity_s, nextState) == 0xE8);
+  static_assert(sizeof(cgEntity_s) == 0x220);
 
   struct playerEntity_t
   {
@@ -9813,8 +9810,6 @@ namespace Game
   {
     float slowdownRegionWidth;
     float slowdownRegionHeight;
-    float autoAimRegionWidth;
-    float autoAimRegionHeight;
     float autoMeleeRegionWidth;
     float autoMeleeRegionHeight;
     float lockOnRegionWidth;
@@ -9866,13 +9861,6 @@ namespace Game
     float screenHeight;
     AimScreenTarget screenTargets[64];
     int screenTargetCount;
-    int autoAimTargetEnt;
-    bool autoAimPressed;
-    bool autoAimActive;
-    float autoAimPitch;
-    float autoAimPitchTarget;
-    float autoAimYaw;
-    float autoAimYawTarget;
     AutoMeleeState autoMeleeState;
     int autoMeleeTargetEnt;
     float autoMeleePitch;
@@ -9881,6 +9869,14 @@ namespace Game
     float autoMeleeYawTarget;
     int lockOnTargetEnt;
   };
+
+  static_assert(sizeof(AimScreenTarget) == 0x34);
+  static_assert(offsetof(AimAssistGlobals, tweakables) == 0xB8);
+  static_assert(offsetof(AimAssistGlobals, eyeOrigin) == 0xD0);
+  static_assert(offsetof(AimAssistGlobals, screenTargets) == 0x134);
+  static_assert(offsetof(AimAssistGlobals, autoMeleeState) == 0xE38);
+  static_assert(offsetof(AimAssistGlobals, lockOnTargetEnt) == 0xE50);
+  static_assert(sizeof(AimAssistGlobals) == 0xE60);
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
