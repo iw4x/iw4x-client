@@ -6547,6 +6547,9 @@ namespace Game
     VariableValue stack[2048];
   };
 
+  // @@ TODO: x64 has no error_message and error_index, fix the layout when
+  //    porting GSC.
+  //
   struct scrVarPub_t
   {
     const char* fieldBuffer;
