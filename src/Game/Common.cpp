@@ -198,8 +198,15 @@ namespace Game
     opening_qconsole = false;
   }
 
+  bool (*Com_PrintMessageInterceptor)(int channel, const char* msg) = nullptr;
+
   void Com_PrintMessage(int channel, const char* msg, int error)
   {
+    if (Com_PrintMessageInterceptor != nullptr && Com_PrintMessageInterceptor(channel, msg))
+    {
+      return;
+    }
+
     // Note that x86 first adds the message to the console buffer, with
     // error selecting the color. x64 has no console buffer, so we only
     // print to the system console and the log file.
