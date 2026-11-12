@@ -34,6 +34,60 @@ namespace Utils
       return d >= std::numeric_limits<int32_t>::min() && d <= std::numeric_limits<int32_t>::max();
     }
 
+    // Allocate size bytes with protection, rounded up to whole pages, such
+    // that a 32-bit displacement from place reaches each of them. Throw
+    // std::runtime_error if there is no free spot in range.
+    //
+    uint8_t* AllocateReachable(uintptr_t place, std::size_t size, DWORD protection)
+    {
+      SYSTEM_INFO info;
+      GetSystemInfo(&info);
+
+      const uintptr_t granularity = info.dwAllocationGranularity;
+      const std::size_t page = info.dwPageSize;
+
+      size = (size + page - 1) / page * page;
+
+      auto tryAllocate = [place, size, protection] (uintptr_t a) -> uint8_t*
+      {
+        if (!Reaches(place, a) || !Reaches(place, a + size))
+        {
+          return nullptr;
+        }
+
+        MEMORY_BASIC_INFORMATION mbi;
+        if (VirtualQuery(reinterpret_cast<void*>(a), &mbi, sizeof(mbi)) == 0 ||
+            mbi.State != MEM_FREE                                            ||
+            reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize - a < size)
+        {
+          return nullptr;
+        }
+
+        return static_cast<uint8_t*>(VirtualAlloc(reinterpret_cast<void*>(a), size, MEM_RESERVE | MEM_COMMIT, protection));
+      };
+
+      const uintptr_t start = place & ~(granularity - 1);
+      const uintptr_t span = 0x80000000;
+
+      for (uintptr_t a = start; a >= granularity && start - a < span; a -= granularity)
+      {
+        if (uint8_t* p = tryAllocate(a))
+        {
+          return p;
+        }
+      }
+
+      for (uintptr_t a = start + granularity; a - start < span; a += granularity)
+      {
+        if (uint8_t* p = tryAllocate(a))
+        {
+          return p;
+        }
+      }
+
+      throw std::runtime_error(std::format("unable to allocate {} bytes near {:#x}", size, place));
+    }
+
     // Allocate a relay page within rel32 reach of next. Throw
     // std::runtime_error if there is no free spot in range.
     //
@@ -42,45 +96,7 @@ namespace Utils
       SYSTEM_INFO info;
       GetSystemInfo(&info);
 
-      const uintptr_t granularity = info.dwAllocationGranularity;
-      const std::size_t size = info.dwPageSize;
-
-      auto tryAllocate = [size, next] (uintptr_t a) -> uint8_t*
-      {
-        if (!Reaches(next, a) || !Reaches(next, a + size))
-        {
-          return nullptr;
-        }
-
-        MEMORY_BASIC_INFORMATION mbi;
-        if (VirtualQuery(reinterpret_cast<void*>(a), &mbi, sizeof(mbi)) == 0 || mbi.State != MEM_FREE)
-        {
-          return nullptr;
-        }
-
-        return static_cast<uint8_t*>(VirtualAlloc(reinterpret_cast<void*>(a), size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READ));
-      };
-
-      const uintptr_t start = next & ~(granularity - 1);
-      const uintptr_t span = 0x80000000;
-
-      for (uintptr_t a = start; a >= granularity && start - a < span; a -= granularity)
-      {
-        if (uint8_t* p = tryAllocate(a))
-        {
-          return {p, size, 0};
-        }
-      }
-
-      for (uintptr_t a = start + granularity; a - start < span; a += granularity)
-      {
-        if (uint8_t* p = tryAllocate(a))
-        {
-          return {p, size, 0};
-        }
-      }
-
-      throw std::runtime_error(std::format("unable to allocate hook relay near {:#x}", next));
+      return {AllocateReachable(next, info.dwPageSize, PAGE_EXECUTE_READ), info.dwPageSize, 0};
     }
 
     // Return target or, if a rel32 branch whose next instruction is at next
@@ -322,5 +338,54 @@ namespace Utils
   void Hook::RedirectJump(uintptr_t place, void* stub)
   {
     Hook::RedirectJump(reinterpret_cast<void*>(place), stub);
+  }
+  void* Hook::AllocateNear(uintptr_t place, size_t size)
+  {
+    return AllocateReachable(place, size, PAGE_READWRITE);
+  }
+
+  void Hook::Replace32(uintptr_t place, size_t length, uint32_t from, uint32_t to)
+  {
+    // Find the field among the bytes past the first opcode byte, insisting
+    // on a single match so that we never patch an unrelated operand that
+    // happens to hold the same value.
+    //
+    const uint8_t* code = reinterpret_cast<const uint8_t*>(place);
+    size_t field = 0;
+    size_t matches = 0;
+
+    for (size_t i = 1; i + sizeof(uint32_t) <= length; ++i)
+    {
+      uint32_t v;
+      std::memcpy(&v, code + i, sizeof(v));
+
+      if (v == from)
+      {
+        field = i;
+        ++matches;
+      }
+    }
+
+    if (matches != 1)
+    {
+      throw std::runtime_error(std::format("{} matches of {:#x} in instruction at {:#x}", matches, from, place));
+    }
+
+    Set<uint32_t>(place + field, to);
+  }
+
+  void Hook::Displace(uintptr_t place, size_t length, uintptr_t from, uintptr_t to)
+  {
+    Rebase(place, length, place + length, from, to);
+  }
+
+  void Hook::Rebase(uintptr_t place, size_t length, uintptr_t base, uintptr_t from, uintptr_t to)
+  {
+    if (!Reaches(base, from) || !Reaches(base, to))
+    {
+      throw std::runtime_error(std::format("{:#x} out of 32-bit reach of {:#x} in instruction at {:#x}", Reaches(base, from) ? to : from, base, place));
+    }
+
+    Replace32(place, length, static_cast<uint32_t>(from - base), static_cast<uint32_t>(to - base));
   }
 }
