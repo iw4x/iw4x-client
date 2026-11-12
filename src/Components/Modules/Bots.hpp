@@ -2,11 +2,9 @@
 
 extern "C"
 {
-  void Bots_SV_BotUserMove_Hk();
-  void Bots_G_SelectWeaponIndex_Hk();
+  void Bots_SV_BotUserMoveStub();
 
-  void Bots_BotAiAction(Game::client_s* cl);
-  void Bots_G_SelectWeaponIndex(int clientNum, unsigned int iWeaponIndex);
+  bool Bots_BotAiAction(Game::client_s* cl);
 }
 
 namespace Components
@@ -19,13 +17,9 @@ namespace Components
     static void SV_DirectConnect_Full_Check();
 
   private:
-    friend void (::Bots_BotAiAction)(Game::client_s* cl);
-    friend void (::Bots_G_SelectWeaponIndex)(int clientNum, unsigned int iWeaponIndex);
+    friend bool (::Bots_BotAiAction)(Game::client_s* cl);
 
     using botData = std::pair<std::string, std::string>;
-
-    static Game::dvar_t** aim_automelee_range;
-    static Game::dvar_t** perk_extendedMeleeRange;
 
     static const Game::dvar_t* sv_randomBotNames;
     static const Game::dvar_t* sv_replaceBots;
@@ -46,9 +40,12 @@ namespace Components
     static bool BG_HasPerk(const unsigned int* perks, const unsigned int perkIndex);
     static void AddScriptMethods();
 
-    static void BotAiAction(Game::client_s* cl);
+    static bool BotAiAction(Game::client_s* cl);
 
     static void G_SelectWeaponIndex(int clientNum, unsigned int iWeaponIndex);
+
+    static void(*G_SelectWeaponIndex_Original)(int clientNum, unsigned int iWeaponIndex);
+    static void G_SelectWeaponIndex_Hk(int clientNum, unsigned int iWeaponIndex);
 
     static bool Player_UpdateActivate_stub(int);
 
