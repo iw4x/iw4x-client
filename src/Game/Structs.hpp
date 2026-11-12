@@ -701,8 +701,7 @@ namespace Game
     const char** argv[8];
   };
 
-  // @@ TODO: verify x64 size (0x84 on x86).
-  //
+  static_assert(sizeof(CmdArgs) == 0xA8);
 
   struct cmd_function_s
   {
