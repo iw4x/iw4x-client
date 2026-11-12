@@ -373,7 +373,12 @@ namespace Utils
       finalHeaders.append("\r\n");
     }
 
-    if (HttpSendRequestA(this->hFile_, finalHeaders.data(), finalHeaders.size(), const_cast<char*>(body.data()), body.size()) == FALSE)
+    if (finalHeaders.size() > MAXDWORD || body.size() > MAXDWORD)
+    {
+      return {};
+    }
+
+    if (HttpSendRequestA(this->hFile_, finalHeaders.data(), static_cast<DWORD>(finalHeaders.size()), const_cast<char*>(body.data()), static_cast<DWORD>(body.size())) == FALSE)
     {
       return {};
     }
@@ -621,12 +626,18 @@ namespace Utils
   bool WebIO::uploadFileData(const std::string& file, const std::string& data)
   {
     bool result = false;
+
+    if (data.size() > MAXDWORD)
+    {
+      return result;
+    }
+
     this->hFile_ = FtpOpenFileA(this->hConnect_, file.data(), GENERIC_WRITE, INTERNET_FLAG_TRANSFER_BINARY | INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD, 0);
 
     if (this->hFile_)
     {
       DWORD size = 0;
-      if (InternetWriteFile(this->hFile_, data.data(), data.size(), &size) == TRUE)
+      if (InternetWriteFile(this->hFile_, data.data(), static_cast<DWORD>(data.size()), &size) == TRUE)
       {
         result = (size == data.size());
       }
