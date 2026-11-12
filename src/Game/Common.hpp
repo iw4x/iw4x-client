@@ -14,6 +14,10 @@ namespace Game
   typedef void(*Com_Error_t)(errorParm_t type, const char* message, ...);
   extern Com_Error_t Com_Error;
 
+  // Message of the error Com_Error() is handling.
+  //
+  extern char* com_errorMessage;
+
   // Print functions.
   //
   // Note that x64 has no console print path, so these are our own versions
