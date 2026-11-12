@@ -1907,12 +1907,16 @@ namespace Game
     char buffer[256];
   };
 
+  // Note that x64 binds keys to command indices rather than strings.
+  //
   struct KeyState
   {
     int down;
     int repeats;
-    const char* binding;
+    int binding;
   };
+
+  static_assert(sizeof(KeyState) == 0xC);
 
   struct PlayerKeyState
   {
@@ -1923,6 +1927,11 @@ namespace Game
     KeyState keys[256];
     LocSelInputState locSelInputState;
   };
+
+  static_assert(offsetof(PlayerKeyState, anyKeyDown) == 0x120);
+  static_assert(offsetof(PlayerKeyState, keys) == 0x124);
+  static_assert(offsetof(PlayerKeyState, locSelInputState) == 0xD24);
+  static_assert(sizeof(PlayerKeyState) == 0xD28);
 
   struct keyname_t
   {
