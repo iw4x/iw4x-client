@@ -350,7 +350,6 @@ project "iw4x"
     "src/Components/Modules/Threading.*",
     "src/Components/Modules/Toast.*",
     "src/Components/Modules/UIFeeder.*",
-    "src/Components/Modules/UIScript.*",
     "src/Components/Modules/Updater.*",
     "src/Components/Modules/ViewModelFx.*",
     "src/Components/Modules/ViewModelFxSetup.*",

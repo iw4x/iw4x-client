@@ -8,6 +8,7 @@
 #include "Modules/Network.hpp"
 #include "Modules/Logger.hpp"
 #include "Modules/Sentry.hpp"
+#include "Modules/UIScript.hpp"
 
 namespace Components
 {
@@ -36,6 +37,7 @@ namespace Components
     Register(new Network());
     Register(new Logger());
     Register(new Sentry());
+    Register(new UIScript());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).

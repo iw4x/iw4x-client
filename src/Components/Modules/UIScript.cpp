@@ -71,7 +71,7 @@ namespace Components
     return false;
   }
 
-  void UIScript::OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key)
+  int UIScript::OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key)
   {
     if (key == 200 || key == 201) // mouse buttons
     {
@@ -84,20 +84,22 @@ namespace Components
       }
     }
 
-    Utils::Hook::Call<void(int, int, float*, int)>(0x4F58A0)(ownerDraw, flags, special, key);
+    return Utils::Hook::Call<int(int, int, float*, int)>(0x14026EE10)(ownerDraw, flags, special, key);
   }
 
   UIScript::UIScript()
   {
-    AssertSize(Game::uiInfo_s, 0x22FC);
+    AssertSize(Game::uiInfo_s, 0x3948);
 
     if (Dedicated::IsEnabled()) return;
 
-    // Install handler
-    Utils::Hook::RedirectJump(0x45EC59, reinterpret_cast<void*>(UIScript_RunMenuScriptStub));
+    // Install handler. See UIScript.asm for the registers at the hook point,
+    // where UI_RunMenuScript() goes on past "StartServer".
+    //
+    Utils::Hook(0x1402703E7, UIScript_RunMenuScriptStub, HOOK_JUMP).install()->quick();
 
     // Install ownerdraw handler
-    Utils::Hook(0x63D233, OwnerDrawHandleKeyStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14025DB9B, OwnerDrawHandleKeyStub, HOOK_CALL).install()->quick();
   }
 
   UIScript::~UIScript()
