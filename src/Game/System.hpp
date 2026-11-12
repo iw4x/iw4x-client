@@ -35,9 +35,6 @@ namespace Game
   typedef void(*Sys_Sleep_t)(int msec);
   extern Sys_Sleep_t Sys_Sleep;
 
-  typedef void(*Sys_LockWrite_t)(FastCriticalSection* critSect);
-  extern Sys_LockWrite_t Sys_LockWrite;
-
   typedef void(*Sys_TempPriorityAtLeastNormalBegin_t)(TempPriority*);
   extern Sys_TempPriorityAtLeastNormalBegin_t Sys_TempPriorityAtLeastNormalBegin;
 
@@ -89,6 +86,7 @@ namespace Game
   extern RTL_CRITICAL_SECTION* s_criticalSection;
 
   extern void Sys_LockRead(FastCriticalSection* critSect);
+  extern void Sys_LockWrite(FastCriticalSection* critSect);
   extern void Sys_UnlockRead(FastCriticalSection* critSect);
   extern void Sys_UnlockWrite(FastCriticalSection* critSect);
 
