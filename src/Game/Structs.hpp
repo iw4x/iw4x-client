@@ -9946,6 +9946,8 @@ namespace Game
     } movement;
   };
 
+  static_assert(sizeof(shellshock_parms_t) == 0x268);
+
   struct animation_s
   {
     char name[MAX_QPATH];
@@ -10051,10 +10053,6 @@ namespace Game
     int privateClients;
     char mapname[64];
     int gameEndTime;
-    int voteTime;
-    int voteYes;
-    int voteNo;
-    char voteString[256];
     XModel* gameModels[512];
     FxEffectDef* smokeGrenadeFx;
     shellshock_parms_t holdBreathParams;
@@ -10072,9 +10070,14 @@ namespace Game
 
   static_assert(offsetof(cgs_t, serverCommandSequence) == 0x14);
   static_assert(offsetof(cgs_t, processedSnapshotNum) == 0x18);
-
-  // @@ TODO: verify x64 size (0x3BA4 on x86).
-  //
+  static_assert(offsetof(cgs_t, gameModels) == 0x190);
+  static_assert(offsetof(cgs_t, holdBreathParams) == 0x1198);
+  static_assert(offsetof(cgs_t, teamChatMsgs) == 0x1400);
+  static_assert(offsetof(cgs_t, teamChatMsgTimes) == 0x1900);
+  static_assert(offsetof(cgs_t, teamChatPos) == 0x1920);
+  static_assert(offsetof(cgs_t, corpseinfo) == 0x1938);
+  static_assert(offsetof(cgs_t, helicopterAnims) == 0x4380);
+  static_assert(sizeof(cgs_t) == 0x4388);
 
   struct ConversionArguments
   {
