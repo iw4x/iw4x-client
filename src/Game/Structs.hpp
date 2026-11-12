@@ -6300,6 +6300,8 @@ namespace Game
     char name[256];
   };
 
+  static_assert(sizeof(fileHandleData_t) == 0x130);
+
   struct directory_t
   {
     char path[MAX_OSPATH];
