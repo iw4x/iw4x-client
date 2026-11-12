@@ -708,10 +708,7 @@ namespace Game
   {
     cmd_function_s* next;
     const char* name;
-    const char* autoCompleteDir;
-    const char* autoCompleteExt;
     void(__cdecl* function)();
-    int flags;
   };
 
 #pragma pack(push, 4)
