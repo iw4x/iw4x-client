@@ -94,6 +94,7 @@ namespace Game
   extern Dvar_ClearModified_t Dvar_ClearModified;
 
   extern const dvar_t** com_developer;
+  extern const dvar_t** com_logfile;
   extern const dvar_t** com_developer_script;
   extern const dvar_t** com_timescale;
   extern const dvar_t** com_maxFrameTime;

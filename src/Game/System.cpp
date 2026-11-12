@@ -23,6 +23,7 @@ namespace Game
   Sys_SendPacket_t Sys_SendPacket = Sys_SendPacket_t(0x140205120);
   Sys_ShowConsole_t Sys_ShowConsole = Sys_ShowConsole_t(0x1402A7F30);
   Sys_SetErrorText_t Sys_SetErrorText = Sys_SetErrorText_t(0x1402A7EE0);
+  Sys_Print_t Sys_Print = Sys_Print_t(0x1402A78C0);
   Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads = Sys_SuspendOtherThreads_t(0x1402094C0);
   Sys_SetValue_t Sys_SetValue = Sys_SetValue_t(0x140209080);
   Sys_CreateFile_t Sys_CreateFile = Sys_CreateFile_t(0x14028C3C0);
