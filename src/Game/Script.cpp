@@ -113,6 +113,18 @@ namespace Game
     scrVmPub->inparamcount++;
   }
 
+  void Scr_Error(const char* error)
+  {
+    Com_PrintError(CON_CHANNEL_PARSERSCRIPT, "%s\n", error);
+    Scr_ErrorInternal();
+  }
+
+  void Scr_ParamError(unsigned int paramIndex, const char* error)
+  {
+    Com_PrintError(CON_CHANNEL_PARSERSCRIPT, "parameter %u: %s\n", paramIndex + 1, error);
+    Scr_ErrorInternal();
+  }
+
   void Scr_AddBool(int value)
   {
     assert(value == 0 || value == 1);

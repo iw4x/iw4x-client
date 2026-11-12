@@ -155,6 +155,16 @@ namespace Game
   typedef void(*Scr_ErrorInternal_t)();
   extern Scr_ErrorInternal_t Scr_ErrorInternal;
 
+  // Raise a script error, the second one about the parameter at
+  // paramIndex.
+  //
+  // Note that x64 compiles out the message these take on x86, along with
+  // the scrVarPub fields that keep it for the error report, so we print it
+  // before raising the error.
+  //
+  void Scr_Error(const char* error);
+  void Scr_ParamError(unsigned int paramIndex, const char* error);
+
   typedef void(*Scr_GetObjectField_t)(unsigned int classnum, int entnum, int offset);
   extern Scr_GetObjectField_t Scr_GetObjectField;
 
