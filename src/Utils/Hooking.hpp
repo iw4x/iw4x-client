@@ -25,7 +25,6 @@ namespace Utils
 
       Signature(void* _start, size_t _length) : start(_start), length(_length) {}
       Signature(uintptr_t _start, size_t _length) : Signature(reinterpret_cast<void*>(_start), _length) {}
-      Signature() : Signature(0x400000, 0x800000) {}
 
       void process();
       void add(const Container& container);
