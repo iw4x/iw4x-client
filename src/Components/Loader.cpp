@@ -17,6 +17,7 @@
 #include "Modules/Branding.hpp"
 #include "Modules/Bullet.hpp"
 #include "Modules/CardTitles.hpp"
+#include "Modules/Ceg.hpp"
 
 namespace Components
 {
@@ -54,6 +55,7 @@ namespace Components
     Register(new Branding());
     Register(new Bullet());
     Register(new CardTitles());
+    Register(new Ceg());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
