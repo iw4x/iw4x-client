@@ -127,8 +127,8 @@ namespace Utils
 
     for (auto& entry : this->ptrList)
     {
-      unsigned int ePtr = reinterpret_cast<unsigned int>(entry.first);
-      unsigned int tPtr = reinterpret_cast<unsigned int>(pointer);
+      uintptr_t ePtr = reinterpret_cast<uintptr_t>(entry.first);
+      uintptr_t tPtr = reinterpret_cast<uintptr_t>(pointer);
 
       if (HasIntersection(ePtr, entry.second, tPtr, length))
       {
