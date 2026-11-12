@@ -120,6 +120,7 @@ namespace Game
   extern const dvar_t** sv_gametype;
   extern const dvar_t** sv_mapname;
   extern const dvar_t** sv_maxclients;
+  extern const dvar_t** com_sv_running;
   extern const dvar_t** sv_voiceQuality;
 
   extern const dvar_t** nextmap;

@@ -64,6 +64,47 @@ namespace Game
     }
   }
 
+  client_s* SV_GetPlayerByNum()
+  {
+    if (!(*com_sv_running)->current.enabled)
+    {
+      return nullptr;
+    }
+
+    const int argc (sv_cmd_args->argc[sv_cmd_args->nesting]);
+    if (argc < 2)
+    {
+      Com_Printf(CON_CHANNEL_DONT_FILTER, "No player specified.\n");
+      return nullptr;
+    }
+
+    const char* s (sv_cmd_args->argv[sv_cmd_args->nesting][1]);
+    for (const char* p (s); *p != '\0'; ++p)
+    {
+      if (*p < '0' || *p > '9')
+      {
+        Com_Printf(CON_CHANNEL_DONT_FILTER, "Bad slot number: %s\n", s);
+        return nullptr;
+      }
+    }
+
+    const int n (std::atoi(s));
+    if (n < 0 || n >= *svs_clientCount)
+    {
+      Com_Printf(CON_CHANNEL_DONT_FILTER, "Bad client slot: %i\n", n);
+      return nullptr;
+    }
+
+    client_s* cl (&svs_clients[n]);
+    if (cl->header.state == CS_FREE)
+    {
+      Com_Printf(CON_CHANNEL_DONT_FILTER, "Client %i is not active\n", n);
+      return nullptr;
+    }
+
+    return cl;
+  }
+
   int SV_GetClientStat(int clientNum, int index)
   {
     assert(svs_clients[clientNum].statPacketsReceived == (1 << MAX_STATPACKETS) - 1);

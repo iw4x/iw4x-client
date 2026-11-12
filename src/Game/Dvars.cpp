@@ -62,6 +62,7 @@ namespace Game
   const dvar_t** sv_gametype = reinterpret_cast<const dvar_t**>(0x14650B708);
   const dvar_t** sv_mapname = reinterpret_cast<const dvar_t**>(0x14650B6F8);
   const dvar_t** sv_maxclients = reinterpret_cast<const dvar_t**>(0x14650B6D8);
+  const dvar_t** com_sv_running = reinterpret_cast<const dvar_t**>(0x141BD7910);
   const dvar_t** sv_voiceQuality = reinterpret_cast<const dvar_t**>(0x14650B728);
 
   const dvar_t** nextmap = reinterpret_cast<const dvar_t**>(0x141BD7938);
