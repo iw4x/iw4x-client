@@ -6041,7 +6041,6 @@ namespace Game
     XAsset asset;
     char zoneIndex;
     volatile char inuseMask;
-    bool printedMissingAsset;
     unsigned __int16 nextHash;
     unsigned __int16 nextOverride;
   };
