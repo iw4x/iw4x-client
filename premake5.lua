@@ -309,7 +309,6 @@ project "iw4x"
     "src/Components/Modules/Huffman.*",
     "src/Components/Modules/Lean.*",
     "src/Components/Modules/Localization.*",
-    "src/Components/Modules/Logger.*",
     "src/Components/Modules/MapDump.*",
     "src/Components/Modules/MapRotation.*",
     "src/Components/Modules/Maps.*",
