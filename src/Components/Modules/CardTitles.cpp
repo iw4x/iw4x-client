@@ -7,11 +7,6 @@ namespace Components
   char CardTitles::CustomTitles[Game::MAX_CLIENTS][18];
   Dvar::Var CardTitles::CustomTitle;
 
-  CClient* CardTitles::GetClientByIndex(std::uint32_t index)
-  {
-    return &reinterpret_cast<CClient*>(0x8E77B0)[index];
-  }
-
   int CardTitles::GetPlayerCardClientInfo(int lookupResult, Game::PlayerCardData* data)
   {
     auto result = lookupResult;
@@ -25,16 +20,12 @@ namespace Components
     {
       for (std::size_t i = 0; i < Game::MAX_CLIENTS; ++i)
       {
-        CClient* c = GetClientByIndex(i);
-        if (c != nullptr)
+        if (!std::strcmp(data->name, Game::cgClientInfo[i].name))
         {
-          if (!std::strcmp(data->name, c->Name))
-          {
-            // Since a 4 byte integer is overkill for a row num: We can use it to store the customprefix + clientNum and use a 2 byte integer for the row number
-            result += 0xFF000000;
-            result += i * 0x10000;
-            break;
-          }
+          // Since a 4 byte integer is overkill for a row num: We can use it to store the customprefix + clientNum and use a 2 byte integer for the row number
+          result += 0xFF000000;
+          result += static_cast<int>(i) * 0x10000;
+          break;
         }
       }
     }
@@ -42,56 +33,42 @@ namespace Components
     return result;
   }
 
-  const char* CardTitles::TableLookupByRowHook(Game::Operand* operand, tablelookuprequest_s* request)
+  const char* CardTitles::TableLookupByRowHook(const Game::StringTable* table, int row, int column)
   {
-    std::uint8_t prefix = (request->tableRow >> (8 * 3)) & 0xFF;
-    std::uint8_t data = (request->tableRow >> (8 * 2)) & 0xFF;
+    std::uint8_t prefix = (row >> (8 * 3)) & 0xFF;
+    std::uint8_t data = (row >> (8 * 2)) & 0xFF;
 
-    if (data >= Game::MAX_CLIENTS) return nullptr;
-
-    if (request->tablename == "mp/cardTitleTable.csv"s)
+    // Note that the game looks assets up ignoring case, so the table name
+    // may differ in case from the one we expect.
+    //
+    if (data < Game::MAX_CLIENTS && prefix != 0x00 && Game::I_stricmp(table->name, "mp/cardTitleTable.csv") == 0)
     {
-      if (prefix != 0x00)
+      // Column 1 = CardTitle
+      if (column == 1)
       {
-        // Column 1 = CardTitle
-        if (request->tableColumn == 1)
+        if (prefix == 0xFE)
         {
-          if (prefix == 0xFE)
+          if (!CustomTitle.get<std::string>().empty())
           {
-            if (!CustomTitle.get<std::string>().empty())
-            {
-              // 0xFF in front of the title to skip localization. Or else it will wait for a couple of seconds for the asset of type localize
-              const auto* title = Utils::String::VA("\x15%s", CustomTitle.get<const char*>());
-
-              // prepare return value
-              operand->internals.stringVal.string = title;
-              operand->dataType = Game::VAL_STRING;
-
-              return title;
-            }
-          }
-          else if (prefix == 0xFF)
-          {
-            if (CustomTitles[data][0] != '\0')
-            {
-              const auto* title = Utils::String::VA("\x15%s", CustomTitles[data]);
-
-              // prepare return value
-              operand->internals.stringVal.string = title;
-              operand->dataType = Game::VAL_STRING;
-
-              return title;
-            }
+            // 0xFF in front of the title to skip localization. Or else it will wait for a couple of seconds for the asset of type localize
+            return Utils::String::VA("\x15%s", CustomTitle.get<const char*>());
           }
         }
-
-        // If the title was changed it already returned at this point so...
-        // Remove prefix and data to make being readable to the normal lookuprequest
-        request->tableRow &= 0xFFFF;
+        else if (prefix == 0xFF)
+        {
+          if (CustomTitles[data][0] != '\0')
+          {
+            return Utils::String::VA("\x15%s", CustomTitles[data]);
+          }
+        }
       }
+
+      // If the title was changed it already returned at this point so...
+      // Remove prefix and data to make being readable to the normal lookuprequest
+      row &= 0xFFFF;
     }
 
-    return nullptr;
+    return Game::StringTable_GetColumnValueForRow(table, row, column);
   }
 
   void CardTitles::SendCustomTitlesToClients()
@@ -158,20 +135,20 @@ namespace Components
       return false;
     });
 
-    Utils::Hook(0x62EB26, CardTitles_GetPlayerCardClientInfoStub).install()->quick();
+    // Tag the card title row in the player card expression with whose card
+    // it is.
+    //
+    Utils::Hook(0x14025006A, CardTitles_GetPlayerCardClientInfoStub, HOOK_JUMP).install()->quick();
 
-    // Table lookup stuff
-    Utils::Hook(0x62DCC1, CardTitles_TableLookupByRowHookStub).install()->quick();
-    Utils::Hook::Nop(0x62DCC6, 1);
+    // Note that x64 inlines the tableLookupByRow expression into the
+    // expression evaluator, leaving its string table lookup as the place to
+    // substitute the title.
+    //
+    Utils::Hook(0x14025540F, TableLookupByRowHook, HOOK_CALL).install()->quick();
   }
 }
 
 int CardTitles_GetPlayerCardClientInfo(int lookupResult, Game::PlayerCardData* data)
 {
   return Components::CardTitles::GetPlayerCardClientInfo(lookupResult, data);
-}
-
-const char* CardTitles_TableLookupByRowHook(Game::Operand* operand, Components::tablelookuprequest_s* request)
-{
-  return Components::CardTitles::TableLookupByRowHook(operand, request);
 }
