@@ -17,6 +17,10 @@ namespace Components
     Pregame = true;
     Utils::Memory::GetAllocator()->clear();
 
+    // High priority.
+    //
+    Register(new Singleton());
+
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
     //
