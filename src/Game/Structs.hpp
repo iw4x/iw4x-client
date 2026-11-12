@@ -6432,16 +6432,20 @@ namespace Game
     HunkUser* current;
     HunkUser* next;
     int maxSize;
-    int end;
-    int pos;
+    intptr_t end;
+    intptr_t pos;
     const char* name;
     bool fixed;
     int type;
-    char buf[1];
   };
 
-  // @@ TODO: verify x64 size (36 on x86).
+  static_assert(sizeof(HunkUser) == 0x38);
+
+  // Offset of the first allocation in a hunk user.
   //
+  // Note that x64 doesn't place it right after the last field.
+  //
+  constexpr int HUNK_USER_HEADER_SIZE = 0x40;
 
   struct VariableStackBuffer
   {
