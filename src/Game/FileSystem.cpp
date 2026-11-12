@@ -32,6 +32,16 @@ namespace Game
 
   char* fs_gamedir = reinterpret_cast<char*>(0x1466428E0);
 
+  fileHandleData_t* fsh = reinterpret_cast<fileHandleData_t*>(0x146642A20);
+
+  // Note that x64 only flushes inside FS_Write() for handles opened for
+  // synchronous writes.
+  //
+  void FS_Flush(fileHandle_t f)
+  {
+    std::fflush(fsh[f].handleFiles.file.o);
+  }
+
   int FS_FOpenFileReadCurrentThread(const char* filename, fileHandle_t* file)
   {
     if (GetCurrentThreadId() == *reinterpret_cast<DWORD*>(0x141DF0F90))

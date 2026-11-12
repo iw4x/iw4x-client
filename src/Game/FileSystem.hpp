@@ -81,5 +81,9 @@ namespace Game
 
   extern char* fs_gamedir;
 
+  extern fileHandleData_t* fsh;
+
+  void FS_Flush(fileHandle_t f);
+
   extern int FS_FOpenFileReadCurrentThread(const char* filename, fileHandle_t* file);
 }
