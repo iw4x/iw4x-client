@@ -99,7 +99,9 @@ namespace Game
   extern cg_s* cgArray;
   extern cgs_t* cgsArray;
   extern cgEntity_s* cg_entitiesArray;
-  extern CompassActor* s_compassActors;
-  extern CompassVehicle* s_compassVehicles;
+
+  // Client info the cgame keeps, one per client.
+  //
+  extern clientInfo_t* cgClientInfo;
   extern dvar_t** cl_paused;
 }
