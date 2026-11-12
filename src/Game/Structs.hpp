@@ -10387,7 +10387,7 @@ namespace Game
     gentity_s* firstFreeEnt;
     gentity_s* lastFreeEnt;
     Turret* turrets;
-    int logFile;
+    fileHandle_t logFile;
     int initializing;
     int clientIsSpawning;
     objective_t objectives[32];
@@ -10439,6 +10439,10 @@ namespace Game
     void* vehicles;
     int hudElemLastAssignedSoundID;
   };
+
+  static_assert(offsetof(level_locals_t, logFile) == 0x30);
+  static_assert(offsetof(level_locals_t, maxclients) == 0x3C0);
+  static_assert(offsetof(level_locals_t, time) == 0x3C8);
 
   // @@ TODO: verify x64 size (0x2F78 on x86).
   //
