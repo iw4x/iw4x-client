@@ -47,3 +47,7 @@ namespace Components
     static std::vector<Component*> Components;
   };
 }
+
+#include "Modules/Dvar.hpp"
+#include "Modules/Flags.hpp"
+#include "Modules/Dedicated.hpp"
