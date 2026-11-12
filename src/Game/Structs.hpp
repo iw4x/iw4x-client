@@ -7733,7 +7733,7 @@ namespace Game
     gclient_s* client; // 344
     void /*Turret*/* turret;
     void /*Vehicle*/* vehicle;
-    int physObjId;
+    intptr_t physObjId;
     unsigned __int16 model;
     unsigned char physicsObject;
     unsigned char takedamage;
@@ -7762,7 +7762,7 @@ namespace Game
     entity_data_t entData;
     EntHandle missileTargetEnt;
     EntHandle remoteControlledOwner;
-    int tagInfo;
+    void /*tagInfo_s*/* tagInfo;
     gentity_s* tagChildren;
     unsigned __int16 attachModelNames[19];
     unsigned __int16 attachTagNames[19];
@@ -7771,8 +7771,15 @@ namespace Game
     int birthTime;
   };
 
-  // @@ TODO: verify x64 size (0x274 on x86).
-  //
+  static_assert(offsetof(gentity_s, client) == 0x158);
+  static_assert(offsetof(gentity_s, physObjId) == 0x170);
+  static_assert(offsetof(gentity_s, freeAfterEvent) == 0x17F);
+  static_assert(offsetof(gentity_s, classname) == 0x182);
+  static_assert(offsetof(gentity_s, eventTime) == 0x198);
+  static_assert(offsetof(gentity_s, tagInfo) == 0x228);
+  static_assert(offsetof(gentity_s, useCount) == 0x284);
+  static_assert(offsetof(gentity_s, nextFree) == 0x288);
+  static_assert(sizeof(gentity_s) == 0x298);
 
   enum
   {
