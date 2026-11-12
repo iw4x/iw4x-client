@@ -2,6 +2,8 @@
 
 #include "Loader.hpp"
 
+#include "Modules/Auth.hpp"
+
 namespace Components
 {
   bool Loader::Pregame = true;
@@ -20,6 +22,8 @@ namespace Components
     // High priority.
     //
     Register(new Singleton());
+
+    Register(new Auth());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
