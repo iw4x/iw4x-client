@@ -373,7 +373,6 @@ project "iw4x"
     "src/Components/Modules/BotLib/**",
     "src/Components/Modules/GSC/**",
     "src/Controller/**",
-    "src/Game/**",
     "src/Sentry/**"
   }
 
@@ -384,9 +383,8 @@ project "iw4x"
   -- XamlTaskFactory, which MSBuild under Wine doesn't have.
   --
   -- We also prefix the object name with the name of the source directory
-  -- since the objects all go into the same directory and, for example,
-  -- Game/FileSystem.asm and Components/Modules/FileSystem.asm would
-  -- otherwise both produce FileSystem.asm.obj.
+  -- since the objects all go into the same directory and two assembly
+  -- sources with the same name would otherwise produce the same object.
   --
   -- Note that the custom build step passes its outputs to the linker.
   --
