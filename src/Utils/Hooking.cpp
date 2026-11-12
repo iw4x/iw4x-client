@@ -91,7 +91,7 @@ namespace Utils
 
     *code = static_cast<char>(this->useJump ? 0xE9 : 0xE8);
 
-    *reinterpret_cast<size_t*>(code + 1) = reinterpret_cast<size_t>(this->stub) - (reinterpret_cast<size_t>(this->place) + 5);
+    *reinterpret_cast<int32_t*>(code + 1) = static_cast<int32_t>(reinterpret_cast<intptr_t>(this->stub) - reinterpret_cast<intptr_t>(code + 5));
 
     if (unprotect && !keepUnprotected) VirtualProtect(this->place, sizeof(this->buffer), this->protection, &this->protection);
 
