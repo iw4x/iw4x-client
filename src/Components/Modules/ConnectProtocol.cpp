@@ -144,7 +144,7 @@ namespace Components
 
     // Write URL:IW4x Protocol
     data = "URL:IW4x Protocol";
-    openRes = RegSetValueExA(hKey, "URL Protocol", 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
+    openRes = RegSetValueExA(hKey, "URL Protocol", 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), static_cast<DWORD>(data.size() + 1));
 
     if (openRes != ERROR_SUCCESS)
     {
@@ -161,7 +161,7 @@ namespace Components
     }
 
     data = Utils::String::VA("%s,1", ownPth);
-    openRes = RegSetValueExA(hKey, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
+    openRes = RegSetValueExA(hKey, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), static_cast<DWORD>(data.size() + 1));
     RegCloseKey(hKey);
 
     if (openRes != ERROR_SUCCESS)
@@ -185,7 +185,7 @@ namespace Components
     }
 
     data = Utils::String::VA("\"%s\" \"%s\"", ownPth, "%1");
-    openRes = RegSetValueExA(hKey, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), data.size() + 1);
+    openRes = RegSetValueExA(hKey, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(data.data()), static_cast<DWORD>(data.size() + 1));
     RegCloseKey(hKey);
 
     if (openRes != ERROR_SUCCESS)
@@ -274,7 +274,7 @@ namespace Components
       else
       {
         // Only skip intro here, invocation will be done later.
-        Utils::Hook::Set<std::uint8_t>(0x60BECF, 0xEB);
+        Utils::Hook::Set<std::uint8_t>(0x1401F566D, 0xEB);
 
         Scheduler::Once([]
         {
