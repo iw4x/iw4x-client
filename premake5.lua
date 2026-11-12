@@ -279,7 +279,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/Branding.*",
     "src/Components/Modules/Bullet.*",
     "src/Components/Modules/CardTitles.*",
     "src/Components/Modules/Ceg.*",
