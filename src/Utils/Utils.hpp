@@ -38,7 +38,7 @@ namespace Utils
 
   std::wstring GetLaunchParameters();
 
-  bool HasIntersection(unsigned int base1, unsigned int len1, unsigned int base2, unsigned int len2);
+  bool HasIntersection(uintptr_t base1, std::size_t len1, uintptr_t base2, std::size_t len2);
 
   std::string GetTime();
 
