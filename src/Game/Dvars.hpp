@@ -108,7 +108,10 @@ namespace Game
 
   extern const dvar_t** dev_timescale;
 
-  extern const dvar_t** dvar_cheats;
+  // Note that x64 compiles out the registration of sv_cheats, which the Dvar
+  // component restores.
+  //
+  extern const dvar_t* dvar_cheats;
 
   extern const dvar_t** fs_cdpath;
   extern const dvar_t** fs_basepath;

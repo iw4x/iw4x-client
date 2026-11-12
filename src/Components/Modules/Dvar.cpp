@@ -362,6 +362,11 @@ namespace Components
 
   Dvar::Dvar()
   {
+    // Restore sv_cheats, which x64 no longer registers in Dvar_Init but still
+    // reads by name, with the x86 flags.
+    //
+    Game::dvar_cheats = Game::Dvar_RegisterBool("sv_cheats", false, Game::DVAR_INIT | Game::DVAR_SYSTEMINFO, "External Dvar");
+
     // Set flags of cg_drawFPS to archive.
     //
     // Note that the registration passes its flags with xor r9d, r9d, which
