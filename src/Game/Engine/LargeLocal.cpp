@@ -7,18 +7,13 @@ namespace Game::Engine
     assert(sizeParam);
     assert(Sys_IsMainThread() || CanUseServerLargeLocal());
 
-    sizeParam = ((sizeParam + (128 - 1)) & ~(128 - 1));
-
-    if (Sys_IsMainThread())
-    {
-      this->startPos = LargeLocalBegin(sizeParam);
-    }
-    else
-    {
-      this->startPos = LargeLocalBeginRight(sizeParam);
-    }
-
-    this->size = sizeParam;
+    // Let the game round the size and allocate the buffer.
+    //
+    // Note that x64 inlines LargeLocalBegin() and LargeLocalBeginRight()
+    // into its LargeLocal constructor, which stores the start position and
+    // the rounded size into the same two fields as ours.
+    //
+    LargeLocalConstruct(this, sizeParam);
   }
 
   LargeLocal::~LargeLocal()
