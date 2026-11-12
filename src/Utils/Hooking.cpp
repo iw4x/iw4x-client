@@ -440,6 +440,24 @@ namespace Utils
     Rebase(place, length, place + length, from, to);
   }
 
+  void* Hook::PlaceData(uintptr_t place, size_t length, uintptr_t from, const void* data, size_t size)
+  {
+    void* p (AllocateNear(place, size));
+    std::memcpy(p, data, size);
+    Displace(place, length, from, reinterpret_cast<uintptr_t>(p));
+    return p;
+  }
+
+  const char* Hook::PlaceString(uintptr_t place, size_t length, uintptr_t from, std::string_view text)
+  {
+    // Note that AllocateNear() zeroes memory, which terminates the copy.
+    //
+    char* p (static_cast<char*>(AllocateNear(place, text.size() + 1)));
+    std::memcpy(p, text.data(), text.size());
+    Displace(place, length, from, reinterpret_cast<uintptr_t>(p));
+    return p;
+  }
+
   void Hook::Rebase(uintptr_t place, size_t length, uintptr_t base, uintptr_t from, uintptr_t to)
   {
     if (!Reaches(base, from) || !Reaches(base, to))
