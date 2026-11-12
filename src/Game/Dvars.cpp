@@ -49,7 +49,7 @@ namespace Game
 
   const dvar_t** dev_timescale = reinterpret_cast<const dvar_t**>(0x141BD7900);
 
-  const dvar_t** dvar_cheats = reinterpret_cast<const dvar_t**>(0x1466E38E1);
+  const dvar_t* dvar_cheats;
 
   const dvar_t** fs_cdpath = reinterpret_cast<const dvar_t**>(0x1466429F8);
   const dvar_t** fs_basepath = reinterpret_cast<const dvar_t**>(0x1466429E8);
