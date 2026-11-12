@@ -102,6 +102,9 @@ namespace Game
   const dvar_t** party_minplayers = reinterpret_cast<const dvar_t**>(0x140D09808);
   const dvar_t** party_maxplayers = reinterpret_cast<const dvar_t**>(0x140D09998);
 
+  const dvar_t** perk_diveVelocity = reinterpret_cast<const dvar_t**>(0x14043EDD8);
+  const dvar_t** perk_diveDistanceCheck = reinterpret_cast<const dvar_t**>(0x14043EDE0);
+
   const dvar_t** ip = reinterpret_cast<const dvar_t**>(0x14678A238);
   const dvar_t** port = reinterpret_cast<const dvar_t**>(0x14678A240);
 }

@@ -530,6 +530,9 @@ namespace Game
   typedef float(*Vec2Normalize_t)(float* v);
   extern Vec2Normalize_t Vec2Normalize;
 
+  typedef float(*Vec3NormalizeTo_t)(const float* v, float* out);
+  extern Vec3NormalizeTo_t Vec3NormalizeTo;
+
   typedef void(*I_strncpyz_t)(char* dest, const char* src, int destsize);
   extern I_strncpyz_t I_strncpyz;
 

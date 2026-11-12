@@ -234,6 +234,7 @@ namespace Game
 
   Vec3Normalize_t Vec3Normalize = Vec3Normalize_t(0x14001ED50);
   Vec2Normalize_t Vec2Normalize = Vec2Normalize_t(0x14027B9C0);
+  Vec3NormalizeTo_t Vec3NormalizeTo = Vec3NormalizeTo_t(0x14027BB90);
 
   I_strncpyz_t I_strncpyz = I_strncpyz_t(0x14028A8B0);
   I_CleanStr_t I_CleanStr = I_CleanStr_t(0x14028A4E0);

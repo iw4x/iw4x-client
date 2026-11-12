@@ -10103,6 +10103,8 @@ namespace Game
     bool walkable;
   };
 
+  static_assert(sizeof(trace_t) == 0x30);
+
   // @@ TODO: verify x64 size (0x2C on x86).
   //
 
@@ -10128,6 +10130,8 @@ namespace Game
     unsigned char handler;
   };
 
+  static_assert(offsetof(pmove_s, tracemask) == 0x58);
+
 
   // @@ TODO: verify x64 size (296 on x86).
   //
@@ -10148,6 +10152,8 @@ namespace Game
     float previous_velocity[3];
     int holdrand;
   };
+
+  static_assert(sizeof(pml_t) == 0x88);
 
   // @@ TODO: verify x64 size (0x84 on x86).
   //
