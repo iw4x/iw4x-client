@@ -360,6 +360,10 @@ namespace Game
 
   Game::cgMedia_t* cgMedia = reinterpret_cast<Game::cgMedia_t*>(0x140469210);
 
+  char* partyTeamCounts = reinterpret_cast<char*>(0x140D0E260);
+
+  int* dobjFreeCount = reinterpret_cast<int*>(0x141BDE454);
+
   unsigned long* g_dwTlsIndex = reinterpret_cast<unsigned long*>(0x148C24BD8);
 
   bgs_t* level_bgs = reinterpret_cast<bgs_t*>(0x1417CBDC0);

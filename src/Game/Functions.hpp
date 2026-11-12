@@ -712,6 +712,15 @@ namespace Game
 
   extern Game::cgMedia_t* cgMedia;
 
+  // Team balance of the party, formatted as "(axis:allies)".
+  //
+  extern char* partyTeamCounts;
+
+  // Number of free DObj handles out of DOBJ_HANDLE_COUNT.
+  //
+  constexpr int DOBJ_HANDLE_COUNT = 0x800;
+  extern int* dobjFreeCount;
+
   extern unsigned long* g_dwTlsIndex;
 
   extern bgs_t* level_bgs;

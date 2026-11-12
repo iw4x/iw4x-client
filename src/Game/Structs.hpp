@@ -12327,6 +12327,8 @@ namespace Game
     FxEffectDef* fxs[256];
   };
 
+  static_assert(offsetof(cgMedia_t, smallDevFont) == 0x2C98);
+
   struct CinematicHunk
   {
     void* base;
