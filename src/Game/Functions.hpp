@@ -706,7 +706,7 @@ namespace Game
 
   extern GamerSettingState* gamerSettings;
 
-  extern unsigned char* g_largeLocalBuf;
+  extern unsigned char** g_largeLocalBuf;
   extern int* g_largeLocalPos;
   extern int* g_largeLocalRightPos;
 

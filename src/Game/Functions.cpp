@@ -366,7 +366,7 @@ namespace Game
 
   GamerSettingState* gamerSettings = reinterpret_cast<GamerSettingState*>(0x1406CAB40);
 
-  unsigned char* g_largeLocalBuf = reinterpret_cast<unsigned char*>(0x146653980);
+  unsigned char** g_largeLocalBuf = reinterpret_cast<unsigned char**>(0x146653980);
   int* g_largeLocalPos = reinterpret_cast<int*>(0x146651954);
   int* g_largeLocalRightPos = reinterpret_cast<int*>(0x146653974);
 
