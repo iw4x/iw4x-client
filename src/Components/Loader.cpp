@@ -4,6 +4,7 @@
 
 #include "Modules/Auth.hpp"
 #include "Modules/Exception.hpp"
+#include "Modules/IPCPipe.hpp"
 
 namespace Components
 {
@@ -28,6 +29,7 @@ namespace Components
     Register(new Command());
     Register(new Dvar());
     Register(new Exception());
+    Register(new IPCPipe());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).

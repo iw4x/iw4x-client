@@ -199,7 +199,7 @@ namespace Components
 
   IPCPipe::IPCPipe()
   {
-    if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
+    if (Dedicated::IsEnabled()) return;
 
     // Server pipe
     ServerPipe.onConnect(ConnectClient);
