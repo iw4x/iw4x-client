@@ -333,7 +333,7 @@ namespace Steam
       Handle(int32_t _handle) : Handle(reinterpret_cast<void*>(_handle)) {}
       Handle() : Handle(nullptr) {}
 
-      operator int32_t() const { return reinterpret_cast<int32_t>(this->handle); }
+      operator int32_t() const { return static_cast<int32_t>(reinterpret_cast<intptr_t>(this->handle)); }
       operator void*() const { return this->handle; }
 
     private:
