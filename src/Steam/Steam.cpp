@@ -140,7 +140,7 @@ namespace Steam
   {
     bool SteamAPI_Init()
     {
-      if (!Components::Dedicated::IsEnabled() && !Components::ZoneBuilder::IsEnabled())
+      if (!Components::Dedicated::IsEnabled())
       {
         Companion::Register(AppId, "IW4x: Modern Warfare 2");
       }
