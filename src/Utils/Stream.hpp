@@ -80,7 +80,7 @@ namespace Utils
 
       template <typename T> T read()
       {
-        T obj;
+        T obj{};
 
         for (unsigned int i = 0; i < sizeof(T); ++i)
         {
