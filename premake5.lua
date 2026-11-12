@@ -279,7 +279,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/Ceg.*",
     "src/Components/Modules/Changelog.*",
     "src/Components/Modules/Chat.*",
     "src/Components/Modules/ClanTags.*",
