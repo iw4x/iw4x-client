@@ -51,9 +51,4 @@ namespace Game
     assert(index < MAX_MODELS);
     return cached_models[index];
   }
-
-  void G_DebugStar(const float* point, const float* color)
-  {
-    CL_AddDebugStar(point, color, 20, 1);
-  }
 }

@@ -44,9 +44,6 @@ namespace Game
   typedef void(*CL_GetRankIcon_t)(int level, int prestige, Material** material);
   extern CL_GetRankIcon_t CL_GetRankIcon;
 
-  typedef void(*CL_HandleRelayPacket_t)(Game::msg_t* msg, int client);
-  extern CL_HandleRelayPacket_t CL_HandleRelayPacket;
-
   typedef void(*CL_ResetViewport_t)();
   extern CL_ResetViewport_t CL_ResetViewport;
 
@@ -59,9 +56,6 @@ namespace Game
   typedef void(*CL_ConsoleFixPosition_t)();
   extern CL_ConsoleFixPosition_t CL_ConsoleFixPosition;
 
-  typedef int(*CL_GetLocalClientActiveCount_t)();
-  extern CL_GetLocalClientActiveCount_t CL_GetLocalClientActiveCount;
-
   typedef int(*CL_ControllerIndexFromClientNum_t)(int localActiveClientNum);
   extern CL_ControllerIndexFromClientNum_t CL_ControllerIndexFromClientNum;
 
@@ -71,11 +65,8 @@ namespace Game
   typedef void(*CL_WriteDemoClientArchive_t)(void (*write)(const void*, int, int), const playerState_s* ps, const float* viewangles, const float* selectedLocation, float selectedLocationAngle, int localClientNum, int index);
   extern CL_WriteDemoClientArchive_t CL_WriteDemoClientArchive;
 
-  typedef void(*CL_WriteDemoMessage_t)(void (*write)(const void*, int, int), int serverMessageSequence, unsigned char* data, int len, int localClientNum);
-  extern CL_WriteDemoMessage_t CL_WriteDemoMessage;
-
-  typedef void(*CL_AddDebugStarWithText_t)(const float* point, const float* starColor, const float* textColor, const char* string, float fontsize, int duration, int fromServer);
-  extern CL_AddDebugStarWithText_t CL_AddDebugStarWithText;
+  typedef void(*CL_MouseMove_t)(int localClientNum, usercmd_s* cmd, float frametime_base);
+  extern CL_MouseMove_t CL_MouseMove;
 
   typedef void(*Key_ClearStates_t)(int localClientNum);
   extern Key_ClearStates_t Key_ClearStates;
@@ -109,11 +100,4 @@ namespace Game
   extern cgs_t* cgsArray;
   extern cgEntity_s* cg_entitiesArray;
   extern dvar_t** cl_paused;
-
-  extern void CL_AddDebugStar(const float* point, const float* color, int duration, int fromServer);
-
-  extern "C" void CL_MouseMove(int localClientNum, Game::usercmd_s* cmd, float frametime_base);
-
-  extern "C" void AdjustViewanglesForKeyboard(int localClientNum);
-
 }
