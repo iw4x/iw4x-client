@@ -9,6 +9,7 @@
 #include "Modules/Logger.hpp"
 #include "Modules/Sentry.hpp"
 #include "Modules/UIScript.hpp"
+#include "Modules/ConfigStrings.hpp"
 
 namespace Components
 {
@@ -38,6 +39,7 @@ namespace Components
     Register(new Logger());
     Register(new Sentry());
     Register(new UIScript());
+    Register(new ConfigStrings());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
