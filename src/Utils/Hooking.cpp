@@ -4,16 +4,12 @@ namespace Utils
 {
   namespace
   {
-    // Relay that jumps to a target a rel32 branch can't reach:
-    //
-    //    jmp qword ptr [rip]
-    //    dq  <target>
-    //
-    // Padded with int3 to 16 bytes.
+    // Granularity of the code we place in relay pages, which fits one
+    // absolute jump padded with int3.
     //
     constexpr std::size_t RelaySize = 16;
 
-    // Page of relays and the number of bytes taken in it.
+    // Page of relays and trampolines and the number of bytes taken in it.
     //
     struct RelayPage
     {
@@ -99,6 +95,70 @@ namespace Utils
       return {AllocateReachable(next, info.dwPageSize, PAGE_EXECUTE_READ), info.dwPageSize, 0};
     }
 
+    // Write size bytes of code at p, taking it from bytes and padding it with
+    // int3 up to padded bytes. Note that we keep the page executable while we
+    // write since other threads may be running the code already there.
+    //
+    void WriteCode(uint8_t* p, const void* bytes, std::size_t size, std::size_t padded)
+    {
+      DWORD protection;
+      VirtualProtect(p, padded, PAGE_EXECUTE_READWRITE, &protection);
+
+      std::memcpy(p, bytes, size);
+      std::memset(p + size, 0xCC, padded - size);
+
+      VirtualProtect(p, padded, protection, &protection);
+      FlushInstructionCache(GetCurrentProcess(), p, padded);
+    }
+
+    // Write code of size bytes into a relay page within rel32 reach of next
+    // and return where it went.
+    //
+    uint8_t* PlaceCode(uintptr_t next, const void* bytes, std::size_t size)
+    {
+      const std::size_t padded = (size + RelaySize - 1) / RelaySize * RelaySize;
+
+      std::scoped_lock lock(RelayMutex);
+
+      // Find a page in range with room for the code, allocating one if there
+      // is none.
+      //
+      RelayPage* page = nullptr;
+      for (RelayPage& p : RelayPages)
+      {
+        const uintptr_t b = reinterpret_cast<uintptr_t>(p.base);
+
+        if (p.used + padded <= p.size && Reaches(next, b) && Reaches(next, b + p.size))
+        {
+          page = &p;
+          break;
+        }
+      }
+
+      if (page == nullptr)
+      {
+        page = &RelayPages.emplace_back(AllocateRelayPage(next));
+      }
+
+      uint8_t* r = page->base + page->used;
+      WriteCode(r, bytes, size, padded);
+
+      page->used += padded;
+      return r;
+    }
+
+    // Return the bytes of an absolute jump to target:
+    //
+    //    jmp qword ptr [rip]
+    //    dq  <target>
+    //
+    std::array<uint8_t, 14> AbsoluteJump(const void* target)
+    {
+      std::array<uint8_t, 14> r {0xFF, 0x25, 0x00, 0x00, 0x00, 0x00};
+      std::memcpy(r.data() + 6, &target, sizeof(target));
+      return r;
+    }
+
     // Return target or, if a rel32 branch whose next instruction is at next
     // doesn't reach it, a relay to it.
     //
@@ -111,46 +171,8 @@ namespace Utils
         return target;
       }
 
-      std::scoped_lock lock(RelayMutex);
-
-      // Find a page in range with room for another relay, allocating one if
-      // there is none.
-      //
-      RelayPage* page = nullptr;
-      for (RelayPage& p : RelayPages)
-      {
-        const uintptr_t b = reinterpret_cast<uintptr_t>(p.base);
-
-        if (p.used + RelaySize <= p.size && Reaches(n, b) && Reaches(n, b + p.size))
-        {
-          page = &p;
-          break;
-        }
-      }
-
-      if (page == nullptr)
-      {
-        page = &RelayPages.emplace_back(AllocateRelayPage(n));
-      }
-
-      // Write the relay. Note that we keep the page executable while we
-      // write since other threads may be running its earlier relays.
-      //
-      uint8_t* r = page->base + page->used;
-
-      DWORD protection;
-      VirtualProtect(r, RelaySize, PAGE_EXECUTE_READWRITE, &protection);
-
-      const uint8_t jump[] = {0xFF, 0x25, 0x00, 0x00, 0x00, 0x00};
-      std::memcpy(r, jump, sizeof(jump));
-      std::memcpy(r + sizeof(jump), &target, sizeof(target));
-      std::memset(r + sizeof(jump) + sizeof(target), 0xCC, RelaySize - sizeof(jump) - sizeof(target));
-
-      VirtualProtect(r, RelaySize, protection, &protection);
-      FlushInstructionCache(GetCurrentProcess(), r, RelaySize);
-
-      page->used += RelaySize;
-      return r;
+      const std::array<uint8_t, 14> jump (AbsoluteJump(target));
+      return PlaceCode(n, jump.data(), jump.size());
     }
   }
 
@@ -339,6 +361,45 @@ namespace Utils
   {
     Hook::RedirectJump(reinterpret_cast<void*>(place), stub);
   }
+  void* Hook::Detour(uintptr_t place, size_t length, void* stub)
+  {
+    if (length < 5)
+    {
+      throw std::runtime_error(std::format("{} bytes at {:#x} can't hold a jump", length, place));
+    }
+
+    // Build the trampoline: the instructions we overwrite, then a jump back
+    // past them.
+    //
+    std::vector<uint8_t> trampoline (reinterpret_cast<const uint8_t*>(place), reinterpret_cast<const uint8_t*>(place) + length);
+
+    const std::array<uint8_t, 14> back (AbsoluteJump(reinterpret_cast<void*>(place + length)));
+    trampoline.insert(trampoline.end(), back.begin(), back.end());
+
+    uint8_t* t = PlaceCode(place + 5, trampoline.data(), trampoline.size());
+
+    // Then send the function to the stub, leaving no partial instruction
+    // behind.
+    //
+    uint8_t* code = reinterpret_cast<uint8_t*>(place);
+    void* target = Reach(code + 5, stub);
+
+    uint8_t jump[5] = {0xE9};
+    const int32_t d = static_cast<int32_t>(reinterpret_cast<intptr_t>(target) - reinterpret_cast<intptr_t>(code + 5));
+    std::memcpy(jump + 1, &d, sizeof(d));
+
+    DWORD protection;
+    VirtualProtect(code, length, PAGE_EXECUTE_READWRITE, &protection);
+
+    std::memcpy(code, jump, sizeof(jump));
+    std::memset(code + sizeof(jump), 0x90, length - sizeof(jump));
+
+    VirtualProtect(code, length, protection, &protection);
+    FlushInstructionCache(GetCurrentProcess(), code, length);
+
+    return t;
+  }
+
   void* Hook::AllocateNear(uintptr_t place, size_t size)
   {
     return AllocateReachable(place, size, PAGE_READWRITE);

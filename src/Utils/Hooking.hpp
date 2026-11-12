@@ -112,6 +112,22 @@ namespace Utils
     //
     static void* AllocateNear(uintptr_t place, size_t size);
 
+    // Send the function at place to stub and return a trampoline that runs
+    // the function as it was. Throw std::runtime_error if length is too short
+    // for a jump.
+    //
+    // Note that the first length bytes at place must be whole instructions
+    // that don't depend on where they are, since the trampoline runs them
+    // elsewhere before jumping back past them.
+    //
+    static void* Detour(uintptr_t place, size_t length, void* stub);
+
+    template <Function T>
+    static T* Detour(uintptr_t place, size_t length, T* stub)
+    {
+      return reinterpret_cast<T*>(Detour(place, length, reinterpret_cast<void*>(stub)));
+    }
+
     // Replace the 32-bit value from with to in the instruction at place of
     // length bytes, be it an immediate or a displacement. Throw
     // std::runtime_error unless exactly one field holds from.
