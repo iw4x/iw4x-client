@@ -1,38 +1,21 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN Console_MakeRoomForText:PROC
-EXTERN Console_StoreSafeArea:PROC
-EXTERN Console_RestoreSafeArea:PROC
 
 .code
 
 Console_Sys_PrintStub PROC
-  pushad
-  push    edi
+  sub     rsp, 20h
+  mov     ecx, ebx
   call    Console_MakeRoomForText
-  pop     edi
-  popad
+  add     rsp, 20h
 
-  push    4F57F8h
-  ret
+  mov     rax, 14678B738h
+  mov     rcx, [rax]
+  mov     edx, 0B1h
+
+  mov     rax, 1402A784Eh
+  jmp     rax
 Console_Sys_PrintStub ENDP
-
-Console_DrawSolidConsoleStub PROC
-  pushad
-  call    Console_StoreSafeArea
-  popad
-
-  call    dword ptr [gameCon_DrawSolidConsole]
-
-  pushad
-  call    Console_RestoreSafeArea
-  popad
-  ret
-
-gameCon_DrawSolidConsole:
-  dd      5A5040h
-Console_DrawSolidConsoleStub ENDP
 
 END

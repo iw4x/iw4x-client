@@ -62,6 +62,18 @@ namespace Game
   typedef void(*Sys_Print_t)(const char* msg);
   extern Sys_Print_t Sys_Print;
 
+  typedef void(*Sys_DestroyConsole_t)();
+  extern Sys_DestroyConsole_t Sys_DestroyConsole;
+
+  typedef void(*Sys_HideSplashWindow_t)();
+  extern Sys_HideSplashWindow_t Sys_HideSplashWindow;
+
+  typedef void(*Conbuf_AppendText_t)(const char* msg);
+  extern Conbuf_AppendText_t Conbuf_AppendText;
+
+  typedef LRESULT(*ConWndProc_t)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+  extern ConWndProc_t ConWndProc;
+
   typedef void(*Sys_SuspendOtherThreads_t)();
   extern Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads;
 
