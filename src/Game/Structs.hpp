@@ -901,7 +901,7 @@ namespace Game
     UIMENU_MIGRATION = 0xB,
   };
 
-  struct alignas(4) PhysPreset
+  struct PhysPreset
   {
     const char* name;
     int type;
@@ -1007,7 +1007,7 @@ namespace Game
     unsigned __int16 _2[1];
   };
 
-  struct alignas(4) XAnimPartTransFrames
+  struct XAnimPartTransFrames
   {
     float mins[3];
     float size[3];
@@ -1028,7 +1028,7 @@ namespace Game
     XAnimPartTransData u;
   };
 
-  struct alignas(4) XAnimDeltaPartQuatDataFrames2
+  struct XAnimDeltaPartQuatDataFrames2
   {
     __int16(*frames)[2];
     XAnimDynamicIndices indices;
@@ -1046,7 +1046,7 @@ namespace Game
     XAnimDeltaPartQuatData2 u;
   };
 
-  struct alignas(4) XAnimDeltaPartQuatDataFrames
+  struct XAnimDeltaPartQuatDataFrames
   {
     __int16(*frames)[4];
     XAnimDynamicIndices indices;
@@ -3040,7 +3040,7 @@ namespace Game
     char sunPrimaryLightIndex;
   };
 
-  struct alignas(4) MapEnts
+  struct MapEnts
   {
     const char* name;
     const char* entityString;
@@ -3758,7 +3758,7 @@ namespace Game
     FxGlassSystem glassSys;
   };
 
-  struct alignas(4) GfxSky
+  struct GfxSky
   {
     int skySurfCount;
     int* skyStartSurfs;
@@ -4221,7 +4221,7 @@ namespace Game
     int exponent;
   };
 
-  struct alignas(4) GfxWorld
+  struct GfxWorld
   {
     const char* name;
     const char* baseName;
@@ -4268,7 +4268,7 @@ namespace Game
     char fogTypesAllowed;
   };
 
-  struct alignas(4) GfxLightImage
+  struct GfxLightImage
   {
     GfxImage* image;
     char samplerState;
@@ -4699,7 +4699,7 @@ namespace Game
     SetLocalVarData* setLocalVarData;
   };
 
-  struct alignas(4) MenuEventHandler
+  struct MenuEventHandler
   {
     EventData eventData;
     char eventType;
@@ -5102,7 +5102,7 @@ namespace Game
     char changeHints;
   };
 
-  struct alignas(4) WeaponDef
+  struct WeaponDef
   {
     const char* szOverlayName;
     XModel** gunXModel;
@@ -5655,7 +5655,7 @@ namespace Game
     LbColumnDef* columns;
   };
 
-  struct alignas(4) StructuredDataEnumEntry
+  struct StructuredDataEnumEntry
   {
     const char* string;
     unsigned __int16 index;
@@ -8379,7 +8379,7 @@ namespace Game
     unsigned __int16 argCount;
   };
 
-  struct alignas(4) GfxGlassSurf
+  struct GfxGlassSurf
   {
     GfxDrawGroupSetup drawGroup;
     char pad;
@@ -8871,7 +8871,7 @@ namespace Game
     char lod;
   };
 
-  struct alignas(4) GfxSceneBrush
+  struct GfxSceneBrush
   {
     BModelDrawInfo info;
     unsigned __int16 entnum;
@@ -11541,7 +11541,7 @@ namespace Game
     EVENT_SAVE = 0x5,
   };
 
-  struct alignas(4) DevGraph
+  struct DevGraph
   {
     float(*knots)[2];
     unsigned __int16* knotCount;
@@ -12113,7 +12113,7 @@ namespace Game
     int fileLength;
   };
 
-  struct alignas(4) MssStreamReadInfo
+  struct MssStreamReadInfo
   {
     char path[256];
     int timeshift;
