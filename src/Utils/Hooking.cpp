@@ -68,8 +68,6 @@ namespace Utils
     this->place = _place;
     this->stub = _stub;
 
-    this->original = static_cast<char*>(this->place) + 5 + *reinterpret_cast<DWORD*>((static_cast<char*>(this->place) + 1));
-
     return this;
   }
 
