@@ -4608,13 +4608,11 @@ namespace Game
     float_limit vector;
   };
 
-  // @@ TODO: verify x64 size (0x8 on x86).
-  //
+  static_assert(sizeof(DvarLimits) == 0x10);
 
   struct dvar_t
   {
     const char* name;
-    const char* description;
     unsigned int flags;
     dvar_type type;
     bool modified;
@@ -4626,8 +4624,7 @@ namespace Game
     dvar_t* hashNext;
   };
 
-  // @@ TODO: verify x64 size (0x50 on x86).
-  //
+  static_assert(sizeof(dvar_t) == 0x60);
 
   struct StaticDvar
   {
