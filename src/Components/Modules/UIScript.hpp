@@ -41,7 +41,7 @@ namespace Components
   private:
     friend bool (::UIScript_RunMenuScript)(const char* name, const char** args);
 
-    static void OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key);
+    static int OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key);
     static bool RunMenuScript(const char* name, const char** args);
 
     static std::unordered_map<std::string, UIScriptHandler> UIScripts;
