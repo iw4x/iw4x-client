@@ -102,6 +102,33 @@ namespace Utils
     static void RedirectJump(void* place, void* stub);
     static void RedirectJump(uintptr_t place, void* stub);
 
+    // Allocate size bytes of zeroed, read-write memory that a 32-bit
+    // displacement from place reaches throughout. Throw std::runtime_error if
+    // there is no free spot in range.
+    //
+    // Note that the game reaches its globals through such displacements,
+    // either from the next instruction or from the image base it keeps in a
+    // register, so this is where a global it outgrows has to move.
+    //
+    static void* AllocateNear(uintptr_t place, size_t size);
+
+    // Replace the 32-bit value from with to in the instruction at place of
+    // length bytes, be it an immediate or a displacement. Throw
+    // std::runtime_error unless exactly one field holds from.
+    //
+    static void Replace32(uintptr_t place, size_t length, uint32_t from, uint32_t to);
+
+    // Make the instruction at place of length bytes reach to instead of
+    // from through its rip-relative operand.
+    //
+    static void Displace(uintptr_t place, size_t length, uintptr_t from, uintptr_t to);
+
+    // Make the instruction at place of length bytes reach to instead of
+    // from through its displacement from base, such as the image base the
+    // game keeps in a register.
+    //
+    static void Rebase(uintptr_t place, size_t length, uintptr_t base, uintptr_t from, uintptr_t to);
+
     template <typename T> static void Set(void* place, T value)
     {
       DWORD oldProtect;
