@@ -279,7 +279,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/Console.*",
     "src/Components/Modules/Controller.*",
     "src/Components/Modules/D3D9Ex.*",
     "src/Components/Modules/Debug.*",

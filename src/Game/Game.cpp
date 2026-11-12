@@ -31,6 +31,8 @@ namespace Game
 
   WinVars_t* g_wv = reinterpret_cast<WinVars_t*>(0x14678C000);
   WinConData* s_wcd = reinterpret_cast<WinConData*>(0x14678B730);
+  int* s_totalChars = reinterpret_cast<int*>(0x14678BD68);
+  WNDPROC* SysInputLineWndProc = reinterpret_cast<WNDPROC*>(0x14678BD60);
 
   char* cinematicCurrentName = reinterpret_cast<char*>(0x1493C7804);
   int* cinematicPendingStart = reinterpret_cast<int*>(0x1493C7800);

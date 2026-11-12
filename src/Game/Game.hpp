@@ -74,6 +74,8 @@ namespace Game
   extern int clientStateFieldsCount;
   extern WinVars_t* g_wv;
   extern WinConData* s_wcd;
+  extern int* s_totalChars;
+  extern WNDPROC* SysInputLineWndProc;
 
   extern char* cinematicCurrentName;
   extern int* cinematicPendingStart;
