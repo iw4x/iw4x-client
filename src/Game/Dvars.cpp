@@ -36,6 +36,7 @@ namespace Game
   Dvar_SetInt_t Dvar_SetInt = Dvar_SetInt_t(0x140285B90);
 
   const dvar_t** com_developer = reinterpret_cast<const dvar_t**>(0x141BD78D0);
+  const dvar_t** com_logfile = reinterpret_cast<const dvar_t**>(0x141BD78D8);
   const dvar_t** com_developer_script = reinterpret_cast<const dvar_t**>(0x141BD7410);
   const dvar_t** com_timescale = reinterpret_cast<const dvar_t**>(0x141BD7908);
   const dvar_t** com_maxFrameTime = reinterpret_cast<const dvar_t**>(0x141BD7420);
