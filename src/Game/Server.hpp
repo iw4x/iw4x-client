@@ -81,6 +81,14 @@ namespace Game
   extern int SV_GetServerThreadOwnsGame();
   extern void SV_GameDropClient(int clientNum, const char* reason);
   extern void SV_DropAllBots();
+
+  // Return the active client whose slot number is the first argument of the
+  // current server command, or print why there is none and return nullptr.
+  //
+  // Note that x64 compiles this function out along with the commands that
+  // used it.
+  //
+  extern client_s* SV_GetPlayerByNum();
   extern int SV_GetClientStat(int clientNum, int index);
   extern void SV_SetClientStat(int clientNum, int index, int value);
 }
