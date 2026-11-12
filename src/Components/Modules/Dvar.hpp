@@ -17,7 +17,7 @@ namespace Components
     public:
       Var() : dvar_(nullptr) {}
       Var(Game::dvar_t* dvar) : dvar_(dvar) {}
-      Var(DWORD ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {}
+      Var(uintptr_t ppdvar) : Var(*reinterpret_cast<Game::dvar_t**>(ppdvar)) {}
       Var(const std::string& dvarName);
 
       template<typename T> T get();
