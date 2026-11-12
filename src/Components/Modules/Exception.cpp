@@ -1,4 +1,5 @@
 #include "Exception.hpp"
+#include "AssetHandler.hpp"
 
 namespace Components
 {
@@ -7,8 +8,7 @@ namespace Components
 
   __declspec(noreturn) void Exception::LongJmp_Internal_Stub(jmp_buf env, int status)
   {
-    // @@ TODO: reset AssetHandler bypass state once AssetHandler is ported.
-    //
+    AssetHandler::ResetBypassState();
     Game::longjmp_internal(env, status);
   }
 
