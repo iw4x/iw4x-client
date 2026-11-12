@@ -48,17 +48,8 @@ namespace Game
   typedef void(*G_GetItemClassname_t)(int item, gentity_s* ent);
   extern G_GetItemClassname_t G_GetItemClassname;
 
-  typedef void(*G_PrintEntities_t)();
-  extern G_PrintEntities_t G_PrintEntities;
-
-  typedef const char*(*G_GetEntityTypeName_t)(const gentity_s* ent);
-  extern G_GetEntityTypeName_t G_GetEntityTypeName;
-
   typedef int(*G_LocalizedStringIndex_t)(const char* string);
   extern G_LocalizedStringIndex_t G_LocalizedStringIndex;
-
-  typedef void(*G_DebugLineWithDuration_t)(const float* start, const float* end, const float* color, int depthTest, int duration);
-  extern G_DebugLineWithDuration_t G_DebugLineWithDuration;
 
   typedef int(*G_PointContents_t)(const float* point, int passEntityNum, int contentMask);
   extern G_PointContents_t G_PointContents;
@@ -78,8 +69,7 @@ namespace Game
 
   // This does not belong anywhere else
   extern NetField* clientStateFields;
-  extern size_t clientStateFieldsCount;
-  extern MssLocal* milesGlobal;
+  extern int clientStateFieldsCount;
   extern WinVars_t* g_wv;
   extern WinConData* s_wcd;
 
