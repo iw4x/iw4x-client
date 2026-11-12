@@ -422,7 +422,7 @@ namespace Components
 
   Voice::Voice()
   {
-    AssertOffset(Game::clientUIActive_t, connectionState, 0x9B8);
+    AssertOffset(Game::clientUIActive_t, connectionState, 0xB48);
 
     std::memset(VoicePackets, 0, sizeof(VoicePackets));
     std::memset(VoicePacketCount, 0, sizeof(VoicePacketCount));

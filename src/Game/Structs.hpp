@@ -10969,14 +10969,17 @@ namespace Game
     bool cgameInitialized;
     bool cgameInitCalled;
     bool mapPreloaded;
-    unsigned char __pad0[0x9AB];
+    unsigned char __pad0[0xB3B];
     int keyCatchers;
     bool displayHUDWithKeycatchUI;
     connstate_t connectionState;
     unsigned char __pad1[0x138];
   };
 
-  static_assert(sizeof(clientUIActive_t) == 0xAF4);
+  // @@ TODO: verify x64 size. The tail keeps the x86 0x138 bytes.
+  //
+  static_assert(offsetof(clientUIActive_t, keyCatchers) == 0xB40);
+  static_assert(offsetof(clientUIActive_t, connectionState) == 0xB48);
 
   enum msgLocErrType_t
   {
