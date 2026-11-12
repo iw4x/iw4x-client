@@ -48,7 +48,15 @@ namespace Components
   };
 }
 
+#include "Modules/Command.hpp"
 #include "Modules/Dvar.hpp"
 #include "Modules/Flags.hpp"
-#include "Modules/Dedicated.hpp"
+#include "Modules/Network.hpp"
+#include "Modules/Logger.hpp"
 #include "Modules/Singleton.hpp"
+#include "Modules/UIScript.hpp"
+
+#include "Modules/Dedicated.hpp"
+#include "Modules/FileSystem.hpp"
+#include "Modules/Localization.hpp"
+#include "Modules/Scheduler.hpp"

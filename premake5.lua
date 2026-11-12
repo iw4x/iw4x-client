@@ -281,7 +281,6 @@ project "iw4x"
   {
     "src/Components/Modules/ArenaLength.*",
     "src/Components/Modules/AssetHandler.*",
-    "src/Components/Modules/Auth.*",
     "src/Components/Modules/Bans.*",
     "src/Components/Modules/Bots.*",
     "src/Components/Modules/Branding.*",

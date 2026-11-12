@@ -1,5 +1,3 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN Auth_HasAccessToReservedSlot:BYTE
@@ -10,46 +8,26 @@ EXTERN Auth_ProtocolMismatchMessage:PROC
 .code
 
 Auth_DirectConnectStub PROC
-  pushad
-  lea     eax, [esp+20h]
-  push    eax
-  push    esi
-  call    Auth_ParseConnectData
-  pop     esi
-  pop     eax
-  popad
-
-  push    6265FEh
-  ret
+  mov     rdx, rcx
+  mov     rcx, rsi
+  jmp     Auth_ParseConnectData
 Auth_DirectConnectStub ENDP
 
 Auth_ProtocolMismatchStub PROC
-  push    esi
-  call    Auth_ProtocolMismatchMessage
-  add     esp, 4
-  ret
+  mov     ecx, edi
+  jmp     Auth_ProtocolMismatchMessage
 Auth_ProtocolMismatchStub ENDP
 
 Auth_DirectConnectPrivateClientStub PROC
-  push    eax
+  xor     r14d, r14d
+  cmp     Auth_HasAccessToReservedSlot, 0
+  jne     done
 
-  mov     al, Auth_HasAccessToReservedSlot
-  test    al, al
+  mov     rax, 14650B798h
+  mov     rax, [rax]
+  mov     r14d, [rax+10h]
 
-  pop     eax
-
-  je      noAccess
-
-  xor     eax, eax
-  jmp     safeContinue
-
-noAccess:
-  mov     eax, dword ptr [edx+10h]
-
-safeContinue:
-  add     esp, 0Ch
-
-  push    460FB3h
+done:
   ret
 Auth_DirectConnectPrivateClientStub ENDP
 

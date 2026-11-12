@@ -5,7 +5,6 @@
 #include "Auth.hpp"
 #include "Bans.hpp"
 #include "Bots.hpp"
-#include "Friends.hpp"
 #include "Toast.hpp"
 
 extern "C"
@@ -188,11 +187,6 @@ namespace Components
       Game::SV_Cmd_EndTokenizedString();
       Logger::Error(Game::ERR_SERVERDISCONNECT, "Connecting failed: Challenge parsing error!");
       return;
-    }
-
-    if (!Friends::IsInvisible() && !Dvar::Var("cl_anonymous").get<bool>() && Steam::Proxy::SteamUser_)
-    {
-      infostr.set("realsteamId", Utils::String::VA("%llX", Steam::Proxy::SteamUser_->GetSteamID().bits));
     }
 
     // Build new connect string
@@ -434,7 +428,7 @@ namespace Components
 
   void Auth::StoreKey()
   {
-    if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled() && GuidKey.isValid())
+    if (!Dedicated::IsEnabled() && GuidKey.isValid())
     {
       Proto::Auth::Certificate cert;
       cert.set_token(GuidToken.toString());
@@ -460,7 +454,7 @@ namespace Components
 
   void Auth::LoadKey(bool force)
   {
-    if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
+    if (Dedicated::IsEnabled()) return;
     if (!force && GuidKey.isValid()) return;
 
     const auto guidPath = GetGUIDFilePath();
@@ -671,29 +665,29 @@ namespace Components
     Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::DVAR_SERVERINFO, "Security level for GUID certificates (POW)");
 
     // Install registration hook
-    Utils::Hook(0x6265F9, Auth_DirectConnectStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x460EF5, Info_ValueForKeyStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x460FAD, Auth_DirectConnectPrivateClientStub, HOOK_JUMP).install()->quick();
-    Utils::Hook::Nop(0x460FAD + 5, 1);
+    Utils::Hook(0x14023B1B7, Auth_DirectConnectStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140236084, Info_ValueForKeyStub, HOOK_CALL).install()->quick();
+
+    // Let a client that knows the private password take a private slot.
+    //
+    // Note that SV_DirectConnect() searches for a free slot starting from
+    // r14d, which it loads from sv_privateClients. The stub replaces that
+    // load and starts from slot 0 instead for such a client.
+    //
+    Utils::Hook(0x140236100, Auth_DirectConnectPrivateClientStub, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x140236100 + 5, 6);
 
     // Replace the protocol mismatch error SV_DirectConnect sends. Its stock
-    // message is EXE_SERVER_IS_DIFFERENT_VER with a hardcoded "1.0" argument,
+    // message is EXE_SERVER_IS_DIFFERENT_VER with a hardcoded "2.0" argument,
     // which tells the player nothing. We keep the engine's check and only
     // change what it says.
     //
-    Utils::Hook(0x46058E, Auth_ProtocolMismatchStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140235B03, Auth_ProtocolMismatchStub, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x41D3E3, SendConnectDataStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400F8607, SendConnectDataStub, HOOK_CALL).install()->quick();
 
     // Hook for Fail2Ban (Hook near client connect to detect password brute forcing)
-    Utils::Hook(0x4611CA, ClientConnectFailedStub, HOOK_CALL).install()->quick(); // NET_OutOfBandPrint (Grab IP super easy)
-
-    // SteamIDs can only contain 31 bits of actual 'id' data.
-    // The other 33 bits are steam internal data like universe and so on.
-    // Using only 31 bits for fingerprints is pretty insecure.
-    // The function below verifies the integrity steam's part of the SteamID.
-    // Patching that check allows us to use 64 bit for fingerprints.
-    Utils::Hook::Set<std::uint32_t>(0x4D0D60, 0xC301B0);
+    Utils::Hook(0x1402362FA, ClientConnectFailedStub, HOOK_CALL).install()->quick(); // NET_OutOfBandPrint (Grab IP super easy)
 
     // Guid command
     Command::Add("guid", []
@@ -701,7 +695,7 @@ namespace Components
         Logger::Print("Your guid: {:#X}\n", Steam::SteamUser()->GetSteamID().bits);
       });
 
-    if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
+    if (!Dedicated::IsEnabled())
     {
       Command::Add("securityLevel", [](const Command::Params* params)
         {
