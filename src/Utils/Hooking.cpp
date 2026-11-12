@@ -144,14 +144,14 @@ namespace Utils
 
     char* _start = static_cast<char*>(this->start);
 
-    unsigned int sigCount = this->signatures.size();
+    std::size_t sigCount = this->signatures.size();
     Hook::Signature::Container* containers = this->signatures.data();
 
     for (size_t i = 0; i < this->length; ++i)
     {
       char* address = _start + i;
 
-      for (unsigned int k = 0; k < sigCount; ++k)
+      for (std::size_t k = 0; k < sigCount; ++k)
       {
         Hook::Signature::Container* container = &containers[k];
 
