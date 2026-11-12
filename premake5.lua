@@ -347,7 +347,6 @@ project "iw4x"
     "src/Components/Modules/ServerInfo.*",
     "src/Components/Modules/ServerList.*",
     "src/Components/Modules/Session.*",
-    "src/Components/Modules/Singleton.*",
     "src/Components/Modules/SlowMotion.*",
     "src/Components/Modules/Sound.*",
     "src/Components/Modules/StartupMessages.*",

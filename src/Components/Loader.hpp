@@ -51,3 +51,4 @@ namespace Components
 #include "Modules/Dvar.hpp"
 #include "Modules/Flags.hpp"
 #include "Modules/Dedicated.hpp"
+#include "Modules/Singleton.hpp"
