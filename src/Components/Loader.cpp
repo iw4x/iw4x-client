@@ -5,6 +5,7 @@
 #include "Modules/Auth.hpp"
 #include "Modules/Exception.hpp"
 #include "Modules/IPCPipe.hpp"
+#include "Modules/Network.hpp"
 
 namespace Components
 {
@@ -30,6 +31,7 @@ namespace Components
     Register(new Dvar());
     Register(new Exception());
     Register(new IPCPipe());
+    Register(new Network());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).

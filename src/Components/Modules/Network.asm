@@ -1,51 +1,27 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN Network_CL_HandleCommand:PROC
 
-WSAENETRESET equ 2744h
-
 .code
 
-Network_PacketErrorCheck PROC
-  cmp     eax, 2746h
-  jz      returnIgnore
-
-  cmp     eax, WSAENETRESET
-  jz      returnIgnore
-
-  push    465325h
-  ret
-
-returnIgnore:
-  push    4654C6h
-  ret
-Network_PacketErrorCheck ENDP
-
 Network_CL_HandleCommandStub PROC
-  lea     eax, [esp+0C54h]
-
-  pushad
-
-  push    ebp
-  push    edi
-  push    eax
+  sub     rsp, 20h
+  mov     rcx, rdi
+  mov     rdx, rsi
+  mov     r8, r12
   call    Network_CL_HandleCommand
-  add     esp, 0Ch
+  add     rsp, 20h
 
   test    al, al
-
-  popad
-
   jz      unhandled
 
-  push    5A9E0Eh
-  ret
+  mov     rax, 1400F96F3h
+  jmp     rax
 
 unhandled:
-  push    5AA719h
-  ret
+  mov     rdx, 140377D00h
+  mov     rax, 1400F9E13h
+  jmp     rax
 Network_CL_HandleCommandStub ENDP
 
 END

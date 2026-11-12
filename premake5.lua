@@ -318,7 +318,6 @@ project "iw4x"
     "src/Components/Modules/Missile.*",
     "src/Components/Modules/ModelCache.*",
     "src/Components/Modules/ModList.*",
-    "src/Components/Modules/Network.*",
     "src/Components/Modules/NetworkDebug.*",
     "src/Components/Modules/News.*",
     "src/Components/Modules/Node.*",
