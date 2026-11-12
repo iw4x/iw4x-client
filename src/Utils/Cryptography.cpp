@@ -98,7 +98,7 @@ namespace Utils
 
         chacha20_prng_add_entropy(
           reinterpret_cast<const unsigned char*>(entropy.data()),
-          entropy.size(),
+          static_cast<unsigned long>(entropy.size()),
           state.get());
 
         chacha20_prng_ready(state.get());
@@ -128,7 +128,7 @@ namespace Utils
 
       ltc_mp = ltm_desc;
       register_prng(&sprng_desc);
-      ecc_sign_hash(reinterpret_cast<const std::uint8_t*>(message.data()), message.size(), buffer, &length, nullptr, find_prng("sprng"), key.getKeyPtr());
+      ecc_sign_hash(reinterpret_cast<const std::uint8_t*>(message.data()), static_cast<unsigned long>(message.size()), buffer, &length, nullptr, find_prng("sprng"), key.getKeyPtr());
 
       return std::string{ reinterpret_cast<char*>(buffer), length };
     }
@@ -140,8 +140,8 @@ namespace Utils
       ltc_mp = ltm_desc;
 
       int result = 0;
-      return (ecc_verify_hash(reinterpret_cast<const std::uint8_t*>(signature.data()), signature.size(),
-        reinterpret_cast<const std::uint8_t*>(message.data()), message.size(),
+      return (ecc_verify_hash(reinterpret_cast<const std::uint8_t*>(signature.data()), static_cast<unsigned long>(signature.size()),
+        reinterpret_cast<const std::uint8_t*>(message.data()), static_cast<unsigned long>(message.size()),
         &result, key.getKeyPtr()) == CRYPT_OK && result != 0);
     }
 
@@ -176,7 +176,7 @@ namespace Utils
 
       ltc_mp = ltm_desc;
 
-      rsa_sign_hash_ex(reinterpret_cast<const std::uint8_t*>(hash.data()), hash.size(),
+      rsa_sign_hash_ex(reinterpret_cast<const std::uint8_t*>(hash.data()), static_cast<unsigned long>(hash.size()),
         buffer, &length, LTC_PKCS_1_V1_5, nullptr, 0, hash_index, 0, key.getKeyPtr());
 
       return std::string{ reinterpret_cast<char*>(buffer), length };
@@ -194,12 +194,29 @@ namespace Utils
       ltc_mp = ltm_desc;
 
       auto result = 0;
-      return (rsa_verify_hash_ex(reinterpret_cast<const std::uint8_t*>(signature.data()), signature.size(),
-        reinterpret_cast<const std::uint8_t*>(hash.data()), hash.size(), LTC_PKCS_1_V1_5,
+      return (rsa_verify_hash_ex(reinterpret_cast<const std::uint8_t*>(signature.data()), static_cast<unsigned long>(signature.size()),
+        reinterpret_cast<const std::uint8_t*>(hash.data()), static_cast<unsigned long>(hash.size()), LTC_PKCS_1_V1_5,
         hash_index, 0, &result, key.getKeyPtr()) == CRYPT_OK && result != 0);
     }
 
 #pragma endregion
+
+    namespace
+    {
+      // Feed data to a libtomcrypt hash in pieces that fit its unsigned long
+      // length, which is 32-bit on Windows.
+      //
+      void HashProcess(int (*process)(hash_state*, const unsigned char*, unsigned long), hash_state* state, const std::uint8_t* data, std::size_t length)
+      {
+        while (length != 0)
+        {
+          unsigned long n = static_cast<unsigned long>(std::min<std::size_t>(length, ULONG_MAX));
+          process(state, data, n);
+          data += n;
+          length -= n;
+        }
+      }
+    }
 
 #pragma region Tiger
 
@@ -214,7 +231,7 @@ namespace Utils
 
       hash_state state;
       tiger_init(&state);
-      tiger_process(&state, data, length);
+      HashProcess(tiger_process, &state, data, length);
       tiger_done(&state, buffer);
 
       std::string hash{ reinterpret_cast<char*>(buffer), sizeof(buffer) };
@@ -238,7 +255,7 @@ namespace Utils
 
       hash_state state;
       sha1_init(&state);
-      sha1_process(&state, data, length);
+      HashProcess(sha1_process, &state, data, length);
       sha1_done(&state, buffer);
 
       std::string hash{ reinterpret_cast<char*>(buffer), sizeof(buffer) };
@@ -262,7 +279,7 @@ namespace Utils
 
       hash_state state;
       sha256_init(&state);
-      sha256_process(&state, data, length);
+      HashProcess(sha256_process, &state, data, length);
       sha256_done(&state, buffer);
 
       std::string hash{ reinterpret_cast<char*>(buffer), sizeof(buffer) };
@@ -305,7 +322,7 @@ namespace Utils
 
       hash_state state;
       sha512_init(&state);
-      sha512_process(&state, data, length);
+      HashProcess(sha512_process, &state, data, length);
       sha512_done(&state, buffer);
 
       std::string hash{ reinterpret_cast<char*>(buffer), sizeof(buffer) };
