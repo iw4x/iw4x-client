@@ -279,7 +279,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/ClientCommand.*",
     "src/Components/Modules/ConnectProtocol.*",
     "src/Components/Modules/Console.*",
     "src/Components/Modules/Controller.*",
