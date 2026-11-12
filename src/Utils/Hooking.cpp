@@ -2,9 +2,6 @@
 
 namespace Utils
 {
-  std::map<void*, void*> Hook::Interceptor::IReturn;
-  std::map<void*, void(*)()> Hook::Interceptor::ICallbacks;
-
   void Hook::Signature::process()
   {
     if (this->signatures.empty()) return;
@@ -42,47 +39,6 @@ namespace Utils
   void Hook::Signature::add(const Hook::Signature::Container& container)
   {
     Hook::Signature::signatures.push_back(container);
-  }
-
-  void Hook::Interceptor::Install(void* place, void* stub)
-  {
-    return Hook::Interceptor::Install(place, reinterpret_cast<void(*)()>(stub));
-  }
-
-  void Hook::Interceptor::Install(void* place, void(*stub)())
-  {
-    return Hook::Interceptor::Install(reinterpret_cast<void**>(place), stub);
-  }
-
-  void Hook::Interceptor::Install(void** place, void(*stub)())
-  {
-    Hook::Interceptor::IReturn[place] = *place;
-    Hook::Interceptor::ICallbacks[place] = stub;
-    *place = reinterpret_cast<void*>(Hooking_InterceptionStub);
-  }
-
-  void Hook::Interceptor::RunCallback(void* place)
-  {
-    auto iCallback = Hook::Interceptor::ICallbacks.find(place);
-    if (iCallback != Hook::Interceptor::ICallbacks.end())
-    {
-      iCallback->second();
-      Hook::Interceptor::ICallbacks.erase(iCallback);
-    }
-  }
-
-  void* Hook::Interceptor::PopReturn(void* _place)
-  {
-    void* retVal = nullptr;
-
-    auto iReturn = Hook::Interceptor::IReturn.find(_place);
-    if (iReturn != Hook::Interceptor::IReturn.end())
-    {
-      retVal = iReturn->second;
-      Hook::Interceptor::IReturn.erase(iReturn);
-    }
-
-    return retVal;
   }
 
   Hook::~Hook()
@@ -231,14 +187,4 @@ namespace Utils
   {
     Hook::RedirectJump(reinterpret_cast<void*>(place), stub);
   }
-}
-
-void Hooking_RunCallback(void* place)
-{
-  Utils::Hook::Interceptor::RunCallback(place);
-}
-
-void* Hooking_PopReturn(void* place)
-{
-  return Utils::Hook::Interceptor::PopReturn(place);
 }

@@ -3,14 +3,6 @@
 #define HOOK_JUMP true
 #define HOOK_CALL false
 
-extern "C"
-{
-  void Hooking_InterceptionStub();
-
-  void Hooking_RunCallback(void* place);
-  void* Hooking_PopReturn(void* place);
-}
-
 namespace Utils
 {
   // Function type, such as void (int), that a game function has.
@@ -42,24 +34,6 @@ namespace Utils
       void* start;
       size_t length;
       std::vector<Container> signatures;
-    };
-
-    class Interceptor
-    {
-    public:
-      static void Install(void* place, void* stub);
-      static void Install(void* place, void(*stub)());
-      static void Install(void** place, void(*stub)());
-
-    private:
-      friend void (::Hooking_RunCallback)(void* place);
-      friend void* (::Hooking_PopReturn)(void* place);
-
-      static std::map<void*, void*> IReturn;
-      static std::map<void*, void(*)()> ICallbacks;
-
-      static void RunCallback(void* place);
-      static void* PopReturn(void* place);
     };
 
     Hook() : initialized(false), installed(false), place(nullptr), stub(nullptr), original(nullptr), useJump(false), protection(0) { ZeroMemory(this->buffer, sizeof(this->buffer)); }
