@@ -795,4 +795,12 @@ namespace Game
 
   void I_strncpyz_s(char* dest, std::size_t destsize, const char* src, std::size_t count);
   void I_strcpy(char* dest, std::size_t destsize, const char* src);
+
+  // Return the address as text in a static buffer. Our version of the x86
+  // function, which x64 compiles out.
+  //
+  // Note that we print the port of an IP address unsigned, as x86 did once
+  // patched by Components::Network.
+  //
+  const char* NET_AdrToString(netadr_t a);
 }

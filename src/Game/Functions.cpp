@@ -605,6 +605,34 @@ namespace Game
     }
   }
 
+  const char* NET_AdrToString(const netadr_t a)
+  {
+    static char s[64];
+
+    switch (a.type)
+    {
+    case NA_LOOPBACK:
+      std::snprintf(s, sizeof(s), "loopback");
+      break;
+
+    case NA_IP:
+      std::snprintf(s, sizeof(s), "%u.%u.%u.%u:%hu", a.ip.bytes[0], a.ip.bytes[1], a.ip.bytes[2], a.ip.bytes[3], ntohs(a.port));
+      break;
+
+    default:
+    {
+      const unsigned char* ipx = reinterpret_cast<const unsigned char*>(a.ipx);
+
+      std::snprintf(s, sizeof(s), "%02x%02x%02x%02x.%02x%02x%02x%02x%02x%02x:%i",
+                    ipx[0], ipx[1], ipx[2], ipx[3], ipx[4], ipx[5], ipx[6], ipx[7], ipx[8], ipx[9],
+                    static_cast<int>(static_cast<int16_t>(ntohs(a.port))));
+      break;
+    }
+    }
+
+    return s;
+  }
+
   void I_strncpyz_s(char* dest, std::size_t destsize, const char* src, std::size_t count)
   {
     if (!destsize && !dest)
