@@ -506,7 +506,6 @@ project "iw4x"
     "sqlite",
     "stb",
     "tracy",
-    "udis86",
     "zlib"
   }
 
