@@ -52,6 +52,13 @@ namespace Steam
       return path;
     }
 
+    // Registry key where the Steam client records its process id.
+    //
+    // Note that WOW64 doesn't redirect HKEY_CURRENT_USER\Software\Valve, so
+    // this key is the same for 32-bit and 64-bit processes.
+    //
+    constexpr const char* steamProcessKey = "Software\\Valve\\Steam\\ActiveProcess";
+
     // Return the process id that the Steam client records in the registry or
     // 0 if there is none. Note that the client may have exited since.
     //
@@ -60,7 +67,7 @@ namespace Steam
       DWORD pid = 0;
       DWORD size = sizeof(pid);
 
-      if (RegGetValueA(HKEY_CURRENT_USER, STEAM_REGISTRY_PROCESS_PATH, "pid", RRF_RT_REG_DWORD, nullptr, &pid, &size) != ERROR_SUCCESS)
+      if (RegGetValueA(HKEY_CURRENT_USER, steamProcessKey, "pid", RRF_RT_REG_DWORD, nullptr, &pid, &size) != ERROR_SUCCESS)
       {
         return 0;
       }
