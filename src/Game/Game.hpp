@@ -91,6 +91,4 @@ namespace Game
   extern const char* origErrorMsg;
 
   extern XModel* G_GetModel(int index);
-
-  extern void G_DebugStar(const float* point, const float* color);
 }
