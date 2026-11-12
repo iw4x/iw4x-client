@@ -11,6 +11,7 @@
 #include "Modules/UIScript.hpp"
 #include "Modules/ConfigStrings.hpp"
 #include "Modules/ArenaLength.hpp"
+#include "Modules/AssetHandler.hpp"
 
 namespace Components
 {
@@ -42,6 +43,7 @@ namespace Components
     Register(new UIScript());
     Register(new ConfigStrings());
     Register(new ArenaLength());
+    Register(new AssetHandler());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order

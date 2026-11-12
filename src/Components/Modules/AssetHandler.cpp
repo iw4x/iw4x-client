@@ -2,92 +2,31 @@
 #include "FastFiles.hpp"
 #include "Weapon.hpp"
 
-#include "AssetInterfaces/IFont_s.hpp"
-#include "AssetInterfaces/IWeapon.hpp"
-#include "AssetInterfaces/IXModel.hpp"
-#include "AssetInterfaces/IFxWorld.hpp"
-#include "AssetInterfaces/IMapEnts.hpp"
-#include "AssetInterfaces/IRawFile.hpp"
-#include "AssetInterfaces/IComWorld.hpp"
-#include "AssetInterfaces/IGfxImage.hpp"
-#include "AssetInterfaces/IGfxWorld.hpp"
-#include "AssetInterfaces/IMaterial.hpp"
-#include "AssetInterfaces/ISndCurve.hpp"
-#include "AssetInterfaces/IMenuList.hpp"
-#include "AssetInterfaces/IclipMap_t.hpp"
-#include "AssetInterfaces/ImenuDef_t.hpp"
-#include "AssetInterfaces/ITracerDef.hpp"
-#include "AssetInterfaces/IPhysPreset.hpp"
-#include "AssetInterfaces/IXAnimParts.hpp"
-#include "AssetInterfaces/IFxEffectDef.hpp"
-#include "AssetInterfaces/IGameWorldMp.hpp"
-#include "AssetInterfaces/IGameWorldSp.hpp"
-#include "AssetInterfaces/IGfxLightDef.hpp"
-#include "AssetInterfaces/ILoadedSound.hpp"
-#include "AssetInterfaces/IPhysCollmap.hpp"
-#include "AssetInterfaces/IStringTable.hpp"
-#include "AssetInterfaces/IXModelSurfs.hpp"
-#include "AssetInterfaces/ILocalizeEntry.hpp"
-#include "AssetInterfaces/Isnd_alias_list_t.hpp"
-#include "AssetInterfaces/IMaterialPixelShader.hpp"
-#include "AssetInterfaces/IMaterialTechniqueSet.hpp"
-#include "AssetInterfaces/IMaterialVertexShader.hpp"
-#include "AssetInterfaces/IStructuredDataDefSet.hpp"
-#include "AssetInterfaces/IMaterialVertexDeclaration.hpp"
-
-extern "C"
-{
-  bool AssetHandler_ShouldSearchTempAssets = false;
-}
-
 namespace Components
 {
+  namespace
+  {
+    constexpr uintptr_t ImageBase = 0x140000000;
+
+    // Instruction that reaches the game's address target.
+    //
+    struct Reference
+    {
+      uintptr_t place;
+      size_t length;
+      uintptr_t target;
+    };
+  }
+
   thread_local int AssetHandler::BypassState = 0;
-  std::map<Game::XAssetType, AssetHandler::IAsset*> AssetHandler::AssetInterfaces;
   std::map<Game::XAssetType, Utils::Slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
   Utils::Signal<AssetHandler::RestrictCallback> AssetHandler::RestrictSignal;
 
-  std::map<void*, void*> AssetHandler::Relocations;
-
+  std::mutex AssetHandler::EmptyAssetsMutex;
   std::vector<std::pair<Game::XAssetType, std::string>> AssetHandler::EmptyAssets;
 
-  std::map<std::string, Game::XAssetHeader> AssetHandler::TemporaryAssets[Game::ASSET_TYPE_COUNT];
-
-  void AssetHandler::RegisterInterface(IAsset* iAsset)
-  {
-    if (!iAsset) return;
-    if (iAsset->getType() == Game::XAssetType::ASSET_TYPE_INVALID)
-    {
-      delete iAsset;
-      return;
-    }
-
-    if (AssetHandler::AssetInterfaces.contains(iAsset->getType()))
-    {
-      Logger::Print("Duplicate asset interface: {}\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
-      delete AssetHandler::AssetInterfaces[iAsset->getType()];
-    }
-    else
-    {
-      Logger::Print("Asset interface registered: {}\n", Game::DB_GetXAssetTypeName(iAsset->getType()));
-    }
-
-    AssetHandler::AssetInterfaces[iAsset->getType()] = iAsset;
-  }
-
-  void AssetHandler::ClearTemporaryAssets()
-  {
-    for (int i = 0; i < Game::ASSET_TYPE_COUNT; ++i)
-    {
-      AssetHandler::TemporaryAssets[i].clear();
-    }
-  }
-
-  void AssetHandler::StoreTemporaryAsset(Game::XAssetType type, Game::XAssetHeader asset)
-  {
-    const char* assetName = Game::DB_GetXAssetNameHandlers[type](&asset);
-    AssetHandler::TemporaryAssets[type][assetName] = asset;
-  }
+  Game::XAssetHeader(*AssetHandler::DB_FindXAssetHeader_Original)(Game::XAssetType type, const char* name);
+  Game::XAssetEntry*(*AssetHandler::DB_AddXAsset_Original)(Game::XAssetType type, Game::XAssetHeader* header);
 
   Game::XAssetHeader AssetHandler::FindAsset(Game::XAssetType type, const char* filename)
   {
@@ -105,21 +44,6 @@ namespace Components
 
       // Disallow calling DB_FindXAssetHeader ;)
       AssetHandler::SetBypassState(false);
-    }
-
-    return header;
-  }
-
-  Game::XAssetHeader AssetHandler::FindTemporaryAsset(Game::XAssetType type, const char* filename)
-  {
-    Game::XAssetHeader header = { nullptr };
-    if (type >= Game::ASSET_TYPE_COUNT) return header;
-
-    auto tempPool = &AssetHandler::TemporaryAssets[type];
-    auto entry = tempPool->find(filename);
-    if (entry != tempPool->end())
-    {
-      header = { entry->second };
     }
 
     return header;
@@ -151,13 +75,17 @@ namespace Components
 
   void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name)
   {
-
+    // Note that x86 also fixes up assets of its own zones by their format
+    // version, which x64 doesn't load.
+    //
     if (*Game::com_developer && (*Game::com_developer)->current.enabled)
     {
       if (type == Game::XAssetType::ASSET_TYPE_IMAGE && name[0] != ',')
       {
-        const auto image = asset.image;
-        const auto cat = static_cast<Game::ImageCategory>(image->category);
+        AssertOffset(Game::GfxImage, category, 0xA);
+
+        const Game::GfxImage* image = asset.image;
+        const Game::ImageCategory cat = static_cast<Game::ImageCategory>(image->category);
         if (cat == Game::ImageCategory::IMG_CATEGORY_UNKNOWN)
         {
           Logger::Warning(Game::CON_CHANNEL_GFX, "Image {} has wrong category IMG_CATEGORY_UNKNOWN, this is an IMPORTANT ISSUE that should be fixed!\n", name);
@@ -165,33 +93,11 @@ namespace Components
       }
     }
 
-    if (type == Game::ASSET_TYPE_MATERIAL && (name == "gfx_distortion_knife_trail" || name == "gfx_distortion_heat_far" || name == "gfx_distortion_ring_light" || name == "gfx_distortion_heat") && asset.material->info.sortKey >= 43)
-    {
-      if (Zones::Version() >= VERSION_ALPHA2)
-      {
-        asset.material->info.sortKey = 44;
-      }
-      else
-      {
-        asset.material->info.sortKey = 43;
-      }
-    }
-
     if (type == Game::ASSET_TYPE_MATERIAL && (name == "wc/codo_ui_viewer_black_decal3" || name == "wc/codo_ui_viewer_black_decal2" || name == "wc/hint_arrows01" || name == "wc/hint_arrows02"))
     {
+      AssertOffset(Game::MaterialInfo, sortKey, 9);
+
       asset.material->info.sortKey = 0xE;
-    }
-
-    if (type == Game::ASSET_TYPE_VEHICLE && Zones::Version() >= VERSION_ALPHA2)
-    {
-      asset.vehDef->turretWeapon = nullptr;
-    }
-
-    if (type == Game::ASSET_TYPE_GFXWORLD && Zones::Version() >= 316)
-    {
-      asset.gfxWorld->sortKeyEffectDecal = 39;
-      asset.gfxWorld->sortKeyEffectAuto = 48;
-      asset.gfxWorld->sortKeyDistortion = 43;
     }
   }
 
@@ -201,16 +107,16 @@ namespace Components
 
     if (!name) return false;
 
-    for (auto i = AssetHandler::EmptyAssets.begin(); i != AssetHandler::EmptyAssets.end();)
+    // A zone brings an asset we created an empty one for, so it isn't
+    // missing after all.
+    //
     {
-      if (i->first == type && i->second == name)
+      std::scoped_lock lock(AssetHandler::EmptyAssetsMutex);
+
+      std::erase_if(AssetHandler::EmptyAssets, [type, name] (const std::pair<Game::XAssetType, std::string>& e)
       {
-        i = AssetHandler::EmptyAssets.erase(i);
-      }
-      else
-      {
-        ++i;
-      }
+        return e.first == type && e.second == name;
+      });
     }
 
     if (Flags::HasFlag("entries"))
@@ -234,7 +140,7 @@ namespace Components
   {
     switch (type)
     {
-    // Stock behaviour (0x5BB89A): always override on async loads
+    // Stock behaviour (0x14012E97E): always override on async loads
     //
     case Game::ASSET_TYPE_LIGHT_DEF:
     case Game::ASSET_TYPE_IMPACT_FX:
@@ -275,93 +181,6 @@ namespace Components
       };
   }
 
-  void AssetHandler::ClearRelocations()
-  {
-    AssetHandler::Relocations.clear();
-  }
-
-  void AssetHandler::Relocate(void* start, void* to, DWORD size)
-  {
-    for (DWORD i = 0; i < size; i += 4)
-    {
-      AssetHandler::Relocations[reinterpret_cast<char*>(start) + i] = reinterpret_cast<char*>(to) + i;
-    }
-  }
-
-  void AssetHandler::OffsetToAlias(Utils::Stream::Offset* offset)
-  {
-    void* pointer = (*Game::g_streamBlocks)[offset->getUnpackedBlock()].data + offset->getUnpackedOffset();
-
-    if (AssetHandler::Relocations.contains(pointer))
-    {
-      pointer = AssetHandler::Relocations[pointer];
-    }
-
-    offset->pointer = *static_cast<void**>(pointer);
-  }
-
-  void AssetHandler::ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder)
-  {
-    if (AssetHandler::AssetInterfaces.contains(asset.type))
-    {
-      AssetHandler::AssetInterfaces[asset.type]->save(asset.header, builder);
-    }
-    else
-    {
-      Logger::Error(Game::ERR_FATAL, "No interface for type '{}'!", Game::DB_GetXAssetTypeName(asset.type));
-    }
-  }
-
-  void AssetHandler::ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder)
-  {
-    if (AssetHandler::AssetInterfaces.contains(asset.type))
-    {
-      AssetHandler::AssetInterfaces[asset.type]->mark(asset.header, builder);
-    }
-    else
-    {
-      Logger::Error(Game::ERR_FATAL, "No interface for type '{}'!", Game::DB_GetXAssetTypeName(asset.type));
-    }
-  }
-
-  Game::XAssetHeader AssetHandler::FindAssetForZone(Game::XAssetType type, const std::string& filename, ZoneBuilder::Zone* builder, bool isSubAsset)
-  {
-    ZoneBuilder::Zone::AssetRecursionMarker _(builder);
-
-    Game::XAssetHeader header = { nullptr };
-    if (type >= Game::ASSET_TYPE_COUNT) return header;
-
-    auto tempPool = &AssetHandler::TemporaryAssets[type];
-    auto entry = tempPool->find(filename);
-    if (entry != tempPool->end())
-    {
-      return { entry->second };
-    }
-
-    if (AssetHandler::AssetInterfaces.contains(type))
-    {
-      AssetHandler::AssetInterfaces[type]->load(&header, filename, builder);
-
-      if (header.data)
-      {
-        Components::AssetHandler::StoreTemporaryAsset(type, header);
-      }
-    }
-
-    if (!header.data && isSubAsset)
-    {
-      header = ZoneBuilder::GetEmptyAssetIfCommon(type, filename, builder);
-    }
-
-    if (!header.data)
-    {
-      header = Game::DB_FindXAssetHeader(type, filename.data());
-      if (header.data) Components::AssetHandler::StoreTemporaryAsset(type, header); // Might increase efficiency...
-    }
-
-    return header;
-  }
-
   Game::XAssetHeader AssetHandler::FindOriginalAsset(Game::XAssetType type, const char* filename)
   {
     AssetHandler::SetBypassState(true);
@@ -373,217 +192,197 @@ namespace Components
 
   void AssetHandler::StoreEmptyAsset(Game::XAssetType type, const char* name)
   {
-    AssetHandler::EmptyAssets.push_back({ type, name });
+    std::scoped_lock lock(AssetHandler::EmptyAssetsMutex);
+    AssetHandler::EmptyAssets.emplace_back(type, name);
   }
 
-  void AssetHandler::MissingAssetError(int severity, const char* format, const char* type, const char* name)
+  Game::XAssetHeader AssetHandler::DB_FindXAssetHeader_Hk(Game::XAssetType type, const char* name)
   {
-    if (Dedicated::IsEnabled() && Game::DB_GetXAssetNameType(type) == Game::ASSET_TYPE_TECHNIQUE_SET) return;
-    Utils::Hook::Call<void(int, const char*, const char*, const char*)>(0x4F8C70)(severity, format, type, name); // Print error
-  }
-
-  void AssetHandler::reallocateEntryPool()
-  {
-    AssertSize(Game::XAssetEntry, 16);
-
-    size_t size = (ZoneBuilder::IsEnabled() ? 1183968 : 789312);
-    Game::XAssetEntry* entryPool = Utils::Memory::GetAllocator()->allocateArray<Game::XAssetEntry>(size);
-
-    // Apply new size
-    Utils::Hook::Set<DWORD>(0x5BAEB0, size);
-
-    // Apply new pool
-    DWORD patches[] =
+    if (!AssetHandler::HasThreadBypass())
     {
-      0x48E6F4,
-      0x4C67E4,
-      0x4C8584,
-      0x5BAEA8,
-      0x5BB0C4,
-      0x5BB0F5,
-      0x5BB1D4,
-      0x5BB235,
-      0x5BB278,
-      0x5BB34C,
-      0x5BB484,
-      0x5BB570,
-      0x5BB6B7,
-      0x5BB844,
-      0x5BB98D,
-      0x5BBA66,
-      0x5BBB8D,
-      0x5BBCB1,
-      0x5BBD9B,
-      0x5BBE4C,
-      0x5BBF14,
-      0x5BBF54,
-      0x5BBFB8
-    };
+      Game::XAssetHeader header = AssetHandler::FindAsset(type, name);
 
-    for (const auto patch : patches)
-    {
-      Utils::Hook::Set<Game::XAssetEntry*>(patch, entryPool);
+      if (header.data)
+      {
+        return header;
+      }
     }
 
-    Utils::Hook::Set<Game::XAssetEntry*>(0x5BAE91, entryPool + 1);
-    Utils::Hook::Set<Game::XAssetEntry*>(0x5BAEA2, entryPool + 1);
+    return DB_FindXAssetHeader_Original(type, name);
   }
 
-  void AssetHandler::ExposeTemporaryAssets(bool expose)
+  Game::XAssetEntry* AssetHandler::DB_AddXAsset_Hk(Game::XAssetType type, Game::XAssetHeader* header)
   {
-    AssetHandler_ShouldSearchTempAssets = expose;
+    if (AssetHandler::IsAssetEligible(type, header))
+    {
+      return DB_AddXAsset_Original(type, header);
+    }
+
+    // The callers copy the header of the entry we return back into the
+    // asset they just loaded, so we return one with the header they gave us.
+    // That way the asset stays as it is and doesn't make it into the
+    // database.
+    //
+    thread_local Game::XAssetEntry entry;
+
+    entry = {};
+    entry.asset.type = type;
+    entry.asset.header = *header;
+
+    return &entry;
+  }
+
+  Game::XAssetEntry* AssetHandler::DB_CreateDefaultEntry_Hk(Game::XAssetType type, const char* name)
+  {
+    AssetHandler::StoreEmptyAsset(type, name);
+    return Utils::Hook::Call<Game::XAssetEntry*(Game::XAssetType, const char*)>(0x14012CFE0)(type, name);
+  }
+
+  void AssetHandler::ReallocateEntryPool()
+  {
+    AssertSize(Game::XAssetEntry, 0x18);
+    AssertOffset(Game::XAssetEntry, nextHash, 0x12);
+    AssertOffset(Game::XAssetEntry, nextOverride, 0x14);
+
+    // Move the pool to one with as many entries as x86 has. Note that the
+    // entries link to each other by 16-bit indices, which limits the count.
+    //
+    constexpr uintptr_t pool = 0x14151F4E0;
+    constexpr size_t gameCount = 37000;
+    constexpr size_t count = 49332;
+
+    static_assert(count <= std::numeric_limits<uint16_t>::max());
+
+    Game::XAssetEntry* entries = static_cast<Game::XAssetEntry*>(Utils::Hook::AllocateNear(ImageBase, count * sizeof(Game::XAssetEntry)));
+    const uintptr_t to = reinterpret_cast<uintptr_t>(entries);
+
+    // Return where the pool data at the game's address a lives now.
+    //
+    auto moved = [to] (uintptr_t a)
+    {
+      assert(a >= pool && a < pool + gameCount * sizeof(Game::XAssetEntry));
+      return to + (a - pool);
+    };
+
+    // From the next instruction, ...
+    //
+    for (const Reference& r: std::initializer_list<Reference>
+    {
+      {0x14012D103, 7, 0x14151F4E0}, {0x14012D2EE, 7, 0x14151F4E0}, {0x14012D334, 7, 0x14151F4E0},
+      {0x14012D365, 7, 0x14151F4E0}, {0x14012DC14, 7, 0x14151F4E0}, {0x14012E034, 7, 0x14151F4F8},
+      {0x14012E047, 7, 0x14151F510}, {0x14012E2E9, 7, 0x14151F4E0}, {0x14012E45A, 7, 0x14151F4E0},
+      {0x14012E4FC, 7, 0x14151F4E0}, {0x14012E76B, 7, 0x14151F4E0}, {0x14012E7B5, 7, 0x14151F4E0},
+      {0x14012E8F4, 7, 0x14151F4E0}, {0x14012EA05, 7, 0x14151F4E0}, {0x14012F600, 7, 0x14151F4E0}
+    })
+    {
+      Utils::Hook::Displace(r.place, r.length, r.target, moved(r.target));
+    }
+
+    // ... and from the image base, some at a field of the first entry.
+    //
+    for (const Reference& r: std::initializer_list<Reference>
+    {
+      {0x14012D554, 7, 0x14151F4E0}, {0x14012D5B3, 7, 0x14151F4E0}, {0x14012D656, 7, 0x14151F4E0},
+      {0x14012DA54, 9, 0x14151F4F1}, {0x14012DA5F, 8, 0x14151F4F1}, {0x14012DA67, 9, 0x14151F4F2},
+      {0x14012DA94, 7, 0x14151F4E0}, {0x14012DAF3, 7, 0x14151F4E0}, {0x14012DF64, 7, 0x14151F4E0},
+      {0x14012E204, 7, 0x14151F4E0}, {0x14012EE74, 8, 0x14151F4E0}, {0x14012EF12, 8, 0x14151F4E8},
+      {0x14012EF7D, 9, 0x14151F4F4}, {0x14012F84A, 7, 0x14151F4E0}, {0x14012FDD8, 8, 0x14151F4E0},
+      {0x14012FF1C, 8, 0x14151F4E0}, {0x140130017, 8, 0x14151F4E0}
+    })
+    {
+      Utils::Hook::Rebase(r.place, r.length, ImageBase, r.target, moved(r.target));
+    }
+
+    // DB_InitThread links the free entries past the first into a list, and
+    // ends it at the last one.
+    //
+    Utils::Hook::Replace32(0x14012E03B, 5, gameCount - 2, count - 2);
+    Utils::Hook::Displace(0x14012E068, 7,
+                          pool + (gameCount - 1) * sizeof(Game::XAssetEntry),
+                          to + (count - 1) * sizeof(Game::XAssetEntry));
+
+    Game::g_assetEntryPool = entries;
   }
 
   AssetHandler::AssetHandler()
   {
-    this->reallocateEntryPool();
+    AssetHandler::ReallocateEntryPool();
 
     Dvar::Register<bool>("r_noVoid", false, Game::DVAR_ARCHIVE, "Disable void model (red fx)");
 
-    AssetHandler::ClearTemporaryAssets();
+    // DB_FindXAssetHeader and DB_AddXAsset. Note that both start with a
+    // 5-byte store of an argument register to its home slot.
+    //
+    DB_FindXAssetHeader_Original = Utils::Hook::Detour(0x14012D6B0, 5, &AssetHandler::DB_FindXAssetHeader_Hk);
+    DB_AddXAsset_Original = Utils::Hook::Detour(0x14012E6E0, 5, &AssetHandler::DB_AddXAsset_Hk);
 
-    // DB_FindXAssetHeader
-    Utils::Hook(Game::DB_FindXAssetHeader, AssetHandler_FindAssetStub).install()->quick();
+    Utils::Hook(0x14012E97E, AssetHandler_OverrideAssetStub, HOOK_JUMP).install()->quick();
 
-    // DB_ConvertOffsetToAlias
-    Utils::Hook(0x4FDFA0, AssetHandler::OffsetToAlias, HOOK_JUMP).install()->quick();
-
-    // DB_AddXAsset
-    Utils::Hook(0x5BB650, AssetHandler_AddAssetStub, HOOK_JUMP).install()->quick();
-
-    if (!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB89A, AssetHandler_OverrideAssetStub, HOOK_JUMP).install()->quick();
-
-    // Store empty assets
-    Utils::Hook(0x5BB6EC, AssetHandler_StoreEmptyAssetStub, HOOK_CALL).install()->quick();
-
-    // Intercept missing asset messages
-    if (!ZoneBuilder::IsEnabled()) Utils::Hook(0x5BB3F2, AssetHandler::MissingAssetError, HOOK_CALL).install()->quick();
+    // Store empty assets: DB_AddXAsset creates a default entry for an asset
+    // a zone only references (its name starts with ',') and that no zone has
+    // brought yet.
+    //
+    // Note that x86 also intercepts the game's own error for a missing asset
+    // to keep it quiet on dedicated servers, which x64 compiles out.
+    //
+    Utils::Hook(0x14012E7DA, AssetHandler::DB_CreateDefaultEntry_Hk, HOOK_CALL).install()->quick();
 
     // Log missing empty assets
     Scheduler::Loop([]
       {
-        if (FastFiles::Ready() && !AssetHandler::EmptyAssets.empty())
-        {
-          for (auto& asset : AssetHandler::EmptyAssets)
-          {
-            Logger::Warning(Game::CON_CHANNEL_FILES, "Could not load {} \"{}\".\n", Game::DB_GetXAssetTypeName(asset.first), asset.second);
-          }
+        if (!FastFiles::Ready()) return;
 
-          AssetHandler::EmptyAssets.clear();
+        std::scoped_lock lock(AssetHandler::EmptyAssetsMutex);
+
+        for (const std::pair<Game::XAssetType, std::string>& asset : AssetHandler::EmptyAssets)
+        {
+          Logger::Warning(Game::CON_CHANNEL_FILES, "Could not load {} \"{}\".\n", Game::DB_GetXAssetTypeName(asset.first), asset.second);
         }
+
+        AssetHandler::EmptyAssets.clear();
       }, Scheduler::Pipeline::MAIN);
 
     AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, std::string name, bool*)
       {
         if (Dvar::Var("r_noVoid").get<bool>() && type == Game::ASSET_TYPE_XMODEL && name == "void")
         {
+          AssertOffset(Game::XModel, numLods, 0x141);
+
           asset.model->numLods = 0;
         }
       });
 
+    // Make room for what our zones bring on top of the stock ones, as x86
+    // does where x64 holds fewer.
+    //
+    // Note that we leave the material pool as it is: the game reaches it
+    // directly to number the materials (0x14012DD10, 0x14012DD30) and keeps
+    // the numbers in an array sized for the stock pool.
+    //
     Game::ReallocateAssetPool(Game::ASSET_TYPE_GAMEWORLD_SP, 1);
-    Game::ReallocateAssetPool(Game::ASSET_TYPE_IMAGE, ZoneBuilder::IsEnabled() ? 14336 * 2 : 7168);
+    Game::ReallocateAssetPool(Game::ASSET_TYPE_IMAGE, 7168);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_LOADED_SOUND, 2700 * 2);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_FX, 1200 * 2);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_LOCALIZE_ENTRY, 14000);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_XANIMPARTS, 8192 * 2);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_XMODEL, 5125 * 2);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_PHYSPRESET, 128);
-    Game::ReallocateAssetPool(Game::ASSET_TYPE_PIXELSHADER, ZoneBuilder::IsEnabled() ? 0x4000 : 10000);
-    Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXSHADER, ZoneBuilder::IsEnabled() ? 0x2000 : 3072);
-    Game::ReallocateAssetPool(Game::ASSET_TYPE_MATERIAL, 8192 * 2);
-    Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXDECL, ZoneBuilder::IsEnabled() ? 0x400 : 196);
+    Game::ReallocateAssetPool(Game::ASSET_TYPE_PIXELSHADER, 10000);
+    Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXSHADER, 3072);
+    Game::ReallocateAssetPool(Game::ASSET_TYPE_VERTEXDECL, 196);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_WEAPON, Weapon::WEAPON_LIMIT);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_STRINGTABLE, 800);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_IMPACT_FX, 8);
-
-    // Register asset interfaces
-    if (ZoneBuilder::IsEnabled())
-    {
-      Game::ReallocateAssetPool(Game::ASSET_TYPE_MAP_ENTS, 10);
-      Game::ReallocateAssetPool(Game::ASSET_TYPE_XMODEL_SURFS, 8192 * 2);
-      Game::ReallocateAssetPool(Game::ASSET_TYPE_TECHNIQUE_SET, 0x2000);
-      Game::ReallocateAssetPool(Game::ASSET_TYPE_FONT, 32);
-      Game::ReallocateAssetPool(Game::ASSET_TYPE_RAWFILE, 2048);
-      Game::ReallocateAssetPool(Game::ASSET_TYPE_LEADERBOARD, 500);
-
-      AssetHandler::RegisterInterface(new Assets::IFont_s());
-      AssetHandler::RegisterInterface(new Assets::IWeapon());
-      AssetHandler::RegisterInterface(new Assets::IXModel());
-      AssetHandler::RegisterInterface(new Assets::IFxWorld());
-      AssetHandler::RegisterInterface(new Assets::IMapEnts());
-      AssetHandler::RegisterInterface(new Assets::IRawFile());
-      AssetHandler::RegisterInterface(new Assets::IComWorld());
-      AssetHandler::RegisterInterface(new Assets::IGfxImage());
-      AssetHandler::RegisterInterface(new Assets::IGfxWorld());
-      AssetHandler::RegisterInterface(new Assets::ISndCurve());
-      AssetHandler::RegisterInterface(new Assets::IMaterial());
-      AssetHandler::RegisterInterface(new Assets::IMenuList());
-      AssetHandler::RegisterInterface(new Assets::IclipMap_t());
-      AssetHandler::RegisterInterface(new Assets::ImenuDef_t());
-      AssetHandler::RegisterInterface(new Assets::ITracerDef());
-      AssetHandler::RegisterInterface(new Assets::IPhysPreset());
-      AssetHandler::RegisterInterface(new Assets::IXAnimParts());
-      AssetHandler::RegisterInterface(new Assets::IFxEffectDef());
-      AssetHandler::RegisterInterface(new Assets::IGameWorldMp());
-      AssetHandler::RegisterInterface(new Assets::IGameWorldSp());
-      AssetHandler::RegisterInterface(new Assets::IGfxLightDef());
-      AssetHandler::RegisterInterface(new Assets::ILoadedSound());
-      AssetHandler::RegisterInterface(new Assets::IPhysCollmap());
-      AssetHandler::RegisterInterface(new Assets::IStringTable());
-      AssetHandler::RegisterInterface(new Assets::IXModelSurfs());
-      AssetHandler::RegisterInterface(new Assets::ILocalizeEntry());
-      AssetHandler::RegisterInterface(new Assets::Isnd_alias_list_t());
-      AssetHandler::RegisterInterface(new Assets::IMaterialPixelShader());
-      AssetHandler::RegisterInterface(new Assets::IMaterialTechniqueSet());
-      AssetHandler::RegisterInterface(new Assets::IMaterialVertexShader());
-      AssetHandler::RegisterInterface(new Assets::IStructuredDataDefSet());
-      AssetHandler::RegisterInterface(new Assets::IMaterialVertexDeclaration());
-    }
   }
 
   AssetHandler::~AssetHandler()
   {
-    AssetHandler::ClearTemporaryAssets();
-
-    for (auto i = AssetHandler::AssetInterfaces.begin(); i != AssetHandler::AssetInterfaces.end(); ++i)
-    {
-      delete i->second;
-    }
-
-    AssetHandler::Relocations.clear();
-    AssetHandler::AssetInterfaces.clear();
     AssetHandler::RestrictSignal.clear();
     AssetHandler::TypeCallbacks.clear();
   }
 }
 
-int AssetHandler_HasThreadBypass()
-{
-  return Components::AssetHandler::HasThreadBypass();
-}
-
-Game::XAssetHeader AssetHandler_FindAsset(Game::XAssetType type, const char* filename)
-{
-  return Components::AssetHandler::FindAsset(type, filename);
-}
-
-Game::XAssetHeader AssetHandler_FindTemporaryAsset(Game::XAssetType type, const char* filename)
-{
-  return Components::AssetHandler::FindTemporaryAsset(type, filename);
-}
-
-bool AssetHandler_IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset)
-{
-  return Components::AssetHandler::IsAssetEligible(type, asset);
-}
-
 bool AssetHandler_ShouldOverrideAsset(Game::XAssetType type)
 {
   return Components::AssetHandler::ShouldOverrideAsset(type);
-}
-
-void AssetHandler_StoreEmptyAsset(Game::XAssetType type, const char* name)
-{
-  Components::AssetHandler::StoreEmptyAsset(type, name);
 }
