@@ -10921,25 +10921,26 @@ namespace Game
     Message errorMessages[5];
   };
 
+  // Console state that x64 keeps. The console window, the display line
+  // offset, and the output visibility are compiled out with the in-game
+  // console.
+  //
   struct Console
   {
-    MessageWindow consoleWindow;
-    MessageLine consoleLines[1024];
-    Message consoleMessages[1024];
-    char consoleText[65536];
     char textTempLine[512];
     unsigned int lineOffset;
-    int displayLineOffset;
     int prevChannel;
-    bool outputVisible;
     int fontHeight;
     int visibleLineCount;
     int visiblePixelWidth;
     float screenMin[2];
     float screenMax[2];
-    MessageBuffer messageBuffer[1];
-    float color[4];
   };
+
+  static_assert(offsetof(Console, lineOffset) == 0x200);
+  static_assert(offsetof(Console, fontHeight) == 0x208);
+  static_assert(offsetof(Console, screenMax) == 0x21C);
+  static_assert(sizeof(Console) == 0x224);
 
   enum clientMigState_t
   {

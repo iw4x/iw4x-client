@@ -722,8 +722,142 @@ namespace Components
     ConsoleThread = std::jthread(ConsoleRunner);
   }
 
+  float Console::GetConsoleScale()
+  {
+    return Game::Con_GetConsoleScale();
+  }
+
+  void (*Console::Con_UpdateNotifyLine_Original)(int localClientNum, int channel, bool lineFeed, int flags);
+
+  void Console::Con_UpdateNotifyLine_Hk(int localClientNum, int channel, bool lineFeed, int flags)
+  {
+    Game::Con_UpdateConsoleLine(localClientNum, channel, lineFeed, flags);
+    Con_UpdateNotifyLine_Original(localClientNum, channel, lineFeed, flags);
+  }
+
+  void Console::Con_OneTimeInit_Hk()
+  {
+    Game::Con_InitConsoleWindow();
+    Utils::Hook::Call<void()>(0x1400ED2C0)();
+  }
+
+  void Console::Con_Init_Hk()
+  {
+    Utils::Hook::Call<void()>(0x1400ED0A0)();
+    Game::Con_InitInput();
+  }
+
+  void Console::Con_InitChannels_Hk()
+  {
+    Game::Con_InitConsoleChannels();
+    Utils::Hook::Call<void()>(0x1400F0030)();
+  }
+
+  void Console::SCR_DrawScreenField_Hk()
+  {
+    if (Game::cls->rendererStarted)
+    {
+      Game::Con_DrawConsole(0);
+    }
+
+    Game::ScrPlace_EndFrame();
+  }
+
+  int Console::R_TextHeight_Hk(Game::Font_s* font)
+  {
+    return static_cast<int>(static_cast<float>(Game::R_TextHeight(font)) * Game::Con_GetFontScale(font));
+  }
+
+  int Console::R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font)
+  {
+    return static_cast<int>(static_cast<float>(Game::R_TextWidth(text, maxChars, font)) * Game::Con_GetFontScale(font));
+  }
+
+  void Console::CL_DrawTextWithCursor_Hk(Game::ScreenPlacement* scrPlace, const char* text, int maxChars, Game::Font_s* font, float x, float y, int horzAlign, int vertAlign, float xScale, float yScale, const float* color, int style, int cursorPos, char cursorChar)
+  {
+    const float scale(Game::Con_GetFontScale(font));
+    Game::CL_DrawTextWithCursor(scrPlace, text, maxChars, font, x, y, horzAlign, vertAlign, xScale * scale, yScale * scale, color, style, cursorPos, cursorChar);
+  }
+
+  Game::dvar_t* Console::RegisterConColor(const char* dvarName, float r, float g, float b, float a, float min, float max, unsigned __int16 flags, const char* description)
+  {
+    struct ConColor
+    {
+      const char* name;
+      float color[4];
+    };
+
+    static constexpr ConColor colors[] =
+    {
+      {"con_inputBoxColor",     {0.20f, 0.20f, 0.20f, 1.00f}},
+      {"con_inputHintBoxColor", {0.30f, 0.30f, 0.30f, 1.00f}},
+      {"con_outputBarColor",    {0.50f, 0.50f, 0.50f, 0.60f}},
+      {"con_outputSliderColor", {0.70f, 1.00f, 0.00f, 1.00f}},
+      {"con_outputWindowColor", {0.25f, 0.25f, 0.25f, 0.85f}},
+    };
+
+    for (const ConColor& c: colors)
+    {
+      if (std::strcmp(dvarName, c.name) == 0)
+      {
+        r = c.color[0];
+        g = c.color[1];
+        b = c.color[2];
+        a = c.color[3];
+        break;
+      }
+    }
+
+    return Game::Dvar_RegisterVec4(dvarName, r, g, b, a, min, max, flags, description);
+  }
+
   Console::Console()
   {
+    // In-game console that x64 compiles out. Feed it the console lines,
+    // set it up with the console, draw it with the screen, and give it the
+    // keys.
+    //
+    Con_UpdateNotifyLine_Original = Utils::Hook::Detour(0x1400EE410, 5, &Con_UpdateNotifyLine_Hk);
+    Utils::Hook(0x1400EBC71, Console_CL_ConsolePrintStub, HOOK_JUMP).install()->quick();
+
+    Utils::Hook(0x1400EDDFD, Con_OneTimeInit_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400FAF02, Con_Init_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400F0025, Con_InitChannels_Hk, HOOK_JUMP).install()->quick();
+
+    Utils::Hook(0x140101D11, SCR_DrawScreenField_Hk, HOOK_CALL).install()->quick();
+
+    Utils::Hook(0x1400EE892, Console_CL_KeyEventStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400EE95D, Console_CL_KeyEventEscapeStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400EEA62, Console_CL_KeyEventDownStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400EEAC2, Console_CL_KeyEventDisconnectedStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400EE5E0, Game::CL_CharEvent, HOOK_JUMP).install()->quick();
+
+    // Console colors.
+    //
+    Utils::Hook(0x1400ED73C, RegisterConColor, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ED78D, RegisterConColor, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ED7E1, RegisterConColor, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ED82F, RegisterConColor, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ED881, RegisterConColor, HOOK_CALL).install()->quick();
+
+    // Scale the console font metrics with con_scale: Con_CheckResize,
+    // Field_AdjustScroll, and Field_Draw.
+    //
+    Game::con_scale = Dvar::Register<float>("con_scale", 0.0f, 0.0f, 4.0f, Game::DVAR_ARCHIVE, "Size multiplier of the ingame console. 0 derives it from the render resolution.").get<Game::dvar_t*>();
+
+    Utils::Hook(0x1400ED236, R_TextHeight_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEB95, R_TextWidth_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEC03, R_TextWidth_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEC40, R_TextWidth_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEC60, R_TextWidth_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EECF9, R_TextWidth_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEFC6, R_TextHeight_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EF045, CL_DrawTextWithCursor_Hk, HOOK_CALL).install()->quick();
+
+#ifdef _DEBUG
+    Command::AddRaw("con_echo", Game::Con_EchoCommand);
+#endif
+
     // Modify console style
     ApplyConsoleStyle();
 
@@ -814,4 +948,19 @@ namespace Components
 void Console_MakeRoomForText(int addedCharacters)
 {
   Components::Console::MakeRoomForText(addedCharacters);
+}
+
+bool Console_CL_ConsoleKeyEvent(int localClientNum, int key, int down)
+{
+  return Game::CL_ConsoleKeyEvent(localClientNum, key, down);
+}
+
+bool Console_Con_CancelAutoComplete()
+{
+  return Game::Con_CancelAutoComplete();
+}
+
+void Console_Console_Key(int localClientNum, int key)
+{
+  Game::Console_Key(localClientNum, key);
 }
