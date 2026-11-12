@@ -503,5 +503,56 @@ namespace Components
     Utils::Hook(0x140087660, Game::Jump_IsPlayerAboveMax, HOOK_JUMP).install()->quick();
     Utils::Hook(0x140087680, Game::Jump_GetLandFactor, HOOK_JUMP).install()->quick();
     Utils::Hook(0x1400876E0, Game::Jump_Start, HOOK_JUMP).install()->quick();
+
+    // Restore the aim assist dvars that x64 compiles out, with the x86
+    // defaults and limits, and replace the aim assist that reads them.
+    //
+    // Note that, as x86 did, we raise the perk_extendedMeleeRange maximum
+    // and say that aim_lockon_strength is for yaw.
+    //
+    constexpr std::uint16_t aimSavedFlags = Game::DVAR_CHEAT | Game::DVAR_SAVED;
+
+    Game::aim_aimAssistRangeScale = Game::Dvar_RegisterFloat("aim_aimAssistRangeScale", 1.0f, 0.0f, 2.0f, aimSavedFlags, "Scales the weapon's aim assist range");
+    Game::aim_autoAimRangeScale = Game::Dvar_RegisterFloat("aim_autoAimRangeScale", 1.0f, 0.0f, 2.0f, aimSavedFlags, "Scales the weapon's auto aim range");
+    Game::aim_input_graph_enabled = Game::Dvar_RegisterBool("aim_input_graph_enabled", true, Game::DVAR_CHEAT, "Use graph for adjusting view input");
+    Game::aim_input_graph_debug = Game::Dvar_RegisterBool("aim_input_graph_debug", false, Game::DVAR_CHEAT, "Debug the view input graphs");
+    Game::aim_input_graph_index = Game::Dvar_RegisterInt("aim_input_graph_index", 3, 0, 3, Game::DVAR_CHEAT, "Which input graph to use");
+    Game::aim_turnrate_pitch = Game::Dvar_RegisterFloat("aim_turnrate_pitch", 90.0f, 0.0f, 1080.0f, Game::DVAR_CHEAT, "The vertical turn rate for aim assist when firing from the hip");
+    Game::aim_turnrate_pitch_ads = Game::Dvar_RegisterFloat("aim_turnrate_pitch_ads", 55.0f, 0.0f, 1080.0f, Game::DVAR_CHEAT, "The turn rate up and down for aim assist when aiming down the sight");
+    Game::aim_turnrate_yaw = Game::Dvar_RegisterFloat("aim_turnrate_yaw", 260.0f, 0.0f, 1080.0f, Game::DVAR_CHEAT, "The horizontal turn rate for aim assist when firing from the hip");
+    Game::aim_turnrate_yaw_ads = Game::Dvar_RegisterFloat("aim_turnrate_yaw_ads", 90.0f, 0.0f, 1080.0f, Game::DVAR_CHEAT, "The horizontal turn rate for aim assist when aiming down the sight");
+    Game::aim_accel_turnrate_enabled = Game::Dvar_RegisterBool("aim_accel_turnrate_enabled", true, Game::DVAR_CHEAT, "Enable/disable acceleration of the turnrates");
+    Game::aim_accel_turnrate_debug = Game::Dvar_RegisterBool("aim_accel_turnrate_debug", false, Game::DVAR_CHEAT, "Turn on debugging info for the acceleration");
+    Game::aim_accel_turnrate_lerp = Game::Dvar_RegisterFloat("aim_accel_turnrate_lerp", 1200.0f, 0.0f, 4000.0f, Game::DVAR_CHEAT, "The acceleration of the turnrates");
+    Game::aim_slowdown_enabled = Game::Dvar_RegisterBool("aim_slowdown_enabled", true, Game::DVAR_CHEAT, "Slowdown the turn rate when the cross hair passes over a target");
+    Game::aim_slowdown_debug = Game::Dvar_RegisterBool("aim_slowdown_debug", false, Game::DVAR_CHEAT, "Turn on debugging info for aim slowdown");
+    Game::aim_slowdown_region_width = Game::Dvar_RegisterFloat("aim_slowdown_region_width", 90.0f, 0.0f, 640.0f, Game::DVAR_CHEAT, "The screen width of the aim slowdown region");
+    Game::aim_slowdown_region_height = Game::Dvar_RegisterFloat("aim_slowdown_region_height", 90.0f, 0.0f, 480.0f, Game::DVAR_CHEAT, "The screen height of the aim assist slowdown region");
+    Game::aim_slowdown_pitch_scale = Game::Dvar_RegisterFloat("aim_slowdown_pitch_scale", 0.4f, 0.0f, 1.0f, Game::DVAR_CHEAT, "The vertical aim assist slowdown ratio from the hip");
+    Game::aim_slowdown_pitch_scale_ads = Game::Dvar_RegisterFloat("aim_slowdown_pitch_scale_ads", 0.5f, 0.0f, 1.0f, Game::DVAR_CHEAT, "The vertical aim assist slowdown ratio when aiming down the sight");
+    Game::aim_slowdown_yaw_scale = Game::Dvar_RegisterFloat("aim_slowdown_yaw_scale", 0.4f, 0.0f, 1.0f, Game::DVAR_CHEAT, "The horizontal aim assist slowdown ratio from the hip");
+    Game::aim_slowdown_yaw_scale_ads = Game::Dvar_RegisterFloat("aim_slowdown_yaw_scale_ads", 0.5f, 0.0f, 1.0f, Game::DVAR_CHEAT, "The horizontal aim assist slowdown ratio when aiming down the sight");
+    Game::aim_autoaim_enabled = Game::Dvar_RegisterBool("aim_autoaim_enabled", false, Game::DVAR_CHEAT, "Turn on auto aim");
+    Game::aim_autoaim_debug = Game::Dvar_RegisterBool("aim_autoaim_debug", false, Game::DVAR_CHEAT, "Turn on auto aim debugging");
+    Game::aim_autoaim_lerp = Game::Dvar_RegisterFloat("aim_autoaim_lerp", 40.0f, 0.0f, 100.0f, Game::DVAR_CHEAT, "The rate in degrees per second that the auto aim will converge to its target");
+    Game::aim_autoaim_region_width = Game::Dvar_RegisterFloat("aim_autoaim_region_width", 160.0f, 0.0f, 640.0f, Game::DVAR_CHEAT, "The width of the auto aim region in virtual screen coordinates (0 - 640)");
+    Game::aim_autoaim_region_height = Game::Dvar_RegisterFloat("aim_autoaim_region_height", 120.0f, 0.0f, 480.0f, Game::DVAR_CHEAT, "The height of the auto aim region in virtual screen coordinates (0 - 480)");
+    Game::aim_automelee_enabled = Game::Dvar_RegisterBool("aim_automelee_enabled", true, Game::DVAR_CHEAT, "Turn on auto melee");
+    Game::aim_automelee_debug = Game::Dvar_RegisterBool("aim_automelee_debug", false, Game::DVAR_CHEAT, "Turn on auto melee debugging");
+    Game::aim_automelee_lerp = Game::Dvar_RegisterFloat("aim_automelee_lerp", 40.0f, 0.0f, 100.0f, Game::DVAR_CHEAT, "The rate in degrees per second that the auto melee will converge to its target");
+    Game::aim_automelee_region_width = Game::Dvar_RegisterFloat("aim_automelee_region_width", 320.0f, 0.0f, 640.0f, Game::DVAR_CHEAT, "The width of the auto melee region in virtual screen coordinates (0 - 640)");
+    Game::aim_automelee_region_height = Game::Dvar_RegisterFloat("aim_automelee_region_height", 240.0f, 0.0f, 480.0f, Game::DVAR_CHEAT, "The height of the auto melee region in virtual screen coordinates (0 - 480)");
+    Game::aim_automelee_range = Game::Dvar_RegisterFloat("aim_automelee_range", 128.0f, 0.0f, 255.0f, Game::DVAR_CHEAT, "The range of the auto melee");
+    Game::aim_lockon_enabled = Game::Dvar_RegisterBool("aim_lockon_enabled", true, Game::DVAR_CHEAT, "Aim lock on helps the player to stay on target");
+    Game::aim_lockon_debug = Game::Dvar_RegisterBool("aim_lockon_debug", false, Game::DVAR_CHEAT, "Turn on debugging info for aim lock on");
+    Game::aim_lockon_deflection = Game::Dvar_RegisterFloat("aim_lockon_deflection", 0.05f, 0.0f, 1.0f, Game::DVAR_CHEAT, "The amount of stick deflection for the lockon to activate");
+    Game::aim_lockon_strength = Game::Dvar_RegisterFloat("aim_lockon_strength", 0.6f, 0.0f, 1.0f, Game::DVAR_CHEAT, "The amount of aim assistance given by the target lock on (yaw)");
+    Game::aim_lockon_region_width = Game::Dvar_RegisterFloat("aim_lockon_region_width", 90.0f, 0.0f, 640.0f, Game::DVAR_CHEAT, "The width of the auto aim region in virtual screen coordinates(0-640)");
+    Game::aim_lockon_region_height = Game::Dvar_RegisterFloat("aim_lockon_region_height", 90.0f, 0.0f, 480.0f, Game::DVAR_CHEAT, "The height of the auto aim region in virtual screen coordinates(0-480)");
+    Game::aim_scale_view_axis = Game::Dvar_RegisterBool("aim_scale_view_axis", true, Game::DVAR_CHEAT, "Scale the influence of each input axis so that the major axis has more influence on the control");
+    Game::perk_extendedMeleeRange = Game::Dvar_RegisterFloat("perk_extendedMeleeRange", 176.0f, 0.0f, 10000.0f, Game::DVAR_CHEAT, "The range of the auto melee with the extened perk");
+
+    Utils::Hook(0x140080FE0, Game::AimAssist_UpdateMouseInput, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140080160, Game::AimAssist_ApplyAutoMelee, HOOK_JUMP).install()->quick();
   }
 }

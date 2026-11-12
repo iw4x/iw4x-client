@@ -212,7 +212,11 @@ namespace Game
 
   Field_Draw_t Field_Draw = Field_Draw_t(0x1400EEEA0);
   Field_AdjustScroll_t Field_AdjustScroll = Field_AdjustScroll_t(0x1400EEB20);
-  AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee = AimAssist_ApplyAutoMelee_t(0x1400B9A80);
+  ScrPlace_GetViewPlacement_t ScrPlace_GetViewPlacement = ScrPlace_GetViewPlacement_t(0x1400F2BB0);
+  vectoangles_t vectoangles = vectoangles_t(0x14027C090);
+  DiffTrackAngle_t DiffTrackAngle = DiffTrackAngle_t(0x1402787E0);
+  CG_DObjGetWorldTagPos_t CG_DObjGetWorldTagPos = CG_DObjGetWorldTagPos_t(0x1400D4090);
+  CG_UsingTurretOverlay_t CG_UsingTurretOverlay = CG_UsingTurretOverlay_t(0x1400C4770);
 
   Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire = Weapon_RocketLauncher_Fire_t(0x1401896B0);
   Bullet_Fire_t Bullet_Fire = Bullet_Fire_t(0x140161B20);

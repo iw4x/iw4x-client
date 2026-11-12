@@ -488,8 +488,23 @@ namespace Game
   typedef void(*Field_AdjustScroll_t)(ScreenPlacement* scrPlace, field_t* edit);
   extern Field_AdjustScroll_t Field_AdjustScroll;
 
-  typedef void(*AimAssist_ApplyAutoMelee_t)(const AimInput* input, AimOutput* output);
-  extern AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee;
+  typedef ScreenPlacement*(*ScrPlace_GetViewPlacement_t)(int localClientNum);
+  extern ScrPlace_GetViewPlacement_t ScrPlace_GetViewPlacement;
+
+  typedef void(*vectoangles_t)(const float* vec, float* angles);
+  extern vectoangles_t vectoangles;
+
+  typedef float(*DiffTrackAngle_t)(float tgt, float cur, float rate, float deltaTime);
+  extern DiffTrackAngle_t DiffTrackAngle;
+
+  typedef int(*CG_DObjGetWorldTagPos_t)(const centity_s* cent, const DObj* obj, unsigned int tagName, float* pos);
+  extern CG_DObjGetWorldTagPos_t CG_DObjGetWorldTagPos;
+
+  // Return true if the local player uses a turret whose weapon has an
+  // overlay.
+  //
+  typedef bool(*CG_UsingTurretOverlay_t)(int localClientNum);
+  extern CG_UsingTurretOverlay_t CG_UsingTurretOverlay;
 
   typedef gentity_s*(*Weapon_RocketLauncher_Fire_t)(gentity_s* ent, unsigned int weaponIndex, float spread, weaponParms* wp, const float* gunVel, lockonFireParms* lockParms, bool magicBullet);
   extern Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire;
