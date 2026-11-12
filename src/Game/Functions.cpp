@@ -242,6 +242,7 @@ namespace Game
   Vec3NormalizeTo_t Vec3NormalizeTo = Vec3NormalizeTo_t(0x14027BB90);
 
   I_strncpyz_t I_strncpyz = I_strncpyz_t(0x14028A8B0);
+  I_stricmp_t I_stricmp = I_stricmp_t(0x14028A610);
   I_CleanStr_t I_CleanStr = I_CleanStr_t(0x14028A4E0);
   I_isdigit_t I_isdigit = I_isdigit_t(0x14028A570);
 

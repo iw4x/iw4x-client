@@ -48,6 +48,11 @@ namespace Game
   typedef int(*Com_sprintf_t)(char* dest, int size, const char* fmt, ...);
   extern Com_sprintf_t Com_sprintf;
 
+  // Format into one of two rotating per-thread buffers.
+  //
+  typedef const char*(*va_t)(const char* fmt, ...);
+  extern va_t va;
+
   typedef void(*Com_EndParseSession_t)();
   extern Com_EndParseSession_t Com_EndParseSession;
 
