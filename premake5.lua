@@ -279,7 +279,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/Bans.*",
     "src/Components/Modules/Bots.*",
     "src/Components/Modules/Branding.*",
     "src/Components/Modules/Bullet.*",

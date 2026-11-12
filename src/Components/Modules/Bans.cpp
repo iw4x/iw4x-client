@@ -188,6 +188,9 @@ namespace Components
 
   void Bans::BanClient(Game::client_s* cl, const std::string& reason)
   {
+    AssertOffset(Game::client_s, header.netchan.remoteAddress, 0x28);
+    AssertOffset(Game::client_s, steamID, 0x43F20);
+
     SteamID guid;
     guid.bits = cl->steamID;
 
@@ -272,6 +275,8 @@ namespace Components
         Logger::Print("Client {} is not active\n", clientNum);
         return;
       }
+
+      AssertOffset(Game::client_s, bIsTestClient, 0x41B0C);
 
       if (cl->bIsTestClient)
       {

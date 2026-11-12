@@ -12,6 +12,7 @@
 #include "Modules/ConfigStrings.hpp"
 #include "Modules/ArenaLength.hpp"
 #include "Modules/AssetHandler.hpp"
+#include "Modules/Bans.hpp"
 
 namespace Components
 {
@@ -44,6 +45,7 @@ namespace Components
     Register(new ConfigStrings());
     Register(new ArenaLength());
     Register(new AssetHandler());
+    Register(new Bans());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
