@@ -8,6 +8,7 @@
 #include "Functions.hpp"
 #include "Dvars.hpp"
 #include "PlayerMovement.hpp"
+#include "Jump.hpp"
 #include "Script.hpp"
 #include "Server.hpp"
 #include "System.hpp"

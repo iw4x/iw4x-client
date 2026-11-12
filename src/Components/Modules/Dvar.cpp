@@ -480,5 +480,28 @@ namespace Components
 
     // Fix crash
     Utils::Hook(0x1402834B0, Dvar_EnumToString_Stub, HOOK_JUMP).install()->quick();
+
+    // Restore the jump dvars that x64 compiles out, with the x86 defaults
+    // and limits, and replace the jump movement that reads them.
+    //
+    // Note that we keep jump_height and jump_slowdownEnable free of the
+    // cheat flag, as x86 did.
+    //
+    constexpr std::uint16_t jumpFlags = Game::DVAR_CHEAT | Game::DVAR_CODINFO | Game::DVAR_INTERNAL;
+    constexpr std::uint16_t jumpFreeFlags = Game::DVAR_CODINFO | Game::DVAR_INTERNAL;
+
+    Game::jump_height = Game::Dvar_RegisterFloat("jump_height", 39.0f, 0.0f, 1000.0f, jumpFreeFlags, "The maximum height of a player's jump");
+    Game::jump_stepSize = Game::Dvar_RegisterFloat("jump_stepSize", 18.0f, 0.0f, 64.0f, jumpFlags, "The maximum step up to the top of a jump arc");
+    Game::jump_slowdownEnable = Game::Dvar_RegisterBool("jump_slowdownEnable", true, jumpFreeFlags, "Slow player movement after jumping");
+    Game::jump_ladderPushVel = Game::Dvar_RegisterFloat("jump_ladderPushVel", 128.0f, 0.0f, 1024.0f, jumpFlags, "The velocity of a jump off of a ladder");
+    Game::jump_spreadAdd = Game::Dvar_RegisterFloat("jump_spreadAdd", 64.0f, 0.0f, 512.0f, jumpFlags, "The amount of spread scale to add as a side effect of jumping");
+
+    Utils::Hook(0x140087240, Game::Jump_ApplySlowdown, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400872E0, Game::Jump_Check, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140087550, Game::Jump_ClampVelocity, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140087600, Game::Jump_GetStepHeight, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140087660, Game::Jump_IsPlayerAboveMax, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140087680, Game::Jump_GetLandFactor, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400876E0, Game::Jump_Start, HOOK_JUMP).install()->quick();
   }
 }
