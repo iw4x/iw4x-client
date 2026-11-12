@@ -70,7 +70,7 @@ namespace Components
 
   void Scheduler::ScrPlace_EndFrame_Hk()
   {
-    Utils::Hook::Call<void()>(0x4AA720)();
+    Utils::Hook::Call<void()>(0x1400F2B60)();
 
     ZoneScopedN("Renderer pipeline");
 
@@ -79,7 +79,7 @@ namespace Components
 
   void Scheduler::ServerFrame_Hk()
   {
-    Utils::Hook::Call<void()>(0x471C50)();
+    Utils::Hook::Call<void()>(0x140169310)();
 
     ZoneScopedN("Server pipeline");
 
@@ -88,7 +88,7 @@ namespace Components
 
   void Scheduler::ClientFrame_Hk(const int localClientNum)
   {
-    Utils::Hook::Call<void(int)>(0x5A8E80)(localClientNum);
+    Utils::Hook::Call<void(int)>(0x1400F8190)(localClientNum);
 
     ZoneScopedN("Client pipeline");
 
@@ -97,7 +97,7 @@ namespace Components
 
   void Scheduler::MainFrame_Hk()
   {
-    Utils::Hook::Call<void()>(0x47DCA0)();
+    Utils::Hook::Call<void()>(0x1401F3E80)();
 
     {
       ZoneScopedN("Main pipeline");
@@ -119,7 +119,7 @@ namespace Components
       Execute(Pipeline::QUIT);
     }
 
-    Utils::Hook::Call<void(int)>(0x46B370)(block);
+    Utils::Hook::Call<void(int)>(0x1402A99B0)(block);
   }
 
   void Scheduler::Schedule(const std::function<bool()>& callback, const Pipeline type,
@@ -196,18 +196,22 @@ namespace Components
       }
     });
 
-    Utils::Hook(0x5ACB9E, ScrPlace_EndFrame_Hk, HOOK_CALL).install()->quick();
+    // SCR_UpdateFrame, which x64 inlines.
+    //
+    Utils::Hook(0x140101D11, ScrPlace_EndFrame_Hk, HOOK_CALL).install()->quick();
 
     // Hook G_Glass_Update so we may fix TLS issues
-    Utils::Hook(0x416049, ServerFrame_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14019EFB4, ServerFrame_Hk, HOOK_CALL).install()->quick();
 
-    // CL_CheckTimeout
-    Utils::Hook(0x4B0F81, ClientFrame_Hk, HOOK_CALL).install()->quick();
+    // CL_CheckForResend. Note that x64 inlines CL_CheckTimeout, which x86
+    // hooks and which comes right after it.
+    //
+    Utils::Hook(0x1400FAC24, ClientFrame_Hk, HOOK_CALL).install()->quick();
 
     // Com_Frame_Try_Block_Function
-    Utils::Hook(0x4B724F, MainFrame_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401F3E04, MainFrame_Hk, HOOK_CALL).install()->quick();
 
     // Sys_Quit
-    Utils::Hook(0x4D697A, SysSetBlockSystemHotkeys_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1402A3DB1, SysSetBlockSystemHotkeys_Hk, HOOK_CALL).install()->quick();
   }
 }

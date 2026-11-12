@@ -330,7 +330,6 @@ project "iw4x"
     "src/Components/Modules/RemoteControl.*",
     "src/Components/Modules/Renderer.*",
     "src/Components/Modules/Rumble.*",
-    "src/Components/Modules/Scheduler.*",
     "src/Components/Modules/Security.*",
     "src/Components/Modules/ServerCommands.*",
     "src/Components/Modules/ServerDemo.*",
