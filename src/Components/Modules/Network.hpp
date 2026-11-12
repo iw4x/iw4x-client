@@ -2,7 +2,6 @@
 
 extern "C"
 {
-  void Network_PacketErrorCheck();
   void Network_CL_HandleCommandStub();
 
   bool Network_CL_HandleCommand(Game::netadr_t* address, const char* command, Game::msg_t* message);
