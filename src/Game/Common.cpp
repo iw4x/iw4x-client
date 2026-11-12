@@ -9,6 +9,7 @@ namespace Game
   Com_Error_t Com_Error = Com_Error_t(0x1401F3540);
   char* com_errorMessage = reinterpret_cast<char*>(0x141BD7A00);
   Com_sprintf_t Com_sprintf = Com_sprintf_t(0x14028A3D0);
+  va_t va = va_t(0x14028B700);
   Com_EndParseSession_t Com_EndParseSession = Com_EndParseSession_t(0x140289260);
   Com_BeginParseSession_t Com_BeginParseSession = Com_BeginParseSession_t(0x140289170);
   Com_ParseOnLine_t Com_ParseOnLine = Com_ParseOnLine_t(0x140289BD0);

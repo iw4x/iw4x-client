@@ -554,6 +554,9 @@ namespace Game
   typedef void(*I_strncpyz_t)(char* dest, const char* src, int destsize);
   extern I_strncpyz_t I_strncpyz;
 
+  typedef int(*I_stricmp_t)(const char* s0, const char* s1);
+  extern I_stricmp_t I_stricmp;
+
   typedef char*(*I_CleanStr_t)(char* string);
   extern I_CleanStr_t I_CleanStr;
 
