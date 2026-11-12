@@ -8906,7 +8906,9 @@ namespace Game
     GfxEntCellRefInfo* entInfo[4];
   };
 
-  struct alignas(64) GfxScene
+  // @@ TODO: verify x64 layout and restore 64-byte alignment (x86 has it).
+  //
+  struct GfxScene
   {
     GfxCodeSurf codeEmissiveSurfs[2048];
     GfxCodeSurf codeTransSurfs[640];
