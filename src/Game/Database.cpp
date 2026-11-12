@@ -2,40 +2,43 @@
 
 namespace Game
 {
-  DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice = DB_BeginRecoverLostDevice_t(0x4BFF90);
-  DB_EndRecoverLostDevice_t DB_EndRecoverLostDevice = DB_EndRecoverLostDevice_t(0x46B660);
-  DB_EnumXAssets_t DB_EnumXAssets = DB_EnumXAssets_t(0x4B76D0);
-  DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal = DB_EnumXAssets_Internal_t(0x5BB0A0);
-  DB_FindXAssetHeader_t DB_FindXAssetHeader = DB_FindXAssetHeader_t(0x407930);
-  DB_GetRawBuffer_t DB_GetRawBuffer = DB_GetRawBuffer_t(0x4CDC50);
-  DB_GetRawFileLen_t DB_GetRawFileLen = DB_GetRawFileLen_t(0x4DAA80);
-  DB_GetLoadedFraction_t DB_GetLoadedFraction = DB_GetLoadedFraction_t(0x468380);
-  DB_GetXAssetTypeName_t DB_GetXAssetTypeName = DB_GetXAssetTypeName_t(0x4CFCF0);
-  DB_IsXAssetDefault_t DB_IsXAssetDefault = DB_IsXAssetDefault_t(0x48E6A0);
-  DB_LoadXAssets_t DB_LoadXAssets = DB_LoadXAssets_t(0x4E5930);
-  DB_LoadXFileData_t DB_LoadXFileData = DB_LoadXFileData_t(0x445460);
-  DB_ReadXFile_t DB_ReadXFile = DB_ReadXFile_t(0x445460);
-  DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = DB_ReadXFileUncompressed_t(0x4705E0);
-  DB_SetXAssetName_t DB_SetXAssetName = DB_SetXAssetName_t(0x453580);
-  DB_XModelSurfsFixup_t DB_XModelSurfsFixup = DB_XModelSurfsFixup_t(0x5BAC50);
+  DB_BeginRecoverLostDevice_t DB_BeginRecoverLostDevice = DB_BeginRecoverLostDevice_t(0x14012CF10);
+  DB_EndRecoverLostDevice_t DB_EndRecoverLostDevice = DB_EndRecoverLostDevice_t(0x14012D190);
+  DB_EnumXAssets_t DB_EnumXAssets = DB_EnumXAssets_t(0x14012D240);
+  DB_EnumXAssets_Internal_t DB_EnumXAssets_Internal = DB_EnumXAssets_Internal_t(0x14012D2C0);
+  DB_FindXAssetHeader_t DB_FindXAssetHeader = DB_FindXAssetHeader_t(0x14012D6B0);
+  DB_GetRawBuffer_t DB_GetRawBuffer = DB_GetRawBuffer_t(0x14012DD60);
+  DB_GetRawFileLen_t DB_GetRawFileLen = DB_GetRawFileLen_t(0x14012DE90);
+  DB_GetLoadedFraction_t DB_GetLoadedFraction = DB_GetLoadedFraction_t(0x140117CC0);
+  DB_IsXAssetDefault_t DB_IsXAssetDefault = DB_IsXAssetDefault_t(0x14012E160);
+  DB_LoadXAssets_t DB_LoadXAssets = DB_LoadXAssets_t(0x14012EC20);
+  DB_LoadXFileData_t DB_LoadXFileData = DB_LoadXFileData_t(0x1401182B0);
+  DB_ReadXFile_t DB_ReadXFile = DB_ReadXFile_t(0x1401182B0);
+  DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = DB_ReadXFileUncompressed_t(0x1401183E0);
+  DB_SetXAssetName_t DB_SetXAssetName = DB_SetXAssetName_t(0x140117620);
+  DB_FindXAssetDefaultHeaderInternal_t DB_FindXAssetDefaultHeaderInternal = DB_FindXAssetDefaultHeaderInternal_t(0x14012D4D0);
+  DB_FindXAssetEntry_t DB_FindXAssetEntry = DB_FindXAssetEntry_t(0x14012D5E0);
+  DB_XModelSurfsFixup_t DB_XModelSurfsFixup = DB_XModelSurfsFixup_t(0x140130100);
 
-  DB_SetXAssetNameHandler_t* DB_SetXAssetNameHandlers = reinterpret_cast<DB_SetXAssetNameHandler_t*>(0x7993D8);
-  DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = reinterpret_cast<DB_GetXAssetNameHandler_t*>(0x799328);
-  DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = reinterpret_cast<DB_GetXAssetSizeHandler_t*>(0x799488);
-  DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = reinterpret_cast<DB_ReleaseXAssetHandler_t*>(0x799AB8);
-  DB_DynamicCloneXAssetHandler_t* DB_DynamicCloneXAssetHandler = reinterpret_cast<DB_DynamicCloneXAssetHandler_t*>(0x799A08);
+  DB_SetXAssetNameHandler_t* DB_SetXAssetNameHandlers = reinterpret_cast<DB_SetXAssetNameHandler_t*>(0x14041F540);
+  DB_GetXAssetNameHandler_t* DB_GetXAssetNameHandlers = reinterpret_cast<DB_GetXAssetNameHandler_t*>(0x14041F3E0);
+  DB_GetXAssetSizeHandler_t* DB_GetXAssetSizeHandlers = reinterpret_cast<DB_GetXAssetSizeHandler_t*>(0x14041F6A0);
+  DB_ReleaseXAssetHandler_t* DB_ReleaseXAssetHandlers = reinterpret_cast<DB_ReleaseXAssetHandler_t*>(0x140420180);
+  DB_DynamicCloneXAssetHandler_t* DB_DynamicCloneXAssetHandler = reinterpret_cast<DB_DynamicCloneXAssetHandler_t*>(0x140420020);
 
-  XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x7998A8);
-  unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x7995E8);
+  XAssetHeader* DB_XAssetPool = reinterpret_cast<XAssetHeader*>(0x14041FD60);
+  unsigned int* g_poolSize = reinterpret_cast<unsigned int*>(0x14041F890);
+  const char** g_assetNames = reinterpret_cast<const char**>(0x14041F280);
 
-  XBlock** g_streamBlocks = reinterpret_cast<XBlock**>(0x16E554C);
-  int* g_streamPos = reinterpret_cast<int*>(0x16E5554);
-  int* g_streamPosIndex = reinterpret_cast<int*>(0x16E5578);
+  XBlock** g_streamBlocks = reinterpret_cast<XBlock**>(0x1415FAEB8);
+  char** g_streamPos = reinterpret_cast<char**>(0x1415FAEC0);
+  int* g_streamPosIndex = reinterpret_cast<int*>(0x1415FAEB0);
 
-  FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x16B8A54);
+  FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x14151B4B0);
 
-  XZone* g_zones = reinterpret_cast<XZone*>(0x14C0F80);
-  unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x12412B0);
+  XZone* g_zones = reinterpret_cast<XZone*>(0x1415F81A0);
+  unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x1415093A0);
+  XAssetEntry* g_assetEntryPool = reinterpret_cast<XAssetEntry*>(0x14151F4E0);
 
   XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
   {
@@ -44,6 +47,13 @@ namespace Game
     DB_XAssetPool[type] = poolEntry;
     g_poolSize[type] = newSize;
     return poolEntry;
+  }
+
+  // Note that x64 inlines this lookup.
+  //
+  const char* DB_GetXAssetTypeName(XAssetType type)
+  {
+    return type >= 0 && type < ASSET_TYPE_COUNT ? g_assetNames[type] : "";
   }
 
   const char* DB_GetXAssetName(XAsset* asset)
@@ -90,9 +100,9 @@ namespace Game
 
   bool DB_IsZoneLoaded(const char* zone)
   {
-    auto zoneCount = Utils::Hook::Get<int>(0x1261BCC);
-    auto* zoneIndices = reinterpret_cast<char*>(0x16B8A34);
-    auto* zoneData = reinterpret_cast<char*>(0x14C0F80);
+    int zoneCount = Utils::Hook::Get<int>(0x1415FA1B8);
+    char* zoneIndices = reinterpret_cast<char*>(0x1415FA198);
+    char* zoneData = reinterpret_cast<char*>(0x1415F81A0);
 
     for (int i = 0; i < zoneCount; ++i)
     {
@@ -109,9 +119,9 @@ namespace Game
 
   std::vector<std::string> DB_GetLoadedZones()
   {
-    auto zoneCount = Utils::Hook::Get<int>(0x1261BCC);
-    auto* zoneIndices = reinterpret_cast<char*>(0x16B8A34);
-    auto* zoneData = reinterpret_cast<char*>(0x14C0F80);
+    int zoneCount = Utils::Hook::Get<int>(0x1415FA1B8);
+    char* zoneIndices = reinterpret_cast<char*>(0x1415FA198);
+    char* zoneData = reinterpret_cast<char*>(0x1415F81A0);
 
     std::vector<std::string> zones;
 
@@ -127,7 +137,7 @@ namespace Game
   {
     Sys_LockRead(db_hashCritSect);
 
-    const auto pool = Components::Maps::GetAssetEntryPool();
+    XAssetEntry* pool = g_assetEntryPool;
     for (auto hash = 0; hash < 37000; hash++)
     {
       auto hashIndex = db_hashTable[hash];
