@@ -19,6 +19,7 @@
 #include "Modules/CardTitles.hpp"
 #include "Modules/Ceg.hpp"
 #include "Modules/Changelog.hpp"
+#include "Modules/Chat.hpp"
 
 namespace Components
 {
@@ -58,6 +59,7 @@ namespace Components
     Register(new CardTitles());
     Register(new Ceg());
     Register(new Changelog());
+    Register(new Chat());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order

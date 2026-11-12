@@ -279,7 +279,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/Chat.*",
     "src/Components/Modules/ClanTags.*",
     "src/Components/Modules/ClientCommand.*",
     "src/Components/Modules/ConnectProtocol.*",
