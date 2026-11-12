@@ -42,6 +42,7 @@ namespace Components
     Register(new UIScript());
     Register(new ConfigStrings());
     Register(new ArenaLength());
+    Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
