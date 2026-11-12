@@ -29,6 +29,12 @@ namespace Game
   void Com_PrintWarning(int channel, const char* fmt, ...);
   void Com_PrintMessage(int channel, const char* msg, int error);
 
+  // Function that, if set, sees each message before Com_PrintMessage()
+  // prints it. Returning true takes the message, and Com_PrintMessage() then
+  // prints nothing.
+  //
+  extern bool (*Com_PrintMessageInterceptor)(int channel, const char* msg);
+
   // Open logFileName for Com_PrintMessage().
   //
   void Com_OpenLogFile();
