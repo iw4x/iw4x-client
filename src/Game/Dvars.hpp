@@ -39,6 +39,12 @@ namespace Game
   typedef const dvar_t*(*Dvar_SetFromStringByNameFromSource_t)(const char* dvarName, const char* string, DvarSetSource source);
   extern Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource;
 
+  typedef void(*Dvar_SetFromStringFromSource_t)(const dvar_t* dvar, const char* string, DvarSetSource source);
+  extern Dvar_SetFromStringFromSource_t Dvar_SetFromStringFromSource;
+
+  typedef void(*Dvar_SetVariant_t)(dvar_t* dvar, DvarValue value, DvarSetSource source);
+  extern Dvar_SetVariant_t Dvar_SetVariant;
+
   typedef void(*Dvar_SetStringByName_t)(const char* dvarName, const char* value);
   extern Dvar_SetStringByName_t Dvar_SetStringByName;
 
@@ -112,20 +118,15 @@ namespace Game
   extern const dvar_t** sv_hostname;
   extern const dvar_t** sv_gametype;
   extern const dvar_t** sv_mapname;
-  extern const dvar_t** sv_mapRotation;
-  extern const dvar_t** sv_mapRotationCurrent;
   extern const dvar_t** sv_maxclients;
-  extern const dvar_t** sv_cheats;
   extern const dvar_t** sv_voiceQuality;
 
   extern const dvar_t** nextmap;
 
-  extern const dvar_t** cl_showSend;
   extern const dvar_t** cl_voice;
   extern const dvar_t** cl_ingame;
   extern const dvar_t** cl_shownet;
 
-  extern const dvar_t** g_cheats;
   extern const dvar_t** g_giveAll;
   extern const dvar_t** g_deadChat;
   extern const dvar_t** g_allowVote;
@@ -163,7 +164,4 @@ namespace Game
 
   extern const dvar_t** ip;
   extern const dvar_t** port;
-
-  extern "C" void Dvar_SetVariant(dvar_t* dvar, DvarValue value, DvarSetSource source);
-  extern "C" void Dvar_SetFromStringFromSource(const dvar_t* dvar, const char* string, DvarSetSource source);
 }
