@@ -42,6 +42,8 @@ namespace Game
 
   void SV_GameDropClient(int clientNum, const char* reason)
   {
+    AssertSize(client_s, 0xA67B0);
+
     assert((*sv_maxclients)->current.integer >= 1 && (*sv_maxclients)->current.integer <= 18);
 
     if (clientNum >= 0 && clientNum < (*sv_maxclients)->current.integer)
