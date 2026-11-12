@@ -4,12 +4,12 @@ extern "C"
 {
   extern bool Chat_SendChat;
 
-  void Chat_PreSayStub();
-  void Chat_PostSayStub();
-  void Chat_CG_AddToTeamChat_Stub();
+  void Chat_PreSayStub1();
+  void Chat_PreSayStub2();
+  void Chat_PostSayStub1();
+  void Chat_PostSayStub2();
 
   const char* Chat_EvaluateSay(char* text, Game::gentity_s* player, int mode);
-  void Chat_CG_AddToTeamChat(const char* text);
 }
 
 namespace Components
@@ -25,7 +25,6 @@ namespace Components
 
   private:
     friend const char* (::Chat_EvaluateSay)(char* text, Game::gentity_s* player, int mode);
-    friend void (::Chat_CG_AddToTeamChat)(const char* text);
 
     static Dvar::Var cg_chatWidth;
     static Dvar::Var sv_disableChat;
@@ -43,7 +42,7 @@ namespace Components
     static const char* EvaluateSay(char* text, Game::gentity_s* player, int mode);
 
     static void CheckChatLineEnd(const char*& inputBuffer, char*& lineBuffer, float& len, int chatHeight, float chatWidth, char*& lastSpacePos, char*& lastFontIconPos, int lastColor);
-    static void CG_AddToTeamChat(const char* text);
+    static void CG_AddToTeamChat(int localClientNum, const char* text);
 
     static void MuteClient(const Game::client_s* client);
     static void UnmuteClient(const Game::client_s* client);
