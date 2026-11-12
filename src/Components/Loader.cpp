@@ -10,6 +10,7 @@
 #include "Modules/Sentry.hpp"
 #include "Modules/UIScript.hpp"
 #include "Modules/ConfigStrings.hpp"
+#include "Modules/ArenaLength.hpp"
 
 namespace Components
 {
@@ -40,6 +41,7 @@ namespace Components
     Register(new Sentry());
     Register(new UIScript());
     Register(new ConfigStrings());
+    Register(new ArenaLength());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
