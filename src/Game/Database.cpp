@@ -42,8 +42,11 @@ namespace Game
 
   XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize)
   {
-    const auto size = DB_GetXAssetSizeHandlers[type]();
-    XAssetHeader poolEntry = {Utils::Memory::GetAllocator()->allocate(newSize * size)};
+    // Note that a pool starts with its free list head, which the game's
+    // pool initialization points at the first of the entries that follow.
+    //
+    const int size = DB_GetXAssetSizeHandlers[type]();
+    XAssetHeader poolEntry = {Utils::Memory::GetAllocator()->allocate(sizeof(void*) + static_cast<size_t>(newSize) * size)};
     DB_XAssetPool[type] = poolEntry;
     g_poolSize[type] = newSize;
     return poolEntry;
