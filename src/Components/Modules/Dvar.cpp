@@ -206,7 +206,7 @@ namespace Components
   const Game::dvar_t* Dvar::Dvar_RegisterName(const char* dvarName, const char* /*value*/, std::uint16_t flags, const char* description)
   {
     // Name watcher
-    if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
+    if (!Dedicated::IsEnabled())
     {
       Scheduler::Loop([]
       {
@@ -231,19 +231,7 @@ namespace Components
       }, Scheduler::Pipeline::CLIENT, 3s); // Don't need to do this every frame
     }
 
-    std::string username = "Unknown Soldier";
-
-    if (Steam::Proxy::SteamFriends)
-    {
-      const char* steamName = Steam::Proxy::SteamFriends->GetPersonaName();
-
-      if (steamName && *steamName)
-      {
-        username = steamName;
-      }
-    }
-
-    Name = Register<const char*>(dvarName, username.data(), flags | Game::DVAR_ARCHIVE, description);
+    Name = Register<const char*>(dvarName, "Unknown Soldier", flags | Game::DVAR_ARCHIVE, description);
     return Name.get<Game::dvar_t*>();
   }
 
@@ -253,14 +241,21 @@ namespace Components
     return Game::Dvar_RegisterInt(dvarName, Dedicated::IsEnabled() ? 1000 : value, min, 1000, Game::DVAR_NONE, description);
   }
 
-  const Game::dvar_t* Dvar::Dvar_RegisterPerkExtendedMeleeRange(const char* dvarName, float value, float min, float /*max*/, std::uint16_t flags, const char* description)
+  const Game::dvar_t* Dvar::Dvar_RegisterDrawFps(const char* dvarName, const char** valueList, int defaultIndex, std::uint16_t flags, const char* description)
   {
-    return Game::Dvar_RegisterFloat(dvarName, value, min, 10000.0f, flags, description);
+    return Game::Dvar_RegisterEnum(dvarName, valueList, defaultIndex, flags | Game::DVAR_ARCHIVE, description);
   }
 
-  const Game::dvar_t* Dvar::Dvar_RegisterAimLockonStrength(const char* dvarName, float value, float min, float max, std::uint16_t flags, const char* /*description*/)
+  const Game::dvar_t* Dvar::Dvar_RegisterFov(const char* dvarName, float value, float min, float /*max*/, std::uint16_t flags, const char* description)
   {
-    return Game::Dvar_RegisterFloat(dvarName, value, min, max, flags, "The amount of aim assistance given by the target lock on (yaw)");
+    // Allow the same maximum as single player.
+    //
+    return Game::Dvar_RegisterFloat(dvarName, value, min, 160.0f, flags, description);
+  }
+
+  const Game::dvar_t* Dvar::Dvar_RegisterVolume(const char* dvarName, float /*value*/, float min, float /*max*/, std::uint16_t flags, const char* description)
+  {
+    return Game::Dvar_RegisterFloat(dvarName, 1.0f, min, 1.0f, flags, description);
   }
 
   void Dvar::SetFromStringByNameSafeExternal(const char* dvarName, const char* string)
@@ -345,14 +340,7 @@ namespace Components
       return;
     }
 
-    Utils::Hook::Call<void(const char*, const char*)>(0x4F52E0)(dvarName, value);
-  }
-
-  void Dvar::OnRegisterVariant([[maybe_unused]] Game::dvar_t* dvar)
-  {
-#ifdef _DEBUG
-    dvar->flags &= ~Game::DVAR_CHEAT;
-#endif
+    Game::Dvar_SetFromStringByName(dvarName, value);
   }
 
   const char* Dvar::Dvar_EnumToString_Stub(const Game::dvar_t* dvar)
@@ -374,139 +362,123 @@ namespace Components
 
   Dvar::Dvar()
   {
-    // set flags of cg_drawFPS to archive
-    Utils::Hook::Or<std::uint8_t>(0x4F8F69, Game::DVAR_ARCHIVE);
+    // Set flags of cg_drawFPS to archive.
+    //
+    // Note that the registration passes its flags with xor r9d, r9d, which
+    // leaves no immediate to patch.
+    //
+    Utils::Hook(0x1400D77C3, Dvar_RegisterDrawFps, HOOK_CALL).install()->quick();
 
     // un-cheat camera_thirdPersonCrosshairOffset and add archive flags
-    Utils::Hook::Xor<std::uint8_t>(0x447B41, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
+    Utils::Hook::Xor<std::uint8_t>(0x14008B3E1, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 
     // un-cheat cg_fov and add archive flags
-    Utils::Hook::Xor<std::uint8_t>(0x4F8E35, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
+    Utils::Hook::Xor<std::uint8_t>(0x1400D7637, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 
     // un-cheat cg_fovscale and add archive flags
-    Utils::Hook::Xor<std::uint8_t>(0x4F8E68, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
+    Utils::Hook::Xor<std::uint8_t>(0x1400D7680, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 
     // un-cheat cg_fovMin and add archive flags
-    Utils::Hook::Xor<std::uint8_t>(0x4F8E9D, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
-
-    // un-cheat cg_debugInfoCornerOffset and add archive flags
-    Utils::Hook::Xor<std::uint8_t>(0x4F8FC2, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
+    Utils::Hook::Xor<std::uint8_t>(0x1400D76B7, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE);
 
     // un-cheat cg_drawGun
-    Utils::Hook::Set<std::uint8_t>(0x4F8DC6, Game::DVAR_NONE);
+    Utils::Hook::Set<std::uint8_t>(0x1400D754C, Game::DVAR_NONE);
 
     // re-cheat cg_draw2D to prevent stripping the thermal scope's mask overlay via cg_draw2D 0
-    Utils::Hook::Or<std::uint8_t>(0x4F8EEE, Game::DVAR_CHEAT);
+    Utils::Hook::Or<std::uint8_t>(0x1400D7702, Game::DVAR_CHEAT);
 
     // un-cheat cg_overheadNamesFarScale
-    Utils::Hook::Set<std::uint8_t>(0x4FA7C4, Game::DVAR_NONE);
+    Utils::Hook::Set<std::uint8_t>(0x1400D92E8, Game::DVAR_NONE);
 
     // un-cheat cg_overheadNamesSize
-    Utils::Hook::Set<std::uint8_t>(0x4FA7F9, Game::DVAR_NONE);
+    Utils::Hook::Set<std::uint8_t>(0x1400D931D, Game::DVAR_NONE);
 
     // un-cheat cg_overheadRankSize
-    Utils::Hook::Set<std::uint8_t>(0x4FA863, Game::DVAR_NONE);
+    Utils::Hook::Set<std::uint8_t>(0x1400D9376, Game::DVAR_NONE);
 
     // un-cheat cg_overheadIconSize
-    Utils::Hook::Set<std::uint8_t>(0x4FA833, Game::DVAR_NONE);
+    Utils::Hook::Set<std::uint8_t>(0x1400D9352, Game::DVAR_NONE);
 
     // un-cheat cg_overheadTitleSize
-    Utils::Hook::Set<std::uint8_t>(0x4FA898, Game::DVAR_NONE);
+    Utils::Hook::Set<std::uint8_t>(0x1400D93B6, Game::DVAR_NONE);
 
     // un-cheat cg_overheadNamesGlow
-    Utils::Hook::Set<std::uint8_t>(0x4FA8C9, Game::DVAR_NONE);
+    Utils::Hook::Set<std::uint8_t>(0x1400D93E3, Game::DVAR_NONE);
 
     // remove archive flags for cg_hudChatPosition
-    Utils::Hook::Xor<std::uint8_t>(0x4F9992, Game::DVAR_ARCHIVE);
+    Utils::Hook::Xor<std::uint8_t>(0x1400D8350, Game::DVAR_ARCHIVE);
 
     // remove archive flags for sv_hostname
-    Utils::Hook::Xor<std::uint32_t>(0x4D3786, Game::DVAR_ARCHIVE);
+    Utils::Hook::Xor<std::uint32_t>(0x140238976, Game::DVAR_ARCHIVE);
 
     // remove write protection from fs_game
-    Utils::Hook::Xor<std::uint32_t>(0x6431EA, Game::DVAR_INIT);
+    Utils::Hook::Xor<std::uint32_t>(0x1402763B2, Game::DVAR_INIT);
 
-    // set cg_fov max to 160.0
-    // because that's the max on SP
-    static float cg_Fov = 160.0f;
-    Utils::Hook::Set<float*>(0x4F8E28, &cg_Fov);
+    // Raise cg_fov maximum to 160.
+    //
+    // Note that the maximum is a RIP-relative load which can't reach a
+    // constant of ours, so we register the dvar ourselves.
+    //
+    Utils::Hook(0x1400D763B, Dvar_RegisterFov, HOOK_CALL).install()->quick();
 
-    // set max volume to 1
-    static float volume = 1.0f;
-    Utils::Hook::Set<float*>(0x408078, &volume);
+    // Set profileMenuOption_volume default and maximum to 1.
+    //
+    Utils::Hook(0x1400F110D, Dvar_RegisterVolume, HOOK_CALL).install()->quick();
 
-    // un-cheat ui_showList
-    Utils::Hook::Xor<std::uint8_t>(0x6310DC, Game::DVAR_CHEAT);
-
-    // un-cheat ui_debugMode
-    Utils::Hook::Xor<std::uint8_t>(0x6312DE, Game::DVAR_CHEAT);
-
-    // un-cheat jump_slowdownEnable
-    Utils::Hook::Xor<std::uint32_t>(0x4EFABE, Game::DVAR_CHEAT);
-
-    // un-cheat jump_height
-    Utils::Hook::Xor<std::uint32_t>(0x4EFA5C, Game::DVAR_CHEAT);
+    // un-cheat ui_showList and ui_debugMode
+    //
+    // Note that their flags are lea r8d, [rbx+4] with ebx zero, so we clear
+    // the displacement.
+    //
+    Utils::Hook::Xor<std::uint8_t>(0x14026FADA, Game::DVAR_CHEAT);
+    Utils::Hook::Xor<std::uint8_t>(0x14026FD5B, Game::DVAR_CHEAT);
 
     // un-cheat player_breath_fire_delay
-    Utils::Hook::Xor<std::uint32_t>(0x448646, Game::DVAR_CHEAT);
+    Utils::Hook::Xor<std::uint32_t>(0x14008BDBF, Game::DVAR_CHEAT);
 
     // un-cheat player_breath_gasp_scale
-    Utils::Hook::Xor<std::uint32_t>(0x448678, Game::DVAR_CHEAT);
+    Utils::Hook::Xor<std::uint32_t>(0x14008BDF1, Game::DVAR_CHEAT);
 
     // un-cheat player_breath_gasp_lerp
-    Utils::Hook::Xor<std::uint32_t>(0x4486E4, Game::DVAR_CHEAT);
+    Utils::Hook::Xor<std::uint32_t>(0x14008BE5D, Game::DVAR_CHEAT);
 
     // un-cheat player_breath_gasp_time
-    Utils::Hook::Xor<std::uint32_t>(0x448612, Game::DVAR_CHEAT);
+    Utils::Hook::Xor<std::uint32_t>(0x14008BD8F, Game::DVAR_CHEAT);
 
     // Hook dvar 'name' registration
-    Utils::Hook(0x40531C, Dvar_RegisterName, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400FB5E5, Dvar_RegisterName, HOOK_CALL).install()->quick();
 
     // Hook dvar 'sv_network_fps' registration
-    Utils::Hook(0x4D3C7B, Dvar_RegisterSVNetworkFps, HOOK_CALL).install()->quick();
-
-    // Hook dvar 'perk_extendedMeleeRange' and set a higher max, better than having people force this with external programs
-    Utils::Hook(0x492D2F, Dvar_RegisterPerkExtendedMeleeRange, HOOK_CALL).install()->quick();
-
-    // Hook dvar 'aim_lockon_strength' and clarify in the description that it is for yaw, now that 'aim_lockon_pitch_strength' is registered
-    Utils::Hook(0x43FCFD, Dvar_RegisterAimLockonStrength, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140238D83, Dvar_RegisterSVNetworkFps, HOOK_CALL).install()->quick();
 
     // un-cheat safeArea_* and add archive flags
-    Utils::Hook::Xor<std::uint32_t>(0x42E3F5, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_horizontal
-    Utils::Hook::Xor<std::uint32_t>(0x42E423, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_vertical
-    Utils::Hook::Xor<std::uint8_t>(0x42E398, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE); //safeArea_horizontal
-    Utils::Hook::Xor<std::uint8_t>(0x42E3C4, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE); //safeArea_vertical
+    Utils::Hook::Xor<std::uint32_t>(0x1400F2C6B, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_horizontal
+    Utils::Hook::Xor<std::uint32_t>(0x1400F2C9B, Game::DVAR_ROM | Game::DVAR_ARCHIVE); //safeArea_adjusted_vertical
+    Utils::Hook::Xor<std::uint8_t>(0x1400F2C06, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE); //safeArea_horizontal
+    Utils::Hook::Xor<std::uint8_t>(0x1400F2C3B, Game::DVAR_CHEAT | Game::DVAR_ARCHIVE); //safeArea_vertical
 
     // Don't allow setting cheat protected dvars via menus
-    Utils::Hook(0x63C897, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
-    Utils::Hook(0x63CA96, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
-    Utils::Hook(0x63CDB5, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
-    Utils::Hook(0x635E47, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140261A75, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140261C5D, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140261FFE, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 
     // Script_SetDvar
-    Utils::Hook(0x63444C, SetFromStringByNameSafeExternal, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14025BFDA, SetFromStringByNameSafeExternal, HOOK_CALL).install()->quick();
 
-    // Slider
-    Utils::Hook(0x636159, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
-    Utils::Hook(0x636189, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
-    Utils::Hook(0x6364EA, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+    // Item_HandleKey (yes/no, dvar enum, slider and multi items) and the
+    // slider cursor.
+    //
+    // Note that x64 inlines the per-type key handlers, which share these
+    // calls.
+    //
+    Utils::Hook(0x14025D97A, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14025DAD5, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140267894, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x636207, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
-    Utils::Hook(0x636608, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
-    Utils::Hook(0x636695, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
-
-    // Hook Dvar_SetFromStringByName inside CG_SetClientDvarFromServer so we can protect dvars
-    Utils::Hook(0x59386A, DvarSetFromStringByName_Stub, HOOK_CALL).install()->quick();
-
-    // For debugging
-    Utils::Hook(0x6483FA, Dvar_RegisterVariant_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x648438, Dvar_RegisterVariant_Stub, HOOK_JUMP).install()->quick();
+    // Hook Dvar_SetFromStringByName inside the inlined CG_SetClientDvarFromServer so we can protect dvars
+    Utils::Hook(0x1400E6EDC, DvarSetFromStringByName_Stub, HOOK_CALL).install()->quick();
 
     // Fix crash
-    Utils::Hook(0x4B7120, Dvar_EnumToString_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1402834B0, Dvar_EnumToString_Stub, HOOK_JUMP).install()->quick();
   }
-}
-
-void Dvar_OnRegisterVariant(Game::dvar_t* dvar)
-{
-  Components::Dvar::OnRegisterVariant(dvar);
 }

@@ -25,6 +25,7 @@ namespace Components
 
     Register(new Auth());
     Register(new Command());
+    Register(new Dvar());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
