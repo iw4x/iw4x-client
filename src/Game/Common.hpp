@@ -14,6 +14,27 @@ namespace Game
   typedef void(*Com_Error_t)(errorParm_t type, const char* message, ...);
   extern Com_Error_t Com_Error;
 
+  // Print functions.
+  //
+  // Note that x64 has no console print path, so these are our own versions
+  // of the x86 functions. See Com_PrintMessage() for details.
+  //
+  void Com_Printf(int channel, const char* fmt, ...);
+  void Com_DPrintf(int channel, const char* fmt, ...);
+  void Com_PrintError(int channel, const char* fmt, ...);
+  void Com_PrintWarning(int channel, const char* fmt, ...);
+  void Com_PrintMessage(int channel, const char* msg, int error);
+
+  // Open logFileName for Com_PrintMessage().
+  //
+  void Com_OpenLogFile();
+
+  extern const char* logFileName;
+  extern fileHandle_t logfile;
+  extern bool opening_qconsole;
+  extern bool com_consoleLogOpenFailed;
+  extern int com_errorPrintsCount;
+
   typedef int(*Com_sprintf_t)(char* dest, int size, const char* fmt, ...);
   extern Com_sprintf_t Com_sprintf;
 
