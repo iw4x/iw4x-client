@@ -139,6 +139,19 @@ namespace Utils
     //
     static void Displace(uintptr_t place, size_t length, uintptr_t from, uintptr_t to);
 
+    // Copy size bytes of data into memory that the instruction at place of
+    // length bytes reaches and make its rip-relative operand point there
+    // instead of from. Return the copy.
+    //
+    // Note that our own image may lie beyond the 32-bit reach of the game's
+    // operands, so data they point to can't stay in it.
+    //
+    static void* PlaceData(uintptr_t place, size_t length, uintptr_t from, const void* data, size_t size);
+
+    // As PlaceData() but for a null-terminated copy of text.
+    //
+    static const char* PlaceString(uintptr_t place, size_t length, uintptr_t from, std::string_view text);
+
     // Make the instruction at place of length bytes reach to instead of
     // from through its displacement from base, such as the image base the
     // game keeps in a register.
