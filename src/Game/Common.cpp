@@ -208,11 +208,13 @@ namespace Game
       return;
     }
 
-    // Note that x86 first adds the message to the console buffer, with
-    // error selecting the color. x64 has no console buffer, so we only
-    // print to the system console and the log file.
+    // Add the message to the in-game console, the error type selecting
+    // its color.
     //
-    static_cast<void>(error);
+    if (channel != CON_CHANNEL_LOGFILEONLY)
+    {
+      CL_ConsolePrint(0, channel, msg, 0, 0, error << 5);
+    }
 
     // Strip a leading color code.
     //
@@ -221,7 +223,13 @@ namespace Game
       msg += 2;
     }
 
-    if (channel != CON_CHANNEL_LOGFILEONLY)
+    // With com_filter_output, the system console only shows what the in-game
+    // console does.
+    //
+    if (channel != CON_CHANNEL_LOGFILEONLY &&
+        (*com_filter_output == nullptr ||
+         !(*com_filter_output)->current.enabled ||
+         Con_IsConsoleChannelVisible(channel, 3)))
     {
       Sys_Print(msg);
     }

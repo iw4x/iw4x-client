@@ -3,8 +3,16 @@
 extern "C"
 {
   void Console_Sys_PrintStub();
+  void Console_CL_ConsolePrintStub();
+  void Console_CL_KeyEventStub();
+  void Console_CL_KeyEventEscapeStub();
+  void Console_CL_KeyEventDownStub();
+  void Console_CL_KeyEventDisconnectedStub();
 
   void Console_MakeRoomForText(int addedCharacters);
+  bool Console_CL_ConsoleKeyEvent(int localClientNum, int key, int down);
+  bool Console_Con_CancelAutoComplete();
+  void Console_Console_Key(int localClientNum, int key);
 }
 
 #include "Dvar.hpp"
@@ -27,6 +35,10 @@ namespace Components
     static HWND GetWindow();
 
     static void ShowAsyncConsole();
+
+    // Size multiplier of the in-game console.
+    //
+    static float GetConsoleScale();
 
   private:
     friend void (::Console_MakeRoomForText)(int addedCharacters);
@@ -82,5 +94,17 @@ namespace Components
     static void GetWindowPos(HWND hWnd, int* x, int* y);
     static void MakeRoomForText(int addedCharacters);
     static float GetDpiScale(const HWND hWnd);
+
+    static void (*Con_UpdateNotifyLine_Original)(int localClientNum, int channel, bool lineFeed, int flags);
+
+    static void Con_UpdateNotifyLine_Hk(int localClientNum, int channel, bool lineFeed, int flags);
+    static void Con_OneTimeInit_Hk();
+    static void Con_Init_Hk();
+    static void Con_InitChannels_Hk();
+    static void SCR_DrawScreenField_Hk();
+    static int R_TextHeight_Hk(Game::Font_s* font);
+    static int R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font);
+    static void CL_DrawTextWithCursor_Hk(Game::ScreenPlacement* scrPlace, const char* text, int maxChars, Game::Font_s* font, float x, float y, int horzAlign, int vertAlign, float xScale, float yScale, const float* color, int style, int cursorPos, char cursorChar);
+    static Game::dvar_t* RegisterConColor(const char* dvarName, float r, float g, float b, float a, float min, float max, unsigned __int16 flags, const char* description);
   };
 }
