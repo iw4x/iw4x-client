@@ -7919,9 +7919,6 @@ namespace Game
     clientSnapshot_t frames[32];
   };
 
-  // @@ TODO: verify x64 size (0xA6790 on x86).
-  //
-
   enum CompassType
   {
     COMPASS_TYPE_PARTIAL = 0x0,
