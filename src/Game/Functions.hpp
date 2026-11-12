@@ -449,6 +449,9 @@ namespace Game
   typedef Font_s*(*UI_GetFontHandle_t)(ScreenPlacement* scrPlace, int fontEnum, float scale);
   extern UI_GetFontHandle_t UI_GetFontHandle;
 
+  typedef void(*UI_PaintMenus_t)(int localClientNum);
+  extern UI_PaintMenus_t UI_PaintMenus;
+
   typedef void(*ScrPlace_ApplyRect_t)(const ScreenPlacement* scrPlace, float* x, float* y, float* w, float* h, int horzAlign, int vertAlign);
   extern ScrPlace_ApplyRect_t ScrPlace_ApplyRect;
 

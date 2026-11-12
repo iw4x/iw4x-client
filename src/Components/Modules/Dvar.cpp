@@ -554,5 +554,12 @@ namespace Components
 
     Utils::Hook(0x140080FE0, Game::AimAssist_UpdateMouseInput, HOOK_JUMP).install()->quick();
     Utils::Hook(0x140080160, Game::AimAssist_ApplyAutoMelee, HOOK_JUMP).install()->quick();
+
+    // Restore the upper right debug info that x64 compiles out, drawn after
+    // the UI menus as on x86.
+    //
+    Game::cg_debugInfoCornerOffset = Game::Dvar_RegisterVec2("cg_debugInfoCornerOffset", 0.0f, -30.0f, -200.0f, 640.0f, Game::DVAR_CHEAT, "Offset from top-right corner, for cg_drawFPS, etc");
+
+    Utils::Hook(0x140101D0C, Game::CL_DrawDebugOverlays, HOOK_CALL).install()->quick();
   }
 }

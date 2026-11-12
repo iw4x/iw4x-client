@@ -182,6 +182,7 @@ namespace Game
   UI_TextHeight_t UI_TextHeight = UI_TextHeight_t(0x140271570);
   UI_DrawText_t UI_DrawText = UI_DrawText_t(0x14026B5E0);
   UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x14026D330);
+  UI_PaintMenus_t UI_PaintMenus = UI_PaintMenus_t(0x14026F170);
   ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x1400F2390);
   UI_KeyEvent_t UI_KeyEvent = UI_KeyEvent_t(0x14026DE90);
   UI_SafeTranslateString_t UI_SafeTranslateString = UI_SafeTranslateString_t(0x140270C90);
