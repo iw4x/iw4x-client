@@ -307,7 +307,6 @@ project "iw4x"
     "src/Components/Modules/FileSystem.*",
     "src/Components/Modules/Friends.*",
     "src/Components/Modules/Huffman.*",
-    "src/Components/Modules/IPCPipe.*",
     "src/Components/Modules/Lean.*",
     "src/Components/Modules/Localization.*",
     "src/Components/Modules/Logger.*",
