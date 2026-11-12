@@ -882,8 +882,8 @@ namespace Components
 
   Console::Console()
   {
-    AssertOffset(Game::clientUIActive_t, connectionState, 0x9B8);
-    AssertOffset(Game::clientUIActive_t, keyCatchers, 0x9B0);
+    AssertOffset(Game::clientUIActive_t, connectionState, 0xB48);
+    AssertOffset(Game::clientUIActive_t, keyCatchers, 0xB40);
 
     // Console '%s: %s> ' string
 #ifdef EXPERIMENTAL_BUILD
