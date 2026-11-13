@@ -287,7 +287,6 @@ project "iw4x"
     "src/Components/Modules/Discovery.*",
     "src/Components/Modules/Download.*",
     "src/Components/Modules/Elevators.*",
-    "src/Components/Modules/Events.*",
     "src/Components/Modules/FastFiles.*",
     "src/Components/Modules/FileSystem.*",
     "src/Components/Modules/Friends.*",

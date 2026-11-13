@@ -17,6 +17,9 @@ namespace Components
   Events::ClientCmdCallback Events::ClientCmdButtonsTasks_;
   Events::ClientCmdCallback Events::ClientKeyMoveTasks_;
 
+  void (*Events::CL_Disconnect_Original)(int localClientNum);
+  void (*Events::NET_Config_Original)(int enableNetworking);
+
   void Events::OnClientDisconnect(const std::function<void(int clientNum)>& callback)
   {
     ClientDisconnectTasks_.access([&callback](ClientCallback& tasks)
@@ -129,7 +132,7 @@ namespace Components
       }
     });
 
-    Utils::Hook::Call<void(int)>(0x4AA430)(clientNum); // ClientDisconnect
+    Utils::Hook::Call<void(int)>(0x1401961A0)(clientNum); // ClientDisconnect
   }
 
   void Events::SV_UserinfoChanged_Hk(Game::client_s* cl)
@@ -142,7 +145,7 @@ namespace Components
       }
     });
 
-    Utils::Hook::Call<void(Game::client_s*)>(0x401950)(cl); // SV_UserinfoChanged
+    Utils::Hook::Call<void(Game::client_s*)>(0x140237DE0)(cl); // SV_UserinfoChanged
   }
 
   void Events::SteamDisconnect_Hk()
@@ -155,7 +158,7 @@ namespace Components
       }
     });
 
-    Utils::Hook::Call<void()>(0x467CC0)(); // LiveSteam_Client_SteamDisconnect
+    Utils::Hook::Call<void()>(0x14024A220)(); // LiveSteam_Client_SteamDisconnect
   }
 
   void Events::Scr_ShutdownSystem_Hk(unsigned char sys)
@@ -168,7 +171,7 @@ namespace Components
       }
     });
 
-    Utils::Hook::Call<void(unsigned char)>(0x421EE0)(sys); // Scr_ShutdownSystem
+    Utils::Hook::Call<void(unsigned char)>(0x140229310)(sys); // Scr_ShutdownSystem
   }
 
   void Events::CL_InitOnceForAllClients_HK()
@@ -183,19 +186,34 @@ namespace Components
       tasks = {}; // Only called once. Clear
     });
 
-    Utils::Hook::Call<void()>(0x404CA0)(); // CL_InitOnceForAllClients
+    Utils::Hook::Call<void()>(0x1400FAEE0)(); // CL_InitOnceForAllClients
   }
 
-  void Events::CL_CmdButtons(Game::usercmd_s* cmd)
+  void Events::CL_CmdButtons_Hk(int localClientNum, Game::usercmd_s* cmd)
   {
+    Utils::Hook::Call<void(int, Game::usercmd_s*)>(0x1400F5B70)(localClientNum, cmd); // CL_CmdButtons
+
     for (const auto& func : ClientCmdButtonsTasks_)
     {
       func(cmd);
     }
   }
 
-  void Events::CL_Disconnect_Hk(bool wasConnected)
+  void Events::CL_Disconnect_Hk(int localClientNum)
   {
+    // Note that CL_Disconnect() does nothing unless the client runs, and
+    // resets the connection state it ends with.
+    //
+    const bool running(Game::clientUIActives[0].isRunning);
+    const bool wasConnected(Game::clientUIActives[0].connectionState >= Game::CA_CONNECTED);
+
+    CL_Disconnect_Original(localClientNum);
+
+    if (!running)
+    {
+      return;
+    }
+
     CL_DisconnectedTask_.access([&](CLDisconnectCallback& tasks)
     {
       for (const auto& func : tasks)
@@ -205,8 +223,10 @@ namespace Components
     });
   }
 
-  void Events::CL_KeyMove(Game::usercmd_s* cmd)
+  void Events::CL_KeyMove_Hk(int localClientNum, Game::usercmd_s* cmd)
   {
+    Utils::Hook::Call<void(int, Game::usercmd_s*)>(0x1400F6DE0)(localClientNum, cmd); // CL_KeyMove
+
     for (const auto& func : ClientKeyMoveTasks_)
     {
       func(cmd);
@@ -225,7 +245,7 @@ namespace Components
       tasks = {}; // Only called once. Clear
     });
 
-    Utils::Hook::Call<void()>(0x474320)(); // SV_InitGameMode
+    Utils::Hook::Call<void()>(0x1402319F0)(); // SV_InitGameMode
   }
 
   void Events::Com_InitDvars_Hk()
@@ -240,7 +260,7 @@ namespace Components
       tasks = {}; // Only called once. Clear
     });
 
-    Utils::Hook::Call<void()>(0x60AD10)(); // Com_InitDvars
+    Utils::Hook::Call<void()>(0x1401F48C0)(); // Com_InitDvars
   }
 
   int Events::CL_InitCGame_Hk()
@@ -256,8 +276,18 @@ namespace Components
     return Game::Sys_Milliseconds();
   }
 
-  void Events::NetworkStart()
+  void Events::NET_Config_Hk(int enableNetworking)
   {
+    NET_Config_Original(enableNetworking);
+
+    // Note that x64 inlines NET_OpenIP(), after which x86 starts the
+    // network, into NET_Config(). Its IP socket tells that it got a port.
+    //
+    if (*Game::ip_socket == 0)
+    {
+      return;
+    }
+
     NetworkInitTasks_.access([](Callback& tasks)
     {
       for (const auto& func : tasks)
@@ -271,7 +301,7 @@ namespace Components
 
   void Events::UI_Init_Hk(int localClientNum)
   {
-    Utils::Hook::Call<void(int)>(0x4A57D0)(localClientNum); // CAll UI_INIT
+    Utils::Hook::Call<void(int)>(0x14026D960)(localClientNum); // UI_Init
 
     UIInitTasks_.access([](Callback& tasks)
     {
@@ -284,51 +314,35 @@ namespace Components
 
   Events::Events()
   {
-    Utils::Hook(0x625235, ClientDisconnect_Hk, HOOK_CALL).install()->quick(); // SV_FreeClient
+    // Note that x64 also inlines SV_FreeClient() into one of its callers.
+    //
+    Utils::Hook(0x140236926, ClientDisconnect_Hk, HOOK_CALL).install()->quick(); // SV_FreeClient
+    Utils::Hook(0x140236A4B, ClientDisconnect_Hk, HOOK_CALL).install()->quick(); // SV_FreeClient
 
-    Utils::Hook(0x4612BD, SV_UserinfoChanged_Hk, HOOK_CALL).install()->quick(); // SV_DirectConnect
+    Utils::Hook(0x14023639E, SV_UserinfoChanged_Hk, HOOK_CALL).install()->quick(); // SV_DirectConnect
 
-    Utils::Hook(0x403582, SteamDisconnect_Hk, HOOK_CALL).install()->quick(); // CL_Disconnect
+    Utils::Hook(0x1400F8E3F, SteamDisconnect_Hk, HOOK_CALL).install()->quick(); // CL_Disconnect
 
-    Utils::Hook(0x47548B, Scr_ShutdownSystem_Hk, HOOK_CALL).install()->quick(); // G_LoadGame
-    Utils::Hook(0x4D06BA, Scr_ShutdownSystem_Hk, HOOK_CALL).install()->quick(); // G_ShutdownGame
+    Utils::Hook(0x1401A0EE6, Scr_ShutdownSystem_Hk, HOOK_CALL).install()->quick(); // G_LoadGame
+    Utils::Hook(0x14019F41E, Scr_ShutdownSystem_Hk, HOOK_CALL).install()->quick(); // G_ShutdownGame
 
-    Utils::Hook(0x60BE5B, CL_InitOnceForAllClients_HK, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
+    Utils::Hook(0x1401F55FA, CL_InitOnceForAllClients_HK, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
-    Utils::Hook(0x5A6D84, Events_CL_CmdButtons_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400F7BA0, CL_CmdButtons_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400F7BAA, CL_KeyMove_Hk, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x5A6D8B, Events_CL_KeyMove_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400F4D5D, CL_InitCGame_Hk, HOOK_CALL).install()->quick(); // CL_InitCGame
 
-    Utils::Hook(0x4236A5, CL_InitCGame_Hk, HOOK_CALL).install()->quick(); // CL_InitCGame
+    Utils::Hook(0x1401F50A5, Com_InitDvars_Hk, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
-    Utils::Hook(0x60BB3A, Com_InitDvars_Hk, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
+    Utils::Hook(0x1402387DB, SV_Init_Hk, HOOK_CALL).install()->quick(); // SV_Init
 
-    Utils::Hook(0x4D3665, SV_Init_Hk, HOOK_CALL).install()->quick(); // SV_Init
+    NET_Config_Original = Utils::Hook::Detour(0x1402A5C50, 5, &NET_Config_Hk); // NET_OpenIP
 
-    Utils::Hook(0x4FD4D4, Events_NET_OpenSocks_Hk, HOOK_JUMP).install()->quick(); // NET_OpenIP
+    Utils::Hook(0x140101F06, UI_Init_Hk, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x4B5422, UI_Init_Hk, HOOK_CALL).install()->quick();
-
-    Utils::Hook(0x403547, Events_CL_Disconnect_Stub, HOOK_JUMP).install()->quick(); // CL_Disconnect but at the very end, whether we were connected or not
+    // CL_Disconnect, at the very end, whether we were connected or not.
+    //
+    CL_Disconnect_Original = Utils::Hook::Detour(0x1400F8E00, 6, &CL_Disconnect_Hk);
   }
-}
-
-void Events_CL_CmdButtons(Game::usercmd_s* cmd)
-{
-  Components::Events::CL_CmdButtons(cmd);
-}
-
-void Events_CL_Disconnect_Hk(bool wasConnected)
-{
-  Components::Events::CL_Disconnect_Hk(wasConnected);
-}
-
-void Events_CL_KeyMove(Game::usercmd_s* cmd)
-{
-  Components::Events::CL_KeyMove(cmd);
-}
-
-void Events_NetworkStart()
-{
-  Components::Events::NetworkStart();
 }
