@@ -1,18 +1,5 @@
 #pragma once
 
-extern "C"
-{
-  void Events_CL_CmdButtons_Stub();
-  void Events_CL_Disconnect_Stub();
-  void Events_CL_KeyMove_Stub();
-  void Events_NET_OpenSocks_Hk();
-
-  void Events_CL_CmdButtons(Game::usercmd_s* cmd);
-  void Events_CL_Disconnect_Hk(bool wasConnected);
-  void Events_CL_KeyMove(Game::usercmd_s* cmd);
-  void Events_NetworkStart();
-}
-
 namespace Components
 {
   class Events : public Component
@@ -62,11 +49,6 @@ namespace Components
     static void OnCGameInit(const std::function<void()>& callback);
 
   private:
-    friend void (::Events_CL_CmdButtons)(Game::usercmd_s* cmd);
-    friend void (::Events_CL_Disconnect_Hk)(bool wasConnected);
-    friend void (::Events_CL_KeyMove)(Game::usercmd_s* cmd);
-    friend void (::Events_NetworkStart)();
-
     static Utils::Concurrency::Container<ClientCallback> ClientDisconnectTasks_;
     static Utils::Concurrency::Container<ClientConnectCallback> ClientConnectTasks_;
     static Utils::Concurrency::Container<Callback> SteamDisconnectTasks_;
@@ -83,19 +65,22 @@ namespace Components
     static ClientCmdCallback ClientCmdButtonsTasks_;
     static ClientCmdCallback ClientKeyMoveTasks_;
 
+    static void (*CL_Disconnect_Original)(int localClientNum);
+    static void (*NET_Config_Original)(int enableNetworking);
+
     static void ClientDisconnect_Hk(int clientNum);
     static void SV_UserinfoChanged_Hk(Game::client_s* cl);
     static void SteamDisconnect_Hk();
     static void Scr_ShutdownSystem_Hk(unsigned char sys);
     static void CL_InitOnceForAllClients_HK();
-    static void CL_Disconnect_Hk(bool wasConnected);
+    static void CL_Disconnect_Hk(int localClientNum);
 
-    static void CL_CmdButtons(Game::usercmd_s* cmd);
-    static void CL_KeyMove(Game::usercmd_s* cmd);
+    static void CL_CmdButtons_Hk(int localClientNum, Game::usercmd_s* cmd);
+    static void CL_KeyMove_Hk(int localClientNum, Game::usercmd_s* cmd);
     static void SV_Init_Hk();
     static void Com_InitDvars_Hk();
 
-    static void NetworkStart();
+    static void NET_Config_Hk(int enableNetworking);
     static void UI_Init_Hk(int localClientNum);
 
     static int CL_InitCGame_Hk();
