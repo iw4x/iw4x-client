@@ -71,9 +71,6 @@ namespace Game
   typedef void(*Scr_ShutdownAllocNode_t)();
   extern Scr_ShutdownAllocNode_t Scr_ShutdownAllocNode;
 
-  typedef char*(*Scr_GetGameTypeNameForScript_t)(const char* pszGameTypeScript);
-  extern Scr_GetGameTypeNameForScript_t Scr_GetGameTypeNameForScript;
-
   typedef int(*Scr_IsValidGameType_t)(const char* pszGameType);
   extern Scr_IsValidGameType_t Scr_IsValidGameType;
 
@@ -100,9 +97,6 @@ namespace Game
 
   typedef scr_string_t(*Scr_GetConstString_t)(unsigned int index);
   extern Scr_GetConstString_t Scr_GetConstString;
-
-  typedef const char* (*Scr_GetDebugString_t)(unsigned int index);
-  extern Scr_GetDebugString_t Scr_GetDebugString;
 
   typedef float(*Scr_GetFloat_t)(unsigned int index);
   extern Scr_GetFloat_t Scr_GetFloat;
@@ -137,13 +131,16 @@ namespace Game
   typedef void(*Scr_Notify_t)(gentity_s* ent, unsigned __int16 stringValue, unsigned int paramcount);
   extern Scr_Notify_t Scr_Notify;
 
+  typedef void(*Scr_NotifyId_t)(unsigned int id, unsigned __int16 stringValue, unsigned int paramcount);
+  extern Scr_NotifyId_t Scr_NotifyId;
+
   typedef void(*Scr_NotifyLevel_t)(unsigned __int16 stringValue, unsigned int paramcount);
   extern Scr_NotifyLevel_t Scr_NotifyLevel;
 
   typedef void(*Scr_ClearOutParams_t)();
   extern Scr_ClearOutParams_t Scr_ClearOutParams;
 
-  typedef void(*Scr_RegisterFunction_t)(int func, const char* name);
+  typedef void(*Scr_RegisterFunction_t)(uintptr_t func, const char* name);
   extern Scr_RegisterFunction_t Scr_RegisterFunction;
 
   typedef bool(*Scr_IsSystemActive_t)();
@@ -158,14 +155,15 @@ namespace Game
   typedef void(*Scr_ErrorInternal_t)();
   extern Scr_ErrorInternal_t Scr_ErrorInternal;
 
-  typedef void(*Scr_Error_t)(const char* error);
-  extern Scr_Error_t Scr_Error;
-
-  typedef void(*Scr_ObjectError_t)(const char* error);
-  extern Scr_ObjectError_t Scr_ObjectError;
-
-  typedef void(*Scr_ParamError_t)(unsigned int paramIndex, const char*);
-  extern Scr_ParamError_t Scr_ParamError;
+  // Raise a script error, the second one about the parameter at
+  // paramIndex.
+  //
+  // Note that x64 compiles out the message these take on x86, along with
+  // the scrVarPub fields that keep it for the error report, so we print it
+  // before raising the error.
+  //
+  void Scr_Error(const char* error);
+  void Scr_ParamError(unsigned int paramIndex, const char* error);
 
   typedef void(*Scr_GetObjectField_t)(unsigned int classnum, int entnum, int offset);
   extern Scr_GetObjectField_t Scr_GetObjectField;
@@ -190,9 +188,6 @@ namespace Game
 
   typedef void(*GScr_LoadGameTypeScript_t)();
   extern GScr_LoadGameTypeScript_t GScr_LoadGameTypeScript;
-
-  typedef gentity_s*(*GetPlayerEntity_t)(scr_entref_t entref);
-  extern GetPlayerEntity_t GetPlayerEntity;
 
   typedef gentity_s*(*GetEntity_t)(scr_entref_t entref);
   extern GetEntity_t GetEntity;
@@ -235,10 +230,6 @@ namespace Game
   extern void IncInParam();
 
   extern void Scr_AddBool(int value);
-
-  extern "C" void RuntimeErrorInternal(int channel, const char* codePos, unsigned int index, const char* msg);
-
-  extern "C" void Scr_NotifyId(unsigned int id, unsigned __int16 stringValue, unsigned int paramcount);
 
   extern scr_const_t* scr_const;
 

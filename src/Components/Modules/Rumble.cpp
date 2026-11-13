@@ -55,7 +55,7 @@ namespace Components
 
   int Rumble::GetRumbleInfoIndexFromName(const char* rumbleName)
   {
-    for (size_t i = 0; i < Controller::RUMBLE_CONFIGSTRINGS_COUNT-1; i++)
+    for (size_t i = 0; i < ConfigStrings::RUMBLE_CONFIGSTRINGS_COUNT-1; i++)
     {
       const char* configStringArr = ConfigStrings::CL_GetRumbleConfigString(i);
       if (configStringArr && *configStringArr)
@@ -661,7 +661,7 @@ namespace Components
   void Rumble::CG_RegisterRumbles(int localClientNum)
   {
     const auto myRumbleGlobal = &rumbleGlobArray[localClientNum];
-    const auto maxRumbleGraphIndex = Controller::RUMBLE_CONFIGSTRINGS_COUNT;
+    const int maxRumbleGraphIndex = ConfigStrings::RUMBLE_CONFIGSTRINGS_COUNT;
 
     for (int i = 1; i < maxRumbleGraphIndex; i++)
     {
@@ -690,7 +690,7 @@ namespace Components
       auto rumbleToLookFor = Game::SL_FindLowercaseString(name);
       int i;
 
-      for (i = 1; i <= Controller::RUMBLE_CONFIGSTRINGS_COUNT; ++i)
+      for (i = 1; i <= ConfigStrings::RUMBLE_CONFIGSTRINGS_COUNT; ++i)
       {
         auto rumble = ConfigStrings::SV_GetRumbleConfigStringConst(i - 1);
         if (rumble == Game::scr_const->_)
@@ -699,7 +699,7 @@ namespace Components
           return i;
       }
 
-      if (i >= Controller::RUMBLE_CONFIGSTRINGS_COUNT)
+      if (i >= ConfigStrings::RUMBLE_CONFIGSTRINGS_COUNT)
       {
         Logger::Print("WARNING: Rumble not registered, {}\n", name);
       }
@@ -945,7 +945,7 @@ namespace Components
 
   void Rumble::LoadConstantRumbleConfigStrings()
   {
-    static_assert(ARRAYSIZE(rumbleStrings) < Controller::RUMBLE_CONFIGSTRINGS_COUNT);
+    static_assert(ARRAYSIZE(rumbleStrings) < ConfigStrings::RUMBLE_CONFIGSTRINGS_COUNT);
 
     for (size_t i = 0; i < ARRAYSIZE(rumbleStrings); i++)
     {

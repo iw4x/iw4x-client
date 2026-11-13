@@ -2,46 +2,54 @@
 
 namespace Game
 {
-  FS_FileExists_t FS_FileExists = FS_FileExists_t(0x4DEFA0);
-  FS_FreeFile_t FS_FreeFile = FS_FreeFile_t(0x4416B0);
-  FS_ReadFile_t FS_ReadFile = FS_ReadFile_t(0x4F4B90);
-  FS_ListFiles_t FS_ListFiles = FS_ListFiles_t(0x441BB0);
-  FS_FreeFileList_t FS_FreeFileList = FS_FreeFileList_t(0x4A5DE0);
-  FS_FOpenFileAppend_t FS_FOpenFileAppend = FS_FOpenFileAppend_t(0x410BB0);
-  FS_FOpenFileWrite_t FS_FOpenFileWrite = FS_FOpenFileWrite_t(0x4BA530);
-  FS_FOpenTextFileWrite_t FS_FOpenTextFileWrite = FS_FOpenTextFileWrite_t(0x43FD90);
-  FS_FileOpenReadText_t FS_FileOpenReadText = FS_FileOpenReadText_t(0x446B60);
-  FS_FOpenFileRead_t FS_FOpenFileRead = FS_FOpenFileRead_t(0x46CBF0);
-  FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase = FS_FOpenFileReadDatabase_t(0x42ECA0);
-  FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread = FS_FOpenFileReadForThread_t(0x643270);
-  FS_FOpenFileByMode_t FS_FOpenFileByMode = FS_FOpenFileByMode_t(0x4C0700);
-  FS_FCloseFile_t FS_FCloseFile = FS_FCloseFile_t(0x462000);
-  FS_WriteFile_t FS_WriteFile = FS_WriteFile_t(0x426450);
-  FS_WriteToDemo_t  FS_WriteToDemo = FS_WriteToDemo_t(0x4C06E0);
-  FS_Write_t FS_Write = FS_Write_t(0x4576C0);
-  FS_Printf_t FS_Printf = FS_Printf_t(0x459320);
-  FS_Read_t FS_Read = FS_Read_t(0x4A04C0);
-  FS_Seek_t FS_Seek = FS_Seek_t(0x4A63D0);
-  FS_FTell_t FS_FTell = FS_FTell_t(0x4E6760);
-  FS_Remove_t FS_Remove = FS_Remove_t(0x4660F0);
-  FS_Restart_t FS_Restart = FS_Restart_t(0x461A50);
-  FS_BuildPathToFile_t FS_BuildPathToFile = FS_BuildPathToFile_t(0x4702C0);
-  FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x642440);
-  FS_Delete_t FS_Delete = FS_Delete_t(0x48A5B0);
-  FS_BuildOSPath_t FS_BuildOSPath = FS_BuildOSPath_t(0x4702C0);
+  FS_FileExists_t FS_FileExists = FS_FileExists_t(0x1402750C0);
+  FS_FreeFile_t FS_FreeFile = FS_FreeFile_t(0x140277520);
+  FS_ReadFile_t FS_ReadFile = FS_ReadFile_t(0x140277570);
+  FS_ListFiles_t FS_ListFiles = FS_ListFiles_t(0x140277540);
+  FS_FreeFileList_t FS_FreeFileList = FS_FreeFileList_t(0x140277530);
+  FS_FOpenFileWrite_t FS_FOpenFileWrite = FS_FOpenFileWrite_t(0x140274F30);
+  FS_FileOpenReadText_t FS_FileOpenReadText = FS_FileOpenReadText_t(0x1401F6AD0);
+  FS_FOpenFileRead_t FS_FOpenFileRead = FS_FOpenFileRead_t(0x1402740D0);
+  FS_FOpenFileReadDatabase_t FS_FOpenFileReadDatabase = FS_FOpenFileReadDatabase_t(0x1402740F0);
+  FS_FOpenFileReadForThread_t FS_FOpenFileReadForThread = FS_FOpenFileReadForThread_t(0x140274100);
+  FS_FOpenFileByMode_t FS_FOpenFileByMode = FS_FOpenFileByMode_t(0x140273EE0);
+  FS_FCloseFile_t FS_FCloseFile = FS_FCloseFile_t(0x140273E40);
+  FS_WriteFile_t FS_WriteFile = FS_WriteFile_t(0x140277300);
+  FS_WriteToDemo_t  FS_WriteToDemo = FS_WriteToDemo_t(0x140277370);
+  FS_Write_t FS_Write = FS_Write_t(0x1402771C0);
+  FS_Printf_t FS_Printf = FS_Printf_t(0x1402760F0);
+  FS_Read_t FS_Read = FS_Read_t(0x1402761D0);
+  FS_Seek_t FS_Seek = FS_Seek_t(0x140276810);
+  FS_FTell_t FS_FTell = FS_FTell_t(0x140275090);
+  FS_Remove_t FS_Remove = FS_Remove_t(0x14033A470);
+  FS_Restart_t FS_Restart = FS_Restart_t(0x1402764D0);
+  FS_IsShippedIWD_t FS_IsShippedIWD = FS_IsShippedIWD_t(0x140275AF0);
+  FS_Delete_t FS_Delete = FS_Delete_t(0x140273D90);
+  FS_BuildOSPath_t FS_BuildOSPath = FS_BuildOSPath_t(0x140273AD0);
+  FS_AddLocalizedGameDirectory_t FS_AddLocalizedGameDirectory = FS_AddLocalizedGameDirectory_t(0x1402737B0);
 
-  searchpath_s** fs_searchpaths = reinterpret_cast<searchpath_s**>(0x63D96E0);
+  searchpath_s** fs_searchpaths = reinterpret_cast<searchpath_s**>(0x146642A10);
 
-  char* fs_gamedir = reinterpret_cast<char*>(0x63D0BB8);
+  char* fs_gamedir = reinterpret_cast<char*>(0x1466428E0);
 
-  int FS_FOpenFileReadCurrentThread(const char* filename, int* file)
+  fileHandleData_t* fsh = reinterpret_cast<fileHandleData_t*>(0x146642A20);
+
+  // Note that x64 only flushes inside FS_Write() for handles opened for
+  // synchronous writes.
+  //
+  void FS_Flush(fileHandle_t f)
   {
-    if (GetCurrentThreadId() == *reinterpret_cast<DWORD*>(0x1CDE7FC))
+    std::fflush(fsh[f].handleFiles.file.o);
+  }
+
+  int FS_FOpenFileReadCurrentThread(const char* filename, fileHandle_t* file)
+  {
+    if (GetCurrentThreadId() == *reinterpret_cast<DWORD*>(0x141DF0F90))
     {
       return FS_FOpenFileRead(filename, file);
     }
 
-    if (GetCurrentThreadId() == *reinterpret_cast<DWORD*>(0x1CDE814))
+    if (GetCurrentThreadId() == *reinterpret_cast<DWORD*>(0x141DF0FA8))
     {
       return FS_FOpenFileReadDatabase(filename, file);
     }

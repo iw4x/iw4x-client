@@ -1,5 +1,3 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN UIScript_RunMenuScript:PROC
@@ -7,27 +5,22 @@ EXTERN UIScript_RunMenuScript:PROC
 .code
 
 UIScript_RunMenuScriptStub PROC
-  mov     eax, esp
-  add     eax, 8h
-  mov     edx, eax
-  mov     eax, [esp+0C10h]
-
-  push    eax
-  push    edx
+  lea     rcx, [rbp+30h]
+  mov     rdx, rbx
+  sub     rsp, 20h
   call    UIScript_RunMenuScript
-  add     esp, 8h
+  add     rsp, 20h
 
   test    al, al
   jz      continue
 
-  pop     edi
-  pop     esi
-  add     esp, 0C00h
-  ret
+  mov     rax, 140270565h
+  jmp     rax
 
 continue:
-  mov     eax, 45ED00h
-  jmp     eax
+  mov     [rsp+0D60h], rsi
+  mov     rax, 1402703EFh
+  jmp     rax
 UIScript_RunMenuScriptStub ENDP
 
 END

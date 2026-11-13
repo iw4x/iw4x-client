@@ -2,16 +2,9 @@
 
 namespace Game
 {
-  template <typename T> static void DB_ConvertOffsetToPointer(T* pointer)
-  {
-    Utils::Hook::Call<void(T*)>(0x4A82B0)(pointer);
-  }
-
-  extern "C" void** DB_InsertPointerInternal();
-
   template <typename T> static T** DB_InsertPointer()
   {
-    return reinterpret_cast<T**>(DB_InsertPointerInternal());
+    return Utils::Hook::Call<T**()>(0x140132060)();
   }
 
   typedef char*(*DB_AllocStreamPos_t)(int alignment);
@@ -38,11 +31,14 @@ namespace Game
   typedef XAssetHeader(*DB_FindXAssetHeader_t)(XAssetType type, const char* name);
   extern DB_FindXAssetHeader_t DB_FindXAssetHeader;
 
+  typedef XAssetHeader(*DB_FindXAssetDefaultHeaderInternal_t)(XAssetType type);
+  extern DB_FindXAssetDefaultHeaderInternal_t DB_FindXAssetDefaultHeaderInternal;
+
+  typedef XAssetEntry*(*DB_FindXAssetEntry_t)(XAssetType type, const char* name);
+  extern DB_FindXAssetEntry_t DB_FindXAssetEntry;
+
   typedef float(*DB_GetLoadedFraction_t)();
   extern DB_GetLoadedFraction_t DB_GetLoadedFraction;
-
-  typedef const char*(*DB_GetXAssetTypeName_t)(XAssetType type);
-  extern DB_GetXAssetTypeName_t DB_GetXAssetTypeName;
 
   typedef int(*DB_IsXAssetDefault_t)(XAssetType type, const char* name);
   extern DB_IsXAssetDefault_t DB_IsXAssetDefault;
@@ -91,24 +87,25 @@ namespace Game
 
   extern XAssetHeader* DB_XAssetPool;
   extern unsigned int* g_poolSize;
+  extern const char** g_assetNames;
 
   extern XBlock** g_streamBlocks;
-  extern int* g_streamPos;
+  extern char** g_streamPos;
   extern int* g_streamPosIndex;
 
   extern FastCriticalSection* db_hashCritSect;
 
   extern XZone* g_zones;
   extern unsigned short* db_hashTable;
+  extern XAssetEntry* g_assetEntryPool;
 
   extern XAssetHeader ReallocateAssetPool(XAssetType type, unsigned int newSize);
 
+  extern const char* DB_GetXAssetTypeName(XAssetType type);
   extern const char* DB_GetXAssetName(XAsset* asset);
   extern XAssetType DB_GetXAssetNameType(const char* name);
   extern int DB_GetZoneIndex(const std::string& name);
   extern bool DB_IsZoneLoaded(const char* zone);
   extern std::vector<std::string> DB_GetLoadedZones();
   extern void DB_EnumXAssetEntries(XAssetType type, std::function<void(XAssetEntry*)> callback, bool overrides);
-  extern "C" XAssetHeader DB_FindXAssetDefaultHeaderInternal(XAssetType type);
-  extern "C" XAssetEntry* DB_FindXAssetEntry(XAssetType type, const char* name);
 }

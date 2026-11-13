@@ -35,11 +35,12 @@ namespace Components
       (0.0f - static_cast<float>(height)) - CGDrawVersionY.get<float>(), 3, 3, fontScale, color, 0);
   }
 
-  void Branding::CG_DrawVersion_Hk(int localClientNum)
+  void Branding::CL_DrawDebugOverlays_Hk(int localClientNum)
   {
-    Utils::Hook::Call<void(int)>(0x4EFF80)(localClientNum);
+    Game::CL_DrawDebugOverlays(localClientNum);
 
-    if (CGDrawVersion.get<bool>())
+    if (Game::CL_GetLocalClientConnectionState(localClientNum) == Game::CA_ACTIVE &&
+        CGDrawVersion.get<bool>())
     {
       CG_DrawVersion();
     }
@@ -58,20 +59,18 @@ namespace Components
   {
     // IW4x is technically a beta
     return Utils::String::VA("%s %s build %s %s",
-      BUILD_TYPE, "(Beta)", GetBuildNumber(), reinterpret_cast<const char*>(0x7170A0));
+      BUILD_TYPE, "(Beta)", GetBuildNumber(), reinterpret_cast<const char*>(0x140389578));
   }
 
   void Branding::Dvar_SetVersionString(const Game::dvar_t* dvar, [[maybe_unused]] const char* value)
   {
-    const auto* result = GetVersionString();
-    Utils::Hook::Call<void(const Game::dvar_t*, const char*)>(0x4A9580)(dvar, result);
+    Game::Dvar_SetString(dvar, GetVersionString());
   }
 
   // Branding this might be a good idea in case this LSP logging ever gets turned on for some reason
   void Branding::MSG_WriteVersionStringHeader(Game::msg_t* msg, [[maybe_unused]] const char* string)
   {
-    const auto* result = GetVersionString();
-    Utils::Hook::Call<void(Game::msg_t*, const char*)>(0x463820)(msg, result);
+    Game::MSG_WriteString(msg, GetVersionString());
   }
 
   Game::dvar_t* Branding::Dvar_RegisterUIBuildLocation(const char* dvarName, [[maybe_unused]] float x,
@@ -99,56 +98,49 @@ namespace Components
   {
     RegisterBrandingDvars();
 
-    // UI version string
-    Utils::Hook::Set<const char*>(0x43F73B, "IW4x " REVISION_STR);
+    // UI version string, replacing its "%s.%i" format.
+    //
+    Utils::Hook::PlaceString(0x14026F26E, 7, 0x1403A290C, "IW4x " REVISION_STR);
 
-    // Short version dvar
-    Utils::Hook::Set<const char*>(0x60BD91, REVISION_STR);
+    // Short version dvar default.
+    //
+    Utils::Hook::PlaceString(0x1401F54FF, 7, 0x140389580, REVISION_STR);
 
-    // Com_Init_Try_Block_Function
-    Utils::Hook::Set<const char*>(0x60BAF4, BUILD_TYPE);
-#ifdef EXPERIMENTAL_BUILD
-    Utils::Hook::Set<const char*>(0x60BAEf, REVISION_STR "-develop");
-#else
-    Utils::Hook::Set<const char*>(0x60BAEf, REVISION_STR);
-#endif
-    Utils::Hook::Set<const char*>(0x60BAE5, __DATE__);
+    Utils::Hook(0x1401E6960, GetBuildNumber, HOOK_JUMP).install()->quick();
 
-    // G_InitGame
-    Utils::Hook::Set<const char*>(0x48EBA1, __DATE__);
+    // UI version string color.
+    //
+    constexpr Game::vec4_t buildLocColor = {1.0f, 1.0f, 1.0f, 0.8f};
+    Utils::Hook::PlaceData(0x14026F28C, 7, 0x1403A4E30, buildLocColor, sizeof(buildLocColor));
 
-    Utils::Hook(0x4B12B0, GetBuildNumber, HOOK_JUMP).install()->quick();
+    // Place UI version string in bottom right corner (ui_buildLocation).
+    //
+    Utils::Hook(0x14026FA90, Dvar_RegisterUIBuildLocation, HOOK_CALL).install()->quick();
 
-    // Version string color
-    static Game::vec4_t buildLocColor = {1.0f, 1.0f, 1.0f, 0.8f};
-    Utils::Hook::Set<float*>(0x43F710, buildLocColor);
+    Utils::Hook(0x1401F54ED, Dvar_SetVersionString, HOOK_CALL).install()->quick();
 
-    // Place ui version string to bottom right corner (ui_buildlocation)
-    Utils::Hook(0x6310A0, Dvar_RegisterUIBuildLocation, HOOK_CALL).install()->quick(); // Dvar_RegisterVec2
+    Utils::Hook(0x1401B15BE, MSG_WriteVersionStringHeader, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x60BD81, Dvar_SetVersionString, HOOK_CALL).install()->quick();
+    // Draw version after debug overlays when connected.
+    //
+    // Note that this replaces the call Dvar installs at the same site, which
+    // is why we chain to it.
+    //
+    Utils::Hook(0x140101D0C, CL_DrawDebugOverlays_Hk, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x4DA842, MSG_WriteVersionStringHeader, HOOK_CALL).install()->quick();
-
-    // Hook CG_DrawFullScreenDebugOverlays so we may render the version when it's appropriate
-    Utils::Hook(0x5AC975, CG_DrawVersion_Hk, HOOK_CALL).install()->quick();
-
-    // Console title
-    if (ZoneBuilder::IsEnabled())
-    {
-      Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" REVISION_STR "): ZoneBuilder");
-    }
-    else if (Dedicated::IsEnabled())
+    // Console title.
+    //
+    if (Dedicated::IsEnabled())
     {
 #ifdef EXPERIMENTAL_BUILD
-      Utils::Hook::Set<const char*>(0x4289E8, "IW4x " REVISION_STR "-develop: Dedicated");
+      Utils::Hook::PlaceString(0x1402A7BD6, 7, 0x1403A8A20, "IW4x " REVISION_STR "-develop: Dedicated");
 #else
-      Utils::Hook::Set<const char*>(0x4289E8, "IW4x " REVISION_STR ": Dedicated");
+      Utils::Hook::PlaceString(0x1402A7BD6, 7, 0x1403A8A20, "IW4x " REVISION_STR ": Dedicated");
 #endif
     }
     else
     {
-      Utils::Hook::Set<const char*>(0x4289E8, "IW4x (" REVISION_STR "): Console");
+      Utils::Hook::PlaceString(0x1402A7BD6, 7, 0x1403A8A20, "IW4x (" REVISION_STR "): Console");
     }
   }
 }

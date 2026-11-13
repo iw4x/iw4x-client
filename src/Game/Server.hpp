@@ -53,12 +53,6 @@ namespace Game
   typedef void(*SV_DropClient_t)(client_s* drop, const char* reason, bool tellThem);
   extern SV_DropClient_t SV_DropClient;
 
-  typedef client_s*(*SV_GetPlayerByName_t)();
-  extern SV_GetPlayerByName_t SV_GetPlayerByName;
-
-  typedef client_s*(*SV_GetPlayerByNum_t)();
-  extern SV_GetPlayerByNum_t SV_GetPlayerByNum;
-
   typedef client_s*(*SV_FindClientByAddress_t)(netadr_t from, int qport, int remoteClientIndex);
   extern SV_FindClientByAddress_t SV_FindClientByAddress;
 
@@ -87,7 +81,14 @@ namespace Game
   extern int SV_GetServerThreadOwnsGame();
   extern void SV_GameDropClient(int clientNum, const char* reason);
   extern void SV_DropAllBots();
+
+  // Return the active client whose slot number is the first argument of the
+  // current server command, or print why there is none and return nullptr.
+  //
+  // Note that x64 compiles this function out along with the commands that
+  // used it.
+  //
+  extern client_s* SV_GetPlayerByNum();
   extern int SV_GetClientStat(int clientNum, int index);
   extern void SV_SetClientStat(int clientNum, int index, int value);
-  extern "C" void SV_BotUserMove(client_s* client);
 }

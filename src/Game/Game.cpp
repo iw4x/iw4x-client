@@ -2,58 +2,98 @@
 
 namespace Game
 {
-  G_LogPrintf_t G_LogPrintf = G_LogPrintf_t(0x4B0150);
-  G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x49E540);
-  G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x4D8840);
-  G_Spawn_t G_Spawn = G_Spawn_t(0x4226F0);
-  G_GivePlayerWeapon_t G_GivePlayerWeapon = G_GivePlayerWeapon_t(0x4B38B0);
-  G_FreeEntity_t G_FreeEntity = G_FreeEntity_t(0x44C9D0);
-  G_SpawnItem_t G_SpawnItem = G_SpawnItem_t(0x403770);
-  G_TempEntity_t G_TempEntity = G_TempEntity_t(0x4511F0);
-  G_AddEvent_t G_AddEvent = G_AddEvent_t(0x469A50);
-  G_GetItemClassname_t G_GetItemClassname = G_GetItemClassname_t(0x492630);
-  G_PrintEntities_t G_PrintEntities = G_PrintEntities_t(0x4E6A50);
-  G_GetEntityTypeName_t G_GetEntityTypeName = G_GetEntityTypeName_t(0x4EB810);
+  G_LogPrintf_t G_LogPrintf = G_LogPrintf_t(0x14019D7C0);
+  G_GetWeaponIndexForName_t G_GetWeaponIndexForName = G_GetWeaponIndexForName_t(0x1401884B0);
+  G_SpawnEntitiesFromString_t G_SpawnEntitiesFromString = G_SpawnEntitiesFromString_t(0x1401A91C0);
+  G_Spawn_t G_Spawn = G_Spawn_t(0x1401AC420);
+  G_GivePlayerWeapon_t G_GivePlayerWeapon = G_GivePlayerWeapon_t(0x1401884D0);
+  G_FreeEntity_t G_FreeEntity = G_FreeEntity_t(0x1401AB650);
+  G_SpawnItem_t G_SpawnItem = G_SpawnItem_t(0x14016D530);
+  G_TempEntity_t G_TempEntity = G_TempEntity_t(0x1401AC800);
+  G_AddEvent_t G_AddEvent = G_AddEvent_t(0x1401AA250);
+  G_GetItemClassname_t G_GetItemClassname = G_GetItemClassname_t(0x14016C2E0);
 
-  G_LocalizedStringIndex_t G_LocalizedStringIndex = G_LocalizedStringIndex_t(0x4582F0);
+  G_LocalizedStringIndex_t G_LocalizedStringIndex = G_LocalizedStringIndex_t(0x1401ABD60);
 
-  G_DebugLineWithDuration_t G_DebugLineWithDuration = G_DebugLineWithDuration_t(0x4C3280);
+  G_PointContents_t G_PointContents = G_PointContents_t(0x140232AA0);
+  G_TraceCapsule_t G_TraceCapsule = G_TraceCapsule_t(0x14019F540);
+  G_RadiusDamage_t G_RadiusDamage = G_RadiusDamage_t(0x14019BB90);
 
-  G_PointContents_t G_PointContents = G_PointContents_t(0x4635F0);
-  G_TraceCapsule_t G_TraceCapsule = G_TraceCapsule_t(0x42CE50);
-  G_RadiusDamage_t G_RadiusDamage = G_RadiusDamage_t(0x45F420);
+  gentity_s* g_entities = reinterpret_cast<gentity_s*>(0x1418679C0);
+  bool* g_quitRequested = reinterpret_cast<bool*>(0x146787378);
 
-  gentity_s* g_entities = reinterpret_cast<gentity_s*>(0x18835D8);
-  bool* g_quitRequested = reinterpret_cast<bool*>(0x649FB61);
+  Bounds* bounds_origin = reinterpret_cast<Bounds*>(0x1403A3190);
 
-  Bounds* bounds_origin = reinterpret_cast<Bounds*>(0x747168);
+  char(*g_cmdlineCopy)[1024] = reinterpret_cast<char(*)[1024]>(0x141BD7450);
 
-  char(*g_cmdlineCopy)[1024] = reinterpret_cast<char(*)[1024]>(0x1AD7AB0);
+  NetField* clientStateFields = reinterpret_cast<Game::NetField*>(0x140394940);
+  int clientStateFieldsCount = Utils::Hook::Get<int>(0x140393CD8);
 
-  NetField* clientStateFields = reinterpret_cast<Game::NetField*>(0x741E40);
-  size_t clientStateFieldsCount = Utils::Hook::Get<size_t>(0x7433C8);
+  WinVars_t* g_wv = reinterpret_cast<WinVars_t*>(0x14678C000);
+  WinConData* s_wcd = reinterpret_cast<WinConData*>(0x14678B730);
+  int* s_totalChars = reinterpret_cast<int*>(0x14678BD68);
+  WNDPROC* SysInputLineWndProc = reinterpret_cast<WNDPROC*>(0x14678BD60);
 
-  MssLocal* milesGlobal = reinterpret_cast<MssLocal*>(0x649A1A0);
+  char* cinematicCurrentName = reinterpret_cast<char*>(0x1493C7804);
+  int* cinematicPendingStart = reinterpret_cast<int*>(0x1493C7800);
+  CinematicHunk* cinematicHunk = reinterpret_cast<CinematicHunk*>(0x1493C7B98);
+  void** cinematicMemory = reinterpret_cast<void**>(0x1493C7DA0);
 
-  WinVars_t* g_wv = reinterpret_cast<WinVars_t*>(0x64A3AC8);
-  WinConData* s_wcd = reinterpret_cast<WinConData*>(0x64A3288);
+  const char* origErrorMsg = reinterpret_cast<const char*>(0x140422B48);
 
-  char* cinematicCurrentName = reinterpret_cast<char*>(0x69F95F0);
-  int* cinematicPendingStart = reinterpret_cast<int*>(0x69F95EC);
-  CinematicHunk* cinematicHunk = reinterpret_cast<CinematicHunk*>(0x69F98E8);
-  void** cinematicMemory = reinterpret_cast<void**>(0x69F9A84);
+  const char* G_GetEntityTypeName(const gentity_s* ent)
+  {
+    // Entity type names, which outlive the x64 function that used them.
+    //
+    const char* const* names (reinterpret_cast<const char* const*>(0x140422AB0));
 
-  const char* origErrorMsg = reinterpret_cast<const char*>(0x79B124);
+    assert(ent->s.eType >= 0 && ent->s.eType < ET_EVENTS);
+    return names[ent->s.eType];
+  }
+
+  void Svcmd_EntityList_f()
+  {
+    for (int i (1); i < level->num_entities; ++i)
+    {
+      const gentity_s& e (g_entities[i]);
+
+      if (!e.r.isInUse)
+      {
+        continue;
+      }
+
+      Com_Printf(CON_CHANNEL_DONT_FILTER, "%3i: ", i);
+      Com_Printf(CON_CHANNEL_DONT_FILTER, "'%s'", BG_GetEntityTypeName(e.s.eType));
+
+      if (e.classname != 0)
+      {
+        Com_Printf(CON_CHANNEL_DONT_FILTER, ", '%s'", SL_ConvertToString(e.classname));
+      }
+
+      Com_Printf(CON_CHANNEL_DONT_FILTER, "\n");
+    }
+  }
+
+  void G_PrintEntities()
+  {
+    for (int i (0); i < level->num_entities; ++i)
+    {
+      const gentity_s& e (g_entities[i]);
+
+      Com_Printf(CON_CHANNEL_SERVER,
+                 "%4i: '%s', origin: %f %f %f\n",
+                 i,
+                 e.classname != 0 ? SL_ConvertToString(e.classname) : "",
+                 e.r.currentOrigin[0],
+                 e.r.currentOrigin[1],
+                 e.r.currentOrigin[2]);
+    }
+  }
 
   XModel* G_GetModel(const int index)
   {
     assert(index > 0);
     assert(index < MAX_MODELS);
     return cached_models[index];
-  }
-
-  void G_DebugStar(const float* point, const float* color)
-  {
-    CL_AddDebugStar(point, color, 20, 1);
   }
 }

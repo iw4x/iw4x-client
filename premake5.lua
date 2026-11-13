@@ -24,7 +24,7 @@ local generated_directory = path.join (build_directory, "src")
 newoption
 {
   trigger     = "mingw",
-  description = "Generate a 32-bit MinGW-w64 GNU Make build"
+  description = "Generate a 64-bit MinGW-w64 GNU Make build"
 }
 
 newoption
@@ -109,17 +109,22 @@ if mingw and _OPTIONS["copy-to"] then
 end
 
 if mingw then
-  -- Premake adds /usr/lib32 for x86 GCC, which is a host directory and
+  -- Premake adds /usr/lib64 for x86_64 GCC, which is a host directory and
   -- should not be searched when cross-compiling with MinGW.
   --
-  premake.override (premake.tools.gcc.libraryDirectories.architecture, "x86",
+  premake.override (premake.tools.gcc.libraryDirectories.architecture,
+                    "x86_64",
                     function () return {} end)
 end
 
 -- Load the third-party targets.
 --
+-- Note that we skip iw4-open-formats: it describes 32-bit asset structures
+-- and only zone tools use it (see below).
+--
 local targets = target_set.new (path.join (_MAIN_SCRIPT_DIR, "deps"))
-targets:load (path.join (_MAIN_SCRIPT_DIR, "deps/premake"))
+targets:load (path.join (_MAIN_SCRIPT_DIR, "deps/premake"),
+              {"iw4-open-formats"})
 
 workspace "iw4x"
   location (build_directory)
@@ -127,22 +132,18 @@ workspace "iw4x"
   targetdir "%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}"
   startproject "iw4x"
 
-  -- The game is a 32-bit Windows executable, so this is the only platform.
+  -- The game is a 64-bit Windows executable, so this is the only platform.
   --
   configurations {"Debug", "Release"}
-  platforms {"Win32"}
-  architecture "x86"
+  platforms {"x64"}
+  architecture "x86_64"
   systemversion "latest"
 
   if mingw then
     system "windows"
     toolset "gcc"
-    gccprefix "i686-w64-mingw32-"
+    gccprefix "x86_64-w64-mingw32-"
     makesettings {".DELETE_ON_ERROR:"}
-    -- Callbacks may enter with a four-byte aligned stack, so
-    -- realign it on entry to functions compiled by GCC.
-    --
-    buildoptions {"-mstackrealign"}
     omitframepointer "Off"
     linkoptions {"-static"}
   end
@@ -198,7 +199,11 @@ workspace "iw4x"
     omitframepointer "Off"
     rtti "Off"
     defines {"NDEBUG"}
-    -- GCC can fail during LTO when linking the 32-bit MinGW DLL.
+
+    -- GCC failed during LTO when linking the 32-bit MinGW DLL.
+    --
+    -- @@ See if it links the 64-bit one.
+    --
     if not mingw then
       linktimeoptimization "On"
       linkoptions {"/IGNORE:4702"}
@@ -252,6 +257,96 @@ project "iw4x"
     "src/**.asm"
   }
 
+  -- Zone tools.
+  --
+  -- These read and write 32-bit IW4x zones. On x64 we load stock zones
+  -- converted with OpenAssetTools instead. Note that Zones and ModelSurfs
+  -- only load what zone tools produce.
+  --
+  removefiles
+  {
+    "src/Components/Modules/AssetInterfaces/**",
+    "src/Components/Modules/ModelSurfs.*",
+    "src/Components/Modules/ZoneBuilder.*",
+    "src/Components/Modules/ZoneConvert.*",
+    "src/Components/Modules/Zones.*"
+  }
+
+  -- Sources not yet ported to x64.
+  --
+  -- NOTE: remember to register each component in Loader::Initialize() when
+  --       taking its sources off this list.
+  --
+  removefiles
+  {
+    "src/Components/Modules/Controller.*",
+    "src/Components/Modules/D3D9Ex.*",
+    "src/Components/Modules/Debug.*",
+    "src/Components/Modules/Dedicated.*",
+    "src/Components/Modules/Discord.*",
+    "src/Components/Modules/Discovery.*",
+    "src/Components/Modules/Download.*",
+    "src/Components/Modules/Elevators.*",
+    "src/Components/Modules/FastFiles.*",
+    "src/Components/Modules/FileSystem.*",
+    "src/Components/Modules/Friends.*",
+    "src/Components/Modules/Huffman.*",
+    "src/Components/Modules/Lean.*",
+    "src/Components/Modules/Localization.*",
+    "src/Components/Modules/MapDump.*",
+    "src/Components/Modules/MapRotation.*",
+    "src/Components/Modules/Maps.*",
+    "src/Components/Modules/Materials.*",
+    "src/Components/Modules/Menus.*",
+    "src/Components/Modules/Missile.*",
+    "src/Components/Modules/ModelCache.*",
+    "src/Components/Modules/ModList.*",
+    "src/Components/Modules/NetworkDebug.*",
+    "src/Components/Modules/News.*",
+    "src/Components/Modules/Node.*",
+    "src/Components/Modules/Party.*",
+    "src/Components/Modules/PlayerMovement.*",
+    "src/Components/Modules/PlayerName.*",
+    "src/Components/Modules/Playlist.*",
+    "src/Components/Modules/Profiler.*",
+    "src/Components/Modules/QuickPatch.*",
+    "src/Components/Modules/RawFiles.*",
+    "src/Components/Modules/RawMouse.*",
+    "src/Components/Modules/RCon.*",
+    "src/Components/Modules/RemoteControl.*",
+    "src/Components/Modules/Renderer.*",
+    "src/Components/Modules/Rumble.*",
+    "src/Components/Modules/Security.*",
+    "src/Components/Modules/ServerCommands.*",
+    "src/Components/Modules/ServerDemo.*",
+    "src/Components/Modules/ServerInfo.*",
+    "src/Components/Modules/ServerList.*",
+    "src/Components/Modules/Session.*",
+    "src/Components/Modules/SlowMotion.*",
+    "src/Components/Modules/Sound.*",
+    "src/Components/Modules/StartupMessages.*",
+    "src/Components/Modules/Stats.*",
+    "src/Components/Modules/StringTable.*",
+    "src/Components/Modules/StructuredData.*",
+    "src/Components/Modules/TextRenderer.*",
+    "src/Components/Modules/Theatre.*",
+    "src/Components/Modules/Threading.*",
+    "src/Components/Modules/Toast.*",
+    "src/Components/Modules/UIFeeder.*",
+    "src/Components/Modules/Updater.*",
+    "src/Components/Modules/ViewModelFx.*",
+    "src/Components/Modules/ViewModelFxSetup.*",
+    "src/Components/Modules/VisionFile.*",
+    "src/Components/Modules/Voice.*",
+    "src/Components/Modules/Vote.*",
+    "src/Components/Modules/Weapon.*",
+    "src/Components/Modules/Window.*",
+    "src/Components/Modules/WineD3D.*",
+    "src/Components/Modules/BotLib/**",
+    "src/Components/Modules/GSC/**",
+    "src/Controller/**",
+  }
+
   -- Assemble the assembly sources with ml directly instead of through the
   -- MASM build customization, for two reasons. Firstly, the customization
   -- names the object after the file name without the extension, so Foo.asm
@@ -259,14 +354,10 @@ project "iw4x"
   -- XamlTaskFactory, which MSBuild under Wine doesn't have.
   --
   -- We also prefix the object name with the name of the source directory
-  -- since the objects all go into the same directory and, for example,
-  -- Game/FileSystem.asm and Components/Modules/FileSystem.asm would
-  -- otherwise both produce FileSystem.asm.obj.
+  -- since the objects all go into the same directory and two assembly
+  -- sources with the same name would otherwise produce the same object.
   --
-  -- Note that we assemble with SafeSEH (/safeseh): without it the linker
-  -- silently omits the table of safe exception handlers from the image as
-  -- soon as one object lacks the marking. The custom build step passes its
-  -- .obj outputs to the linker.
+  -- Note that the custom build step passes its outputs to the linker.
   --
   local asm_object = "%{cfg.objdir}/%{file.directory:match ('[^/]+$')}." ..
                      "%{file.basename}.asm." .. (mingw and "o" or "obj")
@@ -277,12 +368,12 @@ project "iw4x"
     if mingw then
       buildcommands
       {
-        '"$(UASM)" -q -coff -Fo"' .. asm_object .. '" "%{file.relpath}"'
+        '"$(UASM)" -q -win64 -Fo"' .. asm_object .. '" "%{file.relpath}"'
       }
     else
       buildcommands
       {
-        "ml.exe /nologo /c /safeseh /Zi /W3 /WX " ..
+        "ml64.exe /nologo /c /Zi /W3 /WX " ..
         "/Fo\"" .. asm_object .. "\" \"%{file.relpath}\""
       }
     end
@@ -375,7 +466,6 @@ project "iw4x"
     "discord-rpc",
     "fonts",
     "gsl",
-    "iw4-open-formats",
     "json",
     "libtomcrypt",
     "libtommath",
@@ -387,7 +477,6 @@ project "iw4x"
     "sqlite",
     "stb",
     "tracy",
-    "udis86",
     "zlib"
   }
 

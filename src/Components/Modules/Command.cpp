@@ -101,9 +101,9 @@ namespace Components
     FunctionMapSV.insert_or_assign(command, callback);
   }
 
-  void Command::AddRaw(const char* name, void(*callback)(), bool key)
+  void Command::AddRaw(const char* name, void(*callback)())
   {
-    Game::Cmd_AddCommand(name, callback, Allocate(), key);
+    Game::Cmd_AddCommand(name, callback, Allocate());
   }
 
   void Command::AddRawSV(const char* name, void(*callback)())
@@ -111,7 +111,7 @@ namespace Components
     Game::Cmd_AddServerCommand(name, callback, Allocate());
 
     // If the main command is registered as Cbuf_AddServerText, the command will be redirected to the SV handler
-    AddRaw(name, Game::Cbuf_AddServerText_f, false);
+    AddRaw(name, Game::Cbuf_AddServerText_f);
   }
 
   void Command::Execute(std::string command, bool sync)
@@ -177,77 +177,5 @@ namespace Components
     {
       itr->second(&params);
     }
-  }
-
-  const std::vector<std::string>& Command::GetExceptions()
-  {
-    static const auto exceptions = []() -> std::vector<std::string>
-    {
-      std::vector<std::string> values =
-      {
-        "cmd",
-        "exec",
-        "map",
-      };
-
-      if (Flags::HasFlag("disable-notifies"))
-      {
-        values.emplace_back("vstr");
-        values.emplace_back("wait");
-      }
-
-      return values;
-    }();
-
-    return exceptions;
-  }
-
-  bool Command::CL_ShouldSendNotify_Hk(const char* cmd)
-  {
-    if (!cmd)
-    {
-      return false;
-    }
-
-    const auto& exceptions = GetExceptions();
-    for (const auto& entry : exceptions)
-    {
-      if (Utils::String::Compare(cmd, entry))
-      {
-        return false;
-      }
-    }
-
-    // Every command we run while connected is also sent to the server as a
-    // reliable command so that scripts can be notified of it. A command run
-    // over and over (say, by a menu slider's action while dragging it) can
-    // then pile up faster than the server acknowledges it, and once more than
-    // 128 are pending the client drops with "Client command overflow".
-    //
-    // So once a good number of them are pending, skip the notify if the same
-    // one is already among them. Note that we don't skip notifies outright
-    // since they may well be input (+attack, etc) that scripts rely on.
-    //
-    const auto* clc = Game::clientConnections;
-    if (clc->reliableSequence - clc->reliableAcknowledge >= 64)
-    {
-      const auto n = std::strlen(cmd);
-      for (auto i = clc->reliableAcknowledge + 1; i <= clc->reliableSequence; ++i)
-      {
-        const char* c = clc->reliableCommands[i & 127];
-        if (std::strncmp(c, "nt ", 3) == 0 && std::strncmp(c + 3, cmd, n) == 0 && (c[3 + n] == '\0' || c[3 + n] == ' '))
-        {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  }
-
-  Command::Command()
-  {
-    // Protect players from invasive servers
-    Utils::Hook(0x434BD4, CL_ShouldSendNotify_Hk, HOOK_CALL).install()->quick();  // CL_CheckNotify
   }
 }

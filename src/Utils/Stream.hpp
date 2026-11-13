@@ -80,7 +80,7 @@ namespace Utils
 
       template <typename T> T read()
       {
-        T obj;
+        T obj{};
 
         for (unsigned int i = 0; i < sizeof(T); ++i)
         {
@@ -91,7 +91,7 @@ namespace Utils
       }
 
       bool end() const;
-      void seek(unsigned int position);
+      void seek(std::size_t position);
       void seekRelative(unsigned int position);
 
       void* readPointer();
@@ -99,7 +99,7 @@ namespace Utils
       bool hasPointer(void* pointer) const;
 
     private:
-      unsigned int position_;
+      std::size_t position_;
       std::string buffer_;
       std::map<void*, void*> pointerMap_;
       Memory::Allocator* allocator_;

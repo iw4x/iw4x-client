@@ -1,13 +1,5 @@
 #pragma once
 
-extern "C"
-{
-  void ArenaLength_CompareMapNameStub1();
-  void ArenaLength_CompareMapNameStub2();
-  void ArenaLength_CompareMapNameStub3();
-  void ArenaLength_ReadVoteReferenceStub();
-}
-
 namespace Components
 {
   class ArenaLength : public Component
@@ -15,7 +7,13 @@ namespace Components
   public:
     ArenaLength();
 
-    static Game::newMapArena_t NewArenas[];
-    static char* NewArenaInfos[];
+    static Game::newMapArena_t* NewArenas;
+    static char** NewArenaInfos;
+
+  private:
+    static void CopyMapName(char* dest, const char* src, int destsize);
+    static void SetMapNameDvar(const char* dvarName, const char* oldMapName);
+    static int CompareMapName(const char* name, const char* oldMapName);
+    static const char* FormatMapName(const char* fmt, const char* oldMapName);
   };
 }

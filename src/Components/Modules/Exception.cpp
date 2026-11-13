@@ -1,4 +1,5 @@
 #include "Exception.hpp"
+#include "AssetHandler.hpp"
 
 namespace Components
 {
@@ -14,16 +15,19 @@ namespace Components
   // Show the error Com_Error() was handling when another one happened. This
   // replaces its Sys_Error() call for such a recursive error.
   //
-  // The game passes com_errorMessage, the localized version of the first
-  // error, as the format and the original message as the argument. We've
-  // seen com_errorMessage come out empty (with an image that failed to load
-  // during startup), leaving the player with an empty dialog and us with an
-  // empty report. So we show the original message when that happens. Note
-  // that neither is a format string: either may well contain a '%'.
+  // The game passes the com_errorMessage dvar, the localized version of the
+  // first error, as the format. We've seen it come out empty (with an image
+  // that failed to load during startup), leaving the player with an empty
+  // dialog and us with an empty report. So we show the original message
+  // when that happens. Note that neither is a format string: either may
+  // well contain a '%'.
   //
-  void Exception::Sys_Error_Recursive_Hk (const char* format, const char* message)
+  // Note also that x64 leaves the original message out of the call, so we
+  // read it from the buffer Com_Error() keeps it in.
+  //
+  void Exception::Sys_Error_Recursive_Hk (const char* format)
   {
-    Game::Sys_Error ("%s", *format != '\0' ? format : message);
+    Game::Sys_Error ("%s", *format != '\0' ? format : Game::com_errorMessage);
   }
 
   LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
@@ -74,12 +78,33 @@ namespace Components
 
     ::SetUnhandledExceptionFilter(&ExceptionFilter);
 
-    Utils::Hook(0x4B241F, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook (0x4B2317, Sys_Error_Recursive_Hk, HOOK_CALL).install ()->quick (); // Com_Error()
-    Utils::Hook(0x61DB44, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x61F17D, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x61F248, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x61F5E7, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401F3797, LongJmp_Internal_Stub, HOOK_CALL).install()->quick(); // Com_Error()
+    Utils::Hook(0x1401F35A3, Sys_Error_Recursive_Hk, HOOK_CALL).install()->quick(); // Com_Error()
+
+    // Script errors.
+    //
+    // Note that x64 inlines Scr_Error() into the other script error
+    // functions and VM_Execute(), so each copy has its own longjmp() call.
+    //
+    static constexpr uintptr_t scriptErrorJumps[] =
+    {
+      0x140227DCE, 0x140228025, 0x140228045, 0x1402280D2, 0x1402280F2,
+      0x14022822A, 0x14022824A, 0x1402282DC, 0x1402282FC, 0x1402284C1,
+      0x1402284E1, 0x140228570, 0x14022860A, 0x14022862A, 0x1402286B2,
+      0x1402286D2, 0x140228772, 0x140228792, 0x140228976, 0x140228996,
+      0x140228A20, 0x140228A9C, 0x140228B0D, 0x140228BAC, 0x140228BCC,
+      0x14022C887, 0x14022C8A7, 0x14022C8C7, 0x14022C8E7, 0x14022C907,
+      0x14022C927, 0x14022C947, 0x14022C967, 0x14022C987, 0x14022C9A7,
+      0x14022C9C7, 0x14022C9E7, 0x14022CA07, 0x14022CA27, 0x14022CA47,
+      0x14022CA67, 0x14022CA87, 0x14022CAA7, 0x14022CAC7, 0x14022CAE7,
+      0x14022CB07, 0x14022CB27, 0x14022CB47, 0x14022CB67, 0x14022CB87,
+      0x14022CBA7, 0x14022CBC7, 0x14022CBE7, 0x14022CC07, 0x14022CC27,
+    };
+
+    for (const uintptr_t address : scriptErrorJumps)
+    {
+      Utils::Hook(address, LongJmp_Internal_Stub, HOOK_CALL).install()->quick();
+    }
   }
 
   Exception::~Exception()

@@ -9,10 +9,10 @@ namespace Game::Engine
     assert((!(maxSize % (64 * 1024))));
 
     auto* user = static_cast<HunkUser*>(Z_VirtualReserve(maxSize));
-    Z_VirtualCommit(user, sizeof(HunkUser) - 4);
+    Z_VirtualCommit(user, HUNK_USER_HEADER_SIZE);
 
-    user->end = reinterpret_cast<int>(user->buf) + maxSize - (sizeof(HunkUser) - 4);
-    user->pos = reinterpret_cast<int>(user->buf);
+    user->end = reinterpret_cast<intptr_t>(user) + maxSize;
+    user->pos = reinterpret_cast<intptr_t>(user) + HUNK_USER_HEADER_SIZE;
 
     assert((!(user->pos & 31)));
 

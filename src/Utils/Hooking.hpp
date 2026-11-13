@@ -3,14 +3,6 @@
 #define HOOK_JUMP true
 #define HOOK_CALL false
 
-extern "C"
-{
-  void Hooking_InterceptionStub();
-
-  void Hooking_RunCallback(void* place);
-  void* Hooking_PopReturn(void* place);
-}
-
 namespace Utils
 {
   // Function type, such as void (int), that a game function has.
@@ -32,8 +24,7 @@ namespace Utils
       };
 
       Signature(void* _start, size_t _length) : start(_start), length(_length) {}
-      Signature(DWORD _start, size_t _length) : Signature(reinterpret_cast<void*>(_start), _length) {}
-      Signature() : Signature(0x400000, 0x800000) {}
+      Signature(uintptr_t _start, size_t _length) : Signature(reinterpret_cast<void*>(_start), _length) {}
 
       void process();
       void add(const Container& container);
@@ -44,39 +35,21 @@ namespace Utils
       std::vector<Container> signatures;
     };
 
-    class Interceptor
-    {
-    public:
-      static void Install(void* place, void* stub);
-      static void Install(void* place, void(*stub)());
-      static void Install(void** place, void(*stub)());
-
-    private:
-      friend void (::Hooking_RunCallback)(void* place);
-      friend void* (::Hooking_PopReturn)(void* place);
-
-      static std::map<void*, void*> IReturn;
-      static std::map<void*, void(*)()> ICallbacks;
-
-      static void RunCallback(void* place);
-      static void* PopReturn(void* place);
-    };
-
-    Hook() : initialized(false), installed(false), place(nullptr), stub(nullptr), original(nullptr), useJump(false), protection(0) { ZeroMemory(this->buffer, sizeof(this->buffer)); }
+    Hook() : initialized(false), installed(false), place(nullptr), stub(nullptr), useJump(false), protection(0) { ZeroMemory(this->buffer, sizeof(this->buffer)); }
 
     Hook(void* place, void* stub, bool useJump = true) : Hook() { this->initialize(place, stub, useJump); }
     Hook(void* place, void(*stub)(), bool useJump = true) : Hook(place, reinterpret_cast<void*>(stub), useJump) {}
 
-    Hook(DWORD place, void* stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
-    Hook(DWORD place, DWORD stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
-    Hook(DWORD place, void(*stub)(), bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
+    Hook(uintptr_t place, void* stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
+    Hook(uintptr_t place, uintptr_t stub, bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
+    Hook(uintptr_t place, void(*stub)(), bool useJump = true) : Hook(reinterpret_cast<void*>(place), reinterpret_cast<void*>(stub), useJump) {}
 
     template <typename Stub> requires std::is_function_v<Stub>
     Hook(void* place, Stub* stub, bool useJump = true)
       : Hook(place, reinterpret_cast<void*>(stub), useJump) {}
 
     template <typename Stub> requires std::is_function_v<Stub>
-    Hook(DWORD place, Stub* stub, bool useJump = true)
+    Hook(uintptr_t place, Stub* stub, bool useJump = true)
       : Hook(reinterpret_cast<void*>(place), stub, useJump) {}
 
     template <typename Target, typename Stub> requires std::is_function_v<Target>
@@ -86,8 +59,8 @@ namespace Utils
     ~Hook();
 
     Hook* initialize(void* place, void* stub, bool useJump = true);
-    Hook* initialize(DWORD place, void* stub, bool useJump = true);
-    Hook* initialize(DWORD place, void(*stub)(), bool useJump = true); // For lambdas
+    Hook* initialize(uintptr_t place, void* stub, bool useJump = true);
+    Hook* initialize(uintptr_t place, void(*stub)(), bool useJump = true); // For lambdas
     Hook* install(bool unprotect = true, bool keepUnprotected = false);
     Hook* uninstall(bool unprotect = true);
 
@@ -102,32 +75,88 @@ namespace Utils
     // integer, which it then replaces with a trap since the integer isn't a
     // function.
     //
-    template <Function T> static T* Call(DWORD function)
+    template <Function T> static T* Call(uintptr_t function)
     {
       return reinterpret_cast<T*>(function);
     }
 
     template <Function T> static T* Call(FARPROC function)
     {
-      return Call<T>(reinterpret_cast<DWORD>(function));
+      return Call<T>(reinterpret_cast<uintptr_t>(function));
     }
 
     template <Function T> static T* Call(void* function)
     {
-      return Call<T>(reinterpret_cast<DWORD>(function));
+      return Call<T>(reinterpret_cast<uintptr_t>(function));
     }
 
     static void SetString(void* place, const char* string, size_t length);
-    static void SetString(DWORD place, const char* string, size_t length);
+    static void SetString(uintptr_t place, const char* string, size_t length);
 
     static void SetString(void* place, const char* string);
-    static void SetString(DWORD place, const char* string);
+    static void SetString(uintptr_t place, const char* string);
 
     static void Nop(void* place, size_t length);
-    static void Nop(DWORD place, size_t length);
+    static void Nop(uintptr_t place, size_t length);
 
     static void RedirectJump(void* place, void* stub);
-    static void RedirectJump(DWORD place, void* stub);
+    static void RedirectJump(uintptr_t place, void* stub);
+
+    // Allocate size bytes of zeroed, read-write memory that a 32-bit
+    // displacement from place reaches throughout. Throw std::runtime_error if
+    // there is no free spot in range.
+    //
+    // Note that the game reaches its globals through such displacements,
+    // either from the next instruction or from the image base it keeps in a
+    // register, so this is where a global it outgrows has to move.
+    //
+    static void* AllocateNear(uintptr_t place, size_t size);
+
+    // Send the function at place to stub and return a trampoline that runs
+    // the function as it was. Throw std::runtime_error if length is too short
+    // for a jump.
+    //
+    // Note that the first length bytes at place must be whole instructions
+    // that don't depend on where they are, since the trampoline runs them
+    // elsewhere before jumping back past them.
+    //
+    static void* Detour(uintptr_t place, size_t length, void* stub);
+
+    template <Function T>
+    static T* Detour(uintptr_t place, size_t length, T* stub)
+    {
+      return reinterpret_cast<T*>(Detour(place, length, reinterpret_cast<void*>(stub)));
+    }
+
+    // Replace the 32-bit value from with to in the instruction at place of
+    // length bytes, be it an immediate or a displacement. Throw
+    // std::runtime_error unless exactly one field holds from.
+    //
+    static void Replace32(uintptr_t place, size_t length, uint32_t from, uint32_t to);
+
+    // Make the instruction at place of length bytes reach to instead of
+    // from through its rip-relative operand.
+    //
+    static void Displace(uintptr_t place, size_t length, uintptr_t from, uintptr_t to);
+
+    // Copy size bytes of data into memory that the instruction at place of
+    // length bytes reaches and make its rip-relative operand point there
+    // instead of from. Return the copy.
+    //
+    // Note that our own image may lie beyond the 32-bit reach of the game's
+    // operands, so data they point to can't stay in it.
+    //
+    static void* PlaceData(uintptr_t place, size_t length, uintptr_t from, const void* data, size_t size);
+
+    // As PlaceData() but for a null-terminated copy of text.
+    //
+    static const char* PlaceString(uintptr_t place, size_t length, uintptr_t from, std::string_view text);
+
+    // Make the instruction at place of length bytes reach to instead of
+    // from through its displacement from base, such as the image base the
+    // game keeps in a register.
+    //
+    static void Rebase(uintptr_t place, size_t length, uintptr_t base, uintptr_t from, uintptr_t to);
 
     template <typename T> static void Set(void* place, T value)
     {
@@ -140,7 +169,7 @@ namespace Utils
       FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
     }
 
-    template <typename T> static void Set(DWORD place, T value)
+    template <typename T> static void Set(uintptr_t place, T value)
     {
       return Set<T>(reinterpret_cast<void*>(place), value);
     }
@@ -156,7 +185,7 @@ namespace Utils
       FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
     }
 
-    template <typename T> static void Xor(DWORD place, T value)
+    template <typename T> static void Xor(uintptr_t place, T value)
     {
       return Xor<T>(reinterpret_cast<void*>(place), value);
     }
@@ -172,7 +201,7 @@ namespace Utils
       FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
     }
 
-    template <typename T> static void Or(DWORD place, T value)
+    template <typename T> static void Or(uintptr_t place, T value)
     {
       return Or<T>(reinterpret_cast<void*>(place), value);
     }
@@ -188,7 +217,7 @@ namespace Utils
       FlushInstructionCache(GetCurrentProcess(), place, sizeof(T));
     }
 
-    template <typename T> static void And(DWORD place, T value)
+    template <typename T> static void And(uintptr_t place, T value)
     {
       return And<T>(reinterpret_cast<void*>(place), value);
     }
@@ -198,7 +227,7 @@ namespace Utils
       return *static_cast<T*>(place);
     }
 
-    template <typename T> static T Get(DWORD place)
+    template <typename T> static T Get(uintptr_t place)
     {
       return Get<T>(reinterpret_cast<void*>(place));
     }
@@ -209,7 +238,6 @@ namespace Utils
 
     void* place;
     void* stub;
-    void* original;
     char buffer[5];
     bool useJump;
 

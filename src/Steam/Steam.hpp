@@ -55,11 +55,14 @@ typedef void* unknown_ret;
 #include "Interfaces/SteamRemoteStorage.hpp"
 #include "Interfaces/SteamMasterServerUpdater.hpp"
 
-#include "Proxy.hpp"
 #include "Companion.hpp"
 
 namespace Steam
 {
+  // Modern Warfare 2 multiplayer.
+  //
+  constexpr uint32_t AppId = 10190;
+
   class Callbacks
   {
   public:

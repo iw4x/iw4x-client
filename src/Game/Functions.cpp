@@ -3,437 +3,399 @@
 // Unsorted function definitions
 namespace Game
 {
-  __security_init_cookie_t __security_init_cookie = __security_init_cookie_t(0x06CA062);
-  __tmainCRTStartup_t __tmainCRTStartup = __tmainCRTStartup_t(0x06BAA2F);
-
-  AngleVectors_t AngleVectors = AngleVectors_t(0x4691A0);
-
-  Cbuf_AddServerText_f_t Cbuf_AddServerText_f = Cbuf_AddServerText_f_t(0x4BB9B0);
-  Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x404B20);
-  Cbuf_InsertText_t Cbuf_InsertText = Cbuf_InsertText_t(0x4940B0);
-  Cbuf_Execute_t Cbuf_Execute = Cbuf_Execute_t(0x4E2C80);
-
-  CopyStringInternal_t CopyStringInternal = CopyStringInternal_t(0x4F3C80);
-
-  CG_LocationalTrace_t CG_LocationalTrace = CG_LocationalTrace_t(0x48B1D0);
-  CG_WorldTrace_t CG_WorldTrace = CG_WorldTrace_t(0x501F00);
-  CG_ExecuteNewServerCommands_t CG_ExecuteNewServerCommands = CG_ExecuteNewServerCommands_t(0x4BE6E0);
-  CG_DrawDisconnect_t CG_DrawDisconnect = CG_DrawDisconnect_t(0x454A70);
-  CG_NextWeapon_f_t CG_NextWeapon_f = CG_NextWeapon_f_t(0x449DE0);
-  CG_GetClientNum_t CG_GetClientNum = CG_GetClientNum_t(0x433700);
-  CG_PlayBoltedEffect_t CG_PlayBoltedEffect = CG_PlayBoltedEffect_t(0x430E10);
-  CG_GetBoneIndex_t CG_GetBoneIndex = CG_GetBoneIndex_t(0x504F20);
-  CG_ScoresDown_f_t CG_ScoresDown_f = CG_ScoresDown_f_t(0x580370);
-  CG_ScoresUp_f_t CG_ScoresUp_f = CG_ScoresUp_f_t(0x5802C0);
-  CG_ScrollScoreboardUp_t CG_ScrollScoreboardUp = CG_ScrollScoreboardUp_t(0x47A5C0);
-  CG_ScrollScoreboardDown_t CG_ScrollScoreboardDown = CG_ScrollScoreboardDown_t(0x493B50);
-  CG_GetTeamName_t CG_GetTeamName = CG_GetTeamName_t(0x4B6210);
-  CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString = CG_SetupWeaponConfigString_t(0x4BD520);
-
-  CL_DrawTextWithCursor_t CL_DrawTextWithCursor = CL_DrawTextWithCursor_t(0x4981A0);
-  CL_GetSnapshot_t CL_GetSnapshot = CL_GetSnapshot_t(0x46B7C0);
-
-  Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x470090);
-  Cmd_AddServerCommand_t Cmd_AddServerCommand = Cmd_AddServerCommand_t(0x4DCE00);
-  Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = Cmd_ExecuteSingleCommand_t(0x609540);
-  Cmd_ForEach_t Cmd_ForEach = Cmd_ForEach_t(0x45D680);
-
-  Con_DrawMiniConsole_t Con_DrawMiniConsole = Con_DrawMiniConsole_t(0x464F30);
-  Con_DrawSolidConsole_t Con_DrawSolidConsole = Con_DrawSolidConsole_t(0x5A5040);
-  Con_CancelAutoComplete_t Con_CancelAutoComplete = Con_CancelAutoComplete_t(0x435580);
-  Con_IsDvarCommand_t Con_IsDvarCommand = Con_IsDvarCommand_t(0x5A3FF0);
-
-  DB_AllocStreamPos_t DB_AllocStreamPos = DB_AllocStreamPos_t(0x418380);
-  DB_PushStreamPos_t DB_PushStreamPos = DB_PushStreamPos_t(0x458A20);
-  DB_PopStreamPos_t DB_PopStreamPos = DB_PopStreamPos_t(0x4D1D60);
-
-  Encode_Init_t Encode_Init = Encode_Init_t(0x462AB0);
-
-  Field_Clear_t Field_Clear = Field_Clear_t(0x437EB0);
-
-  FreeMemory_t FreeMemory = FreeMemory_t(0x4D6640);
-  Free_String_t Free_String = Free_String_t(0x470E80);
-
-  Svcmd_EntityList_f_t Svcmd_EntityList_f = Svcmd_EntityList_f_t(0x4B6A70);
-
-  Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x53ABF0);
-  Image_Release_t Image_Release = Image_Release_t(0x51F010);
-
-  Info_ValueForKey_t Info_ValueForKey = Info_ValueForKey_t(0x47C820);
-  Info_Validate_t Info_Validate = Info_Validate_t(0x436AE0);
-
-  Key_SetCatcher_t Key_SetCatcher = Key_SetCatcher_t(0x43BD00);
-  Key_RemoveCatcher_t Key_RemoveCatcher = Key_RemoveCatcher_t(0x408260);
-  Key_IsCatcherActive_t Key_IsCatcherActive = Key_IsCatcherActive_t(0x4DA010);
-  Key_SetBinding_t Key_SetBinding = Key_SetBinding_t(0x494C90);
-
-  LargeLocalInit_t LargeLocalInit = LargeLocalInit_t(0x4A62A0);
-
-  Load_Stream_t Load_Stream = Load_Stream_t(0x470E30);
-  Load_XString_t Load_XString = Load_XString_t(0x47FDA0);
-  Load_XModelPtr_t Load_XModelPtr = Load_XModelPtr_t(0x4FCA70);
-  Load_XModelSurfsFixup_t Load_XModelSurfsFixup = Load_XModelSurfsFixup_t(0x40D7A0);
-  Load_XStringArray_t Load_XStringArray = Load_XStringArray_t(0x4977F0);
-  Load_XStringCustom_t Load_XStringCustom = Load_XStringCustom_t(0x4E0DD0);
-  Load_FxEffectDefHandle_t Load_FxEffectDefHandle = Load_FxEffectDefHandle_t(0x4D9B90);
-  Load_FxElemDef_t Load_FxElemDef = Load_FxElemDef_t(0x45AD90);
-  Load_GfxImagePtr_t Load_GfxImagePtr = Load_GfxImagePtr_t(0x4C13D0);
-  Load_Texture_t Load_Texture = Load_Texture_t(0x51F4E0);
-  Load_GfxTextureLoad_t Load_GfxTextureLoad = Load_GfxTextureLoad_t(0x4D3210);
-  Load_SndAliasCustom_t Load_SndAliasCustom = Load_SndAliasCustom_t(0x49B6B0);
-  Load_MaterialHandle_t Load_MaterialHandle = Load_MaterialHandle_t(0x403960);
-  Load_PhysCollmapPtr_t Load_PhysCollmapPtr = Load_PhysCollmapPtr_t(0x47E990);
-  Load_PhysPresetPtr_t Load_PhysPresetPtr = Load_PhysPresetPtr_t(0x4FAD30);
-  Load_TracerDefPtr_t Load_TracerDefPtr = Load_TracerDefPtr_t(0x493090);
-  Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray = Load_snd_alias_list_nameArray_t(0x4499F0);
-
-  Menus_CloseAll_t Menus_CloseAll = Menus_CloseAll_t(0x4BA5B0);
-  Menus_CloseRequest_t Menus_CloseRequest = Menus_CloseRequest_t(0x430D50);
-  Menus_OpenByName_t Menus_OpenByName = Menus_OpenByName_t(0x4CCE60);
-  Menus_FindByName_t Menus_FindByName = Menus_FindByName_t(0x487240);
-  Menu_IsVisible_t Menu_IsVisible = Menu_IsVisible_t(0x4D77D0);
-  Menus_MenuIsInStack_t Menus_MenuIsInStack = Menus_MenuIsInStack_t(0x47ACB0);
-  Menu_HandleKey_t Menu_HandleKey = Menu_HandleKey_t(0x4C4A00);
-  Menu_GetFocused_t Menu_GetFocused = Menu_GetFocused_t(0x4AFF10);
-  Menu_Setup_t Menu_Setup = Menu_Setup_t(0x415AD0);
-
-  MSG_Init_t MSG_Init = MSG_Init_t(0x45FCA0);
-  MSG_ReadBit_t MSG_ReadBit = MSG_ReadBit_t(0x476D20);
-  MSG_ReadBits_t MSG_ReadBits = MSG_ReadBits_t(0x4C3900);
-  MSG_ReadData_t MSG_ReadData = MSG_ReadData_t(0x4527C0);
-  MSG_ReadLong_t MSG_ReadLong = MSG_ReadLong_t(0x4C9550);
-  MSG_ReadShort_t MSG_ReadShort = MSG_ReadShort_t(0x40BDD0);
-  MSG_ReadInt64_t MSG_ReadInt64 = MSG_ReadInt64_t(0x4F1850);
-  MSG_ReadBigString_t  MSG_ReadBigString = MSG_ReadBigString_t(0x60E2B0);
-  MSG_ReadStringLine_t MSG_ReadStringLine = MSG_ReadStringLine_t(0x4FEF30);
-  MSG_WriteByte_t MSG_WriteByte = MSG_WriteByte_t(0x48C520);
-  MSG_WriteData_t MSG_WriteData = MSG_WriteData_t(0x4F4120);
-  MSG_WriteLong_t MSG_WriteLong = MSG_WriteLong_t(0x41CA20);
-  MSG_WriteShort_t MSG_WriteShort = MSG_WriteShort_t(0x503B90);
-  MSG_WriteString_t MSG_WriteString = MSG_WriteString_t(0x463820);
-  MSG_Discard_t MSG_Discard = MSG_Discard_t(0x4F56D0);
-  MSG_ReadByte_t MSG_ReadByte = MSG_ReadByte_t(0x4C1C20);
-  MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey = MSG_ReadDeltaUsercmdKey_t(0x491F00);
-  MSG_ReadBitsCompress_t MSG_ReadBitsCompress = MSG_ReadBitsCompress_t(0x4DCC30);
-  MSG_WriteBitsCompress_t MSG_WriteBitsCompress = MSG_WriteBitsCompress_t(0x4319D0);
-  Huff_offsetReceive_t Huff_offsetReceive = Huff_offsetReceive_t(0x466060);
-
-  NetadrToSockadr_t NetadrToSockadr = NetadrToSockadr_t(0x4B4B40);
-
-  NET_AdrToString_t NET_AdrToString = NET_AdrToString_t(0x469880);
-  NET_CompareAdr_t NET_CompareAdr = NET_CompareAdr_t(0x4D0AA0);
-  NET_CompareBaseAdr_t NET_CompareBaseAdr = NET_CompareBaseAdr_t(0x455510);
-  NET_DeferPacketToClient_t NET_DeferPacketToClient = NET_DeferPacketToClient_t(0x4C8AA0);
-  NET_ErrorString_t NET_ErrorString = NET_ErrorString_t(0x4E7720);
-  NET_Init_t NET_Init = NET_Init_t(0x491860);
-  NET_IsLocalAddress_t NET_IsLocalAddress = NET_IsLocalAddress_t(0x402BD0);
-  NET_StringToAdr_t NET_StringToAdr = NET_StringToAdr_t(0x409010);
-  NET_OutOfBandPrint_t NET_OutOfBandPrint = NET_OutOfBandPrint_t(0x4AEF00);
-  NET_OutOfBandData_t NET_OutOfBandData = NET_OutOfBandData_t(0x49C7E0);
-  NET_OutOfBandVoiceData_t NET_OutOfBandVoiceData = NET_OutOfBandVoiceData_t(0x4FCC90);
-
-  Live_MPAcceptInvite_t Live_MPAcceptInvite = Live_MPAcceptInvite_t(0x420A6D);
-  Live_GetMapIndex_t Live_GetMapIndex = Live_GetMapIndex_t(0x4F6440);
-  Live_GetPrestige_t Live_GetPrestige = Live_GetPrestige_t(0x430F90);
-  Live_GetXp_t Live_GetXp = Live_GetXp_t(0x404C60);
-  Live_GetLocalClientName_t Live_GetLocalClientName = Live_GetLocalClientName_t(0x441FC0);
-  Live_IsSystemUiActive_t Live_IsSystemUiActive = Live_IsSystemUiActive_t(0x4F5CB0);
-
-  LiveStorage_GetStat_t LiveStorage_GetStat = LiveStorage_GetStat_t(0x471F60);
-  LiveStorage_SetStat_t LiveStorage_SetStat = LiveStorage_SetStat_t(0x4CC5D0);
-  LiveStorage_DoWeHaveStats_t LiveStorage_DoWeHaveStats = LiveStorage_DoWeHaveStats_t(0x444CA0);
-  LiveStorage_ReadStats_t LiveStorage_ReadStats = LiveStorage_ReadStats_t(0x44CEC0);
-
-  Scr_AddSourceBuffer_t Scr_AddSourceBuffer = Scr_AddSourceBuffer_t(0x61ABC0);
-
-  Party_GetMaxPlayers_t Party_GetMaxPlayers = Party_GetMaxPlayers_t(0x4F5D60);
-  PartyHost_CountMembers_t PartyHost_CountMembers = PartyHost_CountMembers_t(0x497330);
-  PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = PartyHost_GetMemberAddressBySlot_t(0x44E100);
-  PartyHost_GetMemberName_t PartyHost_GetMemberName = PartyHost_GetMemberName_t(0x44BE90);
-  Party_InParty_t Party_InParty = Party_InParty_t(0x4F10C0);
-
-  Playlist_ParsePlaylists_t Playlist_ParsePlaylists = Playlist_ParsePlaylists_t(0x4295A0);
-
-  PMoveSingle_t PMoveSingle = PMoveSingle_t(0x5743E0);
-
-  PM_CheckLadderMove_t PM_CheckLadderMove = PM_CheckLadderMove_t(0x573D00);
-  PM_Weapon_t PM_Weapon = PM_Weapon_t(0x44C380);
-
-  R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = R_AddCmdDrawStretchPic_t(0x509770);
-  R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = R_AllocStaticIndexBuffer_t(0x51E7A0);
-  R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = R_Cinematic_StartPlayback_Now_t(0x51C5B0);
-  R_Cinematic_BinkClose_t R_Cinematic_BinkClose = R_Cinematic_BinkClose_t(0x51BFC0);
-  R_RegisterFont_t R_RegisterFont = R_RegisterFont_t(0x505670);
-  R_AddCmdDrawText_t R_AddCmdDrawText = R_AddCmdDrawText_t(0x509D80);
-  R_AddCmdDrawConsoleText_t R_AddCmdDrawConsoleText = R_AddCmdDrawConsoleText_t(0x50A390);
-  R_LoadGraphicsAssets_t R_LoadGraphicsAssets = R_LoadGraphicsAssets_t(0x506AC0);
-  R_TextWidth_t R_TextWidth = R_TextWidth_t(0x5056C0);
-  R_TextHeight_t R_TextHeight = R_TextHeight_t(0x505770);
-  R_FlushSun_t R_FlushSun = R_FlushSun_t(0x53FB50);
-  R_SortWorldSurfaces_t R_SortWorldSurfaces = R_SortWorldSurfaces_t(0x53DC10);
-
-  RMesg_SendMessages_t RMesg_SendMessages = RMesg_SendMessages_t(0x49CC30);
-
-  GetMemory_t GetMemory = GetMemory_t(0x4E67B0);
-  GetClearedMemory_t GetClearedMemory = GetClearedMemory_t(0x422E70);
-  PS_CreatePunctuationTable_t PS_CreatePunctuationTable = PS_CreatePunctuationTable_t(0x4E6950);
-  free_expression_t free_expression = free_expression_t(0x4ACC70);
-
-  SE_Load_t SE_Load = SE_Load_t(0x502A30);
-
-  SEH_StringEd_GetString_t SEH_StringEd_GetString = SEH_StringEd_GetString_t(0x44BB30);
-  SEH_ReadCharFromString_t SEH_ReadCharFromString = SEH_ReadCharFromString_t(0x486560);
-  SEH_GetCurrentLanguage_t SEH_GetCurrentLanguage = SEH_GetCurrentLanguage_t(0x4F6110);
-  SEH_GetLanguageName_t SEH_GetLanguageName = SEH_GetLanguageName_t(0x422570);
-
-  SND_Init_t SND_Init = SND_Init_t(0x46A630);
-  SND_InitDriver_t SND_InitDriver = SND_InitDriver_t(0x4F5090);
-  SND_SetHWND_t SND_SetHWND = SND_SetHWND_t(0x64B600);
-
-  SockadrToNetadr_t SockadrToNetadr = SockadrToNetadr_t(0x4F8460);
-
-  Steam_JoinLobby_t Steam_JoinLobby = Steam_JoinLobby_t(0x49CF70);
-
-  TeleportPlayer_t TeleportPlayer = TeleportPlayer_t(0x496850);
-
-  UI_AddMenuList_t UI_AddMenuList = UI_AddMenuList_t(0x4533C0);
-  UI_GetActiveMenu_t UI_GetActiveMenu = UI_GetActiveMenu_t(0x4BE790);
-  UI_CheckStringTranslation_t UI_CheckStringTranslation = UI_CheckStringTranslation_t(0x4FB010);
-  UI_LoadMenus_t UI_LoadMenus = UI_LoadMenus_t(0x641460);
-  UI_UpdateArenas_t UI_UpdateArenas = UI_UpdateArenas_t(0x4A95B0);
-  UI_SortArenas_t UI_SortArenas = UI_SortArenas_t(0x630AE0);
-  UI_DrawHandlePic_t UI_DrawHandlePic = UI_DrawHandlePic_t(0x4D0EA0);
-  ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement = ScrPlace_GetActivePlacement_t(0x4F8940);
-  UI_TextWidth_t UI_TextWidth = UI_TextWidth_t(0x6315C0);
-  UI_TextHeight_t UI_TextHeight = UI_TextHeight_t(0x4C8630);
-  UI_DrawText_t UI_DrawText = UI_DrawText_t(0x49C0D0);
-  UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x4AEA60);
-  ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x454E20);
-  UI_KeyEvent_t UI_KeyEvent = UI_KeyEvent_t(0x4970F0);
-  UI_SafeTranslateString_t UI_SafeTranslateString = UI_SafeTranslateString_t(0x4F1700);
-  UI_ReplaceConversions_t UI_ReplaceConversions = UI_ReplaceConversions_t(0x4E9740);
-  UI_ParseInfos_t UI_ParseInfos = UI_ParseInfos_t(0x4027A0);
-  UI_GetMapDisplayName_t UI_GetMapDisplayName = UI_GetMapDisplayName_t(0x420700);
-  UI_LoadArenas_t UI_LoadArenas = UI_LoadArenas_t(0x4A95B0);
-  UI_GetGameTypeDisplayName_t UI_GetGameTypeDisplayName = UI_GetGameTypeDisplayName_t(0x4EB0B0);
-  ParseConfigStringToStruct_t ParseConfigStringToStruct = ParseConfigStringToStruct_t(0x403B60);
-
-  Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x45CBA0);
+  __security_init_cookie_t __security_init_cookie = __security_init_cookie_t(0x1402FC6EC);
+  __tmainCRTStartup_t __tmainCRTStartup = __tmainCRTStartup_t(0x1402FBF30);
+
+  AngleVectors_t AngleVectors = AngleVectors_t(0x14027C520);
+
+  Cbuf_AddServerText_f_t Cbuf_AddServerText_f = Cbuf_AddServerText_f_t(0x140080E30);
+  Cbuf_AddText_t Cbuf_AddText = Cbuf_AddText_t(0x1401E6A10);
+  Cbuf_InsertText_t Cbuf_InsertText = Cbuf_InsertText_t(0x1401E6E40);
+  Cbuf_Execute_t Cbuf_Execute = Cbuf_Execute_t(0x1401E6AF0);
+
+  CopyStringInternal_t CopyStringInternal = CopyStringInternal_t(0x14027D8C0);
+
+  CG_LocationalTrace_t CG_LocationalTrace = CG_LocationalTrace_t(0x1400CA0A0);
+  CG_WorldTrace_t CG_WorldTrace = CG_WorldTrace_t(0x1400CA980);
+  CG_ExecuteNewServerCommands_t CG_ExecuteNewServerCommands = CG_ExecuteNewServerCommands_t(0x1400E76D0);
+  CG_GetClientNum_t CG_GetClientNum = CG_GetClientNum_t(0x1400D62C0);
+  CG_PlayBoltedEffect_t CG_PlayBoltedEffect = CG_PlayBoltedEffect_t(0x1400AF2A0);
+  CG_GetBoneIndex_t CG_GetBoneIndex = CG_GetBoneIndex_t(0x1402AA690);
+  CG_ScoresDown_f_t CG_ScoresDown_f = CG_ScoresDown_f_t(0x1400D0660);
+  CG_GetTeamName_t CG_GetTeamName = CG_GetTeamName_t(0x1400DFD40);
+  CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString = CG_SetupWeaponConfigString_t(0x1400C54B0);
+
+  CL_DrawTextWithCursor_t CL_DrawTextWithCursor = CL_DrawTextWithCursor_t(0x1400FA900);
+  CL_GetSnapshot_t CL_GetSnapshot = CL_GetSnapshot_t(0x1400F4820);
+
+  Cmd_AddCommand_t Cmd_AddCommand = Cmd_AddCommand_t(0x1401E6F00);
+  Cmd_AddServerCommand_t Cmd_AddServerCommand = Cmd_AddServerCommand_t(0x1401E6F70);
+  Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand = Cmd_ExecuteSingleCommand_t(0x1401E72D0);
+
+  DB_AllocStreamPos_t DB_AllocStreamPos = DB_AllocStreamPos_t(0x140131FB0);
+  DB_PushStreamPos_t DB_PushStreamPos = DB_PushStreamPos_t(0x140132120);
+  DB_PopStreamPos_t DB_PopStreamPos = DB_PopStreamPos_t(0x1401320E0);
+
+  Encode_Init_t Encode_Init = Encode_Init_t(0x1402A86F0);
+
+  Field_Clear_t Field_Clear = Field_Clear_t(0x1401F6880);
+
+  Free_String_t Free_String = Free_String_t(0x14027D8E0);
+
+  Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader = Image_LoadFromFileWithReader_t(0x14006A160);
+  Image_Release_t Image_Release = Image_Release_t(0x140037650);
+  Image_Setup_t Image_Setup = Image_Setup_t(0x14006AC40);
+
+  Info_ValueForKey_t Info_ValueForKey = Info_ValueForKey_t(0x14028AF50);
+  Info_Validate_t Info_Validate = Info_Validate_t(0x14028AF10);
+
+  Key_SetCatcher_t Key_SetCatcher = Key_SetCatcher_t(0x1400EF9E0);
+  Key_RemoveCatcher_t Key_RemoveCatcher = Key_RemoveCatcher_t(0x1400EF930);
+  Key_IsCatcherActive_t Key_IsCatcherActive = Key_IsCatcherActive_t(0x1400EF720);
+  Key_SetBinding_t Key_SetBinding = Key_SetBinding_t(0x1400EF960);
+
+  LargeLocalInit_t LargeLocalInit = LargeLocalInit_t(0x14027D660);
+
+  Load_Stream_t Load_Stream = Load_Stream_t(0x140132280);
+  Load_XString_t Load_XString = Load_XString_t(0x140132250);
+  Load_XModelPtr_t Load_XModelPtr = Load_XModelPtr_t(0x1401236E0);
+  Load_XStringArray_t Load_XStringArray = Load_XStringArray_t(0x140123A90);
+  Load_XStringCustom_t Load_XStringCustom = Load_XStringCustom_t(0x1401322D0);
+  Load_FxEffectDefHandle_t Load_FxEffectDefHandle = Load_FxEffectDefHandle_t(0x140118FE0);
+  Load_GfxImagePtr_t Load_GfxImagePtr = Load_GfxImagePtr_t(0x14011A840);
+  Load_Texture_t Load_Texture = Load_Texture_t(0x140037AE0);
+  Load_GfxTextureLoad_t Load_GfxTextureLoad = Load_GfxTextureLoad_t(0x14011AD60);
+  Load_SndAliasCustom_t Load_SndAliasCustom = Load_SndAliasCustom_t(0x14027F050);
+  Load_MaterialHandle_t Load_MaterialHandle = Load_MaterialHandle_t(0x14011D100);
+  Load_PhysCollmapPtr_t Load_PhysCollmapPtr = Load_PhysCollmapPtr_t(0x14011E4A0);
+  Load_PhysPresetPtr_t Load_PhysPresetPtr = Load_PhysPresetPtr_t(0x14011E650);
+  Load_TracerDefPtr_t Load_TracerDefPtr = Load_TracerDefPtr_t(0x14011FAC0);
+
+  Menus_CloseAll_t Menus_CloseAll = Menus_CloseAll_t(0x1402654E0);
+  Menus_CloseRequest_t Menus_CloseRequest = Menus_CloseRequest_t(0x140265700);
+  Menus_OpenByName_t Menus_OpenByName = Menus_OpenByName_t(0x1402662D0);
+  Menus_FindByName_t Menus_FindByName = Menus_FindByName_t(0x140265850);
+  Menu_IsVisible_t Menu_IsVisible = Menu_IsVisible_t(0x1402640D0);
+  Menus_MenuIsInStack_t Menus_MenuIsInStack = Menus_MenuIsInStack_t(0x140265F40);
+  Menu_HandleKey_t Menu_HandleKey = Menu_HandleKey_t(0x1402634E0);
+  Menu_GetFocused_t Menu_GetFocused = Menu_GetFocused_t(0x140263330);
+  Menu_Setup_t Menu_Setup = Menu_Setup_t(0x140265470);
+  Menu_SetNextCursorItem_t Menu_SetNextCursorItem = Menu_SetNextCursorItem_t(0x140264D60);
+  Menu_SetPrevCursorItem_t Menu_SetPrevCursorItem = Menu_SetPrevCursorItem_t(0x1402650E0);
+
+  MSG_Init_t MSG_Init = MSG_Init_t(0x140200250);
+  MSG_ReadBit_t MSG_ReadBit = MSG_ReadBit_t(0x1400AFB30);
+  MSG_ReadBits_t MSG_ReadBits = MSG_ReadBits_t(0x1400AFBD0);
+  MSG_ReadData_t MSG_ReadData = MSG_ReadData_t(0x1402005E0);
+  MSG_ReadLong_t MSG_ReadLong = MSG_ReadLong_t(0x1402008A0);
+  MSG_ReadShort_t MSG_ReadShort = MSG_ReadShort_t(0x1402009D0);
+  MSG_ReadInt64_t MSG_ReadInt64 = MSG_ReadInt64_t(0x1402006B0);
+  MSG_ReadBigString_t  MSG_ReadBigString = MSG_ReadBigString_t(0x140200420);
+  MSG_ReadStringLine_t MSG_ReadStringLine = MSG_ReadStringLine_t(0x140200B60);
+  MSG_WriteByte_t MSG_WriteByte = MSG_WriteByte_t(0x140200F70);
+  MSG_WriteData_t MSG_WriteData = MSG_WriteData_t(0x140200F90);
+  MSG_WriteLong_t MSG_WriteLong = MSG_WriteLong_t(0x140201030);
+  MSG_WriteShort_t MSG_WriteShort = MSG_WriteShort_t(0x140201060);
+  MSG_WriteString_t MSG_WriteString = MSG_WriteString_t(0x140201090);
+  MSG_Discard_t MSG_Discard = MSG_Discard_t(0x140200210);
+  MSG_ReadByte_t MSG_ReadByte = MSG_ReadByte_t(0x140200570);
+  MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey = MSG_ReadDeltaUsercmdKey_t(0x140203980);
+  MSG_ReadBitsCompress_t MSG_ReadBitsCompress = MSG_ReadBitsCompress_t(0x1402004E0);
+  MSG_WriteBitsCompress_t MSG_WriteBitsCompress = MSG_WriteBitsCompress_t(0x140200F10);
+  Huff_offsetReceive_t Huff_offsetReceive = Huff_offsetReceive_t(0x1401FE180);
+
+  NetadrToSockadr_t NetadrToSockadr = NetadrToSockadr_t(0x14027DE90);
+
+  NET_CompareAdr_t NET_CompareAdr = NET_CompareAdr_t(0x140204A50);
+  NET_CompareBaseAdr_t NET_CompareBaseAdr = NET_CompareBaseAdr_t(0x140204B20);
+  NET_DeferPacketToClient_t NET_DeferPacketToClient = NET_DeferPacketToClient_t(0x140204BE0);
+  NET_Init_t NET_Init = NET_Init_t(0x1402A6350);
+  NET_IsLocalAddress_t NET_IsLocalAddress = NET_IsLocalAddress_t(0x140204EF0);
+  NET_StringToAdr_t NET_StringToAdr = NET_StringToAdr_t(0x140205250);
+  NET_OutOfBandPrint_t NET_OutOfBandPrint = NET_OutOfBandPrint_t(0x140204FC0);
+  NET_OutOfBandData_t NET_OutOfBandData = NET_OutOfBandData_t(0x140204F00);
+  NET_OutOfBandVoiceData_t NET_OutOfBandVoiceData = NET_OutOfBandVoiceData_t(0x140205080);
+
+  Live_GetMapIndex_t Live_GetMapIndex = Live_GetMapIndex_t(0x14027E740);
+  Live_GetPrestige_t Live_GetPrestige = Live_GetPrestige_t(0x1402A73D0);
+  Live_GetXp_t Live_GetXp = Live_GetXp_t(0x1402A7450);
+  Live_GetLocalClientName_t Live_GetLocalClientName = Live_GetLocalClientName_t(0x14024BE20);
+  Live_IsSystemUiActive_t Live_IsSystemUiActive = Live_IsSystemUiActive_t(0x1402A2420);
+
+  LiveStorage_GetStat_t LiveStorage_GetStat = LiveStorage_GetStat_t(0x1401F7970);
+  LiveStorage_SetStat_t LiveStorage_SetStat = LiveStorage_SetStat_t(0x1401F8DA0);
+  LiveStorage_DoWeHaveStats_t LiveStorage_DoWeHaveStats = LiveStorage_DoWeHaveStats_t(0x1401F71D0);
+  LiveStorage_ReadStats_t LiveStorage_ReadStats = LiveStorage_ReadStats_t(0x1402A70F0);
+
+  Scr_AddSourceBuffer_t Scr_AddSourceBuffer = Scr_AddSourceBuffer_t(0x14021D0D0);
+
+  Party_GetMaxPlayers_t Party_GetMaxPlayers = Party_GetMaxPlayers_t(0x1402418B0);
+  PartyHost_CountMembers_t PartyHost_CountMembers = PartyHost_CountMembers_t(0x140105770);
+  PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = PartyHost_GetMemberAddressBySlot_t(0x1402415D0);
+  PartyHost_GetMemberName_t PartyHost_GetMemberName = PartyHost_GetMemberName_t(0x1401108C0);
+  Party_InParty_t Party_InParty = Party_InParty_t(0x14010A5F0);
+
+  Playlist_ParsePlaylists_t Playlist_ParsePlaylists = Playlist_ParsePlaylists_t(0x1402597F0);
+
+  PMoveSingle_t PMoveSingle = PMoveSingle_t(0x140094490);
+
+  PM_CheckLadderMove_t PM_CheckLadderMove = PM_CheckLadderMove_t(0x14008F070);
+  PM_Weapon_t PM_Weapon = PM_Weapon_t(0x140097CB0);
+
+  R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = R_AddCmdDrawStretchPic_t(0x14001BE70);
+  R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = R_AllocStaticIndexBuffer_t(0x140038B20);
+  R_Cinematic_StartPlayback_Now_t R_Cinematic_StartPlayback_Now = R_Cinematic_StartPlayback_Now_t(0x140036070);
+  R_Cinematic_BinkClose_t R_Cinematic_BinkClose = R_Cinematic_BinkClose_t(0x140035930);
+  R_RegisterFont_t R_RegisterFont = R_RegisterFont_t(0x14001A9D0);
+  R_AddCmdDrawText_t R_AddCmdDrawText = R_AddCmdDrawText_t(0x14001C3F0);
+  R_AddCmdDrawConsoleText_t R_AddCmdDrawConsoleText = R_AddCmdDrawConsoleText_t(0x14001C950);
+  R_LoadGraphicsAssets_t R_LoadGraphicsAssets = R_LoadGraphicsAssets_t(0x140030C10);
+  R_TextWidth_t R_TextWidth = R_TextWidth_t(0x14001AA00);
+  R_TextHeight_t R_TextHeight = R_TextHeight_t(0x14001AB50);
+  R_SortWorldSurfaces_t R_SortWorldSurfaces = R_SortWorldSurfaces_t(0x140053DE0);
+  R_SetSunFromDvars_t R_SetSunFromDvars = R_SetSunFromDvars_t(0x140056270);
+  R_GetCharacterGlyph_t R_GetCharacterGlyph = R_GetCharacterGlyph_t(0x14001A930);
 
-  Vec3UnpackUnitVec_t Vec3UnpackUnitVec = Vec3UnpackUnitVec_t(0x45CA90);
-  vectoryaw_t vectoryaw = vectoryaw_t(0x45AD10);
-  AngleNormalize360_t AngleNormalize360 = AngleNormalize360_t(0x438DC0);
-  _VectorMA_t _VectorMA = _VectorMA_t(0x5084D0);
+  RMesg_SendMessages_t RMesg_SendMessages = RMesg_SendMessages_t(0x14028BF30);
 
-  unzClose_t unzClose = unzClose_t(0x41BF20);
+  SEH_StringEd_GetString_t SEH_StringEd_GetString = SEH_StringEd_GetString_t(0x14024D7F0);
+  SEH_ReadCharFromString_t SEH_ReadCharFromString = SEH_ReadCharFromString_t(0x14024D6C0);
+  SEH_GetCurrentLanguage_t SEH_GetCurrentLanguage = SEH_GetCurrentLanguage_t(0x1402A2B90);
+  SEH_GetLanguageName_t SEH_GetLanguageName = SEH_GetLanguageName_t(0x14024CF80);
 
-  RB_DrawCursor_t RB_DrawCursor = RB_DrawCursor_t(0x534EA0);
+  SND_Init_t SND_Init = SND_Init_t(0x1402445A0);
 
-  R_NormalizedTextScale_t R_NormalizedTextScale = R_NormalizedTextScale_t(0x5056A0);
+  SockadrToNetadr_t SockadrToNetadr = SockadrToNetadr_t(0x14027DF20);
 
-  Material_Process2DTextureCoordsForAtlasing_t Material_Process2DTextureCoordsForAtlasing = Material_Process2DTextureCoordsForAtlasing_t(0x506090);
+  Steam_JoinLobby_t Steam_JoinLobby = Steam_JoinLobby_t(0x14024C320);
 
-  Byte4PackRgba_t Byte4PackRgba = Byte4PackRgba_t(0x4FE910);
-  RandWithSeed_t RandWithSeed = RandWithSeed_t(0x495580);
-  GetDecayingLetterInfo_t GetDecayingLetterInfo = GetDecayingLetterInfo_t(0x5351C0);
+  TeleportPlayer_t TeleportPlayer = TeleportPlayer_t(0x1401A0280);
 
-  Field_Draw_t Field_Draw = Field_Draw_t(0x4F5B40);
-  Field_AdjustScroll_t Field_AdjustScroll = Field_AdjustScroll_t(0x488C10);
-  AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee = AimAssist_ApplyAutoMelee_t(0x56A360);
-
-  Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire = Weapon_RocketLauncher_Fire_t(0x424680);
-  Bullet_Fire_t Bullet_Fire = Bullet_Fire_t(0x4402C0);
-
-  IN_Frame_t IN_Frame = IN_Frame_t(0x475E10);
-  IN_MouseEvent_t IN_MouseEvent = IN_MouseEvent_t(0x4C84D0);
-  IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x463D80);
+  UI_AddMenuList_t UI_AddMenuList = UI_AddMenuList_t(0x140267A30);
+  UI_GetActiveMenu_t UI_GetActiveMenu = UI_GetActiveMenu_t(0x14026CE10);
+  UI_LoadMenus_t UI_LoadMenus = UI_LoadMenus_t(0x140268BE0);
+  UI_UpdateArenas_t UI_UpdateArenas = UI_UpdateArenas_t(0x140269D20);
+  UI_SortArenas_t UI_SortArenas = UI_SortArenas_t(0x140269C00);
+  UI_DrawHandlePic_t UI_DrawHandlePic = UI_DrawHandlePic_t(0x14024F460);
+  ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement = ScrPlace_GetActivePlacement_t(0x1400F2B70);
+  UI_TextWidth_t UI_TextWidth = UI_TextWidth_t(0x1402715B0);
+  UI_TextHeight_t UI_TextHeight = UI_TextHeight_t(0x140271570);
+  UI_DrawText_t UI_DrawText = UI_DrawText_t(0x14026B5E0);
+  UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x14026D330);
+  UI_PaintMenus_t UI_PaintMenus = UI_PaintMenus_t(0x14026F170);
+  ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x1400F2390);
+  UI_KeyEvent_t UI_KeyEvent = UI_KeyEvent_t(0x14026DE90);
+  UI_SafeTranslateString_t UI_SafeTranslateString = UI_SafeTranslateString_t(0x140270C90);
+  UI_ReplaceConversions_t UI_ReplaceConversions = UI_ReplaceConversions_t(0x1402701B0);
+  UI_GetMapDisplayName_t UI_GetMapDisplayName = UI_GetMapDisplayName_t(0x14026D760);
+  UI_LoadArenas_t UI_LoadArenas = UI_LoadArenas_t(0x140269D20);
+  UI_GetGameTypeDisplayName_t UI_GetGameTypeDisplayName = UI_GetGameTypeDisplayName_t(0x14026D3E0);
+  ParseConfigStringToStruct_t ParseConfigStringToStruct = ParseConfigStringToStruct_t(0x14028B260);
 
-  IN_MouseMove_t IN_MouseMove = IN_MouseMove_t(0x64C490);
-  IN_Init_t IN_Init = IN_Init_t(0x45D620);
-  IN_Shutdown_t IN_Shutdown = IN_Shutdown_t(0x426360);
+  Win_GetLanguage_t Win_GetLanguage = Win_GetLanguage_t(0x1402A2BA0);
 
-  Touch_Item_t Touch_Item = Touch_Item_t(0x44FA20);
+  Vec3UnpackUnitVec_t Vec3UnpackUnitVec = Vec3UnpackUnitVec_t(0x14027E2C0);
+  vectoryaw_t vectoryaw = vectoryaw_t(0x14027C4B0);
+  AngleNormalize360_t AngleNormalize360 = AngleNormalize360_t(0x140277770);
 
-  Add_Ammo_t Add_Ammo = Add_Ammo_t(0x4E1480);
+  unzClose_t unzClose = unzClose_t(0x1402CA580);
 
-  ClientUserinfoChanged_t ClientUserinfoChanged = ClientUserinfoChanged_t(0x445240);
+  RB_DrawCursor_t RB_DrawCursor = RB_DrawCursor_t(0x14004DEA0);
+  RB_DrawChar_t RB_DrawChar = RB_DrawChar_t(0x14004DDF0);
+  RB_DrawStretchPicRotate_t RB_DrawStretchPicRotate = RB_DrawStretchPicRotate_t(0x1400481A0);
 
-  player_die_t player_die = player_die_t(0x42BC70);
+  R_NormalizedTextScale_t R_NormalizedTextScale = R_NormalizedTextScale_t(0x14001A9E0);
 
-  Vec3Normalize_t Vec3Normalize = Vec3Normalize_t(0x453500);
-  Vec3NormalizeFast_t Vec3NormalizeFast = Vec3NormalizeFast_t(0x478F80);
-  Vec2Normalize_t Vec2Normalize = Vec2Normalize_t(0x416F70);
-  Vec2NormalizeFast_t Vec2NormalizeFast = Vec2NormalizeFast_t(0x5FC830);
+  Material_Process2DTextureCoordsForAtlasing_t Material_Process2DTextureCoordsForAtlasing = Material_Process2DTextureCoordsForAtlasing_t(0x14001A6A0);
 
-  I_strncpyz_t I_strncpyz = I_strncpyz_t(0x4D6F80);
-  I_CleanStr_t I_CleanStr = I_CleanStr_t(0x4AD470);
-  I_isdigit_t I_isdigit = I_isdigit_t(0x4E71E0);
+  Byte4PackRgba_t Byte4PackRgba = Byte4PackRgba_t(0x140030390);
+  RandWithSeed_t RandWithSeed = RandWithSeed_t(0x14027B110);
 
-  XNAddrToString_t XNAddrToString = XNAddrToString_t(0x452690);
+  Field_Draw_t Field_Draw = Field_Draw_t(0x1400EEEA0);
+  Field_AdjustScroll_t Field_AdjustScroll = Field_AdjustScroll_t(0x1400EEB20);
+  ScrPlace_GetViewPlacement_t ScrPlace_GetViewPlacement = ScrPlace_GetViewPlacement_t(0x1400F2BB0);
+  vectoangles_t vectoangles = vectoangles_t(0x14027C090);
+  DiffTrackAngle_t DiffTrackAngle = DiffTrackAngle_t(0x1402787E0);
+  CG_DObjGetWorldTagPos_t CG_DObjGetWorldTagPos = CG_DObjGetWorldTagPos_t(0x1400D4090);
+  CG_UsingTurretOverlay_t CG_UsingTurretOverlay = CG_UsingTurretOverlay_t(0x1400C4770);
 
-  Voice_IncomingVoiceData_t Voice_IncomingVoiceData = Voice_IncomingVoiceData_t(0x5001A0);
-  Voice_IsClientTalking_t Voice_IsClientTalking = Voice_IsClientTalking_t(0x4D9D20);
+  Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire = Weapon_RocketLauncher_Fire_t(0x1401896B0);
+  Bullet_Fire_t Bullet_Fire = Bullet_Fire_t(0x140161B20);
 
-  LargeLocalBegin_t LargeLocalBegin = LargeLocalBegin_t(0x4127A0);
-  LargeLocalBeginRight_t LargeLocalBeginRight = LargeLocalBeginRight_t(0x644140);
-  LargeLocalReset_t LargeLocalReset = LargeLocalReset_t(0x430630);
+  IN_Frame_t IN_Frame = IN_Frame_t(0x1402A1090);
+  IN_MouseEvent_t IN_MouseEvent = IN_MouseEvent_t(0x1402A12F0);
+  IN_RecenterMouse_t IN_RecenterMouse = IN_RecenterMouse_t(0x1402A1390);
 
-  StructuredDataDef_GetAsset_t StructuredDataDef_GetAsset = StructuredDataDef_GetAsset_t(0x4D5C50);
+  IN_Init_t IN_Init = IN_Init_t(0x1402A12A0);
+  IN_Shutdown_t IN_Shutdown = IN_Shutdown_t(0x1402A1460);
 
-  StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x42F0E0);
-  StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x475EB0);
-  StringTable_GetAsset_FastFile_t StringTable_GetAsset_FastFile = StringTable_GetAsset_FastFile_t(0x41A0B0);
-  StringTable_LookupRowNumForValue_t StringTable_LookupRowNumForValue = StringTable_LookupRowNumForValue_t(0x4AC180);
-  StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow = StringTable_GetColumnValueForRow_t(0x4F2C80);
+  Touch_Item_t Touch_Item = Touch_Item_t(0x14016DEA0);
 
-  longjmp_internal_t longjmp_internal = longjmp_internal_t(0x6B8898);
+  Add_Ammo_t Add_Ammo = Add_Ammo_t(0x14016BDF0);
 
-  CmdArgs* cmd_args = reinterpret_cast<CmdArgs*>(0x1AAC5D0);
-  CmdArgs* sv_cmd_args = reinterpret_cast<CmdArgs*>(0x1ACF8A0);
+  ClientUserinfoChanged_t ClientUserinfoChanged = ClientUserinfoChanged_t(0x140196890);
 
-  cmd_function_s** cmd_functions = reinterpret_cast<cmd_function_s**>(0x1AAC658);
+  player_die_t player_die = player_die_t(0x14019C4C0);
 
-  source_s** sourceFiles = reinterpret_cast<source_s**>(0x7C4A98);
+  Vec3Normalize_t Vec3Normalize = Vec3Normalize_t(0x14001ED50);
+  Vec2Normalize_t Vec2Normalize = Vec2Normalize_t(0x14027B9C0);
+  Vec3NormalizeTo_t Vec3NormalizeTo = Vec3NormalizeTo_t(0x14027BB90);
 
-  float* cgameFOVSensitivityScale = reinterpret_cast<float*>(0xB2F884);
+  I_strncpyz_t I_strncpyz = I_strncpyz_t(0x14028A8B0);
+  I_stricmp_t I_stricmp = I_stricmp_t(0x14028A610);
+  I_CleanStr_t I_CleanStr = I_CleanStr_t(0x14028A4E0);
+  I_isdigit_t I_isdigit = I_isdigit_t(0x14028A570);
 
-  UiContext* uiContext = reinterpret_cast<UiContext*>(0x62E2858);
-  UiContext* cgDC = reinterpret_cast<Game::UiContext*>(0x7DEDB8);
-  const ExpressionSupportingData* menuSupportingData = reinterpret_cast<Game::ExpressionSupportingData*>(0x62D2270);
+  XNAddrToString_t XNAddrToString = XNAddrToString_t(0x140205990);
 
-  int* arenaCount = reinterpret_cast<int*>(0x62E6930);
-  mapArena_t* arenas = reinterpret_cast<mapArena_t*>(0x62E6934);
+  Voice_IncomingVoiceData_t Voice_IncomingVoiceData = Voice_IncomingVoiceData_t(0x1402A80C0);
+  Voice_IsClientTalking_t Voice_IsClientTalking = Voice_IsClientTalking_t(0x1402A8590);
 
-  int* gameTypeCount = reinterpret_cast<int*>(0x62E50A0);
-  gameTypeName_t* gameTypes = reinterpret_cast<gameTypeName_t*>(0x62E50A4);
+  LargeLocalConstruct_t LargeLocalConstruct = LargeLocalConstruct_t(0x14027CC90);
+  LargeLocalReset_t LargeLocalReset = LargeLocalReset_t(0x14027D760);
 
-  bool* g_lobbyCreateInProgress = reinterpret_cast<bool*>(0x66C9BC2);
-  PartyData* g_lobbyData = reinterpret_cast<PartyData*>(0x1081C00);
-  PartyData* g_partyData = reinterpret_cast<PartyData*>(0x107E500);
+  StructuredDataDef_GetAsset_t StructuredDataDef_GetAsset = StructuredDataDef_GetAsset_t(0x14027F5A0);
 
-  SessionData* g_serverSession = reinterpret_cast<SessionData*>(0x66B7008);
+  StringTable_Lookup_t StringTable_Lookup = StringTable_Lookup_t(0x14027F2E0);
+  StringTable_HashString_t StringTable_HashString = StringTable_HashString_t(0x14027F4A0);
+  StringTable_GetAsset_FastFile_t StringTable_GetAsset_FastFile = StringTable_GetAsset_FastFile_t(0x14027F270);
+  StringTable_LookupRowNumForValue_t StringTable_LookupRowNumForValue = StringTable_LookupRowNumForValue_t(0x14027F3E0);
+  StringTable_GetColumnValueForRow_t StringTable_GetColumnValueForRow = StringTable_GetColumnValueForRow_t(0x14027F290);
 
-  int* numIP = reinterpret_cast<int*>(0x64A1E68);
-  netIP_t* localIP = reinterpret_cast<netIP_t*>(0x64A1E28);
+  longjmp_internal_t longjmp_internal = longjmp_internal_t(0x140326CFC);
 
-  netadr_t* connectedHost = reinterpret_cast<netadr_t*>(0xA1E888);
+  CmdArgs* cmd_args = reinterpret_cast<CmdArgs*>(0x141BBA490);
+  CmdArgs* sv_cmd_args = reinterpret_cast<CmdArgs*>(0x141BBA540);
 
-  SOCKET* ip_socket = reinterpret_cast<SOCKET*>(0x64A3008);
+  cmd_function_s** cmd_functions = reinterpret_cast<cmd_function_s**>(0x141BBA5E8);
 
-  SafeArea* safeArea = reinterpret_cast<SafeArea*>(0xA15F3C);
+  float* cgameFOVSensitivityScale = reinterpret_cast<float*>(0x1406CFEAC);
 
-  SpawnVar* spawnVars = reinterpret_cast<SpawnVar*>(0x1A83DE8);
-  MapEnts** marMapEntsPtr = reinterpret_cast<MapEnts**>(0x112AD34);
-  clipMap_t* cm = reinterpret_cast<clipMap_t*>(0x1AA6480);
+  UiContext* uiContext = reinterpret_cast<UiContext*>(0x14663E870);
+  UiContext* cgDC = reinterpret_cast<Game::UiContext*>(0x1406BB280);
 
-  IDirect3D9** d3d9 = reinterpret_cast<IDirect3D9**>(0x66DEF84);
-  IDirect3DDevice9** dx_ptr = reinterpret_cast<IDirect3DDevice9**>(0x66DEF88);
+  int* arenaCount = reinterpret_cast<int*>(0x1465D06D0);
+  mapArena_t* arenas = reinterpret_cast<mapArena_t*>(0x1465D06D4);
 
-  mapname_t* mapnames = reinterpret_cast<mapname_t*>(0x7471D0);
+  int* gameTypeCount = reinterpret_cast<int*>(0x1465CEE40);
+  gameTypeName_t* gameTypes = reinterpret_cast<gameTypeName_t*>(0x1465CEE44);
 
-  char*** varXString = reinterpret_cast<char***>(0x112B340);
-  TracerDef*** varTracerDefPtr = reinterpret_cast<TracerDef***>(0x112B3BC);
-  XModel*** varXModelPtr = reinterpret_cast<XModel***>(0x112A934);
-  XModel** varXModel = reinterpret_cast<XModel**>(0x112AE14);
-  PathData** varPathData = reinterpret_cast<PathData**>(0x112AD7C);
-  const char** varConstChar = reinterpret_cast<const char**>(0x112A774);
-  Material*** varMaterialHandle = reinterpret_cast<Material***>(0x112A878);
-  FxEffectDef*** varFxEffectDefHandle = reinterpret_cast<FxEffectDef***>(0x112ACC0);
-  PhysCollmap*** varPhysCollmapPtr = reinterpret_cast<PhysCollmap***>(0x112B440);
-  PhysPreset*** varPhysPresetPtr = reinterpret_cast<PhysPreset***>(0x112B378);
-  MaterialPass** varMaterialPass = reinterpret_cast<MaterialPass**>(0x112A960);
-  snd_alias_list_t*** varsnd_alias_list_name = reinterpret_cast<snd_alias_list_t***>(0x112AF38);
-  MaterialVertexShader** varMaterialVertexShader = reinterpret_cast<MaterialVertexShader**>(0x112B338);
+  bool* g_lobbyCreateInProgress = reinterpret_cast<bool*>(0x14651CF02);
+  PartyData* g_lobbyData = reinterpret_cast<PartyData*>(0x140D09A00);
+  PartyData* g_partyData = reinterpret_cast<PartyData*>(0x140D0BE10);
 
-  FxElemField* s_elemFields = reinterpret_cast<FxElemField*>(0x73B848);
+  SessionData* g_serverSession = reinterpret_cast<SessionData*>(0x14650F630);
 
-  visField_t* visionDefFields = reinterpret_cast<visField_t*>(0x7982F0); // Count 21
+  int* numIP = reinterpret_cast<int*>(0x14678A2C0);
+  netIP_t* localIP = reinterpret_cast<netIP_t*>(0x14678A2D0);
 
-  infoParm_t* infoParams = reinterpret_cast<infoParm_t*>(0x79D260); // Count 0x1E
+  netadr_t* connectedHost = reinterpret_cast<netadr_t*>(0x140BF9630);
 
-  GfxScene* scene = reinterpret_cast<GfxScene*>(0x6944914);
+  SOCKET* ip_socket = reinterpret_cast<SOCKET*>(0x14678A2B0);
 
-  Console* con = reinterpret_cast<Console*>(0x9FCCF8);
-  ConDrawInputGlob* conDrawInputGlob = reinterpret_cast<ConDrawInputGlob*>(0x9FD6F8);
+  SafeArea* safeArea = reinterpret_cast<SafeArea*>(0x1406C26A8);
 
-  int* g_console_field_width = reinterpret_cast<int*>(0x79854C);
-  float* g_console_char_height = reinterpret_cast<float*>(0x798550);
-  field_t* g_consoleField = reinterpret_cast<field_t*>(0xA1B6B0);
+  SpawnVar* spawnVars = reinterpret_cast<SpawnVar*>(0x1418652E8);
+  MapEnts** marMapEntsPtr = reinterpret_cast<MapEnts**>(0x140DB56A8);
+  clipMap_t* cm = reinterpret_cast<clipMap_t*>(0x141BD1000);
 
-  sharedUiInfo_t* sharedUiInfo = reinterpret_cast<sharedUiInfo_t*>(0x62E4B78);
-  ScreenPlacement* scrPlaceFull = reinterpret_cast<ScreenPlacement*>(0x10843F0);
-  ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1084460);
-  ScreenPlacement* scrPlaceView = reinterpret_cast<ScreenPlacement*>(0x1084378);
+  IDirect3D9** d3d9 = reinterpret_cast<IDirect3D9**>(0x148CC4A68);
+  IDirect3DDevice9** dx_ptr = reinterpret_cast<IDirect3DDevice9**>(0x148CC4A70);
 
-  PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0xA1B7D0);
-  kbutton_t* playersKb = reinterpret_cast<kbutton_t*>(0xA1A9A8);
-  AimAssistGlobals* aaGlobArray = reinterpret_cast<AimAssistGlobals*>(0x7A2110);
+  mapname_t* mapnames = reinterpret_cast<mapname_t*>(0x1403A3EE0);
 
-  keyname_t* keyNames = reinterpret_cast<keyname_t*>(0x798580);
-  keyname_t* localizedKeyNames = reinterpret_cast<keyname_t*>(0x798880);
+  char*** varXString = reinterpret_cast<char***>(0x140DB4CE8);
+  TracerDef*** varTracerDefPtr = reinterpret_cast<TracerDef***>(0x140DB54B8);
+  XModel*** varXModelPtr = reinterpret_cast<XModel***>(0x140DB56D0);
+  XModel** varXModel = reinterpret_cast<XModel**>(0x140DB56D8);
+  const char** varConstChar = reinterpret_cast<const char**>(0x140DB4CE8);
+  Material*** varMaterialHandle = reinterpret_cast<Material***>(0x140DB61F0);
+  FxEffectDef*** varFxEffectDefHandle = reinterpret_cast<FxEffectDef***>(0x140DB5730);
+  PhysCollmap*** varPhysCollmapPtr = reinterpret_cast<PhysCollmap***>(0x140DB5138);
+  PhysPreset*** varPhysPresetPtr = reinterpret_cast<PhysPreset***>(0x140DB56C0);
+  snd_alias_list_t*** varsnd_alias_list_name = reinterpret_cast<snd_alias_list_t***>(0x140DB5988);
+  MaterialVertexShader** varMaterialVertexShader = reinterpret_cast<MaterialVertexShader**>(0x140DB47E8);
 
-  GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x7A2FC0);
+  visField_t* visionDefFields = reinterpret_cast<visField_t*>(0x14041D9F0); // Count 21
 
-  const char* MY_CMDS = reinterpret_cast<const char*>(0x73C9C4); // Count 5
+  infoParm_t* infoParams = reinterpret_cast<infoParm_t*>(0x140425E30); // Count 0x1E
 
-  XModel** cached_models = reinterpret_cast<XModel**>(0x1AA20C8);
+  GfxScene* scene = reinterpret_cast<GfxScene*>(0x148C26480);
 
-  float (*CorrectSolidDeltas)[26][3] = reinterpret_cast<float(*)[26][3]>(0x739BB8); // Count 26
+  int* g_console_field_width = reinterpret_cast<int*>(0x14041E024);
+  float* g_console_char_height = reinterpret_cast<float*>(0x14041E028);
 
-  level_locals_t* level = reinterpret_cast<level_locals_t*>(0x1A831A8);
+  sharedUiInfo_t* sharedUiInfo = reinterpret_cast<sharedUiInfo_t*>(0x1465CE8C0);
+  ScreenPlacement* scrPlaceFull = reinterpret_cast<ScreenPlacement*>(0x1406CBC50);
+  ScreenPlacement* scrPlaceFullUnsafe = reinterpret_cast<ScreenPlacement*>(0x1406CBBE0);
+  ScreenPlacement* scrPlaceView = reinterpret_cast<ScreenPlacement*>(0x1406CBCC0);
 
-  float (*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT] = reinterpret_cast<float(*)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT]>(0x7C4878);
+  PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0x1406C4F20);
+  kbutton_t* playersKb = reinterpret_cast<kbutton_t*>(0x1406CBDF0);
+  AimAssistGlobals* aaGlobArray = reinterpret_cast<AimAssistGlobals*>(0x14042F3D0);
 
-  char (*com_consoleLines)[32] = reinterpret_cast<char(*)[32]>(0x1AD7948);
+  keyname_t* keyNames = reinterpret_cast<keyname_t*>(0x14041E090);
+  keyname_t* localizedKeyNames = reinterpret_cast<keyname_t*>(0x14041E690);
 
-  WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x649D640);
+  GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x140430230);
 
-  int* window_center_x = reinterpret_cast<int*>(0x649D638);
-  int* window_center_y = reinterpret_cast<int*>(0x649D630);
+  const char* MY_CMDS = reinterpret_cast<const char*>(0x14037E2FC); // Count 5
 
-  DeferredQueue* deferredQueue = reinterpret_cast<DeferredQueue*>(0x1CC2CE8);
+  XModel** cached_models = reinterpret_cast<XModel**>(0x1419F0E40);
 
-  int* g_waitingForKey = reinterpret_cast<int*>(0x63A50FC);
+  float (*CorrectSolidDeltas)[26][3] = reinterpret_cast<float(*)[26][3]>(0x140369690); // Count 26
 
-  Game::cgMedia_t* cgMedia = reinterpret_cast<Game::cgMedia_t*>(0x8EE4B8);
+  level_locals_t* level = reinterpret_cast<level_locals_t*>(0x141864EA0);
 
-  unsigned long* g_dwTlsIndex = reinterpret_cast<unsigned long*>(0x66D94A8);
+  float (*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT] = reinterpret_cast<float(*)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT]>(0x140444930);
 
-  bgs_t* level_bgs = reinterpret_cast<bgs_t*>(0x19BD680);
+  char (*com_consoleLines)[32] = reinterpret_cast<char(*)[32]>(0x141BD8A20);
 
-  unsigned int* playerCardUIStringIndex = reinterpret_cast<unsigned int*>(0x62CD7A8);
-  char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38] = reinterpret_cast<char(*)[PLAYER_CARD_UI_STRING_COUNT][38]>(0x62CB4F8);
+  WinMouseVars_t* s_wmv = reinterpret_cast<WinMouseVars_t*>(0x146784DD8);
 
-  uiInfo_s* uiInfoArray = reinterpret_cast<uiInfo_s*>(0x62E2858);
+  int* window_center_x = reinterpret_cast<int*>(0x146784DE8);
+  int* window_center_y = reinterpret_cast<int*>(0x146784DE8);
 
-  int* logfile = reinterpret_cast<int*>(0x1AD8F28);
+  DeferredQueue* deferredQueue = reinterpret_cast<DeferredQueue*>(0x141DEB460);
 
-  GamerSettingState* gamerSettings = reinterpret_cast<GamerSettingState*>(0x107D3E8);
+  int* g_waitingForKey = reinterpret_cast<int*>(0x14657E520);
 
-  unsigned char* g_largeLocalBuf = reinterpret_cast<unsigned char*>(0x63D9790);
-  int* g_largeLocalPos = reinterpret_cast<int*>(0x63D97B4);
-  int* g_largeLocalRightPos = reinterpret_cast<int*>(0x63D9780);
+  Game::cgMedia_t* cgMedia = reinterpret_cast<Game::cgMedia_t*>(0x140469210);
 
-  char** ui_arenaInfos = reinterpret_cast<char**>(0x62D2688);
-  int* ui_numArenas = reinterpret_cast<int*>(0x62D2788);
-  int* ui_arenaBufPos = reinterpret_cast<int*>(0x62D278C);
+  char* partyTeamCounts = reinterpret_cast<char*>(0x140D0E260);
 
-  punctuation_s* default_punctuations = reinterpret_cast<punctuation_s*>(0x797F80);
-  int* numtokens = reinterpret_cast<int*>(0x7C4BA0);
+  int* dobjFreeCount = reinterpret_cast<int*>(0x141BDE454);
 
-  bool* s_havePlaylists = reinterpret_cast<bool*>(0x1AD3680);
+  unsigned long* g_dwTlsIndex = reinterpret_cast<unsigned long*>(0x148C24BD8);
 
-  huffman_t* msgHuff = reinterpret_cast<huffman_t*>(0x1CB9EC0);
+  bgs_t* level_bgs = reinterpret_cast<bgs_t*>(0x1417CBDC0);
 
-  FxMarksSystem* fx_marksSystemPool = reinterpret_cast<FxMarksSystem*>(0x173FCD0);
+  unsigned int* playerCardUIStringIndex = reinterpret_cast<unsigned int*>(0x146523C44);
+  char (*playerCardUIStringBuf)[PLAYER_CARD_UI_STRING_COUNT][38] = reinterpret_cast<char(*)[PLAYER_CARD_UI_STRING_COUNT][38]>(0x146523C50);
 
-  const char* logFileName = reinterpret_cast<const char*>(0x730130);
+  uiInfo_s* uiInfoArray = reinterpret_cast<uiInfo_s*>(0x14663E870);
 
-  DObjGetBoneIndex_t DObjGetBoneIndex = reinterpret_cast<DObjGetBoneIndex_t>(0x504F20);
-  Com_GetClientDObj_t Com_GetClientDObj = reinterpret_cast<Com_GetClientDObj_t>(0x41FF50);
-  CG_WeaponDObjHandle_t CG_WeaponDObjHandle = reinterpret_cast<CG_WeaponDObjHandle_t>(0x41DB70);
-  CG_StopBoltedEffect_t CG_StopBoltedEffect = reinterpret_cast<CG_StopBoltedEffect_t>(0x44C230);
-  FX_ImpactMarkCallback_t FX_ImpactMarkCallback = reinterpret_cast<FX_ImpactMarkCallback_t>(0x5CFC70);
+  GamerSettingState* gamerSettings = reinterpret_cast<GamerSettingState*>(0x1406CAB40);
+
+  unsigned char** g_largeLocalBuf = reinterpret_cast<unsigned char**>(0x146653980);
+  int* g_largeLocalPos = reinterpret_cast<int*>(0x146651954);
+  int* g_largeLocalRightPos = reinterpret_cast<int*>(0x146653974);
+
+  char** ui_arenaInfos = reinterpret_cast<char**>(0x1465BE5C0);
+  int* ui_numArenas = reinterpret_cast<int*>(0x1465BE5B0);
+  int* ui_arenaBufPos = reinterpret_cast<int*>(0x1465BE5B4);
+
+  bool* s_havePlaylists = reinterpret_cast<bool*>(0x141BDDCE4);
+
+  huffman_t* msgHuff = reinterpret_cast<huffman_t*>(0x141DC91F0);
+
+  FxMarksSystem* fx_marksSystemPool = reinterpret_cast<FxMarksSystem*>(0x141658C00);
+
+  DObjGetBoneIndex_t DObjGetBoneIndex = reinterpret_cast<DObjGetBoneIndex_t>(0x1402AA690);
+  Com_GetClientDObj_t Com_GetClientDObj = reinterpret_cast<Com_GetClientDObj_t>(0x1401FB900);
+  CG_WeaponDObjHandle_t CG_WeaponDObjHandle = reinterpret_cast<CG_WeaponDObjHandle_t>(0x1400C8110);
+  CG_StopBoltedEffect_t CG_StopBoltedEffect = reinterpret_cast<CG_StopBoltedEffect_t>(0x1400AF450);
+  FX_ImpactMarkCallback_t FX_ImpactMarkCallback = reinterpret_cast<FX_ImpactMarkCallback_t>(0x140152570);
 
   const char* TableLookup(StringTable* stringtable, int row, int column)
   {
@@ -503,7 +465,7 @@ namespace Game
 
   void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count)
   {
-    if (Components::Dvar::Var("r_loadForRenderer").get<bool>())
+    if (Dvar_FindVar("r_loadForRenderer")->current.enabled)
     {
       void* buffer = R_AllocStaticIndexBuffer(storeHere, 2 * count);
       std::memcpy(buffer, data, 2 * count);
@@ -569,12 +531,12 @@ namespace Game
 
   void SortWorldSurfaces(GfxWorld* world)
   {
-    DWORD* specular1 = reinterpret_cast<DWORD*>(0x69F105C);
-    DWORD* specular2 = reinterpret_cast<DWORD*>(0x69F92D4);
+    DWORD* specular1 = reinterpret_cast<DWORD*>(0x1493CFDB4);
+    DWORD* specular2 = reinterpret_cast<DWORD*>(0x1493CFDB0);
     DWORD saveSpecular1 = *specular1;
     DWORD saveSpecular2 = *specular2;
 
-    GfxWorld** gameWorld = reinterpret_cast<GfxWorld**>(0x66DEE94);
+    GfxWorld** gameWorld = reinterpret_cast<GfxWorld**>(0x148CCA620);
     GfxWorld* saveWorld = *gameWorld;
 
     *specular1 = 1;
@@ -586,128 +548,6 @@ namespace Game
     *gameWorld = saveWorld;
     *specular1 = saveSpecular1;
     *specular2 = saveSpecular2;
-  }
-
-  void R_AddDebugBounds(float* color, Bounds* b)
-  {
-    vec3_t v1, v2, v3, v4, v5, v6, v7, v8;
-    float* center = b->midPoint;
-    float* halfSize = b->halfSize;
-
-    v1[0] = center[0] - halfSize[0];
-    v1[1] = center[1] - halfSize[1];
-    v1[2] = center[2] - halfSize[2];
-
-    v2[0] = center[0] + halfSize[0];
-    v2[1] = center[1] - halfSize[1];
-    v2[2] = center[2] - halfSize[2];
-
-    v3[0] = center[0] - halfSize[0];
-    v3[1] = center[1] + halfSize[1];
-    v3[2] = center[2] - halfSize[2];
-
-    v4[0] = center[0] + halfSize[0];
-    v4[1] = center[1] + halfSize[1];
-    v4[2] = center[2] - halfSize[2];
-
-    v5[0] = center[0] - halfSize[0];
-    v5[1] = center[1] - halfSize[1];
-    v5[2] = center[2] + halfSize[2];
-
-    v6[0] = center[0] + halfSize[0];
-    v6[1] = center[1] - halfSize[1];
-    v6[2] = center[2] + halfSize[2];
-
-    v7[0] = center[0] - halfSize[0];
-    v7[1] = center[1] + halfSize[1];
-    v7[2] = center[2] + halfSize[2];
-
-    v8[0] = center[0] + halfSize[0];
-    v8[1] = center[1] + halfSize[1];
-    v8[2] = center[2] + halfSize[2];
-
-    // bottom
-    R_AddDebugLine(color, v1, v2);
-    R_AddDebugLine(color, v2, v4);
-    R_AddDebugLine(color, v4, v3);
-    R_AddDebugLine(color, v3, v1);
-
-    // top
-    R_AddDebugLine(color, v5, v6);
-    R_AddDebugLine(color, v6, v8);
-    R_AddDebugLine(color, v8, v7);
-    R_AddDebugLine(color, v7, v5);
-
-    // verticals
-    R_AddDebugLine(color, v1, v5);
-    R_AddDebugLine(color, v2, v6);
-    R_AddDebugLine(color, v3, v7);
-    R_AddDebugLine(color, v4, v8);
-  }
-
-  void R_AddDebugBounds(float* color, Bounds* b, const float(*quat)[4])
-  {
-    vec3_t v[8];
-    auto* center = b->midPoint;
-    auto* halfSize = b->halfSize;
-
-    v[0][0] = -halfSize[0];
-    v[0][1] = -halfSize[1];
-    v[0][2] = -halfSize[2];
-
-    v[1][0] = halfSize[0];
-    v[1][1] = -halfSize[1];
-    v[1][2] = -halfSize[2];
-
-    v[2][0] = -halfSize[0];
-    v[2][1] = halfSize[1];
-    v[2][2] = -halfSize[2];
-
-    v[3][0] = halfSize[0];
-    v[3][1] = halfSize[1];
-    v[3][2] = -halfSize[2];
-
-    v[4][0] = -halfSize[0];
-    v[4][1] = -halfSize[1];
-    v[4][2] = halfSize[2];
-
-    v[5][0] = halfSize[0];
-    v[5][1] = -halfSize[1];
-    v[5][2] = halfSize[2];
-
-    v[6][0] = -halfSize[0];
-    v[6][1] = halfSize[1];
-    v[6][2] = halfSize[2];
-
-    v[7][0] = halfSize[0];
-    v[7][1] = halfSize[1];
-    v[7][2] = halfSize[2];
-
-    for(auto& vec : v)
-    {
-      QuatRot(&vec, quat);
-      vec[0] += center[0];
-      vec[1] += center[1];
-      vec[2] += center[2];
-    }
-
-    // bottom
-    R_AddDebugLine(color, v[0], v[1]);
-    R_AddDebugLine(color, v[1], v[3]);
-    R_AddDebugLine(color, v[3], v[2]);
-    R_AddDebugLine(color, v[2], v[0]);
-
-    // top
-    R_AddDebugLine(color, v[4], v[5]);
-    R_AddDebugLine(color, v[5], v[7]);
-    R_AddDebugLine(color, v[7], v[6]);
-    R_AddDebugLine(color, v[6], v[4]);
-
-    // verticals
-    R_AddDebugLine(color, v[0], v[4]);
-    R_AddDebugLine(color, v[1], v[5]);
-    R_AddDebugLine(color, v[2], v[6]);
-    R_AddDebugLine(color, v[3], v[7]);
   }
 
   float GraphGetValueFromFraction(const int knotCount, const float(*knots)[2], const float fraction)
@@ -766,6 +606,34 @@ namespace Game
     }
   }
 
+  const char* NET_AdrToString(const netadr_t a)
+  {
+    static char s[64];
+
+    switch (a.type)
+    {
+    case NA_LOOPBACK:
+      std::snprintf(s, sizeof(s), "loopback");
+      break;
+
+    case NA_IP:
+      std::snprintf(s, sizeof(s), "%u.%u.%u.%u:%hu", a.ip.bytes[0], a.ip.bytes[1], a.ip.bytes[2], a.ip.bytes[3], ntohs(a.port));
+      break;
+
+    default:
+    {
+      const unsigned char* ipx = reinterpret_cast<const unsigned char*>(a.ipx);
+
+      std::snprintf(s, sizeof(s), "%02x%02x%02x%02x.%02x%02x%02x%02x%02x%02x:%i",
+                    ipx[0], ipx[1], ipx[2], ipx[3], ipx[4], ipx[5], ipx[6], ipx[7], ipx[8], ipx[9],
+                    static_cast<int>(static_cast<int16_t>(ntohs(a.port))));
+      break;
+    }
+    }
+
+    return s;
+  }
+
   void I_strncpyz_s(char* dest, std::size_t destsize, const char* src, std::size_t count)
   {
     if (!destsize && !dest)
@@ -803,6 +671,4 @@ namespace Game
   {
     I_strncpyz_s(dest, destsize, src, destsize);
   }
-
-  constexpr auto ApplyTokenToField_Func = 0x59A760;
 }

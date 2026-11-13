@@ -19,4 +19,16 @@ namespace Game
 
   typedef bool(*PM_IsSprinting_t)(const playerState_s* ps);
   extern PM_IsSprinting_t PM_IsSprinting;
+
+  typedef int(*PM_GroundSurfaceType_t)(pml_t* pml);
+  extern PM_GroundSurfaceType_t PM_GroundSurfaceType;
+
+  typedef void(*BG_AddPredictableEventToPlayerstate_t)(int newEvent, unsigned int eventParm, playerState_s* ps);
+  extern BG_AddPredictableEventToPlayerstate_t BG_AddPredictableEventToPlayerstate;
+
+  typedef void(*BG_AnimUpdatePlayerStateConditions_t)(pmove_s* pm);
+  extern BG_AnimUpdatePlayerStateConditions_t BG_AnimUpdatePlayerStateConditions;
+
+  typedef int(*BG_AnimScriptEvent_t)(playerState_s* ps, int event, int isContinue, int force, int* randSeed);
+  extern BG_AnimScriptEvent_t BG_AnimScriptEvent;
 }

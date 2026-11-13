@@ -30,7 +30,7 @@ namespace Components
 
     Console::FreeNativeConsole();
 
-    if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled()) return;
+    if (Dedicated::IsEnabled()) return;
 
     Mutex = CreateMutexA(nullptr, FALSE, "iw4x_mutex");
     FirstInstance = ((INVALID_HANDLE_VALUE != Mutex) && GetLastError() != ERROR_ALREADY_EXISTS);

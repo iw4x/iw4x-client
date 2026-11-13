@@ -1,64 +1,54 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN ClanTags_ClientUserinfoChanged:PROC
 EXTERN ClanTags_GetClanTagWithName:PROC
-EXTERN ClanTags_PlayerCards_SetCachedPlayerData:PROC
 
 .code
 
 ClanTags_ClientUserinfoChanged_Stub PROC
-  pushad
+  push    rcx
+  push    rdx
+  sub     rsp, 28h
 
-  push    dword ptr [esp+20h+824h]
-  push    ecx
+  mov     edx, ebx
   call    ClanTags_ClientUserinfoChanged
-  add     esp, 8h
 
-  popad
+  add     rsp, 28h
+  pop     rdx
+  pop     rcx
 
-  push    445334h
-  push    47C820h
-  ret
+  mov     rax, 14028AF50h
+  jmp     rax
 ClanTags_ClientUserinfoChanged_Stub ENDP
 
+ClanTags_ClientConnectUserinfo_Stub PROC
+  push    rcx
+  push    rdx
+  sub     rsp, 28h
+
+  mov     edx, r12d
+  call    ClanTags_ClientUserinfoChanged
+
+  add     rsp, 28h
+  pop     rdx
+  pop     rcx
+
+  mov     rax, 14028AF50h
+  jmp     rax
+ClanTags_ClientConnectUserinfo_Stub ENDP
+
 ClanTags_DrawPlayerNameOnScoreboard PROC
-  push    eax
-  pushad
+  sub     rsp, 20h
 
-  push    edi
-  push    dword ptr [ebp]
-
+  mov     ecx, [r15]
+  lea     rdx, [rbx+0Ch]
   call    ClanTags_GetClanTagWithName
-  add     esp, 8h
 
-  mov     [esp+20h], eax
+  add     rsp, 20h
 
-  popad
-  pop     edi
-
-  push    591247h
-  push    5909E0h
-  ret
+  mov     rdx, rax
+  mov     rax, 1400E3DC1h
+  jmp     rax
 ClanTags_DrawPlayerNameOnScoreboard ENDP
-
-ClanTags_PlayerCards_SetCachedPlayerData_Stub PROC
-  call    dword ptr [gameI_strncpyz]
-  add     esp, 0Ch
-
-  mov     byte ptr [esi+3Ch], 0h
-
-  push    dword ptr [esp+0Ch]
-  push    esi
-  call    ClanTags_PlayerCards_SetCachedPlayerData
-  add     esp, 8h
-
-  pop     esi
-  ret
-
-gameI_strncpyz:
-  dd      4D6F80h
-ClanTags_PlayerCards_SetCachedPlayerData_Stub ENDP
 
 END

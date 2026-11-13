@@ -10,7 +10,6 @@
 #include "../../Components/Modules/Network.hpp"
 #include "../../Components/Modules/Party.hpp"
 #include "../../Components/Modules/TextRenderer.hpp"
-#include "../../Components/Modules/ZoneBuilder.hpp"
 
 #include <version.hpp>
 
@@ -351,9 +350,6 @@ namespace Sentry
     std::string
     role ()
     {
-      if (Components::ZoneBuilder::IsEnabled ())
-        return "zonebuilder";
-
       if (Components::Dedicated::IsEnabled ())
         return "dedicated";
 

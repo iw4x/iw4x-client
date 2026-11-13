@@ -39,6 +39,12 @@ namespace Game
   typedef const dvar_t*(*Dvar_SetFromStringByNameFromSource_t)(const char* dvarName, const char* string, DvarSetSource source);
   extern Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource;
 
+  typedef void(*Dvar_SetFromStringFromSource_t)(const dvar_t* dvar, const char* string, DvarSetSource source);
+  extern Dvar_SetFromStringFromSource_t Dvar_SetFromStringFromSource;
+
+  typedef void(*Dvar_SetVariant_t)(dvar_t* dvar, DvarValue value, DvarSetSource source);
+  extern Dvar_SetVariant_t Dvar_SetVariant;
+
   typedef void(*Dvar_SetStringByName_t)(const char* dvarName, const char* value);
   extern Dvar_SetStringByName_t Dvar_SetStringByName;
 
@@ -88,6 +94,7 @@ namespace Game
   extern Dvar_ClearModified_t Dvar_ClearModified;
 
   extern const dvar_t** com_developer;
+  extern const dvar_t** com_logfile;
   extern const dvar_t** com_developer_script;
   extern const dvar_t** com_timescale;
   extern const dvar_t** com_maxFrameTime;
@@ -101,7 +108,10 @@ namespace Game
 
   extern const dvar_t** dev_timescale;
 
-  extern const dvar_t** dvar_cheats;
+  // Note that x64 compiles out the registration of sv_cheats, which the Dvar
+  // component restores.
+  //
+  extern const dvar_t* dvar_cheats;
 
   extern const dvar_t** fs_cdpath;
   extern const dvar_t** fs_basepath;
@@ -112,20 +122,19 @@ namespace Game
   extern const dvar_t** sv_hostname;
   extern const dvar_t** sv_gametype;
   extern const dvar_t** sv_mapname;
-  extern const dvar_t** sv_mapRotation;
-  extern const dvar_t** sv_mapRotationCurrent;
   extern const dvar_t** sv_maxclients;
-  extern const dvar_t** sv_cheats;
+  extern const dvar_t** com_sv_running;
   extern const dvar_t** sv_voiceQuality;
 
   extern const dvar_t** nextmap;
 
-  extern const dvar_t** cl_showSend;
+  extern const dvar_t** perk_diveVelocity;
+  extern const dvar_t** perk_diveDistanceCheck;
+
   extern const dvar_t** cl_voice;
   extern const dvar_t** cl_ingame;
   extern const dvar_t** cl_shownet;
 
-  extern const dvar_t** g_cheats;
   extern const dvar_t** g_giveAll;
   extern const dvar_t** g_deadChat;
   extern const dvar_t** g_allowVote;
@@ -138,6 +147,10 @@ namespace Game
   extern const dvar_t** cg_chatTime;
   extern const dvar_t** cg_scoreboardHeight;
   extern const dvar_t** cg_scoreboardWidth;
+  extern const dvar_t** cg_drawFPS;
+  extern const dvar_t** cg_drawFPSLabels;
+  extern const dvar_t** cg_drawSnapshot;
+  extern const dvar_t** cg_drawViewpos;
 
   extern const dvar_t** version;
   /// <summary>
@@ -160,10 +173,8 @@ namespace Game
 
   extern const dvar_t** party_minplayers;
   extern const dvar_t** party_maxplayers;
+  extern const dvar_t** party_hostname;
 
   extern const dvar_t** ip;
   extern const dvar_t** port;
-
-  extern "C" void Dvar_SetVariant(dvar_t* dvar, DvarValue value, DvarSetSource source);
-  extern "C" void Dvar_SetFromStringFromSource(const dvar_t* dvar, const char* string, DvarSetSource source);
 }

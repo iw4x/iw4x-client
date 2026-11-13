@@ -1,64 +1,67 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN Chat_SendChat:BYTE
 
 EXTERN Chat_EvaluateSay:PROC
-EXTERN Chat_CG_AddToTeamChat:PROC
-EXTERN PlayerName_CleanStrStub:PROC
 
 .code
 
-Chat_PreSayStub PROC
-  mov     eax, [esp+100h+10h]
+Chat_PreSayStub1 PROC
+  push    rcx
+  sub     rsp, 20h
 
-  push    eax
-  pushad
-
-  push    dword ptr [esp+100h+30h]
-  push    dword ptr [esp+100h+2Ch]
-  push    eax
+  mov     rcx, rsi
+  mov     rdx, r14
+  mov     r8d, edi
   call    Chat_EvaluateSay
-  add     esp, 0Ch
 
-  mov     [esp+20h], eax
-  popad
-  pop     eax
+  add     rsp, 20h
+  pop     rcx
 
-  mov     [esp+100h+10h], eax
+  mov     rax, 14028A4E0h
+  jmp     rax
+Chat_PreSayStub1 ENDP
 
-  jmp     PlayerName_CleanStrStub
-Chat_PreSayStub ENDP
+Chat_PreSayStub2 PROC
+  push    rcx
+  sub     rsp, 20h
 
-Chat_PostSayStub PROC
-  push    eax
+  mov     rcx, r15
+  mov     rdx, r14
+  mov     r8d, edi
+  call    Chat_EvaluateSay
 
-  xor     eax, eax
-  mov     al, Chat_SendChat
+  add     rsp, 20h
+  pop     rcx
 
-  test    al, al
-  jnz     return
+  mov     rax, 14028A4E0h
+  jmp     rax
+Chat_PreSayStub2 ENDP
 
-  pop     eax
+Chat_PostSayStub1 PROC
+  cmp     Chat_SendChat, 0
+  jz      skip
+
+  mov     rax, 141865260h
+  cmp     dword ptr [rax], r13d
+
+  mov     rax, 14019968Ah
+  jmp     rax
+
+skip:
+  mov     rax, 1401998C7h
+  jmp     rax
+Chat_PostSayStub1 ENDP
+
+Chat_PostSayStub2 PROC
+  cmp     Chat_SendChat, 0
+  jz      skip
+
+  mov     rax, 140199D00h
+  jmp     rax
+
+skip:
   ret
-
-return:
-  pop     eax
-
-  push    5DF620h
-  ret
-Chat_PostSayStub ENDP
-
-Chat_CG_AddToTeamChat_Stub PROC
-  pushad
-
-  push    ecx
-  call    Chat_CG_AddToTeamChat
-  add     esp, 4h
-
-  popad
-  ret
-Chat_CG_AddToTeamChat_Stub ENDP
+Chat_PostSayStub2 ENDP
 
 END

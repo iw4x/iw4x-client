@@ -8,8 +8,6 @@ namespace Components
   class Controller : public Component
   {
   public:
-    static const int RUMBLE_CONFIGSTRINGS_COUNT = 32;
-
     Controller();
     ~Controller();
 

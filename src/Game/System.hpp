@@ -35,9 +35,6 @@ namespace Game
   typedef void(*Sys_Sleep_t)(int msec);
   extern Sys_Sleep_t Sys_Sleep;
 
-  typedef void(*Sys_LockWrite_t)(FastCriticalSection* critSect);
-  extern Sys_LockWrite_t Sys_LockWrite;
-
   typedef void(*Sys_TempPriorityAtLeastNormalBegin_t)(TempPriority*);
   extern Sys_TempPriorityAtLeastNormalBegin_t Sys_TempPriorityAtLeastNormalBegin;
 
@@ -61,6 +58,21 @@ namespace Game
 
   typedef void(*Sys_SetErrorText_t)(const char* text);
   extern Sys_SetErrorText_t Sys_SetErrorText;
+
+  typedef void(*Sys_Print_t)(const char* msg);
+  extern Sys_Print_t Sys_Print;
+
+  typedef void(*Sys_DestroyConsole_t)();
+  extern Sys_DestroyConsole_t Sys_DestroyConsole;
+
+  typedef void(*Sys_HideSplashWindow_t)();
+  extern Sys_HideSplashWindow_t Sys_HideSplashWindow;
+
+  typedef void(*Conbuf_AppendText_t)(const char* msg);
+  extern Conbuf_AppendText_t Conbuf_AppendText;
+
+  typedef LRESULT(*ConWndProc_t)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+  extern ConWndProc_t ConWndProc;
 
   typedef void(*Sys_SuspendOtherThreads_t)();
   extern Sys_SuspendOtherThreads_t Sys_SuspendOtherThreads;
@@ -89,6 +101,7 @@ namespace Game
   extern RTL_CRITICAL_SECTION* s_criticalSection;
 
   extern void Sys_LockRead(FastCriticalSection* critSect);
+  extern void Sys_LockWrite(FastCriticalSection* critSect);
   extern void Sys_UnlockRead(FastCriticalSection* critSect);
   extern void Sys_UnlockWrite(FastCriticalSection* critSect);
 
@@ -101,20 +114,29 @@ namespace Game
   class Sys
   {
   public:
+    // Offsets of game variables in thread-local storage.
+    //
+    // Note that DVAR_MODIFIED_FLAGS is the x64 offset.
+    //
+    // @@ TODO: verify the rest on x64, where pointers are 8 bytes (these
+    //    are x86 offsets).
+    //
     enum class TLS_OFFSET : unsigned int
     {
       LEVEL_BGS = 0xC,
       THREAD_VALUES = 0x14,
       HUFFMAN_BLOC = 0x10,
       DVAR_ALLOWED_MODIFIED_FLAGS = 0x1C,
-      DVAR_MODIFIED_FLAGS = 0x18,
+      DVAR_MODIFIED_FLAGS = 0x20,
       ZIP_INFO = 0x20,
     };
 
     template <typename T>
     static T* GetTls(TLS_OFFSET offset)
     {
-      const auto* tls = reinterpret_cast<std::uintptr_t*>(__readfsdword(0x2C));
+      // TEB's ThreadLocalStoragePointer is at gs:[0x58].
+      //
+      const uintptr_t* tls = reinterpret_cast<uintptr_t*>(__readgsqword(0x58));
       return reinterpret_cast<T*>(tls[*g_dwTlsIndex] + static_cast<std::underlying_type_t<TLS_OFFSET>>(offset));
     }
   };
