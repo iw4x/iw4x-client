@@ -17,21 +17,21 @@ namespace Components
 
     auto* actors = &Game::s_compassActors[localClientNum * Game::MAX_COMPASS_ACTORS];
 
-    for (auto i = 0; i < static_cast<int>(Game::MAX_CLIENTS); ++i)
+    for (std::size_t i = 0; i < Game::MAX_CLIENTS; ++i)
     {
-      if (i == self)
+      if (static_cast<int>(i) == self)
       {
         continue;
       }
 
-      auto* actor = &actors[i];
-      if ((actor->flags & Game::COMPASS_ACTOR_ENEMY) == 0 || !IsRecentlySeen(actor->lastUpdate, now))
+      auto& actor = actors[i];
+      if ((actor.flags & Game::COMPASS_ACTOR_ENEMY) == 0 || !IsRecentlySeen(actor.lastUpdate, now))
       {
         continue;
       }
 
-      std::memcpy(actor->lastEnemyPos, actor->lastPos, sizeof(actor->lastEnemyPos));
-      actor->beginRadarFadeTime = now;
+      Utils::Maths::VectorCopy(actor.lastPos, actor.lastEnemyPos);
+      actor.beginRadarFadeTime = now;
     }
   }
 
@@ -41,17 +41,17 @@ namespace Components
 
     auto* vehicles = &Game::s_compassVehicles[localClientNum * Game::MAX_COMPASS_VEHICLES];
 
-    for (auto i = 0; i < Game::MAX_COMPASS_VEHICLES; ++i)
+    for (std::size_t i = 0; i < Game::MAX_COMPASS_VEHICLES; ++i)
     {
-      auto* vehicle = &vehicles[i];
-      if (vehicle->isFriendly || !IsRecentlySeen(vehicle->lastUpdate, now))
+      auto& vehicle = vehicles[i];
+      if (vehicle.isFriendly || !IsRecentlySeen(vehicle.lastUpdate, now))
       {
         continue;
       }
 
-      std::memcpy(vehicle->lastEnemyPos, vehicle->lastPos, sizeof(vehicle->lastEnemyPos));
-      vehicle->lastEnemyYaw = vehicle->lastYaw;
-      vehicle->beginRadarFadeTime = now;
+      Utils::Maths::VectorCopy(vehicle.lastPos, vehicle.lastEnemyPos);
+      vehicle.lastEnemyYaw = vehicle.lastYaw;
+      vehicle.beginRadarFadeTime = now;
     }
   }
 
