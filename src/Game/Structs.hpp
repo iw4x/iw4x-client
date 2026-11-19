@@ -7927,8 +7927,7 @@ namespace Game
     int beginRadarFadeTime;
     int beginVoiceFadeTime;
     unsigned int flags;
-    int team;
-    int perks;
+    unsigned int perks[PERK_ARRAY_COUNT];
   };
 
   static_assert(sizeof(CompassActor) == 0x3C);
@@ -7936,11 +7935,11 @@ namespace Game
   static_assert(offsetof(CompassActor, beginRadarFadeTime) == 0x28);
   static_assert(offsetof(CompassActor, flags) == 0x30);
 
-  constexpr auto MAX_COMPASS_ACTORS = 26;
+  constexpr std::size_t MAX_COMPASS_ACTORS = 26;
 
   struct CompassVehicle
   {
-    char pad0[4];
+    int entityNum;
     int lastUpdate;
     int beginFadeTime;
     int beginRadarFadeTime;
@@ -7958,7 +7957,7 @@ namespace Game
   static_assert(offsetof(CompassVehicle, lastEnemyYaw) == 0x2C);
   static_assert(offsetof(CompassVehicle, isFriendly) == 0x30);
 
-  constexpr auto MAX_COMPASS_VEHICLES = 32;
+  constexpr std::size_t MAX_COMPASS_VEHICLES = 32;
 
   struct clientConnection_t
   {
