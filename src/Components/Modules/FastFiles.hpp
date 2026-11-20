@@ -1,13 +1,5 @@
 #pragma once
 
-extern "C"
-{
-  void FastFiles_AuthLoadInflateDecryptBase();
-  void FastFiles_ReadXFile(void* buffer, int size);
-
-  void FastFiles_AuthLoadInflateDecryptBaseFunc(unsigned char* buffer);
-}
-
 namespace Components
 {
   class FastFiles : public Component
@@ -28,35 +20,14 @@ namespace Components
 
     static float GetFullLoadedFraction();
 
-    static unsigned char ZoneKey[1191];
-
-    static symmetric_CTR CurrentCTR;
-
   private:
-    friend void (::FastFiles_AuthLoadInflateDecryptBaseFunc)(unsigned char* buffer);
+    static std::atomic<unsigned int> CurrentZone;
+    static std::atomic<unsigned int> MaxZones;
 
-    union Key
-    {
-      struct
-      {
-        unsigned char key[24];
-        unsigned char iv[16];
-      };
-
-      unsigned char data[1];
-    };
-
-    static unsigned int CurrentZone;
-    static unsigned int MaxZones;
-
-    static bool IsIW4xZone;
     static bool StreamRead;
-
-    static char LastByteRead;
 
     static Dvar::Var g_loadingInitialZones;
 
-    static Key CurrentKey;
     static std::vector<std::string> ZonePaths;
     static std::optional<std::string> GetInstalledZoneLocation(const char* file);
     static const char* GetZoneLocation(const char* file);
@@ -67,20 +38,13 @@ namespace Components
     static void ReadHeaderStub(unsigned int* header, int size);
     static void ReadVersionStub(unsigned int* version, int size);
 
-    static void ReadXFileHeader(void* buffer, int size);
-
-    static void AuthLoadInitCrypto();
-    static int AuthLoadInflateCompare(unsigned char* buffer, int length, unsigned char* ivValue);
-    static void AuthLoadInflateDecryptBaseFunc(unsigned char* buffer);
-
-    static void LoadZonesStub(Game::XZoneInfo *zoneInfo, unsigned int zoneCount);
-
-    static void ReadXFileStub(char* buffer, int size);
+    static void LoadZonesStub();
 
 #ifdef DEBUG
     static void LogStreamRead(int len);
 #endif
 
+    static void Load_XSurfaceArray(bool atStreamStart, int count);
 
     static void DB_BuildOSPath_FromSource_Default(const char* zoneName, Game::FF_DIR source, unsigned int size, char* filename);
     static void DB_BuildOSPath_FromSource_Custom(const char* zoneName, Game::FF_DIR source, unsigned int size, char* filename);
@@ -89,5 +53,7 @@ namespace Components
     static void Sys_Error_MissingZone (const char* format, const char* zone);
     static void Sys_Error_DirtyDisc (const char* message);
     static bool DB_FileExists_Hk(const char* zoneName, Game::FF_DIR source);
+
+    static void ReallocateZoneList();
   };
 }

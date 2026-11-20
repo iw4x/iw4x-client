@@ -25,6 +25,7 @@
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/Console.hpp"
 #include "Modules/Events.hpp"
+#include "Modules/FastFiles.hpp"
 
 namespace Components
 {
@@ -70,6 +71,7 @@ namespace Components
     Register(new ConnectProtocol());
     Register(new Console());
     Register(new Events());
+    Register(new FastFiles());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
