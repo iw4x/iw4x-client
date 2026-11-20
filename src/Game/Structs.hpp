@@ -6168,7 +6168,7 @@ namespace Game
 
   struct XZone
   {
-    int unk;
+    void* unk;
     char name[64];
     int flags;
     int allocType;
@@ -6176,6 +6176,11 @@ namespace Game
     int fileSize;
     char modZone;
   };
+
+  static_assert(offsetof(XZone, name) == 0x8);
+  static_assert(offsetof(XZone, allocType) == 0x4C);
+  static_assert(offsetof(XZone, mem.indexBuffer) == 0xE8);
+  static_assert(sizeof(XZone) == 0xF8);
 
   struct XNKID
   {
