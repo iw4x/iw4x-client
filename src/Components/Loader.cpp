@@ -72,6 +72,7 @@ namespace Components
     Register(new Console());
     Register(new Events());
     Register(new FastFiles());
+    Register(new FileSystem());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
