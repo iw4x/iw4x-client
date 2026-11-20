@@ -647,6 +647,43 @@ namespace Game
     Utils::Hook::Call<void(kbutton_t*, int, unsigned int)>(0x1400F7C90)(button, std::atoi(k), std::atoi(IN_Argv(2))); // IN_KeyUp
   }
 
+  // Note that on x64 SEH_StringEd_GetString() also returns the reference
+  // itself if translations are disabled or the reference is shorter than 2
+  // characters, the same as the check x86 makes here first.
+  //
+  // Note also that x64 compiles out the warning that x86 prints when there
+  // is no translation and the warnings aren't errors.
+  //
+  int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType)
+  {
+    const char* translation (SEH_StringEd_GetString(reference));
+
+    if (!translation)
+    {
+      if (*loc_warnings && (*loc_warnings)->current.enabled)
+      {
+        if (*loc_warningsAsErrors && (*loc_warningsAsErrors)->current.enabled && errType != LOCMSG_NOERR)
+        {
+          Com_Error(ERR_LOCALIZATION, "Could not translate part of %s: \"%s\"", messageType, reference);
+        }
+
+        translation = va("^1UNLOCALIZED(^7%s^1)^7", reference);
+      }
+      else
+      {
+        translation = va("%s", reference);
+      }
+
+      if (errType == LOCMSG_NOERR)
+      {
+        return 0;
+      }
+    }
+
+    I_strcpy(token, 1024, translation);
+    return 1;
+  }
+
   const char* NET_AdrToString(const netadr_t a)
   {
     static char s[64];
