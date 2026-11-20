@@ -1,110 +1,70 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN Maps_RotateConnectionState:DWORD
 
 EXTERN Maps_GetWorldData:PROC
 EXTERN Maps_TriggerReconnectForMap:PROC
-EXTERN Maps_PrepareUsermap:PROC
-EXTERN Maps_HideModel:PROC
 
 .code
 
 Maps_GetWorldDataStub PROC
-  push    eax
-  pushad
-
+  sub     rsp, 28h
   call    Maps_GetWorldData
+  add     rsp, 28h
 
-  mov     [esp+20h], eax
-  popad
-  pop     eax
-
+  mov     rcx, rax
   ret
 Maps_GetWorldDataStub ENDP
 
 Maps_SetConnectedStub PROC
-  push    eax
-  mov     eax, dword ptr [esi+0B2C540h]
+  mov     eax, dword ptr [rcx+rbx+6CCB78h]
   mov     Maps_RotateConnectionState, eax
-  pop     eax
 
-  mov     dword ptr [esi+0B2C540h], 5
+  mov     dword ptr [rcx+rbx+6CCB78h], 5
   ret
 Maps_SetConnectedStub ENDP
 
 Maps_RequestStatsStub PROC
-  mov     eax, dword ptr ds:[0B2C540h]
+  mov     rax, 1406CCB78h
+  mov     eax, dword ptr [rax]
   cmp     eax, 6
   je      skip
   cmp     eax, 5
   jl      skip
 
-  push    5AA94Ch
-  ret
+  mov     rax, 1400FA0A4h
+  jmp     rax
 
 skip:
-  push    5AA9A9h
-  ret
+  mov     rax, 1400FA0FBh
+  jmp     rax
 Maps_RequestStatsStub ENDP
 
 Maps_RotateCheckStub PROC
-  push    eax
-  pushad
+  push    rax
+  sub     rsp, 28h
 
-  push    dword ptr [esp+28h]
-  push    ebp
+  mov     rcx, r12
+  lea     rdx, [rbp-30h]
   call    Maps_TriggerReconnectForMap
-  add     esp, 8h
 
-  mov     [esp+20h], eax
+  add     rsp, 28h
+  mov     ecx, eax
+  pop     rax
 
-  popad
-  pop     eax
-
-  test    eax, eax
+  test    ecx, ecx
   jnz     skipRotation
 
-  push    487C50h
+  xor     ecx, ecx
+  mov     rdx, 1406CC028h
+  mov     byte ptr [rdx], 1
+
+  mov     rdx, 1400F9FB8h
+  jmp     rdx
 
 skipRotation:
-  ret
+  mov     rdx, 1400F96F3h
+  jmp     rdx
 Maps_RotateCheckStub ENDP
-
-Maps_SpawnServerStub PROC
-  pushad
-
-  push    dword ptr [esp+24h]
-  call    Maps_PrepareUsermap
-  pop     eax
-
-  popad
-
-  push    4A7120h
-  ret
-Maps_SpawnServerStub ENDP
-
-Maps_LoadMapLoadscreenStub PROC
-  pushad
-
-  push    dword ptr [esp+24h]
-  call    Maps_PrepareUsermap
-  pop     eax
-
-  popad
-
-  push    4D8030h
-  ret
-Maps_LoadMapLoadscreenStub ENDP
-
-Maps_HideModelStub PROC
-  pushad
-  call    Maps_HideModel
-  popad
-
-  push    541E40h
-  ret
-Maps_HideModelStub ENDP
 
 END

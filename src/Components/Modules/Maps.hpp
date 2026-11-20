@@ -8,14 +8,9 @@ extern "C"
   void Maps_SetConnectedStub();
   void Maps_RequestStatsStub();
   void Maps_RotateCheckStub();
-  void Maps_SpawnServerStub();
-  void Maps_LoadMapLoadscreenStub();
-  void Maps_HideModelStub();
 
   Game::G_GlassData* Maps_GetWorldData();
   int Maps_TriggerReconnectForMap(Game::msg_t* msg, const char* mapname);
-  void Maps_PrepareUsermap(const char* mapname);
-  void Maps_HideModel();
 }
 
 namespace Components
@@ -98,8 +93,6 @@ namespace Components
   private:
     friend Game::G_GlassData* (::Maps_GetWorldData)();
     friend int (::Maps_TriggerReconnectForMap)(Game::msg_t* msg, const char* mapname);
-    friend void (::Maps_PrepareUsermap)(const char* mapname);
-    friend void (::Maps_HideModel)();
 
     class DLC
     {
@@ -147,6 +140,10 @@ namespace Components
 
     static void PrepareUsermap(const char* mapname);
 
+    static void (*SV_SpawnServer_Original)(const char* server, int mapIsPreloaded, int savegame, int devmap, int migrate);
+    static void SV_SpawnServer_Hk(const char* server, int mapIsPreloaded, int savegame, int devmap, int migrate);
+    static void LoadMapLoadscreenStub(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync);
+
     static int TriggerReconnectForMap(Game::msg_t* msg, const char* mapname);
     static void DownloadsComplete(int localClientNum);
     static void StartMatch(void* party, int localControllerIndex);
@@ -155,8 +152,9 @@ namespace Components
     static const char* LoadArenaFileStub(const char* name, char* buffer, int size);
 
     static void HideModel();
+    static void HideModelStub(void* viewInfo);
 
-    static void G_SpawnTurretHook(Game::gentity_s* ent, int unk, int unk2);
+    static void G_SpawnTurretHook(Game::gentity_s* ent, const char* weaponName, int unk);
     static bool SV_SetTriggerModelHook(Game::gentity_s* ent);
     static unsigned short CM_TriggerModelBounds_Hk(unsigned int brushModelPointer, Game::Bounds* bounds);
 

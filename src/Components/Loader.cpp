@@ -29,6 +29,7 @@
 #include "Modules/Huffman.hpp"
 #include "Modules/Lean.hpp"
 #include "Modules/MapDump.hpp"
+#include "Modules/Maps.hpp"
 
 namespace Components
 {
@@ -79,6 +80,7 @@ namespace Components
     Register(new Huffman());
     Register(new Lean());
     Register(new MapDump());
+    Register(new Maps());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
