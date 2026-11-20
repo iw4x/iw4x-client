@@ -606,6 +606,47 @@ namespace Game
     }
   }
 
+  namespace
+  {
+    // Return the argument of the current command at index, or the empty
+    // string if there is none.
+    //
+    const char* IN_Argv(int index)
+    {
+      return index < cmd_args->argc[cmd_args->nesting]
+        ? cmd_args->argv[cmd_args->nesting][index]
+        : "";
+    }
+  }
+
+  void IN_KeyDown(kbutton_t* button)
+  {
+    const char* k (IN_Argv(1));
+    const int key (*k != '\0' ? std::atoi(k) : -1);
+
+    Utils::Hook::Call<void(kbutton_t*, int, unsigned int)>(0x1400F7C60)(button, key, std::atoi(IN_Argv(2))); // IN_KeyDown
+  }
+
+  // Note that a release without a key number comes from the console, and
+  // the x86 function takes it to unstick the button. The x64 function always
+  // gets a key number from the key code, and so here we handle such a
+  // release ourselves.
+  //
+  void IN_KeyUp(kbutton_t* button)
+  {
+    const char* k (IN_Argv(1));
+
+    if (*k == '\0')
+    {
+      button->down[0] = 0;
+      button->down[1] = 0;
+      button->active = false;
+      return;
+    }
+
+    Utils::Hook::Call<void(kbutton_t*, int, unsigned int)>(0x1400F7C90)(button, std::atoi(k), std::atoi(IN_Argv(2))); // IN_KeyUp
+  }
+
   const char* NET_AdrToString(const netadr_t a)
   {
     static char s[64];
