@@ -1,5 +1,3 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN Materials_WriteDeathMessageIcon:PROC
@@ -7,36 +5,32 @@ EXTERN Materials_WriteDeathMessageIcon:PROC
 .code
 
 Materials_ImageVersionCheck PROC
+  movzx   eax, byte ptr [rbp-16h]
+  cmp     eax, 8
+  je      versionOk
   cmp     eax, 9
-  je      returnSafely
+  je      versionOk
 
-  jmp     dword ptr [gameCom_PrintError]
+  mov     rax, 14006A1D6h
+  jmp     rax
 
-returnSafely:
-  mov     al, 1
-  add     esp, 18h
-  ret
-
-gameCom_PrintError:
-  dd      4F8C70h
+versionOk:
+  mov     rax, 14006A1FEh
+  jmp     rax
 Materials_ImageVersionCheck ENDP
 
 Materials_DeathMessageStub PROC
-  push    eax
-  pushad
+  sub     rsp, 28h
 
-  push    edx
-  push    eax
-  push    ecx
-
+  lea     rcx, [rsp+70h]
+  mov     edx, ebx
+  mov     r8, rax
   call    Materials_WriteDeathMessageIcon
-  add     esp, 0Ch
 
-  mov     [esp+20h], eax
-  popad
-  pop     eax
+  add     rsp, 28h
 
-  add     esp, 8h
+  mov     edx, eax
+  movzx   ecx, byte ptr [rdi]
   ret
 Materials_DeathMessageStub ENDP
 

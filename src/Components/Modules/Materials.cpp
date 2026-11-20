@@ -1,4 +1,5 @@
 #include "Materials.hpp"
+#include "Renderer.hpp"
 
 namespace Components
 {
@@ -9,6 +10,9 @@ namespace Components
 
   Game::Material* Materials::Create(const std::string& name, Game::GfxImage* image)
   {
+    AssertSize(Game::Material, 0x78);
+    AssertSize(Game::MaterialTextureDef, 0x10);
+
     Game::Material* material = Utils::Memory::GetAllocator()->allocate<Game::Material>();
     Game::MaterialTextureDef* texture = Utils::Memory::GetAllocator()->allocate<Game::MaterialTextureDef>();
 
@@ -134,6 +138,12 @@ namespace Components
     return true;
   }
 
+  // Write the icon into the death message as the length of the material
+  // name followed by the name, the way IW5 does.
+  //
+  // Note that on x64 the game writes the 8-byte material pointer, which we
+  // replace the same way as the 4-byte one on x86.
+  //
   int Materials::WriteDeathMessageIcon(char* string, int offset, Game::Material* material)
   {
     if (!material)
@@ -141,7 +151,7 @@ namespace Components
       material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
     }
 
-    int length = strlen(material->info.name);
+    const int length (static_cast<int>(std::strlen(material->info.name)));
     string[offset++] = static_cast<char>(length);
 
     strncpy_s(string + offset, 1024 - offset, material->info.name, length);
@@ -149,7 +159,7 @@ namespace Components
     return offset + length;
   }
 
-  int Materials::FormatImagePath(char* buffer, size_t size, int, int, const char* image)
+  int Materials::FormatImagePath(char* buffer, size_t size, [[maybe_unused]] const char* format, [[maybe_unused]] const char* directory, const char* image)
   {
 #if 0
     if (Utils::String::StartsWith(image, "preview_"))
@@ -165,12 +175,6 @@ namespace Components
 #endif
 
     return _snprintf_s(buffer, size, size, "images/%s.iwi", image);
-  }
-
-  int Materials::MaterialComparePrint(Game::Material* m1, Game::Material* m2)
-  {
-    //__debugbreak();
-    return Utils::Hook::Call<int(Game::Material*, Game::Material*)>(0x5235B0)(m1, m2);
   }
 
 #ifdef DEBUG
@@ -194,29 +198,54 @@ namespace Components
   Materials::Materials()
   {
     // Allow codo images
-    Materials::ImageVersionCheckHook.initialize(0x53A456, Materials_ImageVersionCheck, HOOK_CALL)->install();
+    //
+    // Note that on x64 the game checks the version of the image file header
+    // inline and fails without printing an error. So we jump to the stub in
+    // place of the check.
+    //
+    Materials::ImageVersionCheckHook.initialize(0x14006A1F8, Materials_ImageVersionCheck, HOOK_JUMP)->install();
+
+    // Note that x64 also fails with "Image file corrupt." if the size of the
+    // image file isn't the one its header gives for the full resolution,
+    // which x86 doesn't check. Some of our images (angry_joy, for example)
+    // give the size without the header, so we skip that check and read what
+    // the header says, as on x86.
+    //
+    Utils::Hook::Set<BYTE>(0x14006A2B3, 0xEB); // jz -> jmp
 
     // Adapt death message to IW5 material format
-    Utils::Hook(0x5A30D9, Materials_DeathMessageStub, HOOK_JUMP).install()->quick();
+    //
+    // Note that x64 inlines the function that writes the icon, which we jump
+    // from on x86, into the function that prints the death message. So we
+    // replace the instructions that write the material there.
+    //
+    Utils::Hook(0x1400EBF20, Materials_DeathMessageStub, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x1400EBF25, 6);
 
     // Resolve preview images to loadscreens
-    Utils::Hook(0x53AC19, Materials::FormatImagePath, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14006A1A6, Materials::FormatImagePath, HOOK_CALL).install()->quick();
 
-    // Debug material comparison
-    Utils::Hook::Set(0x523894, &Materials::MaterialComparePrint);
+    // @@ On x86 we also replace the comparison function of the material
+    //    sort with one of our own that calls it, to have a place to break at
+    //    while debugging. We haven't found the sort on x64 since the game
+    //    compiles out the code we would find it by.
+    //
 
 #ifdef DEBUG
+    // Note that x64 compiles out the error for a missing image file, which
+    // we also dump on x86. The caller then reports that it couldn't load the
+    // image, and we dump that report with the same path.
+    //
     if (Flags::HasFlag("dump"))
     {
-      Utils::Hook(0x51F5AC, Materials::DumpImageCfg, HOOK_CALL).install()->quick();
-      Utils::Hook(0x51F4C4, Materials::DumpImageCfg, HOOK_CALL).install()->quick();
-      Utils::Hook(0x53AC62, Materials::DumpImageCfgPath, HOOK_CALL).install()->quick();
+      Utils::Hook(0x140037BC9, Materials::DumpImageCfg, HOOK_CALL).install()->quick();
+      Utils::Hook(0x140037AC3, Materials::DumpImageCfg, HOOK_CALL).install()->quick();
     }
     else
     {
       // Ignore missing images
-      Utils::Hook::Nop(0x51F5AC, 5);
-      Utils::Hook::Nop(0x51F4C4, 5);
+      Utils::Hook::Nop(0x140037BC9, 5);
+      Utils::Hook::Nop(0x140037AC3, 5);
     }
 #endif
 
