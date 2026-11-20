@@ -26,6 +26,7 @@
 #include "Modules/Console.hpp"
 #include "Modules/Events.hpp"
 #include "Modules/FastFiles.hpp"
+#include "Modules/Huffman.hpp"
 
 namespace Components
 {
@@ -73,6 +74,7 @@ namespace Components
     Register(new Events());
     Register(new FastFiles());
     Register(new FileSystem());
+    Register(new Huffman());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
