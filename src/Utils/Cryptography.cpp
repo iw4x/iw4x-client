@@ -335,15 +335,15 @@ namespace Utils
 
 #pragma region JenkinsOneAtATime
 
-    std::size_t JenkinsOneAtATime::Compute(const std::string& data)
+    std::uint32_t JenkinsOneAtATime::Compute(const std::string& data)
     {
       return Compute(data.data(), data.size());
     }
 
-    std::size_t JenkinsOneAtATime::Compute(const char* key, const std::size_t len)
+    std::uint32_t JenkinsOneAtATime::Compute(const char* key, const std::size_t len)
     {
-      std::size_t hash, i;
-      for (hash = i = 0; i < len; ++i)
+      std::uint32_t hash (0);
+      for (std::size_t i (0); i < len; ++i)
       {
         hash += key[i];
         hash += (hash << 10);
