@@ -6158,6 +6158,14 @@ namespace Game
     void* indexBuffer;
   };
 
+  struct DBFile
+  {
+    HANDLE handle;
+    char name[64];
+  };
+
+  static_assert(sizeof(DBFile) == 0x48);
+
   struct XZone
   {
     int unk;

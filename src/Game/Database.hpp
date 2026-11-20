@@ -96,6 +96,15 @@ namespace Game
   extern FastCriticalSection* db_hashCritSect;
 
   extern XZone* g_zones;
+
+  // The file the database thread is loading a zone from, null between
+  // loads.
+  //
+  extern DBFile** g_loadFile;
+
+  // The count of zones DB_LoadXAssets() last handed the database thread.
+  //
+  extern unsigned int* g_zoneInfoCount;
   extern unsigned short* db_hashTable;
   extern XAssetEntry* g_assetEntryPool;
 
