@@ -1,12 +1,5 @@
 #pragma once
 
-extern "C"
-{
-  void ModelCache_R_RegisterModel_Hook();
-
-  void ModelCache_R_RegisterModel_InitGraphics(const char* name, void* atAddress);
-}
-
 #include "Weapon.hpp"
 
 namespace Components
@@ -22,14 +15,16 @@ namespace Components
     static const int G_MODELINDEX_LIMIT = (BASE_GMODEL_COUNT + Weapon::WEAPON_LIMIT - Weapon::BASEGAME_WEAPON_LIMIT + ADDITIONAL_GMODELS);
 
     // Server
-    static Game::XModel* cached_models_reallocated[G_MODELINDEX_LIMIT];
+    //
+    // Note that on x64 the game reaches the models through 32-bit
+    // displacements, and so we allocate them where the game can reach them.
+    //
+    static Game::XModel** cached_models_reallocated;
 
     // Client game
-    static Game::XModel* gameModels_reallocated[G_MODELINDEX_LIMIT];
+    static Game::XModel** gameModels_reallocated;
 
     static bool modelsHaveBeenReallocated;
-
-    static void R_RegisterModel_InitGraphics(const char* name, void* atAddress);
 
     ModelCache();
   };

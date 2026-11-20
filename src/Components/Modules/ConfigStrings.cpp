@@ -206,6 +206,119 @@ namespace Components
     return std::memset(dest, value, size);
   }
 
+  unsigned int ConfigStrings::SV_GetConfigString(int index, Game::ConfigString basegameLastPosition, int extendedFirstPosition)
+  {
+    if (index > basegameLastPosition)
+    {
+      index = extendedFirstPosition + (index - (basegameLastPosition + 1));
+    }
+
+    return Game::SV_GetConfigstringConst(index);
+  }
+
+  void ConfigStrings::SV_SetConfigString(int index, const char* data, Game::ConfigString basegameLastPosition, int extendedFirstPosition)
+  {
+    if (index > basegameLastPosition)
+    {
+      index = extendedFirstPosition + (index - (basegameLastPosition + 1));
+    }
+
+    Game::SV_SetConfigstring(index, data);
+  }
+
+  const char* ConfigStrings::CL_GetConfigString(int index, Game::ConfigString basegameLastPosition, int extendedFirstPosition)
+  {
+    if (index > basegameLastPosition)
+    {
+      index = extendedFirstPosition + (index - (basegameLastPosition + 1));
+    }
+
+    return Game::CL_GetConfigString(index);
+  }
+
+  unsigned int ConfigStrings::SV_GetCachedModelConfigStringConst(int index)
+  {
+    return SV_GetConfigString(index, Game::CS_MODELS_LAST, EXTRA_MODELCACHE_FIRST);
+  }
+
+  void ConfigStrings::SV_SetCachedModelConfigString(int index, const char* data)
+  {
+    SV_SetConfigString(index, data, Game::CS_MODELS_LAST, EXTRA_MODELCACHE_FIRST);
+  }
+
+  const char* ConfigStrings::CL_GetCachedModelConfigString(int index)
+  {
+    return CL_GetConfigString(index, Game::CS_MODELS_LAST, EXTRA_MODELCACHE_FIRST);
+  }
+
+  bool ConfigStrings::CG_ParseExtraConfigStrings()
+  {
+    Command::ClientParams params;
+
+    if (params.size() <= 1)
+    {
+      return false;
+    }
+
+    char* end;
+    const char* input (params.get(1));
+    int index (std::strtol(input, &end, 10));
+
+    if (input == end)
+    {
+      Logger::Warning(Game::CON_CHANNEL_DONT_FILTER, "{} is not a valid input\nUsage: {} <weapon index>\n", input, params.get(0));
+      return false;
+    }
+
+    if (index < BASEGAME_MAX_CONFIGSTRINGS)
+    {
+      return false;
+    }
+
+    if (index >= EXTRA_WEAPONS_FIRST && index <= EXTRA_WEAPONS_LAST)
+    {
+      // @@ On x86 we set up the weapon past the game's here. We can't until
+      //    we port Weapon, which makes room for it, so for now we ignore it.
+      //
+      return true;
+    }
+
+    // Note that ModelCache leaves the models where the game keeps them when
+    // we play a demo, in which case there is nowhere to keep the extra ones.
+    //
+    if (index >= EXTRA_MODELCACHE_FIRST && index <= EXTRA_MODELCACHE_LAST)
+    {
+      if (!ModelCache::modelsHaveBeenReallocated)
+      {
+        return true;
+      }
+
+      const char* name (Game::CL_GetConfigString(index));
+
+      index = index - EXTRA_MODELCACHE_FIRST + ModelCache::BASE_GMODEL_COUNT;
+      ModelCache::gameModels_reallocated[index] = Utils::Hook::Call<Game::XModel*(const char*)>(0x140030080)(name); // R_RegisterModel
+
+      return true;
+    }
+
+    // The game has nothing to do for a rumble, the same as on x86.
+    //
+    if (index >= RUMBLE_FIRST && index <= RUMBLE_LAST)
+    {
+      return true;
+    }
+
+    return false;
+  }
+
+  void ConfigStrings::CG_ConfigStringModified_Hk(int localClientNum)
+  {
+    if (!CG_ParseExtraConfigStrings())
+    {
+      Utils::Hook::Call<void(int)>(0x1400E5E10)(localClientNum); // CG_ConfigStringModified
+    }
+  }
+
   bool ConfigStrings::IsValidRumbleIndex(int index)
   {
     // Note that RUMBLE_LAST equals MAX_CONFIGSTRINGS because of the off-by-one
@@ -251,7 +364,28 @@ namespace Components
   {
     PatchConfigStrings();
 
-    // @@ TODO: parse the weapons and models past the game's, which
-    //    CG_ConfigStringModified ignores, when porting Weapon and ModelCache.
+    // Remap the configstrings of the models past the game's to the extra
+    // ones, wherever the game reads or sets the configstring of a model.
+    //
+    // Note that x64 inlines some of the functions whose calls we hook on x86
+    // into their callers, and so we hook more calls.
+    //
+    for (const uintptr_t place: {0x14019B4AB, 0x14019B6E8, 0x1401AAFD2, 0x1401AB0D2, 0x1401AC036, 0x1401AC0DF})
+    {
+      Utils::Hook(place, SV_GetCachedModelConfigStringConst, HOOK_CALL).install()->quick();
+    }
+
+    Utils::Hook(0x1401AC0C6, SV_GetCachedModelConfigStringConst, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1401AC09A, SV_SetCachedModelConfigString, HOOK_CALL).install()->quick(); // G_ModelIndex
+
+    for (const uintptr_t place: {0x1400D9C8A, 0x1400E9B94, 0x1400E9C2A, 0x1400EA1DA})
+    {
+      Utils::Hook(place, CL_GetCachedModelConfigString, HOOK_CALL).install()->quick();
+    }
+
+    // Handle the extra configstrings, which the game ignores, before it
+    // gets to them.
+    //
+    Utils::Hook(0x1400E65B7, CG_ConfigStringModified_Hk, HOOK_CALL).install()->quick(); // CG_ParseServerCommand
   }
 }
