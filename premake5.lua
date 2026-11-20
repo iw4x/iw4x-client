@@ -297,7 +297,6 @@ project "iw4x"
     "src/Components/Modules/Discovery.*",
     "src/Components/Modules/Download.*",
     "src/Components/Modules/Elevators.*",
-    "src/Components/Modules/Lean.*",
     "src/Components/Modules/Localization.*",
     "src/Components/Modules/MapDump.*",
     "src/Components/Modules/MapRotation.*",
