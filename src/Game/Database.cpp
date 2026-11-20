@@ -12,6 +12,7 @@ namespace Game
   DB_GetLoadedFraction_t DB_GetLoadedFraction = DB_GetLoadedFraction_t(0x140117CC0);
   DB_IsXAssetDefault_t DB_IsXAssetDefault = DB_IsXAssetDefault_t(0x14012E160);
   DB_LoadXAssets_t DB_LoadXAssets = DB_LoadXAssets_t(0x14012EC20);
+  DB_FileExists_t DB_FileExists = DB_FileExists_t(0x14012D3A0);
   DB_LoadXFileData_t DB_LoadXFileData = DB_LoadXFileData_t(0x1401182B0);
   DB_ReadXFile_t DB_ReadXFile = DB_ReadXFile_t(0x1401182B0);
   DB_ReadXFileUncompressed_t DB_ReadXFileUncompressed = DB_ReadXFileUncompressed_t(0x1401183E0);

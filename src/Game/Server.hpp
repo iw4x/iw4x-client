@@ -59,6 +59,12 @@ namespace Game
   typedef void(*SV_WaitServer_t)();
   extern SV_WaitServer_t SV_WaitServer;
 
+  // Note that x64 doesn't read devmap, which x86 sets sv_cheats from, and
+  // takes migrate, which x86 reads from sv_migrate.
+  //
+  typedef void(*SV_SpawnServer_t)(const char* server, int mapIsPreloaded, int savegame, int devmap, int migrate);
+  extern SV_SpawnServer_t SV_SpawnServer;
+
   typedef char*(*SV_GetClientPersistentDataBuffer_t)(int clientNum);
   extern SV_GetClientPersistentDataBuffer_t SV_GetClientPersistentDataBuffer;
 
@@ -71,6 +77,7 @@ namespace Game
   extern int* sv_timeResidual;
   extern int* sv_serverId_value;
   extern int* svs_clientCount;
+  extern int* sv_migrate;
   extern client_s* svs_clients;
 
   extern unsigned short* sv_sconfigstrings;
@@ -91,4 +98,28 @@ namespace Game
   extern client_s* SV_GetPlayerByNum();
   extern int SV_GetClientStat(int clientNum, int index);
   extern void SV_SetClientStat(int clientNum, int index, int value);
+
+  // Load the map that is the first argument of the current server command
+  // and spawn the server on it, the way the map command does. The second
+  // argument says whether the map is already loaded and the third whether
+  // the host is migrating.
+  //
+  // Note that x64 compiles out this function along with the map and devmap
+  // commands.
+  //
+  extern void SV_Map_f();
+
+  // As above but the way the devmap command does, which leaves the party and
+  // the online game first and enables cheats on the new server.
+  //
+  extern void SV_DevMap_f();
+
+  // Whether cheats are enabled on the server that SV_Map_f() or SV_DevMap_f()
+  // is spawning, or empty if neither is.
+  //
+  // Note that x86 SV_SpawnServer() sets sv_cheats from its devmap argument,
+  // which x64 compiles out, and so the Maps component sets it from this value
+  // at the same point.
+  //
+  extern std::optional<bool> sv_spawnCheats;
 }

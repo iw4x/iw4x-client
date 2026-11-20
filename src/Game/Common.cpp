@@ -7,6 +7,7 @@ namespace Game
   Com_EventLoop_t Com_EventLoop = Com_EventLoop_t(0x1401F3BE0);
 
   Com_Error_t Com_Error = Com_Error_t(0x1401F3540);
+  Com_Shutdown_t Com_Shutdown = Com_Shutdown_t(0x1401F6620);
   char* com_errorMessage = reinterpret_cast<char*>(0x141BD7A00);
   Com_sprintf_t Com_sprintf = Com_sprintf_t(0x14028A3D0);
   va_t va = va_t(0x14028B700);

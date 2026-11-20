@@ -21,6 +21,7 @@ namespace Game
   SV_DropClient_t SV_DropClient = SV_DropClient_t(0x1402363F0);
   SV_FindClientByAddress_t SV_FindClientByAddress = SV_FindClientByAddress_t(0x14023A980);
   SV_WaitServer_t SV_WaitServer = SV_WaitServer_t(0x14023BF10);
+  SV_SpawnServer_t SV_SpawnServer = SV_SpawnServer_t(0x140239750);
   SV_GetClientPersistentDataBuffer_t SV_GetClientPersistentDataBuffer = SV_GetClientPersistentDataBuffer_t(0x140236C90);
   SV_GetClientPersistentDataModifiedFlags_t SV_GetClientPersistentDataModifiedFlags = SV_GetClientPersistentDataModifiedFlags_t(0x140236CB0);
 
@@ -28,6 +29,7 @@ namespace Game
   int* sv_timeResidual = reinterpret_cast<int*>(0x1464FBD84);
   int* sv_serverId_value = reinterpret_cast<int*>(0x1422CC508);
   int* svs_clientCount = reinterpret_cast<int*>(0x14340CB08);
+  int* sv_migrate = reinterpret_cast<int*>(0x1422CC068);
   client_s* svs_clients = reinterpret_cast<client_s*>(0x14340CB10);
 
   unsigned short* sv_sconfigstrings = reinterpret_cast<unsigned short*>(0x1464FCDA2);
@@ -110,9 +112,11 @@ namespace Game
     assert(svs_clients[clientNum].statPacketsReceived == (1 << MAX_STATPACKETS) - 1);
     assert(svs_clients[clientNum].header.state >= CS_CONNECTED);
 
+    // The stats start with a checksum, which we skip. After it come the 2000
+    // stats that are bytes and then the ones that are ints.
+    //
     if (index < 2000)
     {
-      // Skip first 4 bytes of the binary blob
       return svs_clients[clientNum].stats.__s0.binary[index];
     }
 
@@ -156,9 +160,142 @@ namespace Game
       return;
     }
 
-    // @@ TODO: x64 uses other server command letters than x86. Settle this
-    //    one when porting Stats.
+    // @@ x64 gives the server commands other letters than x86 does, so this
+    //    may not be the command that updates a stat there. Settle it when we
+    //    port Stats.
     //
     SV_SendServerCommand(&svs_clients[clientNum], SV_CMD_RELIABLE, "%c %i %i", 'M', index, value);
+  }
+
+  std::optional<bool> sv_spawnCheats;
+
+  namespace
+  {
+    // Return the argument at index of the server command we are executing,
+    // or the empty string if the command has fewer arguments.
+    //
+    const char* SV_Argv(int index)
+    {
+      return index < sv_cmd_args->argc[sv_cmd_args->nesting]
+        ? sv_cmd_args->argv[sv_cmd_args->nesting][index]
+        : "";
+    }
+
+    // Load the map and spawn the server on it. The command we are executing
+    // decides whether the new server has cheats enabled: devmap enables them
+    // and map disables them.
+    //
+    void SV_Map(const char* map, bool mapIsPreloaded)
+    {
+      com_errorPrintsCount = 0;
+
+      // The map can also be given as its BSP path (maps/mp/<map>.d3dbsp), in
+      // which case we strip it down to the map name since that's what the
+      // map's zone is called. We also lower-case the name and replace '%'
+      // with '_', the same as the game.
+      //
+      // Note that x86 strips the extension without checking that the name is
+      // long enough to have one.
+      //
+      char name[64];
+      {
+        if (I_strnicmp(map, "maps/mp/", 8) == 0)
+        {
+          map += 8;
+        }
+
+        std::size_t n (std::strlen(map));
+        if (n >= 7 && I_stricmp(map + n - 3, "bsp") == 0)
+        {
+          n -= 7; // .d3dbsp
+        }
+
+        n = std::min(n, sizeof(name) - 1);
+        std::memcpy(name, map, n);
+        name[n] = '\0';
+
+        std::ranges::replace(std::span(name, n), '%', '_');
+        I_strlwr(name);
+      }
+
+      // @@ On x86 the map can also be a savegame (<name>.svg), whose header
+      //    says which map to load. x64 compiles out reading the header, so
+      //    for now we don't support it.
+      //
+      const int savegame (*sv_migrate != 0 ? 1 : 0);
+
+      // Make sure we have the map. With a mod loaded, it can also be one of
+      // the user maps.
+      //
+      if (!DB_FileExists(name, FFD_DEFAULT) &&
+          ((*fs_gameDirVar)->current.string[0] == '\0' || !DB_FileExists(name, FFD_USER_MAP)))
+      {
+        Com_PrintError(CON_CHANNEL_ERROR, "Can't find map \"%s\".\nA mod is required for custom maps\n", name);
+        return;
+      }
+
+      const bool devmap (I_stricmp(SV_Argv(0), "devmap") == 0);
+
+      FS_ConvertPath(name);
+
+      sv_spawnCheats = devmap;
+      SV_SpawnServer(name, mapIsPreloaded, savegame, devmap, *sv_migrate);
+      sv_spawnCheats.reset();
+    }
+  }
+
+  void SV_Map_f()
+  {
+    const char* map (SV_Argv(1));
+    if (*map == '\0')
+    {
+      return;
+    }
+
+    const bool mapIsPreloaded (std::atoi(SV_Argv(2)) != 0);
+    *sv_migrate = std::atoi(SV_Argv(3));
+
+    SV_Map(map, mapIsPreloaded);
+  }
+
+  void SV_DevMap_f()
+  {
+    AssertOffset(PartyData, inParty, 0x1814);
+
+    const char* map (SV_Argv(1));
+    if (*map == '\0')
+    {
+      return;
+    }
+
+    if (g_partyData->inParty)
+    {
+      Party_StopParty(g_partyData);
+    }
+
+    if (g_lobbyData->inParty)
+    {
+      Party_StopParty(g_lobbyData);
+    }
+
+    Com_Shutdown("EXE_SERVERKILLED");
+
+    // Leave the online game. While we do, the change doesn't count as a
+    // change to the user or system info, which the game would otherwise send
+    // to the server and the clients.
+    //
+    int* allowed (Sys::GetTls<int>(Sys::TLS_OFFSET::DVAR_ALLOWED_MODIFIED_FLAGS));
+    const int flags (*allowed);
+
+    *allowed = ~(DVAR_USERINFO | DVAR_SYSTEMINFO);
+    Dvar_SetBool(*onlinegame, false);
+    *allowed = flags;
+
+    // Note that x86 first checks that controller 0 is a local controller,
+    // which it always is, and so we don't.
+    //
+    LiveStorage_EndGame(0);
+
+    SV_Map(map, false);
   }
 }

@@ -14,6 +14,9 @@ namespace Game
   typedef void(*Com_Error_t)(errorParm_t type, const char* message, ...);
   extern Com_Error_t Com_Error;
 
+  typedef void(*Com_Shutdown_t)(const char* finalmsg);
+  extern Com_Shutdown_t Com_Shutdown;
+
   // Message of the error Com_Error() is handling.
   //
   extern char* com_errorMessage;
