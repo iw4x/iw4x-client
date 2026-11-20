@@ -53,5 +53,8 @@ namespace Components
     static void DvarSetFromStringByName_Stub(const char* dvarName, const char* value);
 
     static const char* Dvar_EnumToString_Stub(const Game::dvar_t* dvar);
+
+    static void Dvar_SetPartyHost(const Game::dvar_t* dvar, bool value);
+    static void Dvar_ClearPartyHost(const Game::dvar_t* dvar, bool value);
   };
 }

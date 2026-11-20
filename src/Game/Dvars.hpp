@@ -113,6 +113,12 @@ namespace Game
   //
   extern const dvar_t* dvar_cheats;
 
+  // Note that x64 also compiles out party_host, along with setting it when we
+  // start hosting a party or stop being in one. The Dvar component restores
+  // both.
+  //
+  extern const dvar_t* party_host;
+
   extern const dvar_t** fs_cdpath;
   extern const dvar_t** fs_basepath;
   extern const dvar_t** fs_gameDirVar;
