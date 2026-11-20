@@ -272,6 +272,16 @@ project "iw4x"
     "src/Components/Modules/Zones.*"
   }
 
+  -- Steam friends.
+  --
+  -- Friends talks to the Steam client through the Steam proxy, which the
+  -- x64 build doesn't have, and so there is nothing for it to do.
+  --
+  removefiles
+  {
+    "src/Components/Modules/Friends.*"
+  }
+
   -- Sources not yet ported to x64.
   --
   -- NOTE: remember to register each component in Loader::Initialize() when
@@ -287,7 +297,6 @@ project "iw4x"
     "src/Components/Modules/Discovery.*",
     "src/Components/Modules/Download.*",
     "src/Components/Modules/Elevators.*",
-    "src/Components/Modules/Friends.*",
     "src/Components/Modules/Huffman.*",
     "src/Components/Modules/Lean.*",
     "src/Components/Modules/Localization.*",
