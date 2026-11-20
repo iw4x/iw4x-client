@@ -32,6 +32,7 @@
 #include "Modules/MapRotation.hpp"
 #include "Modules/Maps.hpp"
 #include "Modules/Materials.hpp"
+#include "Modules/Missile.hpp"
 
 namespace Components
 {
@@ -85,6 +86,7 @@ namespace Components
     Register(new MapRotation());
     Register(new Maps());
     Register(new Materials());
+    Register(new Missile());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
