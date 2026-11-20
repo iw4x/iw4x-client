@@ -1,5 +1,3 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN FileSystem_RegisterFolders:PROC
@@ -7,22 +5,15 @@ EXTERN FileSystem_RegisterFolders:PROC
 .code
 
 FileSystem_StartupStub PROC
-  pushad
-  push    esi
+  sub     rsp, 20h
   call    FileSystem_RegisterFolders
-  pop     esi
-  popad
+  add     rsp, 20h
 
-  mov     edx, ds:[63D0CC0h]
+  mov     rax, 146642A08h
+  mov     rax, [rax]
 
-  push    48264Dh
-  ret
+  mov     rcx, 140277073h
+  jmp     rcx
 FileSystem_StartupStub ENDP
-
-FileSystem_FS_FOpenFileReadForThread PROC
-  sub     esp, 33Ch
-  push    643276h
-  ret
-FileSystem_FS_FOpenFileReadForThread ENDP
 
 END
