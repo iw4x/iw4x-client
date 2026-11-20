@@ -16,7 +16,7 @@ namespace Components
     Materials();
     ~Materials();
 
-    static int FormatImagePath(char* buffer, size_t size, int, int, const char* image);
+    static int FormatImagePath(char* buffer, size_t size, const char* format, const char* directory, const char* image);
 
     static Game::Material* Create(const std::string& name, Game::GfxImage* image);
     static void Delete(Game::Material* material, bool deleteImage = false);
@@ -40,8 +40,6 @@ namespace Components
     static void DumpImageCfg(int, const char*, const char* material);
     static void DumpImageCfgPath(int, const char*, const char* material);
 #endif
-
-    static int MaterialComparePrint(Game::Material* m1, Game::Material* m2);
 
     static void DeleteAll();
   };
