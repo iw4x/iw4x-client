@@ -5098,13 +5098,19 @@ namespace Game
     float colors[5][4];
   };
 
+  // Note that on x64 the offset is pointer-sized, which the game adds to the
+  // address of the state the field is part of.
+  //
   struct NetField
   {
     char* name;
-    int offset;
+    std::intptr_t offset;
     int bits;
     char changeHints;
   };
+
+  static_assert(offsetof(NetField, bits) == 0x10);
+  static_assert(sizeof(NetField) == 0x18);
 
   struct WeaponDef
   {
