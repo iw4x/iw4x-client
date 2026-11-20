@@ -29,6 +29,7 @@
 #include "Modules/Huffman.hpp"
 #include "Modules/Lean.hpp"
 #include "Modules/MapDump.hpp"
+#include "Modules/MapRotation.hpp"
 #include "Modules/Maps.hpp"
 
 namespace Components
@@ -80,6 +81,7 @@ namespace Components
     Register(new Huffman());
     Register(new Lean());
     Register(new MapDump());
+    Register(new MapRotation());
     Register(new Maps());
     Register(new Scheduler());
 
