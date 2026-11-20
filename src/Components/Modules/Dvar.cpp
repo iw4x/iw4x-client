@@ -362,12 +362,45 @@ namespace Components
     return dvar->domain.enumeration.strings[dvar->current.integer];
   }
 
+  // Set the party dvar that the party code sets right before party_host and
+  // then set party_host the way it does when we start hosting a party.
+  //
+  void Dvar::Dvar_SetPartyHost(const Game::dvar_t* dvar, bool value)
+  {
+    Game::Dvar_SetBool(dvar, value);
+    Game::Dvar_SetBool(Game::party_host, true);
+  }
+
+  // As above but the way the party code clears party_host when we stop being
+  // in a party.
+  //
+  void Dvar::Dvar_ClearPartyHost(const Game::dvar_t* dvar, bool value)
+  {
+    Game::Dvar_SetBool(dvar, value);
+    Game::Dvar_SetBool(Game::party_host, false);
+  }
+
   Dvar::Dvar()
   {
     // Restore sv_cheats, which x64 no longer registers in Dvar_Init but still
     // reads by name, with the x86 flags.
     //
     Game::dvar_cheats = Game::Dvar_RegisterBool("sv_cheats", false, Game::DVAR_INIT | Game::DVAR_SYSTEMINFO, "External Dvar");
+
+    // Restore party_host, which x64 compiles out along with setting it, with
+    // the x86 flags. Our components read it to tell whether we host the
+    // party.
+    //
+    // The party code sets it right after two other party dvars, which x64
+    // still sets, and so we hook the second of those calls. We become the
+    // host either by starting a party or when the host leaves the party and
+    // hands it over to us.
+    //
+    Game::party_host = Game::Dvar_RegisterBool("party_host", false, Game::DVAR_ROM, "True if we are the host of the party");
+
+    Utils::Hook(0x1401122DF, Dvar_SetPartyHost, HOOK_CALL).install()->quick();   // PartyHost_StartParty
+    Utils::Hook(0x140111DB8, Dvar_SetPartyHost, HOOK_CALL).install()->quick();   // Host migration
+    Utils::Hook(0x14010C1DC, Dvar_ClearPartyHost, HOOK_CALL).install()->quick(); // Party_StopParty
 
     // Set flags of cg_drawFPS to archive.
     //
