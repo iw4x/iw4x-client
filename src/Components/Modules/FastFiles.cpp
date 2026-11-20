@@ -1,136 +1,33 @@
-#include <zlib.h>
-
 #include "FastFiles.hpp"
+#include "Maps.hpp"
+#include "Renderer.hpp"
 #include "Sentry.hpp"
 
 namespace Components
 {
-  FastFiles::Key FastFiles::CurrentKey;
-  symmetric_CTR FastFiles::CurrentCTR;
+  namespace
+  {
+    // Return the directory of the zone group as the prefix the game puts a
+    // zone file name after (zone\<group>\).
+    //
+    // Note that the installed zones are in the x64 layout and so we read
+    // them in place. On x86 the game can only read the copies that
+    // ZoneConvert converts into its own layout.
+    //
+    std::string ZoneDirectory(const std::string_view group)
+    {
+      return std::format("zone\\{}\\", group);
+    }
+  }
+
   std::vector<std::string> FastFiles::ZonePaths;
 
   Dvar::Var FastFiles::g_loadingInitialZones;
 
-  bool FastFiles::IsIW4xZone = false;
   bool FastFiles::StreamRead = false;
 
-  char FastFiles::LastByteRead = 0;
-
-  unsigned int FastFiles::CurrentZone;
-  unsigned int FastFiles::MaxZones;
-
-  unsigned char FastFiles::ZoneKey[1191] =
-  {
-    0x30,0x82,0x04,0xA3,0x02,0x01,0x00,0x02,0x82,0x01,0x01,
-    0x00,0xBD,0x7E,0xD6,0xE2,0xE9,0x1C,0xB1,0x08,0x68,0xA2,
-    0xEC,0xC2,0x47,0xCB,0x60,0x00,0x0F,0xF5,0x6B,0x75,0x32,
-    0xA3,0xE4,0xEB,0x85,0x2F,0x23,0x97,0x6E,0x13,0x33,0xBC,
-    0xA3,0xBB,0x61,0x88,0xDE,0xB8,0xA8,0x33,0xD6,0xB8,0xA3,
-    0xDB,0x48,0x09,0xE8,0x7D,0x0A,0x43,0xBF,0xDB,0x52,0x32,
-    0x5C,0x8B,0x0A,0x46,0x01,0x95,0x81,0x97,0x40,0x46,0x28,
-    0x73,0x96,0x88,0x7C,0x9A,0x08,0x94,0x62,0xDC,0x10,0xF1,
-    0xE7,0x2B,0xF8,0xDE,0x21,0xA2,0xD1,0x39,0x45,0x1A,0xD2,
-    0x41,0x45,0xC1,0xEE,0x01,0xFF,0xD6,0x33,0x7F,0xB4,0x64,
-    0x41,0x87,0xE6,0x71,0xB7,0x0D,0xE8,0xCF,0xF4,0xCB,0x28,
-    0x3C,0xA6,0x92,0x3A,0x69,0x95,0x93,0xBE,0x72,0xA4,0x86,
-    0x76,0xF6,0x99,0x7E,0xD8,0xB0,0x63,0x1E,0xC7,0x67,0x8B,
-    0xF7,0xF6,0x6B,0x46,0xF1,0xA1,0x7C,0x26,0x15,0x0E,0xF9,
-    0xA6,0x3F,0x67,0x54,0x16,0x5C,0xD6,0xAE,0xDE,0x12,0xF8,
-    0x30,0x9F,0x5D,0xF2,0xF7,0xAF,0x20,0xAE,0x69,0x06,0x28,
-    0x80,0xA9,0xD5,0x94,0x74,0x3D,0xDB,0x5A,0x77,0x87,0xAE,
-    0x1D,0x34,0x20,0xF9,0x8F,0x23,0x21,0xCE,0x86,0xB6,0xBF,
-    0x8E,0xF3,0xEC,0x4A,0xDF,0xBE,0x12,0x51,0x85,0x4F,0x48,
-    0x52,0x2E,0x8A,0x88,0xC6,0x6C,0xD2,0xCD,0x19,0xCF,0xDF,
-    0x0A,0x9B,0xB5,0x0B,0x36,0x6D,0x28,0x36,0x57,0xC3,0x84,
-    0xDD,0xC2,0xA1,0x1B,0x7A,0xE8,0xE9,0x1F,0xE4,0xC8,0x8E,
-    0x8A,0x5A,0x49,0x0F,0xDB,0x8D,0x60,0x48,0xAD,0x81,0x2C,
-    0xE8,0x44,0x42,0x57,0xFA,0x7C,0x18,0xAC,0xEF,0x30,0xC9,
-    0xC6,0xA0,0x4D,0xFD,0x02,0x03,0x01,0x00,0x01,0x02,0x82,
-    0x01,0x00,0x1C,0x18,0x93,0x59,0xDF,0x80,0x5E,0x8B,0x45,
-    0xA0,0x6A,0x84,0x3F,0xCA,0xDA,0xB8,0x07,0xA5,0xB6,0xC2,
-    0x10,0xB9,0x16,0x37,0x09,0x6F,0x3C,0xD2,0xB6,0x02,0x68,
-    0xD8,0x5E,0x5A,0x69,0x12,0xB7,0x1B,0x1F,0xED,0x57,0xB7,
-    0xD6,0xAB,0xAB,0x99,0xB4,0x7B,0xDD,0xAA,0xBF,0xE6,0x8F,
-    0xE0,0x61,0xB2,0x47,0xDA,0xAB,0x5F,0x74,0x70,0x6D,0x9A,
-    0x39,0x63,0x31,0xFD,0x98,0xA3,0xEA,0x03,0xBE,0x48,0xAC,
-    0xC6,0x81,0x25,0x16,0xE8,0x30,0x8A,0x88,0x84,0xFA,0x47,
-    0x08,0xC7,0x9E,0xC5,0x2B,0x39,0xE6,0xA9,0xE6,0xC6,0xD7,
-    0x83,0x49,0xE8,0x11,0x75,0xE8,0xD3,0x4A,0x22,0x93,0x44,
-    0x0F,0xFA,0x36,0x24,0x56,0x3E,0xD3,0x6B,0xAD,0x80,0x27,
-    0xFE,0xBB,0xE2,0xC2,0x4D,0x79,0x69,0x65,0xB8,0xA7,0xFB,
-    0x42,0x9B,0xE9,0x41,0x98,0x60,0xB9,0xEB,0xD8,0xB2,0x25,
-    0xAD,0xF1,0xDC,0x0B,0x04,0x9F,0x0F,0xD0,0x96,0x9E,0x1D,
-    0x7A,0x73,0xC5,0xE0,0x7A,0x5C,0xF9,0xF8,0x0F,0xCB,0xA1,
-    0xFE,0xE8,0x94,0x84,0x6D,0xB4,0x2B,0xFD,0x64,0xC2,0xAF,
-    0xD3,0x48,0x35,0xDF,0xCB,0x2D,0xD8,0x2E,0xE8,0x35,0x33,
-    0x6E,0xBD,0xE1,0xD5,0x90,0xFC,0x67,0x9B,0xFF,0x9F,0xA0,
-    0x54,0x02,0xDB,0xFB,0xCC,0xA8,0x9E,0x1C,0x35,0x88,0x10,
-    0x43,0x2B,0xA5,0xCF,0x78,0x4F,0xF0,0xC6,0x74,0x4D,0x47,
-    0xA4,0x9B,0x22,0x89,0x56,0xF0,0x6A,0xEA,0xFA,0x6B,0xDD,
-    0xDA,0xB1,0x2F,0x55,0x6A,0x5C,0xEF,0xF6,0x31,0xB0,0x87,
-    0xAC,0xBE,0xCB,0xAC,0x8D,0xA6,0xC2,0x79,0x75,0x20,0xE0,
-    0x61,0x49,0x69,0xA3,0xA1,0x02,0x81,0x81,0x00,0xC9,0x70,
-    0xB5,0x6E,0xA6,0x4A,0x49,0xF1,0xA9,0xC7,0xEA,0x6E,0xCF,
-    0x23,0xB0,0x29,0x93,0x80,0x2A,0xA9,0x4E,0x29,0x5C,0x3B,
-    0xE5,0x9C,0xA5,0x84,0x0C,0x1B,0x9D,0xD4,0xDC,0xA4,0x63,
-    0xCD,0xDD,0x70,0x9B,0xBE,0x8F,0x29,0xB3,0x1E,0x06,0x46,
-    0xD1,0xE6,0xEC,0xE7,0xB0,0x55,0x44,0xA5,0x24,0x56,0x5F,
-    0x28,0x58,0x32,0xCF,0xDC,0x1F,0x74,0x9A,0xB6,0x78,0x83,
-    0x08,0x95,0x3D,0x15,0x54,0x23,0x8B,0x15,0x0D,0x9B,0x34,
-    0x2B,0x55,0xFE,0x4F,0x26,0x7E,0x59,0x62,0xE8,0x31,0xC1,
-    0x8A,0x6E,0xCB,0xB8,0xFA,0xBD,0x39,0xAF,0x9A,0x9E,0xF8,
-    0x7B,0x3F,0x0E,0x0A,0x22,0x40,0xD6,0x28,0xA4,0xF5,0x4E,
-    0x82,0x45,0xDE,0x81,0xC5,0x7F,0x90,0x44,0x01,0x5F,0x93,
-    0xCD,0x95,0x16,0x3D,0xE9,0x02,0x81,0x81,0x00,0xF0,0xD1,
-    0xE9,0x8D,0xA9,0xDF,0xFA,0x1E,0xA6,0xFE,0x10,0x3B,0x68,
-    0x7C,0x0E,0x52,0xD2,0x19,0x0C,0xA5,0xEB,0xFD,0xB4,0x1A,
-    0xDF,0x03,0x5B,0x3E,0x82,0x5D,0x99,0x9B,0x71,0x23,0xFB,
-    0xFE,0x69,0xB3,0x2D,0xEB,0xE7,0x67,0xBC,0x9E,0xF9,0x05,
-    0xE6,0x4D,0x2B,0x1C,0xE9,0x12,0xFF,0xF3,0xD0,0xC8,0x42,
-    0x9F,0x00,0xFE,0x82,0xC3,0x7A,0xB1,0x4F,0x94,0xA1,0xAD,
-    0x90,0xE0,0xA4,0x3F,0x78,0x55,0x5A,0x54,0x59,0x4A,0xF9,
-    0xEF,0x17,0x40,0xD1,0x09,0xA5,0x0D,0xAC,0xAB,0x8C,0xF0,
-    0xFD,0x05,0x6B,0x9A,0xEC,0x3D,0x98,0x95,0x5A,0x33,0xA7,
-    0x47,0x16,0xA8,0x9F,0xBA,0xD3,0xBE,0xCD,0x28,0xEE,0x17,
-    0x64,0x40,0xBF,0xEC,0x88,0xCD,0x97,0x1F,0xBD,0x3A,0xE6,
-    0x16,0xFE,0x0F,0xDE,0xF5,0x02,0x81,0x81,0x00,0xBF,0x7C,
-    0xD7,0xCB,0xAE,0x61,0xF2,0x36,0xBA,0xD9,0x62,0xBE,0x21,
-    0x44,0x60,0xA2,0xB5,0x27,0x61,0xE6,0x7D,0x79,0x8D,0xC7,
-    0x16,0x77,0x39,0x53,0xF4,0x1A,0x90,0x87,0x97,0x92,0xE1,
-    0x99,0x01,0xC6,0x99,0x16,0xA5,0x8A,0xD3,0x4D,0x58,0x54,
-    0x1C,0x16,0xB3,0xDF,0x6E,0xDD,0x2F,0x9A,0xF8,0x96,0xEE,
-    0x70,0x30,0x9F,0x64,0xBE,0x70,0x5C,0x6C,0xF1,0xC6,0x4F,
-    0x71,0x6A,0x44,0x9D,0xB0,0xD4,0xF4,0xD2,0x77,0x93,0xB1,
-    0x1C,0xFC,0xEA,0xF9,0x9C,0xB3,0x01,0x0F,0xA7,0x80,0x1C,
-    0xE6,0x16,0x7A,0xAC,0x86,0x16,0x38,0xEE,0xF8,0x41,0xE4,
-    0x1D,0x6C,0x8C,0x51,0x0F,0xCC,0xA8,0x88,0x0C,0x7F,0x70,
-    0x39,0x20,0x67,0xEA,0xDE,0xAE,0x6B,0x9A,0x69,0xDF,0xCC,
-    0x65,0xE2,0x32,0x39,0x79,0x02,0x81,0x80,0x01,0xDE,0xCF,
-    0x7E,0x8F,0x2C,0x33,0x28,0x1B,0xC9,0xEB,0x5C,0x5A,0xC2,
-    0x63,0xE6,0x16,0xC5,0xA5,0x08,0x80,0xDD,0xB6,0x91,0x62,
-    0xDC,0x06,0xD0,0x64,0x78,0xCF,0xA1,0x9A,0x6E,0x5A,0x1D,
-    0xAE,0xBA,0x7A,0x87,0xD3,0x83,0x45,0xBE,0xC2,0x56,0x5E,
-    0x64,0x89,0x0A,0x2F,0x71,0x3B,0x55,0xAC,0x70,0x71,0xBC,
-    0x04,0x68,0xF5,0xA1,0x09,0x09,0xE9,0x81,0x51,0x04,0x25,
-    0x14,0xE9,0x91,0xA8,0xA0,0x99,0x14,0x00,0xA1,0x89,0x71,
-    0x66,0xEF,0xD4,0xEF,0xCB,0x3D,0x60,0xF2,0xF0,0x24,0x4B,
-    0x02,0xC8,0xC4,0x2A,0x43,0x8C,0x34,0xD4,0xBF,0x83,0xF4,
-    0x14,0x63,0xF8,0xE1,0x9D,0x95,0x64,0xC8,0x85,0x98,0xDE,
-    0xE9,0x75,0xD4,0x23,0x77,0xDD,0x4D,0x9C,0xCD,0xA1,0x4D,
-    0xDA,0x69,0x4B,0x25,0x02,0x81,0x80,0x56,0x6F,0x21,0x4E,
-    0xD2,0x95,0x50,0xDD,0x1E,0xFE,0x08,0xCD,0xE0,0x1E,0x97,
-    0x98,0x3C,0xED,0xFB,0x7F,0x53,0x4A,0xFC,0x90,0x4B,0x5E,
-    0x96,0x09,0x5D,0x57,0x7C,0x5C,0x39,0x21,0x10,0xA5,0xAA,
-    0x49,0xB7,0xC9,0x41,0x2B,0xF4,0xAC,0x95,0x07,0xBC,0x45,
-    0xCD,0xAE,0x42,0x05,0x12,0xA0,0x1C,0x8E,0x0F,0xF8,0x0A,
-    0xB3,0x72,0x50,0xCD,0x0D,0x21,0x2D,0x67,0x81,0x99,0x69,
-    0xFF,0xF8,0x5E,0x23,0x19,0x86,0x03,0x3D,0x42,0x6F,0x38,
-    0xFB,0x39,0x1C,0xBA,0x96,0x69,0xC6,0xDC,0xE7,0x52,0x7A,
-    0x7E,0xC5,0x98,0x03,0x8A,0x3A,0x88,0x7C,0x9A,0xB0,0x70,
-    0x26,0x62,0xD6,0xF4,0x13,0x1D,0x37,0x7E,0x33,0x3F,0xBB,
-    0xFF,0x91,0x0D,0xA6,0xBB,0x82,0x30,0x34,0xB1,0xD3,0xA4,
-    0xA7,0xD6,0x91,
-  };
+  std::atomic<unsigned int> FastFiles::CurrentZone;
+  std::atomic<unsigned int> FastFiles::MaxZones;
 
   // This has to be called only once, when the game starts
   void FastFiles::LoadInitialZones(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync)
@@ -150,7 +47,7 @@ namespace Components
       data.push_back({ "mod", 1, 0 });
     }
 
-    return FastFiles::LoadDLCUIZones(data.data(), data.size(), sync);
+    return FastFiles::LoadDLCUIZones(data.data(), static_cast<unsigned int>(data.size()), sync);
   }
 
   // This has to be called every time the cgame is reinitialized
@@ -158,6 +55,18 @@ namespace Components
   {
     std::vector<Game::XZoneInfo> data;
     Utils::Merge(&data, zoneInfo, zoneCount);
+
+    // Take the UI zones of the map packs out of the list since the code below
+    // decides whether to load them.
+    //
+    // Note that on x64 the game lists them with the stock UI zones, ahead of
+    // ui_mp. On x86 it leaves them to us and we only load them when there is
+    // no iw4x_ui_mp.
+    //
+    std::erase_if(data, [] (const Game::XZoneInfo& zone)
+    {
+      return zone.name && (!std::strcmp(zone.name, "dlc1_ui_mp") || !std::strcmp(zone.name, "dlc2_ui_mp"));
+    });
 
     Game::XZoneInfo info = { nullptr, 2, 0 };
 
@@ -176,7 +85,7 @@ namespace Components
       data.push_back(info);
     }
 
-    return FastFiles::LoadLocalizeZones(data.data(), data.size(), sync);
+    return FastFiles::LoadLocalizeZones(data.data(), static_cast<unsigned int>(data.size()), sync);
   }
 
   void FastFiles::LoadGfxZones(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync)
@@ -189,7 +98,7 @@ namespace Components
       data.push_back({ "iw4x_code_post_gfx_mp", zoneInfo->allocFlags, zoneInfo->freeFlags });
     }
 
-    Game::DB_LoadXAssets(data.data(), data.size(), sync);
+    Game::DB_LoadXAssets(data.data(), static_cast<unsigned int>(data.size()), sync);
   }
 
   // This has to be called every time fastfiles are loaded :D
@@ -214,7 +123,7 @@ namespace Components
 
     data.push_back(info);
 
-    Game::DB_LoadXAssets(data.data(), data.size(), sync);
+    Game::DB_LoadXAssets(data.data(), static_cast<unsigned int>(data.size()), sync);
 
     Scheduler::OnGameInitialized([]
     {
@@ -253,8 +162,7 @@ namespace Components
 
     Utils::Merge(&paths, FastFiles::ZonePaths);
 
-    paths.push_back(ZoneConvert::SearchPath(Game::Win_GetLanguage()));
-    paths.push_back(std::format("zone\\{}\\", Game::Win_GetLanguage()));
+    paths.push_back(ZoneDirectory(Game::Win_GetLanguage()));
 
     for (auto& path : paths)
     {
@@ -314,7 +222,7 @@ namespace Components
       }
     }
 
-    return Utils::String::Format("{}", ZoneConvert::SearchPath(Game::Win_GetLanguage()));
+    return Utils::String::Format("{}", ZoneDirectory(Game::Win_GetLanguage()));
   }
 
   void FastFiles::AddZonePath(const std::string& path)
@@ -324,123 +232,41 @@ namespace Components
 
   std::string FastFiles::Current()
   {
-    const char* file = (Utils::Hook::Get<char*>(0x112A680) + 4);
+    const Game::DBFile* file = *Game::g_loadFile;
 
-    if (file == reinterpret_cast<char*>(4))
+    if (!file)
     {
       return "";
     }
 
-    return file;
+    return file->name;
   }
 
-  void FastFiles::ReadXFileHeader(void* buffer, int size)
-  {
-    if (FastFiles::IsIW4xZone)
-    {
-      char pad;
-      Game::DB_ReadXFile(&pad, 1);
-    }
-
-    Game::DB_ReadXFile(buffer, size);
-  }
-
+  // Count the zone towards the loading progress. The game reads the version
+  // once per zone, right after the magic.
+  //
+  // Note that on x86 we also map the versions of IW4x zones onto the stock
+  // one here. On x64 we only load zones of the stock version (see
+  // ReadHeaderStub() for details).
+  //
   void FastFiles::ReadVersionStub(unsigned int* version, int size)
   {
-    FastFiles::CurrentZone++;
+    ++FastFiles::CurrentZone;
     Game::DB_ReadXFileUncompressed(version, size);
-
-    Zones::SetVersion(*version);
-
-    // Allow loading of codo versions
-    if ((*version >= VERSION_ALPHA2 && *version <= 360) || (*version >= 423 && *version <= 461))
-    {
-      *version = XFILE_VERSION;
-    }
-
-    if (*version != XFILE_VERSION)
-    {
-      Logger::Error(Game::ERR_FATAL, "Zone version {} is not supported!", Zones::Version());
-    }
   }
 
+  // Leave a breadcrumb with the zone we are about to load.
+  //
+  // Note that on x86 this is also where we recognize IW4x zones by their
+  // header and set up decrypting and deobfuscating the rest of the stream.
+  // On x64 our zones are in the stock unsigned format, so there is nothing
+  // to recognize.
+  //
   void FastFiles::ReadHeaderStub(unsigned int* header, int size)
   {
     Sentry::Leave(::Sentry::trail::fastfile, SENTRY_LEVEL_INFO, std::format("loading fastfile {}", FastFiles::Current()));
 
-    FastFiles::IsIW4xZone = false;
-    FastFiles::LastByteRead = 0;
     Game::DB_ReadXFileUncompressed(header, size);
-
-    if (header[0] == XFILE_HEADER_IW4X)
-    {
-      FastFiles::IsIW4xZone = true;
-
-      if (header[1] < XFILE_VERSION_IW4X)
-      {
-        Logger::Error(Game::ERR_FATAL, "The fastfile you are trying to load is outdated ({}, expected {})", header[1], XFILE_VERSION_IW4X);
-      }
-      else if (header[1] > XFILE_VERSION_IW4X)
-      {
-        Logger::Error(Game::ERR_FATAL, "You are loading a fastfile that is too new ({}, expected {}), update your game or rebuild the fastfile", header[1], XFILE_VERSION_IW4X);
-      }
-
-      *reinterpret_cast<unsigned __int64*>(header) = XFILE_MAGIC_UNSIGNED;
-    }
-  }
-
-  void FastFiles::AuthLoadInitCrypto()
-  {
-    if (Zones::Version() >= 319)
-    {
-      register_hash(&sha256_desc);
-      register_cipher(&aes_desc);
-
-      rsa_key key;
-      unsigned char encKey[256];
-      int hash = find_hash("sha256"), aes = find_cipher("aes"), stat;
-
-      Game::DB_ReadXFileUncompressed(encKey, 256);
-
-      unsigned long outLen = sizeof(FastFiles::CurrentKey);
-      rsa_import(FastFiles::ZoneKey, sizeof(FastFiles::ZoneKey), &key);
-      rsa_decrypt_key_ex(encKey, 256, FastFiles::CurrentKey.data, &outLen, nullptr, 0, hash, Zones::Version() >= 359 ? 1 : 2, &stat, &key);
-      rsa_free(&key);
-
-      ctr_start(aes, FastFiles::CurrentKey.iv, FastFiles::CurrentKey.key, sizeof(FastFiles::CurrentKey.key), 0, 0, &FastFiles::CurrentCTR);
-    }
-
-    Utils::Hook::Call<void()>(0x46FAE0)();
-  }
-
-  int FastFiles::AuthLoadInflateCompare(unsigned char* buffer, int length, unsigned char* ivValue)
-  {
-    if (Zones::Version() >= 319)
-    {
-      ctr_setiv(ivValue, 16, &FastFiles::CurrentCTR);
-      ctr_decrypt(buffer, buffer, length, &FastFiles::CurrentCTR);
-    }
-
-    return Utils::Hook::Call<int(unsigned char*, int, unsigned char*)>(0x5BA240)(buffer, length, ivValue);
-  }
-
-  static int InflateInitDecrypt(z_streamp strm, const char* version, int stream_size)
-  {
-    if (Zones::Version() >= 319)
-    {
-      ctr_decrypt(strm->next_in, const_cast<unsigned char*>(strm->next_in), strm->avail_in, &FastFiles::CurrentCTR);
-    }
-
-    return Utils::Hook::Call<int(z_streamp, const char*, int)>(0x4D8090)(strm, version, stream_size);
-  }
-
-  void FastFiles::AuthLoadInflateDecryptBaseFunc(unsigned char* buffer)
-  {
-    if (Zones::Version() >= 319)
-    {
-      ctr_setiv(FastFiles::CurrentKey.iv, sizeof(FastFiles::CurrentKey.iv), &FastFiles::CurrentCTR);
-      ctr_decrypt(buffer, buffer, 8192, &FastFiles::CurrentCTR);
-    }
   }
 
   float FastFiles::GetFullLoadedFraction()
@@ -451,30 +277,20 @@ namespace Components
     return std::min(partialProgress + (currentProgress * singleProgress), 1.0f);
   }
 
-  void FastFiles::LoadZonesStub(Game::XZoneInfo* zoneInfo, unsigned int zoneCount)
+  // Start counting the zones of a load.
+  //
+  // Note that x64 inlines DB_LoadXZone(), whose call we hook on x86, into
+  // DB_LoadXAssets(), so here we hook the Sys_WakeDatabase() call it ends
+  // with. By then it has copied the zones for the database thread and so we
+  // take their count from there, which also leaves out the entries without
+  // a name that it skips.
+  //
+  void FastFiles::LoadZonesStub()
   {
     FastFiles::CurrentZone = 0;
-    FastFiles::MaxZones = zoneCount;
+    FastFiles::MaxZones = *Game::g_zoneInfoCount;
 
-    Utils::Hook::Call<void(Game::XZoneInfo*, unsigned int)>(0x5BBAC0)(zoneInfo, zoneCount);
-  }
-
-  void FastFiles::ReadXFileStub(char* buffer, int size)
-  {
-    FastFiles_ReadXFile(buffer, size);
-
-    if (FastFiles::IsIW4xZone)
-    {
-      for (int i = 0; i < size; ++i)
-      {
-        buffer[i] ^= FastFiles::LastByteRead;
-        Utils::RotLeft(buffer[i], 4);
-        buffer[i] ^= -1;
-        Utils::RotRight(buffer[i], 6);
-
-        FastFiles::LastByteRead = buffer[i];
-      }
-    }
+    Utils::Hook::Call<void()>(0x140208F20)(); // Sys_WakeDatabase
   }
 
 #ifdef DEBUG
@@ -491,13 +307,15 @@ namespace Components
   }
 #endif
 
-  void FastFiles::Load_XSurfaceArray(int atStreamStart, [[maybe_unused]] int count)
+  void FastFiles::Load_XSurfaceArray(bool atStreamStart, [[maybe_unused]] int count)
   {
+    AssertOffset(Game::XModelSurfs, numsurfs, 0x10);
+
     // read the actual count from the varXModelSurfs ptr
-    auto surface = *reinterpret_cast<Game::XModelSurfs**>(0x0112A95C);
+    auto surface = *reinterpret_cast<Game::XModelSurfs**>(0x140DB5170);
 
     // call original read function with the correct count
-    return Utils::Hook::Call<void(int, int)>(0x004925B0)(atStreamStart, surface->numsurfs);
+    return Utils::Hook::Call<void(bool, int)>(0x140123B90)(atStreamStart, surface->numsurfs);
   }
 
   void FastFiles::DB_BuildOSPath_FromSource_Default(const char* zoneName, Game::FF_DIR source, unsigned int size, char* filename)
@@ -600,18 +418,25 @@ namespace Components
   // common_mp to a map. Most likely the file is damaged but, until we know
   // which ones fail, we still let the player report it.
   //
+  // Note also that on x64 the print is compiled out and the handler is
+  // inlined into most of its callers, and so we hook the Sys_Error() call of
+  // each copy (see the constructor).
+  //
   void FastFiles::Sys_Error_DirtyDisc (const char*)
   {
-    const auto* zone (reinterpret_cast<const char*> (*reinterpret_cast<std::uintptr_t*> (0x112A680) + 4));
+    const char* zone ((*Game::g_loadFile)->name);
 
     Game::Sys_Error ("Could not read the game file '%s.ff'. It is probably "
                      "damaged, so verify your game files or reinstall them.",
                      zone);
   }
 
+  // Note that on x86 we also look for the zone in the directories of the
+  // zone builder, which isn't part of the x64 build.
+  //
   Game::Sys_File FastFiles::Sys_CreateFile_Stub(const char* dir, const char* filename)
   {
-    static_assert(sizeof(Game::Sys_File) == 4);
+    static_assert(sizeof(Game::Sys_File) == sizeof(HANDLE));
 
     auto file = Game::Sys_CreateFile(dir, filename);
 
@@ -621,15 +446,31 @@ namespace Components
       file.handle = Game::Sys_OpenFileReliable(Utils::String::VA("%s\\%s%s", FileSystem::Sys_HomePath_Hk(), dir, filename));
     }
 
-    if (file.handle == INVALID_HANDLE_VALUE && ZoneBuilder::IsEnabled())
-    {
-      file = Game::Sys_CreateFile(ZoneConvert::SearchPath("zonebuilder").data(), filename);
-
-      if (file.handle == INVALID_HANDLE_VALUE)
-        file = Game::Sys_CreateFile("zone\\zonebuilder\\", filename);
-    }
-
     return file;
+  }
+
+  // Give the zone list of DB_LoadXAssets() room for as many zones as the
+  // game can have loaded at once.
+  //
+  // DB_LoadXAssets() copies each zone it loads into this list, which the
+  // database thread then loads them from, and nothing checks that they fit.
+  // On x64 the list has room for 8 zones with their count stored right
+  // after it, so the startup load with our zones added writes past its end
+  // and the count lands on the name of the ninth zone. The game refuses to
+  // have more than 32 zones loaded, so a list of 32 holds any load it
+  // accepts.
+  //
+  void FastFiles::ReallocateZoneList()
+  {
+    constexpr uintptr_t list = 0x1415FA9F0;
+    constexpr size_t zoneSize = 0x44;
+    constexpr size_t zoneCount = 32;
+
+    const uintptr_t to = reinterpret_cast<uintptr_t>(Utils::Hook::AllocateNear(0x14012F0A1, zoneSize * zoneCount));
+
+    Utils::Hook::Displace(0x14012F0A1, 7, list, to);               // DB_LoadXAssets(), names
+    Utils::Hook::Displace(0x14012F9E9, 7, list, to);               // DB_Thread(), names
+    Utils::Hook::Displace(0x14012F9E2, 7, list + 0x40, to + 0x40); // DB_Thread(), flags
   }
 
   FastFiles::FastFiles()
@@ -637,85 +478,71 @@ namespace Components
     Dvar::Register<bool>("ui_zoneDebug", false, Game::DVAR_ARCHIVE, "Display current loaded zone.");
     g_loadingInitialZones = Dvar::Register<bool>("g_loadingInitialZones", true, Game::DVAR_NONE, "Is loading initial zones");
 
-    Utils::Hook(0x5BC832, Sys_CreateFile_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook (0x5BC8A6, Sys_Error_MissingZone, HOOK_CALL).install ()->quick ();
-    Utils::Hook (0x4CF850, Sys_Error_DirtyDisc, HOOK_CALL).install ()->quick ();
+    FastFiles::ReallocateZoneList();
 
-    Utils::Hook(0x4CCDF0, DB_FileExists_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14012FA7B, Sys_CreateFile_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook (0x14012FAFE, Sys_Error_MissingZone, HOOK_CALL).install ()->quick ();
+
+    // Note that two of the copies of DB_DirtyDiscError() end with a jump to
+    // Sys_Error() (see Sys_Error_DirtyDisc() for details).
+    //
+    Utils::Hook (0x140117FE7, Sys_Error_DirtyDisc, HOOK_JUMP).install ()->quick ();
+    Utils::Hook (0x1401180C8, Sys_Error_DirtyDisc, HOOK_JUMP).install ()->quick ();
+    Utils::Hook (0x140118316, Sys_Error_DirtyDisc, HOOK_CALL).install ()->quick ();
+    Utils::Hook (0x1401184BF, Sys_Error_DirtyDisc, HOOK_CALL).install ()->quick ();
+    Utils::Hook (0x1401181EE, Sys_Error_DirtyDisc, HOOK_CALL).install ()->quick ();
+
+    Utils::Hook(0x14012D3A0, DB_FileExists_Hk, HOOK_JUMP).install()->quick();
 
     // Fix XSurface assets
-    Utils::Hook(0x0048E8A5, FastFiles::Load_XSurfaceArray, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140123950, FastFiles::Load_XSurfaceArray, HOOK_CALL).install()->quick();
 
-    // Redirect zone paths
-    Utils::Hook(0x44DA90, FastFiles::GetZoneLocation, HOOK_JUMP).install()->quick();
+    // Redirect zone paths.
+    //
+    // Note that x64 looks up the directory of the playlist zone with a copy
+    // of DB_GetZoneLocation() that takes no name, so we leave that one
+    // alone. We don't ship the playlist zone and for a zone we don't have we
+    // return the language directory, the same as the game.
+    //
+    Utils::Hook(0x1402A3910, FastFiles::GetZoneLocation, HOOK_JUMP).install()->quick();
 
-    // Allow loading 'newer' zones
-    Utils::Hook(0x4158E7, FastFiles::ReadVersionStub, HOOK_CALL).install()->quick();
-
-    // Allow loading IW4x zones
-    Utils::Hook(0x4157B8, FastFiles::ReadHeaderStub, HOOK_CALL).install()->quick();
-
-    // Obfuscate zone data
-    Utils::Hook(Game::DB_ReadXFile, FastFiles::ReadXFileStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140117D80, FastFiles::ReadVersionStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140117D46, FastFiles::ReadHeaderStub, HOOK_CALL).install()->quick();
 
     // Allow custom zone loading
-    if (!ZoneBuilder::IsEnabled())
-    {
-      Utils::Hook(0x506BC7, FastFiles::LoadInitialZones, HOOK_CALL).install()->quick();
-      Utils::Hook(0x60B4AC, FastFiles::LoadDLCUIZones, HOOK_CALL).install()->quick();
-      Utils::Hook(0x506B25, FastFiles::LoadGfxZones, HOOK_CALL).install()->quick();
-    }
+    Utils::Hook(0x140030D70, FastFiles::LoadInitialZones, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401F335E, FastFiles::LoadDLCUIZones, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140030C84, FastFiles::LoadGfxZones, HOOK_CALL).install()->quick();
 
-    // basic checks (hash jumps, both normal and playlist)
-    Utils::Hook::Nop(0x5B97A3, 2);
-    Utils::Hook::Nop(0x5BA493, 2);
+    // Allow loading of unsigned zones, which is the format our zones are in.
+    //
+    // DB_LoadXFileInternal() accepts the unsigned magic and passes on that
+    // the zone isn't signed. DB_AuthLoad_InflateInit() can then set up a
+    // plain inflate stream for it but first fails every such zone as not
+    // supported, so we drop the jump to the failure.
+    //
+    // Note that on x86 we also accept any header and skip the hash checks of
+    // signed zones, both of which only IW4x zones need.
+    //
+    Utils::Hook::Nop(0x140118066, 2);
 
-    Utils::Hook::Nop(0x5B991C, 2);
-    Utils::Hook::Nop(0x5BA60C, 2);
-
-    Utils::Hook::Nop(0x5B97B4, 2);
-    Utils::Hook::Nop(0x5BA4A4, 2);
-
-    // allow loading of IWffu (unsigned) files
-    Utils::Hook::Set<BYTE>(0x4158D9, 0xEB); // main function
-    Utils::Hook::Nop(0x4A1D97, 2); // DB_AuthLoad_InflateInit
-
-    // some other, unknown, check
-    // this is replaced by hooks below
-    Utils::Hook::Set<BYTE>(0x5B9912, 0xB8);
-    Utils::Hook::Set<DWORD>(0x5B9913, 1);
-
-    Utils::Hook::Set<BYTE>(0x5BA602, 0xB8);
-    Utils::Hook::Set<DWORD>(0x5BA603, 1);
-
-    // Initialize crypto
-    Utils::Hook(0x4D02F0, FastFiles::AuthLoadInitCrypto, HOOK_CALL).install()->quick();
-
-    // Initial stage decryption
-    Utils::Hook(0x4D0306, InflateInitDecrypt, HOOK_CALL).install()->quick();
-
-    // Hash bit decryption
-    Utils::Hook(0x5B9958, FastFiles::AuthLoadInflateCompare, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5B9912, FastFiles::AuthLoadInflateCompare, HOOK_CALL).install()->quick();
-
-    // General read
-    Utils::Hook(0x5B98E4, FastFiles_AuthLoadInflateDecryptBase, HOOK_CALL).install()->quick();
-
-    // Fix fastfile progress
-    Utils::Hook(0x4E5DE3, FastFiles::LoadZonesStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x407761, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
-    Utils::Hook(0x49FA1E, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
-    Utils::Hook(0x589090, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
-    Utils::Hook(0x629FC0, FastFiles::GetFullLoadedFraction, HOOK_JUMP).install()->quick();
-
-    // XFile header loading
-    Utils::Hook(0x4159E2, FastFiles::ReadXFileHeader, HOOK_CALL).install()->quick();
+    // Fix fastfile progress.
+    //
+    // Note that x64 inlines the two small x86 functions whose
+    // DB_GetLoadedFraction() call we hook there, so here we hook the calls
+    // where they ended up.
+    //
+    Utils::Hook(0x14012F101, FastFiles::LoadZonesStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140109A3D, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14026CE92, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400B2991, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14024F565, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
 
     // Add custom zone paths
-    FastFiles::AddZonePath(ZoneConvert::SearchPath("patch"));
-    FastFiles::AddZonePath(ZoneConvert::SearchPath("dlc"));
+    FastFiles::AddZonePath(ZoneDirectory("patch"));
+    FastFiles::AddZonePath(ZoneDirectory("dlc"));
 
-    if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
+    if (!Dedicated::IsEnabled())
     {
       Scheduler::Loop([]
       {
@@ -724,8 +551,8 @@ namespace Components
         auto* const font = Game::R_RegisterFont("fonts/consoleFont", 0);
         float color[4] = { 1.0f, 1.0f, 1.0f, (Game::CL_IsCgameInitialized() ? 0.3f : 1.0f) };
 
-        auto FFTotalSize = *reinterpret_cast<std::uint32_t*>(0x10AA5D8);
-        auto FFCurrentOffset = *reinterpret_cast<std::uint32_t*>(0x10AA608);
+        auto FFTotalSize = *reinterpret_cast<std::uint32_t*>(0x140D34590);
+        auto FFCurrentOffset = *reinterpret_cast<std::uint32_t*>(0x140D34600);
 
         float fastfileLoadProgress = (float(FFCurrentOffset) / float(FFTotalSize)) * 100.0f;
         if (std::isinf(fastfileLoadProgress))
@@ -797,9 +624,4 @@ namespace Components
       while (!Game::Sys_IsDatabaseReady()) std::this_thread::sleep_for(100ms);
     });
   }
-}
-
-void FastFiles_AuthLoadInflateDecryptBaseFunc(unsigned char* buffer)
-{
-  Components::FastFiles::AuthLoadInflateDecryptBaseFunc(buffer);
 }
