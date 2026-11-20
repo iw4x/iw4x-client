@@ -37,6 +37,8 @@ namespace Game
   FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x14151B4B0);
 
   XZone* g_zones = reinterpret_cast<XZone*>(0x1415F81A0);
+  DBFile** g_loadFile = reinterpret_cast<DBFile**>(0x140D34610);
+  unsigned int* g_zoneInfoCount = reinterpret_cast<unsigned int*>(0x1415FAC10);
   unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x1415093A0);
   XAssetEntry* g_assetEntryPool = reinterpret_cast<XAssetEntry*>(0x14151F4E0);
 
