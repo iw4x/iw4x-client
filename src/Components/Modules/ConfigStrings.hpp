@@ -45,6 +45,24 @@ namespace Components
   private:
     static void PatchConfigStrings();
 
+    // Return or set the configstring of a model or weapon, past the game's
+    // in the extra configstrings that follow them.
+    //
+    static unsigned int SV_GetConfigString(int index, Game::ConfigString basegameLastPosition, int extendedFirstPosition);
+    static void SV_SetConfigString(int index, const char* data, Game::ConfigString basegameLastPosition, int extendedFirstPosition);
+    static const char* CL_GetConfigString(int index, Game::ConfigString basegameLastPosition, int extendedFirstPosition);
+
+    static unsigned int SV_GetCachedModelConfigStringConst(int index);
+    static void SV_SetCachedModelConfigString(int index, const char* data);
+    static const char* CL_GetCachedModelConfigString(int index);
+
+    // Handle the change of one of the extra configstrings, which the game
+    // doesn't know. Return true if we handled it and false to leave it to
+    // the game.
+    //
+    static bool CG_ParseExtraConfigStrings();
+    static void CG_ConfigStringModified_Hk(int localClientNum);
+
     static void* SV_ClearServer(void* dest, int value, size_t size);
   };
 }
