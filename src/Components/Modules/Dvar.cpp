@@ -1,5 +1,4 @@
 #include "Dvar.hpp"
-#include "Friends.hpp"
 #include "TextRenderer.hpp"
 
 namespace Components
@@ -225,8 +224,11 @@ namespace Components
         }
         else
         {
+          // Note that on x86 we also pass the new name on to our Steam
+          // friends, which the x64 build doesn't have (see premake5.lua for
+          // details).
+          //
           lastValidName = name;
-          Friends::UpdateName();
         }
       }, Scheduler::Pipeline::CLIENT, 3s); // Don't need to do this every frame
     }
