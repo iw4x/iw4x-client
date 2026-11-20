@@ -299,7 +299,6 @@ project "iw4x"
     "src/Components/Modules/Elevators.*",
     "src/Components/Modules/Localization.*",
     "src/Components/Modules/Menus.*",
-    "src/Components/Modules/Missile.*",
     "src/Components/Modules/ModelCache.*",
     "src/Components/Modules/ModList.*",
     "src/Components/Modules/NetworkDebug.*",

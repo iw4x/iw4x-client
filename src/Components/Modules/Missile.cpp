@@ -151,6 +151,6 @@ namespace Components
     // use the downward trace to recover the surface. If this produces a surface
     // point, use that point for radius damage.
     //
-    Utils::Hook(0x477EF5, G_RadiusDamage_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140170AFC, G_RadiusDamage_Hk, HOOK_CALL).install()->quick(); // G_ExplodeMissile
   }
 }
