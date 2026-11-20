@@ -807,6 +807,15 @@ namespace Game
   float GraphGetValueFromFraction(int knotCount, const float(*knots)[2], float fraction);
   float GraphFloat_GetValue(const GraphFloat* graph, const float fraction);
 
+  // Copy the translation of reference into token, which has room for 1024
+  // characters, and return true. If there is no translation, copy the
+  // reference marked as unlocalized, or return false without copying
+  // anything if errType is LOCMSG_NOERR.
+  //
+  // Note that x64 inlines this function into SEH_LocalizeTextMessage().
+  //
+  int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType);
+
   void I_strncpyz_s(char* dest, std::size_t destsize, const char* src, std::size_t count);
   void I_strcpy(char* dest, std::size_t destsize, const char* src);
 
