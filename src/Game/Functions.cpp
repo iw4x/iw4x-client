@@ -156,6 +156,7 @@ namespace Game
   R_TextHeight_t R_TextHeight = R_TextHeight_t(0x14001AB50);
   R_SortWorldSurfaces_t R_SortWorldSurfaces = R_SortWorldSurfaces_t(0x140053DE0);
   R_SetSunFromDvars_t R_SetSunFromDvars = R_SetSunFromDvars_t(0x140056270);
+  Com_LoadDvarsFromBuffer_t Com_LoadDvarsFromBuffer = Com_LoadDvarsFromBuffer_t(0x140282CB0);
   R_GetCharacterGlyph_t R_GetCharacterGlyph = R_GetCharacterGlyph_t(0x14001A930);
 
   RMesg_SendMessages_t RMesg_SendMessages = RMesg_SendMessages_t(0x14028BF30);
@@ -648,6 +649,27 @@ namespace Game
     }
 
     Utils::Hook::Call<void(kbutton_t*, int, unsigned int)>(0x1400F7C90)(button, std::atoi(k), std::atoi(IN_Argv(2))); // IN_KeyUp
+  }
+
+  const char* const* r_sunDvarNames = reinterpret_cast<const char* const*>(0x140428C40);
+
+  void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun)
+  {
+    const char* filename (va("sun/%s.sun", mapname));
+
+    char* buffer;
+    if (FS_ReadFile(filename, &buffer) < 0)
+    {
+      Com_Printf(CON_CHANNEL_GFX, "WARNING: couldn't load sun file '%s'\n", filename);
+      return;
+    }
+
+    if (Com_LoadDvarsFromBuffer(r_sunDvarNames, R_SUN_DVAR_COUNT, buffer, filename))
+    {
+      R_SetSunFromDvars(sun);
+    }
+
+    FS_FreeFile(buffer);
   }
 
   // Note that on x64 SEH_StringEd_GetString() also returns the reference

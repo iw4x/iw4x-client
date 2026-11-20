@@ -783,6 +783,22 @@ namespace Game
   typedef void(*R_SetSunFromDvars_t)(sunflare_t* sun);
   extern R_SetSunFromDvars_t R_SetSunFromDvars;
 
+  typedef int(*Com_LoadDvarsFromBuffer_t)(const char* const* dvarNames, unsigned int numDvars, const char* buffer, const char* debugFilename);
+  extern Com_LoadDvarsFromBuffer_t Com_LoadDvarsFromBuffer;
+
+  // The names of the sun dvars, in the order the sun files list them.
+  //
+  extern const char* const* r_sunDvarNames;
+  constexpr unsigned int R_SUN_DVAR_COUNT = 21;
+
+  // Set the sun dvars from the map's sun file (sun/<mapname>.sun) and then
+  // the sun from them. Print a warning if there is no such file.
+  //
+  // Note that x64 inlines this function into the r_loadSun command and
+  // compiles out the warning there.
+  //
+  void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
+
   // Press or release the button for the key number and time that are the
   // first and second arguments of the current command, the way the key code
   // runs a command bound to a key.
