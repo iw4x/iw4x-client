@@ -134,6 +134,8 @@ namespace Game
   PartyHost_GetMemberAddressBySlot_t PartyHost_GetMemberAddressBySlot = PartyHost_GetMemberAddressBySlot_t(0x1402415D0);
   PartyHost_GetMemberName_t PartyHost_GetMemberName = PartyHost_GetMemberName_t(0x1401108C0);
   Party_InParty_t Party_InParty = Party_InParty_t(0x14010A5F0);
+  Party_StopParty_t Party_StopParty = Party_StopParty_t(0x14010BFE0);
+  LiveStorage_EndGame_t LiveStorage_EndGame = LiveStorage_EndGame_t(0x1401F7220);
 
   Playlist_ParsePlaylists_t Playlist_ParsePlaylists = Playlist_ParsePlaylists_t(0x1402597F0);
 
@@ -243,6 +245,7 @@ namespace Game
 
   I_strncpyz_t I_strncpyz = I_strncpyz_t(0x14028A8B0);
   I_stricmp_t I_stricmp = I_stricmp_t(0x14028A610);
+  I_strlwr_t I_strlwr = I_strlwr_t(0x14028A7B0);
   I_CleanStr_t I_CleanStr = I_CleanStr_t(0x14028A4E0);
   I_isdigit_t I_isdigit = I_isdigit_t(0x14028A570);
 

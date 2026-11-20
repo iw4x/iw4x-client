@@ -14,6 +14,9 @@ namespace Game
   typedef void(*FS_FreeFileList_t)(const char** list, int allocTrackType);
   extern FS_FreeFileList_t FS_FreeFileList;
 
+  typedef void(*FS_ConvertPath_t)(char* s);
+  extern FS_ConvertPath_t FS_ConvertPath;
+
   typedef fileHandle_t(*FS_FOpenFileWrite_t)(const char* filename);
   extern FS_FOpenFileWrite_t FS_FOpenFileWrite;
 

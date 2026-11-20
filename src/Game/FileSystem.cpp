@@ -7,6 +7,7 @@ namespace Game
   FS_ReadFile_t FS_ReadFile = FS_ReadFile_t(0x140277570);
   FS_ListFiles_t FS_ListFiles = FS_ListFiles_t(0x140277540);
   FS_FreeFileList_t FS_FreeFileList = FS_FreeFileList_t(0x140277530);
+  FS_ConvertPath_t FS_ConvertPath = FS_ConvertPath_t(0x140273C20);
   FS_FOpenFileWrite_t FS_FOpenFileWrite = FS_FOpenFileWrite_t(0x140274F30);
   FS_FileOpenReadText_t FS_FileOpenReadText = FS_FileOpenReadText_t(0x1401F6AD0);
   FS_FOpenFileRead_t FS_FOpenFileRead = FS_FOpenFileRead_t(0x1402740D0);

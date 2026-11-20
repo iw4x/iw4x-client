@@ -347,6 +347,12 @@ namespace Game
   typedef int(*Party_InParty_t)(PartyData* party);
   extern Party_InParty_t Party_InParty;
 
+  typedef void(*Party_StopParty_t)(PartyData* party);
+  extern Party_StopParty_t Party_StopParty;
+
+  typedef void(*LiveStorage_EndGame_t)(int controllerIndex);
+  extern LiveStorage_EndGame_t LiveStorage_EndGame;
+
   typedef void(*Playlist_ParsePlaylists_t)(const char* data);
   extern Playlist_ParsePlaylists_t Playlist_ParsePlaylists;
 
@@ -556,6 +562,9 @@ namespace Game
 
   typedef int(*I_stricmp_t)(const char* s0, const char* s1);
   extern I_stricmp_t I_stricmp;
+
+  typedef char*(*I_strlwr_t)(char* s);
+  extern I_strlwr_t I_strlwr;
 
   typedef char*(*I_CleanStr_t)(char* string);
   extern I_CleanStr_t I_CleanStr;

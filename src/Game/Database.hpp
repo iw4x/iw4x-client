@@ -52,6 +52,9 @@ namespace Game
   typedef void(*DB_LoadXAssets_t)(XZoneInfo* zoneInfo, unsigned int zoneCount, int sync);
   extern DB_LoadXAssets_t DB_LoadXAssets;
 
+  typedef bool(*DB_FileExists_t)(const char* zoneName, FF_DIR source);
+  extern DB_FileExists_t DB_FileExists;
+
   typedef void(*DB_LoadXFileData_t)(char* pos, int size);
   extern DB_LoadXFileData_t DB_LoadXFileData;
 
