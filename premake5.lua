@@ -298,7 +298,6 @@ project "iw4x"
     "src/Components/Modules/Download.*",
     "src/Components/Modules/Elevators.*",
     "src/Components/Modules/Localization.*",
-    "src/Components/Modules/MapRotation.*",
     "src/Components/Modules/Materials.*",
     "src/Components/Modules/Menus.*",
     "src/Components/Modules/Missile.*",
