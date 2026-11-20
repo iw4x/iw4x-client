@@ -143,6 +143,7 @@ namespace Components
     static void (*SV_SpawnServer_Original)(const char* server, int mapIsPreloaded, int savegame, int devmap, int migrate);
     static void SV_SpawnServer_Hk(const char* server, int mapIsPreloaded, int savegame, int devmap, int migrate);
     static void LoadMapLoadscreenStub(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync);
+    static void SV_SpawnServer_SetCheats();
 
     static int TriggerReconnectForMap(Game::msg_t* msg, const char* mapname);
     static void DownloadsComplete(int localClientNum);

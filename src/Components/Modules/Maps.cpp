@@ -1,6 +1,7 @@
 #include "Maps.hpp"
 #include "ArenaLength.hpp"
 #include "AssetHandler.hpp"
+#include "Events.hpp"
 #include "FastFiles.hpp"
 #include "RawFiles.hpp"
 #include "StartupMessages.hpp"
@@ -511,6 +512,19 @@ namespace Components
   {
     PrepareUsermap(server);
     SV_SpawnServer_Original(server, mapIsPreloaded, savegame, devmap, migrate);
+  }
+
+  // Set sv_cheats for the server that the map or devmap command is spawning
+  // and then make the call we replace.
+  //
+  void Maps::SV_SpawnServer_SetCheats()
+  {
+    if (Game::sv_spawnCheats)
+    {
+      Game::Dvar_SetBool(Game::dvar_cheats, *Game::sv_spawnCheats);
+    }
+
+    Utils::Hook::Call<void()>(0x1401AA2D0)();
   }
 
   // Note that the zone is the loadscreen zone of the map (<map>_load).
@@ -1036,6 +1050,25 @@ namespace Components
     Utils::Hook(0x1400FA359, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick(); // CL_DownloadsComplete
     Utils::Hook(0x1400FDF23, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400FE305, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+
+    // Restore the map and devmap commands, which x64 compiles out along with
+    // the rest of the operator commands, the way x86 registers them when the
+    // server starts.
+    //
+    // On x86 SV_SpawnServer() then sets sv_cheats to whether the command was
+    // devmap, right after clearing the config strings. x64 compiles that out
+    // as well, so we set it there ourselves, though only for these commands.
+    // x64 passes no devmap for its other spawns and so taking it from there
+    // would disable cheats on a fast restart, which on x86 keeps them as they
+    // are.
+    //
+    Events::OnSVInit([]
+    {
+      Command::AddSV("map", []([[maybe_unused]] const Command::Params* params) {Game::SV_Map_f();});
+      Command::AddSV("devmap", []([[maybe_unused]] const Command::Params* params) {Game::SV_DevMap_f();});
+    });
+
+    Utils::Hook(0x140239ABC, Maps::SV_SpawnServer_SetCheats, HOOK_CALL).install()->quick();
 
     Command::Add("delayReconnect", []()
       {
