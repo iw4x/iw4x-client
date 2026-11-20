@@ -243,7 +243,7 @@ namespace Components
 
       const auto* lod = &model->model->lodInfo[model->model->numLods - 1];
 
-      const auto baseIndex = this->vertices_.size() + 1;
+      const auto baseIndex = static_cast<int>(this->vertices_.size() + 1);
       const auto surfIndex = lod->surfIndex;
 
       assert(lod->modelSurfs->numsurfs <= model->model->numsurfs);
@@ -435,7 +435,7 @@ namespace Components
   {
     Command::Add("dumpmap", []()
     {
-      if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
+      if (Dedicated::IsEnabled())
       {
         Logger::Print("DirectX needs to be enabled, please start a client to use this command!\n");
         return;
