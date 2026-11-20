@@ -396,11 +396,6 @@ namespace Components
 
   Node::Node()
   {
-    if (ZoneBuilder::IsEnabled())
-    {
-      return;
-    }
-
     net_natFix = Game::Dvar_RegisterBool("net_natFix", false, 0, "Fix node registration for certain firewalls/routers");
 
     Scheduler::Loop([]
