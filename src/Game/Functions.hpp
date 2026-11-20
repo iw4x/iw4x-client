@@ -774,6 +774,17 @@ namespace Game
   typedef void(*R_SetSunFromDvars_t)(sunflare_t* sun);
   extern R_SetSunFromDvars_t R_SetSunFromDvars;
 
+  // Press or release the button for the key number and time that are the
+  // first and second arguments of the current command, the way the key code
+  // runs a command bound to a key.
+  //
+  // Note that on x64 the key code passes the key number and time of its own
+  // buttons to these functions directly, and so they don't read them from
+  // the command. Here we read them and pass them on.
+  //
+  void IN_KeyDown(kbutton_t* button);
+  void IN_KeyUp(kbutton_t* button);
+
   void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count);
 
   typedef void(*Image_Setup_t)(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
