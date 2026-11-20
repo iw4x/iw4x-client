@@ -116,7 +116,8 @@ namespace Game
   public:
     // Offsets of game variables in thread-local storage.
     //
-    // Note that DVAR_MODIFIED_FLAGS is the x64 offset.
+    // Note that DVAR_ALLOWED_MODIFIED_FLAGS and DVAR_MODIFIED_FLAGS are the
+    // x64 offsets.
     //
     // @@ TODO: verify the rest on x64, where pointers are 8 bytes (these
     //    are x86 offsets).
@@ -126,7 +127,7 @@ namespace Game
       LEVEL_BGS = 0xC,
       THREAD_VALUES = 0x14,
       HUFFMAN_BLOC = 0x10,
-      DVAR_ALLOWED_MODIFIED_FLAGS = 0x1C,
+      DVAR_ALLOWED_MODIFIED_FLAGS = 0x24,
       DVAR_MODIFIED_FLAGS = 0x20,
       ZIP_INFO = 0x20,
     };
