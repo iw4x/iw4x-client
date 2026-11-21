@@ -157,7 +157,10 @@ namespace Components
   {
     if (Dedicated::IsEnabled()) return;
 
-    Utils::Hook(0x14024FBF7, StructuredData_GetString, HOOK_CALL).install()->quick(); // GetPlayerData
+    // Note that the expressions' GetClientMatchData looks strings up the
+    // same way, which we leave alone as x86 does.
+    //
+    Utils::Hook(0x1402503D5, StructuredData_GetString, HOOK_CALL).install()->quick(); // GetPlayerData
 
     // The "IWNET storage" system has a "caching" system that, just assumes any file requested twice
     //  is identical between the two accesses if less than 500ms elapsed between them
