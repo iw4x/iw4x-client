@@ -64,11 +64,14 @@ run ()
   fi
 }
 
+# Note that we only build the sources of OpenAssetTools that need none of its
+# own submodules.
+#
 update_submodules ()
 {
   run git submodule update --init
   run git submodule foreach --quiet \
-    'test $sm_path = deps/sentry-native || git submodule update --init --recursive'
+    'test $sm_path = deps/sentry-native || test $sm_path = deps/oat || git submodule update --init --recursive'
 }
 
 # Check whether the specified command exists. If the hint is provided, print it

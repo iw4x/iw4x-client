@@ -47,3 +47,6 @@
 [submodule "deps/zlib"]
 	path = deps/zlib
 	url = https://github.com/madler/zlib.git
+[submodule "deps/oat"]
+	path = deps/oat
+	url = https://github.com/iw4x-x64/oat.git
