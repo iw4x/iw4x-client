@@ -282,6 +282,17 @@ project "iw4x"
     "src/Components/Modules/Friends.*"
   }
 
+  -- WineD3D mapping budget.
+  --
+  -- WineD3D raises the 128 MiB buffer mapping budget that wined3d keeps in
+  -- a 32-bit process. A 64-bit wined3d has no such budget, and so nothing
+  -- for it to raise.
+  --
+  removefiles
+  {
+    "src/Components/Modules/WineD3D.*"
+  }
+
   -- Sources not yet ported to x64.
   --
   -- NOTE: remember to register each component in Loader::Initialize() when
@@ -292,7 +303,6 @@ project "iw4x"
     "src/Components/Modules/ViewModelFx.*",
     "src/Components/Modules/ViewModelFxSetup.*",
     "src/Components/Modules/Weapon.*",
-    "src/Components/Modules/WineD3D.*",
     "src/Components/Modules/BotLib/**",
     "src/Components/Modules/GSC/**",
   }
