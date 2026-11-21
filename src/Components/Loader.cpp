@@ -62,6 +62,7 @@
 #include "Modules/Security.hpp"
 #include "Modules/ServerCommands.hpp"
 #include "Modules/ServerDemo.hpp"
+#include "Modules/ServerInfo.hpp"
 #include "Modules/Renderer.hpp"
 
 namespace Components
@@ -148,6 +149,7 @@ namespace Components
     Register(new Security());
     Register(new ServerCommands());
     Register(new ServerDemo());
+    Register(new ServerInfo());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
