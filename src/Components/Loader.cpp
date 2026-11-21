@@ -55,6 +55,7 @@
 #include "Modules/Profiler.hpp"
 #include "Modules/QuickPatch.hpp"
 #include "Modules/RawFiles.hpp"
+#include "Modules/RawMouse.hpp"
 
 namespace Components
 {
@@ -131,6 +132,7 @@ namespace Components
     Register(new Profiler());
     Register(new QuickPatch());
     Register(new RawFiles());
+    Register(new RawMouse());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
