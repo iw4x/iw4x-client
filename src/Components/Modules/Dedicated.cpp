@@ -157,9 +157,12 @@ namespace Components
 
       Utils::Hook(0x1401F5633, InitDedicatedServer, HOOK_CALL).install()->quick(); // Com_Init
 
-      // Note that on x86 we also skip the Steam consistency check here, which
-      // x64 compiles out.
+      // steam sometimes doesn't like the server
       //
+      // Note that x64 inlines Steam_CheckConsistency(), which we return from
+      // on x86, into Steam_Frame(), so we always take the jump over it.
+      //
+      Utils::Hook::Set<WORD>(0x14024BC13, 0xE990);
 
       Utils::Hook::Set<BYTE>(0x14010E2F0, 0xC3); // self-registration on party
 
