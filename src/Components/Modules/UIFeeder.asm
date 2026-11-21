@@ -1,181 +1,75 @@
-.686
-.model flat, C
-option casemap:none
-
 EXTERN UIFeeder_Current:DWORD
 
-EXTERN UIFeeder_SetItemSelection:PROC
-EXTERN UIFeeder_GetItemText:PROC
-EXTERN UIFeeder_GetItemCount:PROC
 EXTERN UIFeeder_CheckFeeder:PROC
-EXTERN UIFeeder_HandleClick:PROC
 EXTERN UIFeeder_CheckSelection:PROC
-
-FEEDER equ 0
-INDEX equ 4
-COLUMN equ 8
 
 .code
 
-UIFeeder_SetItemSelectionStub PROC
-  mov     eax, [esp+08h]
-  mov     dword ptr [UIFeeder_Current+FEEDER], eax
-
-  mov     eax, [esp+0Ch]
-  mov     dword ptr [UIFeeder_Current+INDEX], eax
-
-  call    UIFeeder_SetItemSelection
-
-  test    al, al
-  jz      continue
-
-  ret
-
-continue:
-  fld     dword ptr ds:[739FD0h]
-
-  mov     eax, 4C25D6h
-  jmp     eax
-UIFeeder_SetItemSelectionStub ENDP
-
-UIFeeder_GetItemTextStub PROC
-  mov     eax, [esp+0Ch]
-  mov     dword ptr [UIFeeder_Current+FEEDER], eax
-
-  mov     eax, [esp+10h]
-  mov     dword ptr [UIFeeder_Current+INDEX], eax
-
-  mov     eax, [esp+14h]
-  mov     dword ptr [UIFeeder_Current+COLUMN], eax
-
-  call    UIFeeder_GetItemText
-
-  test    eax, eax
-  jz      continue
-
-  push    ebx
-  mov     ebx, [esp+4+28h]
-  mov     dword ptr [ebx], 0
-  pop     ebx
-  ret
-
-continue:
-  push    ecx
-  fld     dword ptr ds:[739FD0h]
-
-  mov     eax, 4CE9E7h
-  jmp     eax
-UIFeeder_GetItemTextStub ENDP
-
-UIFeeder_GetItemCountStub PROC
-  mov     eax, [esp+8h]
-  mov     dword ptr [UIFeeder_Current+FEEDER], eax
-
-  call    UIFeeder_GetItemCount
-
-  test    eax, eax
-  jz      continue
-
-  ret
-
-continue:
-  push    ecx
-  fld     dword ptr ds:[739FD0h]
-
-  mov     eax, 41A0D7h
-  jmp     eax
-UIFeeder_GetItemCountStub ENDP
-
-UIFeeder_HandleKeyStub PROC
-  mov     eax, [ebp+12Ch]
-  mov     dword ptr [UIFeeder_Current+FEEDER], eax
-
-  call    UIFeeder_CheckFeeder
-
-  test    al, al
-  jz      runDoubleClick
-
-  push    ebp
-  call    UIFeeder_HandleClick
-  add     esp, 4
-
-  test    al, al
-  jnz     runDoubleClick
-
-  ret
-
-runDoubleClick:
-  mov     eax, 635570h
-  jmp     eax
-UIFeeder_HandleKeyStub ENDP
-
 UIFeeder_MouseEnterStub PROC
-  mov     eax, [edi+12Ch]
-  mov     dword ptr [UIFeeder_Current+FEEDER], eax
+  mov     eax, [rdi+180h]
+  mov     dword ptr [UIFeeder_Current], eax
 
+  push    rax
+  sub     rsp, 28h
   call    UIFeeder_CheckFeeder
+  add     rsp, 28h
+  mov     ecx, eax
+  pop     rax
 
-  test    al, al
+  test    cl, cl
   jnz     continue
 
-  mov     [edi+130h], esi
+  mov     [rdi+rsi*4+184h], ebp
 
 continue:
-  mov     eax, 639D75h
-  jmp     eax
+  mov     rcx, 14025E6B8h
+  jmp     rcx
 UIFeeder_MouseEnterStub ENDP
 
-UIFeeder_MouseSelectStub PROC
-  mov     eax, [esp+08h]
-  mov     dword ptr [UIFeeder_Current+FEEDER], eax
-
-  call    UIFeeder_CheckFeeder
-
-  test    al, al
-  jnz     continue
-
-  mov     eax, 4C25D0h
-  jmp     eax
-
-continue:
-  ret
-UIFeeder_MouseSelectStub ENDP
-
 UIFeeder_PlaySoundStub PROC
-  mov     eax, [edi+12Ch]
-  mov     dword ptr [UIFeeder_Current+FEEDER], eax
+  mov     eax, [rdi+180h]
+  mov     dword ptr [UIFeeder_Current], eax
 
+  push    rcx
+  push    rdx
+  push    r8
+  sub     rsp, 20h
   call    UIFeeder_CheckFeeder
+  add     rsp, 20h
+  pop     r8
+  pop     rdx
+  pop     rcx
 
   test    al, al
-  jnz     continue
+  jnz     skip
 
-  mov     eax, 685E10h
-  jmp     eax
+  mov     rax, 140245250h
+  jmp     rax
 
-continue:
+skip:
   ret
 UIFeeder_PlaySoundStub ENDP
 
 UIFeeder_CheckSelectionStub PROC
-  mov     ecx, 6B5240h
-  call    ecx
+  cvttss2si eax, dword ptr [rsi+180h]
 
-  push    eax
+  push    rax
+  sub     rsp, 28h
+  mov     ecx, eax
   call    UIFeeder_CheckSelection
+  add     rsp, 28h
+  mov     ecx, eax
+  pop     rax
 
-  test    al, al
-  jz      returnSafe
+  test    ecx, ecx
+  jz      unselected
 
-  pop     eax
-  push    635A9Dh
-  ret
+  mov     rcx, 14025F61Ch
+  jmp     rcx
 
-returnSafe:
-  pop     eax
-  xor     eax, eax
-  pop     ecx
-  ret
+unselected:
+  mov     rcx, 14025F651h
+  jmp     rcx
 UIFeeder_CheckSelectionStub ENDP
 
 END

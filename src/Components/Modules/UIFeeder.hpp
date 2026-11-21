@@ -2,20 +2,11 @@
 
 extern "C"
 {
-  void UIFeeder_SetItemSelectionStub();
-  void UIFeeder_GetItemTextStub();
-  void UIFeeder_GetItemCountStub();
-  void UIFeeder_HandleKeyStub();
   void UIFeeder_MouseEnterStub();
-  void UIFeeder_MouseSelectStub();
   void UIFeeder_PlaySoundStub();
   void UIFeeder_CheckSelectionStub();
 
-  bool UIFeeder_SetItemSelection();
-  const char* UIFeeder_GetItemText();
-  unsigned int UIFeeder_GetItemCount();
   bool UIFeeder_CheckFeeder();
-  bool UIFeeder_HandleClick(Game::itemDef_s* item);
   int UIFeeder_CheckSelection(int feeder);
 }
 
@@ -49,11 +40,7 @@ namespace Components
     };
 
   private:
-    friend bool (::UIFeeder_SetItemSelection)();
-    friend const char* (::UIFeeder_GetItemText)();
-    friend unsigned int (::UIFeeder_GetItemCount)();
     friend bool (::UIFeeder_CheckFeeder)();
-    friend bool (::UIFeeder_HandleClick)(Game::itemDef_s* item);
     friend int (::UIFeeder_CheckSelection)(int feeder);
 
     static Dvar::Var UIMapLong;
@@ -70,6 +57,16 @@ namespace Components
     static int CheckSelection(int feeder);
 
     static bool HandleClick(Game::itemDef_s* item);
+
+    static int (*UI_FeederCount_Original)(int localClientNum, float feeder);
+    static const char* (*UI_FeederItemText_Original)(int localClientNum, Game::itemDef_s* item, float feeder, int index, int column, float* s0, float* t0, float* s1, float* t1, Game::Material** handle);
+    static void (*UI_FeederSelection_Original)(int localClientNum, float feeder, int index);
+
+    static int UI_FeederCount_Hk(int localClientNum, float feeder);
+    static const char* UI_FeederItemText_Hk(int localClientNum, Game::itemDef_s* item, float feeder, int index, int column, float* s0, float* t0, float* s1, float* t1, Game::Material** handle);
+    static void UI_FeederSelection_Hk(int localClientNum, float feeder, int index);
+    static void MouseSelect_Hk(int localClientNum, float feeder, int index);
+    static void HandleKey_Hk(void* dc, Game::itemDef_s* item, Game::MenuEventHandlerSet* handler);
 
     static std::unordered_map<float, Callbacks> Feeders;
 

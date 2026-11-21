@@ -1,5 +1,6 @@
 #include "UIFeeder.hpp"
 #include "Events.hpp"
+#include "Maps.hpp"
 
 extern "C"
 {
@@ -96,6 +97,83 @@ namespace Components
     return false;
   }
 
+  // Note that on x86 we go in at the start of these three with stubs that
+  // continue in the game's function when we don't take the feeder. On x64
+  // we detour them instead.
+  //
+  int (*UIFeeder::UI_FeederCount_Original)(int localClientNum, float feeder);
+  const char* (*UIFeeder::UI_FeederItemText_Original)(int localClientNum, Game::itemDef_s* item, float feeder, int index, int column, float* s0, float* t0, float* s1, float* t1, Game::Material** handle);
+  void (*UIFeeder::UI_FeederSelection_Original)(int localClientNum, float feeder, int index);
+
+  int UIFeeder::UI_FeederCount_Hk(const int localClientNum, const float feeder)
+  {
+    UIFeeder_Current.feeder = feeder;
+
+    if (const auto count = GetItemCount())
+    {
+      return static_cast<int>(count);
+    }
+
+    return UI_FeederCount_Original(localClientNum, feeder);
+  }
+
+  const char* UIFeeder::UI_FeederItemText_Hk(const int localClientNum, Game::itemDef_s* item, const float feeder, const int index, const int column, float* s0, float* t0, float* s1, float* t1, Game::Material** handle)
+  {
+    UIFeeder_Current.feeder = feeder;
+    UIFeeder_Current.index = index;
+    UIFeeder_Current.column = column;
+
+    if (const auto* text = GetItemText())
+    {
+      *handle = nullptr;
+      return text;
+    }
+
+    return UI_FeederItemText_Original(localClientNum, item, feeder, index, column, s0, t0, s1, t1, handle);
+  }
+
+  void UIFeeder::UI_FeederSelection_Hk(const int localClientNum, const float feeder, const int index)
+  {
+    UIFeeder_Current.feeder = feeder;
+    UIFeeder_Current.index = index;
+
+    if (SetItemSelection())
+    {
+      return;
+    }
+
+    UI_FeederSelection_Original(localClientNum, feeder, index);
+  }
+
+  // Our feeders select on click, not when the mouse moves over a row.
+  //
+  void UIFeeder::MouseSelect_Hk(const int localClientNum, const float feeder, const int index)
+  {
+    UIFeeder_Current.feeder = feeder;
+
+    if (CheckFeeder())
+    {
+      return;
+    }
+
+    Utils::Hook::Call<void(int, float, int)>(0x14026CD30)(localClientNum, feeder, index); // UI_FeederSelection
+  }
+
+  // A click on one of our feeders selects the row, and only a second click
+  // on it runs the list's double click script.
+  //
+  void UIFeeder::HandleKey_Hk(void* dc, Game::itemDef_s* item, Game::MenuEventHandlerSet* handler)
+  {
+    UIFeeder_Current.feeder = item->special;
+
+    if (CheckFeeder() && !HandleClick(item))
+    {
+      return;
+    }
+
+    Utils::Hook::Call<void(void*, Game::itemDef_s*, Game::MenuEventHandlerSet*)>(0x14025D320)(dc, item, handler); // Item_RunScript
+  }
+
   void UIFeeder::Select(float feeder, unsigned int index)
   {
     if (Game::uiContext->openMenuCount > 0)
@@ -119,7 +197,7 @@ namespace Components
 
   unsigned int UIFeeder::GetMapCount()
   {
-    return Maps::GetCustomMaps().size();
+    return static_cast<unsigned int>(Maps::GetCustomMaps().size());
   }
 
   const char* UIFeeder::GetMapText(unsigned int index, int /*column*/)
@@ -186,7 +264,7 @@ namespace Components
     if (*mapname)
     {
       Game::Dvar_SetString(*Game::ui_mapname, mapname);
-      Utils::Hook::Call<void(const char*)>(0x503B50)(mapname); // Party_SetDisplayMapName
+      Utils::Hook::Call<void(const char*)>(0x14010BD90)(mapname); // Party_SetDisplayMapName
     }
   }
 
@@ -216,6 +294,19 @@ namespace Components
     AssertOffset(UIFeeder::Container, index, 0x4);
     AssertOffset(UIFeeder::Container, column, 0x8);
 
+    // We and UIFeeder.asm read these.
+    //
+    AssertOffset(Game::itemDef_s, type, 0xC4);
+    AssertOffset(Game::itemDef_s, dataType, 0xC8);
+    AssertOffset(Game::itemDef_s, special, 0x180);
+    AssertOffset(Game::itemDef_s, cursorPos, 0x184);
+    AssertOffset(Game::itemDef_s, typeData, 0x188);
+    AssertOffset(Game::listBoxDef_s, mousePos, 0x0);
+    AssertOffset(Game::menuDef_t, itemCount, 0xBC);
+    AssertOffset(Game::menuDef_t, items, 0x168);
+    AssertOffset(Game::UiContext, menuStack, 0x1440);
+    AssertOffset(Game::UiContext, openMenuCount, 0x14C0);
+
     if (Dedicated::IsEnabled()) return;
 
     Events::OnDvarInit([]
@@ -226,31 +317,34 @@ namespace Components
     });
 
     // Get feeder item count
-    Utils::Hook(0x41A0D0, UIFeeder_GetItemCountStub, HOOK_JUMP).install()->quick();
+    UI_FeederCount_Original = Utils::Hook::Detour(0x14026BC90, 6, &UI_FeederCount_Hk);
 
     // Get feeder item text
-    Utils::Hook(0x4CE9E0, UIFeeder_GetItemTextStub, HOOK_JUMP).install()->quick();
+    UI_FeederItemText_Original = Utils::Hook::Detour(0x14026C3D0, 5, &UI_FeederItemText_Hk);
 
     // Select feeder item
-    Utils::Hook(0x4C25D0, UIFeeder_SetItemSelectionStub, HOOK_JUMP).install()->quick();
+    UI_FeederSelection_Original = Utils::Hook::Detour(0x14026CD30, 6, &UI_FeederSelection_Hk);
 
     // Mouse enter check
-    Utils::Hook(0x639D6E, UIFeeder_MouseEnterStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14025E6B1, UIFeeder_MouseEnterStub, HOOK_JUMP).install()->quick();
 
     // Handle key event
-    Utils::Hook(0x63C5BC, UIFeeder_HandleKeyStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14025E276, HandleKey_Hk, HOOK_CALL).install()->quick();
 
     // Mouse select check
-    Utils::Hook(0x639D31, UIFeeder_MouseSelectStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14025E66E, MouseSelect_Hk, HOOK_CALL).install()->quick();
 
     // Play mouse over sound check
-    Utils::Hook(0x639D66, UIFeeder_PlaySoundStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14025E69F, UIFeeder_PlaySoundStub, HOOK_CALL).install()->quick();
 
     // Disable blinking
-    Utils::Hook(0x635A98, UIFeeder_CheckSelectionStub, HOOK_JUMP).install()->quick();
+    //
+    // Note that x64 inlines the check into Item_ListBox_Paint().
+    //
+    Utils::Hook(0x14025F614, UIFeeder_CheckSelectionStub, HOOK_JUMP).install()->quick();
 
     // some thing overwriting feeder 2's data
-    Utils::Hook::Set<BYTE>(0x4A06A9, 0xEB);
+    Utils::Hook::Set<BYTE>(0x14026E427, 0xEB);
 
     // Use feeder 5 for maps, as feeder 4 selects on mouse over
     UIFeeder::Add(60.0f, UIFeeder::GetMapCount, UIFeeder::GetMapText, UIFeeder::SelectMap);
@@ -258,9 +352,8 @@ namespace Components
     UIScript::Add("ApplyInitialMap", UIFeeder::ApplyInitialMap);
 
     // Fix feeder focus
-    //Utils::Hook::Nop(0x63B1DD, 2); // Flag 4 check (WINDOW_VISIBLE)
-    Utils::Hook::Nop(0x63B1E6, 2); // Flag 2 check (WINDOW_HASFOCUS)
-    Utils::Hook::Nop(0x63B1F7, 2); // Flag 2000 check (WINDOW_LB_THUMB?)
+    Utils::Hook::Nop(0x14025F1F8, 6); // Flag 2 check (WINDOW_HASFOCUS)
+    Utils::Hook::Nop(0x14025F20B, 6); // Flag 2000 check (WINDOW_LB_THUMB?)
   }
 
   UIFeeder::~UIFeeder()
@@ -269,29 +362,9 @@ namespace Components
   }
 }
 
-bool UIFeeder_SetItemSelection()
-{
-  return Components::UIFeeder::SetItemSelection();
-}
-
-const char* UIFeeder_GetItemText()
-{
-  return Components::UIFeeder::GetItemText();
-}
-
-unsigned int UIFeeder_GetItemCount()
-{
-  return Components::UIFeeder::GetItemCount();
-}
-
 bool UIFeeder_CheckFeeder()
 {
   return Components::UIFeeder::CheckFeeder();
-}
-
-bool UIFeeder_HandleClick(Game::itemDef_s* item)
-{
-  return Components::UIFeeder::HandleClick(item);
 }
 
 int UIFeeder_CheckSelection(int feeder)
