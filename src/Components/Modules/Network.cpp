@@ -374,14 +374,14 @@ namespace Components
     // Disable the IWNet IP detection (default 'got ipdetect' flag to 1)
     Utils::Hook::Set<std::uint8_t>(0x146784F01, 1);
 
-    // Note that x64 also requires the result of the IP detection and a
-    // Demonware logon before it lets xrequirelivesignin through, which x86
-    // doesn't check and which would show the IWnet connection popup instead
-    // of the server browser. So we jump over those checks to where it
-    // returns that we are signed in.
+    // Note that x64 also waits for the IWnet login and for its NAT punch
+    // before it lets xrequirelivesignin through and closes the connecting and
+    // getting data popups, where x86 only waits for the IP detection. Without
+    // IWnet neither comes, so we start out logged in (state 2) and report the
+    // NAT punch as ready (mov al, 1; ret).
     //
-    Utils::Hook::Set<std::uint8_t>(0x1402A24D4, 0xEB); // jmp 0x1402A24E6
-    Utils::Hook::Set<std::uint8_t>(0x1402A24D5, 0x1402A24E6 - (0x1402A24D4 + 2));
+    Utils::Hook::Set<std::uint32_t>(0x146784F04, 2);
+    Utils::Hook::Set<std::array<std::uint8_t, 3>>(0x1401B2500, {0xB0, 0x01, 0xC3}); // NET_IsNatPunchReady
 
     OnClientPacket("resolveAddress", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
     {
