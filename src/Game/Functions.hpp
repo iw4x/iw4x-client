@@ -703,6 +703,14 @@ namespace Game
 
   extern visField_t* visionDefFields;
 
+  // Parse token into the field of settings that visionDefFields describes
+  // at fieldNum. Return true if the token holds a value of the field's type.
+  //
+  // Note that x64 inlines it into LoadVisionFile(), so we reimplement it from
+  // the x86 game.
+  //
+  bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings);
+
   extern infoParm_t* infoParams;
 
   extern GfxScene* scene;

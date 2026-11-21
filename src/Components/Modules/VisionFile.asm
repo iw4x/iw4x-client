@@ -1,26 +1,17 @@
-.686
-.model flat, C
-option casemap:none
-
 EXTERN VisionFile_LoadVisionSettingsFromBuffer:PROC
 
 .code
 
 VisionFile_LoadVisionSettingsFromBuffer_Stub PROC
-  push    eax
-  pushad
-
-  push    dword ptr [esp+24h+8h]
-  push    ebx
-  push    dword ptr [esp+24h+0Ch]
+  sub     rsp, 20h
+  mov     r8, r15
+  lea     rdx, [rbp-9]
+  mov     rcx, rbx
   call    VisionFile_LoadVisionSettingsFromBuffer
-  add     esp, 0Ch
+  add     rsp, 20h
 
-  mov     [esp+20h], eax
-  popad
-  pop     eax
-
-  ret
+  mov     rax, 1400BFEEBh
+  jmp     rax
 VisionFile_LoadVisionSettingsFromBuffer_Stub ENDP
 
 END

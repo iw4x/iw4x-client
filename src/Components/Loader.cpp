@@ -76,6 +76,7 @@
 #include "Modules/Toast.hpp"
 #include "Modules/UIFeeder.hpp"
 #include "Modules/Updater.hpp"
+#include "Modules/VisionFile.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/Sound.hpp"
 
@@ -178,6 +179,7 @@ namespace Components
     Register(new Toast());
     Register(new UIFeeder());
     Register(new Updater());
+    Register(new VisionFile());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).

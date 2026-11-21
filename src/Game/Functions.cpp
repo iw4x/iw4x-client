@@ -565,6 +565,43 @@ namespace Game
     return static_cast<char>(static_cast<int>(a * b * 255.0f));
   }
 
+  bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings)
+  {
+    const auto& field (visionDefFields[fieldNum]);
+    auto* value (reinterpret_cast<char*>(settings) + field.offset);
+
+    switch (field.fieldType)
+    {
+      case 0:
+      {
+        int i;
+        if (std::sscanf(token, "%i", &i) != 1)
+          return false;
+
+        *reinterpret_cast<bool*>(value) = i != 0;
+        return true;
+      }
+      case 1:
+      {
+        float f;
+        if (std::sscanf(token, "%f", &f) != 1)
+          return false;
+
+        *reinterpret_cast<float*>(value) = f;
+        return true;
+      }
+      default:
+      {
+        float v[3];
+        if (std::sscanf(token, "%f %f %f", &v[0], &v[1], &v[2]) != 3)
+          return false;
+
+        std::memcpy(value, v, sizeof(v));
+        return true;
+      }
+    }
+  }
+
   unsigned int R_HashString(const char* string)
   {
     unsigned int hash = 0;

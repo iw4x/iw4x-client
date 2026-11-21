@@ -91,7 +91,7 @@ namespace Components
       }
 
       token = Game::Com_ParseOnLine(&buffer);
-      if (ApplyTokenToField(fieldNum, token, settings))
+      if (Game::ApplyTokenToField(fieldNum, token, settings))
       {
         wasRead[fieldNum] = true;
       }
@@ -108,10 +108,17 @@ namespace Components
 
   VisionFile::VisionFile()
   {
-    AssertSize(Game::visField_t, 12);
+    // Note that the field's name makes it 16 bytes on x64, where it's 12 on
+    // x86.
+    //
+    AssertSize(Game::visField_t, 16);
 
     // Place hook in LoadVisionFile function
-    Utils::Hook(0x59A98A, VisionFile_LoadVisionSettingsFromBuffer_Stub, HOOK_CALL).install()->quick();
+    //
+    // Note that x64 inlines LoadVisionSettingsFromBuffer() into it, so we
+    // jump over its parse.
+    //
+    Utils::Hook(0x1400BFD82, VisionFile_LoadVisionSettingsFromBuffer_Stub, HOOK_JUMP).install()->quick();
   }
 }
 
