@@ -70,15 +70,12 @@ namespace Components
     }
   }
 
-  // Note that on x86 we send the voice data once SV_SendClientMessages()
-  // ends the client's snapshot. x64 inlines SV_EndClientSnapshot() into it,
-  // so we send it right before the snapshot goes out instead.
-  //
-  void Voice::SV_SendMessageToClient_Hk(Game::msg_t* msg, Game::client_s* client)
+  void Voice::SV_SendClientMessages_Stub(Game::client_s* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf)
   {
-    SV_SendClientVoiceData(client);
+    // SV_EndClientSnapshot
+    Utils::Hook::Call<void(Game::client_s*, Game::msg_t*, unsigned char*)>(0x14023FE80)(client, msg, snapshotMsgBuf);
 
-    Utils::Hook::Call<void(Game::msg_t*, Game::client_s*)>(0x140240970)(msg, client); // SV_SendMessageToClient
+    SV_SendClientVoiceData(client);
   }
 
   void Voice::SV_ClearMutedList()
@@ -455,7 +452,7 @@ namespace Components
     Utils::Hook(0x140102770, CL_IsPlayerTalking_Hk, HOOK_JUMP).install()->quick();
     Utils::Hook(0x140102710, CL_IsPlayerMuted_Hk, HOOK_JUMP).install()->quick();
 
-    Utils::Hook(0x140240672, SV_SendMessageToClient_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1402367CF, SV_SendClientMessages_Stub, HOOK_CALL).install()->quick();
 
     // Recycle packet handler for 'icanthear'
     Utils::Hook::PlaceString(0x14023B288, 7, 0x1403790D0, "v");

@@ -42,7 +42,7 @@ namespace Components
 
     static void SV_WriteVoiceDataToClient(int clientNum, Game::msg_t* msg);
     static void SV_SendClientVoiceData(Game::client_s* client);
-    static void SV_SendMessageToClient_Hk(Game::msg_t* msg, Game::client_s* client);
+    static void SV_SendClientMessages_Stub(Game::client_s* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf);
 
     static bool SV_ServerHasClientMuted(int talker);
 
