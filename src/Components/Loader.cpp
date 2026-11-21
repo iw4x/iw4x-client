@@ -57,6 +57,7 @@
 #include "Modules/RawFiles.hpp"
 #include "Modules/RawMouse.hpp"
 #include "Modules/RCon.hpp"
+#include "Modules/RemoteControl.hpp"
 
 namespace Components
 {
@@ -135,6 +136,7 @@ namespace Components
     Register(new RawFiles());
     Register(new RawMouse());
     Register(new RCon());
+    Register(new RemoteControl());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order

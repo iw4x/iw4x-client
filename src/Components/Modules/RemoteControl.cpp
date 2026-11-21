@@ -11,9 +11,9 @@ namespace Components
   float RemoteControl::DeflectionPitch = 0.0f;
   int RemoteControl::LastTime = 0;
 
-  constexpr auto mouseFrameTime = 0xB2BB58u;
-  constexpr auto m_yaw = 0xA7FE78u;
-  constexpr auto m_pitch = 0xA7FE80u;
+  constexpr auto mouseFrameTime = 0x140D02F14u;
+  constexpr auto m_yaw = 0x140D02EC8u;
+  constexpr auto m_pitch = 0x140D02EC0u;
   constexpr auto sessionGap = 250;
   constexpr auto referenceFrameRate = 85.0f;
   constexpr auto deflectionResponseSeconds = 0.07f;
@@ -21,7 +21,7 @@ namespace Components
   constexpr auto deflectionSettle = 0.0005f;
   constexpr auto maxFrameSeconds = 0.1f;
 
-  float RemoteControl::DeflectionLimit(unsigned int dvarAddress)
+  float RemoteControl::DeflectionLimit(uintptr_t dvarAddress)
   {
     const auto* var = *reinterpret_cast<Game::dvar_t**>(dvarAddress);
     if (!var)
@@ -244,6 +244,16 @@ namespace Components
     Steer(pitch, DeflectionLimit(m_pitch), PendingPitch, DeflectionPitch, referenceSeconds, step, elapsedSeconds);
   }
 
+  // Note that on x86 CL_GetMouseMovementWithSensitivity() takes the client
+  // in esi, which needs a stub. x64 passes it as the first argument.
+  //
+  void RemoteControl::CL_GetMouseMovementWithSensitivity_Hk(void* cl, float* yaw, float* pitch)
+  {
+    Utils::Hook::Call<void(void*, float*, float*)>(0x1400F6C60)(cl, yaw, pitch);
+
+    ScaleMouseMovement(yaw, pitch);
+  }
+
   RemoteControl::RemoteControl()
   {
     if (Dedicated::IsEnabled())
@@ -254,7 +264,7 @@ namespace Components
     // not have this problem. So hook the one call made by
     // CL_RemoteControlMove and leave the ordinary path alone.
     //
-    Utils::Hook(0x5A6C5D, RemoteControl_CL_GetMouseMovementWithSensitivity_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400F7459, CL_GetMouseMovementWithSensitivity_Hk, HOOK_CALL).install()->quick();
 
     Events::OnDvarInit([]
     {
@@ -276,9 +286,4 @@ namespace Components
         "Mouse steering sensitivity for remote control (predator, sentry), relative to the stock feel. 0 restores the game's frame-rate dependent steering");
     });
   }
-}
-
-void RemoteControl_ScaleMouseMovement(float* yaw, float* pitch)
-{
-  Components::RemoteControl::ScaleMouseMovement(yaw, pitch);
 }

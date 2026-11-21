@@ -289,7 +289,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/RemoteControl.*",
     "src/Components/Modules/Renderer.*",
     "src/Components/Modules/Rumble.*",
     "src/Components/Modules/Security.*",
