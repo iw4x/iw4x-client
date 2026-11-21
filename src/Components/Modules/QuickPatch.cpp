@@ -497,6 +497,16 @@ namespace Components
     //
     Utils::Hook::Set<BYTE>(0x1401F501E, 0xEB);
 
+    // Note that x64 drops the connection to a server that sends no list of
+    // its iwds, as IW4x servers with sv_pure 0 do, with 'Server has modified
+    // files', and to one whose referenced iwds we lack or hold in another
+    // version with '<iwd> is different from the server'. x86 has neither
+    // check, and an x86 server references its own iwds, which an x64 client
+    // never has. So we make the jumps past both errors unconditional.
+    //
+    Utils::Hook::Set<BYTE>(0x1401002B5, 0xEB); // CL_ParseGamestate
+    Utils::Hook::Set<BYTE>(0x1400F88D1, 0xEB); // CL_ParseGamestate (its iwd check)
+
     // remove limit on IWD file loading
     Utils::Hook::Nop(0x14027338F, 2);
 
