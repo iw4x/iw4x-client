@@ -4,8 +4,8 @@
 #include "Auth.hpp"
 #include "Download.hpp"
 #include "FastFiles.hpp"
-#include "Friends.hpp"
 #include "Controller.hpp"
+#include "Maps.hpp"
 #include "ModList.hpp"
 #include "Node.hpp"
 #include "ServerList.hpp"
@@ -226,14 +226,24 @@ namespace Components
     ConnectError(error);
   }
 
-  DWORD Party::UIDvarIntStub(char* dvar)
+  // Note that x86 hands the menus a zeroed spot of the game's memory for
+  // onlinegame, which reads as a dvar that is false. On x64 we keep our own.
+  //
+  const Game::dvar_t* Party::UIDvarIntStub(const char* dvar)
   {
+    static const Game::dvar_t offline {};
+
     if (!_stricmp(dvar, "onlinegame") && !Stats::IsMaxLevel())
     {
-      return 0x649E660;
+      return &offline;
     }
 
-    return Utils::Hook::Call<DWORD(char*)>(0x4D5390)(dvar);
+    return Game::Dvar_FindVar(dvar);
+  }
+
+  int Party::PartyMigrate_HandlePacket()
+  {
+    return 0;
   }
 
   bool Party::IsInLobby()
@@ -265,10 +275,6 @@ namespace Components
 
   Party::Party()
   {
-    if (ZoneBuilder::IsEnabled())
-    {
-      return;
-    }
 
     Events::OnDvarInit([]
     {
@@ -279,49 +285,75 @@ namespace Components
     Dvar::Register<bool>("xblive_privatematch", true, Game::DVAR_INIT, "private match");
 
     // Kill the party migrate handler - it's not necessary and has apparently been used in the past for trickery?
-    Utils::Hook(0x46AB70, Party_PartyMigrate_HandlePacket, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1401152E0, PartyMigrate_HandlePacket, HOOK_JUMP).install()->quick();
 
     // various changes to SV_DirectConnect-y stuff to allow non-party joinees
-    Utils::Hook::Set<WORD>(0x460D96, 0x90E9);
-    Utils::Hook::Set<BYTE>(0x460F0A, 0xEB);
-    Utils::Hook::Set<BYTE>(0x401CA4, 0xEB);
-    Utils::Hook::Set<BYTE>(0x401C15, 0xEB);
+    //
+    // Note that x86 writes the jmp opcode over the first byte of the jge here
+    // and so jumps by a displacement that starts with its second byte. What
+    // it means to do, and what we do, is to always take the jump.
+    //
+    Utils::Hook::Set<WORD>(0x140235FD6, 0xE990);
+    Utils::Hook::Set<BYTE>(0x140236098, 0xEB);
+
+    // Note that in an online game x64 SV_UserinfoChanged() drops the client
+    // the session doesn't hold, where x86 registers it with the session. So
+    // we skip the drop where x86 skips the registration.
+    //
+    Utils::Hook::Nop(0x140238096, 2);
+    Utils::Hook::Set<BYTE>(0x14023810C, 0xEB);
 
     // disable configstring checksum matching (it's unreliable at most)
-    Utils::Hook::Set<BYTE>(0x4A75A7, 0xEB); // SV_SpawnServer
-    Utils::Hook::Set<BYTE>(0x5AC2CF, 0xEB); // CL_ParseGamestate
-    Utils::Hook::Set<BYTE>(0x5AC2C3, 0xEB); // CL_ParseGamestate
+    Utils::Hook::Set<BYTE>(0x140239CEE, 0xEB); // SV_SpawnServer
+    Utils::Hook::Set<BYTE>(0x1400FFCE8, 0xEB); // CL_ParseGamestate
+    Utils::Hook::Set<BYTE>(0x1400FFCDB, 0xEB); // CL_ParseGamestate
 
     // AnonymousAddRequest
-    Utils::Hook::Set<BYTE>(0x5B5E18, 0xEB);
-    Utils::Hook::Set<BYTE>(0x5B5E64, 0xEB);
-    Utils::Hook::Nop(0x5B5E5C, 2);
+    //
+    // Note that x64 compares the 64-bit lobby id in one go, and so we skip
+    // one jump where x86 handles each half.
+    //
+    Utils::Hook::Set<BYTE>(0x14010E5D6, 0xEB);
+    Utils::Hook::Nop(0x14010E5FB, 2);
 
     // HandleClientHandshake
-    Utils::Hook::Set<BYTE>(0x5B6EA5, 0xEB);
-    Utils::Hook::Set<BYTE>(0x5B6EF3, 0xEB);
-    Utils::Hook::Nop(0x5B6EEB, 2);
+    //
+    // As above. Here x64 also jumps when the Steam check fails, where x86
+    // jumps when it passes.
+    //
+    Utils::Hook::Nop(0x14010D285, 2);
+    Utils::Hook::Nop(0x14010D293, 2);
 
     // Allow local connections
-    Utils::Hook::Set<BYTE>(0x4D43DA, 0xEB);
+    Utils::Hook::Set<BYTE>(0x140112ACE, 0xEB);
 
     // LobbyID mismatch
-    Utils::Hook::Nop(0x4E50D6, 2);
-    Utils::Hook::Set<BYTE>(0x4E50DA, 0xEB);
+    //
+    // As in AnonymousAddRequest.
+    //
+    Utils::Hook::Nop(0x14010FD84, 6);
 
     // causes 'does current Steam lobby match' calls in Steam_JoinLobby to be ignored
-    Utils::Hook::Set<BYTE>(0x49D007, 0xEB);
+    Utils::Hook::Set<BYTE>(0x14024C3C9, 0xEB);
 
     // function checking party heartbeat timeouts, cause random issues
-    Utils::Hook::Nop(0x4E532D, 5); // PartyHost_TimeoutMembers
+    //
+    // Note that x64 inlines PartyHost_TimeoutMembers(), whose call we nop on
+    // x86, into PartyHost_Frame(). So we skip the timeout there.
+    //
+    Utils::Hook::Set<BYTE>(0x140110214, 0xEB); // PartyHost_TimeoutMembers
 
     // Steam_JoinLobby call causes migration
-    Utils::Hook::Nop(0x5AF851, 5);
-    Utils::Hook::Set<BYTE>(0x5AF85B, 0xEB);
+    Utils::Hook::Nop(0x140107310, 5);
+    Utils::Hook::Set<BYTE>(0x14010731F, 0xEB);
 
     // Allow xpartygo in public lobbies
-    Utils::Hook::Set<BYTE>(0x5A969E, 0xEB);
-    Utils::Hook::Nop(0x5A96BE, 2);
+    //
+    // Note that x64 jumps to the same early return from both checks, which
+    // we skip.
+    //
+    Utils::Hook::Nop(0x1400FBEF1, 2);
+    Utils::Hook::Nop(0x1400FBEF7, 2);
 
     // Always open lobby menu when connecting
     // It's not possible to entirely patch it via code
@@ -333,55 +365,74 @@ namespace Components
     //Utils::Hook::Nop(0x5B2BD8, 6);
 
     // Force teams, even if not private match
-    Utils::Hook::Set<BYTE>(0x487BB2, 0xEB);
+    Utils::Hook::Set<BYTE>(0x140112B72, 0xEB);
 
     // Force xblive_privatematch 0 and rename it
-    //Utils::Hook::Set<BYTE>(0x420A6A, 4);
-    Utils::Hook::Set<BYTE>(0x420A6C, 0);
-    Utils::Hook::Set<const char*>(0x420A6E, "xblive_privateserver");
+    //
+    // Note that x64 already registers it as 0.
+    //
+    Utils::Hook::PlaceString(0x1402A22A3, 7, 0x1403A7E68, "xblive_privateserver");
 
     // Remove migration shutdown, it causes crashes and will be destroyed when erroring anyways
-    Utils::Hook::Nop(0x5A8E1C, 12);
-    Utils::Hook::Nop(0x5A8E33, 11);
+    //
+    // Note that x86 also nops the instructions that compute where to store,
+    // which x64 shares with the rest of the function.
+    //
+    Utils::Hook::Nop(0x1400FD52C, 11);
 
     // Enable XP Bar
-    Utils::Hook(0x62A2A7, UIDvarIntStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140251859, UIDvarIntStub, HOOK_CALL).install()->quick();
 
     // Set NAT to open
-    Utils::Hook::Set<int>(0x79D898, 1);
+    Utils::Hook::Set<int>(0x140426830, 1);
 
     // Disable host migration
-    Utils::Hook::Set<BYTE>(0x5B58B2, 0xEB);
-    Utils::Hook::Set<BYTE>(0x4D6171, 0);
-    Utils::Hook::Nop(0x4077A1, 5); // PartyMigrate_Frame
+    //
+    // Note that x86 also registers party_hostmigration as false, which x64
+    // compiles down to true. So we also skip the migration where the host
+    // times out, which x86 skips because of that.
+    //
+    Utils::Hook::Set<BYTE>(0x14010EC66, 0xEB);
+    Utils::Hook::Nop(0x140109A69, 5); // PartyMigrate_Frame
+    Utils::Hook::Set<BYTE>(0x14010688D, 0xEB); // PartyClient_HostTimedOut
 
     // Patch playlist stuff for non-party behavior
-    static Game::dvar_t* partyEnable = PartyEnable.get<Game::dvar_t*>();
-    Utils::Hook::Set<Game::dvar_t**>(0x4A4093, &partyEnable);
-    Utils::Hook::Set<Game::dvar_t**>(0x4573F1, &partyEnable);
-    Utils::Hook::Set<Game::dvar_t**>(0x5B1A0C, &partyEnable);
+    //
+    // Note that x64 reaches the xblive_privatematch dvar from the next
+    // instruction, and so we keep our pointer where it can reach it.
+    //
+    auto** partyEnable (static_cast<Game::dvar_t**>(Utils::Hook::AllocateNear(0x140000000, sizeof(Game::dvar_t*))));
+    *partyEnable = PartyEnable.get<Game::dvar_t*>();
+
+    for (const uintptr_t place: {0x140105528, 0x140108E96, 0x1401050B3})
+    {
+      Utils::Hook::Displace(place, 7, 0x146784ED0, reinterpret_cast<uintptr_t>(partyEnable));
+    }
 
     // Invert corresponding jumps
-    Utils::Hook::Xor<BYTE>(0x4A409B, 1);
-    Utils::Hook::Xor<BYTE>(0x4573FA, 1);
-    Utils::Hook::Xor<BYTE>(0x5B1A17, 1);
+    Utils::Hook::Xor<BYTE>(0x140105533, 1);
+    Utils::Hook::Xor<BYTE>(0x140108EA4, 1);
+    Utils::Hook::Xor<BYTE>(0x1401050BE, 1);
 
     // Set ui_maxclients to sv_maxclients
-    Utils::Hook::Set<const char*>(0x42618F, "sv_maxclients");
-    Utils::Hook::Set<const char*>(0x4D3756, "sv_maxclients");
-    Utils::Hook::Set<const char*>(0x5E3772, "sv_maxclients");
+    for (const uintptr_t place: {0x140238258, 0x140238928, 0x14019DC89})
+    {
+      Utils::Hook::Displace(place, 7, 0x140385AC0, 0x1403750E0);
+    }
 
     // Unlatch maxclient dvars
-    Utils::Hook::Xor<BYTE>(0x426187, Game::DVAR_LATCH);
-    Utils::Hook::Xor<BYTE>(0x4D374E, Game::DVAR_LATCH);
-    Utils::Hook::Xor<BYTE>(0x5E376A, Game::DVAR_LATCH);
-    Utils::Hook::Xor<DWORD>(0x4261A1, Game::DVAR_LATCH);
-    Utils::Hook::Xor<DWORD>(0x4D376D, Game::DVAR_LATCH);
-    Utils::Hook::Xor<DWORD>(0x5E3789, Game::DVAR_LATCH);
+    for (const uintptr_t place: {0x140238254, 0x140238933, 0x14019DC94, 0x14023827D, 0x140238955, 0x14019DCB6})
+    {
+      Utils::Hook::Xor<DWORD>(place, Game::DVAR_LATCH);
+    }
 
     // Synchronize / Send network messages when the server starts so that clients can load the game with us
     // Otherwise they timeout while the host load
-    Utils::Hook(0x5B34D0, SV_SpawnServer_Com_SyncThreads_Hook, HOOK_CALL).install()->quick();
+    //
+    // Note that x64 inlines the function whose call to Com_SyncThreads() we
+    // hook on x86 into PartyHost_StartMatch().
+    //
+    Utils::Hook(0x140111FAC, SV_SpawnServer_Com_SyncThreads_Hook, HOOK_CALL).install()->quick();
 
     Command::Add("connect", [](const Command::Params* params)
     {
@@ -406,7 +457,7 @@ namespace Components
       Connect(Container.target);
     });
 
-    if (!Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
+    if (!Dedicated::IsEnabled())
     {
       Scheduler::Loop([]
       {
@@ -748,8 +799,10 @@ namespace Components
         }
       }
 
+      // Note that on x86 we also tell our Steam friends about the server,
+      // which the x64 build doesn't have (see premake5.lua for details).
+      //
       ServerList::Insert(address, info);
-      Friends::UpdateServer(address, info.get("hostname"), info.get("mapname"));
     });
   }
 }

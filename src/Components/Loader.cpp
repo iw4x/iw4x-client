@@ -41,6 +41,7 @@
 #include "Modules/NetworkDebug.hpp"
 #include "Modules/News.hpp"
 #include "Modules/Node.hpp"
+#include "Modules/Party.hpp"
 
 namespace Components
 {
@@ -103,6 +104,7 @@ namespace Components
     Register(new NetworkDebug());
     Register(new News());
     Register(new Node());
+    Register(new Party());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
