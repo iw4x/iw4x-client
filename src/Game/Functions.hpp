@@ -850,6 +850,21 @@ namespace Game
   void QuatRot(vec3_t* vec, const vec4_t* quat);
   void QuatMultiply(const vec4_t* q1, const vec4_t* q2, vec4_t* res);
 
+  // Draw a debug line, string, or the edges of bounds (rotated by quat) in
+  // the world as the first local client sees it.
+  //
+  // Note that on x86 these add to the debug lines and strings that the
+  // renderer draws along with the scene, which x64 compiles out. So we draw
+  // them ourselves with the 2D commands of the frame, projected through the
+  // client's refdef. This means they draw over the scene and may only be
+  // called where the frame's 2D commands are added, such as the renderer
+  // pipeline of Components::Scheduler.
+  //
+  void R_AddDebugLine(const float* color, const float* start, const float* end);
+  void R_AddDebugString(const float* color, const float* pos, float scale, const char* text);
+  void R_AddDebugBounds(const float* color, const Bounds* b);
+  void R_AddDebugBounds(const float* color, const Bounds* b, const float(*quat)[4]);
+
   void SortWorldSurfaces(GfxWorld* world);
 
   typedef Glyph*(*R_GetCharacterGlyph_t)(Font_s* font, unsigned int letter);
