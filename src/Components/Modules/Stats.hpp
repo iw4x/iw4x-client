@@ -1,10 +1,5 @@
 #pragma once
 
-extern "C"
-{
-  void Stats_HashFilenameStub();
-}
-
 namespace Components
 {
   class Stats : public Component
@@ -21,7 +16,11 @@ namespace Components
 
     static void SendStats();
 
-    static std::int64_t* GetStatsID();
+    // The Steam ID and the file name hash we encrypt the stats with, those of
+    // the stat files of earlier IW4x versions.
+    //
+    static constexpr std::uint64_t STATS_ID = 0x110000100001337;
+    static constexpr std::uint32_t STATS_HASH = 0xFC30D07E;
 
     static void AddScriptFunctions();
 
