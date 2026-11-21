@@ -9,7 +9,7 @@ namespace Steam
     return 0;
   }
 
-  bool User::LoggedOn()
+  bool User::BLoggedOn()
   {
     return true;
   }
@@ -60,12 +60,42 @@ namespace Steam
   {
   }
 
-  int User::GetCompressedVoice(void* /*pDestBuffer*/, unsigned int /*cbDestBufferSize*/, unsigned int* /*nBytesWritten*/)
+  int User::GetAvailableVoice(unsigned int* pcbCompressed, unsigned int* pcbUncompressed, unsigned int /*nUncompressedVoiceDesiredSampleRate*/)
+  {
+    if (pcbCompressed)
+    {
+      *pcbCompressed = 0;
+    }
+
+    if (pcbUncompressed)
+    {
+      *pcbUncompressed = 0;
+    }
+
+    return 0;
+  }
+
+  int User::GetVoice(bool /*bWantCompressed*/, void* /*pDestBuffer*/, unsigned int /*cbDestBufferSize*/, unsigned int* nBytesWritten, bool /*bWantUncompressed*/, void* /*pUncompressedDestBuffer*/, unsigned int /*cbUncompressedDestBufferSize*/, unsigned int* nUncompressBytesWritten, unsigned int /*nUncompressedVoiceDesiredSampleRate*/)
+  {
+    if (nBytesWritten)
+    {
+      *nBytesWritten = 0;
+    }
+
+    if (nUncompressBytesWritten)
+    {
+      *nUncompressBytesWritten = 0;
+    }
+
+    return 0;
+  }
+
+  int User::DecompressVoice(const void* /*pCompressed*/, unsigned int /*cbCompressed*/, void* /*pDestBuffer*/, unsigned int /*cbDestBufferSize*/, unsigned int* /*nBytesWritten*/, unsigned int /*nDesiredSampleRate*/)
   {
     return 0;
   }
 
-  int User::DecompressVoice(void* /*pCompressed*/, unsigned int /*cbCompressed*/, void* /*pDestBuffer*/, unsigned int /*cbDestBufferSize*/, unsigned int* /*nBytesWritten*/)
+  unsigned int User::GetVoiceOptimalSampleRate()
   {
     return 0;
   }
@@ -91,5 +121,42 @@ namespace Steam
   unsigned int User::UserHasLicenseForApp(SteamID /*steamID*/, unsigned int /*appID*/)
   {
     return 0;
+  }
+
+  bool User::BIsBehindNAT()
+  {
+    return false;
+  }
+
+  void User::AdvertiseGame(SteamID /*steamIDGameServer*/, unsigned int /*unIPServer*/, unsigned short /*usPortServer*/)
+  {
+  }
+
+  uint64_t User::RequestEncryptedAppTicket(void* /*pDataToInclude*/, int /*cbDataToInclude*/)
+  {
+    return 0;
+  }
+
+  bool User::GetEncryptedAppTicket(void* /*pTicket*/, int /*cbMaxTicket*/, unsigned int* /*pcbTicket*/)
+  {
+    return false;
+  }
+
+  void User::LogOn(bool /*bInteractive*/)
+  {
+  }
+
+  void User::LogOnAndLinkSteamAccountToPSN(bool /*bInteractive*/, const char* /*pchUserName*/, const char* /*pchPassword*/)
+  {
+  }
+
+  void User::LogOnAndCreateNewSteamAccountIfNeeded(bool /*bInteractive*/)
+  {
+  }
+
+  SteamID* User::GetConsoleSteamID(SteamID* result)
+  {
+    *result = {};
+    return result;
   }
 }
