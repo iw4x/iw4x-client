@@ -116,7 +116,10 @@ namespace Game
   typedef bool(*Key_IsCatcherActive_t)(int localClientNum, int mask);
   extern Key_IsCatcherActive_t Key_IsCatcherActive;
 
-  typedef void(*Key_SetBinding_t)(int localClientNum, int keynum, const char* binding);
+  // Note that x64 binds a key to the index of its command in the table of the
+  // commands a key can be bound to, with 0 for none.
+  //
+  typedef void(*Key_SetBinding_t)(int localClientNum, int keynum, int binding);
   extern Key_SetBinding_t Key_SetBinding;
 
   typedef void(*LargeLocalInit_t)();
