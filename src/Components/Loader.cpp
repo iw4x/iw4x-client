@@ -77,6 +77,7 @@
 #include "Modules/UIFeeder.hpp"
 #include "Modules/Updater.hpp"
 #include "Modules/VisionFile.hpp"
+#include "Modules/Voice.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/Sound.hpp"
 
@@ -180,6 +181,7 @@ namespace Components
     Register(new UIFeeder());
     Register(new Updater());
     Register(new VisionFile());
+    Register(new Voice());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).

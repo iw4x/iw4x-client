@@ -291,7 +291,6 @@ project "iw4x"
   {
     "src/Components/Modules/ViewModelFx.*",
     "src/Components/Modules/ViewModelFxSetup.*",
-    "src/Components/Modules/Voice.*",
     "src/Components/Modules/Vote.*",
     "src/Components/Modules/Weapon.*",
     "src/Components/Modules/Window.*",

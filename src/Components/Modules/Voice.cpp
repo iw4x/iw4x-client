@@ -12,6 +12,7 @@ namespace Components
 
   const Game::dvar_t* Voice::sv_voice;
   const Game::dvar_t* Voice::sv_alltalk;
+  const Game::dvar_t* Voice::cl_showSend;
 
   bool Voice::SV_VoiceEnabled()
   {
@@ -40,7 +41,7 @@ namespace Components
   void Voice::SV_SendClientVoiceData(Game::client_s* client)
   {
     Game::msg_t msg{};
-    const auto clientNum = client - Game::svs_clients;
+    const auto clientNum = static_cast<int>(client - Game::svs_clients);
 
     const auto msg_buf_large = std::make_unique<unsigned char[]>(0x20000);
     auto* msg_buf = msg_buf_large.get();
@@ -69,12 +70,15 @@ namespace Components
     }
   }
 
-  void Voice::SV_SendClientMessages_Stub(Game::client_s* client, Game::msg_t* msg, unsigned char* snapshotMsgBuf)
+  // Note that on x86 we send the voice data once SV_SendClientMessages()
+  // ends the client's snapshot. x64 inlines SV_EndClientSnapshot() into it,
+  // so we send it right before the snapshot goes out instead.
+  //
+  void Voice::SV_SendMessageToClient_Hk(Game::msg_t* msg, Game::client_s* client)
   {
-    // SV_EndClientSnapshot
-    Utils::Hook::Call<void(Game::client_s*, Game::msg_t*, unsigned char*)>(0x4F5300)(client, msg, snapshotMsgBuf);
-
     SV_SendClientVoiceData(client);
+
+    Utils::Hook::Call<void(Game::msg_t*, Game::client_s*)>(0x140240970)(msg, client); // SV_SendMessageToClient
   }
 
   void Voice::SV_ClearMutedList()
@@ -227,7 +231,7 @@ namespace Components
       return;
     }
 
-    const auto talker = cl - Game::svs_clients;
+    const auto talker = static_cast<int>(cl - Game::svs_clients);
 
     AssertIn(talker, (*Game::sv_maxclients)->current.integer);
 
@@ -318,7 +322,7 @@ namespace Components
     }
 
     Game::NET_OutOfBandVoiceData(clc->netchan.sock, clc->serverAddress, msg.data, msg.cursize, true);
-    if ((*Game::cl_showSend)->current.enabled)
+    if (cl_showSend->current.enabled)
     {
       Logger::Print(Game::CON_CHANNEL_CLIENT, "voice: {}\n", msg.cursize);
     }
@@ -436,34 +440,42 @@ namespace Components
     {
       if (Chat::IsMuted(cl))
       {
-        SV_MuteClient(cl - Game::svs_clients);
+        SV_MuteClient(static_cast<int>(cl - Game::svs_clients));
       }
     });
 
     // Write voice packets to the server instead of other clients
-    Utils::Hook(0x487935, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5AD945, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140103A7B, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140103FC9, CL_WriteVoicePacket_Hk, HOOK_CALL).install()->quick();
 
     // Disable 'v' OOB handler and use our own
-    Utils::Hook::Set<std::uint8_t>(0x5A9E02, 0xEB);
+    Utils::Hook::Set<std::uint8_t>(0x1400F9650, 0xEB);
     Network::OnClientPacketRaw("v", CL_VoicePacket);
 
-    Utils::Hook(0x4AE740, CL_IsPlayerTalking_Hk, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x4B6250, CL_IsPlayerMuted_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140102770, CL_IsPlayerTalking_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140102710, CL_IsPlayerMuted_Hk, HOOK_JUMP).install()->quick();
 
-    Utils::Hook(0x4519F5, SV_SendClientMessages_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140240672, SV_SendMessageToClient_Hk, HOOK_CALL).install()->quick();
 
     // Recycle packet handler for 'icanthear'
-    Utils::Hook::Set<const char*>(0x62673F, "v");
-    Utils::Hook(0x626787, SV_VoicePacket, HOOK_CALL).install()->quick();
+    Utils::Hook::PlaceString(0x14023B288, 7, 0x1403790D0, "v");
+    Utils::Hook(0x14023B2B2, SV_VoicePacket, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x45F041, Voice_UI_Mute_Player_Stub, HOOK_JUMP).install()->quick();
+    // Note that x64 inlines the party's mute toggle into UI_RunMenuScript(),
+    // where we take over from its check of the party.
+    //
+    Utils::Hook(0x140270923, Voice_UI_Mute_Player_Stub, HOOK_JUMP).install()->quick();
 
-    Utils::Hook(0x4C6B50, Voice_UnmuteMember_Hk, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x43F460, CL_MutePlayer_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140117390, Voice_UnmuteMember_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1401172B0, CL_MutePlayer_Hk, HOOK_JUMP).install()->quick();
 
     sv_voice = Game::Dvar_RegisterBool("sv_voice", false, Game::DVAR_NONE, "Use server side voice communications");
     sv_alltalk = Game::Dvar_RegisterBool("sv_alltalk", false, Game::DVAR_NONE, "Allow talking across teams");
+
+    // Note that x64 compiles out the game's cl_showSend along with its
+    // prints, so we register it as x86 does for our own.
+    //
+    cl_showSend = Game::Dvar_RegisterBool("cl_showSend", false, Game::DVAR_NONE, "Enable debugging information for sent commands");
   
     Events::OnSVInit([]()
     {

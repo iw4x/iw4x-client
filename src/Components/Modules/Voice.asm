@@ -1,20 +1,16 @@
-.686
-.model flat, C
-option casemap:none
-
 EXTERN Voice_UI_Mute_player:PROC
 
 .code
 
 Voice_UI_Mute_Player_Stub PROC
-  push    eax
+  sub     rsp, 20h
+  mov     edx, edi
+  mov     ecx, eax
   call    Voice_UI_Mute_player
-  add     esp, 8
+  add     rsp, 20h
 
-  pop     edi
-  pop     esi
-  add     esp, 0C00h
-  ret
+  mov     rax, 140270555h
+  jmp     rax
 Voice_UI_Mute_Player_Stub ENDP
 
 END
