@@ -293,10 +293,9 @@ project "iw4x"
     "src/Components/Modules/WineD3D.*"
   }
 
-  -- Sources not yet ported to x64.
+  -- BotLib precompiler.
   --
-  -- NOTE: remember to register each component in Loader::Initialize() when
-  --       taking its sources off this list.
+  -- We leave the precompiler of the BotLib scripts out of the x64 build.
   --
   removefiles
   {

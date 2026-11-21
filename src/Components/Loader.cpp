@@ -189,10 +189,6 @@ namespace Components
     Register(new Weapon());
     Register(new Window());
 
-    // @@ TODO: register components as we port them, in x86 client order
-    //    (see unported sources in premake5.lua).
-    //
-
     Register(new GSC::GSC());
 
     // Note that on x86 we register BotLib's precompiler before this, which
