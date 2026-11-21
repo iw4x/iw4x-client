@@ -448,6 +448,123 @@ namespace Game
     }
   }
 
+  // Backend time of the frame the text draws in, rg.time on x86.
+  //
+  static const int* rg_time = reinterpret_cast<const int*>(0x148F0CF88);
+
+  bool SetupPulseFXVars(const char* text, int maxLength, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, bool* resultDrawRandChar, int* resultRandSeed, int* resultMaxLength, bool* resultDecaying, int* resultDecayTimeElapsed)
+  {
+    const int timeElapsed(*rg_time - fxBirthTime);
+
+    if (*rg_time <= 0 || timeElapsed > fxDecayDuration + fxDecayStartTime)
+    {
+      *resultMaxLength = maxLength;
+      *resultDrawRandChar = false;
+      *resultRandSeed = 1;
+      *resultDecaying = false;
+      *resultDecayTimeElapsed = 0;
+      return false;
+    }
+
+    bool drawRandChar(false);
+    bool decaying(false);
+    int randSeed(1);
+    int decayTimeElapsed(0);
+
+    const int length(std::min(SEH_PrintStrlen(text), maxLength));
+
+    if (timeElapsed < fxLetterTime * length)
+    {
+      drawRandChar = true;
+
+      const int letters(timeElapsed / fxLetterTime);
+      int letterTime(timeElapsed % fxLetterTime);
+
+      if (fxLetterTime / 4 != 0)
+      {
+        letterTime /= fxLetterTime / 4;
+      }
+
+      randSeed = fxBirthTime + letters + length + letterTime;
+      RandWithSeed(&randSeed);
+      RandWithSeed(&randSeed);
+
+      maxLength = letters + 1;
+    }
+    else if (timeElapsed > fxDecayStartTime)
+    {
+      decaying = true;
+
+      randSeed = fxBirthTime + length;
+      RandWithSeed(&randSeed);
+      RandWithSeed(&randSeed);
+
+      decayTimeElapsed = timeElapsed - fxDecayStartTime;
+    }
+
+    *resultDrawRandChar = drawRandChar;
+    *resultRandSeed = randSeed;
+    *resultMaxLength = maxLength;
+    *resultDecaying = decaying;
+    *resultDecayTimeElapsed = decayTimeElapsed;
+    return true;
+  }
+
+  void GetDecayingLetterInfo(unsigned int letter, int* randSeed, int decayTimeElapsed, int fxBirthTime, int fxDecayDuration, unsigned char alpha, bool* resultSkipDrawing, char* resultAlpha, unsigned int* resultLetter, bool* resultDrawExtraFxChar)
+  {
+    // Letters the decay shows in place of the real one, the game's table
+    // at 0x1403DAE40.
+    //
+    static const char letters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+
+    bool skipDrawing(false);
+    bool drawExtraFxChar(false);
+    float alphaScale(1.0f);
+
+    // Each letter decays at a random one of 30 steps a second over the
+    // duration, flickering for 60 ms before it goes.
+    //
+    const int steps(static_cast<int>(static_cast<float>(fxDecayDuration) / 1000.0f * 30.0f));
+    const int decayTime(fxDecayDuration / steps * (RandWithSeed(randSeed) % steps));
+
+    if (decayTimeElapsed >= decayTime)
+    {
+      skipDrawing = true;
+    }
+    else if (decayTimeElapsed + 60 >= decayTime)
+    {
+      int seed(static_cast<int>(letter) + fxBirthTime + decayTimeElapsed);
+
+      if (RandWithSeed(&seed) % 2 == 0)
+      {
+        letter = static_cast<unsigned char>(letters[static_cast<unsigned int>(RandWithSeed(&seed)) % (sizeof(letters) - 1)]);
+      }
+      else
+      {
+        drawExtraFxChar = true;
+        letter = 'O';
+      }
+
+      const float fade(static_cast<float>(decayTimeElapsed - decayTime + 60) / 60.0f);
+      alphaScale = (1.0f - fade) * (static_cast<float>(alpha) / 255.0f);
+    }
+
+    const int a(static_cast<int>(alphaScale * 255.0f));
+
+    *resultSkipDrawing = skipDrawing;
+    *resultLetter = letter;
+    *resultAlpha = static_cast<char>(a >= 255 ? 255 : a <= 0 ? 0 : a);
+    *resultDrawExtraFxChar = drawExtraFxChar;
+  }
+
+  char ModulateByteColors(char colorA, char colorB)
+  {
+    const float a(static_cast<float>(static_cast<unsigned char>(colorA)) / 255.0f);
+    const float b(static_cast<float>(static_cast<unsigned char>(colorB)) / 255.0f);
+
+    return static_cast<char>(static_cast<int>(a * b * 255.0f));
+  }
+
   unsigned int R_HashString(const char* string)
   {
     unsigned int hash = 0;

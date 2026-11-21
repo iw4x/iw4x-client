@@ -3,11 +3,6 @@
 #include "Controller.hpp"
 #include "Events.hpp"
 
-namespace Game
-{
-  float* con_screenMin = reinterpret_cast<float*>(0xA15F48);
-}
-
 namespace Components
 {
   unsigned TextRenderer::colorTableDefault[TEXT_COLOR_COUNT]
@@ -95,7 +90,9 @@ namespace Components
   Dvar::Var TextRenderer::r_colorBlind;
   Game::dvar_t* TextRenderer::g_ColorBlind_MyTeam;
   Game::dvar_t* TextRenderer::g_ColorBlind_EnemyTeam;
-  Game::dvar_t** TextRenderer::con_inputBoxColor = reinterpret_cast<Game::dvar_t**>(0x9FD4BC);
+  Game::field_t* TextRenderer::consoleField;
+  void (*TextRenderer::Message_Key_Original)(int localClientNum, int key);
+  void (*TextRenderer::Dvar_GetUnpackedColorByName_Original)(const char* name, float* expandedColor);
 
   TextRenderer::BufferedLocalizedString::BufferedLocalizedString(const char* reference, const std::size_t bufferSize)
     : stringReference(reference),
@@ -431,7 +428,7 @@ namespace Components
       y - FONT_ICON_AUTOCOMPLETE_BOX_PADDING,
       boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
       static_cast<float>(totalLines) * lineHeight + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
-      (*con_inputBoxColor)->current.vector);
+      (*Game::con_inputBoxColor)->current.vector);
 
     auto currentY = y + lineHeight;
 
@@ -471,7 +468,7 @@ namespace Components
       y - FONT_ICON_AUTOCOMPLETE_BOX_PADDING,
       boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2 + arrowPadding,
       static_cast<float>(totalLines) * lineHeight + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
-      (*con_inputBoxColor)->current.vector);
+      (*Game::con_inputBoxColor)->current.vector);
 
     // Draw header line "Search results for: xyz"
     auto currentY = y + lineHeight;
@@ -512,10 +509,9 @@ namespace Components
       DrawAutocompleteResults(instance, x, y, font, textXScale, textYScale);
   }
 
-  void TextRenderer::Con_DrawInput_Hk(const int localClientNum)
+  void TextRenderer::Con_DrawInputOverlay([[maybe_unused]] const int localClientNum, Game::field_t* field, const float x)
   {
-    // Call original function
-    Utils::Hook::Call<void(int)>(0x5A4480)(localClientNum);
+    consoleField = field;
 
     auto& autocompleteContext = autocompleteContextArray[FONT_ICON_ACI_CONSOLE];
     if (cg_fontIconAutocomplete.get<bool>() == false)
@@ -526,11 +522,10 @@ namespace Components
 
     const auto scale = Console::GetConsoleScale();
 
-    UpdateAutocompleteContext(autocompleteContext, Game::g_consoleField, Game::cls->consoleFont, scale);
+    UpdateAutocompleteContext(autocompleteContext, field, Game::cls->consoleFont, scale);
     if (autocompleteContext.autocompleteActive)
     {
-      const auto x = Game::conDrawInputGlob->leftX;
-      const auto y = Game::con_screenMin[1] + 6.0f + static_cast<float>(2 * Game::R_TextHeight(Game::cls->consoleFont)) * scale;
+      const auto y = Game::con->screenMin[1] + 6.0f + static_cast<float>(2 * Game::R_TextHeight(Game::cls->consoleFont)) * scale;
       DrawAutocomplete(FONT_ICON_ACI_CONSOLE, x, y, Game::cls->consoleFont, scale, scale);
     }
   }
@@ -677,7 +672,7 @@ namespace Components
       return false;
 
     if (autocompleteInstance == FONT_ICON_ACI_CONSOLE)
-      return AutocompleteHandleKeyDown(autocompleteContext, key, Game::scrPlaceFull, Game::g_consoleField);
+      return consoleField != nullptr && AutocompleteHandleKeyDown(autocompleteContext, key, Game::scrPlaceFull, consoleField);
 
     if (autocompleteInstance == FONT_ICON_ACI_CHAT)
       return AutocompleteHandleKeyDown(autocompleteContext, key, &Game::scrPlaceView[localClientNum], &Game::playerKeys[localClientNum].chatField);
@@ -685,17 +680,25 @@ namespace Components
     return false;
   }
 
-  void TextRenderer::Console_Key_Hk(const int localClientNum, const int key)
+  bool TextRenderer::Console_KeyFilter(const int localClientNum, const int key, Game::field_t* field)
   {
-    if (HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CONSOLE, key))
-      return;
-
-    Utils::Hook::Call<void(int, int)>(0x4311E0)(localClientNum, key);
+    consoleField = field;
+    return HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CONSOLE, key);
   }
 
   bool TextRenderer::ChatHandleKeyDown(const int localClientNum, const int key)
   {
     return HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CHAT, key);
+  }
+
+  void TextRenderer::Message_Key_Hk(const int localClientNum, const int key)
+  {
+    if (ChatHandleKeyDown(localClientNum, key))
+    {
+      return;
+    }
+
+    Message_Key_Original(localClientNum, key);
   }
 
   float TextRenderer::GetMonospaceWidth(Game::Font_s* font, int rendererFlags)
@@ -1164,7 +1167,7 @@ namespace Components
 
             if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
               xa += xScale * padding;
-            count += (fontIconEnd - curText) + 1;
+            count += static_cast<int>(fontIconEnd - curText) + 1;
             --maxLengthRemaining;
             curText = fontIconEnd;
             continue;
@@ -1362,7 +1365,7 @@ namespace Components
           }
         }
 
-        lineWidth += R_GetCharacterGlyph(font, letter)->dx;
+        lineWidth += Game::R_GetCharacterGlyph(font, letter)->dx;
         if (lineWidth > maxWidth)
         {
           maxWidth = lineWidth;
@@ -1569,21 +1572,37 @@ namespace Components
     return lenWithInvisibleTail;
   }
 
+  int TextRenderer::Field_AdjustScroll_PrintLen(const char* string)
+  {
+    // Note that on x64 the game passes us only the field's buffer, so we get
+    // to the field from there.
+    //
+    static_assert(offsetof(Game::field_t, buffer) == 0x18);
+
+    const auto* field = reinterpret_cast<const Game::field_t*>(string - offsetof(Game::field_t, buffer));
+    return SEH_PrintStrlenWithCursor(string, field);
+  }
+
   void TextRenderer::PatchColorLimit(const char limit)
   {
-    Utils::Hook::Set<char>(0x535629, limit); // DrawText2d
-    Utils::Hook::Set<char>(0x4C1BE4, limit); // SEH_PrintStrlen
-    Utils::Hook::Set<char>(0x4863DD, limit); // No idea
-    Utils::Hook::Set<char>(0x486429, limit); // No idea
-    Utils::Hook::Set<char>(0x49A5A8, limit); // No idea
-    Utils::Hook::Set<char>(0x505721, limit); // R_TextWidth
-    Utils::Hook::Set<char>(0x505801, limit); // No idea
-    Utils::Hook::Set<char>(0x50597F, limit); // No idea
-    Utils::Hook::Set<char>(0x5815DB, limit); // No idea
-    Utils::Hook::Set<char>(0x592ED0, limit); // No idea
-    Utils::Hook::Set<char>(0x5A2E2E, limit); // No idea
+    // Note that x64 compares the color code minus '0' (that is, the color
+    // index) with the last one where x86 compares the code itself.
+    //
+    const auto index = static_cast<char>(ColorIndexForChar(limit));
 
-    Utils::Hook::Set<char>(0x5A2733, static_cast<char>(ColorIndexForChar(limit))); // No idea
+    Utils::Hook::Set<char>(0x14004E3DE, index); // DrawText2D
+    Utils::Hook::Set<char>(0x14024D690, index); // SEH_PrintStrlen
+    Utils::Hook::Set<char>(0x140269527, index); // No idea
+    Utils::Hook::Set<char>(0x1402695A0, index); // No idea
+    Utils::Hook::Set<char>(0x14001AA7F, index); // R_TextWidth
+    Utils::Hook::Set<char>(0x14001ABED, index); // No idea
+    Utils::Hook::Set<char>(0x14001AD6E, index); // No idea
+    Utils::Hook::Set<char>(0x1400D14ED, index); // No idea
+    Utils::Hook::Set<char>(0x1400E5CF4, index); // No idea
+    Utils::Hook::Set<char>(0x1400EBB52, index); // No idea
+    Utils::Hook::Set<char>(0x1400EE532, index); // PrintableCharsCount
+    Utils::Hook::Set<char>(0x14028A503, index); // I_CleanStr
+    Utils::Hook::Set<char>(0x1402A77EF, index); // No idea
   }
 
   // Patches team overhead normally
@@ -1617,6 +1636,14 @@ namespace Components
     return true;
   }
 
+  void TextRenderer::Dvar_GetUnpackedColorByName_Hk(const char* name, float* expandedColor)
+  {
+    if (Dvar_GetUnpackedColorByName(name, expandedColor))
+    {
+      Dvar_GetUnpackedColorByName_Original(name, expandedColor);
+    }
+  }
+
   void TextRenderer::UpdateColorTable()
   {
     if (cg_newColors.get<bool>())
@@ -1624,8 +1651,8 @@ namespace Components
     else
       currentColorTable = &colorTableDefault;
 
-    (*currentColorTable)[TEXT_COLOR_AXIS] = *reinterpret_cast<unsigned*>(0x66E5F70);
-    (*currentColorTable)[TEXT_COLOR_ALLIES] = *reinterpret_cast<unsigned*>(0x66E5F74);
+    (*currentColorTable)[TEXT_COLOR_AXIS] = *reinterpret_cast<unsigned*>(0x148CC82C0);
+    (*currentColorTable)[TEXT_COLOR_ALLIES] = *reinterpret_cast<unsigned*>(0x148CC82C4);
     (*currentColorTable)[TEXT_COLOR_RAINBOW] = HsvToRgb({ static_cast<uint8_t>((Game::Sys_Milliseconds() / 200) % 256), 255,255 });
     (*currentColorTable)[TEXT_COLOR_SERVER] = sv_customTextColor->current.unsignedInt;
   }
@@ -1688,6 +1715,14 @@ namespace Components
 
   TextRenderer::TextRenderer()
   {
+    // We read these in the glyphs and the font icons.
+    //
+    AssertSize(Game::Glyph, 0x18);
+    AssertOffset(Game::Font_s, glyphCount, 0xC);
+    AssertOffset(Game::Font_s, glyphs, 0x20);
+    AssertOffset(Game::Material, techniqueSet, 0x58);
+    AssertOffset(Game::MaterialInfo, textureAtlasRowCount, 0xA);
+
     currentColorTable = &colorTableDefault;
 
     cg_newColors = Dvar::Register<bool>("cg_newColors", true, Game::DVAR_ARCHIVE, "Use Warfare 2 color code style.");
@@ -1699,13 +1734,13 @@ namespace Components
     Components::Events::AfterUIInit(InitFontIcons);
 
     // Replace vanilla text drawing function with a reimplementation with extensions
-    Utils::Hook(0x535410, DrawText2D, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14004E040, DrawText2D, HOOK_JUMP).install()->quick();
 
     // Consider material text icons and font icons when calculating text width
-    Utils::Hook(0x5056C0, R_TextWidth_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14001AA00, R_TextWidth_Hk, HOOK_JUMP).install()->quick();
 
     // Patch ColorIndex
-    Utils::Hook(0x417770, ColorIndex, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14028A1E0, ColorIndex, HOOK_JUMP).install()->quick();
 
     // Add a colorblind mode for team colors
     r_colorBlind = Dvar::Register<bool>("r_colorBlind", false, Game::DVAR_ARCHIVE, "Use color-blindness-friendly colors");
@@ -1715,38 +1750,24 @@ namespace Components
     g_ColorBlind_MyTeam = Game::Dvar_RegisterColor("g_ColorBlind_MyTeam", 1, 0.859f, 0.125f, 1, Game::DVAR_ARCHIVE, "Ally team color for colorblind mode");
 
     // Replace team colors with colorblind team colors when colorblind is enabled
-    Utils::Hook(0x406530, TextRenderer_GetUnpackedColorByNameStub, HOOK_JUMP).install()->quick();
+    Dvar_GetUnpackedColorByName_Original = Utils::Hook::Detour(0x140283810, 6, &Dvar_GetUnpackedColorByName_Hk);
 
     // Consider the cursor being inside the color escape sequence when getting the print length for a field
-    Utils::Hook(0x488CBD, TextRenderer_Field_AdjustScroll_PrintLen_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEBB6, Field_AdjustScroll_PrintLen, HOOK_CALL).install()->quick();
 
     // Draw fonticon autocompletion for say field
-    Utils::Hook(0x4CA1BD, Field_Draw_Say, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ED067, Field_Draw_Say, HOOK_CALL).install()->quick();
 
     // Draw fonticon autocompletion for console field
-    Utils::Hook(0x5A50A5, Con_DrawInput_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A50BB, Con_DrawInput_Hk, HOOK_CALL).install()->quick();
+    //
+    // Note that the x64 console is our own (see Game::Con_DrawInputOverlay).
+    //
+    Game::Con_DrawInputOverlay = Con_DrawInputOverlay;
 
     // Handle key inputs for console and chat
-    Utils::Hook(0x4F685C, Console_Key_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4F6694, TextRenderer_Message_Key_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4F684C, TextRenderer_Message_Key_Stub, HOOK_CALL).install()->quick();
+    Game::Console_KeyFilter = Console_KeyFilter;
+    Message_Key_Original = Utils::Hook::Detour(0x1400EFE70, 5, &Message_Key_Hk);
 
     PatchColorLimit(COLOR_LAST_CHAR);
   }
-}
-
-bool TextRenderer_ChatHandleKeyDown(int localClientNum, int key)
-{
-  return Components::TextRenderer::ChatHandleKeyDown(localClientNum, key);
-}
-
-int TextRenderer_SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field)
-{
-  return Components::TextRenderer::SEH_PrintStrlenWithCursor(string, field);
-}
-
-bool TextRenderer_Dvar_GetUnpackedColorByName(const char* name, float* expandedColor)
-{
-  return Components::TextRenderer::Dvar_GetUnpackedColorByName(name, expandedColor);
 }

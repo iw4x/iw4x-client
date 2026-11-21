@@ -70,6 +70,7 @@
 #include "Modules/Stats.hpp"
 #include "Modules/StringTable.hpp"
 #include "Modules/StructuredData.hpp"
+#include "Modules/TextRenderer.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/Sound.hpp"
 
@@ -166,6 +167,7 @@ namespace Components
     Register(new Stats());
     Register(new StringTable());
     Register(new StructuredData());
+    Register(new TextRenderer());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).

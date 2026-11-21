@@ -45,6 +45,9 @@ namespace Game
 
   const dvar_t* con_scale;
 
+  void (*Con_DrawInputOverlay)(int localClientNum, field_t* field, float x);
+  bool (*Console_KeyFilter)(int localClientNum, int key, field_t* field);
+
   static_assert(offsetof(clientStatic_t, rendererStarted) == 0x108);
   static_assert(offsetof(clientStatic_t, whiteMaterial) == 0x168);
   static_assert(offsetof(clientStatic_t, consoleFont) == 0x178);
@@ -1524,6 +1527,11 @@ namespace Game
       }
 
       Con_DrawInput(localClientNum);
+
+      if (Con_DrawInputOverlay != nullptr)
+      {
+        Con_DrawInputOverlay(localClientNum, &g_consoleField, conDrawInputGlob.leftX);
+      }
     }
 
     // Lay the console over the whole screen with a small border, sized for
@@ -2186,6 +2194,11 @@ namespace Game
 
   void Console_Key(int localClientNum, int key)
   {
+    if (Console_KeyFilter != nullptr && Console_KeyFilter(localClientNum, key, &g_consoleField))
+    {
+      return;
+    }
+
     const PlayerKeyState& keys(playerKeys[localClientNum]);
     const bool shift(keys.keys[K_SHIFT].down != 0);
     const bool ctrl(keys.keys[K_CTRL].down != 0);

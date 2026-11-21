@@ -1,16 +1,5 @@
 #pragma once
 
-extern "C"
-{
-  void TextRenderer_Message_Key_Stub();
-  void TextRenderer_Field_AdjustScroll_PrintLen_Stub();
-  void TextRenderer_GetUnpackedColorByNameStub();
-
-  bool TextRenderer_ChatHandleKeyDown(int localClientNum, int key);
-  int TextRenderer_SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field);
-  bool TextRenderer_Dvar_GetUnpackedColorByName(const char* name, float* expandedColor);
-}
-
 namespace Components
 {
   enum TextColor : int
@@ -143,9 +132,6 @@ namespace Components
     };
 
   private:
-    friend bool (::TextRenderer_ChatHandleKeyDown)(int localClientNum, int key);
-    friend int (::TextRenderer_SEH_PrintStrlenWithCursor)(const char* string, const Game::field_t* field);
-    friend bool (::TextRenderer_Dvar_GetUnpackedColorByName)(const char* name, float* expandedColor);
 
     struct FontIconTableEntry
     {
@@ -228,7 +214,9 @@ namespace Components
     static Dvar::Var r_colorBlind;
     static Game::dvar_t* g_ColorBlind_MyTeam;
     static Game::dvar_t* g_ColorBlind_EnemyTeam;
-    static Game::dvar_t** con_inputBoxColor;
+    // The console's input field, as it last passed it to us.
+    //
+    static Game::field_t* consoleField;
 
   public:
     static void DrawText2D(const char* text, float x, float y, Game::Font_s* font, float xScale, float yScale, float sinAngle, float cosAngle, Game::GfxColor color, int maxLength, int renderFlags, int cursorPos, char cursorLetter, float padding, Game::GfxColor glowForcedColor, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, Game::Material* fxMaterial, Game::Material* fxMaterialGlow);
@@ -259,19 +247,24 @@ namespace Components
     static void UpdateAutocompleteContextResults(FontIconAutocompleteContext& context, Game::Font_s* font, float textXScale);
     static void UpdateAutocompleteContext(FontIconAutocompleteContext& context, const Game::field_t* edit, Game::Font_s* font, const float textXScale);
     static void Field_Draw_Say(int localClientNum, Game::field_t* edit, int x, int y, int horzAlign, int vertAlign);
-    static void Con_DrawInput_Hk(int localClientNum);
+    static void Con_DrawInputOverlay(int localClientNum, Game::field_t* field, float x);
 
     static void AutocompleteUp(FontIconAutocompleteContext& context);
     static void AutocompleteDown(FontIconAutocompleteContext& context);
     static void AutocompleteFill(const FontIconAutocompleteContext& context, Game::ScreenPlacement* scrPlace, Game::field_t* edit, bool closeFontIcon);
     static bool AutocompleteHandleKeyDown(FontIconAutocompleteContext& context, int key, Game::ScreenPlacement* scrPlace, Game::field_t* edit);
-    static void Console_Key_Hk(int localClientNum, int key);
+    static bool Console_KeyFilter(int localClientNum, int key, Game::field_t* field);
     static bool ChatHandleKeyDown(int localClientNum, int key);
+    static void Message_Key_Hk(int localClientNum, int key);
+    static void (*Message_Key_Original)(int localClientNum, int key);
 
     static int SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field);
+    static int Field_AdjustScroll_PrintLen(const char* string);
 
     static void PatchColorLimit(char limit);
     static bool Dvar_GetUnpackedColorByName(const char* name, float* expandedColor);
+    static void Dvar_GetUnpackedColorByName_Hk(const char* name, float* expandedColor);
+    static void (*Dvar_GetUnpackedColorByName_Original)(const char* name, float* expandedColor);
 
     static Game::GfxImage* GetFontIconColorMap(const Game::Material* fontIconMaterial);
     static float DrawFontIcon(const FontIconInfo& fontIcon, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);

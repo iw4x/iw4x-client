@@ -874,6 +874,16 @@ namespace Game
   typedef void(*RB_DrawStretchPicRotate_t)(Material* material, float x, float y, float w, float h, float s0, float t0, float s1, float t1, float sinAngle, float cosAngle, unsigned int color);
   extern RB_DrawStretchPicRotate_t RB_DrawStretchPicRotate;
 
+  // The pulse effect of DrawText2D(): the letters type in one after another
+  // with a random letter at the end, and later decay away at random times.
+  //
+  // Note that x64 inlines these into DrawText2D(), so we reimplement them
+  // from the x86 game.
+  //
+  bool SetupPulseFXVars(const char* text, int maxLength, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, bool* resultDrawRandChar, int* resultRandSeed, int* resultMaxLength, bool* resultDecaying, int* resultDecayTimeElapsed);
+  void GetDecayingLetterInfo(unsigned int letter, int* randSeed, int decayTimeElapsed, int fxBirthTime, int fxDecayDuration, unsigned char alpha, bool* resultSkipDrawing, char* resultAlpha, unsigned int* resultLetter, bool* resultDrawExtraFxChar);
+  char ModulateByteColors(char colorA, char colorB);
+
   float GraphGetValueFromFraction(int knotCount, const float(*knots)[2], float fraction);
   float GraphFloat_GetValue(const GraphFloat* graph, const float fraction);
 

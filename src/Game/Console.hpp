@@ -169,6 +169,18 @@ namespace Game
   //
   void Console_Key(int localClientNum, int key);
 
+  // Hooks for the components into our console, unset unless a component sets
+  // them: Con_DrawInputOverlay to draw over the input line once the console
+  // has drawn it, given the input field and the left edge of its text, and
+  // Console_KeyFilter to take a key for the input field before the console
+  // handles it, returning true if it does.
+  //
+  // Note that on x86 the components hook the game's calls to Con_DrawInput()
+  // and Console_Key() instead.
+  //
+  extern void (*Con_DrawInputOverlay)(int localClientNum, field_t* field, float x);
+  extern bool (*Console_KeyFilter)(int localClientNum, int key, field_t* field);
+
   // Handle a character while the console takes the input.
   //
   void CL_CharEvent(int localClientNum, int key);
