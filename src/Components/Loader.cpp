@@ -60,6 +60,7 @@
 #include "Modules/RemoteControl.hpp"
 #include "Modules/Rumble.hpp"
 #include "Modules/Security.hpp"
+#include "Modules/ServerCommands.hpp"
 #include "Modules/Renderer.hpp"
 
 namespace Components
@@ -144,6 +145,7 @@ namespace Components
     Register(new Renderer());
     Register(new Scheduler());
     Register(new Security());
+    Register(new ServerCommands());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
