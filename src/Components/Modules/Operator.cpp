@@ -1,6 +1,8 @@
 #include "Operator.hpp"
 #include "Events.hpp"
 
+#include "GSC/ScriptError.hpp"
+
 namespace Components
 {
   namespace
@@ -498,6 +500,328 @@ namespace Components
 
       Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\n%i archived + %i current = %i hud elems\n", archived, current, archived + current);
     }
+
+    // The script variables, laid out as on x86 with the values widened.
+    //
+    // An object's entry follows the entry its id indexes, where the first
+    // word of the value is its reference count and the sibling the first of
+    // its children. The children are at one of two bases, depending on the
+    // object's id, and their siblings index the hash, whose id is the next
+    // child's.
+    //
+    struct VariableValueInternal
+    {
+      std::uint16_t id;
+      std::uint16_t prev;
+      Game::VariableUnion u;
+      unsigned int status;
+      std::uint16_t name;
+      std::uint16_t nextSibling;
+    };
+
+    static_assert (sizeof (VariableValueInternal) == 0x18);
+    static_assert (offsetof (VariableValueInternal, u) == 0x8);
+    static_assert (offsetof (VariableValueInternal, status) == 0x10);
+    static_assert (offsetof (VariableValueInternal, nextSibling) == 0x16);
+
+    const auto variableList = reinterpret_cast<const VariableValueInternal*> (0x141F4B800);
+
+    constexpr unsigned int VARIABLELIST_COUNT = 0x22002;
+    constexpr unsigned int VAR_STAT_MASK = 0x60;
+    constexpr unsigned int VAR_MASK = 0x1F;
+    constexpr unsigned int VAR_NAME_HIGH_MASK = 0x10000;
+
+    // The parent of the endon lists, which scrVarPub keeps after the time
+    // array.
+    //
+    const auto& pauseArrayId = *reinterpret_cast<const unsigned int*> (0x141F27794);
+
+    // The script classes and the arrays of their entities.
+    //
+    struct scr_classStruct_t
+    {
+      std::uint16_t id;
+      std::uint16_t entArrayId;
+      char charId;
+      const char* name;
+    };
+
+    static_assert (sizeof (scr_classStruct_t) == 0x10);
+
+    const auto g_classMap = reinterpret_cast<const scr_classStruct_t*> (0x140423CD0);
+
+    constexpr int CLASS_NUM_COUNT = 6;
+
+    unsigned int ChildBase (unsigned int parentId)
+    {
+      return (parentId & 1) * 0xC801 + 0x9002;
+    }
+
+    const VariableValueInternal& ObjectEntry (unsigned int id)
+    {
+      return variableList[id + 1];
+    }
+
+    unsigned int Type (const VariableValueInternal& e)
+    {
+      return e.status & VAR_MASK;
+    }
+
+    // Return the id of the child that follows the one at index, or 0 if it
+    // is the last.
+    //
+    unsigned int NextChild (unsigned int index, unsigned int base)
+    {
+      const unsigned int next (variableList[index + base].nextSibling);
+      return next != 0 ? variableList[next + base].id : 0;
+    }
+
+    unsigned int RefCount (unsigned int id)
+    {
+      return *reinterpret_cast<const std::uint16_t*> (&ObjectEntry (id).u);
+    }
+
+    // Return the variables the object uses, counting each array it points
+    // to shared among its references.
+    //
+    float Scr_GetObjectUsage (unsigned int parentId)
+    {
+      float r (1.0f);
+      const unsigned int base (ChildBase (parentId));
+
+      for (unsigned int id (ObjectEntry (parentId).nextSibling); id != 0; id = NextChild (id, base))
+      {
+        const VariableValueInternal& e (variableList[id + base]);
+        const unsigned int value (e.u.pointerValue);
+
+        float usage (0.0f);
+        if (Type (e) == Game::VAR_POINTER && Type (ObjectEntry (value)) == Game::VAR_ARRAY)
+        {
+          usage = Scr_GetObjectUsage (value) / (static_cast<float> (RefCount (value)) + 1.0f);
+        }
+
+        r += usage + 1.0f;
+      }
+
+      return r;
+    }
+
+    // Return the variables the endon list of the thread uses.
+    //
+    float Scr_GetEndonUsage (unsigned int localId)
+    {
+      const unsigned int id (Game::FindVariable (pauseArrayId, localId + VAR_NAME_HIGH_MASK));
+      if (id == 0)
+      {
+        return 0.0f;
+      }
+
+      const unsigned int endonId (variableList[id + ChildBase (pauseArrayId)].u.pointerValue);
+      const unsigned int base (ChildBase (endonId));
+
+      float r (1.0f);
+      for (unsigned int child (ObjectEntry (endonId).nextSibling); child != 0; child = NextChild (child, base))
+      {
+        r += 1.0f;
+      }
+
+      return r;
+    }
+
+    // Return the variables the suspended thread uses, and the ones its endon
+    // lists use in endonUsage. We walk its stack from the top, where each
+    // code position is a call into the thread's parent.
+    //
+    float Scr_GetThreadUsage (const Game::VariableStackBuffer* stackBuf, float* endonUsage)
+    {
+      constexpr std::size_t entry_size (1 + sizeof (Game::VariableUnion));
+
+      unsigned int localId (stackBuf->localId);
+      float r (Scr_GetObjectUsage (localId));
+      *endonUsage = Scr_GetEndonUsage (localId);
+
+      const char* p (stackBuf->buf + stackBuf->size * entry_size);
+
+      for (int size (stackBuf->size); size != 0; --size)
+      {
+        p -= entry_size;
+
+        const unsigned char type (static_cast<unsigned char> (p[0]));
+
+        Game::VariableUnion u;
+        std::memcpy (&u, p + 1, sizeof (u));
+
+        if (type == Game::VAR_CODEPOS)
+        {
+          localId = ObjectEntry (localId).status >> 8;
+          r += Scr_GetObjectUsage (localId);
+          *endonUsage += Scr_GetEndonUsage (localId);
+        }
+        else if (type == Game::VAR_POINTER && Type (ObjectEntry (u.pointerValue)) == Game::VAR_ARRAY)
+        {
+          r += Scr_GetObjectUsage (u.pointerValue) / (static_cast<float> (RefCount (u.pointerValue)) + 1.0f);
+        }
+      }
+
+      return r;
+    }
+
+    // A suspended thread's code positions from where it is to where it was
+    // started, and the variables it uses.
+    //
+    struct ThreadDebugInfo
+    {
+      const char* pos[32];
+      int posSize;
+      float varUsage;
+      float endonUsage;
+    };
+
+    int ThreadInfoCompare (const void* a, const void* b)
+    {
+      const auto* x (static_cast<const ThreadDebugInfo*> (a));
+      const auto* y (static_cast<const ThreadDebugInfo*> (b));
+
+      for (int i (0); i < x->posSize && i < y->posSize; ++i)
+      {
+        if (x->pos[i] != y->pos[i])
+        {
+          return x->pos[i] < y->pos[i] ? -1 : 1;
+        }
+      }
+
+      return x->posSize - y->posSize;
+    }
+
+    // Print the suspended threads grouped by where they are, and how many
+    // variables each group and the entities of each class use.
+    //
+    // Note that x86 prints nothing if no thread is suspended, and prints that
+    // it's out of memory if it can't allocate the threads, where we throw.
+    //
+    void Scr_DumpScriptThreads ()
+    {
+      std::vector<ThreadDebugInfo> infos;
+
+      for (unsigned int i (1); i <= VARIABLELIST_COUNT; ++i)
+      {
+        const VariableValueInternal& e (variableList[i]);
+
+        if ((e.status & VAR_STAT_MASK) == 0 || Type (e) != Game::VAR_STACK)
+        {
+          continue;
+        }
+
+        const Game::VariableStackBuffer* stackBuf (e.u.stackValue);
+        constexpr std::size_t entry_size (1 + sizeof (Game::VariableUnion));
+
+        // Collect the code positions from the bottom of the stack, followed
+        // by where the thread is, which we store in the reverse order.
+        //
+        const char* pos[32];
+        int n (0);
+
+        for (int j (0); j < stackBuf->size; ++j)
+        {
+          const char* p (stackBuf->buf + j * entry_size);
+
+          if (static_cast<unsigned char> (p[0]) == Game::VAR_CODEPOS)
+          {
+            assert (n < static_cast<int> (std::size (pos)) - 1);
+            std::memcpy (&pos[n++], p + 1, sizeof (pos[0]));
+          }
+        }
+
+        pos[n++] = stackBuf->pos;
+
+        ThreadDebugInfo info;
+        info.varUsage = Scr_GetThreadUsage (stackBuf, &info.endonUsage);
+        info.posSize = n;
+
+        for (int j (0); j < n; ++j)
+        {
+          info.pos[j] = pos[n - 1 - j];
+        }
+
+        infos.push_back (info);
+      }
+
+      if (infos.empty ())
+      {
+        return;
+      }
+
+      std::qsort (infos.data (), infos.size (), sizeof (ThreadDebugInfo), ThreadInfoCompare);
+
+      Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "********************************\n");
+
+      float totalVarUsage (0.0f);
+      float totalEndonUsage (0.0f);
+
+      for (std::size_t i (0); i < infos.size ();)
+      {
+        const ThreadDebugInfo& info (infos[i]);
+
+        int count (0);
+        float varUsage (0.0f);
+        float endonUsage (0.0f);
+
+        do
+        {
+          ++count;
+          varUsage += infos[i].varUsage;
+          endonUsage += infos[i].endonUsage;
+          ++i;
+        }
+        while (i < infos.size () && ThreadInfoCompare (&info, &infos[i]) == 0);
+
+        totalVarUsage += varUsage;
+        totalEndonUsage += endonUsage;
+
+        Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "count: %d, var usage: %d, endon usage: %d\n", count, static_cast<int> (varUsage), static_cast<int> (endonUsage));
+        GSC::ScriptError::Scr_PrintPrevCodePos (Game::CON_CHANNEL_PARSERSCRIPT, info.pos[0], 0);
+
+        for (int j (1); j < info.posSize; ++j)
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "called from:\n");
+          GSC::ScriptError::Scr_PrintPrevCodePos (Game::CON_CHANNEL_PARSERSCRIPT, info.pos[j], 0);
+        }
+      }
+
+      Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "********************************\n");
+      Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "var usage: %d, endon usage: %d\n", static_cast<int> (totalVarUsage), static_cast<int> (totalEndonUsage));
+      Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\n");
+
+      for (int classNum (0); classNum < CLASS_NUM_COUNT; ++classNum)
+      {
+        const unsigned int entArrayId (g_classMap[classNum].entArrayId);
+        if (entArrayId == 0)
+        {
+          continue;
+        }
+
+        const unsigned int base (ChildBase (entArrayId));
+
+        int count (0);
+        float usage (0.0f);
+
+        for (unsigned int id (ObjectEntry (entArrayId).nextSibling); id != 0; id = NextChild (id, base))
+        {
+          const VariableValueInternal& e (variableList[id + base]);
+
+          ++count;
+
+          if (Type (e) == Game::VAR_POINTER)
+          {
+            usage += Scr_GetObjectUsage (e.u.pointerValue);
+          }
+        }
+
+        Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "ent type '%s'... count: %d, var usage: %d\n", g_classMap[classNum].name, count, static_cast<int> (usage));
+      }
+
+      Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "********************************\n");
+    }
   }
 
   void Operator::AddServerCommands ()
@@ -549,6 +873,7 @@ namespace Components
     Command::AddSV ("gameCompleteStatus", [] (const Command::Params*) {});
 
     Command::AddSV ("killserver", [] (const Command::Params*) {Game::Com_Shutdown ("EXE_SERVERKILLED");});
+    Command::AddSV ("scriptUsage", [] (const Command::Params*) {Scr_DumpScriptThreads ();});
 
     // Note that on x86 dobjList and stringUsage are the stubs of debugging
     // commands, and so they only print.

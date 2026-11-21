@@ -31,6 +31,11 @@ namespace Components::GSC
 
     static void VM_Error(const char* codePos);
 
+    // Print the source position of the code position, which on x86 replaces
+    // the game's own.
+    //
+    static void Scr_PrintPrevCodePos(int channel, const char* codePos, unsigned int index);
+
   private:
     struct ThreadStart
     {
@@ -58,7 +63,6 @@ namespace Components::GSC
     static void Scr_CopyFormattedLine(char* line, const char* rawLine);
     static int Scr_GetLineNumInternal(const char* buf, unsigned int sourcePos, const char** startLine, int* col, Game::SourceBufferInfo* binfo);
     static unsigned int Scr_GetSourceBuffer(const char* codePos);
-    static void Scr_PrintPrevCodePos(int channel, const char* codePos, unsigned int index);
     static int Scr_GetLineInfo(const char* buf, unsigned int sourcePos, int* col, char* line, Game::SourceBufferInfo* binfo);
     static void Scr_PrintSourcePos(int channel, const char* filename, const char* buf, unsigned int sourcePos);
 
