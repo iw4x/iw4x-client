@@ -107,6 +107,48 @@ namespace Game
     return cl;
   }
 
+  client_s* SV_GetPlayerByName()
+  {
+    if (!(*com_sv_running)->current.enabled)
+    {
+      return nullptr;
+    }
+
+    const int argc (sv_cmd_args->argc[sv_cmd_args->nesting]);
+    if (argc < 2)
+    {
+      Com_Printf(CON_CHANNEL_DONT_FILTER, "No player specified.\n");
+      return nullptr;
+    }
+
+    const char* s (sv_cmd_args->argv[sv_cmd_args->nesting][1]);
+    for (int i (0); i < *svs_clientCount; ++i)
+    {
+      client_s* cl (&svs_clients[i]);
+      if (cl->header.state == CS_FREE)
+      {
+        continue;
+      }
+
+      if (I_stricmp(cl->name, s) == 0)
+      {
+        return cl;
+      }
+
+      char name[64];
+      I_strncpyz(name, cl->name, sizeof(name));
+      I_CleanStr(name);
+
+      if (I_stricmp(name, s) == 0)
+      {
+        return cl;
+      }
+    }
+
+    Com_Printf(CON_CHANNEL_DONT_FILTER, "Player %s is not on the server\n", s);
+    return nullptr;
+  }
+
   int SV_GetClientStat(int clientNum, int index)
   {
     assert(svs_clients[clientNum].statPacketsReceived == (1 << MAX_STATPACKETS) - 1);

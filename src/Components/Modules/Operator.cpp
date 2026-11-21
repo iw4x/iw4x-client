@@ -1,0 +1,631 @@
+#include "Operator.hpp"
+#include "Events.hpp"
+
+namespace Components
+{
+  namespace
+  {
+    const auto SV_MigrationStart = reinterpret_cast<void (*) (const char*)> (0x14023CD50);
+    const auto SV_MigrationInProgress = reinterpret_cast<bool (*) ()> (0x14023C750);
+    const auto SV_MapRestart = reinterpret_cast<void (*) (int, int)> (0x140234890);
+    const auto SV_FastRestart_f = reinterpret_cast<void (*) ()> (0x140234650);
+    const auto SV_GameClientNum = reinterpret_cast<Game::playerState_s* (*) (int)> (0x1402319A0);
+    const auto G_GetClientState = reinterpret_cast<Game::clientState_s* (*) (int)> (0x14019CF10);
+    const auto BG_GetPerkIndexForName = reinterpret_cast<unsigned int (*) (const char*)> (0x14008D7C0);
+    const auto PartyHost_RemoveMember = reinterpret_cast<void (*) (Game::PartyData*, int, bool, const char*)> (0x140110F70);
+    const auto SND_FadeAllSounds = reinterpret_cast<void (*) (float, int)> (0x140243E30);
+    const auto Dvar_InfoString = reinterpret_cast<const char* (*) (int, int)> (0x1401FC010);
+    const auto MemFile_WriteData = reinterpret_cast<void (*) (void*, int, const void*)> (0x140288970);
+    const auto MemFile_ReadData = reinterpret_cast<void (*) (void*, int, void*)> (0x140287A60);
+
+    const auto& xblive_privatematch = *reinterpret_cast<const Game::dvar_t* const*> (0x146784ED0);
+    const auto& sv_kickBanTime = *reinterpret_cast<const Game::dvar_t* const*> (0x14650B738);
+    const auto& sv_rejoinTimeout = *reinterpret_cast<const Game::dvar_t* const*> (0x14650B6A8);
+
+    // Whether the server restarts the map on its next frame, and whether the
+    // restart reloads the scripts.
+    //
+    auto& sv_restartMap = *reinterpret_cast<int*> (0x1422CC060);
+    auto& sv_restartLoadScripts = *reinterpret_cast<int*> (0x1422CC064);
+
+    constexpr int CS_LOCALIZED_STRINGS = 0x1FF;
+    constexpr int CS_SHADERS = 0x9B5;
+
+    // The briefly banned guids and when we banned them, laid out as on x86
+    // since we archive them for the new host the same way.
+    //
+    struct TempBan
+    {
+      char guid[17];
+      int time;
+    };
+
+    static_assert (sizeof (TempBan) == 0x18);
+    static_assert (offsetof (TempBan, time) == 0x14);
+
+    TempBan TempBans[16];
+
+    static_assert (sizeof (TempBans) == 0x180);
+
+    // Return the slot of the first free ban, or else of the oldest.
+    //
+    int SV_TempBanGetFreeSlot ()
+    {
+      int r (0);
+
+      for (int i (0); i < static_cast<int> (std::size (TempBans)); ++i)
+      {
+        if (TempBans[i].guid[0] == '\0')
+        {
+          return i;
+        }
+
+        if (TempBans[i].time < TempBans[r].time)
+        {
+          r = i;
+        }
+      }
+
+      return r;
+    }
+
+    void SV_BanGuidBriefly (const char* guid)
+    {
+      TempBan& b (TempBans[SV_TempBanGetFreeSlot ()]);
+
+      std::memcpy (b.guid, guid, sizeof (b.guid));
+      b.time = *Game::svs_time;
+    }
+
+    bool SV_IsTempBannedGuid (const char* guid)
+    {
+      if (*guid == '\0')
+      {
+        return false;
+      }
+
+      for (const TempBan& b : TempBans)
+      {
+        if (std::strcmp (b.guid, guid) == 0 &&
+            static_cast<double> (*Game::svs_time - b.time) <= sv_kickBanTime->current.value * 1000.0)
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    // Kick the client for the reason. If we pass a buffer for the player's
+    // name, also return their name without its colors and their guid.
+    //
+    // The host can't be kicked. In an online game other than a private match
+    // the server migrates to another host instead and we return true without
+    // filling the buffers.
+    //
+    bool SV_KickClient (Game::client_s* cl, char* playerName, int maxPlayerNameLen, const char* reason, char* guid)
+    {
+      if (cl->header.netchan.remoteAddress.type == Game::NA_LOOPBACK)
+      {
+        if (xblive_privatematch->current.enabled || !(*Game::onlinegame)->current.enabled)
+        {
+          Game::SV_SendServerCommand (nullptr, Game::SV_CMD_CAN_IGNORE, "%c \"EXE_CANNOTKICKHOSTPLAYER\"", 'e');
+          return false;
+        }
+
+        if (!SV_MigrationInProgress ())
+        {
+          SV_MigrationStart (reason);
+        }
+
+        return true;
+      }
+
+      if (playerName)
+      {
+        Game::I_strncpyz (playerName, cl->name, maxPlayerNameLen);
+        Game::I_CleanStr (playerName);
+        std::memcpy (guid, cl->playerGuid, sizeof (cl->playerGuid));
+      }
+
+      Game::SV_DropClient (cl, reason, true);
+      cl->lastPacketTime = *Game::svs_time;
+      return true;
+    }
+
+    // Kick the player whose name is the first argument, or everyone if it's
+    // all, for the reason that is the second.
+    //
+    // Note that we only return true for a single player we kicked, and that
+    // all only kicks everyone if no player is called that.
+    //
+    bool SV_KickUser (const Command::Params* params, char* playerName, int maxPlayerNameLen, char* guid)
+    {
+      if (!(*Game::com_sv_running)->current.enabled)
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "Server is not running.\n");
+        return false;
+      }
+
+      if (params->size () < 2)
+      {
+        const char* cmd (params->get (0));
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "Usage: %s <player name> <optional reason>\n%s all = kick everyone\n", cmd, cmd);
+        return false;
+      }
+
+      const char* reason (params->size () == 3 ? params->get (2) : "EXE_PLAYERKICKED");
+
+      if (Game::client_s* cl = Game::SV_GetPlayerByName ())
+      {
+        return SV_KickClient (cl, playerName, maxPlayerNameLen, reason, guid);
+      }
+
+      if (Game::I_stricmp (params->get (1), "all") == 0)
+      {
+        for (int i (0); i < *Game::svs_clientCount; ++i)
+        {
+          if (Game::svs_clients[i].header.state != Game::CS_FREE)
+          {
+            SV_KickClient (&Game::svs_clients[i], nullptr, 0, reason, nullptr);
+          }
+        }
+      }
+
+      return false;
+    }
+
+    // Kick the client whose slot number is the first argument for the reason
+    // that is the second.
+    //
+    bool SV_KickClientNum (const Command::Params* params, char* playerName, int maxPlayerNameLen, char* guid)
+    {
+      if (!(*Game::com_sv_running)->current.enabled)
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "Server is not running.\n");
+        return false;
+      }
+
+      if (params->size () < 2)
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "Usage: %s <client number> <optional reason>\n", params->get (0));
+        return false;
+      }
+
+      const char* reason (params->size () == 3 ? params->get (2) : "EXE_PLAYERKICKED");
+
+      Game::client_s* cl (Game::SV_GetPlayerByNum ());
+      return cl != nullptr && SV_KickClient (cl, playerName, maxPlayerNameLen, reason, guid);
+    }
+
+    // Kick a player and briefly ban their guid.
+    //
+    // Note that x86 leaves the name and guid uninitialized when the host
+    // migrates instead of being kicked, and so we start them empty, which
+    // bans no guid.
+    //
+    template <bool (*kick) (const Command::Params*, char*, int, char*)>
+    void SV_Ban_f (const Command::Params* params)
+    {
+      char playerName[64] {};
+      char guid[20] {};
+
+      if (kick (params, playerName, sizeof (playerName), guid))
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%s (guid \"%s\") was kicked for cheating\n", playerName, guid);
+        SV_BanGuidBriefly (guid);
+      }
+    }
+
+    // Drop the client if we haven't heard from them for sv_rejoinTimeout
+    // seconds, and unregister a free slot from the party. Return true if we
+    // dropped or unregistered it.
+    //
+    bool SV_DropClientIfInactive (int clientNum, const char* reason, bool tellThem)
+    {
+      Game::client_s* cl (&Game::svs_clients[clientNum]);
+
+      if (cl->header.state == Game::CS_FREE)
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_SERVER, "Unregistering client %i from session because they are CS_FREE in SV_DropClientIfInactive.\n", clientNum);
+        PartyHost_RemoveMember (Game::g_lobbyData, clientNum, false, "");
+        return true;
+      }
+
+      if (*Game::svs_time - cl->lastPacketTime < sv_rejoinTimeout->current.integer * 1000)
+      {
+        return false;
+      }
+
+      Game::SV_DropClient (cl, reason, tellThem);
+      return true;
+    }
+
+    // Return the length of the string as drawn, without its color codes.
+    //
+    int I_DrawStrlen (const char* s)
+    {
+      int r (0);
+
+      while (*s != '\0')
+      {
+        if (s[0] == '^' && s[1] != '\0' && s[1] != '^' && s[1] >= '0' && s[1] <= '9')
+        {
+          s += 2;
+        }
+        else
+        {
+          ++r;
+          ++s;
+        }
+      }
+
+      return r;
+    }
+
+    // Print the info string a key and value per line, with the keys padded
+    // to a column.
+    //
+    void Info_Print (const char* s)
+    {
+      if (*s == '\\')
+      {
+        ++s;
+      }
+
+      while (*s != '\0')
+      {
+        std::string key;
+        while (*s != '\0' && *s != '\\')
+        {
+          key += *s++;
+        }
+
+        if (key.size () < 20)
+        {
+          key.resize (20, ' ');
+        }
+
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%s", key.c_str ());
+
+        if (*s == '\0')
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_SYSTEM, "MISSING VALUE\n");
+          return;
+        }
+
+        ++s;
+
+        std::string value;
+        while (*s != '\0' && *s != '\\')
+        {
+          value += *s++;
+        }
+
+        if (*s != '\0')
+        {
+          ++s;
+        }
+
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%s\n", value.c_str ());
+      }
+    }
+
+    void SV_Status_f ()
+    {
+      if (!(*Game::com_sv_running)->current.enabled)
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "Server is not running.\n");
+        return;
+      }
+
+      Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "map: %s\n", (*Game::sv_mapname)->current.string);
+      Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "num score ping guid                             name            lastmsg address               qport rate\n");
+      Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "--- ----- ---- -------------------------------- --------------- ------- --------------------- ----- -----\n");
+
+      for (int i (0); i < *Game::svs_clientCount; ++i)
+      {
+        const Game::client_s* cl (&Game::svs_clients[i]);
+
+        if (cl->header.state == Game::CS_FREE)
+        {
+          continue;
+        }
+
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%3i ", i);
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%5i ", Game::SV_GameClientNum_Score (i));
+
+        if (cl->header.state == Game::CS_CONNECTED)
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "CNCT ");
+        }
+        else if (cl->header.state == Game::CS_ZOMBIE)
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "ZMBI ");
+        }
+        else
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%4i ", std::min (cl->ping, 9999));
+        }
+
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%32s ", cl->playerGuid);
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%s^7", cl->name);
+
+        for (int n (16 - I_DrawStrlen (cl->name)); n > 0; --n)
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, " ");
+        }
+
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%7i ", *Game::svs_time - cl->lastPacketTime);
+
+        const char* address (Game::NET_AdrToString (cl->header.netchan.remoteAddress));
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%s", address);
+
+        for (int n (22 - static_cast<int> (std::strlen (address))); n > 0; --n)
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, " ");
+        }
+
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%5i", cl->header.netchan.qport);
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, " %5i", cl->rate);
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "\n");
+      }
+
+      Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "\n");
+    }
+
+    void SV_DumpUser_f (const Command::Params* params)
+    {
+      if (!(*Game::com_sv_running)->current.enabled)
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "Server is not running.\n");
+        return;
+      }
+
+      if (params->size () != 2)
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "Usage: info <userid>\n");
+        return;
+      }
+
+      if (const Game::client_s* cl = Game::SV_GetPlayerByName ())
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "userinfo\n");
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "--------\n");
+        Info_Print (cl->userinfo);
+      }
+    }
+
+    // Restart the map on the server's next frame, or now if the server isn't
+    // running, which also reloads the scripts.
+    //
+    void SV_MapRestart_f ()
+    {
+      SND_FadeAllSounds (0.0f, 0);
+
+      sv_restartMap = 1;
+      sv_restartLoadScripts = 1;
+      *Game::sv_migrate = 0;
+
+      if (!(*Game::com_sv_running)->current.enabled)
+      {
+        SV_MapRestart (0, 1);
+      }
+    }
+
+    void SV_SetPerk_f (const Command::Params* params)
+    {
+      Game::client_s* cl (Game::SV_GetPlayerByName ());
+      if (cl == nullptr)
+      {
+        return;
+      }
+
+      const char* name (params->get (2));
+      const unsigned int perk (BG_GetPerkIndexForName (name));
+
+      if (perk >= Game::PERK_COUNT)
+      {
+        Game::Com_DPrintf (Game::CON_CHANNEL_DONT_FILTER, "Unknown perk: %s\n", name);
+        return;
+      }
+
+      const int clientNum (static_cast<int> (cl - Game::svs_clients));
+      const unsigned int bit (1u << (perk & 31));
+
+      SV_GameClientNum (clientNum)->perks[perk >> 5] |= bit;
+      G_GetClientState (clientNum)->perks[perk >> 5] |= bit;
+    }
+
+    void SV_DumpHudElems_f ()
+    {
+      // The names of the hud element types and teams.
+      //
+      constexpr const char* types[] {
+        "free", "text", "value", "playername", "mapname", "gametype", "material", "timer down", "timer up",
+        "timer static", "timer down tenths", "timer up tenths", "timer static tenths", "clock down", "clock up",
+        "waypoint", "off", "all ents", "player bounding boxes"};
+
+      constexpr const char* teams[] {"invalid", "axis", "allies", "spectator"};
+
+      int archived (0);
+      int current (0);
+
+      for (int i (0); i < 1024; ++i)
+      {
+        const Game::game_hudelem_s& e (Game::g_hudelems[i]);
+
+        if (e.elem.type == Game::HE_TYPE_FREE)
+        {
+          continue;
+        }
+
+        assert (static_cast<std::size_t> (e.elem.type) < std::size (types));
+        assert (static_cast<std::size_t> (e.team) < std::size (teams));
+
+        Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "%12s", types[e.elem.type]);
+
+        if (e.team != 0)
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\t%s", teams[e.team]);
+        }
+
+        if (e.clientNum != static_cast<int> (Game::ENTITYNUM_NONE))
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\tclient %i", e.clientNum);
+        }
+
+        if (e.archived)
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\tarchived");
+          ++archived;
+        }
+        else
+        {
+          Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\tcurrent");
+          ++current;
+        }
+
+        const auto configstring ([] (int index)
+        {
+          return Game::SL_ConvertToString (static_cast<Game::scr_string_t> (Game::SV_GetConfigstringConst (index)));
+        });
+
+        Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\ttext \"%s\"", configstring (CS_LOCALIZED_STRINGS + e.elem.text));
+        Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\tmaterial \"%s\"", configstring (CS_SHADERS + e.elem.materialIndex));
+        Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\n");
+      }
+
+      Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\n%i archived + %i current = %i hud elems\n", archived, current, archived + current);
+    }
+  }
+
+  void Operator::AddServerCommands ()
+  {
+    // Note that on x86 heartbeat schedules the next heartbeat to the master
+    // server, which x86 never sends, and so it only changes the time that
+    // the server archives for the new host. x64 compiles out both, and so we
+    // add it doing nothing.
+    //
+    Command::AddSV ("heartbeat", [] (const Command::Params*) {});
+
+    Command::AddSV ("onlykick", [] (const Command::Params* params) {SV_KickUser (params, nullptr, 0, nullptr);});
+    Command::AddSV ("clientkick", [] (const Command::Params* params) {SV_KickClientNum (params, nullptr, 0, nullptr);});
+    Command::AddSV ("kick", SV_Ban_f<SV_KickUser>);
+    Command::AddSV ("tempBanUser", SV_Ban_f<SV_KickUser>);
+    Command::AddSV ("tempBanClient", SV_Ban_f<SV_KickClientNum>);
+
+    Command::AddSV ("dropclientifinactive", [] (const Command::Params* params)
+    {
+      const int clientNum (std::atoi (params->get (1)));
+
+      if (clientNum < 0 || clientNum >= *Game::svs_clientCount)
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "dropclientifinactive: client index %i out of range (max %i)\n", clientNum, *Game::svs_clientCount);
+        return;
+      }
+
+      SV_DropClientIfInactive (clientNum, "EXE_TIMEDOUT", false);
+    });
+
+    Command::AddSV ("status", [] (const Command::Params*) {SV_Status_f ();});
+
+    Command::AddSV ("serverinfo", [] (const Command::Params*)
+    {
+      Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "Server info settings:\n");
+      Info_Print (Dvar_InfoString (0, Game::DVAR_SERVERINFO));
+    });
+
+    Command::AddSV ("dumpuser", SV_DumpUser_f);
+    Command::AddSV ("map_restart", [] (const Command::Params*) {SV_MapRestart_f ();});
+
+    // Note that x64 still has fast_restart's function, which restarts the
+    // map the same way without reloading the scripts.
+    //
+    Command::AddSV ("fast_restart", [] (const Command::Params*) {SV_FastRestart_f ();});
+
+    // Note that on x86 gameCompleteStatus does nothing either.
+    //
+    Command::AddSV ("gameCompleteStatus", [] (const Command::Params*) {});
+
+    Command::AddSV ("killserver", [] (const Command::Params*) {Game::Com_Shutdown ("EXE_SERVERKILLED");});
+
+    // Note that on x86 dobjList and stringUsage are the stubs of debugging
+    // commands, and so they only print.
+    //
+    Command::AddSV ("dobjList", [] (const Command::Params*)
+    {
+      Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "Dobj list is dev-only\n");
+    });
+
+    Command::AddSV ("stringUsage", [] (const Command::Params*)
+    {
+      for (int i (0); i < 3; ++i)
+      {
+        Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "********************************\n");
+      }
+    });
+
+    Command::AddSV ("dumpHudElems", [] (const Command::Params*) {SV_DumpHudElems_f ();});
+    Command::AddSV ("setPerk", SV_SetPerk_f);
+
+    // Note that on x86 connectString prints the client number given and an
+    // empty connect string.
+    //
+    Command::AddSV ("connectString", [] (const Command::Params* params)
+    {
+      Game::Com_Printf (Game::CON_CHANNEL_DONT_FILTER, "%i %s\n", std::atoi (params->get (1)), "");
+    });
+  }
+
+  Operator::
+  Operator ()
+  {
+    // Reject the challenge of a briefly banned guid, which the client sends
+    // as the second argument of getchallenge. We check once SV_GetChallenge()
+    // has found the challenge slot for the client, which we clear.
+    //
+    Utils::Hook (0x140236C0E, Operator_SV_GetChallengeStub, HOOK_JUMP).install ()->quick ();
+
+    // Carry the brief bans over to the new host, after the value that the
+    // server archives in place of x86's heartbeat time and its other value.
+    //
+    Utils::Hook (0x1401A2921, Operator_ArchiveTempBansStub, HOOK_JUMP).install ()->quick ();
+    Utils::Hook (0x1401A1B37, Operator_RestoreTempBansStub, HOOK_JUMP).install ()->quick ();
+
+    Events::OnSVInit (AddServerCommands);
+  }
+}
+
+bool
+Operator_SV_GetChallenge (const char* guid, Game::netadr_t* challenge)
+{
+  using namespace Components;
+
+  if (!SV_IsTempBannedGuid (guid))
+  {
+    return false;
+  }
+
+  Game::Com_Printf (Game::CON_CHANNEL_SERVER, "rejected connection from temporarily banned GUID \"%s\"\n", guid);
+  Game::NET_OutOfBandPrint (Game::NS_SERVER, *challenge, "error\nEXE_ERR_BANNED_TEMP");
+
+  std::memset (challenge, 0, 0x40);
+  return true;
+}
+
+void
+Operator_ArchiveTempBans (void* memFile)
+{
+  using namespace Components;
+
+  MemFile_WriteData (memFile, sizeof (TempBans), TempBans);
+}
+
+void
+Operator_RestoreTempBans (void* memFile)
+{
+  using namespace Components;
+
+  MemFile_ReadData (memFile, sizeof (TempBans), TempBans);
+}

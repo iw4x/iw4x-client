@@ -96,6 +96,15 @@ namespace Game
   // used it.
   //
   extern client_s* SV_GetPlayerByNum();
+
+  // Return the active client whose name, with or without its colors, is the
+  // first argument of the current server command, or print why there is none
+  // and return nullptr.
+  //
+  // Note that x64 compiles this function out along with the commands that
+  // used it.
+  //
+  extern client_s* SV_GetPlayerByName();
   extern int SV_GetClientStat(int clientNum, int index);
   extern void SV_SetClientStat(int clientNum, int index, int value);
 

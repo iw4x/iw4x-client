@@ -50,6 +50,7 @@
 #include "Modules/NetworkDebug.hpp"
 #include "Modules/News.hpp"
 #include "Modules/Node.hpp"
+#include "Modules/Operator.hpp"
 #include "Modules/Party.hpp"
 #include "Modules/PlayerMovement.hpp"
 #include "Modules/PlayerName.hpp"
@@ -162,6 +163,7 @@ namespace Components
     Register(new NetworkDebug());
     Register(new News());
     Register(new Node());
+    Register(new Operator());
     Register(new Party());
     Register(new PlayerMovement());
     Register(new PlayerName());
