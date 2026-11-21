@@ -100,4 +100,27 @@ namespace Steam
   {
     return false;
   }
+
+  uint64_t Utils::CheckFileSignature(const char* /*szFileName*/)
+  {
+    return 0;
+  }
+
+  void Utils::PostPS3SysutilCallback(uint64_t /*status*/, uint64_t /*param*/, void* /*userdata*/)
+  {
+  }
+
+  bool Utils::BIsReadyToShutdown()
+  {
+    return true;
+  }
+
+  bool Utils::BIsPSNOnline()
+  {
+    return false;
+  }
+
+  void Utils::SetPSNGameBootInviteStrings(const char* /*pchSubject*/, const char* /*pchBody*/)
+  {
+  }
 }

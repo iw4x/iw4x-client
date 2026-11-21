@@ -2,6 +2,11 @@
 
 namespace Steam
 {
+  // Note that the game calls the methods of the interface by their slots,
+  // and x64 is built against a newer version of it than x86. So we lay it
+  // out as Steamworks SDK 1.20 does SteamUtils005, the earliest version
+  // whose slots match the ones x64 calls.
+  //
   class Utils
   {
   public:
@@ -24,5 +29,10 @@ namespace Steam
     virtual void SetWarningMessageHook(void(*pFunction)(int hpipe, const char *message));
     virtual bool IsOverlayEnabled();
     virtual bool BOverlayNeedsPresent();
+    virtual uint64_t CheckFileSignature(const char *szFileName);
+    virtual void PostPS3SysutilCallback(uint64_t status, uint64_t param, void *userdata);
+    virtual bool BIsReadyToShutdown();
+    virtual bool BIsPSNOnline();
+    virtual void SetPSNGameBootInviteStrings(const char *pchSubject, const char *pchBody);
   };
 }
