@@ -45,7 +45,7 @@ namespace Game
   typedef const DObj*(*CG_GetBoneIndex_t)(int localClientNum, unsigned int boneName, char* boneIndex);
   extern CG_GetBoneIndex_t CG_GetBoneIndex;
 
-  typedef int(__cdecl* DObjGetBoneIndex_t)(int a1, int a2, unsigned char* a3);
+  typedef int(*DObjGetBoneIndex_t)(const DObj* obj, unsigned int name, unsigned char* index);
   extern DObjGetBoneIndex_t DObjGetBoneIndex;
 
   typedef DObj* (__cdecl* Com_GetClientDObj_t)(int handle, int localClientNum);

@@ -62,3 +62,4 @@ namespace Components
 #include "Modules/Scheduler.hpp"
 
 #include "Modules/GSC/GSC.hpp"
+#include "Modules/ViewModelFxSetup.hpp"

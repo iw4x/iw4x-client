@@ -36,7 +36,7 @@ namespace Components::ViewModelFxSetup
       }
 
       unsigned char boneIdx = 0;
-      if (!Game::DObjGetBoneIndex(reinterpret_cast<int>(dobj), tagName, &boneIdx))
+      if (!Game::DObjGetBoneIndex(dobj, tagName, &boneIdx))
       {
         Game::Scr_Error(Utils::String::VA(
           "PlayViewmodelFX(): clientNum '%d' does not have bone '%s'",
