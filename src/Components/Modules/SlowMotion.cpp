@@ -4,22 +4,31 @@ namespace Components
 {
   int SlowMotion::Delay = 0;
 
-  const Game::dvar_t* SlowMotion::cg_drawDisconnect;
-
-  void SlowMotion::Com_UpdateSlowMotion(int msec)
+  float SlowMotion::Com_UpdateSlowMotion(float frameTime)
   {
+    // Note that on x86 the game updates the slow motion by the milliseconds
+    // that passed. On x64 it does so by the seconds of the frame, which it
+    // also returns scaled by the slow motion. So while we hold the slow
+    // motion back we scale the frame as the game does without updating it.
+    //
     if (Delay <= 0)
     {
-      Game::Com_UpdateSlowMotion(msec);
+      return Game::Com_UpdateSlowMotion(frameTime);
     }
-    else
-    {
-      Delay -= msec;
-    }
+
+    Delay -= static_cast<int>(frameTime * 1000.0f);
+
+    const auto timescale(*reinterpret_cast<const float*>(0x141BD7978));
+    return std::max(frameTime * timescale, 0.001f);
   }
 
-  void SlowMotion::ScrCmd_SetSlowMotion_Stub()
+  void SlowMotion::ScrCmd_SetSlowMotion_Stub(int index, const char* string)
   {
+    // Note that on x64 we go in where the game sets the slow motion config
+    // string as its last call, so we set it first.
+    //
+    Game::SV_SetConfigstring(index, string);
+
     auto duration = 1000;
     auto start = Game::Scr_GetFloat(0);
     auto end = 1.0f;
@@ -60,28 +69,14 @@ namespace Components
     }
   }
 
-  void SlowMotion::CG_DrawDisconnect_Stub(const int localClientNum)
-  {
-    if (cg_drawDisconnect->current.enabled)
-    {
-      Game::CG_DrawDisconnect(localClientNum);
-    }
-  }
-
   SlowMotion::SlowMotion()
   {
-    cg_drawDisconnect = Game::Dvar_RegisterBool("cg_drawDisconnect", false, Game::DVAR_NONE, "Draw connection interrupted");
-
     Delay = 0;
-    Utils::Hook(0x5F5FF2, ScrCmd_SetSlowMotion_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x60B38A, SlowMotion_Com_UpdateSlowMotion_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140178132, ScrCmd_SetSlowMotion_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400F7BB7, Com_UpdateSlowMotion, HOOK_CALL).install()->quick(); // CL_CreateCmd
 
-    Utils::Hook(0x4A54ED, CG_DrawDisconnect_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4A54FB, CG_DrawDisconnect_Stub, HOOK_CALL).install()->quick();
+    // Note that on x86 we register cg_drawDisconnect to hide the connection
+    // interrupted notice unless it's set. x64 compiles out CG_DrawDisconnect()
+    // and never draws it.
   }
-}
-
-void SlowMotion_Com_UpdateSlowMotion(int timePassed)
-{
-  Components::SlowMotion::Com_UpdateSlowMotion(timePassed);
 }
