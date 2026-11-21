@@ -165,6 +165,16 @@ namespace Components
     // Patch selectStringTableEntryInDvar
     Utils::Hook::Displace(0x1400FBAD0, 7, 0x14026A0E0, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(0x1400FBAD0 + 7, reinterpret_cast<void*>(SelectStringTableEntryInDvar_Stub))));
 
+    // Skip Steam_Frame()'s checks of the clients of a Steam game server,
+    // which run every 10 seconds and drop the ones Steam hasn't
+    // authenticated after 40, none of ours being.
+    //
+    // Note that x86 has no such checks, only the message they kick with.
+    // Our Steam layer never reports the game server as connected to Steam,
+    // which they also wait for, but we don't want to depend on that.
+    //
+    Utils::Hook::Set<WORD>(0x14024BB3D, 0xE990);
+
     // Patch G_GetClientScore for uninitialized game
     Utils::Hook(0x14019CEE0, G_GetClientScore_Hk, HOOK_JUMP).install()->quick();
 
