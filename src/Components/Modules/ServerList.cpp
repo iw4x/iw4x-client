@@ -3,6 +3,7 @@
 
 #include "Discovery.hpp"
 #include "Events.hpp"
+#include "Maps.hpp"
 #include "Node.hpp"
 #include "Party.hpp"
 #include "ServerList.hpp"
@@ -96,7 +97,7 @@ namespace Components
 
   unsigned int ServerList::GetServerCount()
   {
-    return VisibleList.size();
+    return static_cast<unsigned int>(VisibleList.size());
   }
 
   const char* ServerList::GetServerText(unsigned int index, int column)
@@ -1557,7 +1558,7 @@ namespace Components
       });
 
     // Fix ui_netsource dvar
-    Utils::Hook::Nop(0x4CDEEC, 5); // Don't reset the netsource when gametypes aren't loaded
+    Utils::Hook::Nop(0x14026EF7C, 5); // Don't reset the netsource when gametypes aren't loaded
 
     Localization::Set("MPUI_SERVERQUERIED", "Servers: 0\nPlayers: 0 (0)");
 
@@ -1606,9 +1607,14 @@ namespace Components
       });
 
     // Set default masterServerName + port and save it
-    Utils::Hook::Set<const char*>(0x60AD92, "dp.iw4x.io");
-    Utils::Hook::Set<std::uint8_t>(0x60AD90, Game::DVAR_NONE); // masterServerName
-    Utils::Hook::Set<std::uint8_t>(0x60ADC6, Game::DVAR_NONE); // masterPort
+    //
+    // Note that on x64 the flags of masterServerName come from the 8-bit
+    // displacement of 'lea r8d, [rdi+4]' with rdi zero, and those of
+    // masterPort from the 32-bit stack argument of its registration.
+    //
+    Utils::Hook::PlaceString(0x1401F4961, 7, 0x14038B428, "dp.iw4x.io");
+    Utils::Hook::Set<std::uint8_t>(0x1401F4960, Game::DVAR_NONE); // masterServerName
+    Utils::Hook::Set<std::int32_t>(0x1401F49C5, Game::DVAR_NONE); // masterPort
 
     // Add server list feeder
     UIFeeder::Add(2.0f, GetServerCount, GetServerText, SelectServer);

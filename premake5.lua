@@ -289,7 +289,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/ServerList.*",
     "src/Components/Modules/Session.*",
     "src/Components/Modules/SlowMotion.*",
     "src/Components/Modules/Sound.*",
