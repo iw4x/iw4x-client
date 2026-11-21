@@ -2,10 +2,8 @@
 
 extern "C"
 {
-  void Dedicated_PostInitializationStub();
   void Dedicated_Com_ClampMsec_Stub();
 
-  void Dedicated_PostInitialization();
   void Dedicated_Com_ClampMsec(int msec);
 }
 
@@ -29,12 +27,12 @@ namespace Components
     static void Heartbeat();
 
   private:
-    friend void (::Dedicated_PostInitialization)();
     friend void (::Dedicated_Com_ClampMsec)(int msec);
 
     static void InitDedicatedServer();
 
     static void PostInitialization();
+    static void PostInitialization_Hk();
 
     static void Com_ClampMsec(int msec);
 
