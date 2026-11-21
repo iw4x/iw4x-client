@@ -58,6 +58,7 @@
 #include "Modules/RawMouse.hpp"
 #include "Modules/RCon.hpp"
 #include "Modules/RemoteControl.hpp"
+#include "Modules/Rumble.hpp"
 #include "Modules/Renderer.hpp"
 
 namespace Components
@@ -114,6 +115,7 @@ namespace Components
     Register(new Events());
     Register(new FastFiles());
     Register(new FileSystem());
+    Register(new Rumble());
     Register(new Huffman());
     Register(new Lean());
     Register(new Localization());
