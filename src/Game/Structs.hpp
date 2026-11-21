@@ -3075,6 +3075,13 @@ namespace Game
     DYNENT_TYPE_COUNT = 0x3,
   };
 
+  enum DynEntityDrawType
+  {
+    DYNENT_DRAW_MODEL = 0x0,
+    DYNENT_DRAW_BRUSH = 0x1,
+    DYNENT_DRAW_COUNT = 0x2,
+  };
+
   struct GfxPlacement
   {
     float quat[4];
@@ -3290,6 +3297,9 @@ namespace Game
     int contents;
   };
 
+  static_assert(sizeof(DynEntityDef) == 0x70);
+  static_assert(offsetof(DynEntityDef, destroyFx) == 0x30);
+
   struct DynEntityPose
   {
     GfxPlacement pose;
@@ -3377,6 +3387,10 @@ namespace Game
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+  static_assert(offsetof(clipMap_t, dynEntDefList) == 0x150);
+  static_assert(offsetof(clipMap_t, dynEntPoseList) == 0x160);
+  static_assert(offsetof(clipMap_t, dynEntClientList) == 0x170);
 
   struct ComPrimaryLight
   {

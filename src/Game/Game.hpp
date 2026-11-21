@@ -12,6 +12,7 @@
 #include "Jump.hpp"
 #include "AimAssist.hpp"
 #include "DebugInfo.hpp"
+#include "DynEntity.hpp"
 #include "Lagometer.hpp"
 #include "Script.hpp"
 #include "Server.hpp"

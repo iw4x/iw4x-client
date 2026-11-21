@@ -6,6 +6,7 @@
 #include "Modules/Exception.hpp"
 #include "Modules/IPCPipe.hpp"
 #include "Modules/Network.hpp"
+#include "Modules/Compatibility.hpp"
 #include "Modules/Logger.hpp"
 #include "Modules/Sentry.hpp"
 #include "Modules/UIScript.hpp"
@@ -113,6 +114,7 @@ namespace Components
     Register(new Exception());
     Register(new IPCPipe());
     Register(new Network());
+    Register(new Compatibility());
     Register(new Logger());
     Register(new Sentry());
     Register(new UIScript());

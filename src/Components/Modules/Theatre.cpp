@@ -1,4 +1,5 @@
 #include "Theatre.hpp"
+#include "Compatibility.hpp"
 #include "UIFeeder.hpp"
 #include "Weapon.hpp"
 
@@ -125,7 +126,7 @@ namespace Components
   void Theatre::GamestateWriteStub(Game::msg_t* msg, char byte)
   {
     Game::MSG_WriteLong(msg, 0);
-    Game::MSG_WriteByte(msg, byte);
+    Compatibility::MSG_WriteServerOp(msg, byte);
   }
 
   // The gamestate takes the message sequence before the baseline's.
@@ -157,10 +158,10 @@ namespace Components
     Game::msg_t buf;
 
     Game::MSG_Init(&buf, bufData, sizeof(bufData));
-    Game::MSG_WriteByte(&buf, Game::svc_snapshot);
+    Compatibility::MSG_WriteServerOp(&buf, Game::svc_snapshot);
     Game::MSG_WriteLong(&buf, Game::clients[0].snap.serverTime);
     Game::MSG_WriteData(&buf, &BaselineSnapshot[BaselineSnapshotMsgOff], BaselineSnapshotMsgLen - BaselineSnapshotMsgOff);
-    Game::MSG_WriteByte(&buf, Game::svc_EOF);
+    Compatibility::MSG_WriteServerOp(&buf, Game::svc_EOF);
 
     const auto compressedSize = Utils::Huffman::Compress(buf.data, cmpData, buf.cursize, sizeof(cmpData));
     const auto fileCompressedSize = compressedSize + 4;
