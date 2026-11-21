@@ -241,8 +241,13 @@ namespace Components
     Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font6, MY_X, 110.0f, 1, 1, 0.4f, TextRenderer::WHITE_COLOR, 3);
   }
 
+  // Note that x64 compiles out CG_DrawDebugOverlays(), whose end we hook on
+  // x86. So we draw ours after the call that comes before it in CG_Draw2D().
+  //
   void Debug::CG_DrawDebugOverlays_Hk(const int localClientNum)
   {
+    Utils::Hook::Call<void(int)>(0x1400A8750)(localClientNum);
+
     assert(DebugOverlay);
     if (!DebugOverlay)
     {
@@ -279,7 +284,7 @@ namespace Components
     char from_ospath[MAX_OSPATH]{};
     const char* bug;
 
-    if (!*Game::logfile)
+    if (!Game::logfile)
     {
       Logger::PrintError(Game::CON_CHANNEL_ERROR, "CopyFile failed: logfile wasn't opened\n");
     }
@@ -298,10 +303,10 @@ namespace Components
 
     Game::Engine::ScopedCriticalSection _(Game::CRITSECT_CONSOLE, Game::Engine::SCOPED_CRITSECT_NORMAL);
 
-    if (*Game::logfile)
+    if (Game::logfile)
     {
-      Game::FS_FCloseFile(*Game::logfile);
-      *Game::logfile = 0;
+      Game::FS_FCloseFile(Game::logfile);
+      Game::logfile = 0;
     }
 
     Game::FS_BuildOSPath(Game::Sys_DefaultInstallPath(), "", "logs/console_mp.log", from_ospath);
@@ -363,12 +368,14 @@ namespace Components
   {
     Events::OnDvarInit(CL_InitDebugDvars);
 
-    // Hook end of CG_DrawDebugOverlays (This is to ensure some checks are done before our hook is executed).
-    Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400D0FC9, CG_DrawDebugOverlays_Hk, HOOK_CALL).install()->quick(); // CG_Draw2D
 
-    Utils::Hook::Set<void(*)()>(0x60BCEA, Com_Assert_f);
+    // Note that x64 reaches the function of the assert command through a
+    // 32-bit displacement, so we give it a relay to ours.
+    //
+    Utils::Hook::Displace(0x1401F547C, 7, 0x140080E30, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(0x1401F5483, Com_Assert_f)));
 
-    Utils::Hook(0x4487F7, Dvar_Register_PlayerDebugHealth, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14008BF72, Dvar_Register_PlayerDebugHealth, HOOK_CALL).install()->quick();
 
 #ifdef _DEBUG
     Command::Add("bug", Com_Bug_f);
