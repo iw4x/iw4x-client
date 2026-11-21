@@ -29,6 +29,7 @@
 #include "Modules/Debug.hpp"
 #include "Modules/Dedicated.hpp"
 #include "Modules/Discord.hpp"
+#include "Modules/Discovery.hpp"
 #include "Modules/Events.hpp"
 #include "Modules/FastFiles.hpp"
 #include "Modules/Huffman.hpp"
@@ -95,6 +96,7 @@ namespace Components
     Register(new Debug());
     Register(new Dedicated());
     Register(new Discord());
+    Register(new Discovery());
     Register(new Events());
     Register(new FastFiles());
     Register(new FileSystem());
