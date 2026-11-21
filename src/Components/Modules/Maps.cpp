@@ -1051,13 +1051,15 @@ namespace Components
     //
     // Note also that x64 inlines the function that loads the loadscreen zone
     // of a map, which we hook the calls to on x86, into most of its callers.
-    // So we hook the loading of the zone in each copy.
+    // So we hook the loading of the zone in each copy, where the one for
+    // StartMatch() moved into SV_SpawnServer().
     //
     SV_SpawnServer_Original = Utils::Hook::Detour(0x140239750, 5, &SV_SpawnServer_Hk);
     Utils::Hook(0x1400FA06D, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick(); // CL_ConnectionlessPacket
     Utils::Hook(0x1400FA359, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick(); // CL_DownloadsComplete
     Utils::Hook(0x1400FDF23, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400FE305, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140239848, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick(); // SV_SpawnServer
 
     // Restore the map and devmap commands, which x64 compiles out along with
     // the rest of the operator commands, the way x86 registers them when the
