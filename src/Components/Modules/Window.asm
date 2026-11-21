@@ -1,5 +1,3 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN Window_IsNoBorder:PROC
@@ -13,15 +11,18 @@ WS_MINIMIZEBOX equ 20000h
 .code
 
 Window_StyleHookStub PROC
+  sub     rsp, 28h
   call    Window_IsNoBorder
+  add     rsp, 28h
+
   test    al, al
   jz      setBorder
 
-  mov     ebp, WS_VISIBLE OR WS_POPUP
+  mov     edi, WS_VISIBLE OR WS_POPUP
   ret
 
 setBorder:
-  mov     ebp, WS_VISIBLE OR WS_SYSMENU OR WS_CAPTION OR WS_MINIMIZEBOX
+  mov     edi, WS_VISIBLE OR WS_SYSMENU OR WS_CAPTION OR WS_MINIMIZEBOX
   ret
 Window_StyleHookStub ENDP
 

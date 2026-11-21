@@ -79,6 +79,7 @@
 #include "Modules/VisionFile.hpp"
 #include "Modules/Voice.hpp"
 #include "Modules/Vote.hpp"
+#include "Modules/Window.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/Sound.hpp"
 
@@ -184,6 +185,7 @@ namespace Components
     Register(new VisionFile());
     Register(new Voice());
     Register(new Vote());
+    Register(new Window());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).

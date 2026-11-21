@@ -292,7 +292,6 @@ project "iw4x"
     "src/Components/Modules/ViewModelFx.*",
     "src/Components/Modules/ViewModelFxSetup.*",
     "src/Components/Modules/Weapon.*",
-    "src/Components/Modules/Window.*",
     "src/Components/Modules/WineD3D.*",
     "src/Components/Modules/BotLib/**",
     "src/Components/Modules/GSC/**",
