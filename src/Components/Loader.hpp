@@ -55,6 +55,7 @@ namespace Components
 #include "Modules/Logger.hpp"
 #include "Modules/Singleton.hpp"
 #include "Modules/UIScript.hpp"
+#include "Modules/ZoneConvert.hpp"
 
 #include "Modules/Dedicated.hpp"
 #include "Modules/FileSystem.hpp"

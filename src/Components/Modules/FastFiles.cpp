@@ -11,8 +11,10 @@ namespace Components
     // zone file name after (zone\<group>\).
     //
     // Note that the installed zones are in the x64 layout and so we read
-    // them in place. On x86 the game can only read the copies that
-    // ZoneConvert converts into its own layout.
+    // them in place. IW4x's own zones are in the x86 layout, so for those
+    // we read the copies that ZoneConvert converts into ours. On x86 it is
+    // the other way around and the game can only read the copies of the
+    // installed zones.
     //
     std::string ZoneDirectory(const std::string_view group)
     {
@@ -542,8 +544,11 @@ namespace Components
     Utils::Hook(0x1400B2991, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
     Utils::Hook(0x14024F565, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
 
-    // Add custom zone paths
-    FastFiles::AddZonePath(ZoneDirectory("patch"));
+    // Add custom zone paths. Steam installs its map packs into dlc in the
+    // x64 layout, so we fall back to reading those in place.
+    //
+    FastFiles::AddZonePath(ZoneConvert::SearchPath("patch"));
+    FastFiles::AddZonePath(ZoneConvert::SearchPath("dlc"));
     FastFiles::AddZonePath(ZoneDirectory("dlc"));
 
     if (!Dedicated::IsEnabled())

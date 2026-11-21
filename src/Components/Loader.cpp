@@ -100,6 +100,10 @@ namespace Components
     Pregame = true;
     Utils::Memory::GetAllocator()->clear();
 
+    // Before anything else.
+    //
+    Register(new ZoneConvert());
+
     // High priority.
     //
     Register(new Singleton());

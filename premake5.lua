@@ -259,16 +259,16 @@ project "iw4x"
 
   -- Zone tools.
   --
-  -- These read and write 32-bit IW4x zones. On x64 we load stock zones
-  -- converted with OpenAssetTools instead. Note that Zones and ModelSurfs
-  -- only load what zone tools produce.
+  -- These read and write 32-bit IW4x zones. On x64 we load the stock
+  -- zones in place and ZoneConvert converts IW4x's own with OpenAssetTools
+  -- instead. Note that Zones and ModelSurfs only load what zone tools
+  -- produce.
   --
   removefiles
   {
     "src/Components/Modules/AssetInterfaces/**",
     "src/Components/Modules/ModelSurfs.*",
     "src/Components/Modules/ZoneBuilder.*",
-    "src/Components/Modules/ZoneConvert.*",
     "src/Components/Modules/Zones.*"
   }
 
