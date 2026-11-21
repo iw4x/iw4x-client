@@ -260,6 +260,128 @@ namespace Game
     return height;
   }
 
+  bool R_PickMaterial(const bool locational, const int traceMask, const float* org, const float* dir, char* name, char* surfaceFlags, char* contents, const unsigned int charLimit)
+  {
+    float end[3];
+    for (auto i = 0; i < 3; ++i)
+    {
+      end[i] = static_cast<float>(dir[i] * 262144.0 + org[i]);
+    }
+
+    trace_t trace;
+    if (locational)
+    {
+      CG_LocationalTrace(&trace, org, end, -1, traceMask);
+    }
+    else
+    {
+      // Trace the world and the solid entities with zero bounds, as x86 does.
+      //
+      constexpr float bounds[6] = {};
+      Utils::Hook::Call<void(trace_t*, const float*, const float*, const float*, int)>(0x1400CA980)(&trace, org, end, bounds, traceMask);
+    }
+
+    if (trace.startsolid || trace.allsolid || trace.fraction == 1.0f || trace.material == nullptr)
+    {
+      return false;
+    }
+
+    std::strcpy(name, trace.material);
+
+    surfaceFlags[0] = '\0';
+    surfaceFlags[charLimit - 1] = '\0';
+    contents[0] = '\0';
+    contents[charLimit - 1] = '\0';
+
+    // The surface type in bits 20 to 24 of the surface flags, which counts
+    // the surface types of infoParms from 1.
+    //
+    const auto surfaceType ((trace.surfaceFlags >> 20) & 0x1F);
+    std::strncpy(surfaceFlags, static_cast<unsigned int>(surfaceType - 1) <= 29 ? infoParms[surfaceType - 1].name : "^1default^7", charLimit);
+    if (surfaceFlags[charLimit - 1] != '\0')
+    {
+      return false;
+    }
+
+    auto surfaceFlagsLen (std::strlen(surfaceFlags));
+
+    std::strncpy(contents, (trace.contents & 1) ? "solid" : "^3nonsolid^7", charLimit);
+    if (contents[charLimit - 1] != '\0')
+    {
+      return false;
+    }
+
+    auto contentsLen (std::strlen(contents));
+
+    // Append the names of the flags and contents past the surface types.
+    //
+    for (auto i = 30; infoParms[i].name != nullptr; ++i)
+    {
+      if (infoParms[i].surfaceFlags & trace.surfaceFlags)
+      {
+        surfaceFlags[surfaceFlagsLen++] = ' ';
+        std::strncpy(surfaceFlags + surfaceFlagsLen, infoParms[i].name, charLimit - surfaceFlagsLen);
+        if (surfaceFlags[charLimit - 1] != '\0')
+        {
+          return false;
+        }
+
+        surfaceFlagsLen += std::strlen(surfaceFlags + surfaceFlagsLen);
+      }
+
+      if (infoParms[i].contents & trace.contents)
+      {
+        contents[contentsLen++] = ' ';
+        std::strncpy(contents + contentsLen, infoParms[i].name, charLimit - contentsLen);
+        if (contents[charLimit - 1] != '\0')
+        {
+          return false;
+        }
+
+        contentsLen += std::strlen(contents + contentsLen);
+      }
+    }
+
+    return true;
+  }
+
+  void CG_DrawMaterial(const int localClientNum, const int drawMaterialType)
+  {
+    // The trace masks of the cg_drawMaterial values.
+    //
+    const int traceMasks[4] = {0, 1, 0x2806831, 0x2810011};
+
+    if (!Sys_IsMainThread())
+    {
+      return;
+    }
+
+    const auto traceMask (traceMasks[drawMaterialType]);
+    const auto* cg (&cgArray[localClientNum]);
+
+    char name[64];
+    char surfaceFlags[0x1000];
+    char contents[0x1000];
+
+    if (!R_PickMaterial(traceMask != 0x2810011, traceMask, cg->refdef.view.org, cg->refdef.view.axis[0], name, surfaceFlags, contents, sizeof(contents)))
+    {
+      return;
+    }
+
+    const auto* scrPlace (ScrPlace_GetActivePlacement(localClientNum));
+
+    // CG_DrawBigDevStringColor()
+    //
+    const auto draw ([scrPlace] (const float y, const char* text)
+    {
+      return CG_DrawDevString(scrPlace, 8.0f, y, 1.0f, 1.0f, text, colorWhite, TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP, cgMedia->bigDevFont);
+    });
+
+    auto y (static_cast<float>(draw(240.0f, name) + 240.0));
+    y = static_cast<float>(draw(y, surfaceFlags) + y);
+    draw(y, contents);
+  }
+
   void CG_DrawUpperRightDebugInfo(const int localClientNum)
   {
     const ScreenPlacement* scrPlace = ScrPlace_GetActivePlacement(localClientNum);

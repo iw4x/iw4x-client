@@ -346,6 +346,7 @@ namespace Game
   PlayerKeyState* playerKeys = reinterpret_cast<PlayerKeyState*>(0x1406C4F20);
   kbutton_t* playersKb = reinterpret_cast<kbutton_t*>(0x1406CBDF0);
   AimAssistGlobals* aaGlobArray = reinterpret_cast<AimAssistGlobals*>(0x14042F3D0);
+  infoParm_t* infoParms = reinterpret_cast<infoParm_t*>(0x140425E30);
 
   keyname_t* keyNames = reinterpret_cast<keyname_t*>(0x14041E090);
   keyname_t* localizedKeyNames = reinterpret_cast<keyname_t*>(0x14041E690);

@@ -7346,6 +7346,8 @@ namespace Game
     int toolFlags;
   };
 
+  static_assert(sizeof(infoParm_t) == 0x18);
+
   struct GfxImageFileHeader
   {
     char tag[3];

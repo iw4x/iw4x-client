@@ -377,6 +377,11 @@ namespace Components
     Game::CG_DrawServerBandwidth(localClientNum);
     Game::CG_DrawServerKillcamData(localClientNum);
 
+    if (const auto drawMaterialType = (*Game::cg_drawMaterial)->current.integer)
+    {
+      Game::CG_DrawMaterial(localClientNum, drawMaterialType);
+    }
+
     Utils::Hook::Call<void(int, int, int)>(0x1400ECEF0)(localClientNum, x, y); // Con_DrawSay
   }
 

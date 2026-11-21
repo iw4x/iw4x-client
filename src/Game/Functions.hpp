@@ -735,6 +735,7 @@ namespace Game
   extern PlayerKeyState* playerKeys;
   extern kbutton_t* playersKb;
   extern AimAssistGlobals* aaGlobArray;
+  extern infoParm_t* infoParms;
 
   constexpr auto KEY_NAME_COUNT = 95;
   constexpr auto LOCALIZED_KEY_NAME_COUNT = 95;

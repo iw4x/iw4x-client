@@ -150,6 +150,7 @@ namespace Game
   extern const dvar_t** g_log;
 
   extern const dvar_t** cg_chatHeight;
+  extern const dvar_t** cg_drawMaterial;
   extern const dvar_t** cg_nopredict;
   extern const dvar_t** g_synchronousClients;
   extern const dvar_t** drawLagometer;

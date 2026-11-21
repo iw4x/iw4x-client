@@ -81,6 +81,7 @@ namespace Game
   const dvar_t** g_log = reinterpret_cast<const dvar_t**>(0x1417CBC90);
 
   const dvar_t** cg_chatHeight = reinterpret_cast<const dvar_t**>(0x1406BB130);
+  const dvar_t** cg_drawMaterial = reinterpret_cast<const dvar_t**>(0x1406BAD00);
   const dvar_t** cg_nopredict = reinterpret_cast<const dvar_t**>(0x1406BAE38);
   const dvar_t** g_synchronousClients = reinterpret_cast<const dvar_t**>(0x1406BB030);
   const dvar_t** drawLagometer = reinterpret_cast<const dvar_t**>(0x1406BB068);
