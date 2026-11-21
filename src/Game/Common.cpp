@@ -69,6 +69,27 @@ namespace Game
     return reinterpret_cast<char*>(0x141BD7450);
   }
 
+  const char* Com_LoadInfoString_FastFile(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer)
+  {
+    auto* rawfile = DB_FindXAssetHeader(ASSET_TYPE_RAWFILE, fileName).rawfile;
+
+    if (DB_IsXAssetDefault(ASSET_TYPE_RAWFILE, fileName))
+    {
+      Com_Error(ERR_DROP, "\x15" "Could not load %s file [%s]\n", fileDesc, fileName);
+    }
+
+    DB_GetRawBuffer(rawfile, loadBuffer, 0x2000);
+
+    const auto identLen = std::strlen(ident);
+
+    if (std::strncmp(loadBuffer, ident, identLen) != 0)
+    {
+      Com_Error(ERR_DROP, "\x15" "File [%s] is not a %s file\n", fileName, fileDesc);
+    }
+
+    return loadBuffer + identLen;
+  }
+
   const char* logFileName = "console_mp.log";
   fileHandle_t logfile = 0;
   bool opening_qconsole = false;
