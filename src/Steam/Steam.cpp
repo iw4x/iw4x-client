@@ -198,6 +198,12 @@ namespace Steam
     }
 
 
+    Steam::Apps* SteamApps()
+    {
+      static Steam::Apps iApps;
+      return &iApps;
+    }
+
     Steam::Friends* SteamFriends()
     {
       static Steam::Friends iFriends;

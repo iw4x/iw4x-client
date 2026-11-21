@@ -46,6 +46,7 @@ typedef uint64_t uint64;
 
 typedef void* unknown_ret;
 
+#include "Interfaces/SteamApps.hpp"
 #include "Interfaces/SteamUser.hpp"
 #include "Interfaces/SteamUtils.hpp"
 #include "Interfaces/SteamFriends.hpp"
@@ -126,6 +127,7 @@ namespace Steam
   STEAM_EXPORT void SteamGameServer_RunCallbacks();
   STEAM_EXPORT void SteamGameServer_Shutdown();
 
+  STEAM_EXPORT Steam::Apps* SteamApps();
   STEAM_EXPORT Steam::Friends* SteamFriends();
   STEAM_EXPORT Steam::Matchmaking* SteamMatchmaking();
   STEAM_EXPORT Steam::GameServer* SteamGameServer();
