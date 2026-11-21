@@ -38,6 +38,8 @@ namespace Components
     static void CG_Debug_DrawFontTest(int localClientNum);
 
     static void CG_DrawDebugOverlays_Hk(int localClientNum);
+    static void CG_Draw2D_Hk(int localClientNum, int x, int y);
+    static void CG_DrawActiveFrame_Hk(int localClientNum);
 
     static void Com_Assert_f();
     static void Com_Bug_f(const Command::Params* params);

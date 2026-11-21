@@ -2257,6 +2257,9 @@ namespace Game
     char translationVersion[256];
   };
 
+  static_assert(offsetof(clientActive_t, cmds) == 0x3244);
+  static_assert(offsetof(clientActive_t, cmdNumber) == 0x4644);
+
   struct MaterialTechnique
   {
     const char* name;
@@ -8077,6 +8080,8 @@ namespace Game
     int statPacketSendTime[7];
   };
 
+  static_assert(offsetof(clientConnection_t, isServerRestarting) == 0x40148);
+  static_assert(offsetof(clientConnection_t, demoplaying) == 0x40194);
   static_assert(offsetof(clientConnection_t, netchan) == 0x401C8);
 
   // @@ TODO: verify x64 size (0x615E8 on x86).
@@ -9644,6 +9649,8 @@ namespace Game
     int serverCommandSequence;
   };
 
+  static_assert(offsetof(snapshot_s, snapFlags) == 0x311C);
+  static_assert(offsetof(snapshot_s, ping) == 0x3120);
   static_assert(sizeof(snapshot_s) == 0x339EC);
 
   struct RefdefView
@@ -9742,6 +9749,7 @@ namespace Game
   static_assert(offsetof(cg_s, nextSnap) == 0x3398);
   static_assert(offsetof(cg_s, activeSnapshots) == 0x33A0);
   static_assert(offsetof(cg_s, frameInterpolation) == 0x6A778);
+  static_assert(offsetof(cg_s, latestSnapshotTime) == 0x338C);
   static_assert(offsetof(cg_s, time) == 0x6A780);
   static_assert(offsetof(cg_s, refdef.view.org) == 0x6A7B8);
   static_assert(offsetof(cg_s, refdefViewAngles) == 0x6EEC8);
@@ -10185,6 +10193,7 @@ namespace Game
 
   static_assert(offsetof(cgs_t, serverCommandSequence) == 0x14);
   static_assert(offsetof(cgs_t, processedSnapshotNum) == 0x18);
+  static_assert(offsetof(cgs_t, localServer) == 0x1C);
   static_assert(offsetof(cgs_t, gameModels) == 0x190);
   static_assert(offsetof(cgs_t, holdBreathParams) == 0x1198);
   static_assert(offsetof(cgs_t, teamChatMsgs) == 0x1400);
@@ -11100,7 +11109,9 @@ namespace Game
     bool cgameInitialized;
     bool cgameInitCalled;
     bool mapPreloaded;
-    unsigned char __pad0[0xB3B];
+    unsigned char __pad0[3];
+    int migrationState;
+    unsigned char __pad0b[0xB34];
     int keyCatchers;
     bool displayHUDWithKeycatchUI;
     connstate_t connectionState;
@@ -11109,6 +11120,7 @@ namespace Game
 
   // @@ TODO: verify x64 size. The tail keeps the x86 0x138 bytes.
   //
+  static_assert(offsetof(clientUIActive_t, migrationState) == 0x8);
   static_assert(offsetof(clientUIActive_t, keyCatchers) == 0xB40);
   static_assert(offsetof(clientUIActive_t, connectionState) == 0xB48);
 
@@ -12401,7 +12413,9 @@ namespace Game
     FxEffectDef* fxs[256];
   };
 
+  static_assert(offsetof(cgMedia_t, lagometerMaterial) == 0x48);
   static_assert(offsetof(cgMedia_t, smallDevFont) == 0x2C98);
+  static_assert(offsetof(cgMedia_t, bigDevFont) == 0x2CA0);
 
   struct CinematicHunk
   {

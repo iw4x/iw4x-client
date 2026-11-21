@@ -7,6 +7,10 @@ namespace Components
   public:
     Vote();
 
+    // Draw the vote in progress (see Debug for where).
+    //
+    static void CG_DrawVote(int localClientNum);
+
   private:
     using CommandHandler = std::function<bool(const Game::gentity_s* ent, const Command::ServerParams* params)>;
     static std::unordered_map<std::string, CommandHandler> VoteCommands;
@@ -82,7 +86,5 @@ namespace Components
     static void CG_Init_Hk(int localClientNum);
     static void CG_ConfigStringModified_Hk(int localClientNum);
     static void CG_MapRestart_Hk(int localClientNum, int restart);
-    static void CG_DrawVote(int localClientNum);
-    static void CG_Draw2D_Hk(int localClientNum, int x, int y);
   };
 }

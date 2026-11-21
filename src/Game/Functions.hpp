@@ -467,6 +467,12 @@ namespace Game
   typedef int(*UI_TextWidth_t)(const char* text, int maxChars, Font_s* font, float scale);
   extern UI_TextWidth_t UI_TextWidth;
 
+  typedef Material*(*Material_RegisterHandle_t)(const char* name, int imageTrack);
+  extern Material_RegisterHandle_t Material_RegisterHandle;
+
+  typedef int(*Live_NecessaryBandwidth_t)(int clientCount);
+  extern Live_NecessaryBandwidth_t Live_NecessaryBandwidth;
+
   typedef int(*UI_TextHeight_t)(Font_s* font, float scale);
   extern UI_TextHeight_t UI_TextHeight;
 

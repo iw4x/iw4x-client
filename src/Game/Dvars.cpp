@@ -81,6 +81,18 @@ namespace Game
   const dvar_t** g_log = reinterpret_cast<const dvar_t**>(0x1417CBC90);
 
   const dvar_t** cg_chatHeight = reinterpret_cast<const dvar_t**>(0x1406BB130);
+  const dvar_t** cg_nopredict = reinterpret_cast<const dvar_t**>(0x1406BAE38);
+  const dvar_t** g_synchronousClients = reinterpret_cast<const dvar_t**>(0x1406BB030);
+  const dvar_t** drawLagometer = reinterpret_cast<const dvar_t**>(0x1406BB068);
+  const dvar_t** drawEntityCount = reinterpret_cast<const dvar_t**>(0x1406BB070);
+  const dvar_t** drawEntityCountPos = reinterpret_cast<const dvar_t**>(0x1406BB078);
+  const dvar_t** drawEntityCountSize = reinterpret_cast<const dvar_t**>(0x1406BB080);
+  const dvar_t** drawServerBandwidth = reinterpret_cast<const dvar_t**>(0x1406BB088);
+  const dvar_t** drawServerBandwidthPos = reinterpret_cast<const dvar_t**>(0x1406BB090);
+  const dvar_t** drawServerBandwidthSize = reinterpret_cast<const dvar_t**>(0x1406BB098);
+  const dvar_t** drawKillcamData = reinterpret_cast<const dvar_t**>(0x1406BB0A0);
+  const dvar_t** drawKillcamDataPos = reinterpret_cast<const dvar_t**>(0x1406BB0A8);
+  const dvar_t** drawKillcamDataSize = reinterpret_cast<const dvar_t**>(0x1406BB0B0);
   const dvar_t** cg_hudVotePosition = reinterpret_cast<const dvar_t**>(0x1406BADD8);
   const dvar_t** cg_chatTime = reinterpret_cast<const dvar_t**>(0x1406BB128);
   const dvar_t** cg_scoreboardHeight = reinterpret_cast<const dvar_t**>(0x1406BF958);

@@ -150,6 +150,22 @@ namespace Game
   extern const dvar_t** g_log;
 
   extern const dvar_t** cg_chatHeight;
+  extern const dvar_t** cg_nopredict;
+  extern const dvar_t** g_synchronousClients;
+  extern const dvar_t** drawLagometer;
+  extern const dvar_t** drawEntityCount;
+  extern const dvar_t** drawEntityCountPos;
+  extern const dvar_t** drawEntityCountSize;
+  extern const dvar_t** drawServerBandwidth;
+  extern const dvar_t** drawServerBandwidthPos;
+
+  // Note that the game registers drawServerBandwidthSize under the name
+  // drawEntityCountSize, so the two graphs share the dvar.
+  //
+  extern const dvar_t** drawServerBandwidthSize;
+  extern const dvar_t** drawKillcamData;
+  extern const dvar_t** drawKillcamDataPos;
+  extern const dvar_t** drawKillcamDataSize;
   extern const dvar_t** cg_hudVotePosition;
   extern const dvar_t** cg_chatTime;
   extern const dvar_t** cg_scoreboardHeight;

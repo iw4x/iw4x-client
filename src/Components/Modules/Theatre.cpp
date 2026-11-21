@@ -16,9 +16,15 @@ namespace
     }
   }
 
+  // Note that x64 compiles out CG_AddLagometerSnapshotInfo(), which x86
+  // calls in CG_ReadNextSnapshot() right after CL_GetSnapshot(), so we call
+  // it here.
+  //
   int CL_GetSnapshotStub(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot)
   {
     const auto result = Game::CL_GetSnapshot(localClientNum, snapshotNumber, snapshot);
+
+    Game::CG_AddLagometerSnapshotInfo(result ? snapshot : nullptr);
 
     if (Game::clientConnections->demoplaying)
     {

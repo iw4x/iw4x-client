@@ -15,7 +15,7 @@ namespace Game
     constexpr int FPS_SIMPLE_RANGES = 2;
     constexpr int FPS_VERBOSE_VIEWPOS = 4;
 
-    // Text alignment of DrawAlignedText(): horizontal in the low two bits,
+    // Text alignment of CG_DrawDevString(): horizontal in the low two bits,
     // vertical in the next two.
     //
     constexpr int TEXT_ALIGN_LEFT = 1;
@@ -56,40 +56,6 @@ namespace Game
       ++frameCount;
     }
 
-    // Draw the text aligned to the point and return the font height.
-    //
-    int DrawAlignedText(const ScreenPlacement* scrPlace, float x, float y, float xScale, float yScale, const char* text, const float* color, int align, Font_s* font)
-    {
-      switch (align & TEXT_ALIGN_HORIZONTAL)
-      {
-      case TEXT_ALIGN_RIGHT:
-        x -= static_cast<float>(R_TextWidth(text, 0, font)) * xScale;
-        break;
-      case TEXT_ALIGN_CENTER:
-        x -= static_cast<float>(R_TextWidth(text, 0, font)) * xScale * 0.5f;
-        break;
-      }
-
-      const int height = R_TextHeight(font);
-
-      switch (align & TEXT_ALIGN_VERTICAL)
-      {
-      case TEXT_ALIGN_TOP:
-        y += static_cast<float>(height) * yScale;
-        break;
-      case TEXT_ALIGN_MIDDLE:
-        y += static_cast<float>(height) * yScale * 0.5f;
-        break;
-      }
-
-      float w = xScale;
-      float h = yScale;
-      ScrPlace_ApplyRect(scrPlace, &x, &y, &w, &h, SCREEN_ALIGN_LEFT, SCREEN_ALIGN_TOP);
-      R_AddCmdDrawText(text, std::numeric_limits<int>::max(), font, x, y, w, h, 0.0f, color, ITEM_TEXTSTYLE_NORMAL);
-
-      return height;
-    }
-
     // Return the right edge of the debug info lines.
     //
     float CornerX(const ScreenPlacement* scrPlace)
@@ -112,13 +78,13 @@ namespace Game
       if ((*cg_drawFPSLabels)->current.enabled)
       {
         const float valueX = x - labelWidth;
-        const int valueHeight = DrawAlignedText(scrPlace, valueX, y, TEXT_SCALE_X, TEXT_SCALE_Y, text, color, TEXT_ALIGN_RIGHT | TEXT_ALIGN_TOP, font);
-        const int labelHeight = DrawAlignedText(scrPlace, valueX, y, TEXT_SCALE_X, TEXT_SCALE_Y, label, colorLabel, TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP, font);
+        const int valueHeight = CG_DrawDevString(scrPlace, valueX, y, TEXT_SCALE_X, TEXT_SCALE_Y, text, color, TEXT_ALIGN_RIGHT | TEXT_ALIGN_TOP, font);
+        const int labelHeight = CG_DrawDevString(scrPlace, valueX, y, TEXT_SCALE_X, TEXT_SCALE_Y, label, colorLabel, TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP, font);
 
         return static_cast<float>(std::max(valueHeight, labelHeight)) * LINE_SPACING;
       }
 
-      return static_cast<float>(DrawAlignedText(scrPlace, x, y, TEXT_SCALE_X, TEXT_SCALE_Y, text, color, TEXT_ALIGN_RIGHT | TEXT_ALIGN_TOP, font)) * LINE_SPACING;
+      return static_cast<float>(CG_DrawDevString(scrPlace, x, y, TEXT_SCALE_X, TEXT_SCALE_Y, text, color, TEXT_ALIGN_RIGHT | TEXT_ALIGN_TOP, font)) * LINE_SPACING;
     }
 
     // Draw a section caption, centered over the values when labels are on,
@@ -131,11 +97,11 @@ namespace Game
 
       if ((*cg_drawFPSLabels)->current.enabled)
       {
-        height = DrawAlignedText(scrPlace, x - labelWidth, y, TEXT_SCALE_X, TEXT_SCALE_Y, text, color, TEXT_ALIGN_CENTER | TEXT_ALIGN_TOP, font);
+        height = CG_DrawDevString(scrPlace, x - labelWidth, y, TEXT_SCALE_X, TEXT_SCALE_Y, text, color, TEXT_ALIGN_CENTER | TEXT_ALIGN_TOP, font);
       }
       else
       {
-        height = DrawAlignedText(scrPlace, x, y, TEXT_SCALE_X, TEXT_SCALE_Y, text, color, TEXT_ALIGN_RIGHT | TEXT_ALIGN_TOP, font);
+        height = CG_DrawDevString(scrPlace, x, y, TEXT_SCALE_X, TEXT_SCALE_Y, text, color, TEXT_ALIGN_RIGHT | TEXT_ALIGN_TOP, font);
       }
 
       return static_cast<float>(height) * LINE_SPACING;
@@ -260,6 +226,38 @@ namespace Game
 
       return y + CornerPrint(scrPlace, CornerX(scrPlace), y, LabelWidth(""), Utils::String::VA("(%.0f %.0f %.0f)\n", org[0], org[1], org[2]), "", colorWhite);
     }
+  }
+
+  int CG_DrawDevString(const ScreenPlacement* scrPlace, float x, float y, float xScale, float yScale, const char* text, const float* color, int align, Font_s* font)
+  {
+    switch (align & TEXT_ALIGN_HORIZONTAL)
+    {
+    case TEXT_ALIGN_RIGHT:
+      x -= static_cast<float>(R_TextWidth(text, 0, font)) * xScale;
+      break;
+    case TEXT_ALIGN_CENTER:
+      x -= static_cast<float>(R_TextWidth(text, 0, font)) * xScale * 0.5f;
+      break;
+    }
+
+    const int height = R_TextHeight(font);
+
+    switch (align & TEXT_ALIGN_VERTICAL)
+    {
+    case TEXT_ALIGN_TOP:
+      y += static_cast<float>(height) * yScale;
+      break;
+    case TEXT_ALIGN_MIDDLE:
+      y += static_cast<float>(height) * yScale * 0.5f;
+      break;
+    }
+
+    float w = xScale;
+    float h = yScale;
+    ScrPlace_ApplyRect(scrPlace, &x, &y, &w, &h, SCREEN_ALIGN_LEFT, SCREEN_ALIGN_TOP);
+    R_AddCmdDrawText(text, std::numeric_limits<int>::max(), font, x, y, w, h, 0.0f, color, ITEM_TEXTSTYLE_NORMAL);
+
+    return height;
   }
 
   void CG_DrawUpperRightDebugInfo(const int localClientNum)

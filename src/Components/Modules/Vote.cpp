@@ -639,15 +639,6 @@ namespace Components
     Game::UI_DrawText(placement, line, std::numeric_limits<int>::max(), font, x, y + size, 1, 1, scale, color, 3);
   }
 
-  // x86 draws the vote right before the chat in CG_Draw2D(), so we do too.
-  //
-  void Vote::CG_Draw2D_Hk(const int localClientNum, const int x, const int y)
-  {
-    CG_DrawVote(localClientNum);
-
-    Utils::Hook::Call<void(int, int, int)>(0x1400ECEF0)(localClientNum, x, y);
-  }
-
   Vote::Vote()
   {
     AssertSize(Game::gclient_s, 0x3678);
@@ -685,7 +676,6 @@ namespace Components
     Utils::Hook(0x1400E65B7, CG_ConfigStringModified_Hk, HOOK_CALL).install()->quick(); // CG_ServerCommand
     Utils::Hook(0x1400E6779, CG_MapRestart_Hk, HOOK_CALL).install()->quick(); // CG_ServerCommand
     Utils::Hook(0x1400E6F0A, CG_MapRestart_Hk, HOOK_CALL).install()->quick(); // CG_ServerCommand
-    Utils::Hook(0x1400D0FE6, CG_Draw2D_Hk, HOOK_CALL).install()->quick();
 
     ClientCommand::Add("callvote", Cmd_CallVote_f);
     ClientCommand::Add("vote", Cmd_Vote_f);

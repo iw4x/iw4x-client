@@ -187,6 +187,8 @@ namespace Game
   UI_DrawHandlePic_t UI_DrawHandlePic = UI_DrawHandlePic_t(0x14024F460);
   ScrPlace_GetActivePlacement_t ScrPlace_GetActivePlacement = ScrPlace_GetActivePlacement_t(0x1400F2B70);
   UI_TextWidth_t UI_TextWidth = UI_TextWidth_t(0x1402715B0);
+  Material_RegisterHandle_t Material_RegisterHandle = Material_RegisterHandle_t(0x14001A600);
+  Live_NecessaryBandwidth_t Live_NecessaryBandwidth = Live_NecessaryBandwidth_t(0x1401FB430);
   UI_TextHeight_t UI_TextHeight = UI_TextHeight_t(0x140271570);
   UI_DrawText_t UI_DrawText = UI_DrawText_t(0x14026B5E0);
   UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x14026D330);

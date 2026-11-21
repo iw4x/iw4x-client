@@ -1,6 +1,7 @@
 #include "Debug.hpp"
 #include "Events.hpp"
 #include "TextRenderer.hpp"
+#include "Vote.hpp"
 
 #include "Game/Engine/ScopedCriticalSection.hpp"
 
@@ -364,11 +365,39 @@ namespace Components
     return PlayerDebugHealth;
   }
 
+  // Note that x64 compiles out what x86 draws in CG_Draw2D() between
+  // CG_DrawDebugOverlays() and the say field, so we draw it right before
+  // Con_DrawSay().
+  //
+  void Debug::CG_Draw2D_Hk(const int localClientNum, const int x, const int y)
+  {
+    Vote::CG_DrawVote(localClientNum);
+    Game::CG_DrawLagometer(localClientNum);
+    Game::CG_DrawEntityCount(localClientNum);
+    Game::CG_DrawServerBandwidth(localClientNum);
+    Game::CG_DrawServerKillcamData(localClientNum);
+
+    Utils::Hook::Call<void(int, int, int)>(0x1400ECEF0)(localClientNum, x, y); // Con_DrawSay
+  }
+
+  // Note that x64 compiles out CG_AddLagometerFrameInfo(), which x86 calls in
+  // CG_DrawActiveFrame() once it sets the time, a little before the call we
+  // hook.
+  //
+  void Debug::CG_DrawActiveFrame_Hk(const int localClientNum)
+  {
+    Game::CG_AddLagometerFrameInfo(&Game::cgArray[localClientNum]);
+
+    Utils::Hook::Call<void(int)>(0x1400E2A30)(localClientNum);
+  }
+
   Debug::Debug()
   {
     Events::OnDvarInit(CL_InitDebugDvars);
 
     Utils::Hook(0x1400D0FC9, CG_DrawDebugOverlays_Hk, HOOK_CALL).install()->quick(); // CG_Draw2D
+    Utils::Hook(0x1400D0FE6, CG_Draw2D_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400B82A4, CG_DrawActiveFrame_Hk, HOOK_CALL).install()->quick();
 
     // Note that x64 reaches the function of the assert command through a
     // 32-bit displacement, so we give it a relay to ours.
