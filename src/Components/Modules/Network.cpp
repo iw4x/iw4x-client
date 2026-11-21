@@ -350,6 +350,9 @@ namespace Components
     //
     Utils::Hook::Set<std::uint32_t>(0x140238823, PROTOCOL);
 
+    // Internal version is 99, most servers should accept it
+    Utils::Hook::Set<std::uint32_t>(0x1401E6991, 208); // getBuildNumberAsInt
+
     // LSP disabled
     Utils::Hook::Set<std::uint8_t>(0x1401B0D50, 0xC3); // LSP HELLO
     Utils::Hook::Set<std::uint8_t>(0x1401B10A0, 0xC3); // We wanted to send a logging packet, but we haven't connected to LSP!
