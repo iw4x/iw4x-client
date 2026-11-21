@@ -23,7 +23,7 @@ namespace Components
 
     static std::function<void(Game::LocalizeEntry*)> ParseCallback;
 
-    static void __stdcall SetStringStub(const char* psLocalReference, const char* psNewString, int bSentenceIsEnglish);
+    static Game::XAssetHeader DB_FindLocalizeEntry_Hk(Game::XAssetType type, const char* key);
 
     static void SaveParseOutput(Game::LocalizeEntry* asset);
 

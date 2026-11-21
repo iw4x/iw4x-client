@@ -29,6 +29,7 @@
 #include "Modules/FastFiles.hpp"
 #include "Modules/Huffman.hpp"
 #include "Modules/Lean.hpp"
+#include "Modules/Localization.hpp"
 #include "Modules/MapDump.hpp"
 #include "Modules/MapRotation.hpp"
 #include "Modules/Maps.hpp"
@@ -90,6 +91,7 @@ namespace Components
     Register(new FileSystem());
     Register(new Huffman());
     Register(new Lean());
+    Register(new Localization());
     Register(new MapDump());
     Register(new MapRotation());
     Register(new Maps());
