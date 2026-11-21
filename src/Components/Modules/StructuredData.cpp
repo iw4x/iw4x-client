@@ -1,4 +1,5 @@
 #include "StructuredData.hpp"
+#include "AssetHandler.hpp"
 #include "FastFiles.hpp"
 
 namespace Components
@@ -91,7 +92,7 @@ namespace Components
       });
 
     // Apply our patches
-    dataEnum->entryCount = dataVector.size();
+    dataEnum->entryCount = static_cast<int>(dataVector.size());
     dataEnum->entries = indices;
   }
 
@@ -192,30 +193,31 @@ namespace Components
               Command::Execute("setPlayerData experience 2516000");
             }
 
-            return Utils::Hook::Call<bool(void*, void*, void*)>(0x456830)(set, buffer, whatever);
+            return Utils::Hook::Call<bool(void*, void*, void*)>(0x140281700)(set, buffer, whatever);
           }
         }
       }
 
-      return Utils::Hook::Call<bool(void*, void*, void*)>(0x456830)(set, buffer, whatever);
+      return Utils::Hook::Call<bool(void*, void*, void*)>(0x140281700)(set, buffer, whatever);
     }
 
     // StructuredData_UpdateVersion
-    return Utils::Hook::Call<bool(void*, void*, void*)>(0x456830)(set, buffer, whatever);
+    return Utils::Hook::Call<bool(void*, void*, void*)>(0x140281700)(set, buffer, whatever);
   }
 
   StructuredData::StructuredData()
   {
     if (Dedicated::IsEnabled()) return;
 
-    // Do not execute this when building zones
-    if (!ZoneBuilder::IsEnabled())
+    // Note that on x86 we do not execute this when building zones, which x64
+    // can't.
+    //
     {
       // Correctly upgrade stats
-      Utils::Hook(0x42F088, StructuredData::UpdateVersionOffsets, HOOK_CALL).install()->quick();
+      Utils::Hook(0x1401F7594, StructuredData::UpdateVersionOffsets, HOOK_CALL).install()->quick();
 
       // 15 or more custom classes
-      Utils::Hook::Set<BYTE>(0x60A2FE, NUM_CUSTOM_CLASSES);
+      Utils::Hook::Set<BYTE>(0x1401FA32A, NUM_CUSTOM_CLASSES);
 
       AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& filename, bool* /*restrict*/)
         {
@@ -257,161 +259,11 @@ namespace Components
             return;
 
           StructuredData::StatsPlayerDataDefs = set->defs;
-          Utils::Hook::Call<void(int)>(0x44CEC0)(0);
+          Utils::Hook::Call<void(int)>(0x1402A70F0)(0);
         }, Scheduler::Pipeline::MAIN, 500ms);
-
-      return;
     }
 
-
-    // TODO: Since all of the following is zonebuilder-only code, move it to IW4OF or IStructuredDataDefSet.cpp
-    AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& filename, bool* /*restrict*/)
-      {
-        if (ZoneBuilder::IsDumpingZone()) {
-          return;
-        }
-
-        // Only intercept playerdatadef loading
-        if (type != Game::ASSET_TYPE_STRUCTURED_DATA_DEF || filename != "mp/playerdata.def") return;
-
-        // Store asset
-        Game::StructuredDataDefSet* data = asset.structuredDataDefSet;
-        if (!data) return;
-
-        if (data->defCount != 1)
-        {
-          Logger::Error(Game::ERR_FATAL, "PlayerDataDefSet contains more than 1 definition!");
-          return;
-        }
-
-        if (data->defs[0].version != BASE_PLAYERSTATS_VERSION)
-        {
-          Logger::Error(Game::ERR_FATAL, "Initial PlayerDataDef is not version 155, patching not possible!");
-          return;
-        }
-
-        std::unordered_map<int, std::vector<std::vector<std::string>>> patchDefinitions;
-        std::unordered_map<int, std::unordered_map<std::string, std::string>> otherPatchDefinitions;
-
-        // First check if all versions are present
-        for (int i = 156;; ++i)
-        {
-          // We're on DB thread (OnLoad) so use DB thread for FS
-          FileSystem::File definition(std::format("{}/{}.json", filename, i), Game::FsThread::FS_THREAD_DATABASE);
-          if (!definition.exists()) break;
-
-          std::vector<std::vector<std::string>> enumContainer;
-          std::unordered_map<std::string, std::string> otherPatches;
-
-          nlohmann::json defData;
-          try
-          {
-            defData = nlohmann::json::parse(definition.getBuffer());
-          }
-          catch (const nlohmann::json::parse_error& ex)
-          {
-            Logger::PrintError(Game::CON_CHANNEL_ERROR, "JSON Parse Error: {}\n", ex.what());
-            return;
-          }
-
-          if (!defData.is_object())
-          {
-            Logger::Error(Game::ERR_FATAL, "PlayerDataDef patch for version {} is invalid!", i);
-            return;
-          }
-
-          for (auto pType = 0; pType < StructuredData::PlayerDataType::COUNT; ++pType)
-          {
-            auto enumData = defData[StructuredData::EnumTranslation[pType]];
-
-            std::vector<std::string> entryData;
-
-            if (enumData.is_array())
-            {
-              for (const auto& rawEntry : enumData)
-              {
-                if (rawEntry.is_string())
-                {
-                  entryData.push_back(rawEntry.get<std::string>());
-                }
-              }
-            }
-
-            enumContainer.push_back(entryData);
-          }
-
-          auto other = defData["other"];
-
-          if (other.is_object())
-          {
-            for (auto& item : other.items())
-            {
-              if (item.value().is_string())
-              {
-                otherPatches[item.key()] = item.value().get<std::string>();
-              }
-            }
-          }
-
-          patchDefinitions[i] = enumContainer;
-          otherPatchDefinitions[i] = otherPatches;
-        }
-
-        // Nothing to patch
-        if (patchDefinitions.empty()) return;
-
-        // Reallocate the definition
-        auto* newData = StructuredData::MemAllocator.allocateArray<Game::StructuredDataDef>(data->defCount + patchDefinitions.size());
-        std::memcpy(&newData[patchDefinitions.size()], data->defs, sizeof(Game::StructuredDataDef) * data->defCount);
-
-        // Set the versions
-        for (unsigned int i = 0; i < patchDefinitions.size(); ++i)
-        {
-          newData[i].version = (patchDefinitions.size() - i) + BASE_PLAYERSTATS_VERSION;
-        }
-
-        // Apply new data
-        data->defs = newData;
-        data->defCount += patchDefinitions.size();
-
-        // Patch the definition
-        for (int i = data->defCount - 1; i >= 0; --i)
-        {
-          // No need to patch version 155
-          if (newData[i].version == BASE_PLAYERSTATS_VERSION)
-          {
-            continue;
-          }
-
-          // We start from the previous one
-          const auto version = newData[i].version;
-          data->defs[i] = data->defs[i + 1];
-          newData[i].version = version;
-
-          if (patchDefinitions.contains(newData[i].version))
-          {
-            auto patchData = patchDefinitions[newData[i].version];
-            auto otherData = otherPatchDefinitions[newData[i].version];
-
-            // Invalid patch data
-            if (patchData.size() != StructuredData::PlayerDataType::COUNT)
-            {
-              Logger::Error(Game::ERR_FATAL, "PlayerDataDef patch for version {} wasn't parsed correctly!", newData[i].version);
-              continue;
-            }
-
-            // Apply the patch data
-            for (auto pType = 0; pType < StructuredData::PlayerDataType::COUNT; ++pType)
-            {
-              if (!patchData[pType].empty())
-              {
-                StructuredData::PatchPlayerDataEnum(&newData[i], static_cast<StructuredData::PlayerDataType>(pType), patchData[pType]);
-              }
-            }
-
-            StructuredData::PatchAdditionalData(&newData[i], otherData);
-          }
-        }
-      });
+    // Note that on x86 we also patch the player data definition with the
+    // versions of IW4x when ZoneBuilder builds the zones, which x64 lacks.
   }
 }
