@@ -66,6 +66,7 @@
 #include "Modules/ServerList.hpp"
 #include "Modules/Session.hpp"
 #include "Modules/SlowMotion.hpp"
+#include "Modules/StartupMessages.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/Sound.hpp"
 
@@ -158,6 +159,7 @@ namespace Components
     Register(new Session());
     Register(new SlowMotion());
     Register(new Sound());
+    Register(new StartupMessages());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
