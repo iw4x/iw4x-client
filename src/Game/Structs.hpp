@@ -3298,11 +3298,18 @@ namespace Game
 
   struct DynEntityClient
   {
-    int physObjId;
+    intptr_t physObjId;
     unsigned __int16 flags;
     unsigned __int16 lightingHandle;
     int health;
   };
+
+  // Note that x64 keeps a pointer to the physics object where x86 keeps its
+  // handle.
+  //
+  static_assert(sizeof(DynEntityClient) == 0x10);
+  static_assert(offsetof(DynEntityClient, flags) == 0x8);
+  static_assert(offsetof(DynEntityClient, health) == 0xC);
 
   struct DynEntityColl
   {
