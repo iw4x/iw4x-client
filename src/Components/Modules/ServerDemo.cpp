@@ -382,7 +382,7 @@ namespace Components
       AppendArchiveRecord(data, cl);
     }
 
-    // Netchan_Transmit stamps the message with the current outgoingSequence (0x46BAAB) and
+    // Netchan_Transmit stamps the message with the current outgoingSequence and
     // only then increments it, so read before the call-through this is the sequence the
     // message is sent with.
     AppendNetworkRecord(data, cl->header.netchan.outgoingSequence, wireData, wireLength);
@@ -401,7 +401,7 @@ namespace Components
   bool ServerDemo::SV_Netchan_Transmit_Stub(Game::client_s* client, const void* data, const int length)
   {
     // Record before calling through: SV_Netchan_Transmit encodes the message in place
-    // (0x628400) before sending it.
+    // before sending it.
     OnTransmit(client, static_cast<const unsigned char*>(data), length);
 
     return Utils::Hook::Call<bool(Game::client_s*, const void*, int)>(SV_NETCHAN_TRANSMIT)(client, data, length);
@@ -611,6 +611,10 @@ namespace Components
 
   ServerDemo::ServerDemo()
   {
+    AssertOffset(Game::client_s, header.netchan.outgoingSequence, 0x18);
+    AssertOffset(Game::client_s, lastConnectTime, 0x212D8);
+    AssertOffset(Game::client_s, bIsTestClient, 0x41B0C);
+
     SVDemoAutoRecord = Dvar::Register<bool>("sv_demoAutoRecord", false, Game::DVAR_NONE,
       "Automatically record a server-side demo for every connecting client (dedicated/listen server only)");
     SVDemosKeep = Dvar::Register<int>("sv_demosKeep", 100, 1, 999, Game::DVAR_NONE,
