@@ -756,15 +756,18 @@ namespace Components
   // and the device with the interface it doesn't have, crashing on the null
   // pointer. Under Wine this typically means DXVK couldn't initialize Vulkan.
   //
-  bool D3D9Ex::R_InitDirect3D_Hk ()
+  // Note that x64 inlines R_InitDirect3D() into R_InitGraphicsApi(), so we
+  // check the interface where it gets it.
+  //
+  IDirect3D9* D3D9Ex::R_InitDirect3D_Hk (UINT sdk)
   {
-    if (Utils::Hook::Call<bool ()> (0x5073F0) ())
-      return true;
+    if (IDirect3D9* const d3d9 = Direct3DCreate9Stub (sdk))
+      return d3d9;
 
     Game::Sys_Error (Utils::IsWineEnvironment ()
                      ? "Couldn't initialize Direct3D 9. Make sure your graphics drivers support Vulkan, which Wine DXVK needs to run the game."
                      : "Couldn't initialize Direct3D 9. Make sure your graphics drivers are up to date.");
-    return false;
+    return nullptr;
   }
 
   D3D9Ex::D3D9Ex()
@@ -774,8 +777,8 @@ namespace Components
     RUseD3D9Ex = Dvar::Register<bool>("r_useD3D9Ex", false, Game::DVAR_ARCHIVE, "Use extended d3d9 interface!");
 
     // Hook Interface creation
-    Utils::Hook::Set(0x6D74D0, Direct3DCreate9Stub);
+    Utils::Hook::Set(0x1403619C8, Direct3DCreate9Stub);
 
-    Utils::Hook (0x5078DD, R_InitDirect3D_Hk, HOOK_CALL).install ()->quick (); // R_InitGraphicsApi: R_InitDirect3D().
+    Utils::Hook (0x140032646, R_InitDirect3D_Hk, HOOK_CALL).install ()->quick (); // R_InitGraphicsApi
   }
 }
