@@ -10,6 +10,16 @@
 
 namespace Components
 {
+  // The fields the game reads where we hook it.
+  //
+  static_assert(offsetof(Game::WeaponDef, notetrackSoundMapKeys) == 0x30);
+  static_assert(offsetof(Game::centity_s, nextState.number) == 0xE8);
+  static_assert(offsetof(Game::centity_s, nextState.eType) == 0xEC);
+  static_assert(offsetof(Game::centity_s, nextState.weapon) == 0x1B4);
+  static_assert(offsetof(Game::playerState_s, eFlags) == 0xB0);
+  static_assert(offsetof(Game::playerState_s, viewlocked_entNum) == 0x170);
+
+  void (*Rumble::CG_FireWeapon_Original)(int localClientNum, Game::centity_s* cent, int event, int param, unsigned short tagName, unsigned int weapon, bool isPlayerView);
 
   static Game::RumbleGlobals rumbleGlobArray[Game::MAX_GPAD_COUNT]{}; // We're only gonna use #0 anyway cause only one client
 
@@ -55,7 +65,7 @@ namespace Components
 
   int Rumble::GetRumbleInfoIndexFromName(const char* rumbleName)
   {
-    for (size_t i = 0; i < ConfigStrings::RUMBLE_CONFIGSTRINGS_COUNT-1; i++)
+    for (int i = 0; i < ConfigStrings::RUMBLE_CONFIGSTRINGS_COUNT-1; i++)
     {
       const char* configStringArr = ConfigStrings::CL_GetRumbleConfigString(i);
       if (configStringArr && *configStringArr)
@@ -673,10 +683,10 @@ namespace Components
     }
   }
 
-  void Rumble::CG_RegisterGraphics_Hk(int localClientNum, int b)
+  void Rumble::CG_RegisterGraphics_Hk(int localClientNum, void* b)
   {
     // Call original function
-    Utils::Hook::Call<void(int, int)>(0x5895D0)(localClientNum, b);
+    Utils::Hook::Call<void(int, void*)>(0x1400D9810)(localClientNum, b);
 
     CG_RegisterRumbles(localClientNum);
   }
@@ -776,6 +786,43 @@ namespace Components
         }
       }
     }
+  }
+
+  void Rumble::CG_FireWeapon_Hk(int localClientNum, Game::centity_s* cent, int event, int param, unsigned short tagName, unsigned int weapon, bool isPlayerView)
+  {
+    CG_FireWeapon_Original(localClientNum, cent, event, param, tagName, weapon, isPlayerView);
+
+    // Note that on x86 we go in where the game plays the fire sound, which x64
+    // inlines. So we make what it does of its arguments before playing it:
+    // no weapon means the entity's, a turret is the player's view only while
+    // their view is locked to it, and the player's view fires the weapon of
+    // their viewmodel.
+    //
+    if (weapon == 0)
+    {
+      weapon = cent->nextState.weapon;
+    }
+
+    if (weapon == 0 || weapon >= Game::BG_GetNumWeapons())
+    {
+      return;
+    }
+
+    auto* cg = Game::CL_GetLocalClientGlobals(localClientNum);
+
+    if (cent->nextState.eType == Game::ET_TURRET)
+    {
+      isPlayerView = (cg->predictedPlayerState.eFlags & 0xC00) != 0 &&
+                     cg->predictedPlayerState.viewlocked_entNum == cent->nextState.number;
+    }
+
+    if (isPlayerView)
+    {
+      // BG_GetViewmodelWeaponIndex
+      weapon = Utils::Hook::Call<unsigned int(Game::playerState_s*, unsigned int)>(0x14009C7F0)(&cg->predictedPlayerState, weapon);
+    }
+
+    CG_FireWeapon_Rumble(localClientNum, cent, Game::BG_GetWeaponDef(weapon), isPlayerView);
   }
 
   Game::WeaponDef* Rumble::BG_GetWeaponDef_RegisterRumble_Hk(unsigned int weapIndex)
@@ -894,12 +941,12 @@ namespace Components
     );
 
     // R_EndDobjScene
-    Utils::Hook::Call<void()>(0x50BB30)();
+    Utils::Hook::Call<void()>(0x14001F740)();
   }
 
   void Rumble::CG_UpdateEntInfo_Hk(int localClientNum)
   {
-    Utils::Hook::Call<void(int)>(0X5994B0)(localClientNum); // Call original
+    Utils::Hook::Call<void(int)>(0x1400D2790)(localClientNum); // Call original
     CG_UpdateRumble(localClientNum);
   }
 
@@ -947,7 +994,7 @@ namespace Components
   {
     static_assert(ARRAYSIZE(rumbleStrings) < ConfigStrings::RUMBLE_CONFIGSTRINGS_COUNT);
 
-    for (size_t i = 0; i < ARRAYSIZE(rumbleStrings); i++)
+    for (int i = 0; i < static_cast<int>(ARRAYSIZE(rumbleStrings)); i++)
     {
       // this registers the config string as constant
       ConfigStrings::SV_SetRumbleConfigString(i, rumbleStrings[i].data());
@@ -957,32 +1004,34 @@ namespace Components
   int Rumble::CCS_GetChecksum_Hk()
   {
     LoadConstantRumbleConfigStrings();
-    return Utils::Hook::Call<int()>(0x4A0060)();
+    return Utils::Hook::Call<int()>(0x1402720D0)();
   }
 
-  void Rumble::SV_InitGameProgs_Hk(int arg)
+  void Rumble::SV_InitGameProgs_Hk(int savegame, int migrate)
   {
     LoadConstantRumbleConfigStrings();
 
-    return Utils::Hook::Call<void(int)>(0x445940)(arg);
+    // Note that on x86 the game passes savegame alone.
+    //
+    return Utils::Hook::Call<void(int, int)>(0x140231A30)(savegame, migrate);
   }
 
   void Rumble::CG_GetImpactEffectForWeapon_Hk(int localClientNum, const int sourceEntityNum, const int weaponIndex, const int surfType, const int impactFlags, Game::FxEffectDef** outFx, Game::snd_alias_list_t** outSnd)
   {
     CG_PlayRumbleOnClient(localClientNum, "riotshield_impact");
-    Utils::Hook::Call<void(int, int, int, int, int, Game::FxEffectDef**, Game::snd_alias_list_t**)>(0x4E43E0)(localClientNum, sourceEntityNum, weaponIndex, surfType, impactFlags, outFx, outSnd);
+    Utils::Hook::Call<void(int, int, int, int, int, Game::FxEffectDef**, Game::snd_alias_list_t**)>(0x1400C38E0)(localClientNum, sourceEntityNum, weaponIndex, surfType, impactFlags, outFx, outSnd);
   }
 
   void Rumble::CG_ExplosiveImpactOnShieldEvent(int localClientNum)
   {
     CG_PlayRumbleOnClient(localClientNum, "riotshield_impact");
-    Utils::Hook::Call<void(int)>(0x4FBCB0)(localClientNum);
+    Utils::Hook::Call<void(int)>(0x1400C3120)(localClientNum);
   }
 
   void Rumble::CG_ExplosiveSplashOnShieldEvent(int localClientNum, int weaponIndex)
   {
     CG_PlayRumbleOnClient(localClientNum, "riotshield_impact");
-    Utils::Hook::Call<void(int, int)>(0x4F2EA0)(localClientNum, weaponIndex);
+    Utils::Hook::Call<void(int, int)>(0x1400C3160)(localClientNum, weaponIndex);
   }
 
   void Rumble::PlayNoteMappedRumbleAliases(int localClientNum, const char* noteName, Game::WeaponDef* weapDef)
@@ -1038,6 +1087,25 @@ namespace Components
         }
       }
     }
+  }
+
+  void Rumble::CG_EntityEvent_Hk(int localClientNum, Game::centity_s* cent, int event, bool isPlayerView)
+  {
+    // Note that on x86 we go in after the game's check for no event. Here we
+    // go in at the start, so we do the check ourselves and continue past it,
+    // where nothing the game did before is left for it to depend on.
+    //
+    if (!event)
+    {
+      return;
+    }
+
+    if (CG_EntityEvents_Hk(cent, static_cast<rumble_entity_event_t>(event)))
+    {
+      return;
+    }
+
+    Utils::Hook::Call<void(int, Game::centity_s*, int, bool)>(0x1400ACF79)(localClientNum, cent, event, isPlayerView);
   }
 
   bool Rumble::CG_EntityEvents_Hk(Game::centity_s* entity, rumble_entity_event_t event)
@@ -1201,7 +1269,7 @@ namespace Components
   void Rumble::CG_Turret_UpdateBarrelSpinRumble(int localClientNum, Game::centity_s* cent)
   {
     // Update barrel spin sound
-    Utils::Hook::Call<void(int, Game::centity_s*)>(0x4E3090)(localClientNum, cent);
+    Utils::Hook::Call<void(int, Game::centity_s*)>(0x14024E3C0)(localClientNum, cent);
 
     // Then rumble
     const auto weapon = Game::BG_GetWeaponDef(cent->nextState.weapon);
@@ -1214,7 +1282,7 @@ namespace Components
         if (*rumble && cent->pose.___u10.turret.playerUsing)
         {
           const auto time = Game::cgArray->time;
-          const auto BG_Turret_ComputeBarrelSpinRate = Utils::Hook::Call<double(Game::WeaponDef*, Game::LerpEntityStateTurret*, int)>(0x4D5770);
+          const auto BG_Turret_ComputeBarrelSpinRate = Utils::Hook::Call<float(Game::WeaponDef*, Game::LerpEntityStateTurret*, int)>(0x1400966E0);
 
           const auto spinRate = BG_Turret_ComputeBarrelSpinRate(weapon, &cent->nextState.lerp.u.turret, time);
 
@@ -1257,51 +1325,53 @@ namespace Components
 
   Rumble::Rumble()
   {
-    if (ZoneBuilder::IsEnabled())
-      return;
-
+    // Note that on x86 we install nothing for ZoneBuilder, which x64 lacks.
+    //
     // WeaponMelee rumble
-    Utils::Hook(0x5FCD74, Rumble_MeleeRumble_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1401894BE, Rumble_MeleeRumble_Stub, HOOK_JUMP).install()->quick();
 
     // Parse CG_EntityEvents for new events
-    Utils::Hook(0x4DCF84, Rumble_CG_EntityEvents_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400ACF70, CG_EntityEvent_Hk, HOOK_JUMP).install()->quick();
 
     // CG_setRumbleReceiver
-    Utils::Hook(0x486DEC, CG_SetRumbleReceiver, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400B8CB5, CG_SetRumbleReceiver, HOOK_CALL).install()->quick();
 
     // Client & server
-    Utils::Hook(0x5AC2F3, CCS_GetChecksum_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4A75CC, SV_InitGameProgs_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400FFD0C, CCS_GetChecksum_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140239D17, SV_InitGameProgs_Hk, HOOK_CALL).install()->quick();
 
     // Rumble action
-    Utils::Hook(0x59D7D0, Rumble_CG_FireWeapon_FireSoundHk, HOOK_JUMP).install()->quick();
+    CG_FireWeapon_Original = Utils::Hook::Detour(0x1400C31C0, 5, &CG_FireWeapon_Hk);
 
     // CG_BulletHitClientShield
-    Utils::Hook(0x42A611, CG_GetImpactEffectForWeapon_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400C15AF, CG_GetImpactEffectForWeapon_Hk, HOOK_CALL).install()->quick();
 
     //  CG_ExplosiveImpactOnShield
-    Utils::Hook(0x4DE156, CG_ExplosiveImpactOnShieldEvent, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ADEAB, CG_ExplosiveImpactOnShieldEvent, HOOK_CALL).install()->quick();
 
     // CG_ExplosiveSplashOnShieldEvent
-    Utils::Hook(0x4DE17D, CG_ExplosiveSplashOnShieldEvent, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ADEC2, CG_ExplosiveSplashOnShieldEvent, HOOK_CALL).install()->quick();
 
     // PlayNoteMappedRumbleAliases
-    Utils::Hook(0x59C440, Rumble_PlayNoteMappedSoundAliases_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400C7BC8, Rumble_PlayNoteMappedSoundAliases_Stub, HOOK_JUMP).install()->quick();
 
     // CG_Turret_UpdateBarrelSpinRumble
-    Utils::Hook(0x5861B8, CG_Turret_UpdateBarrelSpinRumble, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400D5365, CG_Turret_UpdateBarrelSpinRumble, HOOK_CALL).install()->quick();
 
     Events::OnDvarInit([]() {
       InitDvars();
       });
 
     // Frame rumble update
-    Utils::Hook(0x47E035, SCR_UpdateRumble, HOOK_CALL).install()->quick();
-    Utils::Hook(0x486BB6, CG_UpdateEntInfo_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401F4440, SCR_UpdateRumble, HOOK_CALL).install()->quick();
+    // Note that x64 inlines the entity sounds into CG_UpdateEntInfo(), which
+    // on x86 come after it, so we now update the rumbles after them.
+    //
+    Utils::Hook(0x1400B847D, CG_UpdateEntInfo_Hk, HOOK_CALL).install()->quick();
 
     // rumble loading
-    Utils::Hook(0x43E1F8, BG_GetWeaponDef_RegisterRumble_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4E37D3, CG_RegisterGraphics_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14016CD29, BG_GetWeaponDef_RegisterRumble_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400D6B7C, CG_RegisterGraphics_Hk, HOOK_CALL).install()->quick();
 
     // CG_PlayRumble_f
     Command::Add("playrumble", [](const Command::Params* params) {
@@ -1337,19 +1407,9 @@ namespace Components
 
 }
 
-void Rumble_CG_FireWeapon_Rumble(int localClientNum, Game::centity_s* cent, Game::WeaponDef* weaponDef, bool isPlayerView)
-{
-  Components::Rumble::CG_FireWeapon_Rumble(localClientNum, cent, weaponDef, isPlayerView);
-}
-
 void Rumble_PlayNoteMappedRumbleAliases(int localClientNum, const char* noteName, Game::WeaponDef* weapDef)
 {
   Components::Rumble::PlayNoteMappedRumbleAliases(localClientNum, noteName, weapDef);
-}
-
-bool Rumble_CG_EntityEvents_Hk(Game::centity_s* entity, int event)
-{
-  return Components::Rumble::CG_EntityEvents_Hk(entity, static_cast<Components::Rumble::rumble_entity_event_t>(event));
 }
 
 void Rumble_MeleeRumble_Hook(Game::gentity_s* targetEntity, Game::WeaponDef* weaponDef)
