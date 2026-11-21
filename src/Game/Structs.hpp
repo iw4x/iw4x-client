@@ -7351,12 +7351,15 @@ namespace Game
     int critSectCount;
     int value40;
     const char *zoneFiles[7];
-    bool defaultFullscreen;
-    unsigned __int16 defaultFullscreenFlags;
+    int defaultDisplayMode;
+    unsigned __int16 defaultDisplayModeFlags;
     int defaultMode;
     int value900;
     int value450;
   };
+
+  static_assert(offsetof(GfxConfiguration, defaultDisplayMode) == 0x58);
+  static_assert(sizeof(GfxConfiguration) == 0x70);
 
   struct GfxWindowParms
   {
