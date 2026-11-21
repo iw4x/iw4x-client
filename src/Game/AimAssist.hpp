@@ -54,4 +54,12 @@ namespace Game
   void AimAssist_UpdateAdsLerp(const AimInput* input);
   void AimAssist_ApplyAutoMelee(const AimInput* input, AimOutput* output);
   void AimAssist_UpdateMouseInput(const AimInput* input, AimOutput* output);
+
+  // Draw the targets and regions of the aim assistance that the aim_*_debug
+  // dvars debug.
+  //
+  // Note that x64 compiles out AimAssist_DrawDebugOverlay() along with what
+  // it calls, so we reimplement it from x86.
+  //
+  void AimAssist_DrawDebugOverlay(int localClientNum);
 }

@@ -381,6 +381,10 @@ namespace Components
     {
       Game::CG_DrawMaterial(localClientNum, drawMaterialType);
     }
+    else
+    {
+      Game::AimAssist_DrawDebugOverlay(localClientNum);
+    }
 
     Utils::Hook::Call<void(int, int, int)>(0x1400ECEF0)(localClientNum, x, y); // Con_DrawSay
   }

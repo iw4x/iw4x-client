@@ -320,4 +320,167 @@ namespace Game
 
     aa.prevButtons = input->buttons;
   }
+
+  namespace
+  {
+    constexpr float colorWhite[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    constexpr float colorYellow[4] = {1.0f, 1.0f, 0.0f, 1.0f};
+
+    // Note that x64 compiles out CL_DrawText() along with its callers here.
+    //
+    void CL_DrawText(const ScreenPlacement* scrPlace, const char* text, const int maxChars, Font_s* font, float x, float y, const int horzAlign, const int vertAlign, float xScale, float yScale, const float* color, const int style)
+    {
+      ScrPlace_ApplyRect(scrPlace, &x, &y, &xScale, &yScale, horzAlign, vertAlign);
+      R_AddCmdDrawText(text, maxChars, font, x, y, xScale, yScale, 0.0f, color, style);
+    }
+
+    // Return how far up the crosshair sits, as a fraction of half the
+    // screen height.
+    //
+    float CG_GetCrosshairVerticalOffset(const cg_s* cgameGlob)
+    {
+      return Utils::Hook::Call<float(const cg_s*)>(0x1400B9150)(cgameGlob);
+    }
+
+    // Draw the box of each target within the range of the assistance being
+    // debugged, with its rank, entity, distance, speed, and distance from
+    // the crosshair above it.
+    //
+    void AimAssist_DrawTargets(const int localClientNum, const cg_s* cgameGlob, const float* color)
+    {
+      const auto& aa (aaGlobArray[localClientNum]);
+
+      if (!aa.ps.weapIndex)
+      {
+        return;
+      }
+
+      const auto adsLerp (aa.adsLerp);
+      const auto* weapDef (BG_GetWeaponDef(aa.ps.weapIndex));
+      auto aimAssistRange (static_cast<float>((1.0 - adsLerp) * weapDef->aimAssistRange + static_cast<double>(weapDef->aimAssistRangeAds) * adsLerp));
+      aimAssistRange = aimAssistRange * aim_aimAssistRangeScale->current.value;
+
+      const auto autoAimRange (BG_GetWeaponDef(aa.ps.weapIndex)->autoAimRange * aim_autoAimRangeScale->current.value);
+
+      auto meleeRange (aim_automelee_range->current.value);
+      if (cgameGlob->predictedPlayerState.perks[0] & 8)
+      {
+        meleeRange = perk_extendedMeleeRange->current.value;
+      }
+
+      const auto* scrPlace (ScrPlace_GetActivePlacement(localClientNum));
+
+      // Whether the target is out of the range while we debug that
+      // assistance.
+      //
+      const auto outOf ([] (const dvar_t* debug, const float distSqr, const float range)
+      {
+        return debug->current.enabled && static_cast<float>(range * range) < distSqr;
+      });
+
+      for (auto i = 0; i < aa.screenTargetCount; ++i)
+      {
+        const auto& t (aa.screenTargets[i]);
+
+        if (outOf(aim_autoaim_debug, t.distSqr, autoAimRange)       ||
+            outOf(aim_automelee_debug, t.distSqr, meleeRange)       ||
+            outOf(aim_slowdown_debug, t.distSqr, aimAssistRange)    ||
+            outOf(aim_lockon_debug, t.distSqr, aimAssistRange))
+        {
+          continue;
+        }
+
+        const auto halfWidth (aa.screenWidth * 0.5f);
+        const auto halfHeight (aa.screenHeight * 0.5f);
+
+        const auto x (static_cast<float>((t.clipMins[0] + 1.0f) * halfWidth));
+        auto y (static_cast<float>((t.clipMins[1] + 1.0f) * halfHeight));
+        const auto maxX (static_cast<float>((t.clipMaxs[0] + 1.0f) * halfWidth));
+        const auto maxY (static_cast<float>((1.0f + t.clipMaxs[1]) * halfHeight));
+        const auto h (maxY - y);
+
+        // Raise the box with the crosshair.
+        //
+        y = static_cast<float>(y - static_cast<double>(CG_GetCrosshairVerticalOffset(cgameGlob)) * aa.screenHeight * 0.5);
+
+        CL_DrawStretchPicPhysical(x, y, maxX - x, h, 0.0f, 0.0f, 1.0f, 1.0f, color, cgMedia->whiteMaterial);
+
+        // Print the details, one line per 10 units up.
+        //
+        const auto print ([scrPlace, x, &y] (const char* text, const float* textColor)
+        {
+          CL_DrawText(scrPlace, text, std::numeric_limits<int>::max(), cgMedia->bigDevFont, x, y, 5, 5, 1.0f, 1.0f, textColor, 0);
+          y = static_cast<float>(y - 10.0);
+        });
+
+        print(Utils::String::VA("Pri: %i", i), colorYellow);
+        print(Utils::String::VA("Ent: %i", t.entIndex), colorYellow);
+        print(Utils::String::VA("Dist: %.2f", std::sqrt(t.distSqr)), colorWhite);
+
+        const auto speedSqr (static_cast<float>(static_cast<double>(t.velocity[0]) * t.velocity[0] + static_cast<double>(t.velocity[1]) * t.velocity[1] + static_cast<double>(t.velocity[2]) * t.velocity[2]));
+        print(Utils::String::VA("Speed: %.2f", std::sqrt(speedSqr)), colorWhite);
+        print(Utils::String::VA("XHairDist: %.4f", std::sqrt(t.crosshairDistSqr)), colorWhite);
+      }
+    }
+
+    // Draw a box of the region's size in the middle of the screen, raised
+    // with the crosshair.
+    //
+    void AimAssist_DrawCenterBox(const AimAssistGlobals& aa, const float verticalOffset, const float regionWidth, const float regionHeight, const float* color)
+    {
+      const auto w (static_cast<float>(regionWidth * aa.screenWidth));
+      const auto h (static_cast<float>(aa.screenHeight * regionHeight));
+      auto y (static_cast<float>((aa.screenHeight - h) * 0.5));
+      y = static_cast<float>(y - static_cast<double>(aa.screenHeight) * verticalOffset * 0.5);
+      const auto x (static_cast<float>((aa.screenWidth - w) * 0.5));
+
+      CL_DrawStretchPicPhysical(x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f, color, cgMedia->whiteMaterial);
+    }
+  }
+
+  void AimAssist_DrawDebugOverlay(const int localClientNum)
+  {
+    const float colorTargets[4] = {1.0f, 0.0f, 0.0f, 0.25f};
+    const float colorRegion[4] = {0.0f, 1.0f, 0.0f, 0.25f};
+
+    const auto& aa (aaGlobArray[localClientNum]);
+
+    if (!aa.initialized)
+    {
+      return;
+    }
+
+    const auto* cg (&cgArray[localClientNum]);
+    const auto verticalOffset (CG_GetCrosshairVerticalOffset(cg));
+
+    // Note that x64 drops the auto aim region from AimTweakables along with
+    // the auto aim, so we work it out as x86's AimAssist_UpdateTweakables()
+    // does.
+    //
+    const auto* scr (ScrPlace_GetViewPlacement(localClientNum));
+    const auto autoAimRegionWidth (static_cast<float>(static_cast<float>(scr->scaleVirtualToReal[0] * aim_autoaim_region_width->current.value) / aa.screenWidth) * aa.fovScaleInv);
+    const auto autoAimRegionHeight (static_cast<float>(static_cast<float>(scr->scaleVirtualToReal[1] * aim_autoaim_region_height->current.value) / aa.screenHeight) * aa.fovScaleInv);
+
+    const struct
+    {
+      const dvar_t* debug;
+      float width;
+      float height;
+    } regions[] =
+    {
+      {aim_slowdown_debug, aa.tweakables.slowdownRegionWidth, aa.tweakables.slowdownRegionHeight},
+      {aim_autoaim_debug, autoAimRegionWidth, autoAimRegionHeight},
+      {aim_automelee_debug, aa.tweakables.autoMeleeRegionWidth, aa.tweakables.autoMeleeRegionHeight},
+      {aim_lockon_debug, aa.tweakables.lockOnRegionWidth, aa.tweakables.lockOnRegionHeight},
+    };
+
+    for (const auto& region : regions)
+    {
+      if (region.debug->current.enabled)
+      {
+        AimAssist_DrawTargets(localClientNum, cg, colorTargets);
+        AimAssist_DrawCenterBox(aa, verticalOffset, region.width, region.height, colorRegion);
+      }
+    }
+  }
 }
