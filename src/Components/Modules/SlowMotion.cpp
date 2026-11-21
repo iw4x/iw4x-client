@@ -6,19 +6,26 @@ namespace Components
 
   const Game::dvar_t* SlowMotion::cg_drawDisconnect;
 
-  float SlowMotion::Com_UpdateSlowMotion(float frameTime)
+  bool SlowMotion::Com_UpdateSlowMotion(int msec)
   {
-    // Note that on x86 the game updates the slow motion by the milliseconds
-    // that passed. On x64 it does so by the seconds of the frame, which it
-    // also returns scaled by the slow motion. So while we hold the slow
-    // motion back we scale the frame as the game does without updating it.
+    if (Delay <= 0)
+    {
+      return false;
+    }
+
+    Delay -= msec;
+    return true;
+  }
+
+  float SlowMotion::CL_UpdateSlowMotion(float frameTime)
+  {
+    // While we hold the slow motion back, scale the frame as the game does
+    // without updating the slow motion.
     //
     if (Delay <= 0)
     {
       return Game::Com_UpdateSlowMotion(frameTime);
     }
-
-    Delay -= static_cast<int>(frameTime * 1000.0f);
 
     const auto timescale(*reinterpret_cast<const float*>(0x141BD7978));
     return std::max(frameTime * timescale, 0.001f);
@@ -85,7 +92,16 @@ namespace Components
 
     Delay = 0;
     Utils::Hook(0x140178132, ScrCmd_SetSlowMotion_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x1400F7BB7, Com_UpdateSlowMotion, HOOK_CALL).install()->quick(); // CL_CreateCmd
+
+    // Note that x64 keeps the slow motion twice, which Com_SetSlowMotion()
+    // starts together. Com_Frame() inlines the update of the one x86 has,
+    // by the milliseconds that passed, which we skip as x86 does the call
+    // (see SlowMotion.asm for the registers there). The other, which the
+    // client updates by the seconds of each command's frame, we hold back for
+    // the same delay.
+    //
+    Utils::Hook(0x1401F4253, SlowMotion_Com_UpdateSlowMotion_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400F7BB7, CL_UpdateSlowMotion, HOOK_CALL).install()->quick(); // CL_CreateCmd
 
     // Note that on x86 we hook the two calls to CG_DrawDisconnect() in
     // CG_DrawLagometer(), which x64 compiles out along with them (see
@@ -93,4 +109,9 @@ namespace Components
     //
     Game::CG_DrawLagometer_DrawDisconnect = CG_DrawDisconnect_Stub;
   }
+}
+
+bool SlowMotion_Com_UpdateSlowMotion(int msec)
+{
+  return Components::SlowMotion::Com_UpdateSlowMotion(msec);
 }

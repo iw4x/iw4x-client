@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void SlowMotion_Com_UpdateSlowMotion_Stub();
+
+  bool SlowMotion_Com_UpdateSlowMotion(int msec);
+}
+
 namespace Components
 {
   class SlowMotion : public Component
@@ -12,7 +19,10 @@ namespace Components
 
     static const Game::dvar_t* cg_drawDisconnect;
 
-    static float Com_UpdateSlowMotion(float frameTime);
+    friend bool (::SlowMotion_Com_UpdateSlowMotion)(int msec);
+
+    static bool Com_UpdateSlowMotion(int msec);
+    static float CL_UpdateSlowMotion(float frameTime);
 
     static void ScrCmd_SetSlowMotion_Stub(int index, const char* string);
 
