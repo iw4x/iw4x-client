@@ -173,7 +173,7 @@ using std::uintptr_t;
 
 #define BASEGAME "main/iw4x/x86"
 #define BASEGAME_LEGACY "iw4x"
-#define BASEGAME_NAME "iw4mp_ceg.exe"
+#define BASEGAME_NAME "iw4mp_steam.exe"
 #define CLIENT_CONFIG "iw4x_config.cfg"
 
 #define XFILE_MAGIC_UNSIGNED 0x3030317566665749
