@@ -41,11 +41,14 @@ namespace Components
       }
 
       timeval tv {n / 1000, (n % 1000) * 1000};
-      auto r (::select(m + 1, &fs, nullptr, nullptr, &tv));
+      auto r (::select(static_cast<int>(m + 1), &fs, nullptr, nullptr, &tv));
 
+      // Note that x64 compiles out NET_ErrorString(), so we print the error
+      // code instead of its name.
+      //
       if (r == SOCKET_ERROR)
       {
-        Logger::Warning(Game::CON_CHANNEL_SYSTEM, "WinAPI: select failed: {}\n", Game::NET_ErrorString());
+        Logger::Warning(Game::CON_CHANNEL_SYSTEM, "WinAPI: select failed: {}\n", WSAGetLastError());
         return;
       }
 
@@ -144,6 +147,88 @@ namespace Components
 
       return (*Game::com_frameTime - l);
     }
+
+    // The server thread's frame, which we run where SV_Frame() would wake
+    // the thread for it.
+    //
+    // Note that on x86 we jump into the thread's function at the frame and
+    // return from it at the end of the frame. x64 has the same frame, so we
+    // run it as the thread does instead.
+    //
+    void ServerThreadFrame()
+    {
+      // Set and clear the flag the game keeps while the server runs its
+      // frame.
+      //
+      const auto SV_EnterFrame(reinterpret_cast<void (*)()>(0x1402387C0));
+      const auto SV_LeaveFrame(reinterpret_cast<void (*)()>(0x1402386D0));
+
+      auto& sv_time (*reinterpret_cast<int*>(0x14340CB00));
+      auto& sv_nextFrameTime (*reinterpret_cast<int*>(0x1464FBD8C));
+      auto& sv_packetEvents (*reinterpret_cast<bool*>(0x1464FBD90));
+
+      // The time the last frame ended at, which the thread keeps from one
+      // frame to the next.
+      //
+      static auto end (Game::Sys_Milliseconds());
+
+      SV_EnterFrame();
+      Utils::Hook::Call<void()>(0x14023A2B0)();
+
+      if (auto d (Game::Sys_Milliseconds() - end); d > 0)
+      {
+        auto& n (*reinterpret_cast<int*>(0x1406CBD84));
+        n = std::max(n - (d + 2) / 3, 0);
+      }
+
+      for (;;)
+      {
+        Utils::Hook::Call<void()>(0x140231BE0)();
+        Utils::Hook::Call<void()>(0x14023BB30)();
+
+        sv_time += 50;
+
+        if (!Utils::Hook::Call<bool()>(0x14023C750)())
+          Utils::Hook::Call<void(int)>(0x14019EA50)(sv_time); // G_RunFrame
+
+        Utils::Hook::Call<void()>(0x14023B4B0)();
+
+        end = Game::Sys_Milliseconds();
+
+        if (sv_time - sv_nextFrameTime >= 0)
+          break;
+
+        SV_LeaveFrame();
+
+        Utils::Hook::Call<void()>(0x1402096B0)();
+        Utils::Hook::Call<void()>(0x140208FA0)();
+
+        if (sv_packetEvents)
+        {
+          SV_EnterFrame();
+          Game::Com_ServerPacketEvent();
+          SV_LeaveFrame();
+        }
+
+        Utils::Hook::Call<void()>(0x140209050)();
+
+        SV_EnterFrame();
+      }
+
+      *reinterpret_cast<int*>(0x1406CBD80) = 0;
+      Utils::Hook::Call<void()>(0x1402090D0)();
+
+      SV_LeaveFrame();
+    }
+
+    // Com_EventLoop() ends on releasing the buffer of the client's packets.
+    // We then hand the server its own, which its thread would otherwise.
+    //
+    void Com_EventLoop_End(void* buffer)
+    {
+      Utils::Hook::Call<void(void*)>(0x14027CDA0)(buffer);
+      Game::Com_ServerPacketEvent();
+    }
   }
 
   Threading::Threading()
@@ -176,38 +261,45 @@ namespace Components
     // ... Actually (#2), the dedicated server path is another legacy with the 
     // same assumption. 
     //
-    if (ZoneBuilder::IsEnabled() || Dedicated::IsEnabled())
+    // Note that x64 has no ZoneBuilder, so the dedicated server is the only
+    // exception here.
+    //
+    if (Dedicated::IsEnabled())
     {
       // Stop the engine from spawning its own server thread so we can maintain
       // control over the threading model ourselves.
       //
-      Utils::Hook::Nop(0x60BEC0, 5);
-      Utils::Hook(0x627049, 0x6271CE, HOOK_JUMP).install()->quick();
+      Utils::Hook::Nop(0x1401F5658, 5);
 
       // Disable the blocking server wait so we can drive the cycle.
       //
-      Utils::Hook::Set<std::uint8_t>(0x4256F0, 0xC3);
+      // Note that x64 also inlines it into SV_Frame(), where we jump over it.
+      //
+      Utils::Hook::Set<std::uint8_t>(0x14023BF10, 0xC3);
+      Utils::Hook::Set<std::uint8_t>(0x14023ABAB, 0xEB);
 
       // This dvar sync logic is known to conflict with our manual threading
       // approach, so we'll just bypass it.
       //
-      Utils::Hook::Set<std::uint8_t>(0x647781, 0xEB);
+      Utils::Hook::Set<std::uint8_t>(0x14028611E, 0xEB);
 
-      Utils::Hook(0x627695, 0x627040, HOOK_CALL).install()->quick();
-      Utils::Hook(0x43D1C7, Threading_PacketEventStub, HOOK_JUMP).install()->quick();
-      Utils::Hook(0x6272E3, Threading_FrameEpilogueStub, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x14023AB77, FrameTime::ServerThreadFrame, HOOK_CALL).install()->quick();
+      Utils::Hook(0x1401F3DB2, FrameTime::Com_EventLoop_End, HOOK_CALL).install()->quick();
     }
 
     // Hijack the appropriate waiter based on whether we are running a dedicated
     // server or a client.
     //
+    // Note that x64 inlines the server's into SV_Frame() and the client's into
+    // Com_Frame().
+    //
     if (Dedicated::IsEnabled())
     {
-      Utils::Hook(0x4BAAAD, Threading_SVFrameWaitStub, HOOK_CALL).install()->quick();
+      Utils::Hook(0x14023AA94, Threading_SVFrameWaitStub, HOOK_JUMP).install()->quick();
     }
     else
     {
-      Utils::Hook(0x47DD80, Threading_ComFrameWaitStub, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x1401F4050, Threading_ComFrameWaitStub, HOOK_JUMP).install()->quick();
     }
   }
 }

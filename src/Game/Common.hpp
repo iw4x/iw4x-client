@@ -11,6 +11,13 @@ namespace Game
   typedef void(*Com_EventLoop_t)();
   extern Com_EventLoop_t Com_EventLoop;
 
+  // Hand the client the packets that came in since the last call.
+  //
+  // Note that x64 inlines it into the end of Com_EventLoop(), so we
+  // reimplement it from there.
+  //
+  void Com_ClientPacketEvent();
+
   typedef void(*Com_Error_t)(errorParm_t type, const char* message, ...);
   extern Com_Error_t Com_Error;
 

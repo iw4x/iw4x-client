@@ -317,6 +317,52 @@ namespace Game
     Com_PrintMessage(channel, msg, 3);
   }
 
+  void Com_ClientPacketEvent()
+  {
+    // The loopback packets of a socket, the packets the network thread
+    // queued, and those still on the socket (Sys_GetPacket()).
+    //
+    const auto NET_GetLoopPacket(reinterpret_cast<int (*)(netsrc_t sock, netadr_t* from, msg_t* msg)>(0x140204D30));
+    const auto NET_GetQueuedPacket(reinterpret_cast<bool (*)(netadr_t* from, msg_t* msg)>(0x140204C70));
+    const auto Sys_GetPacket(reinterpret_cast<int (*)(netadr_t* from, msg_t* msg)>(0x140204C60));
+
+    const auto CL_PacketEvent(reinterpret_cast<bool (*)(int localClientNum, netadr_t* from, msg_t* msg, int time)>(0x1400FC620));
+
+    // Note that the game takes the buffer from its stack allocator, where we
+    // keep our own since only the main thread gets here.
+    //
+    assert(Sys_IsMainThread());
+
+    static unsigned char buf[0x20000];
+
+    msg_t msg;
+    MSG_Init(&msg, buf, sizeof(buf));
+
+    netadr_t from;
+    netadr_t to;
+
+    while (NET_GetLoopPacket(NS_CLIENT1, &from, &msg))
+    {
+      to = from;
+      CL_PacketEvent(0, &to, &msg, Sys_Milliseconds());
+    }
+
+    while (NET_GetQueuedPacket(&from, &msg))
+    {
+      to = from;
+      CL_PacketEvent(0, &to, &msg, Sys_Milliseconds());
+    }
+
+    if (!(*com_sv_running)->current.enabled)
+    {
+      while (Sys_GetPacket(&from, &msg))
+      {
+        to = from;
+        CL_PacketEvent(0, &to, &msg, Sys_Milliseconds());
+      }
+    }
+  }
+
   void Com_PrintWarning(int channel, const char* fmt, ...)
   {
     // Mark the message yellow.
