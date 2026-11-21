@@ -2,17 +2,17 @@
 
 namespace Steam
 {
-  bool Networking::SendP2PPacket(SteamID /*steamIDRemote*/, const void* /*pubData*/, unsigned int /*cubData*/, int /*eP2PSendType*/)
+  bool Networking::SendP2PPacket(SteamID /*steamIDRemote*/, const void* /*pubData*/, unsigned int /*cubData*/, int /*eP2PSendType*/, int /*nChannel*/)
   {
     return false;
   }
 
-  bool Networking::IsP2PPacketAvailable(unsigned int* /*pcubMsgSize*/)
+  bool Networking::IsP2PPacketAvailable(unsigned int* /*pcubMsgSize*/, int /*nChannel*/)
   {
     return false;
   }
 
-  bool Networking::ReadP2PPacket(void* /*pubDest*/, unsigned int /*cubDest*/, unsigned int* /*pcubMsgSize*/, SteamID* /*psteamIDRemote*/)
+  bool Networking::ReadP2PPacket(void* /*pubDest*/, unsigned int /*cubDest*/, unsigned int* /*pcubMsgSize*/, SteamID* /*psteamIDRemote*/, int /*nChannel*/)
   {
     return false;
   }
@@ -27,7 +27,17 @@ namespace Steam
     return false;
   }
 
+  bool Networking::CloseP2PChannelWithUser(SteamID /*steamIDRemote*/, int /*nChannel*/)
+  {
+    return false;
+  }
+
   bool Networking::GetP2PSessionState(SteamID /*steamIDRemote*/, void* /*pConnectionState*/)
+  {
+    return false;
+  }
+
+  bool Networking::AllowP2PPacketRelay(bool /*bAllow*/)
   {
     return false;
   }
