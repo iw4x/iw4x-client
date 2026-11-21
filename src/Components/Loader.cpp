@@ -75,6 +75,7 @@
 #include "Modules/Threading.hpp"
 #include "Modules/Toast.hpp"
 #include "Modules/UIFeeder.hpp"
+#include "Modules/Updater.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/Sound.hpp"
 
@@ -176,6 +177,7 @@ namespace Components
     Register(new Threading());
     Register(new Toast());
     Register(new UIFeeder());
+    Register(new Updater());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
