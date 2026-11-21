@@ -135,7 +135,7 @@ namespace Components
     SetCursor(LoadCursor(nullptr, isLoading ? IDC_APPSTARTING : IDC_ARROW));
   }
 
-  BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+  LRESULT WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
   {
     // Handle raw input device change events.
     //
