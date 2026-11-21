@@ -1,5 +1,6 @@
 #include "Localization.hpp"
 #include "ArenaLength.hpp"
+#include "AssetHandler.hpp"
 #include "Controller.hpp"
 #include "GSC/Script.hpp"
 
@@ -97,9 +98,22 @@ namespace Components
     return key;
   }
 
-  void __stdcall Localization::SetStringStub(const char* psLocalReference, const char* psNewString, [[maybe_unused]] int bSentenceIsEnglish)
+  // Return an entry whose value is what Get() finds for the key.
+  //
+  // Note that x64 inlines SEH_StringEd_GetString(), which we replace with
+  // Get() on x86, into each of its callers. So we hook the lookup of the
+  // entry in each copy, which then reads the value from what we return.
+  //
+  Game::XAssetHeader Localization::DB_FindLocalizeEntry_Hk([[maybe_unused]] Game::XAssetType type, const char* key)
   {
-    Set(psLocalReference, psNewString);
+    thread_local Game::LocalizeEntry entry;
+
+    entry.value = Get(key);
+    entry.name = key;
+
+    Game::XAssetHeader header;
+    header.localize = &entry;
+    return header;
   }
 
   void Localization::ParseOutput(const std::function<void(Game::LocalizeEntry*)>& callback)
@@ -238,7 +252,7 @@ namespace Components
 
       if (pszIn > pszTokenStart)
       {
-        auto iTokenLen = pszIn - pszTokenStart;
+        auto iTokenLen = static_cast<int>(pszIn - pszTokenStart);
         Game::I_strncpyz_s(szTokenBuf, sizeof(szTokenBuf), pszTokenStart, pszIn - pszTokenStart);
         if (bLocOn)
         {
@@ -247,7 +261,7 @@ namespace Components
             return nullptr;
           }
 
-          iTokenLen = std::strlen(szTokenBuf);
+          iTokenLen = static_cast<int>(std::strlen(szTokenBuf));
         }
 
         if (iTokenLen + iLen >= szStringSize)
@@ -417,13 +431,20 @@ namespace Components
     });
 
     // Resolving hook
-    Utils::Hook(0x629B90, Get, HOOK_JUMP).install()->quick();
+    //
+    // Note that the third copy of SEH_StringEd_GetString() is in
+    // SEH_LocalizeTextMessage(), which we replace below.
+    //
+    // Note also that on x86 we take the strings that the game loads from its
+    // string files on disk as well. x64 doesn't load them.
+    //
+    Utils::Hook(0x14024D819, DB_FindLocalizeEntry_Hk, HOOK_CALL).install()->quick(); // SEH_StringEd_GetString
+    Utils::Hook(0x14024D71E, DB_FindLocalizeEntry_Hk, HOOK_CALL).install()->quick(); // SE_GetString
 
-    // Overwrite SetString
-    Utils::Hook(0x4CE5EE, SetStringStub, HOOK_CALL).install()->quick();
-
-    Utils::Hook(0x49D4A0, SEH_LocalizeTextMessageStub, HOOK_JUMP).install()->quick();
-    Utils::Hook::Nop(0x49D4A5, 1);
+    // Note that SEH_LocalizeTextMessage() starts with a 5-byte store of an
+    // argument register to its home slot.
+    //
+    Utils::Hook(0x14024D0B0, SEH_LocalizeTextMessageStub, HOOK_JUMP).install()->quick();
 
     UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::DVAR_NONE, "Use localization strings");
 
