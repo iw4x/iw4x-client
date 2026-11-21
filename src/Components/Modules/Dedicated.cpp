@@ -4,7 +4,6 @@
 #include "CardTitles.hpp"
 #include "ClanTags.hpp"
 #include "Events.hpp"
-#include "Friends.hpp"
 #include "Party.hpp"
 #include "ServerCommands.hpp"
 
@@ -49,16 +48,14 @@ namespace Components
       "patch_mp"
     };
 
-    std::memcpy(reinterpret_cast<void*>(0x66E1CB0), &fastfiles, sizeof(fastfiles));
+    std::memcpy(reinterpret_cast<void*>(0x148CCA7E0), &fastfiles, sizeof(fastfiles));
     Game::R_LoadGraphicsAssets();
 
-    if (COMLogFilter.get<bool>())
-    {
-      Utils::Hook::Nop(0x647466, 5); // 'dvar set' lines
-      Utils::Hook::Nop(0x5DF4F2, 5); // 'sending splash open' lines
-    }
+    // Note that on x86 we also filter out the 'dvar set' and 'sending splash
+    // open' lines here, which x64 compiles out.
+    //
 
-    Utils::Hook::Call<void()>(0x4F84C0)();
+    Utils::Hook::Call<void()>(0x1400FBD40)(); // CL_InitRenderer
   }
 
   void Dedicated::PostInitialization()
@@ -76,6 +73,13 @@ namespace Components
     Command::Execute("com_maxfps 125");
 
     Game::Com_AddStartupCommands();
+  }
+
+  void Dedicated::PostInitialization_Hk()
+  {
+    PostInitialization();
+
+    Utils::Hook::Call<void()>(0x1401F3BE0)(); // Com_EventLoop
   }
 
   void Dedicated::Com_ClampMsec(const int msec)
@@ -146,128 +150,153 @@ namespace Components
     COMLogFilter = Dvar::Register<bool>("com_logFilter", true,
       Game::DVAR_LATCH, "Removes ~95% of unneeded lines from the log");
 
-    if (IsEnabled() || ZoneBuilder::IsEnabled())
+    if (IsEnabled())
     {
       // Make sure all callbacks are handled
       Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::SERVER);
 
-      Utils::Hook(0x60BE98, InitDedicatedServer, HOOK_CALL).install()->quick();
+      Utils::Hook(0x1401F5633, InitDedicatedServer, HOOK_CALL).install()->quick(); // Com_Init
 
-      Utils::Hook::Set<BYTE>(0x683370, 0xC3); // steam sometimes doesn't like the server
+      // Note that on x86 we also skip the Steam consistency check here, which
+      // x64 compiles out.
+      //
 
-      Utils::Hook::Set<BYTE>(0x5B4FF0, 0xC3); // self-registration on party
-      Utils::Hook::Set<BYTE>(0x426130, 0xC3); // other party stuff?
+      Utils::Hook::Set<BYTE>(0x14010E2F0, 0xC3); // self-registration on party
 
-      Utils::Hook::Set<BYTE>(0x4D7030, 0xC3); // upnp stuff
+      // other party stuff?
+      //
+      // Note that x64 also inlines it into PartyHost_StartPrivateParty(),
+      // where we jump over it.
+      //
+      Utils::Hook::Set<BYTE>(0x14010EE40, 0xC3);
+      Utils::Hook::Set<BYTE>(0x140112610, 0xEB);
+      Utils::Hook::Set<BYTE>(0x140112611, 0x5C);
 
-      Utils::Hook::Set<BYTE>(0x4B0FC3, 0x04); // make CL_Frame do client packets, even for game state 9
-      Utils::Hook::Set<BYTE>(0x4F5090, 0xC3); // init sound system (1)
-      Utils::Hook::Set<BYTE>(0x507B80, 0xC3); // start render thread
-      Utils::Hook::Set<BYTE>(0x4F84C0, 0xC3); // R_Init caller
-      Utils::Hook::Set<BYTE>(0x46A630, 0xC3); // init sound system (2)
-      Utils::Hook::Set<BYTE>(0x41FDE0, 0xC3); // Com_Frame audio processor?
-      Utils::Hook::Set<BYTE>(0x41B9F0, 0xC3); // called from Com_Frame, seems to do renderer stuff
-      Utils::Hook::Set<BYTE>(0x41D010, 0xC3); // CL_CheckForResend, which tries to connect to the local server constantly
-      Utils::Hook::Set<BYTE>(0x62B6C0, 0xC3); // UI expression 'DebugPrint', mainly to prevent some console spam
+      Utils::Hook::Set<BYTE>(0x1401B4DC0, 0xC3); // upnp stuff
 
-      Utils::Hook::Set<BYTE>(0x468960, 0xC3); // some mixer-related function called on shutdown
-      Utils::Hook::Set<BYTE>(0x60AD90, 0);    // masterServerName flags
+      Utils::Hook::Set<BYTE>(0x1400FAD9F, 0x04); // make CL_Frame do client packets, even for game state 9
+      Utils::Hook::Set<BYTE>(0x1402C0140, 0xC3); // init sound system (1)
+      Utils::Hook::Set<BYTE>(0x140032930, 0xC3); // start render thread
+      Utils::Hook::Set<BYTE>(0x1400FBD40, 0xC3); // R_Init caller
+      Utils::Hook::Set<BYTE>(0x1402445A0, 0xC3); // init sound system (2)
+      Utils::Hook::Set<BYTE>(0x1400F1750, 0xC3); // Com_Frame audio processor?
+      Utils::Hook::Set<BYTE>(0x140101C10, 0xC3); // called from Com_Frame, seems to do renderer stuff
+      Utils::Hook::Set<BYTE>(0x1400F8190, 0xC3); // CL_CheckForResend, which tries to connect to the local server constantly
 
-      Utils::Hook::Nop(0x4DCEC9, 2);          // some check preventing proper game functioning
-      Utils::Hook::Nop(0x507C79, 6);          // another similar bsp check
-      Utils::Hook::Nop(0x414E4D, 6);          // cl->messageAcknowledge > cl->gamestateMessageNum check in SV_ExecuteClientMessage
-      Utils::Hook::Nop(0x4DCEE9, 5);          // some deinit renderer function
-      Utils::Hook::Nop(0x59A896, 5);          // warning message on a removed subsystem
-      Utils::Hook::Nop(0x4B4EEF, 5);          // same as above
-      Utils::Hook::Nop(0x64CF77, 5);          // function detecting video card, causes Direct3DCreate9 to be called
-      Utils::Hook::Nop(0x60BC52, 0x15);       // recommended settings check
+      // Note that on x86 we also silence the UI expression 'DebugPrint' here,
+      // which x64 compiles out.
+      //
 
-      Utils::Hook::Nop(0x45148B, 5);          // Disable splash screen
+      Utils::Hook::Set<BYTE>(0x1402A8D20, 0xC3); // some mixer-related function called on shutdown
+      Utils::Hook::Set<BYTE>(0x1401F4960, 0);    // masterServerName flags
+
+      // Note that x64 R_Shutdown() doesn't have the bsp check we nop on x86,
+      // and that it compiles out the warning messages on removed subsystems
+      // that we nop there as well.
+      //
+      Utils::Hook::Nop(0x1400FD65E, 2);          // some check preventing proper game functioning
+      Utils::Hook::Nop(0x1402366FB, 6);          // cl->messageAcknowledge > cl->gamestateMessageNum check in SV_ExecuteClientMessage
+      Utils::Hook::Nop(0x1400FD682, 5);          // some deinit renderer function
+      Utils::Hook::Nop(0x1402A42FE, 5);          // function detecting video card, causes Direct3DCreate9 to be called
+
+      // recommended settings check
+      //
+      // Note that x64 interleaves the check with restoring registers, so we
+      // nop the check and jump over the rest.
+      //
+      Utils::Hook::Nop(0x1401F53A5, 5);
+      Utils::Hook::Set<BYTE>(0x1401F53BC, 0xEB);
+
+      Utils::Hook::Nop(0x1402A4355, 5);          // Disable splash screen
 
       // do not trigger host migration, even if the server is a 'bad host'
-      Utils::Hook::Set<BYTE>(0x626AA8, 0xEB);
+      //
+      // Note that x64 inlines the bad host test into its caller.
+      //
+      Utils::Hook::Set<BYTE>(0x14023A4EF, 0xEB);
 
       // isHost script call return 0
-      Utils::Hook::Set<DWORD>(0x5DEC04, 0);
+      Utils::Hook::Nop(0x14019863B, 4);
 
       // r_loadForRenderer default to 0
-      Utils::Hook::Set<BYTE>(0x519DDF, 0);
+      Utils::Hook::Set<BYTE>(0x14002E80B, 0);
 
       // disable cheat protection on onlinegame
-      Utils::Hook::Set<BYTE>(0x404CF7, 0x80);
+      Utils::Hook::Set<BYTE>(0x1400FAF69, 0x80);
 
       // some d3d9 call on error
-      Utils::Hook::Set<BYTE>(0x508470, 0xC3);
+      Utils::Hook::Set<BYTE>(0x140033AD0, 0xC3);
 
       // stop saving a config_mp.cfg
-      Utils::Hook::Set<BYTE>(0x60B240, 0xC3);
+      //
+      // Note that x64 inlines Com_WriteConfiguration() into Com_Frame(), so we
+      // always take the jump over it.
+      //
+      Utils::Hook::Set<WORD>(0x1401F3EF8, 0xE990);
 
       // don't load the config
-      Utils::Hook::Set<BYTE>(0x4B4D19, 0xEB);
+      Utils::Hook::Nop(0x1401F51BF, 5);
 
       // Intercept time wrapping
-      Utils::Hook(0x62737D, TimeWrapStub, HOOK_CALL).install()->quick();
+      Utils::Hook(0x14023A714, TimeWrapStub, HOOK_CALL).install()->quick();
 
-      if (!ZoneBuilder::IsEnabled())
+      Events::OnDvarInit([]
       {
-        Events::OnDvarInit([]
+        SVMOTD = Dvar::Register<const char*>("sv_motd", "", Game::DVAR_NONE, "A custom message of the day for servers");
+        SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false, Game::DVAR_NONE, "Don't act as node");
+
+        static const char* g_dedicatedEnumNames[] =
         {
-          SVMOTD = Dvar::Register<const char*>("sv_motd", "", Game::DVAR_NONE, "A custom message of the day for servers");
-          SVLanOnly = Dvar::Register<bool>("sv_lanOnly", false, Game::DVAR_NONE, "Don't act as node");
+          "listen server",
+          "dedicated LAN server",
+          "dedicated internet server",
+          nullptr,
+        };
 
-          static const char* g_dedicatedEnumNames[] =
-          {
-            "listen server",
-            "dedicated LAN server",
-            "dedicated internet server",
-            nullptr,
-          };
-
-          // IW5MP Dedicated Server adds another flag. That flag should not exist on this version of IW4
-          com_dedicated = Game::Dvar_RegisterEnum("dedicated", g_dedicatedEnumNames, 2, Game::DVAR_ROM, "True if this is a dedicated server");
-          // Dedicated only behaviour from IW5MP Dedicated Server.
-          if (com_dedicated->current.integer != 1 && com_dedicated->current.integer != 2)
-          {
-            Game::DvarValue value;
-            value.integer = 0;
-            Game::Dvar_SetVariant(const_cast<Game::dvar_t*>(com_dedicated), value, Game::DVAR_SOURCE_INTERNAL);
-          }
-        });
-
-        // Post initialization point
-        Utils::Hook(0x60BFBF, Dedicated_PostInitializationStub, HOOK_JUMP).install()->quick();
-
-        Utils::Hook(0x47DDB2, Dedicated_Com_ClampMsec_Stub, HOOK_JUMP).install()->quick(); // Com_Frame_Try_Block_Function
-        Utils::Hook::Nop(0x47DDB2 + 5, 1);
-
-        // Transmit custom data
-        Scheduler::Loop([]
+        // IW5MP Dedicated Server adds another flag. That flag should not exist on this version of IW4
+        com_dedicated = Game::Dvar_RegisterEnum("dedicated", g_dedicatedEnumNames, 2, Game::DVAR_ROM, "True if this is a dedicated server");
+        // Dedicated only behaviour from IW5MP Dedicated Server.
+        if (com_dedicated->current.integer != 1 && com_dedicated->current.integer != 2)
         {
-          CardTitles::SendCustomTitlesToClients();
-          ClanTags::SendClanTagsToClients();
-        }, Scheduler::Pipeline::SERVER, 10s);
+          Game::DvarValue value;
+          value.integer = 0;
+          Game::Dvar_SetVariant(const_cast<Game::dvar_t*>(com_dedicated), value, Game::DVAR_SOURCE_INTERNAL);
+        }
+      });
 
-        // Heartbeats
-        Scheduler::Once(Heartbeat, Scheduler::Pipeline::SERVER);
-        Scheduler::Loop(Heartbeat, Scheduler::Pipeline::SERVER, 2min);
-      }
+      // Post initialization point
+      Utils::Hook(0x1401F6776, PostInitialization_Hk, HOOK_CALL).install()->quick();
+
+      Utils::Hook(0x1401F407C, Dedicated_Com_ClampMsec_Stub, HOOK_JUMP).install()->quick(); // Com_Frame_Try_Block_Function
+      Utils::Hook::Nop(0x1401F407C + 5, 1);
+
+      // Transmit custom data
+      Scheduler::Loop([]
+      {
+        CardTitles::SendCustomTitlesToClients();
+        ClanTags::SendClanTagsToClients();
+      }, Scheduler::Pipeline::SERVER, 10s);
+
+      // Heartbeats
+      Scheduler::Once(Heartbeat, Scheduler::Pipeline::SERVER);
+      Scheduler::Loop(Heartbeat, Scheduler::Pipeline::SERVER, 2min);
     }
     else
     {
       ZeroMemory(PlayerGuids, sizeof(PlayerGuids));
 
       // Intercept server commands
+      //
+      // Note that on x86 we also tell Steam that we played with each player,
+      // through the Steam proxy that the x64 build doesn't have (see
+      // premake5.lua for details).
+      //
       ServerCommands::OnCommand(20, [](const Command::Params* params)
       {
         for (int client = 0; client < 18; client++)
         {
           PlayerGuids[client][0].bits = std::strtoull(params->get(2 * client + 1), nullptr, 16);
           PlayerGuids[client][1].bits = std::strtoull(params->get(2 * client + 2), nullptr, 16);
-
-          if (Steam::Proxy::SteamFriends && PlayerGuids[client][1].bits != 0 && !Friends::IsInvisible() && !Friends::CLAnonymous.get<bool>())
-          {
-            Steam::Proxy::SteamFriends->SetPlayedWith(PlayerGuids[client][1]);
-          }
         }
 
         return true;
@@ -282,11 +311,6 @@ namespace Components
       }
     }, Scheduler::Pipeline::SERVER, 15s);
   }
-}
-
-void Dedicated_PostInitialization()
-{
-  Components::Dedicated::PostInitialization();
 }
 
 void Dedicated_Com_ClampMsec(int msec)
