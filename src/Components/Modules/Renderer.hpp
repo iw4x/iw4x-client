@@ -4,13 +4,11 @@ extern "C"
 {
   void Renderer_BackendFrameStub();
   void Renderer_RB_SwapBuffers_PresentFailedStub();
-  void Renderer_PostVidRestartStub();
-  void Renderer_StoreGfxBufContextPtrStub1();
-  void Renderer_StoreGfxBufContextPtrStub2();
+  void Renderer_TextureFromCodeErrorStub1();
+  void Renderer_TextureFromCodeErrorStub2();
 
   void Renderer_BackendFrameHandler();
   bool Renderer_RB_RecoverDevice(HRESULT result);
-  void Renderer_PostVidRestart();
   void Renderer_R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state, int samplerCode);
 }
 
@@ -37,13 +35,14 @@ namespace Components
   private:
     friend void (::Renderer_BackendFrameHandler)();
     friend bool (::Renderer_RB_RecoverDevice)(HRESULT result);
-    friend void (::Renderer_PostVidRestart)();
     friend void (::Renderer_R_TextureFromCodeError)(const char* sampler, Game::GfxCmdBufState* state, int samplerCode);
 
     static void BackendFrameHandler();
 
     static void PreVidRestart();
     static void PostVidRestart();
+    static void R_Shutdown_Hk(int destroyWindow);
+    static void CL_InitRenderer_Hk();
 
     static bool RB_RecoverDevice (HRESULT result);
 
@@ -52,8 +51,6 @@ namespace Components
     static Game::dvar_t* RegisterDisplayModeDvar(const char* dvarName, const char** valueList, int defaultIndex, unsigned __int16 flags, const char* description);
 
     static void R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state, int samplerCode);
-
-    static int DrawTechsetForMaterial(int a1, float a2, float a3, const char* material, Game::vec4_t* color, int a6);
 
     static void DebugDrawTriggers();
     static void DebugDrawSceneModelCollisions();
