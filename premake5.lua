@@ -296,7 +296,6 @@ project "iw4x"
     "src/Components/Modules/Discovery.*",
     "src/Components/Modules/Download.*",
     "src/Components/Modules/Elevators.*",
-    "src/Components/Modules/Party.*",
     "src/Components/Modules/PlayerMovement.*",
     "src/Components/Modules/PlayerName.*",
     "src/Components/Modules/Playlist.*",
