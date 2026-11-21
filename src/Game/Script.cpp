@@ -113,6 +113,24 @@ namespace Game
     scrVmPub->inparamcount++;
   }
 
+  const char* Scr_GetGameTypeNameForScript(const char* pszGameType)
+  {
+    Utils::Hook::Call<void()>(0x1401A7DD0)(); // Scr_ParseGameTypeList
+
+    const auto count (*reinterpret_cast<const int*>(0x1417C4580));
+    auto* list (reinterpret_cast<const scr_gameTypeInfo_t*>(0x1417C4584));
+
+    for (auto i = 0; i < count; ++i)
+    {
+      if (I_stricmp(list[i].gameType, pszGameType) == 0)
+      {
+        return list[i].uiName;
+      }
+    }
+
+    return nullptr;
+  }
+
   void Scr_Error(const char* error)
   {
     Com_PrintError(CON_CHANNEL_PARSERSCRIPT, "%s\n", error);

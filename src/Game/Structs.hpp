@@ -6264,6 +6264,18 @@ namespace Game
     char uiName[32];
   };
 
+  // An entry of the game type list that the server parses from
+  // maps/mp/gametypes.
+  //
+  struct scr_gameTypeInfo_t
+  {
+    char gameType[64];
+    char uiName[64];
+    int teamBased;
+  };
+
+  static_assert(sizeof(scr_gameTypeInfo_t) == 0x84);
+
   enum fsMode_t
   {
     FS_READ = 0x0,

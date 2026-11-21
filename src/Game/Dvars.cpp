@@ -76,12 +76,12 @@ namespace Game
   const dvar_t** g_giveAll = reinterpret_cast<const dvar_t**>(0x1418679B8);
   const dvar_t** g_deadChat = reinterpret_cast<const dvar_t**>(0x1418678C0);
   const dvar_t** g_allowVote = reinterpret_cast<const dvar_t**>(0x141867888);
-  const dvar_t** g_oldVoting = reinterpret_cast<const dvar_t**>(0x1417CBCA0);
   const dvar_t** g_gametype = reinterpret_cast<const dvar_t**>(0x1417CBDB8);
   const dvar_t** g_password = reinterpret_cast<const dvar_t**>(0x141867848);
   const dvar_t** g_log = reinterpret_cast<const dvar_t**>(0x1417CBC90);
 
   const dvar_t** cg_chatHeight = reinterpret_cast<const dvar_t**>(0x1406BB130);
+  const dvar_t** cg_hudVotePosition = reinterpret_cast<const dvar_t**>(0x1406BADD8);
   const dvar_t** cg_chatTime = reinterpret_cast<const dvar_t**>(0x1406BB128);
   const dvar_t** cg_scoreboardHeight = reinterpret_cast<const dvar_t**>(0x1406BF958);
   const dvar_t** cg_scoreboardWidth = reinterpret_cast<const dvar_t**>(0x1406BF950);

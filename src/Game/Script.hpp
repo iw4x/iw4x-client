@@ -74,6 +74,14 @@ namespace Game
   typedef int(*Scr_IsValidGameType_t)(const char* pszGameType);
   extern Scr_IsValidGameType_t Scr_IsValidGameType;
 
+  // Return the UI name of the game type, or null if the server doesn't
+  // know it.
+  //
+  // Note that x64 inlines it into Scr_IsValidGameType(), so we reimplement
+  // it from x86.
+  //
+  const char* Scr_GetGameTypeNameForScript(const char* pszGameType);
+
   typedef void(*Scr_LoadGameType_t)();
   extern Scr_LoadGameType_t Scr_LoadGameType;
 
