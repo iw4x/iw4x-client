@@ -14,6 +14,7 @@ extern "C"
   const Game::dvar_t* PlayerMovement_PlayerSpectateSpeedScale;
   const Game::dvar_t* PlayerMovement_BGBounces;
   const Game::dvar_t* PlayerMovement_BGBouncesAllAngles;
+  const Game::dvar_t* PlayerMovement_BGDisableLandingSlowdown;
   const Game::dvar_t* PlayerMovement_BGBunnyHopAuto;
   const Game::dvar_t* PlayerMovement_BGLadderFixedInput;
   const Game::dvar_t* PlayerMovement_BGSprintIgnoreRepress;
@@ -29,10 +30,7 @@ namespace Components
   const Game::dvar_t* PlayerMovement::BGPlayerEjection;
   const Game::dvar_t* PlayerMovement::BGPlayerCollision;
   const Game::dvar_t* PlayerMovement::BGClimbAnything;
-  const Game::dvar_t* PlayerMovement::BGDisableLandingSlowdown;
   const Game::dvar_t* PlayerMovement::BGDisableBarrierClips;
-
-  Game::dvar_t** PlayerMovement::player_sprintStrafeSpeedScale = reinterpret_cast<Game::dvar_t**>(0x7ADCEC);
 
   void PlayerMovement::PM_PlayerTraceStub(Game::pmove_s* pm, Game::trace_t* results, const float* start, const float* end, Game::Bounds* bounds, int passEntityNum, int contentMask)
   {
@@ -75,7 +73,7 @@ namespace Components
   {
     if (BGPlayerEjection->current.enabled)
     {
-      return Utils::Hook::Call<int(Game::gentity_s*)>(0x402D30)(self); // StuckInClient
+      return Utils::Hook::Call<int(Game::gentity_s*)>(0x140195A00)(self); // StuckInClient
     }
 
     return 0;
@@ -88,16 +86,8 @@ namespace Components
     {
       Utils::Hook::Call<void(Game::trace_t*, const float*, const float*,
         const Game::Bounds*, const Game::Bounds*, int, const float*, const float*)>
-        (0x478300)
+        (0x1401EFBB0)
         (results, start, end, bounds, capsule, contents, origin, angles); // CM_TransformedCapsuleTrace
-    }
-  }
-
-  void PlayerMovement::PM_CrashLand_Stub(const float* v, float scale, const float* result)
-  {
-    if (!BGDisableLandingSlowdown->current.enabled)
-    {
-      Utils::Hook::Call<void(const float*, float, const float*)>(0x4C12B0)(v, scale, result);
     }
   }
 
@@ -158,7 +148,7 @@ namespace Components
   }
 
   // Replaces the camera-relative right-vector projection inside PM_LadderMove
-  // (Vec3ProjectOnPlane at 0x4C3130, single call site at 0x574061) with the
+  // (ProjectPointOnPlane at 0x14027A9B0, single call site at 0x1400913FE) with the
   // ladder-locked form: pml->right = (-Ly, Lx, 0) / |L_xy|.
   float* PlayerMovement::PM_LadderMove_RightVector_Hk(float* source, const float* ladderNormal, float* pmlRight)
   {
@@ -174,39 +164,22 @@ namespace Components
       return source; // match the original helper's return-first-arg contract
     }
 
-    return Utils::Hook::Call<float*(float*, const float*, float*)>(0x4C3130)(source, ladderNormal, pmlRight);
+    return Utils::Hook::Call<float*(float*, const float*, float*)>(0x14027A9B0)(source, ladderNormal, pmlRight);
   }
 
-  // Omnimovement
-
-  int PlayerMovement::ComputeHorizontalIntent(int forwardSpeed, int rightSpeed)
+  // Point the RIP-relative float operand of the instruction at place (length
+  // bytes, with the displacement in its last 4) at the dvar's current value.
+  // The game keeps its dvars in its own image, so the displacement always
+  // fits.
+  //
+  void PlayerMovement::RepointFloatOperand(std::uintptr_t place, std::size_t length, const Game::dvar_t* dvar)
   {
-    if (!PlayerMovement_BGOmnimovement || !PlayerMovement_BGOmnimovement->current.enabled)
-      return forwardSpeed;
-    return std::max(std::abs(forwardSpeed), std::abs(rightSpeed));
-  }
+    const auto next = static_cast<std::intptr_t>(place + length);
+    const auto displacement = reinterpret_cast<std::intptr_t>(&dvar->current.value) - next;
 
-  // Stock PM_WalkMove behavior: rightmove *= player_sprintStrafeSpeedScale while sprinting
-  void PlayerMovement::ApplyStockSprintStrafeScale(Game::pmove_s* pm)
-  {
-    if (!pm || !pm->ps)
-    {
-      return;
-    }
+    assert(displacement == static_cast<std::int32_t>(displacement));
 
-    if ((pm->ps->pm_flags & Game::PMF_SPRINTING) == 0)
-    {
-      return;
-    }
-
-    const auto* dvar = *player_sprintStrafeSpeedScale;
-    if (!dvar)
-    {
-      return;
-    }
-
-    float scaled = static_cast<float>(pm->cmd.rightmove) * dvar->current.value;
-    pm->cmd.rightmove = static_cast<char>(std::clamp(scaled, -127.0f, 127.0f));
+    Utils::Hook::Set<std::int32_t>(place + length - 4, static_cast<std::int32_t>(displacement));
   }
 
   void PlayerMovement::RegisterMovementDvars()
@@ -228,7 +201,7 @@ namespace Components
       3.0f, 0.001f, 1000.0f, Game::DVAR_CHEAT,
       "The speed at which noclip camera moves");
 
-    BGDisableLandingSlowdown = Game::Dvar_RegisterBool("bg_disableLandingSlowdown",
+    PlayerMovement_BGDisableLandingSlowdown = Game::Dvar_RegisterBool("bg_disableLandingSlowdown",
       false, Game::DVAR_CODINFO, "Toggle landing slowdown");
 
     PlayerMovement_BGBunnyHopAuto = Game::Dvar_RegisterBool("bg_bunnyHopAuto",
@@ -281,7 +254,7 @@ namespace Components
 
     AssertOffset(Game::playerState_s, eFlags, 0xB0);
     AssertOffset(Game::playerState_s, pm_flags, 0xC);
-    AssertOffset(Game::pmove_s, cmd, 0x4);
+    AssertOffset(Game::pmove_s, cmd, 0x8);
     AssertOffset(Game::usercmd_s, forwardmove, 0x1A);
     AssertOffset(Game::usercmd_s, rightmove, 0x1B);
 
@@ -307,57 +280,83 @@ namespace Components
       PlayerMovement_BGBouncesAllAngles = Game::Dvar_RegisterEnum("bg_bouncesAllAngles", bg_bouncesAllAnglesValues, DISABLED, Game::DVAR_CODINFO, "Force bounce from all angles");
     });
 
+    // Register our dvars first since we point the game's code at some of
+    // them below.
+    //
+    // Note that on x86 we register them last, after installing our hooks.
+    //
+    RegisterMovementDvars();
+
     // Hook Dvar_RegisterFloat. Only thing that's changed is that the 0x80 flag is not used
-    Utils::Hook(0x448990, Dvar_RegisterSpectateSpeedScale, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14008C11A, Dvar_RegisterSpectateSpeedScale, HOOK_CALL).install()->quick();
 
     // PM_CmdScaleForStance
-    Utils::Hook(0x572D9B, PlayerMovement_PM_PlayerDuckedSpeedScaleStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x572DA5, PlayerMovement_PM_PlayerProneSpeedScaleStub, HOOK_JUMP).install()->quick();
+    //
+    // Note that on x86 we hook the loads of the ducked and prone scales. x64
+    // loads them from constants with RIP-relative operands, which we point
+    // at our dvars.
+    //
+    RepointFloatOperand(0x14008F6AA, 8, PlayerMovement_PlayerDuckedSpeedScale);
+    RepointFloatOperand(0x14008F6A1, 8, PlayerMovement_PlayerProneSpeedScale);
 
     // Hook PM_MoveScale so we can add custom speed scale for Ufo and Noclip
-    Utils::Hook(0x56F42C, PlayerMovement_PM_MoveScale_Noclip, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x56F43F, PlayerMovement_PM_MoveScale_Ufo, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x56F452, PlayerMovement_PM_MoveScale_Spectate, HOOK_JUMP).install()->quick();
+    //
+    // Note that on x86 we also hook the spectate scale. On x64 the game reads
+    // player_spectateSpeedScale through the dvar our registration above
+    // returns, so we only point the noclip and ufo constants at our dvars.
+    //
+    RepointFloatOperand(0x14008F566, 8, PlayerMovement_CGNoclipScaler);
+    RepointFloatOperand(0x14008F586, 8, PlayerMovement_CGUfoScaler);
 
     // Bounce logic
-    Utils::Hook(0x4B1B2D, PlayerMovement_PM_StepSlideMoveStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x57383E, Jump_ClearState_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x417B66, PlayerMovement_PM_ProjectVelocityStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140095F76, PlayerMovement_PM_StepSlideMoveStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140091283, Jump_ClearState_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140091C23, PlayerMovement_PM_ProjectVelocityStub, HOOK_JUMP).install()->quick();
 
     // Rocket jump
-    Utils::Hook(0x4A4F9B, Weapon_RocketLauncher_Fire_Hk, HOOK_CALL).install()->quick(); //  FireWeapon
+    Utils::Hook(0x140190DFA, Weapon_RocketLauncher_Fire_Hk, HOOK_CALL).install()->quick(); //  FireWeapon
 
     // Hook StuckInClient & CM_TransformedCapsuleTrace
     // so we can prevent intersecting players from being pushed away from each other
-    Utils::Hook(0x5D8153, StuckInClient_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x45A5BF, CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // SV_ClipMoveToEntity
-    Utils::Hook(0x5A0CAD, CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // CG_ClipMoveToEntity
+    Utils::Hook(0x140192EDA, StuckInClient_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1402322C6, CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // SV_ClipMoveToEntity
+    Utils::Hook(0x1400C9D3E, CM_TransformedCapsuleTrace_Hk, HOOK_CALL).install()->quick(); // CG_ClipMoveToEntity
 
-    Utils::Hook(0x573F39, PM_PlayerTraceStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x573E93, PM_PlayerTraceStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14008F2B2, PM_PlayerTraceStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14008F375, PM_PlayerTraceStub, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x570020, PM_CrashLand_Stub, HOOK_CALL).install()->quick(); // Vec3Scale
-    Utils::Hook(0x4E9889, PlayerMovement_Jump_Check_Stub, HOOK_JUMP).install()->quick();
+    // PM_CrashLand
+    //
+    // Note that on x86 we hook the Vec3Scale() call that applies the landing
+    // slowdown. x64 inlines it, twice, so we jump over each copy.
+    //
+    Utils::Hook(0x14008FED6, PlayerMovement_PM_CrashLand_Stub1, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14008FF78, PlayerMovement_PM_CrashLand_Stub2, HOOK_JUMP).install()->quick();
+
+    Utils::Hook(0x140087337, PlayerMovement_Jump_Check_Stub, HOOK_JUMP).install()->quick();
 
     // Disable player collision with out of bound barriers
-    Utils::Hook(0x4CFF5C, PmoveSingle_Stub, HOOK_CALL).install()->quick();          // single PmoveSingle call inside Pmove
-    Utils::Hook(0x574AF4, PM_CheckLadderMove_Stub, HOOK_CALL).install()->quick();   // single PM_CheckLadderMove call inside PmoveSingle
+    Utils::Hook(0x140094315, PmoveSingle_Stub, HOOK_CALL).install()->quick();          // single PmoveSingle call inside Pmove
+    Utils::Hook(0x140094EE3, PM_CheckLadderMove_Stub, HOOK_CALL).install()->quick();   // single PM_CheckLadderMove call inside PmoveSingle
 
     // View-independent ladder controls (opt-in via bg_ladderFixedInput)
     //
     // The pitch stub replaces PM_LadderMove's pitch-scaled climb multiplier
-    // (clamp((forward[2] + 0.25) * 2.5, -1, +1)) at 0x573FEF with a constant
-    // 1.0 so vertical wishvel becomes 0.5 * cmdScale * forwardmove.
+    // (clamp((forward[2] + 0.25) * 2.5, -1, +1)) with a constant 1.0 so
+    // vertical wishvel becomes 0.5 * cmdScale * forwardmove.
     //
-    Utils::Hook(0x573FEF, PlayerMovement_PM_LadderMove_PitchStub, HOOK_JUMP).install()->quick();       // pitch-scaled climb rate block
-    Utils::Hook(0x574061, PM_LadderMove_RightVector_Hk, HOOK_CALL).install()->quick();  // camera-relative right-vector projection
+    // Note that x64 keeps the multiplier in xmm7, so we take the place of the
+    // Vec3Normalize() call that follows and set it there.
+    //
+    Utils::Hook(0x1400913DA, PlayerMovement_PM_LadderMove_PitchStub, HOOK_CALL).install()->quick();  // pitch-scaled climb rate block
+    Utils::Hook(0x1400913FE, PM_LadderMove_RightVector_Hk, HOOK_CALL).install()->quick();    // camera-relative right-vector projection
 
     // Console-style sprint hold (opt-in via bg_sprintIgnoreRepress)
     //
     // Disables PM_UpdateSprint's PC-only sprint re-press cancel when enabled.
     // Otherwise keeps the original behavior.
     //
-    Utils::Hook(0x56EF59, PlayerMovement_PM_UpdateSprint_RepressCallStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400927EA, PlayerMovement_PM_UpdateSprint_RepressCallStub, HOOK_JUMP).install()->quick();
 
     // Omnimovement - allow sprint bit to be set when pressing back
     //
@@ -365,71 +364,74 @@ namespace Components
     // active flag is set, which is what prevents sprint from starting backward
     // even after our PM_UpdateSprint hooks pass.
     //
-    Utils::Hook(0x5A605B, PlayerMovement_CL_KeyMove_SprintBit_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400F6F44, PlayerMovement_CL_KeyMove_SprintBit_Stub, HOOK_JUMP).install()->quick();
 
     // Omnimovement - sprint gate widening
     //
     // Replace the forwardmove argument of the sprint-start and sprint-end
     // gates with max(|forwardmove|, |rightmove|).
     //
-    Utils::Hook(0x56EFBF, PlayerMovement_PM_SprintStartInterferingButtons_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x56EF29, PlayerMovement_PM_SprintEndingButtons_Stub, HOOK_CALL).install()->quick();
+    // Note that x64 inlines both gates into PM_UpdateSprint(), so we replace
+    // the forwardmove they compare there.
+    //
+    Utils::Hook(0x140092883, PlayerMovement_PM_SprintStartInterferingButtons_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14009279E, PlayerMovement_PM_SprintEndingButtons_Stub, HOOK_JUMP).install()->quick();
 
     // Full-speed lateral sprint
     //
     // Skip the player_sprintStrafeSpeedScale attenuation in PM_WalkMove while
     // sprinting.
     //
-    Utils::Hook(0x573262, PlayerMovement_PM_WalkMove_SprintStrafeStub, HOOK_JUMP).install()->quick();
+    // Note that on x86 we redo the attenuation ourselves when we don't skip
+    // it. On x64 we leave it to the game.
+    //
+    Utils::Hook(0x140093D05, PlayerMovement_PM_WalkMove_SprintStrafeStub, HOOK_JUMP).install()->quick();
 
     // Widen the movementDir clamp for remote anim
     //
     // Widen the PM_SetMovementDir clamp from +/-90 to +/-127 at the
     // prone/ladder branch and at the generic branch.
     //
-    Utils::Hook(0x443408, PlayerMovement_PM_SetMovementDir_ClampProneLadder_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x4435AA, PlayerMovement_PM_SetMovementDir_ClampGeneric_Stub, HOOK_JUMP).install()->quick();
+    // Note that x64 shares a single clamp between the branches.
+    //
+    Utils::Hook(0x140091E16, PlayerMovement_PM_SetMovementDir_ClampStub, HOOK_JUMP).install()->quick();
 
     // Forward-run anim during sprint
     //
     // Force PM_SetStrafeCondition to "not strafing" while sprinting so the
     // forward-run anim plays.
     //
-    Utils::Hook(0x571610, PlayerMovement_PM_SetStrafeCondition_Stub, HOOK_JUMP).install()->quick();
+    // Note that x64 inlines PM_SetStrafeCondition(), so we take the place of
+    // its BG_SetConditionValue() call.
+    //
+    Utils::Hook(0x14009053B, PlayerMovement_PM_SetStrafeCondition_Stub, HOOK_CALL).install()->quick();
 
     // Full-speed backward sprint
     //
     // Skip the player_backSpeedScale attenuation on diagonal and on pure
     // backward sprint.
     //
-    Utils::Hook(0x573893, PlayerMovement_PM_GetMaxSpeed_BackDiagonal_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x5738A9, PlayerMovement_PM_GetMaxSpeed_BackPure_Stub, HOOK_JUMP).install()->quick();
+    // Note that x64 inlines PM_GetMaxSpeed() and keeps whether the player is
+    // sprinting in ebp.
+    //
+    Utils::Hook(0x14009060D, PlayerMovement_PM_GetMaxSpeed_BackDiagonal_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14009062B, PlayerMovement_PM_GetMaxSpeed_BackPure_Stub, HOOK_JUMP).install()->quick();
 
     // Dive unlock
     //
     // Bypass the specialty_jumpdive perk check at the top of Jump_CheckDive.
     //
-    Utils::Hook(0x56D7B3, PlayerMovement_Jump_CheckDive_PerkGate_Stub, HOOK_JUMP).install()->quick();
+    // Note that x64 inlines Jump_CheckDive() into Jump_Check().
+    //
+    Utils::Hook(0x14008773A, PlayerMovement_Jump_CheckDive_PerkGate_Stub, HOOK_JUMP).install()->quick();
 
     // Full-velocity backward dive
     //
     // Skip the 0.3x backward-dive attenuation so backward dives launch at full
     // perk_diveVelocity.
     //
-    Utils::Hook(0x56D80E, PlayerMovement_Jump_CheckDive_BackDiveVelocity_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140087788, PlayerMovement_Jump_CheckDive_BackDiveVelocity_Stub, HOOK_JUMP).install()->quick();
 
     GSC::Script::AddMethod("IsSprinting", GScr_IsSprinting);
-
-    RegisterMovementDvars();
   }
-}
-
-int PlayerMovement_ComputeHorizontalIntent(int forwardSpeed, int rightSpeed)
-{
-  return Components::PlayerMovement::ComputeHorizontalIntent(forwardSpeed, rightSpeed);
-}
-
-void PlayerMovement_ApplyStockSprintStrafeScale(Game::pmove_s* pm)
-{
-  Components::PlayerMovement::ApplyStockSprintStrafeScale(pm);
 }
