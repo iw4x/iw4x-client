@@ -165,10 +165,12 @@ namespace Components
 
       // other party stuff?
       //
-      // Note that x64 also inlines it into PartyHost_StartPrivateParty(),
-      // where we jump over it.
+      // Note that x64 also inlines it twice into PartyHost_StartParty(),
+      // once for the start itself and once for the host key handler that
+      // x64 inlines there as well, and we jump over both copies.
       //
       Utils::Hook::Set<BYTE>(0x14010EE40, 0xC3);
+      Utils::Hook::Set<BYTE>(0x1401123E4, 0xEB);
       Utils::Hook::Set<BYTE>(0x140112610, 0xEB);
       Utils::Hook::Set<BYTE>(0x140112611, 0x5C);
 
