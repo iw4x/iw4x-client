@@ -680,13 +680,8 @@ namespace Components
     ClientCommand::Add("callvote", Cmd_CallVote_f);
     ClientCommand::Add("vote", Cmd_Vote_f);
 
-    // Note that on x86 we load the callvote and kickplayer menus from disk.
-    // x64 has no menu parser, so they have to come from our zones (see
-    // Menus).
-    //
-    // @@ Make sure our zones carry ui_mp/scriptmenus/callvote.menu and
-    //    ui_mp/scriptmenus/kickplayer.menu.
-    //
+    Menus::Add("ui_mp/scriptmenus/callvote.menu");
+    Menus::Add("ui_mp/scriptmenus/kickplayer.menu");
 
     UIScript::Add("voteKick", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
     {

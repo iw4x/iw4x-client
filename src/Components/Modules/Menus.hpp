@@ -3,12 +3,70 @@
 namespace Components
 {
   // Note that x64 has neither the precompiler nor the menu parser that we
-  // load the menus on disk with on x86. So our menus come from our zones and
-  // here we only keep the openmenu command and our patches of the game.
+  // load the menus on disk with on x86. So we compile them with
+  // OpenAssetTools instead (see OAT/Shim.hpp) and keep the rest of what we
+  // do with them as on x86.
   //
   class Menus : public Component
   {
   public:
     Menus();
+
+    static void Add(const std::string& menu);
+
+    static std::vector<Game::menuDef_t*> LoadMenuByName_Recursive(const std::string& menu);
+
+  private:
+    static std::unordered_map<std::string, Game::menuDef_t*> MenusFromDisk;
+    static std::unordered_map<std::string, Game::MenuList*> MenuListsFromDisk;
+
+    // The memory of the file that each menu from disk was compiled from.
+    //
+    // Note that on x86 we free the menus from disk one by one, while
+    // OpenAssetTools compiles the menus of a file into memory they share.
+    // So a file stays loaded until we free the last of its menus.
+    //
+    static std::unordered_map<Game::menuDef_t*, std::shared_ptr<void>> MenuFiles;
+
+    static Game::UiContext* GameUiContexts[];
+
+    static Dvar::Var PrintMenuDebug;
+
+    // Those two point to the ORIGINAL reference of the menu or menu list that was overriden
+    static std::unordered_map<std::string, Game::menuDef_t*> OverridenMenus;
+
+    static std::vector<std::string> CustomIW4xMenus;
+
+    static Utils::Memory::Allocator Allocator;
+
+    static bool MenuAlreadyExists(const std::string& name);
+
+    static void PrepareToUnloadMenu(Game::menuDef_t* menu);
+    static void AfterLoadedMenuFromDisk(Game::menuDef_t* menu);
+
+    static void FreeMenuListOnly(Game::MenuList* menuList);
+    static void FreeMenuOnly(Game::menuDef_t* menu);
+
+    static void UnloadMenuFromDisk(const std::string& menuName);
+
+    static void ReloadDiskMenus();
+
+    static void LoadScriptMenu(const char* menu, bool allowNewMenus);
+
+    static void ReloadDiskMenus_OnCGameStart();
+    static void ReloadDiskMenus_OnUIInitialization();
+
+    static void CheckMenus();
+
+    template <typename... Args>
+    static void DebugPrint(const std::string_view& fmt, Args&&... args)
+    {
+      if (PrintMenuDebug.get<bool>())
+      {
+        const std::string msg = std::vformat(fmt, std::make_format_args(args...));
+        const std::string preformatted = std::format("[MENUS] {:X} {}\n", std::hash<std::jthread::id>{}(std::this_thread::get_id()), msg);
+        Logger::Print(preformatted);
+      }
+    }
   };
 }

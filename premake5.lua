@@ -282,6 +282,16 @@ project "iw4x"
     "src/Components/Modules/Friends.*"
   }
 
+  -- OpenAssetTools shim.
+  --
+  -- The shim between OpenAssetTools and the client is C++23 like the rest
+  -- of OAT, and so the oat library builds it (see deps/premake/oat.lua).
+  --
+  removefiles
+  {
+    "src/Components/Modules/OAT/Shim.cpp"
+  }
+
   -- WineD3D mapping budget.
   --
   -- WineD3D raises the 128 MiB buffer mapping budget that wined3d keeps in
@@ -425,6 +435,7 @@ project "iw4x"
     "libtomcrypt",
     "libtommath",
     "mongoose",
+    "oat",
     "pdcurses",
     "protobuf",
     "rapidjson",

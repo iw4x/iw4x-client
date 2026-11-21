@@ -60,6 +60,7 @@ namespace Components
 #include "Modules/Dedicated.hpp"
 #include "Modules/FileSystem.hpp"
 #include "Modules/Localization.hpp"
+#include "Modules/Menus.hpp"
 #include "Modules/Scheduler.hpp"
 
 #include "Modules/GSC/GSC.hpp"

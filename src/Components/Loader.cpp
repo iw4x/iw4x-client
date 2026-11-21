@@ -42,7 +42,6 @@
 #include "Modules/MapRotation.hpp"
 #include "Modules/Maps.hpp"
 #include "Modules/Materials.hpp"
-#include "Modules/Menus.hpp"
 #include "Modules/Missile.hpp"
 #include "Modules/ModList.hpp"
 #include "Modules/ModelCache.hpp"
