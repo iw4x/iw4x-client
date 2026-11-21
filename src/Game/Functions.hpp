@@ -386,6 +386,9 @@ namespace Game
   typedef void (*PM_Weapon_t)(Game::pmove_s* pm, Game::pml_t* pml);
   extern PM_Weapon_t PM_Weapon;
 
+  typedef void(*PlayerCmd_SwitchToWeapon_t)(scr_entref_t entref);
+  extern PlayerCmd_SwitchToWeapon_t PlayerCmd_SwitchToWeapon;
+
   typedef Font_s*(*R_RegisterFont_t)(const char* asset, int safe);
   extern R_RegisterFont_t R_RegisterFont;
 

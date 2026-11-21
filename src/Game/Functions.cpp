@@ -148,6 +148,7 @@ namespace Game
 
   PM_CheckLadderMove_t PM_CheckLadderMove = PM_CheckLadderMove_t(0x14008F070);
   PM_Weapon_t PM_Weapon = PM_Weapon_t(0x140097CB0);
+  PlayerCmd_SwitchToWeapon_t PlayerCmd_SwitchToWeapon = PlayerCmd_SwitchToWeapon_t(0x1401646E0);
 
   R_AddCmdDrawStretchPic_t R_AddCmdDrawStretchPic = R_AddCmdDrawStretchPic_t(0x14001BE70);
   R_AllocStaticIndexBuffer_t R_AllocStaticIndexBuffer = R_AllocStaticIndexBuffer_t(0x140038B20);

@@ -275,11 +275,14 @@ namespace Components
       return false;
     }
 
+    // Note that the game sets up the weapons whose configstrings are
+    // before ours itself.
+    //
     if (index >= EXTRA_WEAPONS_FIRST && index <= EXTRA_WEAPONS_LAST)
     {
-      // @@ On x86 we set up the weapon past the game's here. We can't until
-      //    we port Weapon, which makes room for it, so for now we ignore it.
-      //
+      // Recompute weapon index
+      index = index - EXTRA_WEAPONS_FIRST + Weapon::EXTRA_CONFIGSTRING_WEAPONS_FIRST;
+      Game::CG_SetupWeaponConfigString(0, index);
       return true;
     }
 
