@@ -25,6 +25,7 @@
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/Console.hpp"
 #include "Modules/Controller.hpp"
+#include "Modules/D3D9Ex.hpp"
 #include "Modules/Events.hpp"
 #include "Modules/FastFiles.hpp"
 #include "Modules/Huffman.hpp"
@@ -87,6 +88,7 @@ namespace Components
     Register(new ConnectProtocol());
     Register(new Console());
     Register(new Controller());
+    Register(new D3D9Ex());
     Register(new Events());
     Register(new FastFiles());
     Register(new FileSystem());

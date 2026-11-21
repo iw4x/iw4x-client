@@ -289,7 +289,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/D3D9Ex.*",
     "src/Components/Modules/Debug.*",
     "src/Components/Modules/Dedicated.*",
     "src/Components/Modules/Discord.*",
