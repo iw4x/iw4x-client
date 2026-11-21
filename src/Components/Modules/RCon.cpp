@@ -44,7 +44,7 @@ namespace Components
         return;
       }
 
-      auto* addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
+      auto* addr = &Game::CL_GetLocalClientConnection(0)->netchan.remoteAddress;
       if (Password.empty())
       {
         Logger::Print("You need to be logged in and connected to a server!\n");
@@ -92,7 +92,7 @@ namespace Components
 
       const auto command = params->join(1);
 
-      auto* addr = reinterpret_cast<Game::netadr_t*>(0xA5EA44);
+      auto* addr = &Game::CL_GetLocalClientConnection(0)->netchan.remoteAddress;
       Network::Address target(addr);
       if (!target.isValid() || target.getIP().full == 0)
       {
@@ -281,6 +281,8 @@ namespace Components
 
   RCon::RCon()
   {
+    AssertOffset(Game::clientConnection_t, netchan.remoteAddress, 0x401D8);
+
     Events::OnSVInit(AddCommands);
 
     if (!Dedicated::IsEnabled())
