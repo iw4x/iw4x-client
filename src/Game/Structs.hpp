@@ -7551,6 +7551,9 @@ namespace Game
     float spectateDefaultAngles[3];
   };
 
+  // Note that on x64 the fields we skip with __pad3 hold pointers, which
+  // make it 8 bytes longer and pad the struct to 8-byte alignment.
+  //
   struct gclient_s
   {
     playerState_s ps;
@@ -7562,7 +7565,7 @@ namespace Game
     int oldbuttons; // 13220
     int latched_buttons; // 13224
     int buttonsSinceLastFrame; // 13228
-    unsigned char __pad3[324]; // 13232
+    unsigned char __pad3[332]; // 13232
     int visionDuration[5];
     char visionName[5][64];
     int lastStand;
@@ -7572,9 +7575,14 @@ namespace Game
     unsigned __int16 attachShieldTagName;
     hintType_t hintForcedType;
     int hintForcedString;
+    int __pad4;
   };
 
-  static_assert(sizeof(gclient_s) == 0x366C);
+  static_assert(offsetof(gclient_s, sess.score) == 0x3134);
+  static_assert(offsetof(gclient_s, flags) == 0x3394);
+  static_assert(offsetof(gclient_s, visionDuration) == 0x34FC);
+  static_assert(offsetof(gclient_s, visionName) == 0x3510);
+  static_assert(sizeof(gclient_s) == 0x3678);
 
   struct EntHandle
   {
