@@ -307,17 +307,6 @@ namespace Components
   }
 #endif
 
-  void FastFiles::Load_XSurfaceArray(bool atStreamStart, [[maybe_unused]] int count)
-  {
-    AssertOffset(Game::XModelSurfs, numsurfs, 0x10);
-
-    // read the actual count from the varXModelSurfs ptr
-    auto surface = *reinterpret_cast<Game::XModelSurfs**>(0x140DB5170);
-
-    // call original read function with the correct count
-    return Utils::Hook::Call<void(bool, int)>(0x140123B90)(atStreamStart, surface->numsurfs);
-  }
-
   void FastFiles::DB_BuildOSPath_FromSource_Default(const char* zoneName, Game::FF_DIR source, unsigned int size, char* filename)
   {
     // TODO: this is where user map and mod.ff check should happen
@@ -494,8 +483,23 @@ namespace Components
 
     Utils::Hook(0x14012D3A0, DB_FileExists_Hk, HOOK_JUMP).install()->quick();
 
-    // Fix XSurface assets
-    Utils::Hook(0x140123950, FastFiles::Load_XSurfaceArray, HOOK_CALL).install()->quick();
+    // Load_XModelSurfs takes the count it passes to Load_XSurfaceArray from
+    // varXModelLodInfo->numsurfs. That is valid when the surfs are loaded inline
+    // under an XModel, where Load_XModelLodInfoArray points varXModelLodInfo at the current LOD.
+    //
+    // A top-level XModelSurfs asset reaches this loader without setting varXModelLodInfo
+    // first, so the pointer is whatever the last XModel load left behind. That XModel may
+    // belong to a zone that has since been unloaded and decommitted, making the read fault.
+    // Where it doesn't fault, it yields another model's surface count.
+    //
+    // Take the count from the asset being loaded instead, varXModelSurfs->numsurfs,
+    // which is valid on both paths.
+    //
+    // Note that on x64 the count is at 0x10.
+    //
+    AssertOffset(Game::XModelSurfs, numsurfs, 0x10);
+    Utils::Hook::Displace(0x140123945, 7, 0x140DB5180, 0x140DB5170); // mov rax, varXModelSurfs
+    Utils::Hook::Set<BYTE>(0x14012394C + 3, 0x10);                  // movzx edx, word ptr [rax+numsurfs]
 
     // Redirect zone paths.
     //
