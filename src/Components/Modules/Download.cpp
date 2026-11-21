@@ -4,6 +4,7 @@
 #include "Download.hpp"
 #include "Events.hpp"
 #include "MapRotation.hpp"
+#include "Maps.hpp"
 #include "ModList.hpp"
 #include "Node.hpp"
 #include "Party.hpp"
@@ -400,7 +401,7 @@ namespace Components
     {
       if (download->terminateThread_) return;
 
-      if (!DownloadFile(download, i))
+      if (!DownloadFile(download, static_cast<unsigned int>(i)))
       {
         if (download->terminateThread_) return;
 
@@ -488,7 +489,7 @@ namespace Components
 
       static std::uint32_t dlIndex, dlSize, dlProgress;
       dlIndex = fDownload->index + 1;
-      dlSize = fDownload->download->files_.size();
+      dlSize = static_cast<std::uint32_t>(fDownload->download->files_.size());
       dlProgress = static_cast<std::uint32_t>(progress);
 
       framePushed = true;
@@ -641,7 +642,7 @@ namespace Components
         if (Game::svs_clients[i].header.state < Game::CS_ACTIVE) continue;
         if (!Game::svs_clients[i].gentity || !Game::svs_clients[i].gentity->client) continue;
 
-        playerInfo["score"] = Game::SV_GameClientNum_Score(i);
+        playerInfo["score"] = Game::SV_GameClientNum_Score(static_cast<int>(i));
         playerInfo["ping"] = Game::svs_clients[i].ping;
         playerInfo["name"] = Game::svs_clients[i].name;
         playerInfo["test_client"] = Game::svs_clients[i].bIsTestClient;
@@ -649,7 +650,7 @@ namespace Components
       else
       {
         // Score and ping are irrelevant
-        const auto* name = Game::PartyHost_GetMemberName(Game::g_lobbyData, i);
+        const auto* name = Game::PartyHost_GetMemberName(Game::g_lobbyData, static_cast<int>(i));
         if (!name || !*name) continue;
 
         playerInfo["name"] = name;
@@ -938,8 +939,8 @@ namespace Components
   Download::Download()
   {
     AssertSize(Game::va_info_t, 0x804);
-    AssertSize(jmp_buf, 0x40);
-    AssertSize(Game::TraceThreadInfo, 0x8);
+    AssertSize(jmp_buf, 0x100);
+    AssertSize(Game::TraceThreadInfo, 0x10);
 
     if (Dedicated::IsEnabled())
     {
