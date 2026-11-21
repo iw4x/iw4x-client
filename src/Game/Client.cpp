@@ -46,6 +46,8 @@ namespace Game
   cgs_t* cgsArray = reinterpret_cast<cgs_t*>(0x140585390);
   cgEntity_s* cg_entitiesArray = reinterpret_cast<cgEntity_s*>(0x14059C9A0);
   clientInfo_t* cgClientInfo = reinterpret_cast<clientInfo_t*>(0x14057E350);
+  CompassActor* s_compassActors = reinterpret_cast<CompassActor*>(0x140467D90);
+  CompassVehicle* s_compassVehicles = reinterpret_cast<CompassVehicle*>(0x140468550);
   PlayerCardData* playerCardCache = reinterpret_cast<PlayerCardData*>(0x141BB9F20);
   dvar_t** cl_paused = reinterpret_cast<dvar_t**>(0x1406BB048);
 

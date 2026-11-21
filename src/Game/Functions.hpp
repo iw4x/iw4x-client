@@ -63,6 +63,12 @@ namespace Game
   typedef void(*CG_ScoresDown_f_t)();
   extern CG_ScoresDown_f_t CG_ScoresDown_f;
 
+  typedef void(*CG_CompassDrawEnemies_t)(int localClientNum, CompassType compassType, const rectDef_s* parentRect, const rectDef_s* rect, float* color);
+  extern CG_CompassDrawEnemies_t CG_CompassDrawEnemies;
+
+  typedef void(*CG_CompassDrawVehicles_t)(int localClientNum, CompassType compassType, const rectDef_s* parentRect, const rectDef_s* rect, float* color);
+  extern CG_CompassDrawVehicles_t CG_CompassDrawVehicles;
+
   typedef const char*(*CG_GetTeamName_t)(team_t team);
   extern CG_GetTeamName_t CG_GetTeamName;
 

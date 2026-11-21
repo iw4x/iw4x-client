@@ -24,6 +24,8 @@ namespace Game
   CG_PlayBoltedEffect_t CG_PlayBoltedEffect = CG_PlayBoltedEffect_t(0x1400AF2A0);
   CG_GetBoneIndex_t CG_GetBoneIndex = CG_GetBoneIndex_t(0x1402AA690);
   CG_ScoresDown_f_t CG_ScoresDown_f = CG_ScoresDown_f_t(0x1400D0660);
+  CG_CompassDrawEnemies_t CG_CompassDrawEnemies = CG_CompassDrawEnemies_t(0x1400CD450);
+  CG_CompassDrawVehicles_t CG_CompassDrawVehicles = CG_CompassDrawVehicles_t(0x1400CF150);
   CG_GetTeamName_t CG_GetTeamName = CG_GetTeamName_t(0x1400DFD40);
   CG_SetupWeaponConfigString_t CG_SetupWeaponConfigString = CG_SetupWeaponConfigString_t(0x1400C54B0);
 

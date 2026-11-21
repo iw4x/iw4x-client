@@ -34,6 +34,7 @@
 #include "Modules/Elevators.hpp"
 #include "Modules/Events.hpp"
 #include "Modules/FastFiles.hpp"
+#include "Modules/ForceUAV.hpp"
 #include "Modules/Huffman.hpp"
 #include "Modules/Lean.hpp"
 #include "Modules/Localization.hpp"
@@ -138,6 +139,7 @@ namespace Components
     Register(new Events());
     Register(new FastFiles());
     Register(new FileSystem());
+    Register(new ForceUAV());
     Register(new Rumble());
     Register(new Huffman());
     Register(new Lean());

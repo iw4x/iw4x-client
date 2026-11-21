@@ -79,10 +79,13 @@ namespace Components
   {
     GCompassShowEnemies = Dvar::Register<bool>("g_compassShowEnemies", false, Game::DVAR_CHEAT, "Whether enemies are visible on the compass at all times");
 
-    Utils::Hook(0x495FF1, CG_CompassDrawEnemies_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x496511, CG_CompassDrawEnemies_Stub, HOOK_CALL).install()->quick();
+    // Note that x64 inlines the owner draw thunks that call these into
+    // CG_OwnerDraw, so we hook the calls there.
+    //
+    Utils::Hook(0x1400DEBC5, CG_CompassDrawEnemies_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400DF2D8, CG_CompassDrawEnemies_Stub, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x49607C, CG_CompassDrawVehicles_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x49655A, CG_CompassDrawVehicles_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400DEC79, CG_CompassDrawVehicles_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400DF356, CG_CompassDrawVehicles_Stub, HOOK_CALL).install()->quick();
   }
 }

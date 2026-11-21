@@ -107,5 +107,8 @@ namespace Game
   // Player card data the cgame caches, MAX_CLIENTS cards per local client.
   //
   extern PlayerCardData* playerCardCache;
+
+  extern CompassActor* s_compassActors;
+  extern CompassVehicle* s_compassVehicles;
   extern dvar_t** cl_paused;
 }
