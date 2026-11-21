@@ -265,6 +265,7 @@ namespace Components
     static bool Dvar_GetUnpackedColorByName(const char* name, float* expandedColor);
     static void Dvar_GetUnpackedColorByName_Hk(const char* name, float* expandedColor);
     static void (*Dvar_GetUnpackedColorByName_Original)(const char* name, float* expandedColor);
+    static void (*DB_UnloadXZone_Original)(unsigned int zoneIndex, bool createDefault);
 
     static Game::GfxImage* GetFontIconColorMap(const Game::Material* fontIconMaterial);
     static float DrawFontIcon(const FontIconInfo& fontIcon, float x, float y, float sinAngle, float cosAngle, const Game::Font_s* font, float xScale, float yScale, unsigned color);
@@ -280,6 +281,8 @@ namespace Components
 
     static void InitFontIconStrings();
     static void InitFontIcons();
+    static void ForgetFontIconMaterials();
+    static void DB_UnloadXZone_Hk(unsigned int zoneIndex, bool createDefault);
     static void UI_Init_Hk(int localClientNum);
   };
 }

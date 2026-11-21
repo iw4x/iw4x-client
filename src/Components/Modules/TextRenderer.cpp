@@ -5,6 +5,78 @@
 
 namespace Components
 {
+  namespace
+  {
+    // A hud icon names its material in one of two ways after the selector,
+    // the width and the height. The game puts the material itself there,
+    // which it only does in buffers it draws right away. The controller's
+    // key names carry the x86 form instead, a length and then the name,
+    // since they go through the string functions and a material's bytes
+    // can be zero.
+    //
+    // We tell them apart by the name: it is made of lowercase letters,
+    // digits and underscores, while a material's high bytes are zero.
+    // Returns the length of the name, or zero for a material.
+    //
+    std::size_t HudIconNameLength(const char* text)
+    {
+      const auto length = static_cast<std::uint8_t>(*text);
+
+      if (length == 0 || length >= 64)
+      {
+        return 0;
+      }
+
+      for (std::size_t i = 1; i <= length; ++i)
+      {
+        const auto c = text[i];
+
+        if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_'))
+        {
+          return 0;
+        }
+      }
+
+      return length;
+    }
+
+    // The size of the material part, either form.
+    //
+    std::size_t HudIconMaterialSize(const char* text)
+    {
+      const auto length = HudIconNameLength(text);
+      return length != 0 ? 1 + length : sizeof(Game::Material*);
+    }
+
+    // The materials of the hud icons that name them, by name.
+    //
+    std::mutex HudIconMutex;
+    std::unordered_map<std::string, Game::Material*> HudIconMaterials;
+
+    Game::Material* HudIconMaterial(const char* text)
+    {
+      if (const auto length = HudIconNameLength(text))
+      {
+        std::string name(text + 1, length);
+
+        std::lock_guard lock(HudIconMutex);
+
+        auto i = HudIconMaterials.find(name);
+        if (i == HudIconMaterials.end())
+        {
+          const auto material = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, name.data()).material;
+          i = HudIconMaterials.emplace(std::move(name), material).first;
+        }
+
+        return i->second;
+      }
+
+      Game::Material* material;
+      std::memcpy(&material, text, sizeof(material));
+      return material;
+    }
+  }
+
   unsigned TextRenderer::colorTableDefault[TEXT_COLOR_COUNT]
   {
     ColorRgb(0, 0, 0),          // TEXT_COLOR_BLACK
@@ -93,6 +165,7 @@ namespace Components
   Game::field_t* TextRenderer::consoleField;
   void (*TextRenderer::Message_Key_Original)(int localClientNum, int key);
   void (*TextRenderer::Dvar_GetUnpackedColorByName_Original)(const char* name, float* expandedColor);
+  void (*TextRenderer::DB_UnloadXZone_Original)(unsigned int zoneIndex, bool createDefault);
 
   TextRenderer::BufferedLocalizedString::BufferedLocalizedString(const char* reference, const std::size_t bufferSize)
     : stringReference(reference),
@@ -914,25 +987,32 @@ namespace Components
 
   bool TextRenderer::IsButtonGlyph(const char* text)
   {
-    // After the caret: the icon type, width, height, name length, then the
-    // material name.
-    if (!text[0] || !text[1] || !text[2] || !text[3])
+    // After the caret: the icon type, width, height, then the material (see
+    // HudIconMaterial()).
+    if (!text[0] || !text[1] || !text[2])
     {
       return false;
     }
 
-    // The name can be cut short, so stop at the terminator as DrawHudIcon
-    // does rather than trust the length.
-    const auto nameLen = static_cast<uint8_t>(text[3]);
-    for (auto i = 0u; i < nameLen; i++)
+    std::string_view name;
+
+    if (const auto length = HudIconNameLength(text + 3))
     {
-      if (text[4 + i] == 0)
+      name = std::string_view(text + 4, length);
+    }
+    else
+    {
+      Game::Material* material;
+      std::memcpy(&material, text + 3, sizeof(material));
+
+      if (material == nullptr || material->info.name == nullptr)
       {
         return false;
       }
+
+      name = material->info.name;
     }
 
-    const std::string_view name(text + 4, nameLen);
     return name.starts_with("button_") || name.starts_with("dpad_");
   }
 
@@ -974,34 +1054,36 @@ namespace Components
     const auto h = static_cast<float>((font->pixelHeight * (*text - 16) + 16) >> 5) * yScale;
     ++text;
 
-    if (*text == 0)
-    {
-      return 0.0f;
-    }
+    // A material's bytes can be zero, so we don't look for the end of the
+    // string in there.
+    //
+    const auto nameLength = HudIconNameLength(text);
+    auto* material = HudIconMaterial(text);
 
-    const auto materialNameLen = static_cast<uint8_t>(*text);
-    ++text;
-
-    for (auto i = 0u; i < materialNameLen; i++)
+    // For the x86 form, which names the material, we take the controller's
+    // glyph for it and fall back to the default material for one that isn't
+    // 2d, as x86 does.
+    //
+    if (nameLength != 0)
     {
-      if (text[i] == 0)
+      const std::string materialName(text + 1, nameLength);
+
+      if (auto* textMaterial = Controller::TextGlyphMaterial(materialName.data(), material))
       {
-        return 0.0f;
+        material = textMaterial;
+      }
+
+      if (material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || std::strcmp(material->techniqueSet->name, "2d") != 0)
+      {
+        material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
       }
     }
 
-    const std::string materialName(text, materialNameLen);
-    text += materialNameLen;
+    text += HudIconMaterialSize(text);
 
-    auto* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, materialName.data()).material;
-    if (auto* textMaterial = Controller::TextGlyphMaterial(materialName.data(), material))
+    if (material == nullptr)
     {
-      material = textMaterial;
-    }
-
-    if (material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || std::strcmp(material->techniqueSet->name, "2d") != 0)
-    {
-      material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
+      return 0.0f;
     }
 
     const auto yy = y - (h + yScale * static_cast<float>(font->pixelHeight)) * 0.5f;
@@ -1324,10 +1406,9 @@ namespace Components
             continue;
           }
 
-          if (*text >= '\x01' && *text <= '\x02' && text[1] != '\0' && text[2] != '\0' && text[3] != '\0')
+          if (*text >= '\x01' && *text <= '\x02' && text[1] != '\0' && text[2] != '\0')
           {
             const auto width = text[1];
-            const auto materialNameLength = text[3];
 
             // This is how the game calculates width and height. Probably some 1 byte floating point number.
             // Details to be investigated if necessary.
@@ -1340,11 +1421,9 @@ namespace Components
               maxWidth = lineWidth;
             }
 
-            text += 4;
-            for (auto currentLength = 0; currentLength < materialNameLength && *text; currentLength++)
-            {
-              ++text;
-            }
+            // Skip the size and the material (see HudIconMaterial()).
+            //
+            text += 3 + HudIconMaterialSize(text + 3);
             continue;
           }
         }
@@ -1440,17 +1519,13 @@ namespace Components
           ++in;
         }
 
-        if (*in) // material name length + material name characters
+        // The material (see HudIconMaterial()). We stop at the end of the
+        // string, so we may cut a real one short, but then no string
+        // function would have kept the rest anyway.
+        //
+        for (std::size_t i = 0, n = *in ? HudIconMaterialSize(in) : 0; i < n && *in; ++i)
         {
-          const auto materialNameLength = *in;
           ++in;
-          for (auto i = 0; i < materialNameLength; i++)
-          {
-            if (*in)
-            {
-              ++in;
-            }
-          }
         }
       }
       else
@@ -1495,17 +1570,13 @@ namespace Components
           ++in;
         }
 
-        if (*in) // material name length + material name characters
+        // The material (see HudIconMaterial()). We stop at the end of the
+        // string, so we may cut a real one short, but then no string
+        // function would have kept the rest anyway.
+        //
+        for (std::size_t i = 0, n = *in ? HudIconMaterialSize(in) : 0; i < n && *in; ++i)
         {
-          const auto materialNameLength = *in;
           ++in;
-          for (auto i = 0; i < materialNameLength; i++)
-          {
-            if (*in)
-            {
-              ++in;
-            }
-          }
         }
 
         continue;
@@ -1667,6 +1738,26 @@ namespace Components
     stringListBig.Format(Utils::String::VA("%c", FONT_ICON_MODIFIER_BIG));
   }
 
+  void TextRenderer::ForgetFontIconMaterials()
+  {
+    for (auto& [name, entry] : fontIconLookup)
+    {
+      entry.material = nullptr;
+    }
+  }
+
+  void TextRenderer::DB_UnloadXZone_Hk(unsigned int zoneIndex, bool createDefault)
+  {
+    {
+      std::lock_guard lock(HudIconMutex);
+      HudIconMaterials.clear();
+    }
+
+    ForgetFontIconMaterials();
+
+    DB_UnloadXZone_Original(zoneIndex, createDefault);
+  }
+
   void TextRenderer::InitFontIcons()
   {
     InitFontIconStrings();
@@ -1732,6 +1823,16 @@ namespace Components
 
     // Initialize font icons when initializing UI
     Components::Events::AfterUIInit(InitFontIcons);
+
+    // Forget the materials we keep for the hud and font icons whenever a zone
+    // unloads, since the zone takes its materials with it, and look them up
+    // again.
+    //
+    // Note that on x86 we keep the font icons' until the next UI
+    // initialization, which leaves an icon whose material was in an unloaded
+    // zone, a map's or a mod's, pointing at freed memory until then.
+    //
+    DB_UnloadXZone_Original = Utils::Hook::Detour(0x14012FD80, 5, &DB_UnloadXZone_Hk);
 
     // Replace vanilla text drawing function with a reimplementation with extensions
     Utils::Hook(0x14004E040, DrawText2D, HOOK_JUMP).install()->quick();
