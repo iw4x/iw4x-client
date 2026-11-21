@@ -10511,13 +10511,10 @@ namespace Game
     int manualNameChange;
     int numConnectedClients;
     int sortedClients[18];
-    char voteString[1024];
-    char voteDisplayString[1024];
-    int voteTime;
-    int voteExecuteTime;
-    int voteYes;
-    int voteNo;
-    int numVotingClients;
+
+    // Note that x64 drops the vote fields that x86 has here, so we keep
+    // them ourselves in Vote.
+    //
     SpawnVar spawnVar;
     int savepersist;
     EntHandle droppedWeaponCue[32];
@@ -10549,6 +10546,8 @@ namespace Game
   static_assert(offsetof(level_locals_t, logFile) == 0x30);
   static_assert(offsetof(level_locals_t, maxclients) == 0x3C0);
   static_assert(offsetof(level_locals_t, time) == 0x3C8);
+  static_assert(offsetof(level_locals_t, numConnectedClients) == 0x3FC);
+  static_assert(offsetof(level_locals_t, spawnVar) == 0x448);
 
   // @@ TODO: verify x64 size (0x2F78 on x86).
   //
