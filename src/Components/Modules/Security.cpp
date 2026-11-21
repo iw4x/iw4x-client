@@ -3,6 +3,8 @@
 
 namespace Components
 {
+  void (*Security::UI_ReplaceDirective_Original)(int localClientNum, char* message, char* hudElemString, std::size_t hudElemStringLength);
+
   int Security::Msg_ReadBitsCompressCheckSV(const unsigned char* from, unsigned char* to, int size)
   {
     static unsigned char buffer[0x8000];
@@ -70,9 +72,31 @@ namespace Components
     Game::CL_SelectStringTableEntryInDvar_f();
   }
 
-  void Security::G_LogPrintf_Stub(const char* fmt)
+  int Security::G_GetClientScore_Hk(int clientNum)
   {
-    Game::G_LogPrintf("%s", fmt);
+    // Note that the game reads the score without checking that the level has
+    // its clients.
+    //
+    if (!Game::level->clients)
+    {
+      return 0;
+    }
+
+    return Game::level->clients[clientNum].sess.score;
+  }
+
+  void Security::UI_ReplaceDirective_Hk(int localClientNum, char* message, char* hudElemString, std::size_t hudElemStringLength)
+  {
+    const auto messageLength = strnlen_s(message, hudElemStringLength + 1);
+
+    if (messageLength > hudElemStringLength)
+    {
+      // Truncate the message to avoid an out of bounds write while iterating message
+      message[hudElemStringLength-1] = '\x00';
+      Logger::Print("Truncated an overextended UI_ReplaceDirective message ({}+ characters) regarding {}\n", messageLength, hudElemString);
+    }
+
+    UI_ReplaceDirective_Original(localClientNum, message, hudElemString, hudElemStringLength);
   }
 
   void Security::NET_DeferPacketToClient_Hk(Game::netadr_t* net_from, Game::msg_t* net_message)
@@ -107,69 +131,71 @@ namespace Components
       return;
     }
 
-    Utils::Hook::Call<void(Game::client_s*, Game::msg_t*)>(0x414D40)(client, msg);
+    Utils::Hook::Call<void(Game::client_s*, Game::msg_t*)>(0x1402365D0)(client, msg);
   }
 
   Security::Security()
   {
+    AssertOffset(Game::client_s, reliableSequence, 0x20E70);
+    AssertOffset(Game::client_s, reliableAcknowledge, 0x20E74);
+
     // Exploit fixes
     // Fallback option for when we don't use our own huffman implementation
     if (!Huffman::isInitialized)
     {
-      Utils::Hook(0x414D92, Msg_ReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientCommands
-      Utils::Hook(0x4A9F56, Msg_ReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
+      Utils::Hook(0x140236641, Msg_ReadBitsCompressCheckSV, HOOK_CALL).install()->quick(); // SV_ExecuteClientMessage
+      Utils::Hook(0x140100D19, Msg_ReadBitsCompressCheckCL, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
     }
 
     // Prevent out-of-bound write in UI_ReplaceDirective (Server->Client vulnerability)
-    Utils::Hook(0x412C30, Security_UI_ReplaceDirective_Stub, HOOK_JUMP).install()->quick();
+    UI_ReplaceDirective_Original = Utils::Hook::Detour(0x140267ED0, 5, &UI_ReplaceDirective_Hk);
 
-    Utils::Hook::Set<std::uint8_t>(0x412370, 0xC3); // SV_SteamAuthClient
-    Utils::Hook::Set<std::uint8_t>(0x5A8C70, 0xC3); // CL_HandleRelayPacket
+    Utils::Hook::Set<std::uint8_t>(0x140237950, 0xC3); // SV_SteamAuthClient
 
-    Utils::Hook::Nop(0x41698E, 5); // Disable Svcmd_EntityList_f
+    // CL_HandleRelayPacket
+    //
+    // Note that x64 inlines it into CL_ConnectionlessPacket(), so we jump
+    // from where it starts to where that function returns true, as it does
+    // once it relayed the packet.
+    //
+    Utils::Hook(0x1400F97FE, 0x1400F96F3, HOOK_JUMP).install()->quick();
+
+    // Note that on x86 we disable Svcmd_EntityList_f, which x64 compiles out.
 
     // Patch selectStringTableEntryInDvar
-    Utils::Hook::Set<void(*)()>(0x405959, SelectStringTableEntryInDvar_Stub);
+    Utils::Hook::Displace(0x1400FBAD0, 7, 0x14026A0E0, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(0x1400FBAD0 + 7, reinterpret_cast<void*>(SelectStringTableEntryInDvar_Stub))));
 
     // Patch G_GetClientScore for uninitialized game
-    Utils::Hook(0x469AC0, Security_G_GetClientScore_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14019CEE0, G_GetClientScore_Hk, HOOK_JUMP).install()->quick();
 
     // Requests can be malicious
-    Utils::Hook(0x5B67ED, AtolAdjustPlayerLimit, HOOK_CALL).install()->quick(); // PartyHost_HandleJoinPartyRequest
+    Utils::Hook(0x14010CDE3, AtolAdjustPlayerLimit, HOOK_CALL).install()->quick(); // PartyHost_HandleJoinPartyRequest
 
-    // Patch unsecure call to G_LogPrint inside GScr_LogPrint
-    // This function is unsafe because IW devs forgot to G_LogPrintf("%s", fmt)
-    Utils::Hook(0x5F70B5, G_LogPrintf_Stub, HOOK_CALL).install()->quick();
+    // Note that on x86 we fix the call to G_LogPrintf() in GScr_LogPrint(),
+    // which passes the script's text as the format. On x64 the logprint
+    // function does nothing.
 
     // Fix packets causing buffer overflow
-    Utils::Hook(0x6267E3, NET_DeferPacketToClient_Hk, HOOK_CALL).install()->quick();
+    //
+    // Note that x64 already drops a packet that is larger than the deferred
+    // message.
+    //
+    Utils::Hook(0x14023B2DD, NET_DeferPacketToClient_Hk, HOOK_CALL).install()->quick();
 
     // Fix server freezer exploit
-    Utils::Hook(0x626996, SV_ExecuteClientMessage_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14023B498, SV_ExecuteClientMessage_Stub, HOOK_CALL).install()->quick();
 
     // The client can fake the info string
-    Utils::Hook::Set<std::uint8_t>(0x460F6D, 0xEB); // SV_DirectConnect
+    Utils::Hook::Set<std::uint8_t>(0x1402360DA, 0xEB); // SV_DirectConnect
 
     // Prevent curl 7_19_4 from running
     // Call to DL_Init from Live_Init
-    Utils::Hook::Nop(0x420937, 5);
+    Utils::Hook::Nop(0x1402A2116, 5);
     // Call to DL_CheckOngoingDownloads from Live_Frame
-    Utils::Hook::Nop(0x40F8DB, 5);
+    Utils::Hook::Nop(0x1402A1DD2, 5);
     // Call to LiveStorage_FetchPlaylists from Live_Frame
-    Utils::Hook::Nop(0x40F88C, 5);
+    Utils::Hook::Nop(0x1402A1D3B, 5);
     // Call to LiveStorage_FetchPlaylists from Live_Init
-    Utils::Hook::Nop(0x420B54, 5);
-  }
-}
-
-void Security_UI_ReplaceDirective_Hook([[maybe_unused]] int localClientNum, char *message, char *hudElemString, const size_t hudElemStringLength)
-{
-  const auto messageLength = strnlen_s(message, hudElemStringLength + 1);
-
-  if (messageLength > hudElemStringLength)
-  {
-    // Truncate the message to avoid an out of bounds write while iterating message
-    message[hudElemStringLength-1] = '\x00';
-    Components::Logger::Print("Truncated an overextended UI_ReplaceDirective message ({}+ characters) regarding {}\n", messageLength, hudElemString);
+    Utils::Hook::Nop(0x1402A23ED, 5);
   }
 }

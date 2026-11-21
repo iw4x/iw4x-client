@@ -1,13 +1,5 @@
 #pragma once
 
-extern "C"
-{
-  int Security_G_GetClientScore_Hk();
-  void Security_UI_ReplaceDirective_Stub();
-
-  void Security_UI_ReplaceDirective_Hook(int localClientNum, char* message, char* hudElemString, const size_t hudElemStringLength);
-}
-
 namespace Components
 {
   class Security : public Component
@@ -23,7 +15,10 @@ namespace Components
 
     static void SelectStringTableEntryInDvar_Stub();
 
-    static void G_LogPrintf_Stub(const char* fmt);
+    static int G_GetClientScore_Hk(int clientNum);
+
+    static void UI_ReplaceDirective_Hk(int localClientNum, char* message, char* hudElemString, std::size_t hudElemStringLength);
+    static void (*UI_ReplaceDirective_Original)(int localClientNum, char* message, char* hudElemString, std::size_t hudElemStringLength);
 
     static void NET_DeferPacketToClient_Hk(Game::netadr_t* net_from, Game::msg_t* net_message);
 
