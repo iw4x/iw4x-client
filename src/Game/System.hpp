@@ -116,20 +116,17 @@ namespace Game
   public:
     // Offsets of game variables in thread-local storage.
     //
-    // Note that DVAR_ALLOWED_MODIFIED_FLAGS and DVAR_MODIFIED_FLAGS are the
-    // x64 offsets.
-    //
-    // @@ TODO: verify the rest on x64, where pointers are 8 bytes (these
-    //    are x86 offsets).
+    // Note that x64 lays the pointers out 8 bytes apart, so these differ
+    // from x86's.
     //
     enum class TLS_OFFSET : unsigned int
     {
-      LEVEL_BGS = 0xC,
-      THREAD_VALUES = 0x14,
+      LEVEL_BGS = 0x8,
       HUFFMAN_BLOC = 0x10,
-      DVAR_ALLOWED_MODIFIED_FLAGS = 0x24,
+      THREAD_VALUES = 0x18,
       DVAR_MODIFIED_FLAGS = 0x20,
-      ZIP_INFO = 0x20,
+      DVAR_ALLOWED_MODIFIED_FLAGS = 0x24,
+      ZIP_INFO = 0x28,
     };
 
     template <typename T>
