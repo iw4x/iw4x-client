@@ -1,5 +1,7 @@
 #include "Functions.hpp"
 
+#include <numbers>
+
 // Unsorted function definitions
 namespace Game
 {
@@ -537,6 +539,162 @@ namespace Game
     (*res)[1] = (*q2)[0] * (*q1)[1] + (*q2)[1] * (*q1)[0] - (*q2)[2] * (*q1)[3] + (*q2)[3] * (*q1)[2];
     (*res)[2] = (*q2)[0] * (*q1)[2] + (*q2)[1] * (*q1)[3] + (*q2)[2] * (*q1)[0] - (*q2)[3] * (*q1)[1];
     (*res)[3] = (*q2)[0] * (*q1)[3] - (*q2)[1] * (*q1)[2] + (*q2)[2] * (*q1)[1] + (*q2)[3] * (*q1)[0];
+  }
+
+  namespace
+  {
+    constexpr float debugNearPlane(1.0f);
+    constexpr float debugLineWidth(1.0f);
+
+    // Project the world point p to screen coordinates of the first local
+    // client's view and return false if it's behind the near plane.
+    //
+    bool R_ProjectDebugPoint(const float* p, float& x, float& y)
+    {
+      const auto& refdef(CL_GetLocalClientGlobals(0)->refdef);
+      const auto& view(refdef.view);
+
+      const float d[3] {p[0] - view.org[0], p[1] - view.org[1], p[2] - view.org[2]};
+
+      const auto forward(d[0] * view.axis[0][0] + d[1] * view.axis[0][1] + d[2] * view.axis[0][2]);
+      const auto left(d[0] * view.axis[1][0] + d[1] * view.axis[1][1] + d[2] * view.axis[1][2]);
+      const auto up(d[0] * view.axis[2][0] + d[1] * view.axis[2][1] + d[2] * view.axis[2][2]);
+
+      if (forward < debugNearPlane)
+      {
+        return false;
+      }
+
+      const auto halfWidth(static_cast<float>(refdef.width) * 0.5f);
+      const auto halfHeight(static_cast<float>(refdef.height) * 0.5f);
+
+      x = static_cast<float>(refdef.x) + halfWidth * (1.0f - left / (forward * view.tanHalfFovX));
+      y = static_cast<float>(refdef.y) + halfHeight * (1.0f - up / (forward * view.tanHalfFovY));
+      return true;
+    }
+
+    // Move the end of the segment from a to b that is behind the near plane
+    // onto it and return false if all of it is behind.
+    //
+    bool R_ClipDebugLine(float (&a)[3], float (&b)[3])
+    {
+      const auto& view(CL_GetLocalClientGlobals(0)->refdef.view);
+
+      auto depth ([&view] (const float (&p)[3])
+      {
+        return (p[0] - view.org[0]) * view.axis[0][0] +
+               (p[1] - view.org[1]) * view.axis[0][1] +
+               (p[2] - view.org[2]) * view.axis[0][2] - debugNearPlane;
+      });
+
+      const auto da(depth(a));
+      const auto db(depth(b));
+
+      if (da < 0.0f && db < 0.0f)
+      {
+        return false;
+      }
+
+      if (da < 0.0f || db < 0.0f)
+      {
+        auto& behind(da < 0.0f ? a : b);
+        const auto t(da / (da - db));
+
+        for (auto i(0); i != 3; ++i)
+        {
+          behind[i] = a[i] + (b[i] - a[i]) * t;
+        }
+      }
+
+      return true;
+    }
+  }
+
+  void R_AddDebugLine(const float* color, const float* start, const float* end)
+  {
+    using R_AddCmdDrawStretchPicRotateXY_t = void(*)(float x, float y, float w, float h, float s0, float t0, float s1, float t1, float angle, const float* color, Material* material);
+    const auto R_AddCmdDrawStretchPicRotateXY(reinterpret_cast<R_AddCmdDrawStretchPicRotateXY_t>(0x14001C050));
+
+    float a[3] {start[0], start[1], start[2]};
+    float b[3] {end[0], end[1], end[2]};
+
+    float ax, ay, bx, by;
+    if (!R_ClipDebugLine(a, b) || !R_ProjectDebugPoint(a, ax, ay) || !R_ProjectDebugPoint(b, bx, by))
+    {
+      return;
+    }
+
+    // Draw the line as a thin picture rotated about its center, of which the
+    // game turns the x axis by the angle towards the y axis of the screen.
+    //
+    const auto dx(bx - ax);
+    const auto dy(by - ay);
+    const auto length(std::sqrt(dx * dx + dy * dy));
+    const auto angle(std::atan2(dy, dx) * (180.0f / std::numbers::pi_v<float>));
+
+    R_AddCmdDrawStretchPicRotateXY((ax + bx - length) * 0.5f, (ay + by - debugLineWidth) * 0.5f, length, debugLineWidth, 0.0f, 0.0f, 1.0f, 1.0f, angle, color, cls->whiteMaterial);
+  }
+
+  void R_AddDebugString(const float* color, const float* pos, float scale, const char* text)
+  {
+    float x, y;
+    if (!R_ProjectDebugPoint(pos, x, y))
+    {
+      return;
+    }
+
+    auto* font(R_RegisterFont("fonts/smallFont", 0));
+    const auto width(static_cast<float>(R_TextWidth(text, 0, font)) * scale);
+
+    R_AddCmdDrawText(text, std::numeric_limits<int>::max(), font, x - width * 0.5f, y, scale, scale, 0.0f, color, 0);
+  }
+
+  void R_AddDebugBounds(const float* color, const Bounds* b)
+  {
+    const vec4_t identity {0.0f, 0.0f, 0.0f, 1.0f};
+    R_AddDebugBounds(color, b, &identity);
+  }
+
+  void R_AddDebugBounds(const float* color, const Bounds* b, const float(*quat)[4])
+  {
+    const auto* center(b->midPoint);
+    const auto* halfSize(b->halfSize);
+
+    // The corners, with bit 0, 1, and 2 of the index selecting the positive
+    // half size along x, y, and z.
+    //
+    vec3_t v[8];
+
+    for (auto i(0); i != 8; ++i)
+    {
+      v[i][0] = (i & 1) ? halfSize[0] : -halfSize[0];
+      v[i][1] = (i & 2) ? halfSize[1] : -halfSize[1];
+      v[i][2] = (i & 4) ? halfSize[2] : -halfSize[2];
+
+      QuatRot(&v[i], quat);
+
+      v[i][0] += center[0];
+      v[i][1] += center[1];
+      v[i][2] += center[2];
+    }
+
+    // bottom
+    R_AddDebugLine(color, v[0], v[1]);
+    R_AddDebugLine(color, v[1], v[3]);
+    R_AddDebugLine(color, v[3], v[2]);
+    R_AddDebugLine(color, v[2], v[0]);
+
+    // top
+    R_AddDebugLine(color, v[4], v[5]);
+    R_AddDebugLine(color, v[5], v[7]);
+    R_AddDebugLine(color, v[7], v[6]);
+    R_AddDebugLine(color, v[6], v[4]);
+
+    // verticals
+    R_AddDebugLine(color, v[0], v[4]);
+    R_AddDebugLine(color, v[1], v[5]);
+    R_AddDebugLine(color, v[2], v[6]);
+    R_AddDebugLine(color, v[3], v[7]);
   }
 
   void SortWorldSurfaces(GfxWorld* world)
