@@ -99,6 +99,14 @@ namespace Game
   extern void Com_SetParseNegativeNumbers(int parse);
 
   extern char* Com_GetCommandLine();
+
+  // Load the info string fileName from the fastfiles, which must start with
+  // ident, into loadBuffer of 0x2000 bytes, and return what follows ident.
+  //
+  // Note that x64 inlines this into Com_LoadInfoString(), which then also
+  // validates the info string.
+  //
+  extern const char* Com_LoadInfoString_FastFile(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer);
 }
 
 #define Com_InitThreadData()                                                             \
