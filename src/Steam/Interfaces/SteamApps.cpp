@@ -45,4 +45,41 @@ namespace Steam
   {
     return false;
   }
+
+  unsigned int Apps::GetEarliestPurchaseUnixTime(unsigned int /*nAppID*/)
+  {
+    return 0;
+  }
+
+  bool Apps::BIsSubscribedFromFreeWeekend()
+  {
+    return false;
+  }
+
+  int Apps::GetDLCCount()
+  {
+    return 0;
+  }
+
+  bool Apps::BGetDLCDataByIndex(int /*iDLC*/, unsigned int* /*pAppID*/, bool* /*pbAvailable*/, char* /*pchName*/, int /*cchNameBufferSize*/)
+  {
+    return false;
+  }
+
+  void Apps::InstallDLC(unsigned int /*nAppID*/)
+  {
+  }
+
+  void Apps::UninstallDLC(unsigned int /*nAppID*/)
+  {
+  }
+
+  void Apps::RequestAppProofOfPurchaseKey(unsigned int /*nAppID*/)
+  {
+  }
+
+  uint64_t Apps::RegisterActivationCode(const char* /*pchActivationCode*/)
+  {
+    return 0;
+  }
 }
