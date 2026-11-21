@@ -206,6 +206,19 @@ namespace Components
       return bytes * 8 * f.rate / f.bitrate;
     }
 
+    // Print the error x86 prints when it can't play a streamed sound, which
+    // x64 doesn't have. The stream starts with the name of its sound.
+    //
+    // Note that on x86 we also add that the Miles codecs may be missing and
+    // stop the stream from being played again. x64 decodes the MP3s itself
+    // and closes a stream whose header it couldn't read.
+    //
+    void
+    PrintAliasError (const char* name)
+    {
+      Logger::PrintError (Game::CON_CHANNEL_SOUND, "Couldn't play alias '{}' - no MP3 frame we can read\n", name);
+    }
+
     // Fill in the header the way the game does for an MP3 with its own
     // header, having read the magic (readPosition 8). We compute the
     // average bytes as the game does.
@@ -291,9 +304,6 @@ Sound_ParseStreamHeader (void* header, const std::uint8_t* data, std::uint32_t s
   if (FillMp3Header (static_cast<Game::StreamHeader*> (header), data, size, length))
     return true;
 
-  static bool reported (false);
-  if (!std::exchange (reported, true))
-    Logger::Warning (Game::CON_CHANNEL_SOUND, "Skipping a streamed sound with no MP3 frame we can read\n");
-
+  PrintAliasError (reinterpret_cast<const char*> (stream));
   return false;
 }
