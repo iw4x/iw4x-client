@@ -160,11 +160,11 @@ namespace Game
       return;
     }
 
-    // @@ x64 gives the server commands other letters than x86 does, so this
-    //    may not be the command that updates a stat there. Settle it when we
-    //    port Stats.
+    // Note that on x86 we send this as 'M', which x64 uses for a command of
+    // its own, so we send it as 'G', which x64 doesn't (see
+    // Components::Stats).
     //
-    SV_SendServerCommand(&svs_clients[clientNum], SV_CMD_RELIABLE, "%c %i %i", 'M', index, value);
+    SV_SendServerCommand(&svs_clients[clientNum], SV_CMD_RELIABLE, "%c %i %i", 'G', index, value);
   }
 
   std::optional<bool> sv_spawnCheats;

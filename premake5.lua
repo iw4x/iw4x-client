@@ -289,7 +289,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/Stats.*",
     "src/Components/Modules/StringTable.*",
     "src/Components/Modules/StructuredData.*",
     "src/Components/Modules/TextRenderer.*",
