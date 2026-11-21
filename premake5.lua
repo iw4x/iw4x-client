@@ -289,7 +289,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/ServerCommands.*",
     "src/Components/Modules/ServerDemo.*",
     "src/Components/Modules/ServerInfo.*",
     "src/Components/Modules/ServerList.*",
