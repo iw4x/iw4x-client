@@ -1,5 +1,6 @@
 #include "Toast.hpp"
 #include "Materials.hpp"
+#include "Renderer.hpp"
 
 namespace Components
 {
@@ -150,7 +151,10 @@ namespace Components
 
   Toast::Toast()
   {
-    if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
+    // Note that on x86 we also install nothing for ZoneBuilder, which x64
+    // lacks.
+    //
+    if (Dedicated::IsEnabled())
     {
       return;
     }

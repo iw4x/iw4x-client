@@ -73,6 +73,7 @@
 #include "Modules/TextRenderer.hpp"
 #include "Modules/Theatre.hpp"
 #include "Modules/Threading.hpp"
+#include "Modules/Toast.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/Sound.hpp"
 
@@ -172,6 +173,7 @@ namespace Components
     Register(new TextRenderer());
     Register(new Theatre());
     Register(new Threading());
+    Register(new Toast());
 
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).

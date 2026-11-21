@@ -289,7 +289,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/Toast.*",
     "src/Components/Modules/UIFeeder.*",
     "src/Components/Modules/Updater.*",
     "src/Components/Modules/ViewModelFx.*",
