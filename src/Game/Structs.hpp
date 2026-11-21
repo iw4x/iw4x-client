@@ -8041,8 +8041,8 @@ namespace Game
     int isTimeDemo;
     int demowaiting;
     int(__cdecl* demoread)(void*, int, int);
-    int demofile;
-    int timeDemoLog;
+    fileHandle_t demofile;
+    fileHandle_t timeDemoLog;
     int timeDemoFrames;
     int timeDemoStart;
     int timeDemoPrev;
@@ -8054,6 +8054,8 @@ namespace Game
     char statPacketsToSend;
     int statPacketSendTime[7];
   };
+
+  static_assert(offsetof(clientConnection_t, netchan) == 0x401C8);
 
   // @@ TODO: verify x64 size (0x615E8 on x86).
   //
