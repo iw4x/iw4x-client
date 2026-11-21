@@ -112,6 +112,15 @@ namespace Utils
     //
     static void* AllocateNear(uintptr_t place, size_t size);
 
+    // Return target or, if a 32-bit displacement from next doesn't reach it,
+    // a relay near next that jumps to it. Throw std::runtime_error if there is
+    // no free spot in range.
+    //
+    // Note that next is the address of the instruction after the one that
+    // reaches target, which is what its displacement is from.
+    //
+    static void* Relay(uintptr_t next, void* target);
+
     // Send the function at place to stub and return a trampoline that runs
     // the function as it was. Throw std::runtime_error if length is too short
     // for a jump.

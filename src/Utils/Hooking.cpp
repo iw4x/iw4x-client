@@ -435,6 +435,11 @@ namespace Utils
     Set<uint32_t>(place + field, to);
   }
 
+  void* Hook::Relay(uintptr_t next, void* target)
+  {
+    return Reach(reinterpret_cast<void*>(next), target);
+  }
+
   void Hook::Displace(uintptr_t place, size_t length, uintptr_t from, uintptr_t to)
   {
     Rebase(place, length, place + length, from, to);
