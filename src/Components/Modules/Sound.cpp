@@ -4,39 +4,6 @@ namespace Components
 {
   namespace
   {
-    // The header SND_ParseStreamHeader() fills in for the stream thread.
-    //
-    struct StreamHeader
-    {
-      std::uint32_t dataOffset;
-      std::uint8_t pad04[12];
-      const std::uint8_t* data;
-      std::uint64_t size;
-      std::uint64_t readPosition;
-      std::int32_t rate;
-      std::int32_t dataSize;
-      std::int32_t samples;
-      std::int32_t averageBytes;
-      std::uint16_t channels;
-      std::uint16_t bits;
-      std::uint16_t blockAlign;
-      std::int8_t format;
-      std::uint8_t pad3F[41];
-      std::uint32_t seekCount;
-      std::uint8_t pad6C[4];
-      const std::uint8_t* seekTable;
-    };
-
-    static_assert (sizeof (StreamHeader) == 0x78);
-    static_assert (offsetof (StreamHeader, data) == 0x10);
-    static_assert (offsetof (StreamHeader, readPosition) == 0x20);
-    static_assert (offsetof (StreamHeader, rate) == 0x28);
-    static_assert (offsetof (StreamHeader, averageBytes) == 0x34);
-    static_assert (offsetof (StreamHeader, channels) == 0x38);
-    static_assert (offsetof (StreamHeader, format) == 0x3E);
-    static_assert (offsetof (StreamHeader, seekCount) == 0x68);
-    static_assert (offsetof (StreamHeader, seekTable) == 0x70);
-
     constexpr std::int8_t StreamFormatMp3 = 5;
 
     // The length of the stream's file, which the stream thread keeps in the
@@ -244,7 +211,7 @@ namespace Components
     // average bytes as the game does.
     //
     bool
-    FillMp3Header (StreamHeader* h, const std::uint8_t* data, std::uint32_t size, std::int64_t length)
+    FillMp3Header (Game::StreamHeader* h, const std::uint8_t* data, std::uint32_t size, std::int64_t length)
     {
       Mp3Frame f;
       if (!FindFirstFrame (data, size, f))
@@ -321,7 +288,7 @@ Sound_ParseStreamHeader (void* header, const std::uint8_t* data, std::uint32_t s
   std::int32_t length;
   std::memcpy (&length, stream + StreamFileLength, sizeof (length));
 
-  if (FillMp3Header (static_cast<StreamHeader*> (header), data, size, length))
+  if (FillMp3Header (static_cast<Game::StreamHeader*> (header), data, size, length))
     return true;
 
   static bool reported (false);

@@ -2891,6 +2891,39 @@ namespace Game
     int max_stream_channels;
   };
 
+  // The header SND_ParseStreamHeader() fills in for the stream thread.
+  //
+  struct StreamHeader
+  {
+    std::uint32_t dataOffset;
+    std::uint8_t pad04[12];
+    const std::uint8_t* data;
+    std::uint64_t size;
+    std::uint64_t readPosition;
+    std::int32_t rate;
+    std::int32_t dataSize;
+    std::int32_t samples;
+    std::int32_t averageBytes;
+    std::uint16_t channels;
+    std::uint16_t bits;
+    std::uint16_t blockAlign;
+    std::int8_t format;
+    std::uint8_t pad3F[41];
+    std::uint32_t seekCount;
+    std::uint8_t pad6C[4];
+    const std::uint8_t* seekTable;
+  };
+
+  static_assert(sizeof(StreamHeader) == 0x78);
+  static_assert(offsetof(StreamHeader, data) == 0x10);
+  static_assert(offsetof(StreamHeader, readPosition) == 0x20);
+  static_assert(offsetof(StreamHeader, rate) == 0x28);
+  static_assert(offsetof(StreamHeader, averageBytes) == 0x34);
+  static_assert(offsetof(StreamHeader, channels) == 0x38);
+  static_assert(offsetof(StreamHeader, format) == 0x3E);
+  static_assert(offsetof(StreamHeader, seekCount) == 0x68);
+  static_assert(offsetof(StreamHeader, seekTable) == 0x70);
+
   struct Poly
   {
     float(*pts)[3];
