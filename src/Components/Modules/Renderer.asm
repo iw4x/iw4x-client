@@ -1,83 +1,54 @@
-.686
-.model flat, C
-option casemap:none
-
 EXTERN Renderer_BackendFrameHandler:PROC
 EXTERN Renderer_RB_RecoverDevice:PROC
-EXTERN Renderer_PostVidRestart:PROC
 EXTERN Renderer_R_TextureFromCodeError:PROC
 
 .code
 
 Renderer_BackendFrameStub PROC
-  pushad
+  sub     rsp, 20h
   call    Renderer_BackendFrameHandler
-  popad
+  add     rsp, 20h
 
-  mov     eax, dword ptr ds:[66E1BF0h]
-  push    536A85h
-  ret
+  mov     rax, 148CC7FC4h
+  movsxd  rax, dword ptr [rax]
+
+  mov     rcx, 14004FD07h
+  jmp     rcx
 Renderer_BackendFrameStub ENDP
 
 Renderer_RB_SwapBuffers_PresentFailedStub PROC
   cmp     eax, 88760868h
   je      done
 
-  push    eax
-  push    eax
+  push    rax
+  sub     rsp, 28h
+  mov     ecx, eax
   call    Renderer_RB_RecoverDevice
-  add     esp, 4h
+  add     rsp, 28h
   test    al, al
-  pop     eax
+  pop     rax
   jnz     done
 
-  push    536AABh
-  ret
+  mov     rcx, 14004FD54h
+  jmp     rcx
 
 done:
-  push    536AC1h
-  ret
+  mov     rcx, 14004FD6Ch
+  jmp     rcx
 Renderer_RB_SwapBuffers_PresentFailedStub ENDP
 
-Renderer_PostVidRestartStub PROC
-  pushad
-  call    Renderer_PostVidRestart
-  popad
+Renderer_TextureFromCodeErrorStub1 PROC
+  mov     rcx, r8
+  mov     rdx, qword ptr [rdi+8]
+  mov     r8d, dword ptr [rbx+6]
+  jmp     Renderer_R_TextureFromCodeError
+Renderer_TextureFromCodeErrorStub1 ENDP
 
-  push    4F84C0h
-  ret
-Renderer_PostVidRestartStub ENDP
-
-Renderer_StoreGfxBufContextPtrStub1 PROC
-  mov     eax, dword ptr [eax*4+66E600Ch]
-
-  pushad
-
-  push    edx
-  push    dword ptr [esp+20h+24h+4h]
-  push    eax
-  call    Renderer_R_TextureFromCodeError
-  add     esp, 0Ch
-
-  popad
-
-  push    54CAC1h
-  ret
-Renderer_StoreGfxBufContextPtrStub1 ENDP
-
-Renderer_StoreGfxBufContextPtrStub2 PROC
-  mov     edx, dword ptr [eax*4+66E600Ch]
-
-  pushad
-  push    eax
-  push    ebx
-  push    edx
-  call    Renderer_R_TextureFromCodeError
-  add     esp, 0Ch
-  popad
-
-  push    54CFA4h
-  ret
-Renderer_StoreGfxBufContextPtrStub2 ENDP
+Renderer_TextureFromCodeErrorStub2 PROC
+  mov     rcx, r8
+  mov     rdx, qword ptr [r14+8]
+  mov     r8d, dword ptr [rdi+6]
+  jmp     Renderer_R_TextureFromCodeError
+Renderer_TextureFromCodeErrorStub2 ENDP
 
 END
