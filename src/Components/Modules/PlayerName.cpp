@@ -28,6 +28,11 @@ namespace Components
     }
   }
 
+  void PlayerName::ClientCleanName(const char* in, char* out, int outSize)
+  {
+    UserInfoCopy(out, in, outSize);
+  }
+
   int PlayerName::GetClientName(int localClientNum, int index, char* buf, int size)
   {
     const auto result = Game::CL_GetClientName(localClientNum, index, buf, size);
@@ -66,7 +71,7 @@ namespace Components
 
   bool PlayerName::CopyClientNameCheck(char* dest, const char* source, int size)
   {
-    Utils::Hook::Call<void(char*, const char*, int)>(0x4D6F80)(dest, source, size); // I_strncpyz
+    Game::I_strncpyz(dest, source, size);
 
     auto i = 0;
     while (i < size - 1 && dest[i] != '\0')
@@ -91,45 +96,44 @@ namespace Components
     Game::SV_DropClient(drop, reason, false);
   }
 
+  // Note that on x86 our stub takes the client from a register. On x64 we
+  // take it from the name buffer we're copying to, which is the client's.
+  //
+  void PlayerName::SV_UserinfoChanged_Hk(char* dest, const char* source, int size)
+  {
+    if (!CopyClientNameCheck(dest, source, size))
+    {
+      DropClient(reinterpret_cast<Game::client_s*>(dest - offsetof(Game::client_s, name)));
+    }
+  }
+
   PlayerName::PlayerName()
   {
+    AssertOffset(Game::client_s, name, 0x212C0);
+
     sv_allowColoredNames = Dvar::Register<bool>("sv_allowColoredNames", true, Game::DVAR_NONE, "Allow colored names on the server");
 
     // Disable SV_UpdateUserinfo_f to block changing the name ingame
-    Utils::Hook::Set<BYTE>(0x6258D0, 0xC3);
+    Utils::Hook::Set<BYTE>(0x140234F40, 0xC3);
 
     // Allow colored names ingame. Hook placed in ClientUserinfoChanged
-    Utils::Hook(0x445301, PlayerName_ClientCleanName, HOOK_CALL).install()->quick();
-    Utils::Hook(0x44533A, PlayerName_ClientCleanName, HOOK_CALL).install()->quick();
+    //
+    // Note that x64 also inlines ClientUserinfoChanged() into ClientConnect(),
+    // so we hook its copy there as well.
+    //
+    Utils::Hook(0x140196973, ClientCleanName, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401969BB, ClientCleanName, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140196031, ClientCleanName, HOOK_CALL).install()->quick(); // ClientConnect
+    Utils::Hook(0x140196079, ClientCleanName, HOOK_CALL).install()->quick(); // ClientConnect
 
     // Though, don't apply that to overhead names.
-    Utils::Hook(0x581932, GetClientName, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400D1C9A, GetClientName, HOOK_CALL).install()->quick();
 
     // Patch I_CleanStr
-    Utils::Hook(0x4AD470, CleanStrStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14028A4E0, CleanStrStub, HOOK_JUMP).install()->quick();
 
     // Detect invalid characters including '%' to prevent format string vulnerabilities.
     // Kicks the player as soon as possible
-    Utils::Hook(0x401983, PlayerName_SV_UserinfoChangedStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140237E12, SV_UserinfoChanged_Hk, HOOK_CALL).install()->quick();
   }
-}
-
-void PlayerName_UserInfoCopy(char* buffer, const char* name, int size)
-{
-  Components::PlayerName::UserInfoCopy(buffer, name, size);
-}
-
-bool PlayerName_CopyClientNameCheck(char* dest, const char* source, int size)
-{
-  return Components::PlayerName::CopyClientNameCheck(dest, source, size);
-}
-
-void PlayerName_DropClient(Game::client_s* drop)
-{
-  Components::PlayerName::DropClient(drop);
-}
-
-char* PlayerName_CleanStrStub(char* string)
-{
-  return Components::PlayerName::CleanStrStub(string);
 }
