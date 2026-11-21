@@ -106,6 +106,18 @@ namespace Components
     //
     Utils::Hook::PlaceString(0x1401F54FF, 7, 0x140389580, REVISION_STR);
 
+    // Com_Init_Try_Block_Function's version line.
+    //
+    // Note that on x86 we also replace the date, where x64 prints the
+    // platform. It takes the build number from GetBuildNumber() below.
+    //
+    Utils::Hook::PlaceString(0x1401F54A5, 7, 0x140387AA8, BUILD_TYPE);
+#ifdef EXPERIMENTAL_BUILD
+    Utils::Hook::PlaceString(0x1401F5497, 7, 0x140389580, REVISION_STR "-develop");
+#else
+    Utils::Hook::PlaceString(0x1401F5497, 7, 0x140389580, REVISION_STR);
+#endif
+
     Utils::Hook(0x1401E6960, GetBuildNumber, HOOK_JUMP).install()->quick();
 
     // UI version string color.
