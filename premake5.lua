@@ -289,7 +289,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/Theatre.*",
     "src/Components/Modules/Threading.*",
     "src/Components/Modules/Toast.*",
     "src/Components/Modules/UIFeeder.*",

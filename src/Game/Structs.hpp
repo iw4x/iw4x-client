@@ -7115,15 +7115,17 @@ namespace Game
     FS_LIST_ALL = 0x1,
   };
 
+  // Note that x64 numbers the server message ops as the Steam game does,
+  // without svc_nop, where x86 numbers them from svc_nop.
+  //
   enum svc_ops_e
   {
-    svc_nop = 0x0,
-    svc_gamestate = 0x1,
-    svc_configstring = 0x2,
-    svc_serverCommand = 0x3,
+    svc_snapshot = 0x0,
+    svc_serverCommand = 0x1,
+    svc_gamestate = 0x2,
+    svc_configstring = 0x3,
     svc_matchdata = 0x4,
-    svc_snapshot = 0x5,
-    svc_EOF = 0x6,
+    svc_EOF = 0x5,
   };
 
   enum netsrc_t

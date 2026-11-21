@@ -1,82 +1,53 @@
-.686
-.model flat, C
-option casemap:none
-
 EXTERN Theatre_StoreBaseline:PROC
-EXTERN Theatre_WriteBaseline:PROC
 EXTERN Theatre_AdjustTimeDelta:PROC
 
 .code
 
 Theatre_BaselineStoreStub PROC
-  push    edi
-  call    Theatre_StoreBaseline
-  pop     edi
+  mov     rax, 140C397BCh
+  mov     dword ptr [rax], ebx
 
-  mov     edx, 5ABEF5h
-  jmp     edx
+  sub     rsp, 20h
+  mov     rcx, rbp
+  call    Theatre_StoreBaseline
+  add     rsp, 20h
+
+  mov     rax, 140100FF6h
+  jmp     rax
 Theatre_BaselineStoreStub ENDP
 
-Theatre_BaselineToFileStub PROC
-  pushad
-  call    Theatre_WriteBaseline
-  popad
-
-  mov     ecx, 0A5E9C4h
-  mov     byte ptr [ecx], 0
-
-  push    5A863Ah
-  ret
-Theatre_BaselineToFileStub ENDP
-
 Theatre_AdjustTimeDeltaStub PROC
-  push    eax
-  pushad
+  mov     rax, 140C397B4h
+  cmp     dword ptr [rax], 0
+  jnz     demo
+
+  mov     r11d, r9d
+  mov     rax, 1406CFE30h
+  mov     dword ptr [rax], r15d
+  mov     rax, 1400F51ABh
+  jmp     rax
+
+demo:
+  sub     rsp, 20h
   call    Theatre_AdjustTimeDelta
-  mov     [esp+20h], eax
-  popad
-  pop     eax
+  add     rsp, 20h
 
-  test    al, al
-  jz      continue
-
-  ret
-
-continue:
-  push    5A1AD0h
-  ret
+  mov     rax, 1400F52D6h
+  jmp     rax
 Theatre_AdjustTimeDeltaStub ENDP
 
-Theatre_ServerTimedOutStub PROC
-  mov     eax, 0A5EA0Ch
-  mov     eax, [eax]
-  test    al, al
-  jz      continue
-
-  mov     eax, 5A8E70h
-  jmp     eax
-
-continue:
-  mov     eax, dword ptr ds:[0B2BB90h]
-  push    5A8E08h
-  ret
-Theatre_ServerTimedOutStub ENDP
-
 Theatre_UISetActiveMenuStub PROC
-  mov     eax, 0A5EA0Ch
-  mov     eax, [eax]
-  test    al, al
-  jz      continue
+  mov     rax, 140C397B4h
+  cmp     dword ptr [rax], 0
+  jz      menu
 
-  mov     eax, 4CB49Ch
-  jmp     eax
+  mov     rax, 140270E71h
+  jmp     rax
 
-continue:
-  mov     ecx, [esp+10h]
-  push    10h
-  push    ecx
-  push    4CB3F6h
-  ret
+menu:
+  mov     edx, 10h
+  mov     rax, 140270E8Bh
+  jmp     rax
 Theatre_UISetActiveMenuStub ENDP
 
 END

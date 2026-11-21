@@ -1,17 +1,9 @@
 #include "Theatre.hpp"
-#include "Game/SteamScrambledData.hpp"
 #include "UIFeeder.hpp"
 #include "Weapon.hpp"
 
 namespace
 {
-  enum SnapshotFixType
-  {
-    SNAPSHOT_FIX_NONE,
-    SNAPSHOT_FIX_RETAIL,
-    SNAPSHOT_FIX_STEAM
-  };
-
   void UpdateWeaponSelection(Game::cg_s& cg, const Game::snapshot_s& snapshot)
   {
     if (static_cast<unsigned int>(cg.weaponSelect) != snapshot.ps.weapCommon.weapon)
@@ -24,87 +16,6 @@ namespace
     }
   }
 
-  void UpdateAmmoIndices(Game::snapshot_s& snapshot)
-  {
-    for (unsigned int i = 0; i < std::size(snapshot.ps.weaponsEquipped); ++i)
-    {
-      const auto index = snapshot.ps.weaponsEquipped[i];
-      if (index)
-      {
-        const auto* weaponDef = Game::BG_GetWeaponDef(index);
-
-        // fix ammo indices to prevent the ammo from showing up empty
-        snapshot.ps.weapCommon.ammoInClip[i].clipIndex = weaponDef->iClipIndex;
-        snapshot.ps.weapCommon.ammoNotInClip[i].ammoType = weaponDef->iAmmoIndex;
-      }
-    }
-  }
-
-  void FixSnapshotDataForSteam(Game::snapshot_s& snapshot)
-  {
-    for (auto& elem : snapshot.ps.hud.archival)
-    {
-      if (elem.type == Game::HE_TYPE_FREE)
-      {
-        break;
-      }
-
-      if (elem.type >= Game::HE_TYPE_MAPNAME)
-      {
-        // Steam version misses HE_TYPE_MAPNAME and HE_TYPE_GAMETYPE
-        elem.type = static_cast<Game::he_type_t>(elem.type + 2);
-      }
-    }
-
-    for (auto& elem : snapshot.ps.hud.current)
-    {
-      if (elem.type == Game::HE_TYPE_FREE)
-      {
-        break;
-      }
-
-      if (elem.type >= Game::HE_TYPE_MAPNAME)
-      {
-        // Steam version misses HE_TYPE_MAPNAME and HE_TYPE_GAMETYPE
-        elem.type = static_cast<Game::he_type_t>(elem.type + 2);
-      }
-    }
-
-    static constexpr auto BASEGAME_WEAPON_LIMIT = Components::Weapon::BASEGAME_WEAPON_LIMIT;
-    static constexpr auto STEAM_WEAPON_LIMIT = 1400;
-
-    for (auto i = 0; i < std::ssize(snapshot.entities) && i < snapshot.numEntities; ++i)
-    {
-      auto& ent = snapshot.entities[i];
-
-      if (ent.eType == Game::ET_ITEM || ent.eType == Game::ET_MISSILE || ent.eType == Game::ET_TURRET)
-      {
-        if (ent.index.item >= STEAM_WEAPON_LIMIT)
-        {
-          const auto weapIdx = ent.index.item % STEAM_WEAPON_LIMIT;
-          const auto weapModel = ent.index.item / STEAM_WEAPON_LIMIT;
-
-          // Steam version uses a limit of 1400 weapons
-          // this has to fixed in some way to prevent the game from crashing
-          ent.index.item = weapIdx + weapModel * BASEGAME_WEAPON_LIMIT;
-        }
-      }
-      else if (ent.eType == static_cast<int>(Game::ET_EVENTS) + static_cast<int>(Game::EV_OBITUARY))
-      {
-        const auto val = ((ent.un1.eventParm2 << 8) | ent.eventParm);
-
-        if (val >= STEAM_WEAPON_LIMIT)
-        {
-          // Steam version uses a limit of 1400 weapons
-          // this has to fixed in some way to prevent the game from crashing
-          ent.un1.eventParm2 = BASEGAME_WEAPON_LIMIT / 256;
-          ent.eventParm = (val - (STEAM_WEAPON_LIMIT - BASEGAME_WEAPON_LIMIT)) - (ent.un1.eventParm2 * 256);
-        }
-      }
-    }
-  }
-
-  template <SnapshotFixType type>
   int CL_GetSnapshotStub(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot)
   {
     const auto result = Game::CL_GetSnapshot(localClientNum, snapshotNumber, snapshot);
@@ -112,181 +23,19 @@ namespace
     if (Game::clientConnections->demoplaying)
     {
       UpdateWeaponSelection(Game::cgArray[localClientNum], *snapshot);
-
-      if constexpr (type == SNAPSHOT_FIX_RETAIL || type == SNAPSHOT_FIX_STEAM)
-      {
-        UpdateAmmoIndices(*snapshot);
-
-        if constexpr (type == SNAPSHOT_FIX_STEAM)
-        {
-          FixSnapshotDataForSteam(*snapshot);
-        }
-      }
     }
 
     return result;
   }
 
-  inline auto curScrambledDataPtr = scrambledData;
-  void UpdateScrambleBuffer(unsigned int index)
+  // Note that on x86 we take over where CL_ReadDemoNetworkPacket() returns
+  // once it parsed the message, which on x64 is right after it calls
+  // CL_ParseServerMessage().
+  //
+  void CL_ReadDemoNetworkPacketStub(int localClientNum, Game::msg_t* msg)
   {
-    const auto* ptr = (scrambledData + 16 * (index % 25099));
-    curScrambledDataPtr = ptr;
-  }
+    Utils::Hook::Call<void(int, Game::msg_t*)>(0x140100C80)(localClientNum, msg); // CL_ParseServerMessage
 
-  template <unsigned int count, bool descramble>
-    requires (count == 1 || count == 2 || count == 4)
-  int MSG_ReadBytes(Game::msg_t* msg)
-  {
-    if (msg->readcount + count > static_cast<unsigned int>(msg->cursize))
-    {
-      msg->overflowed = 1;
-      return -1;
-    }
-
-    int val{};
-    std::memcpy(&val, &msg->data[msg->readcount], count);
-
-    if constexpr (descramble)
-    {
-      if (msg->readcount < 16)
-      {
-        int scrambledVal{};
-
-        if constexpr (count == 1)
-        {
-          std::memcpy(&scrambledVal, &curScrambledDataPtr[msg->readcount & 15], count);
-          val = (val - scrambledVal) & 0xFF;
-        }
-        else if constexpr (count == 2)
-        {
-          std::memcpy(&scrambledVal, &curScrambledDataPtr[msg->readcount & 14], count);
-          val = (val - scrambledVal) & 0xFFFF;
-        }
-        else
-        {
-          std::memcpy(&scrambledVal, &curScrambledDataPtr[msg->readcount & 12], count);
-          val = (val - scrambledVal) & 0xFFFF'FFFF;
-        }
-      }
-    }
-
-    msg->readcount += count;
-    return val;
-  }
-
-  void FixStringForSteam(char* string)
-  {
-    if (string[1] != ' ' && string[1] != '\0')
-    {
-      return;
-    }
-
-    if (string[0] < 'A' || string[0] > 'z')
-    {
-      return;
-    }
-
-    static constexpr const char STRING_TYPES[]
-    {
-      // 'X' is a case that does nothing
-      // 'b' is the scoreboard (sb) identifier and is replaced with 'X'
-      // as Steam sb strings use a different format and sb is irrelevant for demos anyway
-
-      // ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        "EFGHIJXLXNOXQRSTUVWXhiXXXX"
-        "XXXXXX"
-      // abcdefghijklmnopqrstuvwxyz
-        "aXcdefgklmnopqrstuvwxyABCD"
-    };
-
-    string[0] = STRING_TYPES[string[0] - 'A'];
-  }
-
-  const char* MSG_ReadString(Game::msg_t* msg, char* string, unsigned int maxChars)
-  {
-    for (unsigned int i = 0; ; ++i)
-    {
-      auto val = MSG_ReadBytes<1, true>(msg);
-      if (val == -1)
-      {
-        val = 0;
-      }
-      if (i < maxChars)
-      {
-        string[i] = static_cast<char>((val == 146) ? 39 : val);
-      }
-      if (val == 0)
-      {
-        break;
-      }
-    }
-
-    FixStringForSteam(string);
-
-    string[maxChars - 1] = 0;
-    return string;
-  }
-
-  int MSG_ReadByteStub(Game::msg_t* msg)
-  {
-    const auto svcType = MSG_ReadBytes<1, true>(msg);
-
-    switch (svcType)
-    {
-    case 0:
-      return Game::svc_ops_e::svc_snapshot;
-    case 1:
-      return Game::svc_ops_e::svc_serverCommand;
-    case 2:
-      return Game::svc_ops_e::svc_gamestate;
-    case 4:
-      return Game::svc_ops_e::svc_matchdata;
-    case 5:
-      return Game::svc_ops_e::svc_EOF;
-    case 3:
-      return Game::svc_ops_e::svc_configstring; // for CL_ParseGamestate
-    default:
-      // trigger warning for illegible message type in CL_ParseServerMessage
-      return -1;
-    }
-  }
-
-  int MSG_ReadLongStub1(Game::msg_t* msg)
-  {
-    const auto reliableAcknowledge = MSG_ReadBytes<4, false>(msg);
-
-    UpdateScrambleBuffer(reliableAcknowledge);
-    return reliableAcknowledge;
-  }
-
-  int MSG_ReadLongStub2(Game::msg_t* msg)
-  {
-    const auto serverCommandSequence = MSG_ReadBytes<4, true>(msg);
-
-    UpdateScrambleBuffer(Game::clientConnections->reliableAcknowledge + (serverCommandSequence << 8));
-    return serverCommandSequence;
-  }
-
-  int MSG_ReadLongStub3(Game::msg_t* msg)
-  {
-    const auto serverTime = MSG_ReadBytes<4, true>(msg);
-
-    UpdateScrambleBuffer(serverTime / 50);
-    return serverTime;
-  }
-
-  int MSG_ReadLongStub4(Game::msg_t* msg)
-  {
-    const auto serverCommandSequence = MSG_ReadBytes<4, true>(msg);
-
-    UpdateScrambleBuffer(serverCommandSequence);
-    return serverCommandSequence;
-  }
-
-  template <bool STEAM_DEMO>
-  void CL_ReadDemoNetworkPacketStub()
-  {
     assert(Game::clientConnections->demoplaying);
 
     auto* clc = Game::clientConnections;
@@ -311,16 +60,16 @@ namespace
         auto* cg = Game::cgArray;
         cg->landTime = 0;
 
-        //
         Components::Command::Execute("demoAddMissingStrings", false);
-        //Command::Execute("demoAddMissingStrings", false);
-        //
       }
       else
       {
         for (auto i = lastExecutedServerCommand + 1; i <= serverCommandSequence; ++i)
         {
-          static constexpr auto mapRestart = (STEAM_DEMO) ? 'x' : 'B';
+          // Note that x64 numbers the server commands as the Steam game
+          // does, which makes the fast restart 'x' ('B' on x86).
+          //
+          static constexpr auto mapRestart = 'x';
           if (clc->serverCommands[i & 127][0] == mapRestart)
           {
             // Ignoring fast restart commands, because they crash in CG_ClearEntityFxHandles,
@@ -364,12 +113,17 @@ namespace Components
     };
   }
 
+  // CL_Record_f() writes the configstrings op right after the map and the
+  // gametype, where the server's gamestate has the configstrings checksum.
+  //
   void Theatre::GamestateWriteStub(Game::msg_t* msg, char byte)
   {
     Game::MSG_WriteLong(msg, 0);
     Game::MSG_WriteByte(msg, byte);
   }
 
+  // The gamestate takes the message sequence before the baseline's.
+  //
   void Theatre::RecordGamestateStub()
   {
     const auto sequence = (Game::clientConnections->serverMessageSequence - 1);
@@ -448,11 +202,28 @@ namespace Components
     return false;
   }
 
+  // CL_Record_f() ends on clearing the client archive index, which we do
+  // once we wrote the baseline after the gamestate.
+  //
+  void Theatre::BaselineToFileStub()
+  {
+    WriteBaseline();
+
+    Game::clientConnections->lastClientArchiveIndex = 0;
+  }
+
+  // A demo has no server to time out.
+  //
+  bool Theatre::CL_ServerTimedOut_Stub()
+  {
+    return Game::clientConnections->demoplaying || Utils::Hook::Call<bool()>(0x1402A14C0)();
+  }
+
   void Theatre::CG_CompassDrawPlayerMapLocationSelector_Stub(const int localClientNum, Game::CompassType compassType, const Game::rectDef_s* parentRect, const Game::rectDef_s* rect, Game::Material* material, float* color)
   {
     if (!Game::clientConnections->demoplaying)
     {
-      Utils::Hook::Call<void(int, Game::CompassType, const Game::rectDef_s*, const Game::rectDef_s*, Game::Material*, float*)>(0x45BD60)(localClientNum, compassType, parentRect, rect, material, color);
+      Utils::Hook::Call<void(int, Game::CompassType, const Game::rectDef_s*, const Game::rectDef_s*, Game::Material*, float*)>(0x1400A4800)(localClientNum, compassType, parentRect, rect, material, color);
     }
   }
 
@@ -470,7 +241,11 @@ namespace Components
     (write)(ps->velocity, sizeof(float[3]), localClientNum);
     (write)(&ps->movementDir, sizeof(int), localClientNum);
     (write)(&ps->bobCycle, sizeof(int), localClientNum);
-    (write)(ps, sizeof(Game::playerState_s*), localClientNum);
+
+    // Note that on x86 we write the size of a pointer here, which is that of
+    // the command time there.
+    //
+    (write)(&ps->commandTime, sizeof(int), localClientNum);
     (write)(viewangles, sizeof(float[3]), localClientNum);
 
     // Disable locationSelectionInfo
@@ -478,21 +253,36 @@ namespace Components
     (write)(&locationSelectionInfo, sizeof(int), localClientNum);
   }
 
-  void Theatre::RecordStub(int channel, char* message, char* file)
+  // Note that on x86 we take the demo's name from where CL_Record_f()
+  // prints it, which x64 compiles out. So we take it from where the command
+  // opens the demo instead.
+  //
+  Game::fileHandle_t Theatre::RecordStub(const char* file)
   {
-    Game::Com_Printf(channel, message, file);
-
     CurrentInfo.name = file;
     CurrentInfo.mapname = (*Game::sv_mapname)->current.string;
     CurrentInfo.gametype = (*Game::sv_gametype)->current.string;
     CurrentInfo.author = Steam::SteamFriends()->GetPersonaName();
     CurrentInfo.length = Game::Sys_Milliseconds();
     std::time(&CurrentInfo.timeStamp);
+
+    return Game::FS_FOpenFileWrite(file);
   }
 
-  void Theatre::StopRecordStub(int channel, char* message)
+  // Note that on x86 we write the metadata where CL_StopRecord_f() prints
+  // that it stopped, which x64 compiles out. So we run the command ourselves
+  // and write it if a demo was recording.
+  //
+  void Theatre::CL_StopRecord_f_Hk()
   {
-    Game::Com_Printf(channel, message);
+    const auto recording = Game::clientConnections->demorecording != 0;
+
+    Utils::Hook::Call<void()>(0x1400FD9E0)(); // CL_StopRecord_f
+
+    if (!recording)
+    {
+      return;
+    }
 
     // Store correct length
     CurrentInfo.length = Game::Sys_Milliseconds() - CurrentInfo.length;
@@ -507,7 +297,7 @@ namespace Components
     CurrentSelection = 0;
     Demos.clear();
 
-    const auto demos = FileSystem::GetFileList("demos/", "dm_13");
+    const auto demos = FileSystem::GetFileList("demos/", DemoExtension);
 
     for (auto demo : demos)
     {
@@ -548,8 +338,8 @@ namespace Components
 
       Logger::Print("Deleting demo {}...\n", demoInfo.name);
 
-      FileSystem::_DeleteFile("demos", demoInfo.name + ".dm_13");
-      FileSystem::_DeleteFile("demos", demoInfo.name + ".dm_13.json");
+      FileSystem::_DeleteFile("demos", std::format("{}.{}", demoInfo.name, DemoExtension));
+      FileSystem::_DeleteFile("demos", std::format("{}.{}.json", demoInfo.name, DemoExtension));
 
       // Reset our ui_demo_* dvars here, because the theater menu needs it.
       Dvar::Var("ui_demo_mapname").set("");
@@ -575,7 +365,7 @@ namespace Components
 
   unsigned int Theatre::GetDemoCount()
   {
-    return Demos.size();
+    return static_cast<unsigned int>(Demos.size());
   }
 
   // Omit column here
@@ -615,7 +405,7 @@ namespace Components
   {
     if (Game::clientConnections->demoplaying)
     {
-      auto* sv_cheats = const_cast<Game::dvar_t*>(*Game::sv_cheats);
+      auto* sv_cheats = const_cast<Game::dvar_t*>(Game::dvar_cheats);
       if (!sv_cheats->current.enabled)
       {
         sv_cheats->current.enabled = true;
@@ -625,7 +415,7 @@ namespace Components
     else if (CLAutoRecord.get<bool>())
     {
       std::vector<std::string> files;
-      auto demos = FileSystem::GetFileList("demos/", "dm_13");
+      auto demos = FileSystem::GetFileList("demos/", DemoExtension);
 
       for (auto& demo : demos)
       {
@@ -664,7 +454,7 @@ namespace Components
       }, Scheduler::Pipeline::MAIN);
     }
 
-    return Utils::Hook::Call<int()>(0x42BBB0)(); // DB_GetLoadedFlags
+    return Utils::Hook::Call<int()>(0x14012DD00)(); // DB_GetLoadedFlags
   }
 
   void Theatre::SV_SpawnServer_Stub()
@@ -681,7 +471,14 @@ namespace Components
     }
   }
 
+  // The last configstring the game takes, which CL_ConfigstringModified()
+  // checks.
   //
+  // Note that x64 has 4339 configstrings where x86 has 4139, so we can't
+  // bound them with CS_LAST as on x86.
+  //
+  constexpr unsigned long MaxConfigstringIndex = Game::MAX_CONFIGSTRINGS - 1;
+
   auto demoGetGamestateCallback = [](const Components::Command::Params* params)
   {
     if (params->size() != 2)
@@ -690,20 +487,20 @@ namespace Components
       return;
     }
 
-    if (!Game::clientConnections->demoplaying && !(*Game::sv_cheats)->current.enabled)
+    if (!Game::clientConnections->demoplaying && !Game::dvar_cheats->current.enabled)
     {
       Components::Logger::Print("demoGetGamestate: demo must be playing\n");
       return;
     }
 
     const auto index = std::strtoul(params->get(1), nullptr, 10);
-    if (index > Game::CS_LAST)
+    if (index > MaxConfigstringIndex)
     {
-      Components::Logger::Print("demoGetGamestate: invalid index = {}, max index = {}\n", index, static_cast<unsigned int>(Game::CS_LAST));
+      Components::Logger::Print("demoGetGamestate: invalid index = {}, max index = {}\n", index, MaxConfigstringIndex);
       return;
     }
 
-    const auto* ptr = Game::CL_GetConfigString(index);
+    const auto* ptr = Game::CL_GetConfigString(static_cast<int>(index));
     if (!ptr)
     {
       Components::Logger::Print("demoGetGamestate: invalid string address\n");
@@ -715,8 +512,8 @@ namespace Components
 
   auto demoSetGamestateCallback = [](const Components::Command::Params* params)
   {
-    typedef char* (*CL_ConfigstringModified_t)();
-    CL_ConfigstringModified_t CL_ConfigstringModified = CL_ConfigstringModified_t(0x5A1F50);
+    typedef void (*CL_ConfigstringModified_t)(int localClientNum);
+    CL_ConfigstringModified_t CL_ConfigstringModified = CL_ConfigstringModified_t(0x1400F3EC0);
 
     if (params->size() != 3)
     {
@@ -724,27 +521,27 @@ namespace Components
       return;
     }
 
-    if (!Game::clientConnections->demoplaying && !(*Game::sv_cheats)->current.enabled)
+    if (!Game::clientConnections->demoplaying && !Game::dvar_cheats->current.enabled)
     {
       Components::Logger::Print("demoSetGamestate: demo must be playing\n");
       return;
     }
 
     const auto index = std::strtoul(params->get(1), nullptr, 10);
-    if (index > Game::CS_LAST)
+    if (index > MaxConfigstringIndex)
     {
-      Components::Logger::Print("demoSetGamestate: invalid index = {}, max index = {}\n", index, static_cast<unsigned int>(Game::CS_LAST));
+      Components::Logger::Print("demoSetGamestate: invalid index = {}, max index = {}\n", index, MaxConfigstringIndex);
       return;
     }
 
-    CL_ConfigstringModified();
+    CL_ConfigstringModified(0);
 
     Components::Logger::Print("demoSetGamestate: gamestate index {} modified\n", index);
   };
 
   auto demoAddMissingStringsCallback = [](const Components::Command::Params*)
   {
-    if (!Game::clientConnections->demoplaying && !(*Game::sv_cheats)->current.enabled)
+    if (!Game::clientConnections->demoplaying && !Game::dvar_cheats->current.enabled)
     {
       Components::Logger::Print("demoAddMissingStrings: demo must be playing\n");
       return;
@@ -757,7 +554,7 @@ namespace Components
     {
       for (size_t i = CS_TAGS_FIRST, j = 0; i < CS_TAGS_FIRST + 10; ++i, ++j)
       {
-        const auto* ptr = Game::CL_GetConfigString(i);
+        const auto* ptr = Game::CL_GetConfigString(static_cast<int>(i));
         if (ptr && ptr == sv)
         {
           return j;
@@ -777,7 +574,7 @@ namespace Components
 
     for (size_t i = CS_TAGS_FIRST; i < CS_TAGS_FIRST + 10; ++i)
     {
-      const auto* ptr = Game::CL_GetConfigString(i);
+      const auto* ptr = Game::CL_GetConfigString(static_cast<int>(i));
       if (ptr && ptr[0] == '\0')
       {
         const auto tagIndex = findTagIndex(tagStrings[0]);
@@ -795,76 +592,76 @@ namespace Components
       }
     }
   };
-  //
 
   Theatre::Theatre()
   {
+    AssertOffset(Game::clientConnection_t, serverMessageSequence, 0x2013C);
+    AssertOffset(Game::clientConnection_t, lastClientArchiveIndex, 0x4014C);
     AssertOffset(Game::clientConnection_t, demorecording, 0x40190);
     AssertOffset(Game::clientConnection_t, demoplaying, 0x40194);
-    AssertOffset(Game::clientConnection_t, demofile, 0x401A4);
-    AssertOffset(Game::clientConnection_t, serverMessageSequence, 0x2013C);
+    AssertOffset(Game::clientConnection_t, demowaiting, 0x4019C);
+    AssertOffset(Game::clientConnection_t, demofile, 0x401A8);
+
+    AssertOffset(Game::clientActive_t, snap.serverTime, 0x312C);
+    AssertOffset(Game::clientActive_t, serverTime, 0x3158);
+    AssertOffset(Game::clientActive_t, serverTimeDelta, 0x3164);
+
+    AssertOffset(Game::cgs_t, serverCommandSequence, 0x14);
+
+    AssertOffset(Game::snapshot_s, ps.weapCommon.weapon, 0x2B4);
+    AssertOffset(Game::snapshot_s, serverTime, 0x3124);
+
+    AssertOffset(Game::playerState_s, bobCycle, 0x18);
+    AssertOffset(Game::playerState_s, origin, 0x1C);
+    AssertOffset(Game::playerState_s, velocity, 0x28);
+    AssertOffset(Game::playerState_s, movementDir, 0xAC);
 
     CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games");
     CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 100, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
 
-    if (Flags::HasFlag("steamdemo"))
-    {
-      Utils::Hook(0x4C1C20, MSG_ReadBytes<1, true>, HOOK_JUMP).install()->quick(); // MSG_ReadByte
-      Utils::Hook(0x40BDD0, MSG_ReadBytes<2, true>, HOOK_JUMP).install()->quick(); // MSG_ReadShort
-      Utils::Hook(0x4C9550, MSG_ReadBytes<4, true>, HOOK_JUMP).install()->quick(); // MSG_ReadLong
-      Utils::Hook(0x47A530, MSG_ReadString, HOOK_JUMP).install()->quick();         // MSG_ReadString
-
-      Utils::Hook(0x4A9F76, MSG_ReadByteStub, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
-      Utils::Hook(0x5AC347, MSG_ReadByteStub, HOOK_CALL).install()->quick(); // CL_ParseGamestate
-      Utils::Hook(0x5AC5FC, MSG_ReadByteStub, HOOK_CALL).install()->quick(); // CL_ParseGamestate
-
-      Utils::Hook(0x5A9C9F, MSG_ReadLongStub1, HOOK_CALL).install()->quick(); // CL_ReadDemoNetworkPacket
-      Utils::Hook(0x5AC28D, MSG_ReadLongStub2, HOOK_CALL).install()->quick(); // CL_ParseGamestate
-      Utils::Hook(0x5ABD7C, MSG_ReadLongStub3, HOOK_CALL).install()->quick(); // CL_ParseSnapshot
-      Utils::Hook(0x5AC778, MSG_ReadLongStub4, HOOK_CALL).install()->quick(); // CL_ParseCommandString
-
-      Utils::Hook(0x5950A8, CL_GetSnapshotStub<SNAPSHOT_FIX_STEAM>, HOOK_CALL).install()->quick();
-
-      Utils::Hook(0x5A9CE8, CL_ReadDemoNetworkPacketStub<true>, HOOK_JUMP).install()->quick();
-    }
-    else if (Flags::HasFlag("retaildemo"))
-    {
-      Utils::Hook(0x5950A8, CL_GetSnapshotStub<SNAPSHOT_FIX_RETAIL>, HOOK_CALL).install()->quick();
-
-      Utils::Hook(0x5A9CE8, CL_ReadDemoNetworkPacketStub<false>, HOOK_JUMP).install()->quick();
-    }
-    else
-    {
-      Utils::Hook(0x5950A8, CL_GetSnapshotStub<SNAPSHOT_FIX_NONE>, HOOK_CALL).install()->quick();
-
-      Utils::Hook(0x5A9CE8, CL_ReadDemoNetworkPacketStub<false>, HOOK_JUMP).install()->quick();
-    }
-
+    // Note that on x86 we also play Steam and retail demos (the steamdemo
+    // and retaildemo flags). The x64 game is the Steam build without the
+    // scrambled messages, and it records with its own protocol, so we play
+    // only its own demos.
     //
+    // Note also that x64 inlines CG_ReadNextSnapshot() into
+    // CG_ProcessSnapshots() twice.
+    //
+    Utils::Hook(0x1400E95D9, CL_GetSnapshotStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400E969B, CL_GetSnapshotStub, HOOK_CALL).install()->quick();
+
+    Utils::Hook(0x1400FCD91, CL_ReadDemoNetworkPacketStub, HOOK_CALL).install()->quick();
+
     Components::Command::Add("demoGetGamestate", demoGetGamestateCallback);
     Components::Command::Add("demoSetGamestate", demoSetGamestateCallback);
     Components::Command::Add("demoAddMissingStrings", demoAddMissingStringsCallback);
-    //
 
-    Utils::Hook(0x5A8370, GamestateWriteStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A85D2, RecordGamestateStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5ABE36, Theatre_BaselineStoreStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x5A8630, Theatre_BaselineToFileStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x4CB3EF, Theatre_UISetActiveMenuStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x50320E, Theatre_AdjustTimeDeltaStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A8E03, Theatre_ServerTimedOutStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400FCFD4, GamestateWriteStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400FD228, RecordGamestateStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140100F82, Theatre_BaselineStoreStub, HOOK_JUMP).install()->quick();
+
+    Utils::Hook(0x1400FD2AE, BaselineToFileStub, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x1400FD2B3, 5);
+
+    Utils::Hook(0x140270E86, Theatre_UISetActiveMenuStub, HOOK_JUMP).install()->quick();
+
+    // Note that x64 inlines CL_AdjustTimeDelta() into CL_SetCGameTime().
+    //
+    Utils::Hook(0x1400F51A1, Theatre_AdjustTimeDeltaStub, HOOK_JUMP).install()->quick();
+
+    Utils::Hook(0x1400FD509, CL_ServerTimedOut_Stub, HOOK_CALL).install()->quick();
 
     // Fix issue with locationSelectionInfo by disabling it
-    Utils::Hook(0x5AC20F, CL_WriteDemoClientArchive_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4964A6, CG_CompassDrawPlayerMapLocationSelector_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14010130E, CL_WriteDemoClientArchive_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400DF280, CG_CompassDrawPlayerMapLocationSelector_Stub, HOOK_CALL).install()->quick();
 
     // Hook commands to enforce metadata generation
-    Utils::Hook(0x5A82AE, RecordStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A8156, StopRecordStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400FCEF6, RecordStub, HOOK_CALL).install()->quick();
+    Utils::Hook::Displace(0x1400FB8AE, 7, 0x1400FD9E0, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(0x1400FB8AE + 7, reinterpret_cast<void*>(CL_StopRecord_f_Hk))));
 
     // Autorecording
-    Utils::Hook(0x5A1D6A, CL_FirstSnapshot_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4A712A, SV_SpawnServer_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400F4762, CL_FirstSnapshot_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14023977A, SV_SpawnServer_Stub, HOOK_CALL).install()->quick();
 
     // UIScripts
     UIScript::Add("loadDemos", LoadDemos);
@@ -875,22 +672,21 @@ namespace Components
     UIFeeder::Add(10.0f, GetDemoCount, GetDemoText, SelectDemo);
 
     // Set the configstrings stuff to load the default (empty) string table; this should allow demo recording on all gametypes/maps
-    if (!Dedicated::IsEnabled()) Utils::Hook::Set<const char*>(0x47440B, "mp/defaultStringTable.csv");
+    if (!Dedicated::IsEnabled()) Utils::Hook::PlaceString(0x14027214A, 7, 0x1403A31A8, "mp/defaultStringTable.csv");
 
     // Change font size
-    Utils::Hook::Set<std::uint8_t>(0x5AC854, 2);
-    Utils::Hook::Set<std::uint8_t>(0x5AC85A, 2);
+    //
+    // Note that x64 inlines SCR_DrawDemoRecording() into
+    // SCR_DrawScreenField().
+    //
+    Utils::Hook::Set<std::uint8_t>(0x140101A8E, 2);
+    Utils::Hook::Set<std::uint8_t>(0x140101A9E, 2);
   }
 }
 
 void Theatre_StoreBaseline(Game::msg_t* snapshotMsg)
 {
   Components::Theatre::StoreBaseline(snapshotMsg);
-}
-
-void Theatre_WriteBaseline()
-{
-  Components::Theatre::WriteBaseline();
 }
 
 bool Theatre_AdjustTimeDelta()
