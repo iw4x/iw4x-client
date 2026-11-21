@@ -19,6 +19,7 @@
 
 
 #include "../../Components/Modules/Logger.hpp"
+#include "../../Components/Modules/RawMouse.hpp"
 #include "../../Components/Modules/Scheduler.hpp"
 
 extern "C"
@@ -57,8 +58,11 @@ namespace Controller
       constexpr std::uintptr_t cl_key_event_call {0x1401F3C7D};
       constexpr std::uintptr_t cl_key_event_address {0x1400EE7C0};
 
-      constexpr std::uintptr_t cl_mouse_event_call {0x1402A1217};
-      constexpr std::uintptr_t cl_mouse_event_address {0x1400F7030};
+      // Note that x64 inlines IN_MouseMove() into IN_Frame(), where we
+      // jump to the epilogue once we return.
+      //
+      constexpr std::uintptr_t in_frame_mouse_move_call {0x1402A1148};
+      constexpr std::uintptr_t in_frame_mouse_move_jump {0x1402A114D};
 
       constexpr std::uintptr_t ui_bypass_mouse_call {0x14026F306};
 
@@ -189,21 +193,22 @@ namespace Controller
         }
       }
 
-      // Note that x64 inlines IN_MouseMove() into IN_Frame(), where on x86
-      // we run our frame once the mouse has moved. So we run it after
-      // CL_MouseEvent() instead, which IN_Frame() calls every frame the
-      // window has focus.
+      // Note that on x86 we hook the tail call of IN_Frame() to
+      // IN_MouseMove() where it activates the mouse. x64 inlines
+      // IN_MouseMove() where it meets the paths that deactivate it, so we
+      // run our frame only when the mouse is active.
       //
-      int
-      cl_mouse_event (int x, int y, int dx, int dy) noexcept
+      // Note also that on x86 we hook the call to CL_MouseEvent() in
+      // IN_MouseMove(), which RawMouse replaces. x64 has it in the inlined
+      // IN_MouseMove() that we replace.
+      //
+      void
+      in_frame_trampoline () noexcept
       {
-        note_mouse_move (dx, dy);
+        Components::RawMouse::IN_MouseMove ();
 
-        const int r (Utils::Hook::Call<int (int, int, int, int)> (
-          cl_mouse_event_address) (x, y, dx, dy));
-
-        run_frame ();
-        return r;
+        if (Game::s_wmv->mouseActive)
+          run_frame ();
       }
 
       bool
@@ -763,7 +768,8 @@ namespace Controller
       Utils::Hook (menu_set_binding_call_2, menu_set_binding, HOOK_CALL).install ()->quick ();
       Utils::Hook (menu_set_binding_call_3, menu_set_binding, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_key_event_call, cl_key_event, HOOK_CALL).install ()->quick ();
-      Utils::Hook (cl_mouse_event_call, cl_mouse_event, HOOK_CALL).install ()->quick ();
+      Utils::Hook (in_frame_mouse_move_call, in_frame_trampoline, HOOK_CALL).install ()->quick ();
+      Utils::Hook::Set<std::uint16_t> (in_frame_mouse_move_jump, 0xC0EB); // jmp 0x1402A110F
       Utils::Hook (ui_bypass_mouse_call, ui_bypass_mouse_input, HOOK_CALL).install ()->quick ();
       Utils::Hook (menu_cursor_focus_call, item_set_focus, HOOK_CALL).install ()->quick ();
       Utils::Hook (menu_focus_first_call, item_set_focus, HOOK_CALL).install ()->quick ();
