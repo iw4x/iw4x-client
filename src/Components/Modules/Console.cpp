@@ -732,13 +732,54 @@ namespace Components
   void Console::Con_UpdateNotifyLine_Hk(int localClientNum, int channel, bool lineFeed, int flags)
   {
     Game::Con_UpdateConsoleLine(localClientNum, channel, lineFeed, flags);
+    Game::Con_UpdateMiniconLine(localClientNum, channel, lineFeed, flags);
     Con_UpdateNotifyLine_Original(localClientNum, channel, lineFeed, flags);
+    Game::Con_UpdateErrorLine(localClientNum, channel, lineFeed, flags);
   }
 
   void Console::Con_OneTimeInit_Hk()
   {
     Game::Con_InitConsoleWindow();
-    Utils::Hook::Call<void()>(0x1400ED2C0)();
+    Con_InitMessageBuffer_Hk();
+  }
+
+  void Console::Con_InitMessageBuffer_Hk()
+  {
+    Utils::Hook::Call<void()>(0x1400ED2C0)(); // Con_InitMessageBuffer
+    Game::Con_InitMessageWindows();
+  }
+
+  void Console::Con_ClearNotify_Hk(const int localClientNum)
+  {
+    Utils::Hook::Call<void(int)>(0x1400EC110)(localClientNum); // Con_ClearNotify
+    Game::Con_ClearMessageWindows(localClientNum);
+  }
+
+  void Console::Con_TimeJumped_Hk(const int localClientNum, const int serverTime)
+  {
+    Utils::Hook::Call<void(int, int)>(0x1400EDE60)(localClientNum, serverTime); // Con_TimeJumped
+    Game::Con_TimeJumpedMessageWindows(localClientNum, serverTime);
+  }
+
+  void Console::Con_TimeNudged_Hk(const int localClientNum, const int serverTimeNudge)
+  {
+    Utils::Hook::Call<void(int, int)>(0x1400EDFD0)(localClientNum, serverTimeNudge); // Con_TimeNudged
+    Game::Con_TimeNudgedMessageWindows(localClientNum, serverTimeNudge);
+  }
+
+  // Note that x64 inlines Con_UpdateNotifyMessage() into
+  // CL_ConsolePrint_AddLine() without the mini console and error windows,
+  // so we start their messages right before it. Like x86 we leave them be
+  // while it is printing already, as it then returns straight away.
+  //
+  char Console::CL_ConsolePrint_AddLine_Hk(const int localClientNum, const int channel, const char* txt, const int duration, const int pixelWidth, const char color, const int flags)
+  {
+    if (!Utils::Hook::Get<int>(0x1406C4F08))
+    {
+      Game::Con_UpdateMessageWindowsMessage(localClientNum, channel, duration, flags);
+    }
+
+    return Utils::Hook::Call<char(int, int, const char*, int, int, char, int)>(0x1400EB890)(localClientNum, channel, txt, duration, pixelWidth, color, flags);
   }
 
   void Console::Con_Init_Hk()
@@ -821,6 +862,25 @@ namespace Components
     Utils::Hook(0x1400EBC71, Console_CL_ConsolePrintStub, HOOK_JUMP).install()->quick();
 
     Utils::Hook(0x1400EDDFD, Con_OneTimeInit_Hk, HOOK_CALL).install()->quick();
+
+    // Mini console and error windows that x64 compiles out. Set them up,
+    // clear them, move their messages in time, and start their messages
+    // along with the game message windows (see Game::Con_InitMessageWindows()).
+    //
+    Utils::Hook(0x1400F4D73, Con_InitMessageBuffer_Hk, HOOK_CALL).install()->quick();
+
+    for (const auto place : {0x1400EB64C, 0x1400EB6B3, 0x1400F4C29, 0x1400F8948, 0x1400FC480, 0x1400FCABD, 0x1400FFC65})
+    {
+      Utils::Hook(place, Con_ClearNotify_Hk, HOOK_CALL).install()->quick();
+    }
+
+    Utils::Hook(0x1400F475D, Con_TimeJumped_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400F52D1, Con_TimeNudged_Hk, HOOK_CALL).install()->quick();
+
+    for (const auto place : {0x1400EB7F4, 0x1400EB86B, 0x1400EBFAC})
+    {
+      Utils::Hook(place, CL_ConsolePrint_AddLine_Hk, HOOK_CALL).install()->quick();
+    }
     Utils::Hook(0x1400FAF02, Con_Init_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400F0025, Con_InitChannels_Hk, HOOK_JUMP).install()->quick();
 

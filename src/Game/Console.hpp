@@ -144,6 +144,50 @@ namespace Game
   //
   void Con_UpdateConsoleLine(int localClientNum, int channel, bool lineFeed, int flags);
 
+  // The mini console, registered by Components::QuickPatch.
+  //
+  // Note that x64 compiles out the mini console and error windows along
+  // with con_minicon, so we keep them with the console window here and the
+  // components feed them through the hooks below. Like x86 we keep one of
+  // each for the first local client.
+  //
+  extern const dvar_t* con_minicon;
+
+  // Set up the mini console and error windows. Called after
+  // Con_InitMessageBuffer().
+  //
+  void Con_InitMessageWindows();
+
+  // Clear the mini console and error windows. Called after
+  // Con_ClearNotify().
+  //
+  void Con_ClearMessageWindows(int localClientNum);
+
+  // Start the message of a print in the mini console and error windows if
+  // they show its channel. Called before CL_ConsolePrint_AddLine() unless it
+  // is printing already.
+  //
+  void Con_UpdateMessageWindowsMessage(int localClientNum, int channel, int duration, int flags);
+
+  // Add the pending console line to the mini console and error windows if
+  // they show its channel. Called around Con_UpdateNotifyLine() as x86 does,
+  // the mini console before the game message windows and the errors after
+  // them.
+  //
+  void Con_UpdateMiniconLine(int localClientNum, int channel, bool lineFeed, int flags);
+  void Con_UpdateErrorLine(int localClientNum, int channel, bool lineFeed, int flags);
+
+  // Move or shift the messages of the console, mini console and error
+  // windows. Called after Con_TimeJumped() and Con_TimeNudged().
+  //
+  void Con_TimeJumpedMessageWindows(int localClientNum, int serverTime);
+  void Con_TimeNudgedMessageWindows(int localClientNum, int serverTimeNudge);
+
+  // Draw the mini console if con_minicon is set, and the error window.
+  //
+  void Con_DrawMiniConsole(int localClientNum, int xPos, int yPos, float alpha);
+  void Con_DrawErrors(int localClientNum, int xPos, int yPos, float alpha);
+
   // Draw the console if it is open, sizing it first.
   //
   void Con_DrawConsole(int localClientNum);

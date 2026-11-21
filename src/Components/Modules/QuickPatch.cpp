@@ -1,5 +1,6 @@
 #include <Utils/Compression.hpp>
 
+#include "Events.hpp"
 #include "QuickPatch.hpp"
 #include "TextRenderer.hpp"
 #include "Toast.hpp"
@@ -399,9 +400,20 @@ namespace Components
     Utils::Hook(0x1400FDE44, QuickPatch::CL_InitRef_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x140032772, QuickPatch::R_EnumDisplayModes_Hk, HOOK_CALL).install()->quick();
 
-    // Note that on x86 we also default con_minicon to on in debug builds,
-    // which x64 compiles out.
+    // Note that x64 compiles out con_minicon along with the mini console, so
+    // we register it as the game's CG_RegisterDvars() does on x86 (see
+    // Game::Con_DrawMiniConsole()). As there, we default it to on in debug
+    // builds.
     //
+    Events::OnDvarInit([]
+    {
+#ifdef _DEBUG
+      constexpr auto value = true;
+#else
+      constexpr auto value = false;
+#endif
+      Game::con_minicon = Game::Dvar_RegisterBool("con_minicon", value, Game::DVAR_ARCHIVE, "Display the mini console on screen");
+    });
 
     // Note that x64 has two copies of the imagelist command's walk over the
     // images.

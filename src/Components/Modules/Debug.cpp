@@ -365,6 +365,19 @@ namespace Components
     return PlayerDebugHealth;
   }
 
+  bool Debug::ScoreboardDrawn;
+
+  // Note that x64 drops what CG_DrawScoreboard() returns, which on x86
+  // CG_Draw2D() keeps to leave out the mini console and the errors under the
+  // scoreboard.
+  //
+  int Debug::CG_DrawScoreboard_Hk(const int localClientNum)
+  {
+    const auto r = Utils::Hook::Call<int(int)>(0x1400E3F20)(localClientNum);
+    ScoreboardDrawn = r != 0;
+    return r;
+  }
+
   // Note that x64 compiles out what x86 draws in CG_Draw2D() between
   // CG_DrawDebugOverlays() and the say field, so we draw it right before
   // Con_DrawSay().
@@ -386,6 +399,16 @@ namespace Components
       Game::AimAssist_DrawDebugOverlay(localClientNum);
     }
 
+    if (!ScoreboardDrawn)
+    {
+      if (Game::con_minicon->current.enabled)
+      {
+        Game::Con_DrawMiniConsole(localClientNum, 2, 4, 1.0f);
+      }
+
+      Game::Con_DrawErrors(localClientNum, 2, 300, 1.0f);
+    }
+
     Utils::Hook::Call<void(int, int, int)>(0x1400ECEF0)(localClientNum, x, y); // Con_DrawSay
   }
 
@@ -405,6 +428,7 @@ namespace Components
     Events::OnDvarInit(CL_InitDebugDvars);
 
     Utils::Hook(0x1400D0FC9, CG_DrawDebugOverlays_Hk, HOOK_CALL).install()->quick(); // CG_Draw2D
+    Utils::Hook(0x1400D0F84, CG_DrawScoreboard_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400D0FE6, CG_Draw2D_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400B82A4, CG_DrawActiveFrame_Hk, HOOK_CALL).install()->quick();
 

@@ -122,6 +122,36 @@ namespace Game
     char consoleText[CON_TEXT_SIZE];
     MessageWindow consoleWindow;
 
+    // Mini console and error windows.
+    //
+    // Note that x64 compiles them out along with con_minicon, so we keep them
+    // here as x86 does. Like the console window, they are only for the first
+    // local client.
+    //
+    constexpr int CON_MINICON_LINE_COUNT = 100;
+    constexpr int CON_MINICON_TEXT_SIZE = 0x1000;
+    constexpr int CON_ERROR_LINE_COUNT = 5;
+    constexpr int CON_ERROR_TEXT_SIZE = 0x400;
+
+    MessageLine miniconLines[CON_MINICON_LINE_COUNT];
+    Message miniconMessages[CON_MINICON_LINE_COUNT];
+    char miniconText[CON_MINICON_TEXT_SIZE];
+    MessageWindow miniconWindow;
+
+    MessageLine errorLines[CON_ERROR_LINE_COUNT];
+    Message errorMessages[CON_ERROR_LINE_COUNT];
+    char errorText[CON_ERROR_TEXT_SIZE];
+    MessageWindow errorWindow;
+
+    const dvar_t** con_errormessagetime = reinterpret_cast<const dvar_t**>(0x1406C4DF8);
+    const dvar_t** con_minicontime = reinterpret_cast<const dvar_t**>(0x1406C4E00);
+    const dvar_t** con_miniconlines = reinterpret_cast<const dvar_t**>(0x1406C4E08);
+
+    // Window indices of Con_IsChannelVisible().
+    //
+    constexpr int CON_DEST_MINICON = 1;
+    constexpr int CON_DEST_ERROR = 2;
+
     // Line of the window at the bottom of the output, and whether the
     // output shows.
     //
@@ -2090,6 +2120,274 @@ namespace Game
     {
       ++displayLineOffset;
     }
+  }
+
+  namespace
+  {
+    // Whether the mini console or the error window shows the channel with
+    // the print flags, as x86's Con_IsChannelVisible() works it out for
+    // them.
+    //
+    // Note that the mini console goes by the console filter but never shows
+    // the game message channels, and that the error window only shows the
+    // error channel, which x86's Con_InitChannels() puts in its filter.
+    //
+    bool Con_IsMessageWindowChannelVisible(const int dest, const int channel, const int flags)
+    {
+      if (con_channels[channel].name[0] == '\0')
+      {
+        return false;
+      }
+
+      if (dest == CON_DEST_MINICON)
+      {
+        if (channel == 2 || channel == 3 || channel == 4)
+        {
+          return false;
+        }
+
+        return Con_IsConsoleChannelVisible(channel, flags);
+      }
+
+      if (channel == CON_CHANNEL_ERROR)
+      {
+        return true;
+      }
+
+      const int type((flags >> 5) & 0x1F);
+      return type == 2 || type == 3;
+    }
+
+    // Start a message of the duration in the window, the dvar's seconds if
+    // it is zero.
+    //
+    void Con_AddMessage(const int localClientNum, MessageWindow* msgwnd, int duration, const dvar_t* durationDvar)
+    {
+      if (duration == 0)
+      {
+        duration = static_cast<int>(std::nearbyint(static_cast<double>(static_cast<float>(durationDvar->current.value * 1000.0)) + 0.5));
+      }
+
+      if (duration < 0)
+      {
+        duration = 0;
+      }
+
+      if (msgwnd->lineCount == 0)
+      {
+        return;
+      }
+
+      msgwnd->messageIndex = (msgwnd->messageIndex + 1) % msgwnd->lineCount;
+
+      Message& m(msgwnd->messages[msgwnd->messageIndex]);
+      m.startTime = localClientNum < 1 ? *cl_serverTime : 0;
+      m.endTime = m.startTime + duration;
+    }
+
+    // Move the messages of the window to start at the time.
+    //
+    void Con_TimeJumpedWindow(MessageWindow* msgwnd, const int serverTime)
+    {
+      for (int i(0); i < msgwnd->activeLineCount; ++i)
+      {
+        const MessageLine& line(msgwnd->lines[(msgwnd->firstLineIndex + i) % msgwnd->lineCount]);
+        Message& m(msgwnd->messages[line.messageIndex]);
+
+        const int duration(m.endTime - m.startTime);
+        m.startTime = serverTime;
+        m.endTime = serverTime + duration;
+      }
+    }
+
+    // Shift the messages of the window by the nudge, keeping each between
+    // zero and a second past the time.
+    //
+    void Con_TimeNudgedWindow(MessageWindow* msgwnd, const int serverTimeNudge, const int serverTime)
+    {
+      int previous(-1);
+
+      for (int i(0); i < msgwnd->activeLineCount; ++i)
+      {
+        const int index(msgwnd->lines[(msgwnd->firstLineIndex + i) % msgwnd->lineCount].messageIndex);
+        if (index == previous)
+        {
+          continue;
+        }
+
+        Message& m(msgwnd->messages[index]);
+        m.startTime += serverTimeNudge;
+        m.endTime += serverTimeNudge;
+        previous = index;
+
+        if (m.startTime < 0)
+        {
+          m.endTime -= m.startTime;
+          m.startTime = 0;
+        }
+
+        if (m.startTime > serverTime + 1000)
+        {
+          const int duration(m.endTime - m.startTime);
+          m.startTime = serverTime + 1000;
+          m.endTime = m.startTime + duration;
+        }
+      }
+    }
+
+    void Con_ClearMessageWindow(MessageWindow* msgwnd)
+    {
+      msgwnd->textBufPos = 0;
+      msgwnd->messageIndex = 0;
+      msgwnd->firstLineIndex = 0;
+      msgwnd->activeLineCount = 0;
+    }
+
+    // Draw the window from its oldest line down, at the left top of the
+    // point.
+    //
+    void Con_DrawMessageWindow(const int localClientNum, MessageWindow* msgwnd, const int x, const int y, const float alpha)
+    {
+      ScreenPlacement* scrPlace(ScrPlace_GetActivePlacement(localClientNum));
+      Font_s* font(UI_GetFontHandle(scrPlace, 0, 1.0f));
+      const float color[4] = {1.0f, 1.0f, 1.0f, alpha};
+
+      // CL_ShouldDisplayHud(), unless the client is active.
+      //
+      if (Utils::Hook::Get<int>(0x1406CCCCC) != 6 && !Utils::Hook::Call<bool(int)>(0x1400FD590)(localClientNum))
+      {
+        return;
+      }
+
+      // Con_DrawMessageWindowOldToNew()
+      //
+      Utils::Hook::Call<void(int, MessageWindow*, int, int, int, int, int, bool, Font_s*, const float*, int, float, int)>(0x1400ECC60)(localClientNum, msgwnd, x, y, 12, 1, 1, false, font, color, 3, 1.0f, 4);
+    }
+  }
+
+  const dvar_t* con_minicon;
+
+  void Con_InitMessageWindows()
+  {
+    miniconWindow.lines = miniconLines;
+    miniconWindow.messages = miniconMessages;
+    miniconWindow.circularTextBuffer = miniconText;
+    miniconWindow.textBufSize = CON_MINICON_TEXT_SIZE;
+    miniconWindow.lineCount = (*con_miniconlines)->current.integer;
+    miniconWindow.padding = 0;
+    miniconWindow.scrollTime = 0;
+    miniconWindow.fadeIn = 0;
+    miniconWindow.fadeOut = 1;
+    Con_ClearMessageWindow(&miniconWindow);
+
+    errorWindow.lines = errorLines;
+    errorWindow.messages = errorMessages;
+    errorWindow.circularTextBuffer = errorText;
+    errorWindow.textBufSize = CON_ERROR_TEXT_SIZE;
+    errorWindow.lineCount = CON_ERROR_LINE_COUNT;
+    errorWindow.padding = 0;
+    errorWindow.scrollTime = 0;
+    errorWindow.fadeIn = 1;
+    errorWindow.fadeOut = 1;
+    Con_ClearMessageWindow(&errorWindow);
+  }
+
+  void Con_ClearMessageWindows(const int localClientNum)
+  {
+    if (localClientNum != 0 || !clientUIActives[0].isRunning)
+    {
+      return;
+    }
+
+    Con_ClearMessageWindow(&miniconWindow);
+    Con_ClearMessageWindow(&errorWindow);
+  }
+
+  void Con_UpdateMessageWindowsMessage(const int localClientNum, const int channel, const int duration, const int flags)
+  {
+    if (localClientNum != 0)
+    {
+      return;
+    }
+
+    if (Con_IsMessageWindowChannelVisible(CON_DEST_MINICON, channel, flags))
+    {
+      Con_AddMessage(localClientNum, &miniconWindow, duration, *con_minicontime);
+    }
+
+    if ((*com_developer)->current.integer && Con_IsMessageWindowChannelVisible(CON_DEST_ERROR, channel, flags))
+    {
+      Con_AddMessage(localClientNum, &errorWindow, duration, *con_errormessagetime);
+    }
+  }
+
+  void Con_UpdateMiniconLine(const int localClientNum, const int channel, const bool lineFeed, const int flags)
+  {
+    if (localClientNum == 0 && Con_IsMessageWindowChannelVisible(CON_DEST_MINICON, channel, flags))
+    {
+      Con_UpdateMessageWindowLine(localClientNum, &miniconWindow, lineFeed, flags);
+    }
+  }
+
+  void Con_UpdateErrorLine(const int localClientNum, const int channel, const bool lineFeed, const int flags)
+  {
+    if (localClientNum == 0 && (*com_developer)->current.integer && Con_IsMessageWindowChannelVisible(CON_DEST_ERROR, channel, flags))
+    {
+      Con_UpdateMessageWindowLine(localClientNum, &errorWindow, lineFeed, flags);
+    }
+  }
+
+  void Con_TimeJumpedMessageWindows(const int localClientNum, const int serverTime)
+  {
+    Con_TimeJumpedWindow(&consoleWindow, serverTime);
+
+    if (localClientNum == 0)
+    {
+      Con_TimeJumpedWindow(&miniconWindow, serverTime);
+      Con_TimeJumpedWindow(&errorWindow, serverTime);
+    }
+  }
+
+  void Con_TimeNudgedMessageWindows(const int localClientNum, const int serverTimeNudge)
+  {
+    Con_TimeNudgedWindow(&consoleWindow, serverTimeNudge, *cl_serverTime);
+
+    if (localClientNum == 0)
+    {
+      Con_TimeNudgedWindow(&miniconWindow, serverTimeNudge, *cl_serverTime);
+      Con_TimeNudgedWindow(&errorWindow, serverTimeNudge, *cl_serverTime);
+    }
+  }
+
+  void Con_DrawMiniConsole(const int localClientNum, const int xPos, const int yPos, const float alpha)
+  {
+    if (localClientNum != 0 || !con_minicon->current.enabled)
+    {
+      return;
+    }
+
+    // Start over if the line count changed.
+    //
+    if (miniconWindow.lineCount != (*con_miniconlines)->current.integer)
+    {
+      miniconWindow.lineCount = (*con_miniconlines)->current.integer;
+      miniconWindow.textBufPos = 0;
+      miniconWindow.messageIndex = 0;
+      miniconWindow.firstLineIndex = 0;
+      miniconWindow.activeLineCount = 0;
+    }
+
+    Con_DrawMessageWindow(localClientNum, &miniconWindow, xPos, yPos, alpha);
+  }
+
+  void Con_DrawErrors(const int localClientNum, const int xPos, const int yPos, const float alpha)
+  {
+    if (localClientNum != 0)
+    {
+      return;
+    }
+
+    Con_DrawMessageWindow(localClientNum, &errorWindow, xPos, yPos, alpha);
   }
 
   void Con_DrawConsole(int localClientNum)

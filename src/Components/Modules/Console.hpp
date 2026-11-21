@@ -99,6 +99,11 @@ namespace Components
 
     static void Con_UpdateNotifyLine_Hk(int localClientNum, int channel, bool lineFeed, int flags);
     static void Con_OneTimeInit_Hk();
+    static void Con_InitMessageBuffer_Hk();
+    static void Con_ClearNotify_Hk(int localClientNum);
+    static void Con_TimeJumped_Hk(int localClientNum, int serverTime);
+    static void Con_TimeNudged_Hk(int localClientNum, int serverTimeNudge);
+    static char CL_ConsolePrint_AddLine_Hk(int localClientNum, int channel, const char* txt, int duration, int pixelWidth, char color, int flags);
     static void Con_Init_Hk();
     static void Con_InitChannels_Hk();
     static void SCR_DrawScreenField_Hk();
