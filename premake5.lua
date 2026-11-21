@@ -289,7 +289,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/Playlist.*",
     "src/Components/Modules/Profiler.*",
     "src/Components/Modules/QuickPatch.*",
     "src/Components/Modules/RawFiles.*",

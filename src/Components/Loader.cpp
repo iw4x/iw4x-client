@@ -51,6 +51,7 @@
 #include "Modules/Party.hpp"
 #include "Modules/PlayerMovement.hpp"
 #include "Modules/PlayerName.hpp"
+#include "Modules/Playlist.hpp"
 
 namespace Components
 {
@@ -123,6 +124,7 @@ namespace Components
     Register(new Party());
     Register(new PlayerMovement());
     Register(new PlayerName());
+    Register(new Playlist());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
