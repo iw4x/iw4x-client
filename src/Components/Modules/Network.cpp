@@ -371,6 +371,15 @@ namespace Components
     // Disable the IWNet IP detection (default 'got ipdetect' flag to 1)
     Utils::Hook::Set<std::uint8_t>(0x146784F01, 1);
 
+    // Note that x64 also requires the result of the IP detection and a
+    // Demonware logon before it lets xrequirelivesignin through, which x86
+    // doesn't check and which would show the IWnet connection popup instead
+    // of the server browser. So we jump over those checks to where it
+    // returns that we are signed in.
+    //
+    Utils::Hook::Set<std::uint8_t>(0x1402A24D4, 0xEB); // jmp 0x1402A24E6
+    Utils::Hook::Set<std::uint8_t>(0x1402A24D5, 0x1402A24E6 - (0x1402A24D4 + 2));
+
     OnClientPacket("resolveAddress", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
     {
       SendRaw(address, address.getString());
