@@ -14,6 +14,7 @@
 #include "Modules/ArenaLength.hpp"
 #include "Modules/AssetHandler.hpp"
 #include "Modules/Bans.hpp"
+#include "Modules/Bindings.hpp"
 #include "Modules/Bots.hpp"
 #include "Modules/Branding.hpp"
 #include "Modules/Bullet.hpp"
@@ -122,6 +123,7 @@ namespace Components
     Register(new ArenaLength());
     Register(new AssetHandler());
     Register(new Bans());
+    Register(new Bindings());
     Register(new Bots());
     Register(new Branding());
     Register(new Bullet());

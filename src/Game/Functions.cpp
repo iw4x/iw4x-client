@@ -57,6 +57,8 @@ namespace Game
   Key_RemoveCatcher_t Key_RemoveCatcher = Key_RemoveCatcher_t(0x1400EF930);
   Key_IsCatcherActive_t Key_IsCatcherActive = Key_IsCatcherActive_t(0x1400EF720);
   Key_SetBinding_t Key_SetBinding = Key_SetBinding_t(0x1400EF960);
+  Key_StringToKeynum_t Key_StringToKeynum = Key_StringToKeynum_t(0x1400EFA80);
+  Key_KeynumToString_t Key_KeynumToString = Key_KeynumToString_t(0x1400EF800);
   Key_GetBindingForCmd_t Key_GetBindingForCmd = Key_GetBindingForCmd_t(0x1400EF600);
 
   CG_ScoreboardKeyEvent_t CG_ScoreboardKeyEvent = CG_ScoreboardKeyEvent_t(0x1400E5A00);
@@ -354,6 +356,7 @@ namespace Game
   keyname_t* keyNames = reinterpret_cast<keyname_t*>(0x14041E090);
   keyname_t* localizedKeyNames = reinterpret_cast<keyname_t*>(0x14041E690);
   const char** keyBindingCommands = reinterpret_cast<const char**>(0x14041EC90);
+  int keyBindingCommandCount = KEY_BINDING_COMMAND_COUNT;
 
   GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x140430230);
 
@@ -895,7 +898,7 @@ namespace Game
 
   const char* Key_GetCmdForBinding(int binding)
   {
-    return binding > 0 && binding < KEY_BINDING_COMMAND_COUNT ? keyBindingCommands[binding] : nullptr;
+    return binding > 0 && binding < keyBindingCommandCount ? keyBindingCommands[binding] : nullptr;
   }
 
   void CG_ScrollScoreboardUp(int localClientNum)

@@ -128,6 +128,12 @@ namespace Game
   typedef void(*Key_SetBinding_t)(int localClientNum, int keynum, int binding);
   extern Key_SetBinding_t Key_SetBinding;
 
+  typedef int(*Key_StringToKeynum_t)(const char* str);
+  extern Key_StringToKeynum_t Key_StringToKeynum;
+
+  typedef const char*(*Key_KeynumToString_t)(int keynum, int translate);
+  extern Key_KeynumToString_t Key_KeynumToString;
+
   // Return the binding of the command, or 0 if no key can be bound to it.
   //
   typedef int(*Key_GetBindingForCmd_t)(const char* cmd);
@@ -753,6 +759,7 @@ namespace Game
 
   constexpr auto KEY_BINDING_COMMAND_COUNT = 78;
   extern const char** keyBindingCommands;
+  extern int keyBindingCommandCount;
 
   constexpr auto AIM_ASSIST_GRAPH_COUNT = 4u;
   extern GraphFloat* aaInputGraph;
