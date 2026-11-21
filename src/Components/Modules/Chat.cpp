@@ -12,6 +12,16 @@ extern "C"
   bool Chat_SendChat;
 }
 
+namespace
+{
+  // Note that x64 names the server command that prints a chat message U,
+  // where x86 names it h. We queue the command with the game's letter, like
+  // the game's own commands, and it goes over the wire as h (see
+  // Components::Compatibility).
+  //
+  constexpr char ChatMessageCommand = 'U';
+}
+
 namespace Components
 {
   Dvar::Var Chat::cg_chatWidth;
@@ -463,12 +473,12 @@ namespace Components
 
       if (!name.empty())
       {
-        Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name, message));
+        Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", ChatMessageCommand, name, message));
         Logger::Print("{}: {}\n", name, message);
       }
       else
       {
-        Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
+        Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", ChatMessageCommand, message));
         Logger::Print("Console: {}\n", message);
       }
     });
@@ -491,12 +501,12 @@ namespace Components
 
       if (!name.empty())
       {
-        Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name.data(), message));
+        Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", ChatMessageCommand, name.data(), message));
         Logger::Print("{} -> {}: {}\n", name, clientNum, message);
       }
       else
       {
-        Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
+        Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", ChatMessageCommand, message));
         Logger::Print("Console -> {}: {}\n", clientNum, message);
       }
     });
@@ -512,7 +522,7 @@ namespace Components
       if (params->size() < 2) return;
 
       const auto message = params->join(1);
-      Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
+      Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", ChatMessageCommand, message));
       Logger::Print("Raw: {}\n", message);
     });
 
@@ -530,7 +540,7 @@ namespace Components
       const auto clientNum = static_cast<int>(std::min<std::size_t>(parsedInput, Game::MAX_CLIENTS));
 
       const auto message = params->join(2);
-      Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
+      Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", ChatMessageCommand, message));
       Logger::Print("Raw -> {}: {}\n", clientNum, message);
     });
 
