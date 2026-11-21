@@ -7,8 +7,8 @@ namespace Components
   public:
     Security();
 
-    static int Msg_ReadBitsCompressCheckSV(const unsigned char* from, unsigned char* to, int size);
-    static int Msg_ReadBitsCompressCheckCL(const unsigned char* from, unsigned char* to, int size);
+    static int Msg_ReadBitsCompressCheckSV(const unsigned char* from, int size, unsigned char* to, int toSize);
+    static int Msg_ReadBitsCompressCheckCL(const unsigned char* from, int size, unsigned char* to, int toSize);
 
   private:
     static long AtolAdjustPlayerLimit(const char* string);

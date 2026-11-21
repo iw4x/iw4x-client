@@ -5,7 +5,7 @@ namespace Components
 {
   void (*Security::UI_ReplaceDirective_Original)(int localClientNum, char* message, char* hudElemString, std::size_t hudElemStringLength);
 
-  int Security::Msg_ReadBitsCompressCheckSV(const unsigned char* from, unsigned char* to, int size)
+  int Security::Msg_ReadBitsCompressCheckSV(const unsigned char* from, int size, unsigned char* to, [[maybe_unused]] int toSize)
   {
     static unsigned char buffer[0x8000];
 
@@ -18,7 +18,7 @@ namespace Components
     return size;
   }
 
-  int Security::Msg_ReadBitsCompressCheckCL(const unsigned char* from, unsigned char* to, int size)
+  int Security::Msg_ReadBitsCompressCheckCL(const unsigned char* from, int size, unsigned char* to, [[maybe_unused]] int toSize)
   {
     static unsigned char buffer[0x100000];
 

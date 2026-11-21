@@ -290,7 +290,7 @@ namespace Game
   typedef bool(*MSG_ReadDeltaUsercmdKey_t)(msg_t* msg, int key, const usercmd_s* from, usercmd_s* to);
   extern MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey;
 
-  typedef int(*MSG_ReadBitsCompress_t)(const unsigned char* from, unsigned char* to, int size);
+  typedef int(*MSG_ReadBitsCompress_t)(const unsigned char* from, int fromSize, unsigned char* to, int toSize);
   extern MSG_ReadBitsCompress_t MSG_ReadBitsCompress;
 
   typedef int(*MSG_WriteBitsCompress_t)(bool trainHuffman, const unsigned char* from, unsigned char* to, int size);
