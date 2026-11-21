@@ -4,6 +4,8 @@ namespace Components
 {
   int SlowMotion::Delay = 0;
 
+  const Game::dvar_t* SlowMotion::cg_drawDisconnect;
+
   float SlowMotion::Com_UpdateSlowMotion(float frameTime)
   {
     // Note that on x86 the game updates the slow motion by the milliseconds
@@ -69,14 +71,26 @@ namespace Components
     }
   }
 
+  void SlowMotion::CG_DrawDisconnect_Stub(const int localClientNum)
+  {
+    if (cg_drawDisconnect->current.enabled)
+    {
+      Game::CG_DrawDisconnect(localClientNum);
+    }
+  }
+
   SlowMotion::SlowMotion()
   {
+    cg_drawDisconnect = Game::Dvar_RegisterBool("cg_drawDisconnect", false, Game::DVAR_NONE, "Draw connection interrupted");
+
     Delay = 0;
     Utils::Hook(0x140178132, ScrCmd_SetSlowMotion_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x1400F7BB7, Com_UpdateSlowMotion, HOOK_CALL).install()->quick(); // CL_CreateCmd
 
-    // Note that on x86 we register cg_drawDisconnect to hide the connection
-    // interrupted notice unless it's set. x64 compiles out CG_DrawDisconnect()
-    // and never draws it.
+    // Note that on x86 we hook the two calls to CG_DrawDisconnect() in
+    // CG_DrawLagometer(), which x64 compiles out along with them (see
+    // Game::CG_DrawLagometer()).
+    //
+    Game::CG_DrawLagometer_DrawDisconnect = CG_DrawDisconnect_Stub;
   }
 }
