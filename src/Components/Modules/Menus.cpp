@@ -12,10 +12,13 @@ namespace Components
     Utils::Hook::Set<Game::DB_DynamicCloneXAssetHandler_t>(
       &Game::DB_DynamicCloneXAssetHandler[Game::ASSET_TYPE_MENU], nullptr);
 
-    // Increase HunkMemory for people with heavy-loaded menus
-    // Original is 0xA00000
-    Utils::Hook::Replace32(0x14027D854, 5, 0xA00000, 0xB00000); // Com_InitHunkMemory
-    Utils::Hook::Replace32(0x14027D859, 11, 0xA00000, 0xB00000);
+    // Hunk size (stock is 0xA00000). First raised to 0xB00000 for heavy-loaded menus. Large
+    // ported maps also exhaust it once PMem is big enough to let them get that far, dying on
+    // allocations of a few hundred bytes: "Hunk_AllocAlign failed on 380 bytes (total 11 MB...)".
+    // Like PMem, Com_InitHunkMemory reserves this and commits on demand, so the cost is
+    // address space rather than memory.
+    Utils::Hook::Replace32(0x14027D854, 5, 0xA00000, 0x4000000); // Com_InitHunkMemory, 64 MiB
+    Utils::Hook::Replace32(0x14027D859, 11, 0xA00000, 0x4000000);
 
     // Don't open connect menu twice - it gets stuck!
     Utils::Hook::Nop(0x14026AC4B, 5);

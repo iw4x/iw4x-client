@@ -1006,9 +1006,17 @@ namespace Components
     // Restrict asset loading
     AssetHandler::OnLoad(Maps::LoadAssetRestrict);
 
-    // hunk size (was 300 MiB)
-    Utils::Hook::Set<DWORD>(0x140289067, 0x1C200000); // 450 MiB
-    Utils::Hook::Set<DWORD>(0x1402890B7, 0x1C200000);
+    // PMem pool size (stock is 300 MiB). At 450 MiB several ported maps (mp_cement, mp_boardwalk,
+    // mp_carbon, mp_radar, mp_exchange, mp_meteora and IW4x's DLC mp_underground) fail mid-load
+    // with "Need N more bytes of ram for alloc to succeed". PMem_Init only reserves this range
+    // (MEM_RESERVE) and commits as zones load, but on a 32-bit client the reservation is not
+    // free: it is address space that nothing else can use for the life of the process.
+    //
+    // Note that on x86 we leave the pool to ZoneBuilder when it's enabled, which the x64
+    // build leaves out.
+    //
+    Utils::Hook::Set<DWORD>(0x140289067, 0x28000000); // 640 MiB
+    Utils::Hook::Set<DWORD>(0x1402890B7, 0x28000000);
 
     // Intercept BSP name resolving
     //
