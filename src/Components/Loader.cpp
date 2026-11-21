@@ -189,6 +189,8 @@ namespace Components
     Register(new Weapon());
     Register(new Window());
 
+    Register(new GSC::GSC());
+
     // @@ TODO: register components as we port them, in x86 client order
     //    (see unported sources in premake5.lua).
     //

@@ -2,10 +2,9 @@
 
 extern "C"
 {
-  void ScriptError_EmitThreadInternal_Stub();
+  void ScriptError_VM_ErrorStub();
 
-  void ScriptError_AddThreadStartOpcodePos(unsigned int sourcePos);
-  void ScriptError_RecordThreadStart(const Game::sval_u* node);
+  void ScriptError_VM_Error(const char* codePos);
 }
 
 namespace Components::GSC
@@ -30,10 +29,9 @@ namespace Components::GSC
     //
     static std::string DescribeCodePos (const char* pos);
 
-  private:
-    friend void (::ScriptError_AddThreadStartOpcodePos)(unsigned int sourcePos);
-    friend void (::ScriptError_RecordThreadStart)(const Game::sval_u* node);
+    static void VM_Error(const char* codePos);
 
+  private:
     struct ThreadStart
     {
       const char* pos;
@@ -80,9 +78,11 @@ namespace Components::GSC
     static char* Scr_ReadFile_LoadObj(const char* filename, const char* extFilename, const char* codePos, bool archive);
     static char* Scr_ReadFile(const char* filename, const char* extFilename, const char* codePos, bool archive);
     static char* Scr_AddSourceBuffer(const char* filename, const char* extFilename, const char* codePos, bool archive);
-    static unsigned int Scr_LoadScriptInternal_Hk(const char* filename, Game::PrecacheEntry* entries, int entriesCount);
+    static void EmitThreadInternal_Hk(void* node, unsigned int sourcePos, void* a3, void* a4);
+    static inline void (*EmitThreadInternal_Original)(void* node, unsigned int sourcePos, void* a3, void* a4);
 
-    static void Scr_Settings_Hk(int developer, int developer_script, int abort_on_error);
+    static unsigned int Scr_LoadScriptInternal_Hk(const char* filename, Game::PrecacheEntry* entries, int entriesCount);
+    static unsigned int Scr_LoadScript_Hk(const char* filename);
 
     static void MT_Reset_Stub();
     static void SL_ShutdownSystem_Stub(unsigned int user);

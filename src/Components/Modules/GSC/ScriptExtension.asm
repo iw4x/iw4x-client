@@ -1,52 +1,72 @@
-.686
-.model flat, C
 option casemap:none
 
-EXTERN ScriptExtension_ReplacedPos:DWORD
+EXTERN ScriptExtension_ReplacedPos:QWORD
 
 EXTERN ScriptExtension_GetReplacedPos:PROC
 
 .code
 
 ScriptExtension_VMExecuteInternalStub PROC
-  pushad
+  push    rax
+  push    rcx
+  push    rdx
+  push    r8
+  push    r9
+  push    r10
+  push    r11
+  sub     rsp, 88h
+  movdqu  [rsp+20h], xmm0
+  movdqu  [rsp+30h], xmm1
+  movdqu  [rsp+40h], xmm2
+  movdqu  [rsp+50h], xmm3
+  movdqu  [rsp+60h], xmm4
+  movdqu  [rsp+70h], xmm5
 
-  push    edx
   call    ScriptExtension_GetReplacedPos
 
-  pop     edx
-  popad
+  movdqu  xmm0, [rsp+20h]
+  movdqu  xmm1, [rsp+30h]
+  movdqu  xmm2, [rsp+40h]
+  movdqu  xmm3, [rsp+50h]
+  movdqu  xmm4, [rsp+60h]
+  movdqu  xmm5, [rsp+70h]
+  add     rsp, 88h
+  pop     r11
+  pop     r10
+  pop     r9
+  pop     r8
+  pop     rdx
+  pop     rcx
+  pop     rax
 
   cmp     ScriptExtension_ReplacedPos, 0
   jne     SetPos
 
-  movzx   eax, byte ptr [edx]
-  inc     edx
+Loc0:
+  movzx   r8d, byte ptr [rcx]
+  lea     rdx, [rcx+1]
 
-Loc1:
-  cmp     eax, 8Bh
+  push    rax
 
-  push    ecx
+  mov     rax, 142287F98h
+  mov     [rax], r8d
 
-  mov     ecx, 2045094h
-  mov     [ecx], eax
+  mov     rax, 142287F78h
+  mov     [rax], rdx
 
-  mov     ecx, 2040CD4h
-  mov     [ecx], edx
+  pop     rax
 
-  pop     ecx
-
-  push    61E944h
-  ret
+  cmp     r8d, 8Bh
+  jmp     qword ptr [resume]
 
 SetPos:
-  mov     edx, ScriptExtension_ReplacedPos
+  mov     rcx, ScriptExtension_ReplacedPos
   mov     ScriptExtension_ReplacedPos, 0
 
-  movzx   eax, byte ptr [edx]
-  inc     edx
+  jmp     Loc0
 
-  jmp     Loc1
+resume:
+  dq      140229FC8h
 ScriptExtension_VMExecuteInternalStub ENDP
 
 END

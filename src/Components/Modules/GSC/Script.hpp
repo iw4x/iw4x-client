@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void Script_Scr_GetMethod_Stub();
+
+  Game::BuiltinMethod Script_Scr_GetMethod_Hk(const char** pName, int* type);
+}
+
 namespace Components::GSC
 {
   class Script : public Component
@@ -20,6 +27,8 @@ namespace Components::GSC
     static Game::gentity_s* Scr_GetPlayerEntity(Game::scr_entref_t entref);
 
   private:
+    friend Game::BuiltinMethod (::Script_Scr_GetMethod_Hk)(const char** pName, int* type);
+
     struct ScriptFunction
     {
       Game::BuiltinFunction actionFunc;
@@ -55,6 +64,9 @@ namespace Components::GSC
 
     static Game::BuiltinFunction BuiltIn_GetFunctionStub(const char** pName, int* type);
     static Game::BuiltinMethod BuiltIn_GetMethodStub(const char** pName, int* type);
+
+    static Game::BuiltinFunction Scr_GetFunction_Hk(const char** pName, int* type);
+    static Game::BuiltinMethod Scr_GetMethod_Hk(const char** pName, int* type);
 
     static unsigned int SetExpFogStub();
     static void AddRefToValueStub(int type, Game::VariableUnion u);

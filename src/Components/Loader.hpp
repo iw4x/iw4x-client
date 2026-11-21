@@ -60,3 +60,5 @@ namespace Components
 #include "Modules/FileSystem.hpp"
 #include "Modules/Localization.hpp"
 #include "Modules/Scheduler.hpp"
+
+#include "Modules/GSC/GSC.hpp"

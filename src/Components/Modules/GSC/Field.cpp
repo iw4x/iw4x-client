@@ -33,7 +33,7 @@ namespace Components::GSC
       Game::Scr_AddClassField(Game::ClassNum::CLASS_NUM_ENTITY, field.name, field.ofs);
     }
 
-    Utils::Hook::Call<void()>(0x4A7CF0)(); // GScr_AddFieldsForClient
+    Utils::Hook::Call<void()>(0x140163DD0)(); // GScr_AddFieldsForClient
 
     for (const auto& field : CustomClientFields | std::views::values)
     {
@@ -156,10 +156,14 @@ namespace Components::GSC
     AddEntityFields();
     AddClientFields();
 
-    Utils::Hook(0x4EC721, GScr_AddFieldsForEntityStub, HOOK_CALL).install()->quick(); // GScr_AddFieldsForEntity
+    Utils::Hook(0x1401A8B35, GScr_AddFieldsForEntityStub, HOOK_CALL).install()->quick(); // GScr_AddFieldsForEntity
 
-    Utils::Hook(0x41BED2, Scr_SetObjectFieldStub, HOOK_CALL).install()->quick(); // SetEntityFieldValue
-    Utils::Hook(0x5FBF01, Scr_SetClientFieldStub, HOOK_CALL).install()->quick(); // Scr_SetObjectField
-    Utils::Hook(0x4FF413, Scr_GetEntityFieldStub, HOOK_CALL).install()->quick(); // Scr_GetObjectField
+    Utils::Hook(0x140229975, Scr_SetObjectFieldStub, HOOK_CALL).install()->quick(); // SetEntityFieldValue
+    Utils::Hook(0x1401AA13D, Scr_SetClientFieldStub, HOOK_CALL).install()->quick(); // Scr_SetObjectField
+
+    // Note that x64 tail jumps from Scr_GetObjectField() to
+    // Scr_GetEntityField(), so ours returns to its caller in turn.
+    //
+    Utils::Hook(0x1401A9DC9, Scr_GetEntityFieldStub, HOOK_JUMP).install()->quick(); // Scr_GetObjectField
   }
 }

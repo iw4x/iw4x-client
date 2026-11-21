@@ -303,7 +303,6 @@ project "iw4x"
     "src/Components/Modules/ViewModelFx.*",
     "src/Components/Modules/ViewModelFxSetup.*",
     "src/Components/Modules/BotLib/**",
-    "src/Components/Modules/GSC/**",
   }
 
   -- Assemble the assembly sources with ml directly instead of through the
