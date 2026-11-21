@@ -53,6 +53,9 @@ namespace Game
   Key_RemoveCatcher_t Key_RemoveCatcher = Key_RemoveCatcher_t(0x1400EF930);
   Key_IsCatcherActive_t Key_IsCatcherActive = Key_IsCatcherActive_t(0x1400EF720);
   Key_SetBinding_t Key_SetBinding = Key_SetBinding_t(0x1400EF960);
+  Key_GetBindingForCmd_t Key_GetBindingForCmd = Key_GetBindingForCmd_t(0x1400EF600);
+
+  CG_ScoreboardKeyEvent_t CG_ScoreboardKeyEvent = CG_ScoreboardKeyEvent_t(0x1400E5A00);
 
   LargeLocalInit_t LargeLocalInit = LargeLocalInit_t(0x14027D660);
 
@@ -187,6 +190,8 @@ namespace Game
   UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x14026D330);
   UI_PaintMenus_t UI_PaintMenus = UI_PaintMenus_t(0x14026F170);
   ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x1400F2390);
+  ScrPlace_ApplyX_t ScrPlace_ApplyX = ScrPlace_ApplyX_t(0x1400F2790);
+  ScrPlace_ApplyY_t ScrPlace_ApplyY = ScrPlace_ApplyY_t(0x1400F2880);
   UI_KeyEvent_t UI_KeyEvent = UI_KeyEvent_t(0x14026DE90);
   UI_SafeTranslateString_t UI_SafeTranslateString = UI_SafeTranslateString_t(0x140270C90);
   UI_ReplaceConversions_t UI_ReplaceConversions = UI_ReplaceConversions_t(0x1402701B0);
@@ -340,6 +345,7 @@ namespace Game
 
   keyname_t* keyNames = reinterpret_cast<keyname_t*>(0x14041E090);
   keyname_t* localizedKeyNames = reinterpret_cast<keyname_t*>(0x14041E690);
+  const char** keyBindingCommands = reinterpret_cast<const char**>(0x14041EC90);
 
   GraphFloat* aaInputGraph = reinterpret_cast<GraphFloat*>(0x140430230);
 
@@ -567,6 +573,21 @@ namespace Game
     }
 
     return -1.0f;
+  }
+
+  const char* Key_GetCmdForBinding(int binding)
+  {
+    return binding > 0 && binding < KEY_BINDING_COMMAND_COUNT ? keyBindingCommands[binding] : nullptr;
+  }
+
+  void CG_ScrollScoreboardUp(int localClientNum)
+  {
+    CG_ScoreboardKeyEvent(localClientNum, K_PGUP);
+  }
+
+  void CG_ScrollScoreboardDown(int localClientNum)
+  {
+    CG_ScoreboardKeyEvent(localClientNum, K_PGDN);
   }
 
   float GraphFloat_GetValue(const GraphFloat* graph, const float fraction)

@@ -289,7 +289,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/Controller.*",
     "src/Components/Modules/D3D9Ex.*",
     "src/Components/Modules/Debug.*",
     "src/Components/Modules/Dedicated.*",
@@ -338,7 +337,6 @@ project "iw4x"
     "src/Components/Modules/WineD3D.*",
     "src/Components/Modules/BotLib/**",
     "src/Components/Modules/GSC/**",
-    "src/Controller/**",
   }
 
   -- Assemble the assembly sources with ml directly instead of through the

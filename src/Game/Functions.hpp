@@ -122,6 +122,24 @@ namespace Game
   typedef void(*Key_SetBinding_t)(int localClientNum, int keynum, int binding);
   extern Key_SetBinding_t Key_SetBinding;
 
+  // Return the binding of the command, or 0 if no key can be bound to it.
+  //
+  typedef int(*Key_GetBindingForCmd_t)(const char* cmd);
+  extern Key_GetBindingForCmd_t Key_GetBindingForCmd;
+
+  // Return the command of the binding, or nullptr for none.
+  //
+  const char* Key_GetCmdForBinding(int binding);
+
+  typedef bool(*CG_ScoreboardKeyEvent_t)(int localClientNum, int key);
+  extern CG_ScoreboardKeyEvent_t CG_ScoreboardKeyEvent;
+
+  // Note that x64 inlines these into CG_ScoreboardKeyEvent() and so we scroll
+  // with the keys that scroll the scoreboard there.
+  //
+  void CG_ScrollScoreboardUp(int localClientNum);
+  void CG_ScrollScoreboardDown(int localClientNum);
+
   typedef void(*LargeLocalInit_t)();
   extern LargeLocalInit_t LargeLocalInit;
 
@@ -464,6 +482,12 @@ namespace Game
   typedef void(*ScrPlace_ApplyRect_t)(const ScreenPlacement* scrPlace, float* x, float* y, float* w, float* h, int horzAlign, int vertAlign);
   extern ScrPlace_ApplyRect_t ScrPlace_ApplyRect;
 
+  typedef float(*ScrPlace_ApplyX_t)(const ScreenPlacement* scrPlace, float x, int horzAlign);
+  extern ScrPlace_ApplyX_t ScrPlace_ApplyX;
+
+  typedef float(*ScrPlace_ApplyY_t)(const ScreenPlacement* scrPlace, float y, int vertAlign);
+  extern ScrPlace_ApplyY_t ScrPlace_ApplyY;
+
   typedef const char*(*Win_GetLanguage_t)();
   extern Win_GetLanguage_t Win_GetLanguage;
 
@@ -702,6 +726,9 @@ namespace Game
   constexpr auto LOCALIZED_KEY_NAME_COUNT = 95;
   extern keyname_t* keyNames;
   extern keyname_t* localizedKeyNames;
+
+  constexpr auto KEY_BINDING_COMMAND_COUNT = 78;
+  extern const char** keyBindingCommands;
 
   constexpr auto AIM_ASSIST_GRAPH_COUNT = 4u;
   extern GraphFloat* aaInputGraph;

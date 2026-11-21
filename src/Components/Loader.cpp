@@ -24,6 +24,7 @@
 #include "Modules/ClientCommand.hpp"
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/Console.hpp"
+#include "Modules/Controller.hpp"
 #include "Modules/Events.hpp"
 #include "Modules/FastFiles.hpp"
 #include "Modules/Huffman.hpp"
@@ -83,6 +84,7 @@ namespace Components
     Register(new ClientCommand());
     Register(new ConnectProtocol());
     Register(new Console());
+    Register(new Controller());
     Register(new Events());
     Register(new FastFiles());
     Register(new FileSystem());

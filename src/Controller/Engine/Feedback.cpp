@@ -29,7 +29,7 @@ namespace Controller
       role_for (mapping::engine_key k) noexcept
       {
         const char* const b (
-          playerKeys[local_client].keys[static_cast<int> (k)].binding);
+          key_binding (playerKeys[local_client], static_cast<int> (k)));
 
         if (b == nullptr)
           return trigger_role::none;
