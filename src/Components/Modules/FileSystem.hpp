@@ -3,8 +3,14 @@
 extern "C"
 {
   void FileSystem_StartupStub();
+  void FileSystem_VidRestartedStub();
 
   void FileSystem_RegisterFolders();
+
+  // Whether CL_Vid_Restart_f() restarted the file system (see
+  // Components::FileSystem::FS_ConditionalRestart()).
+  //
+  extern bool FileSystem_VidRestarted;
 }
 
 namespace Components
@@ -137,6 +143,8 @@ namespace Components
 
     static void FsStartupSync(const char* a1);
     static void FsRestartSync(int localClientNum, int checksumFeed);
+    static bool FS_ConditionalRestart(int localClientNum, int checksumFeed);
+    static void CL_Vid_Restart_f_UpdateLanguageInfo_Hk();
     static void FsShutdownSync();
     static void DelayLoadImagesSync();
     static int LoadTextureSync(Game::GfxImageLoadDef** loadDef, Game::GfxImage* image);

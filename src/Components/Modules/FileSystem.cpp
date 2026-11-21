@@ -302,6 +302,34 @@ namespace Components
     Maps::GetUserMap()->reloadIwd();
   }
 
+  // Note that x64 compiles out FS_ConditionalRestart() and so we reimplement
+  // it from x86, through FsRestartSync() whose call we hook in it on x86.
+  //
+  bool FileSystem::FS_ConditionalRestart(const int localClientNum, const int checksumFeed)
+  {
+    if (!Utils::Hook::Call<int(int)>(0x140275FD0)(checksumFeed)) // FS_NeedRestart
+    {
+      return false;
+    }
+
+    FsRestartSync(localClientNum, checksumFeed);
+    return true;
+  }
+
+  // Note that x86 restarts the file system in CL_Vid_Restart_f() before it
+  // updates the language, so that a mod or a language picked from the menu
+  // takes effect, and later reloads the stats of the mod if it did (see
+  // FileSystem.asm). x64 leaves the restart out.
+  //
+  void FileSystem::CL_Vid_Restart_f_UpdateLanguageInfo_Hk()
+  {
+    AssertOffset(Game::clientConnection_t, checksumFeed, 0x130);
+
+    FileSystem_VidRestarted = FS_ConditionalRestart(0, Game::clientConnections[0].checksumFeed);
+
+    Utils::Hook::Call<void()>(0x14024D840)(); // SEH_UpdateLanguageInfo
+  }
+
   // Note that FS_Shutdown() takes no argument on x64.
   //
   void FileSystem::FsShutdownSync()
@@ -607,6 +635,15 @@ namespace Components
     Utils::Hook(0x140100308, FsRestartSync, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
     Utils::Hook(0x140111FCF, FsRestartSync, HOOK_CALL).install()->quick(); // StartMatch
 
+    // Restart the file system on vid_restart as x86 does, and reload the
+    // stats of the mod if we did. See FileSystem.asm for the registers at
+    // the second hook point, the 'cmp dword_140C5AE68, r15d' before the
+    // reload.
+    //
+    Utils::Hook(0x1400FDD86, CL_Vid_Restart_f_UpdateLanguageInfo_Hk, HOOK_CALL).install()->quick(); // CL_Vid_Restart_f
+    Utils::Hook(0x1400FDF36, FileSystem_VidRestartedStub, HOOK_CALL).install()->quick(); // CL_Vid_Restart_f
+    Utils::Hook::Nop(0x1400FDF3B, 2);
+
     // Synchronize filesystem stops
     //
     // Note that x64 inlines FS_Shutdown() into FS_Restart(), where we hook
@@ -693,6 +730,8 @@ namespace Components
     assert(FileSystem::MemAllocator.empty());
   }
 }
+
+bool FileSystem_VidRestarted = false;
 
 void FileSystem_RegisterFolders()
 {
