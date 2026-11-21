@@ -289,7 +289,6 @@ project "iw4x"
   --
   removefiles
   {
-    "src/Components/Modules/PlayerMovement.*",
     "src/Components/Modules/PlayerName.*",
     "src/Components/Modules/Playlist.*",
     "src/Components/Modules/Profiler.*",

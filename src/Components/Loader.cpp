@@ -49,6 +49,7 @@
 #include "Modules/News.hpp"
 #include "Modules/Node.hpp"
 #include "Modules/Party.hpp"
+#include "Modules/PlayerMovement.hpp"
 
 namespace Components
 {
@@ -119,6 +120,7 @@ namespace Components
     Register(new News());
     Register(new Node());
     Register(new Party());
+    Register(new PlayerMovement());
     Register(new Scheduler());
 
     // @@ TODO: register components as we port them, in x86 client order
