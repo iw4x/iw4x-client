@@ -9709,13 +9709,13 @@ namespace Game
     float swayOffset[3];
     float recoilAngles[3];
     float recoilSpeed[3];
-    char _pad2[18600];
+    char _pad2[27088];
     int weaponSelect;
     int weaponSelectTime;
-    char _pad3[3416];
-    float compassMapWorldSize[2]; // + 0x73D64
-    char _pad4[0x74]; // + 0x73D6C
-    float selectedLocation[2]; // + 0x73DE0
+    char _pad3[3820];
+    float compassMapWorldSize[2];
+    char _pad4[0x80];
+    float selectedLocation[2];
     float selectedLocationAngle;
     float selectedAngleLocation[2];
     float selectedLocationPrev[2];
@@ -9731,6 +9731,13 @@ namespace Game
   static_assert(offsetof(cg_s, time) == 0x6A780);
   static_assert(offsetof(cg_s, refdef.view.org) == 0x6A7B8);
   static_assert(offsetof(cg_s, refdefViewAngles) == 0x6EEC8);
+  static_assert(offsetof(cg_s, landTime) == 0x6A798);
+  static_assert(offsetof(cg_s, weaponSelect) == 0x7591C);
+  static_assert(offsetof(cg_s, weaponSelectTime) == 0x75920);
+  static_assert(offsetof(cg_s, compassMapWorldSize) == 0x76810);
+  static_assert(offsetof(cg_s, selectedLocation) == 0x76898);
+  static_assert(offsetof(cg_s, selectedLocationAngle) == 0x768A0);
+  static_assert(offsetof(cg_s, selectedLocationAnglePrev) == 0x768B4);
 
   // @@ TODO: verify rest of x64 layout. On x86:
   //
@@ -9739,8 +9746,6 @@ namespace Game
   //    offsetof (cg_s, playerEntity)          == 0x331C
   //    offsetof (cg_s, cubemapShot)           == 0x3358
   //    offsetof (cg_s, latestSnapshotNum)     == 0x3368
-  //    offsetof (cg_s, compassMapWorldSize)   == 0x73D64
-  //    offsetof (cg_s, selectedLocation)      == 0x73DE0
   //
 
   static constexpr auto MAX_GPAD_COUNT = 1;
