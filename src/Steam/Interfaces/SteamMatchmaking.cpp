@@ -45,6 +45,18 @@ namespace Steam
   {
   }
 
+  void Matchmaking::AddRequestLobbyListDistanceFilter(int /*eLobbyDistanceFilter*/)
+  {
+  }
+
+  void Matchmaking::AddRequestLobbyListResultCountFilter(int /*cMaxResults*/)
+  {
+  }
+
+  void Matchmaking::AddRequestLobbyListCompatibleMembersFilter(SteamID /*steamIDLobby*/)
+  {
+  }
+
   SteamID* Matchmaking::GetLobbyByIndex(SteamID* result, int /*iLobby*/)
   {
     *result = SteamID();
@@ -194,5 +206,14 @@ namespace Steam
   bool Matchmaking::SetLobbyOwner(SteamID /*steamIDLobby*/, SteamID /*steamIDNewOwner*/)
   {
     return true;
+  }
+
+  bool Matchmaking::SetLinkedLobby(SteamID /*steamIDLobby*/, SteamID /*steamIDLobbyDependent*/)
+  {
+    return true;
+  }
+
+  void Matchmaking::CheckForPSNGameBootInvite(unsigned int /*iGameBootAttributes*/)
+  {
   }
 }

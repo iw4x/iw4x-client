@@ -21,6 +21,11 @@ namespace Steam
     int m_EChatRoomEnterResponse;
   };
 
+  // Note that the game calls the methods of the interface by their slots,
+  // and x64 is built against a newer version of it than x86. So we lay it
+  // out as Steamworks SDK 1.20 does SteamMatchMaking009, the earliest
+  // version whose slots match the ones x64 calls.
+  //
   class Matchmaking
   {
   public:
@@ -33,6 +38,9 @@ namespace Steam
     virtual void AddRequestLobbyListNumericalFilter(const char *pchKeyToMatch, int nValueToMatch, int eComparisonType);
     virtual void AddRequestLobbyListNearValueFilter(const char *pchKeyToMatch, int nValueToBeCloseTo);
     virtual void AddRequestLobbyListFilterSlotsAvailable(int nSlotsAvailable);
+    virtual void AddRequestLobbyListDistanceFilter(int eLobbyDistanceFilter);
+    virtual void AddRequestLobbyListResultCountFilter(int cMaxResults);
+    virtual void AddRequestLobbyListCompatibleMembersFilter(SteamID steamIDLobby);
     virtual SteamID* GetLobbyByIndex(SteamID* result, int iLobby);
     virtual unsigned __int64 CreateLobby(int eLobbyType, int cMaxMembers);
     virtual unsigned __int64 JoinLobby(SteamID steamIDLobby);
@@ -58,5 +66,7 @@ namespace Steam
     virtual bool SetLobbyJoinable(SteamID steamIDLobby, bool bLobbyJoinable);
     virtual SteamID* GetLobbyOwner(SteamID* result, SteamID steamIDLobby);
     virtual bool SetLobbyOwner(SteamID steamIDLobby, SteamID steamIDNewOwner);
+    virtual bool SetLinkedLobby(SteamID steamIDLobby, SteamID steamIDLobbyDependent);
+    virtual void CheckForPSNGameBootInvite(unsigned int iGameBootAttributes);
   };
 }
