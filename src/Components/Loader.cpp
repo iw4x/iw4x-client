@@ -28,6 +28,7 @@
 #include "Modules/D3D9Ex.hpp"
 #include "Modules/Debug.hpp"
 #include "Modules/Dedicated.hpp"
+#include "Modules/Discord.hpp"
 #include "Modules/Events.hpp"
 #include "Modules/FastFiles.hpp"
 #include "Modules/Huffman.hpp"
@@ -93,6 +94,7 @@ namespace Components
     Register(new D3D9Ex());
     Register(new Debug());
     Register(new Dedicated());
+    Register(new Discord());
     Register(new Events());
     Register(new FastFiles());
     Register(new FileSystem());
