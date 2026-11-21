@@ -159,6 +159,7 @@ namespace Components
     static void AddServerCommands();
 
     static bool InterceptPrintMessage(int channel, const char* msg);
+    static void Com_OpenLogFile_Stub();
     static const Game::dvar_t* Dvar_RegisterLogfile(const char* dvarName, int value, int min, int max, std::uint16_t flags, const char* description);
 
     static void (*PipeCallback)(const std::string&);

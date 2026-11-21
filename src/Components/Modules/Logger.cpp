@@ -1,4 +1,5 @@
 #include "Logger.hpp"
+#include "Branding.hpp"
 #include "Console.hpp"
 #include "Events.hpp"
 #include "Sentry.hpp"
@@ -406,6 +407,44 @@ namespace Components
       });
   }
 
+  void Logger::Com_OpenLogFile_Stub()
+  {
+    // 16 should be enough as realistically someone will probably not run as many servers
+    // the code below will try 16 times to find an open slot between any of the 'backup' slots
+    constexpr auto MAX_LOGFILE_CREATE_ATTEMPTS = 16;
+
+    std::string logfile;
+
+    if (!Game::Sys_IsMainThread() || Game::opening_qconsole)
+    {
+      return;
+    }
+
+    Game::opening_qconsole = true;
+
+    for (auto i = 0; i < MAX_LOGFILE_CREATE_ATTEMPTS; ++i)
+    {
+      logfile = (i == 0) ? Game::logFileName : std::format("{0}.{1:03}", Game::logFileName, i);
+
+      if (!FileSystem::FileRotate(logfile))
+      {
+        continue;
+      }
+
+      Game::logfile = Game::FS_FOpenFileWrite(logfile.c_str());
+      if (Game::logfile)
+      {
+        Game::Com_Printf(Game::CON_CHANNEL_SYSTEM, "\'%s\'\n", Game::Com_GetCommandLine());
+        const auto time = Utils::GetTime();
+        Game::Com_Printf(Game::CON_CHANNEL_SYSTEM, "Build %s. Logfile opened on %s\n", Branding::GetBuildNumber(), time.c_str());
+        break; // Stop attempting further backups
+      }
+    }
+
+    Game::opening_qconsole = false;
+    Game::com_consoleLogOpenFailed = Game::logfile == 0;
+  }
+
   Logger::Logger()
   {
     // set logfile to 1 by default (logs enabled)
@@ -420,6 +459,12 @@ namespace Components
 
     Utils::Hook(Game::G_LogPrintf, G_LogPrintf_Hk, HOOK_JUMP).install()->quick();
     Game::Com_PrintMessageInterceptor = InterceptPrintMessage;
+
+    // Note that x64 compiles out the call to Com_OpenLogFile() that we
+    // replace on x86, along with the rest of the console log, which
+    // Game::Com_PrintMessage() brings back. So we open the log in its place.
+    //
+    Game::Com_OpenLogFileOverride = Com_OpenLogFile_Stub;
 
     Utils::Hook(0x1401A3108, LSP_LogString_Stub, HOOK_JUMP).install()->quick(); // Scr_LogString
     Utils::Hook(0x1401A3144, LSP_LogStringAboutUser_Stub, HOOK_JUMP).install()->quick(); // ScrCmd_LogString_Stub
@@ -442,6 +487,7 @@ namespace Components
     MessageQueue.clear();
 
     Game::Com_PrintMessageInterceptor = nullptr;
+    Game::Com_OpenLogFileOverride = nullptr;
 
     // Flush the console log
     if (Game::logfile)

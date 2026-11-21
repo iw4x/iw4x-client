@@ -49,6 +49,11 @@ namespace Game
   //
   void Com_OpenLogFile();
 
+  // Function that, if set, opens the log file in place of
+  // Com_OpenLogFile().
+  //
+  extern void (*Com_OpenLogFileOverride)();
+
   extern const char* logFileName;
   extern fileHandle_t logfile;
   extern bool opening_qconsole;

@@ -95,6 +95,7 @@ namespace Game
   bool opening_qconsole = false;
   bool com_consoleLogOpenFailed = false;
   int com_errorPrintsCount = 0;
+  void (*Com_OpenLogFileOverride)() = nullptr;
 
   namespace
   {
@@ -164,7 +165,14 @@ namespace Game
       {
         if (logfile == 0)
         {
-          Com_OpenLogFile();
+          if (Com_OpenLogFileOverride != nullptr)
+          {
+            Com_OpenLogFileOverride();
+          }
+          else
+          {
+            Com_OpenLogFile();
+          }
         }
 
         if (logfile != 0)
