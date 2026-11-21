@@ -31,6 +31,7 @@
 #include "Modules/Discord.hpp"
 #include "Modules/Discovery.hpp"
 #include "Modules/Download.hpp"
+#include "Modules/Elevators.hpp"
 #include "Modules/Events.hpp"
 #include "Modules/FastFiles.hpp"
 #include "Modules/Huffman.hpp"
@@ -99,6 +100,7 @@ namespace Components
     Register(new Discord());
     Register(new Discovery());
     Register(new Download());
+    Register(new Elevators());
     Register(new Events());
     Register(new FastFiles());
     Register(new FileSystem());

@@ -2,9 +2,9 @@
 
 extern "C"
 {
-  void Elevators_PM_CorrectAllSolidStub();
+  void Elevators_PM_TraceStub();
 
-  int Elevators_PM_CorrectAllSolid(Game::pmove_s* move, Game::pml_t* pml, Game::trace_t* trace);
+  void Elevators_PM_Trace(Game::trace_t* results);
 }
 
 namespace Components
@@ -15,12 +15,12 @@ namespace Components
     Elevators();
 
   private:
-    friend int (::Elevators_PM_CorrectAllSolid)(Game::pmove_s* move, Game::pml_t* pml, Game::trace_t* trace);
+    friend void (::Elevators_PM_Trace)(Game::trace_t* results);
 
     enum ElevatorSettings { DISABLED, ENABLED, EASY };
     static Dvar::Var BG_Elevators;
 
     static int PM_CorrectAllSolid(Game::pmove_s* move, Game::pml_t* pml, Game::trace_t* trace);
-    static void PM_Trace_Hk(Game::pmove_s*, Game::trace_t*, const float*, const float*, const Game::Bounds*, int, int);
+    static void PM_Trace_Hk(Game::trace_t* results);
   };
 }
