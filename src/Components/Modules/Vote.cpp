@@ -699,10 +699,13 @@ namespace Components
       }
     });
 
+    // Note that ArenaLength moves the map list, which on x86 we read from
+    // where the game no longer fills it.
+    //
     UIScript::Add("voteTypeMap", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
     {
       Game::Cbuf_AddText(0, VA("callvote typemap %s %s\n", Game::sharedUiInfo->gameTypes[(*Game::ui_netGameType)->current.integer].gameType,
-        Game::sharedUiInfo->mapList[(*Game::ui_currentMap)->current.integer].mapName));
+        ArenaLength::NewArenas[(*Game::ui_currentMap)->current.integer].mapName));
     });
 
     UIScript::Add("voteMap", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
@@ -710,7 +713,7 @@ namespace Components
       if ((*Game::ui_currentMap)->current.integer >= 0 &&
         (*Game::ui_currentMap)->current.integer < Game::sharedUiInfo->mapCount)
       {
-        Game::Cbuf_AddText(0, VA("callvote map %s\n", Game::sharedUiInfo->mapList[(*Game::ui_currentMap)->current.integer].mapName));
+        Game::Cbuf_AddText(0, VA("callvote map %s\n", ArenaLength::NewArenas[(*Game::ui_currentMap)->current.integer].mapName));
       }
     });
 
