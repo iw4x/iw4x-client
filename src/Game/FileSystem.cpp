@@ -38,9 +38,15 @@ namespace Game
   // Note that x64 only flushes inside FS_Write() for handles opened for
   // synchronous writes, so for everything else this is the only way.
   //
+  // Note also that the stream belongs to the game's own C runtime, which it
+  // links statically, so we have to flush it with the game's fflush() as
+  // well. Ours doesn't know the stream and treats it as an invalid
+  // parameter, which ends the process.
+  //
   void FS_Flush(fileHandle_t f)
   {
-    std::fflush(fsh[f].handleFiles.file.o);
+    using fflush_t = int (*)(_iobuf* stream);
+    reinterpret_cast<fflush_t>(0x14033F394)(fsh[f].handleFiles.file.o); // fflush
   }
 
   int FS_FOpenFileReadCurrentThread(const char* filename, fileHandle_t* file)
