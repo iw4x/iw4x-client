@@ -687,12 +687,17 @@ namespace Game
   struct MenuEventHandlerSet;
   struct menuDef_t;
 
+  // Note that on x64 ParseConfigStringToStruct() reads the offset as a
+  // pointer-sized value, and so a field is 0x18 bytes.
+  //
   struct cspField_t
   {
     const char* szName;
-    int iOffset;
+    std::intptr_t iOffset;
     int iFieldType;
   };
+
+  static_assert(sizeof(cspField_t) == 0x18);
 
   struct CmdArgs
   {
