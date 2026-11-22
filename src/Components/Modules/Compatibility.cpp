@@ -385,12 +385,14 @@ namespace Components
     // putting the wire form in. Otherwise the tail of a longer game form could
     // end up in the key.
     //
-    // @@ A command that x86 doesn't have goes out empty, but here its text
-    //    still follows the emptied letter and the unscrambling picks it up
-    //    once it starts over, while the client only has zeros. So the two
-    //    would disagree. It's probably rare (it takes a server command that
-    //    x86 has no letter for), but we should copy the wire form only up to
-    //    its first zero.
+    // Note that we copy the wire form only up to its first zero. A command
+    // that x86 doesn't have goes out empty, but its text still follows the
+    // emptied letter here. And since the unscrambling moves on to the next
+    // character after starting over, it would pick that text up, while the
+    // client only has zeros. The two would then disagree, the server would
+    // read noise for the rest of the message, and it would take the noise
+    // for a gap in the client's commands and drop it with 'Lost reliable
+    // commands'. Which is exactly what happened when joining a team.
     //
     std::array<char, SERVER_COMMAND_SIZE> game;
     std::memcpy(game.data(), command, game.size());
@@ -398,7 +400,7 @@ namespace Components
     const auto wire(WireServerCommand(std::string_view(command, strnlen(command, game.size()))));
 
     std::memset(command, 0, game.size());
-    std::memcpy(command, wire.data(), std::min(wire.size(), game.size() - 1));
+    std::memcpy(command, wire.data(), strnlen(wire.c_str(), game.size() - 1));
 
     SV_Netchan_Decode_Original(client, data, length);
 
