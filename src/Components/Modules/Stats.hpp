@@ -32,6 +32,7 @@ namespace Components
     static uint32_t HashFilename();
 
     static int LiveStorage_DataSetValue_Stub(void* state, void* ddlContext, int unused, const char* value);
+    static void LiveStorage_DataSetCmd();
 
     static void CG_SetStatsFromServer (int localClientNum);
     static void CG_InitUnlockedItems (int localClientNum);

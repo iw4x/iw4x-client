@@ -5,6 +5,44 @@
 
 namespace Components
 {
+  namespace
+  {
+    // The stats of the first controller: the player data at 4, whether we
+    // have it at 0x2000, and whether it changed since we last wrote it at
+    // 0x2001.
+    //
+    constexpr std::uintptr_t LiveStorageStats = 0x141BD8BC0;
+    constexpr std::size_t PlayerDataSize = 0x1FFC;
+
+    struct StructuredDataLookup
+    {
+      void* def;
+      void* type;
+      std::uint64_t offset;
+    };
+
+    struct StructuredDataBuffer
+    {
+      std::uint8_t* data;
+      std::size_t size;
+    };
+
+    const auto StructuredData_GetPathFromArgs =
+      reinterpret_cast<bool (*) (Game::StructuredDataDef*, int (*) (), const char* (*) (int), StructuredDataLookup*, int*)> (0x1402801A0);
+
+    const auto StructuredData_SetResultStrings = reinterpret_cast<const char* const*> (0x140425938);
+
+    int CmdArgc ()
+    {
+      return Command::ClientParams ().size ();
+    }
+
+    const char* CmdArgv (int i)
+    {
+      return Command::ClientParams ().get (i);
+    }
+  }
+
   bool Stats::IsMaxLevel()
   {
     // 2516000 should be the max experience.
@@ -209,6 +247,72 @@ namespace Components
     return Utils::Hook::Call<int(void*, void*, int, const char*)>(0x1401F8BE0)(state, ddlContext, unused, value);
   }
 
+  // Set a field of our player data, the path to it and then the value, as
+  // the setPlayerData command does on x86.
+  //
+  // Note that on x86 we skip the warning the game prints when we set our
+  // player data while connected to a server.
+  //
+  void Stats::LiveStorage_DataSetCmd()
+  {
+    auto* stats (reinterpret_cast<std::uint8_t*> (LiveStorageStats));
+
+    if (!Game::LiveStorage_DoWeHaveStats (0))
+    {
+      Game::Com_PrintError (Game::CON_CHANNEL_CLIENT, "Cannot set data: we have not downloaded player stats\n");
+      return;
+    }
+
+    StructuredDataBuffer buffer {stats + 4, PlayerDataSize};
+
+    StructuredDataLookup lookup;
+    int count;
+    if (!StructuredData_GetPathFromArgs (Game::StructuredDataDef_GetAsset ("mp/playerdata.def", PlayerDataSize), CmdArgc, CmdArgv, &lookup, &count))
+      return;
+
+    const Command::ClientParams params;
+    const auto argc (params.size ());
+
+    if (count >= argc)
+    {
+      Game::Com_PrintError (Game::CON_CHANNEL_SYSTEM, "Not enough arguments to setPlayerData\n");
+      return;
+    }
+
+    if (count < argc - 1)
+    {
+      Game::Com_PrintError (Game::CON_CHANNEL_SYSTEM, "Too many arguments to setPlayerData\n");
+      return;
+    }
+
+    switch (const auto r = LiveStorage_DataSetValue_Stub (&lookup, &buffer, 0, params.get (count)))
+    {
+      case 0:
+      {
+        stats[0x2001] = 1;
+        break;
+      }
+      case 1:
+      {
+        break;
+      }
+      default:
+      {
+        Game::Com_PrintError (Game::CON_CHANNEL_SYSTEM, "setPlayerData: %s\n", StructuredData_SetResultStrings[r]);
+
+        std::string command ("Command was: ");
+        for (auto i (0); i < argc; ++i)
+        {
+          command += params.get (i);
+          command += ' ';
+        }
+
+        Game::Com_Printf (Game::CON_CHANNEL_SYSTEM, "%s\n", command.c_str ());
+        break;
+      }
+    }
+  }
+
   // Set our stats as the server tells us to (the N server command, J on x64).
   //
   // The command is a list of offset and data pairs with each data byte
@@ -316,6 +420,11 @@ namespace Components
     Utils::Hook(0x14024BD70, HashFilename, HOOK_JUMP).install()->quick(); // Read
 
     // TODO: Allow playerdata changes in setPlayerData UI script.
+
+    // Note that x64 compiles out the setPlayerData command, which our
+    // unlockstats runs, and so we register it ourselves.
+    //
+    Command::Add("setPlayerData", LiveStorage_DataSetCmd);
 
     // Rename stat file
     //
