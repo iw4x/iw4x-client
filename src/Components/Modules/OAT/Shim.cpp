@@ -383,6 +383,87 @@ namespace
   {
     return name != nullptr ? std::move(name) : std::make_shared<std::string>(fallback);
   }
+
+  bool IsNameCharacter(const char c)
+  {
+    return std::isalnum(static_cast<unsigned char>(c)) != 0 || c == '_';
+  }
+
+  // Rewrite an #elifdef or #elifndef line into the #elif that OAT knows.
+  //
+  // On x86 BotLib's precompiler, which the game parses menus with, gains
+  // these two directives (they are C++23's, as it happens), so a mod's
+  // menus may use them. Ours don't. OAT's precompiler doesn't have them,
+  // and x64 doesn't have the game's precompiler at all, so there is
+  // nothing to hook. But #elifdef X is just #elif defined(X), and
+  // #elifndef X is #elif !defined(X), which OAT does understand. So we
+  // rewrite the line as it's read, before any of OAT's proxies get to see
+  // it.
+  //
+  // Note that if the name is missing, then we leave a bare #elif, which
+  // OAT rejects for its missing expression, much like x86 rejects the
+  // directive for its missing name.
+  //
+  void RewriteElifdef(std::string& line)
+  {
+    const auto hash(line.find_first_not_of(" \t"));
+    if (hash == std::string::npos || line[hash] != '#')
+    {
+      return;
+    }
+
+    const auto directive(line.find_first_not_of(" \t", hash + 1));
+    if (directive == std::string::npos)
+    {
+      return;
+    }
+
+    bool negate;
+    std::size_t end;
+
+    if (line.compare(directive, 8, "elifndef") == 0)
+    {
+      negate = true;
+      end = directive + 8;
+    }
+    else if (line.compare(directive, 7, "elifdef") == 0)
+    {
+      negate = false;
+      end = directive + 7;
+    }
+    else
+    {
+      return;
+    }
+
+    // Leave alone a longer name that merely starts with the directive.
+    //
+    if (end < line.size() && IsNameCharacter(line[end]))
+    {
+      return;
+    }
+
+    auto nameEnd(line.find_first_not_of(" \t", end));
+    const auto nameStart(nameEnd);
+
+    while (nameEnd < line.size() && IsNameCharacter(line[nameEnd]))
+    {
+      ++nameEnd;
+    }
+
+    std::string r(line, 0, directive);
+    r += "elif";
+
+    if (nameStart != std::string::npos && nameEnd > nameStart)
+    {
+      r += negate ? " !defined(" : " defined(";
+      r.append(line, nameStart, nameEnd - nameStart);
+      r += ')';
+      r.append(line, nameEnd);
+    }
+
+    line = std::move(r);
+  }
 }
 
 // The lines that OAT's parser reads.
@@ -413,6 +494,8 @@ ParserLine::ParserLine(std::shared_ptr<std::string> filename, const int lineNumb
   {
     m_line.erase(0, utf8_bom.size());
   }
+
+  RewriteElifdef(m_line);
 }
 
 bool ParserLine::IsEof() const

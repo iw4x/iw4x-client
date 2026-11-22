@@ -206,9 +206,11 @@ namespace Components
 
     Register(new GSC::GSC());
 
-    // On x86 BotLib's precompiler goes right here. BotLib is the one component
-    // we haven't got around to porting yet, so for now there is nothing to
-    // register.
+    // Note that on x86 BotLib's precompiler goes right here. All it does is
+    // add #elifdef and #elifndef to the game's precompiler for the menus,
+    // which x64 parses with OpenAssetTools instead. So on x64 we add them
+    // there, and there is no component to register (see
+    // RewriteElifdef() in OAT/Shim.cpp).
     //
     Register(new ViewModelFxSetup::Setup());
 
