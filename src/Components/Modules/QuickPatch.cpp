@@ -689,6 +689,15 @@ namespace Components
 
     Command::Add("unlockstats", QuickPatch::UnlockStats);
 
+    // The x64 build doesn't register quit (not sure why, the string is gone
+    // too). Com_Quit_f() itself is still there, so we bring the command back
+    // as x86 has it.
+    //
+    Command::Add("quit", []
+    {
+      Game::Com_Quit_f();
+    });
+
     // Note that on x86 we also have the dumptechsets command, which writes
     // the shaders and techsets in the x86 zone layout for ZoneBuilder. The
     // x64 build doesn't have ZoneBuilder.
