@@ -193,6 +193,7 @@ namespace Game
     char shortestMatch[1024];
 
     cmd_function_s Con_Clear_f_VAR;
+    cmd_function_s Con_ToggleConsole_f_VAR;
     cmd_function_s Con_ChannelList_f_VAR;
     cmd_function_s Con_ShowChannel_f_VAR;
     cmd_function_s Con_HideChannel_f_VAR;
@@ -446,6 +447,19 @@ namespace Game
       consoleWindow.activeLineCount = 0;
       con->lineOffset = 0;
       displayLineOffset = 0;
+    }
+
+    // Neither x86 nor x64 has a toggleconsole command, since both toggle
+    // the console straight from the key code (see CL_ConsoleKeyEvent()).
+    // But configs bind the console keys to it, presumably carried over from
+    // some other client, and a bind to a command that doesn't exist just
+    // prints an error. So we provide one. Note that a key that toggles the
+    // console in CL_ConsoleKeyEvent() never gets to its binding, so there is
+    // no danger of toggling twice.
+    //
+    void Con_ToggleConsole_f()
+    {
+      Con_ToggleConsole();
     }
 
     // Console channels.
@@ -2071,6 +2085,7 @@ namespace Game
     conDrawInputGlob.matchIndex = -1;
 
     Cmd_AddCommand("clear", Con_Clear_f, &Con_Clear_f_VAR);
+    Cmd_AddCommand("toggleconsole", Con_ToggleConsole_f, &Con_ToggleConsole_f_VAR);
   }
 
   void Con_InitConsoleChannels()
