@@ -81,22 +81,22 @@ namespace Components
       return Game::DB_FindXAssetHeader(Game::ASSET_TYPE_SOUND, name.data()).sound;
     };
 
-    callbacks.print = [](const OAT::MenuMessage message, const std::string& text)
+    callbacks.print = [](const OAT::Message message, const std::string& text)
     {
       switch (message)
       {
-        case OAT::MenuMessage::debug:
-        case OAT::MenuMessage::info:
+        case OAT::Message::debug:
+        case OAT::Message::info:
         {
           DebugPrint("{}", text);
           break;
         }
-        case OAT::MenuMessage::warning:
+        case OAT::Message::warning:
         {
           Logger::Warning(Game::CON_CHANNEL_UI, "{}\n", text);
           break;
         }
-        case OAT::MenuMessage::error:
+        case OAT::Message::error:
         {
           Logger::PrintError(Game::CON_CHANNEL_UI, "{}\n", text);
           break;

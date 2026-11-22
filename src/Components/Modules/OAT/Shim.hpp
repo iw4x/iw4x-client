@@ -41,11 +41,23 @@
 // against the sizes and offsets below and Menus.cpp checks the game's
 // against the same numbers.
 //
+// Compile raw weapon files the same way.
+//
+// On x86 the game parses a weapon's raw file (weapons/mp/<name>) with its
+// info string parser, which x64 compiled out along with the menu parser.
+// OAT has an IW4 weapon loader too, so we let it do the parsing. Its
+// weapon is the one a zone would hold, though, so a few fields still name
+// what the game keeps resolved (the sounds) or index OAT's own list of
+// script strings. LoadWeaponFile() resolves them through the callbacks
+// before handing the weapon over, the way the game's zone loader does for
+// the weapons of a zone.
+//
 namespace Game
 {
   struct MenuList;
   struct Material;
   struct snd_alias_list_t;
+  struct WeaponCompleteDef;
 }
 
 namespace Components::OAT
@@ -66,7 +78,7 @@ namespace Components::OAT
 
   // The kinds of messages OAT prints while it compiles a file.
   //
-  enum class MenuMessage
+  enum class Message
   {
     debug,
     info,
@@ -91,7 +103,7 @@ namespace Components::OAT
 
     // Print a message that OAT has for us (see con in Shim.cpp).
     //
-    std::function<void (MenuMessage, const std::string&)> print;
+    std::function<void (Message, const std::string&)> print;
   };
 
   // Compile the menu or menu list file, or return nullopt if it doesn't
@@ -100,6 +112,39 @@ namespace Components::OAT
   //
   std::optional<MenuFile> LoadMenuFile(const std::string& file, const MenuCallbacks& callbacks);
 
+  // The weapon of a raw weapon file, as OAT compiled it, with the same
+  // keepalive as a menu file.
+  //
+  struct WeaponFile
+  {
+    Game::WeaponCompleteDef* weapon;
+
+    std::shared_ptr<void> keepalive;
+  };
+
+  struct WeaponCallbacks
+  {
+    // Read the file through the game's file system, as for a menu file.
+    //
+    std::function<std::optional<std::string> (const std::string& file)> read;
+
+    // Find an asset of the type that the weapon refers to, or return null if
+    // there is none. The type is numbered the way the game numbers its
+    // asset types, which is the same as OAT's IW4 numbering.
+    //
+    std::function<void* (int type, const std::string& name)> find;
+
+    // Return the game's script string for the text.
+    //
+    std::function<unsigned short (const char* text)> string;
+
+    std::function<void (Message, const std::string&)> print;
+  };
+
+  // Compile the raw weapon file into the weapon of the name, or return
+  // nullopt if there is no such file or it doesn't compile.
+  //
+  std::optional<WeaponFile> LoadWeaponFile(const std::string& file, const std::string& name, const WeaponCallbacks& callbacks);
   // The layout of the menu structures as OAT compiles them, which has to be
   // the game's (see above). These are the sizes of the structures a compiled
   // menu is made of, plus the offsets of a few fields we reach into. It's not
@@ -123,5 +168,12 @@ namespace Components::OAT
     constexpr std::size_t MenuList = 24;
     constexpr std::size_t listBoxDef_s = 336;
     constexpr std::size_t multiDef_s = 648;
+
+    // The weapon structures, which Weapon.cpp checks the game's side of.
+    // The game's own sizes, which we got from x64's zone loader, are the
+    // same.
+    //
+    constexpr std::size_t WeaponCompleteDef = 0xA0;
+    constexpr std::size_t WeaponDef = 0x890;
   }
 }

@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <exception>
+#include <format>
 #include <sstream>
 #include <string_view>
 #include <utility>
@@ -17,6 +18,10 @@
 #include <Game/IW4/IW4.h>
 #include <Game/IW4/Menu/LoaderMenuListIW4.h>
 #include <Game/IW4/MenuConstantsIW4.h>
+#include <Game/IW4/ObjConstantsIW4.h>
+#include <Game/IW4/Weapon/InfoStringLoaderWeaponIW4.h>
+#include <Game/IW4/Weapon/WeaponFields.h>
+#include <InfoString/InfoString.h>
 #include <ObjLoading.h>
 #include <Parsing/IParserLineStream.h>
 #include <Pool/XAssetInfo.h>
@@ -45,30 +50,58 @@ namespace Components::OAT::Layout
   static_assert(sizeof(IW4::MenuList) == MenuList);
   static_assert(sizeof(IW4::listBoxDef_s) == listBoxDef_s);
   static_assert(sizeof(IW4::multiDef_s) == multiDef_s);
+
+  static_assert(sizeof(IW4::WeaponCompleteDef) == WeaponCompleteDef);
+  static_assert(sizeof(IW4::WeaponDef) == WeaponDef);
 }
 
 namespace
 {
   using namespace Components::OAT;
 
-  // The callbacks of the file being compiled.
+  using PrintFunction = std::function<void (Message, const std::string&)>;
+
+  // The print callback of the file being compiled.
   //
   // OAT prints through free functions (see con below), which have no way to
-  // know whose file they are printing about, so we keep the callbacks here
-  // for the duration of LoadMenuFile(). It's thread-local so that two
-  // threads compiling at once wouldn't print into each other's callbacks,
-  // though as far as we know the menus are only ever loaded from the main
-  // thread.
+  // know whose file they are printing about, so we keep the callback here
+  // for the duration of LoadMenuFile() or LoadWeaponFile(). It's
+  // thread-local so that two threads compiling at once wouldn't print into
+  // each other's callbacks, though as far as we know the menus and weapons
+  // are only ever loaded from the main thread.
   //
-  thread_local const MenuCallbacks* callbacks = nullptr;
+  thread_local const PrintFunction* print = nullptr;
 
-  void Print(const MenuMessage message, const std::string& text)
+  void Print(const Message message, const std::string& text)
   {
-    if (callbacks != nullptr && callbacks->print)
+    if (print != nullptr && *print)
     {
-      callbacks->print(message, text);
+      (*print)(message, text);
     }
   }
+
+  // Set the print callback for as long as we are in scope.
+  //
+  class PrintScope
+  {
+  public:
+    explicit PrintScope(const PrintFunction& f)
+      : previous_(print)
+    {
+      print = &f;
+    }
+
+    ~PrintScope()
+    {
+      print = previous_;
+    }
+
+    PrintScope(const PrintScope&) = delete;
+    PrintScope& operator=(const PrintScope&) = delete;
+
+  private:
+    const PrintFunction* previous_;
+  };
 
   // Return true if the name is that of a function of the menu expressions,
   // like sin or milliseconds, ignoring case the same as the game.
@@ -203,17 +236,19 @@ namespace
   // game's own parser reads the menus and their includes from on x86. That
   // way we find them in the iwds and the mod the same as it does.
   //
+  using ReadFunction = std::function<std::optional<std::string> (const std::string&)>;
+
   class GameSearchPath final : public ISearchPath
   {
   public:
-    explicit GameSearchPath(const MenuCallbacks& callbacks)
-      : callbacks_(callbacks)
+    explicit GameSearchPath(const ReadFunction& read)
+      : read_(read)
     {
     }
 
     SearchPathOpenFile Open(const std::string& fileName) override
     {
-      auto data(callbacks_.read(fileName));
+      auto data(read_(fileName));
 
       if (!data)
       {
@@ -243,21 +278,22 @@ namespace
     }
 
   private:
-    const MenuCallbacks& callbacks_;
+    const ReadFunction& read_;
   };
 
-  template <typename Asset, typename T>
-  // Resolve an asset that the menus refer to, a material or a sound, through
-  // the game's asset database rather than having OAT load it from disk.
+  // Resolve an asset that a menu or a weapon refers to, a material or a
+  // sound, say, through the game's asset database rather than having OAT
+  // load it from disk.
   //
   // If the game doesn't have it, then we take no action and leave it to OAT,
   // which presumably reports it as missing.
   //
+  template <typename Asset>
   class GameAssetCreator final : public AssetCreator<Asset>
   {
   public:
-    explicit GameAssetCreator(const std::function<T*(const std::string&)>& find)
-      : find_(find)
+    explicit GameAssetCreator(std::function<void* (const std::string&)> find)
+      : find_(std::move(find))
     {
     }
 
@@ -275,7 +311,7 @@ namespace
     }
 
   private:
-    const std::function<T*(const std::string&)>& find_;
+    std::function<void* (const std::string&)> find_;
   };
 
   // Point each item back at its menu. The game's parser does that as it
@@ -303,6 +339,127 @@ namespace
       }
     }
   }
+
+  template <typename Asset>
+  void AddGameAssetCreator(AssetCreatorCollection& creators, const WeaponCallbacks& c)
+  {
+    creators.AddAssetCreator(std::make_unique<GameAssetCreator<Asset>>([&c](const std::string& n)
+    {
+      return c.find(Asset::EnumEntry, n);
+    }));
+  }
+
+  // Turn the sound names of the weapon into the game's sounds.
+  //
+  // OAT leaves the names in, the same as a zone has them, and it's the
+  // game's zone loader that looks them up as it loads the weapon. Note
+  // that the field is a union of the two, so we read the name before we
+  // overwrite it.
+  //
+  void ResolveSounds(IW4::WeaponFullDef& weapon, const WeaponCallbacks& c)
+  {
+    const auto resolve([&c](IW4::SndAliasCustom& s)
+    {
+      if (s.name != nullptr && s.name->soundName != nullptr)
+      {
+        const std::string name(s.name->soundName);
+        s.sound = static_cast<IW4::snd_alias_list_t*>(c.find(IW4::ASSET_TYPE_SOUND, name));
+      }
+    });
+
+    // The offsets of the fields are into the full def.
+    //
+    auto* base(reinterpret_cast<std::byte*>(&weapon));
+
+    for (const auto& f : IW4::weapon_fields)
+    {
+      if (f.iFieldType == IW4::CSPFT_SOUND)
+      {
+        resolve(*reinterpret_cast<IW4::SndAliasCustom*>(base + f.iOffset));
+      }
+    }
+
+    // The bounce sounds aren't a field of their own but an array of one
+    // sound for each surface type.
+    //
+    if (weapon.weapDef.bounceSound != nullptr)
+    {
+      for (int i(0); i < IW4::SURF_TYPE_NUM; ++i)
+      {
+        resolve(weapon.weapDef.bounceSound[i]);
+      }
+    }
+  }
+
+  // Give each string of the weapon that the file doesn't set the empty
+  // string.
+  //
+  // OAT only converts the keys that the file has, so the strings of the
+  // others stay null. The game's parser, on the other hand, gets the empty
+  // string for a missing key, and the game relies on that: it sets up a
+  // weapon's xanims by reading the first character of every name, so a
+  // file without, say, a sprint animation would crash it. The fastfiles
+  // have empty strings there as well.
+  //
+  void FillEmptyStrings(IW4::WeaponFullDef& weapon)
+  {
+    auto* base(reinterpret_cast<std::byte*>(&weapon));
+
+    for (const auto& f : IW4::weapon_fields)
+    {
+      if (f.iFieldType == IW4::CSPFT_STRING || f.iFieldType == IW4::WFT_ANIM_NAME)
+      {
+        auto& s(*reinterpret_cast<const char**>(base + f.iOffset));
+
+        if (s == nullptr)
+        {
+          s = "";
+        }
+      }
+    }
+
+    // The fields cover the anims that a file can set, which may not be all
+    // of the arrays, so we go over those as a whole as well.
+    //
+    for (auto* anims : {weapon.szXAnims, weapon.szXAnimsRightHanded, weapon.szXAnimsLeftHanded})
+    {
+      for (int i(0); i < IW4::NUM_WEAP_ANIMS; ++i)
+      {
+        if (anims[i] == nullptr)
+        {
+          anims[i] = "";
+        }
+      }
+    }
+  }
+
+  // Turn the script strings of the weapon, the hide tags and the notetrack
+  // maps, into the game's.
+  //
+  // OAT numbers them by its zone's own list of script strings, which the
+  // game's zone loader would translate as it loads the zone. We translate
+  // them here instead, with OAT's null string (or an empty one) as the
+  // game's, 0.
+  //
+  void ResolveScriptStrings(IW4::WeaponFullDef& weapon, const ZoneScriptStrings& strings, const WeaponCallbacks& c)
+  {
+    const auto resolve([&strings, &c](std::uint16_t* s, const int count)
+    {
+      for (int i(0); s != nullptr && i < count; ++i)
+      {
+        bool null(false);
+        const auto& text(s[i] < strings.Count() ? strings.Value(s[i], null) : std::string());
+
+        s[i] = null || text.empty() ? 0 : c.string(text.c_str());
+      }
+    });
+
+    resolve(weapon.weapCompleteDef.hideTags, 32);
+    resolve(weapon.weapDef.notetrackSoundMapKeys, 16);
+    resolve(weapon.weapDef.notetrackSoundMapValues, 16);
+    resolve(weapon.weapDef.notetrackRumbleMapKeys, 16);
+    resolve(weapon.weapDef.notetrackRumbleMapValues, 16);
+  }
 }
 
 namespace Components::OAT
@@ -317,14 +474,7 @@ namespace Components::OAT
   //
   std::optional<MenuFile> LoadMenuFile(const std::string& file, const MenuCallbacks& c)
   {
-    const auto* previous(callbacks);
-    callbacks = &c;
-
-    struct restore
-    {
-      const MenuCallbacks* previous;
-      ~restore() { callbacks = previous; }
-    } r {previous};
+    PrintScope scope(c.print);
 
     // The game's parser keeps the script of an event handler as it is, so a
     // command it doesn't know only fails once the menu runs it. OAT, on the
@@ -337,11 +487,11 @@ namespace Components::OAT
     try
     {
       auto zone(std::make_shared<Zone>(file, 0, GameId::IW4, GamePlatform::PC));
-      GameSearchPath searchPath(c);
+      GameSearchPath searchPath(c.read);
 
       AssetCreatorCollection creators(*zone);
-      creators.AddAssetCreator(std::make_unique<GameAssetCreator<IW4::AssetMaterial, Game::Material>>(c.material));
-      creators.AddAssetCreator(std::make_unique<GameAssetCreator<IW4::AssetSound, Game::snd_alias_list_t>>(c.sound));
+      creators.AddAssetCreator(std::make_unique<GameAssetCreator<IW4::AssetMaterial>>([&c](const std::string& n) -> void* { return c.material(n); }));
+      creators.AddAssetCreator(std::make_unique<GameAssetCreator<IW4::AssetSound>>([&c](const std::string& n) -> void* { return c.sound(n); }));
       creators.AddAssetCreator(menu::CreateMenuListLoaderIW4(zone->Memory(), searchPath));
 
       IgnoredAssetLookup ignored;
@@ -369,7 +519,104 @@ namespace Components::OAT
     }
     catch (const std::exception& e)
     {
-      Print(MenuMessage::error, e.what());
+      Print(Message::error, e.what());
+      return std::nullopt;
+    }
+  }
+
+  // As with a menu file, we compile the weapon into a zone of our own. OAT's
+  // raw weapon loader would open the file through the search path, but it
+  // also insists on the file name it makes up from the weapon's name, so we
+  // read the file ourselves and hand the info string to the loader
+  // underneath it.
+  //
+  std::optional<WeaponFile> LoadWeaponFile(const std::string& file, const std::string& name, const WeaponCallbacks& c)
+  {
+    PrintScope scope(c.print);
+
+    try
+    {
+      auto data(c.read(file));
+
+      if (!data)
+      {
+        return std::nullopt;
+      }
+
+      // A few of the raw files out there (some of ours included) end with a
+      // stray separator after the last value. The game's parser doesn't mind,
+      // but OAT's takes it for the start of an empty key and gives up on the
+      // file. So we drop it, along with any line break after it.
+      //
+      while (!data->empty() && (data->back() == '\n' || data->back() == '\r'))
+      {
+        data->pop_back();
+      }
+
+      if (!data->empty() && data->back() == '\\')
+      {
+        data->pop_back();
+      }
+
+      std::istringstream is(std::move(*data));
+      InfoString info;
+
+      if (!info.FromStream(IW4::INFO_STRING_PREFIX_WEAPON, is))
+      {
+        Print(Message::error, std::format("could not parse {} as a weapon file", file));
+        return std::nullopt;
+      }
+
+      auto zone(std::make_shared<Zone>(name, 0, GameId::IW4, GamePlatform::PC));
+      GameSearchPath searchPath(c.read);
+
+      // Everything that the weapon refers to comes from the game, the same
+      // as for the game's own parser. Note that the xanims are only
+      // referred to by name, so all we would get out of a missing one is a
+      // warning.
+      //
+      AssetCreatorCollection creators(*zone);
+      AddGameAssetCreator<IW4::AssetXModel>(creators, c);
+      AddGameAssetCreator<IW4::AssetMaterial>(creators, c);
+      AddGameAssetCreator<IW4::AssetFx>(creators, c);
+      AddGameAssetCreator<IW4::AssetTracer>(creators, c);
+      AddGameAssetCreator<IW4::AssetPhysCollMap>(creators, c);
+      AddGameAssetCreator<IW4::AssetSound>(creators, c);
+      AddGameAssetCreator<IW4::AssetXAnim>(creators, c);
+
+      IgnoredAssetLookup ignored;
+      AssetCreationContext context(*zone, &creators, &ignored);
+
+      weapon::InfoStringLoaderIW4 loader(zone->Memory(), searchPath, *zone);
+      const auto result(loader.CreateAsset(name, info, context));
+
+      if (!result.HasTakenAction() || result.HasFailed())
+      {
+        return std::nullopt;
+      }
+
+      auto* asset(static_cast<XAssetInfo<IW4::WeaponCompleteDef>*>(result.GetAssetInfo()));
+
+      if (asset == nullptr || asset->Asset() == nullptr)
+      {
+        return std::nullopt;
+      }
+
+      // The loader allocates the weapon as a full def, whose complete def
+      // comes first.
+      //
+      static_assert(offsetof(IW4::WeaponFullDef, weapCompleteDef) == 0);
+      auto& weapon(*reinterpret_cast<IW4::WeaponFullDef*>(asset->Asset()));
+
+      FillEmptyStrings(weapon);
+      ResolveSounds(weapon, c);
+      ResolveScriptStrings(weapon, zone->m_script_strings, c);
+
+      return WeaponFile {reinterpret_cast<Game::WeaponCompleteDef*>(&weapon.weapCompleteDef), std::move(zone)};
+    }
+    catch (const std::exception& e)
+    {
+      Print(Message::error, e.what());
       return std::nullopt;
     }
   }
@@ -547,21 +794,21 @@ namespace con
 
   void _debug_internal(const std::string& str)
   {
-    Print(MenuMessage::debug, str);
+    Print(Message::debug, str);
   }
 
   void _info_internal(const std::string& str)
   {
-    Print(MenuMessage::info, str);
+    Print(Message::info, str);
   }
 
   void _warn_internal(const std::string& str)
   {
-    Print(MenuMessage::warning, str);
+    Print(Message::warning, str);
   }
 
   void _error_internal(const std::string& str)
   {
-    Print(MenuMessage::error, str);
+    Print(Message::error, str);
   }
 }

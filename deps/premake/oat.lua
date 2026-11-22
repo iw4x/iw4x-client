@@ -1,5 +1,6 @@
--- OpenAssetTools, of which we build the IW4 menu compiler that we load the
--- raw menus with (see src/Components/Modules/OAT/).
+-- OpenAssetTools, of which we build the IW4 menu compiler and weapon loader
+-- that we load the raw menus and weapons with (see
+-- src/Components/Modules/OAT/).
 --
 -- Note that OAT needs C++23, so we also compile the shim between it and
 -- the client here (see Shim.cpp), behind a header that is C++20. The shim
@@ -111,9 +112,9 @@ targets:static_library ("oat",
   --
   buildoptions = _OPTIONS["mingw"] and {"-Wa,-mbig-obj"} or {"/bigobj"},
 
-  -- Only what the IW4 menu compiler needs. Note that we also need the
-  -- descriptions of the other games, which IGame.cpp lists along with
-  -- IW4's.
+  -- Only what the IW4 menu compiler and weapon loader need. Note that we
+  -- also need the descriptions of the other games, which IGame.cpp lists
+  -- along with IW4's.
   --
   files =
   {
@@ -126,16 +127,21 @@ targets:static_library ("oat",
     "src/Common/Game/T4/GameT4.cpp",
     "src/Common/Game/T5/GameT5.cpp",
     "src/Common/Game/T6/GameT6.cpp",
+    "src/ObjCommon/InfoString/InfoString.cpp",
     "src/ObjCommon/SearchPath/ISearchPath.cpp",
     "src/ObjCommon/SearchPath/SearchPathFilesystem.cpp",
     "src/ObjCommon/SearchPath/SearchPathMultiInputStream.cpp",
     "src/ObjCommon/SearchPath/SearchPaths.cpp",
     "src/ObjCommon/SearchPath/SearchPathSearchOptions.cpp",
+    "src/ObjCommon/Weapon/WeaponCommon.cpp",
     "src/ObjLoading/Asset/AssetCreationContext.cpp",
     "src/ObjLoading/Asset/AssetCreationResult.cpp",
     "src/ObjLoading/Asset/AssetCreatorCollection.cpp",
+    "src/ObjLoading/Game/IW4/InfoString/InfoStringToStructConverter.cpp",
     "src/ObjLoading/Game/IW4/Menu/LoaderMenuListIW4.cpp",
     "src/ObjLoading/Game/IW4/Menu/MenuConversionZoneStateIW4.cpp",
+    "src/ObjLoading/Game/IW4/Weapon/InfoStringLoaderWeaponIW4.cpp",
+    "src/ObjLoading/InfoString/InfoStringToStructConverterBase.cpp",
     "src/ObjLoading/Menu/AbstractMenuConverter.cpp",
     "src/ObjLoading/Menu/MenuConversionException.cpp",
     "src/ObjLoading/ObjLoading.cpp",

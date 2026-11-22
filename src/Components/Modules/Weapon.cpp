@@ -13,6 +13,7 @@ namespace Components
   const Game::dvar_t* Weapon::BGDisableDoubleTaps;
 
   std::unordered_map<std::string, Weapon::RawWeapon> Weapon::RawWeapons;
+  std::unordered_map<std::string, OAT::WeaponFile> Weapon::RawWeaponFiles;
   std::uint16_t* Weapon::AltModePrimaries;
 
   namespace
@@ -127,21 +128,21 @@ namespace Components
     }
   }
 
-  // An x86 server parses the weapons that have a raw file, each into its own
-  // def, while a fastfile shares one def between a weapon's variants. The
-  // ammo and clip indices that the server sends (and those of the shared
-  // ammo caps) are numbered by distinct def, so such a weapon gets a copy
-  // of its own here, or else the indices wouldn't line up and a weapon
-  // would presumably end up with another one's ammo.
+  // Load the weapon from its raw file if it has one, the same as x86 does,
+  // and from the fastfile otherwise.
   //
-  // Note that on x86 we load the weapon from its raw file, which x64 has no
-  // parser for, so the copy simply holds what the fastfile has. That's
-  // probably what the raw file says anyway in most cases, but not always.
-  // (On x86 we also fix the rumbles of a raw file there, which a fastfile
-  // has right.)
+  // x64 compiled out the game's parser for the raw files, so we compile them
+  // with OpenAssetTools instead (see OAT/Shim.hpp). Each such weapon ends up
+  // with a def of its own, while a fastfile shares one def between a
+  // weapon's variants. That matters beyond what the raw file says, since
+  // the ammo and clip indices that an x86 server sends (and those of the
+  // shared ammo caps) are numbered by distinct def. With the shared def the
+  // indices wouldn't line up and a weapon would presumably end up with
+  // another one's ammo.
   //
-  // @@ Port the raw weapon file parser so that a raw file that differs from
-  //    the fastfile takes effect, the same as on x86.
+  // So if the raw file doesn't compile, then we still give the weapon a def
+  // of its own, a copy of the fastfile's. That's probably what the raw file
+  // says anyway in most cases, and it at least keeps the indices in step.
   //
   Game::XAssetHeader Weapon::LoadWeaponCompleteDef(const Game::XAssetType type, const char* name)
   {
@@ -154,8 +155,10 @@ namespace Components
 
     // The raw files are in the iwds, which only the search path covers.
     //
+    const auto path (std::format("weapons/mp/{}", name));
+
     Game::fileHandle_t file {};
-    const int size (Game::FS_FOpenFileRead(std::format("weapons/mp/{}", name).c_str(), &file));
+    const int size (Game::FS_FOpenFileRead(path.c_str(), &file));
 
     if (file)
     {
@@ -167,6 +170,18 @@ namespace Components
       return header;
     }
 
+    if (auto weapon = LoadRawWeapon(path, name))
+    {
+      FixRawWeaponRumbles(weapon->weapon, header.weapon);
+
+      header.weapon = weapon->weapon;
+      RawWeaponFiles[name] = std::move(*weapon);
+
+      return header;
+    }
+
+    Logger::Warning(Game::CON_CHANNEL_FILES, "Could not load weapon {} from {}, using the fastfile's\n", name, path);
+
     RawWeapon& raw (RawWeapons[name]);
     raw.complete = *header.weapon;
     raw.def = *header.weapon->weapDef;
@@ -174,6 +189,162 @@ namespace Components
 
     header.weapon = &raw.complete;
     return header;
+  }
+
+  std::optional<OAT::WeaponFile> Weapon::LoadRawWeapon(const std::string& path, const char* name)
+  {
+    OAT::WeaponCallbacks callbacks;
+
+    callbacks.read = [](const std::string& file) -> std::optional<std::string>
+    {
+      FileSystem::File f(file);
+
+      if (!f.exists())
+      {
+        return std::nullopt;
+      }
+
+      return std::move(f.getBuffer());
+    };
+
+    // Note that we look the xanims up without loading a default one in place
+    // of a missing one, since the weapon only keeps their names. The game's
+    // parser doesn't look them up at all.
+    //
+    callbacks.find = [](const int type, const std::string& n) -> void*
+    {
+      const auto t (static_cast<Game::XAssetType>(type));
+
+      if (t == Game::ASSET_TYPE_XANIMPARTS)
+      {
+        const auto* entry (Game::DB_FindXAssetEntry(t, n.data()));
+        return entry != nullptr ? entry->asset.header.data : nullptr;
+      }
+
+      return Game::DB_FindXAssetHeader(t, n.data()).data;
+    };
+
+    // We keep the strings for the same user as the zone loader does, which
+    // is 4, since the weapon takes the place of the fastfile's.
+    //
+    callbacks.string = [](const char* text)
+    {
+      return static_cast<unsigned short>(Game::SL_GetString(text, 4));
+    };
+
+    // OAT tells us about every asset it resolves, which is a bit much for the
+    // console, so we only pass on the warnings and errors.
+    //
+    callbacks.print = [](const OAT::Message message, const std::string& text)
+    {
+      switch (message)
+      {
+        case OAT::Message::debug:
+        case OAT::Message::info:
+        {
+          break;
+        }
+        case OAT::Message::warning:
+        {
+          Logger::Warning(Game::CON_CHANNEL_FILES, "{}\n", text);
+          break;
+        }
+        case OAT::Message::error:
+        {
+          Logger::PrintError(Game::CON_CHANNEL_FILES, "{}\n", text);
+          break;
+        }
+      }
+    };
+
+    return OAT::LoadWeaponFile(path, name, callbacks);
+  }
+
+  // Fix the rumbles of a raw weapon file, the same way as on x86.
+  //
+  // Many of the raw files out there seem to come from a dumper that wrote
+  // the sounds of the notetrack map as its rumbles too. Rumbles can't be
+  // sounds, so if the first rumble is the first sound, then we take the
+  // rumbles from the fastfile, which has them right. And then we drop any
+  // rumble that doesn't exist, which would otherwise end up as rumble
+  // errors.
+  //
+  // Note that the check, the same as on x86, also holds for a weapon
+  // without any notetracks, in which case we take the fastfile's rumbles as
+  // well. Which seems harmless.
+  //
+  void Weapon::FixRawWeaponRumbles(Game::WeaponCompleteDef* weapon, const Game::WeaponCompleteDef* zone)
+  {
+    auto* def (weapon->weapDef);
+
+    if (def->notetrackRumbleMapKeys == nullptr || def->notetrackRumbleMapKeys[0] != def->notetrackSoundMapKeys[0])
+    {
+      return;
+    }
+
+    if (zone != nullptr)
+    {
+      std::memcpy(def->notetrackRumbleMapKeys, zone->weapDef->notetrackRumbleMapKeys, 16 * sizeof(unsigned short));
+      std::memcpy(def->notetrackRumbleMapValues, zone->weapDef->notetrackRumbleMapValues, 16 * sizeof(unsigned short));
+
+      def->fireRumble = zone->weapDef->fireRumble;
+      def->meleeImpactRumble = zone->weapDef->meleeImpactRumble;
+      def->turretBarrelSpinRumble = zone->weapDef->turretBarrelSpinRumble;
+    }
+
+    const auto validate ([weapon](const char*& rumble, const char* field)
+    {
+      if (rumble != nullptr && *rumble != '\0')
+      {
+        const auto rawfile (Game::DB_FindXAssetHeader(Game::ASSET_TYPE_RAWFILE, std::format("rumble/{}", rumble).c_str()));
+
+        if (rawfile.data == nullptr)
+        {
+          Logger::Warning(Game::CON_CHANNEL_FILES, "Weapon {} has INVALID RUMBLE {} '{}'! Remove or replace it.\n", weapon->szInternalName, field, rumble);
+          rumble = nullptr;
+        }
+      }
+    });
+
+    validate(def->fireRumble, "fireRumble");
+    validate(def->meleeImpactRumble, "meleeImpactRumble");
+    validate(def->turretBarrelSpinRumble, "turretBarrelSpinRumble");
+
+    for (int i (0); i < 16; ++i)
+    {
+      if (def->notetrackRumbleMapKeys[i] == 0)
+      {
+        break;
+      }
+
+      auto* values (def->notetrackRumbleMapValues);
+
+      if (values[i] == 0)
+      {
+        continue;
+      }
+
+      const char* s (Game::SL_ConvertToString(values[i]));
+
+      if (s == nullptr || *s == '\0')
+      {
+        continue;
+      }
+
+      const auto rawfile (Game::DB_FindXAssetHeader(Game::ASSET_TYPE_RAWFILE, std::format("rumble/{}", s).c_str()));
+
+      if (rawfile.data == nullptr || strnlen(rawfile.rawfile->buffer, 1) == 0)
+      {
+        values[i] = 0;
+        def->notetrackRumbleMapKeys[i] = 0;
+
+        Logger::Warning(Game::CON_CHANNEL_FILES,
+                        "Weapon {} has INVALID RUMBLE {} notetrackRumbleMap #'{}'! Remove or replace it.\n",
+                        weapon->szInternalName,
+                        s,
+                        i);
+      }
+    }
   }
 
   void* Weapon::CG_ClearState(void* cg, int value, std::size_t size)
@@ -689,6 +860,12 @@ namespace Components
     //
     AssertOffset(Game::dvar_t, current, 0x10);
 
+    // The game's half of the check of the weapon structures that we load the
+    // raw weapon files into (see OAT/Shim.hpp).
+    //
+    AssertSize(Game::WeaponCompleteDef, OAT::Layout::WeaponCompleteDef);
+    AssertSize(Game::WeaponDef, OAT::Layout::WeaponDef);
+
     if (!Flags::HasFlag("steamdemo") && !Flags::HasFlag("retaildemo"))
     // The Steam version uses a limit of 1400 weapons, the same as x64, while
     // the other clients use the default of 1200.
@@ -700,7 +877,7 @@ namespace Components
     // On x86 we load weapons from their raw files, which also gets the
     // game's warning about a missing raw file out of the way (and the double
     // load with fs_game that follows it). x64 loads them from the fastfiles
-    // only, so we make our copies where it does (see
+    // only, so we load the raw files where it does (see
     // LoadWeaponCompleteDef()).
     //
     Utils::Hook(0x14009C950, LoadWeaponCompleteDef, HOOK_CALL).install()->quick(); // BG_GetWeaponIndexForName

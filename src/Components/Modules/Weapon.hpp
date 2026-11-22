@@ -1,5 +1,7 @@
 #pragma once
 
+#include "OAT/Shim.hpp"
+
 extern "C"
 {
   extern const Game::dvar_t* Weapon_BGWeaponOffHandFix;
@@ -46,9 +48,16 @@ namespace Components
 
     static std::unordered_map<std::string, RawWeapon> RawWeapons;
 
+    // The weapons that we compiled from their raw files, which live for as
+    // long as we hold on to them. As on x86, we never let go.
+    //
+    static std::unordered_map<std::string, OAT::WeaponFile> RawWeaponFiles;
+
     static std::uint16_t* AltModePrimaries;
 
     static Game::XAssetHeader LoadWeaponCompleteDef(Game::XAssetType type, const char* name);
+    static std::optional<OAT::WeaponFile> LoadRawWeapon(const std::string& path, const char* name);
+    static void FixRawWeaponRumbles(Game::WeaponCompleteDef* weapon, const Game::WeaponCompleteDef* zone);
     static void PatchLimit();
     static void* LoadNoneWeaponHook();
 
