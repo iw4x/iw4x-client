@@ -945,10 +945,17 @@ namespace Components
     Utils::Hook::Call<void()>(0x14001F740)();
   }
 
-  void Rumble::CG_UpdateEntInfo_Hk(int localClientNum)
+  // Note that on x64 CG_UpdateEntInfo() returns the number of the turret the
+  // local player is using (or ENTITYNUM_NONE) and CG_DrawActiveFrame() goes on
+  // to index cg_entities with it. So we have to pass it through: dropping it
+  // leaves whatever CG_UpdateRumble() happened to leave in eax, which under
+  // wine seems to be harmless but on Windows crashes on the first frame.
+  //
+  int Rumble::CG_UpdateEntInfo_Hk(int localClientNum)
   {
-    Utils::Hook::Call<void(int)>(0x1400D2790)(localClientNum); // Call original
+    int r (Utils::Hook::Call<int(int)>(0x1400D2790)(localClientNum)); // Call original
     CG_UpdateRumble(localClientNum);
+    return r;
   }
 
   void Rumble::DebugRumbles()

@@ -79,7 +79,7 @@ namespace Components
     static void CG_ExplosiveImpactOnShieldEvent(int localClientNum);
     static void CG_ExplosiveSplashOnShieldEvent(int localClientNum, int weaponIndex);
     static void CG_SetRumbleReceiver();
-    static void CG_UpdateEntInfo_Hk(int localClientNum);
+    static int CG_UpdateEntInfo_Hk(int localClientNum);
     static void CG_FireWeapon_Rumble(int localClientNum, Game::centity_s* cent, Game::WeaponDef* weaponDef, bool isPlayerView);
     static void CG_FireWeapon_Hk(int localClientNum, Game::centity_s* cent, int event, int param, unsigned short tagName, unsigned int weapon, bool isPlayerView);
     static void (*CG_FireWeapon_Original)(int localClientNum, Game::centity_s* cent, int event, int param, unsigned short tagName, unsigned int weapon, bool isPlayerView);
