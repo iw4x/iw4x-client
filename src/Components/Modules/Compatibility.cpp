@@ -345,6 +345,11 @@ namespace Components
     Game::CL_AddReliableCommand(localClientNum, SCORES_REQUEST);
   }
 
+  bool Compatibility::FS_PureServerSetLoadedIwds([[maybe_unused]] const char* sums, [[maybe_unused]] const char* names)
+  {
+    return Utils::Hook::Call<bool(const char*, const char*)>(0x1401FD4A0)("", ""); // FS_PureServerSetLoadedIwds
+  }
+
   char* Compatibility::SV_ReadClientCommand(Game::msg_t* msg, char* buffer, const int size)
   {
     auto* command(MSG_ReadString(msg, buffer, size));
@@ -530,6 +535,14 @@ namespace Components
     AssertOffset(Game::playerState_s, pm_flags, 0xC);
     AssertOffset(Game::playerState_s, otherFlags, 0x10);
     MSG_SetDefaultUserCmd_Original = Utils::Hook::Detour(0x140200C40, 5, &MSG_SetDefaultUserCmd_Hk);
+
+    // The iwds of a pure server, which CL_SystemInfoChanged() has the game
+    // load only those of. An x86 client has the iw4x iwds that an x86 server
+    // names, but we have our own, which the game would unload. So we load
+    // all of ours, as we do for a server that isn't pure. Note that
+    // QuickPatch already keeps the game from dropping us over them.
+    //
+    Utils::Hook(0x1401001D7, FS_PureServerSetLoadedIwds, HOOK_CALL).install()->quick();
 
     ServerCommands::OnCommand(DESTROY_DYNENT_COMMAND, CG_DestroyDynEntCommand);
   }

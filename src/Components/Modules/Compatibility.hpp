@@ -46,6 +46,8 @@ namespace Components
     static void MSG_SetDefaultUserCmd_Hk(Game::playerState_s* ps, Game::usercmd_s* cmd);
     static void (*MSG_SetDefaultUserCmd_Original)(Game::playerState_s* ps, Game::usercmd_s* cmd);
 
+    static bool FS_PureServerSetLoadedIwds(const char* sums, const char* names);
+
     static bool CG_DestroyDynEntCommand(const Command::Params* params);
   };
 }
