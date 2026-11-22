@@ -804,16 +804,6 @@ namespace Components
     Utils::Hook::Call<void()>(0x1400F0030)();
   }
 
-  void Console::SCR_DrawScreenField_Hk()
-  {
-    if (Game::cls->rendererStarted)
-    {
-      Game::Con_DrawConsole(0);
-    }
-
-    Game::ScrPlace_EndFrame();
-  }
-
   int Console::R_TextHeight_Hk(Game::Font_s* font)
   {
     return static_cast<int>(static_cast<float>(Game::R_TextHeight(font)) * Game::Con_GetFontScale(font));
@@ -867,8 +857,8 @@ namespace Components
     // x64 compiles out the in-game console, so we bring our own (see
     // Game::Con_InitConsoleWindow() for why and how). Here we hook it into
     // the places that x86 calls it from. We set it up along with the rest of
-    // the console and feed it the lines, then draw it with the screen and
-    // hand it the keys.
+    // the console and feed it the lines, then hand it the keys. The drawing
+    // goes through Scheduler instead (see below).
     //
     Con_UpdateNotifyLine_Original = Utils::Hook::Detour(0x1400EE410, 5, &Con_UpdateNotifyLine_Hk);
     Utils::Hook(0x1400EBC71, Console_CL_ConsolePrintStub, HOOK_JUMP).install()->quick();
@@ -897,7 +887,25 @@ namespace Components
     Utils::Hook(0x1400FAF02, Con_Init_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400F0025, Con_InitChannels_Hk, HOOK_JUMP).install()->quick();
 
-    Utils::Hook(0x140101D11, SCR_DrawScreenField_Hk, HOOK_CALL).install()->quick();
+    // Draw the console in the renderer pipeline, which Scheduler runs right
+    // after the ScrPlace_EndFrame() call that ends the screen of a frame.
+    //
+    // Note that we used to hook that call ourselves, but so does Scheduler,
+    // and since it registers after us, its hook quietly replaced ours and
+    // the console never drew. Drawing from the pipeline comes down to the
+    // same thing: ScrPlace_EndFrame() only marks the frame as ended, and
+    // what changes with that is the placement that
+    // ScrPlace_GetActivePlacement() returns. But by then the game has gone
+    // back to the full screen placement anyway, so the console sees the
+    // same one either way.
+    //
+    Scheduler::Loop([]
+    {
+      if (Game::cls->rendererStarted)
+      {
+        Game::Con_DrawConsole(0);
+      }
+    }, Scheduler::Pipeline::RENDERER);
 
     Utils::Hook(0x1400EE892, Console_CL_KeyEventStub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x1400EE95D, Console_CL_KeyEventEscapeStub, HOOK_JUMP).install()->quick();

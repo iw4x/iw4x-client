@@ -169,8 +169,8 @@ namespace Game
   // toggle keys come first, then escape, which cancels the autocomplete,
   // and then any key pressed while the console is open or while we are
   // disconnected. The latter is small enough that we replace it
-  // altogether. The console itself is drawn from SCR_DrawScreenField(),
-  // right before the frame's screen placement ends.
+  // altogether. The console itself is drawn from the renderer pipeline of
+  // Components::Scheduler, right after the frame's screen placement ends.
   //
   // Note also that the console comes with the IW4x changes that x86 makes
   // to it. The prompt and the colors are ours, the console opens whatever

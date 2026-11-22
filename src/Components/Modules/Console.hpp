@@ -121,7 +121,6 @@ namespace Components
     static char CL_ConsolePrint_AddLine_Hk(int localClientNum, int channel, const char* txt, int duration, int pixelWidth, char color, int flags);
     static void Con_Init_Hk();
     static void Con_InitChannels_Hk();
-    static void SCR_DrawScreenField_Hk();
     static int R_TextHeight_Hk(Game::Font_s* font);
     static int R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font);
     static void CL_DrawTextWithCursor_Hk(Game::ScreenPlacement* scrPlace, const char* text, int maxChars, Game::Font_s* font, float x, float y, int horzAlign, int vertAlign, float xScale, float yScale, const float* color, int style, int cursorPos, char cursorChar);
