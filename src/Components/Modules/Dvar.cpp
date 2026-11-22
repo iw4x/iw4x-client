@@ -276,6 +276,16 @@ namespace Components
     return Game::Dvar_RegisterEnum(dvarName, valueList, defaultIndex, flags | Game::DVAR_ARCHIVE, description);
   }
 
+  const Game::dvar_t* Dvar::Dvar_RegisterMaxFps(const char* dvarName, int value, int min, int /*max*/, std::uint16_t flags, const char* description)
+  {
+    // Register com_maxfps with the maximum of 1000 that x86 gives it. The x64
+    // build caps it at 100, which is also why the menu won't go any higher.
+    // We also archive it like x86 does, since otherwise the cap you pick is
+    // lost on restart.
+    //
+    return Game::Dvar_RegisterInt(dvarName, value, min, 1000, flags | Game::DVAR_ARCHIVE, description);
+  }
+
   const Game::dvar_t* Dvar::Dvar_RegisterFov(const char* dvarName, float value, float min, float /*max*/, std::uint16_t flags, const char* description)
   {
     // Register cg_fov with the maximum of 160 that x86 gives it.
@@ -499,6 +509,10 @@ namespace Components
     // so we register the dvar ourselves (see Dvar_RegisterFov()).
     //
     Utils::Hook(0x1400D763B, Dvar_RegisterFov, HOOK_CALL).install()->quick();
+
+    // set com_maxfps max to 1000 (see Dvar_RegisterMaxFps())
+    //
+    Utils::Hook(0x1401F48F3, Dvar_RegisterMaxFps, HOOK_CALL).install()->quick();
 
     // set max volume to 1
     //

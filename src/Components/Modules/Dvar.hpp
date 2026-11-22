@@ -48,6 +48,7 @@ namespace Components
     static const Game::dvar_t* Dvar_RegisterName(const char* dvarName, const char* value, std::uint16_t flags, const char* description);
     static const Game::dvar_t* Dvar_RegisterSVNetworkFps(const char* dvarName, int value, int min, int max, std::uint16_t flags, const char* description);
     static const Game::dvar_t* Dvar_RegisterDrawFps(const char* dvarName, const char** valueList, int defaultIndex, std::uint16_t flags, const char* description);
+    static const Game::dvar_t* Dvar_RegisterMaxFps(const char* dvarName, int value, int min, int max, std::uint16_t flags, const char* description);
     static const Game::dvar_t* Dvar_RegisterFov(const char* dvarName, float value, float min, float max, std::uint16_t flags, const char* description);
     static const Game::dvar_t* Dvar_RegisterVolume(const char* dvarName, float value, float min, float max, std::uint16_t flags, const char* description);
 
