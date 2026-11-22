@@ -79,14 +79,22 @@ namespace zone
     // The game keeps its fastfiles under zone. The x64 game reads the stock
     // ones in place, which leaves IW4x's own fastfiles. These are in the x86
     // layout under zone/iw4x/x86, where the x86 game reads them, and we put
-    // the converted copy under zone/iw4x/x64.
+    // the converted copy under zone/iw4x/stage.
+    //
+    // Why not zone/iw4x/x64? For now that's where our mm variant keeps its
+    // fastfiles (and main/iw4x/x64 its loose files, which is why BASEGAME is
+    // main/iw4x/stage), though once it moves elsewhere (zone/iw4x/mm, say),
+    // we can probably take both over. Note also that we leave zone/iw4x/x86
+    // and main/iw4x/x86 as they are, so that a player can go back to the x86
+    // game (say, while we fix something on x64 that keeps them from moving
+    // over).
     //
     // Note that on x86 we convert the other way around, writing x86 copies
     // of the stock fastfiles under zone/iw4x/x86.
     //
     const fs::path zone_root ("zone");
     const fs::path source_root ("zone/iw4x/x86");
-    const fs::path converted_root ("zone/iw4x/x64");
+    const fs::path converted_root ("zone/iw4x/stage");
 
     // The loose IW4x files are a little different. The game loads these from
     // fs_basegame, which we point at BASEGAME. The x86 game reads them from
