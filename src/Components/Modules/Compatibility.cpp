@@ -559,7 +559,10 @@ namespace Components
   //
   void Compatibility::MSG_ReadDeltaHudElems_Hk(Game::msg_t* msg, const int time, const Game::hudelem_s* from, Game::hudelem_s* to, const int count)
   {
-    std::array<Game::hudelem_s, MAX_HUDELEMS> wire;
+    // Note that the game only reads the count elements that we fill in, but
+    // GCC can't tell and warns about the rest, so we clear them all.
+    //
+    std::array<Game::hudelem_s, MAX_HUDELEMS> wire {};
     WireHudElems(wire, from, count);
 
     // The message is a delta from the elements as they went over the wire, so

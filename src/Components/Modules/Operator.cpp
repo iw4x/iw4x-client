@@ -587,7 +587,9 @@ namespace Components
 
     unsigned int RefCount (unsigned int id)
     {
-      return *reinterpret_cast<const std::uint16_t*> (&ObjectEntry (id).u);
+      std::uint16_t r;
+      std::memcpy (&r, &ObjectEntry (id).u, sizeof (r));
+      return r;
     }
 
     // Return the number of variables the object uses, counting each array it
