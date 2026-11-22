@@ -986,7 +986,18 @@ namespace Assets
         SetBoneQuaternion(model, stowedRear, false, -0.553f, -0.062f, -0.049f, 0.830f);
         SetBoneTrans(model, stowedBack, true, -9.866f, -4.989f, 36.315f);
         SetBoneQuaternion(model, stowedRear, true, -0.054f, -0.025f, -0.975f, 0.214f);
+		
+        // Missing shield back location on SP models
+        auto shieldBack = GetIndexOfBone(model, "tag_shield_back");
+        if (shieldBack == UCHAR_MAX)
+        {
+        	shieldBack = InsertBone(model, "tag_shield_back", "j_spine4", allocator);
+        }
 
+        SetBoneTrans(model, shieldBack, false, 0.0f, -8.431f, 0.8012f);
+        SetBoneQuaternion(model, shieldBack, false, -0.5234f, 0.4754f, -0.4754f, 0.5234f);
+        SetBoneTrans(model, shieldBack, true, -11.7133f, 0.8018f, 52.1543f);
+        SetBoneQuaternion(model, shieldBack, true, -0.071f, 0.0f, -0.997f, 0.0f);
 
         RebuildPartBits(model);
       }
