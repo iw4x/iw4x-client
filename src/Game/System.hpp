@@ -114,10 +114,10 @@ namespace Game
   class Sys
   {
   public:
-    // Offsets of game variables in thread-local storage.
+    // The offsets of the game variables in thread-local storage.
     //
-    // Note that x64 lays the pointers out 8 bytes apart, so these differ
-    // from x86's.
+    // Note that x64 lays the pointers out 8 bytes apart, so these differ from
+    // x86's.
     //
     enum class TLS_OFFSET : unsigned int
     {
@@ -132,7 +132,7 @@ namespace Game
     template <typename T>
     static T* GetTls(TLS_OFFSET offset)
     {
-      // TEB's ThreadLocalStoragePointer is at gs:[0x58].
+      // The TEB's ThreadLocalStoragePointer is at gs:[0x58].
       //
       const uintptr_t* tls = reinterpret_cast<uintptr_t*>(__readgsqword(0x58));
       return reinterpret_cast<T*>(tls[*g_dwTlsIndex] + static_cast<std::underlying_type_t<TLS_OFFSET>>(offset));

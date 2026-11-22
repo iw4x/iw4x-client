@@ -41,6 +41,11 @@ namespace Components::GSC
     Game::OpcodeLookup* opcodeLookup;
     Game::SourceLookup* sourcePosLookup;
 
+    // x86 can also break into the script debugger here or abort on the error,
+    // but x64 has neither and goes on to end the script itself after we
+    // return. So all we are left to do is say where the error is, which is
+    // probably the most useful part anyway.
+    //
     if (!Developer_)
     {
       return;
@@ -422,9 +427,6 @@ namespace Components::GSC
 
   void ScriptError::RuntimeError(const char* codePos, unsigned int index, const char* msg, [[maybe_unused]] const char* dialogMessage)
   {
-    // Note that x64 has no debugger or abort_on_error and goes on to end
-    // the script itself, so all we do is say where the error is.
-    //
     if (!Developer_)
     {
       assert(Scr_IsInOpcodeMemory(codePos));
@@ -439,8 +441,8 @@ namespace Components::GSC
 
   void ScriptError::VM_Error(const char* codePos)
   {
-    // Note that x64 doesn't keep the error's message, which the script
-    // printed when it raised it.
+    // x64 doesn't keep the error's message (the script printed it when it
+    // raised the error), so this generic one is the best we can do.
     //
     RuntimeError(codePos, 0, "script runtime error", nullptr);
   }
@@ -457,7 +459,9 @@ namespace Components::GSC
     va_end(argptr);
 
     // Note that x64 doesn't keep the message of an error in an evaluated
-    // expression and gives up with it as a fatal error.
+    // expression and simply gives up with a fatal error, which is presumably
+    // what x86 would do too, minus the message. So we at least say what the
+    // error was.
     //
     if (Game::scrVarPub->evaluate)
     {
@@ -876,8 +880,8 @@ namespace Components::GSC
 
   unsigned int ScriptError::Scr_LoadScript_Hk(const char* filename)
   {
-    // Note that x64 inlines Scr_LoadScriptInternal() here, with room for the
-    // entries it has no use for.
+    // x64 inlines Scr_LoadScriptInternal() here, with room for the precache
+    // entries it has no use for, so we make room for them as well.
     //
     Game::PrecacheEntry entries[1024];
     return Scr_LoadScriptInternal_Hk(filename, entries, 0);
@@ -887,8 +891,10 @@ namespace Components::GSC
   {
     Utils::Hook::Call<void()>(0x14021CFE0)(); // MT_Reset
 
-    // Note that x64 has no Scr_Settings(), so we take developer from the
-    // dvar as each load of the scripts starts.
+    // x64 has no Scr_Settings(), which is where x86 sets developer, so we take
+    // it from the dvar as each load of the scripts starts. That should come
+    // down to the same thing, unless someone flips developer halfway through
+    // a load, which seems unlikely.
     //
     Developer_ = (*Game::com_developer)->current.enabled;
 
@@ -918,15 +924,16 @@ namespace Components::GSC
     Utils::Hook(0x14021B7AA, Scr_LoadScriptInternal_Hk, HOOK_CALL).install()->quick(); // ScriptCompile
     Utils::Hook(0x14021C140, Scr_LoadScript_Hk, HOOK_JUMP).install()->quick();
 
-    // Read animtrees from disk first as well, as x86 does.
-    //
-    // Note that x64 reads them from the zones only.
+    // Read animtrees from disk first as well, as x86 does. x64 reads them from
+    // the zones only, which would make a mod's animtree on disk quietly not
+    // count.
     //
     Utils::Hook(0x140210889, Scr_AddSourceBuffer, HOOK_CALL).install()->quick(); // Scr_LoadAnimTreeAtIndex
 
-    // Note that x64 keeps a single RuntimeError() call, for the stack
-    // overflow in VM_Execute(), and leaves the others out. So we also take
-    // over where VM_Execute() handles an error, which is where x86 calls it.
+    // x64 keeps only one RuntimeError() call, for the stack overflow in
+    // VM_Execute(), and leaves the others out. So we also take over where
+    // VM_Execute() handles an error, which is where x86 makes that call (see
+    // ScriptError_VM_Error()).
     //
     Utils::Hook(0x140229ED1, RuntimeError, HOOK_CALL).install()->quick();
 
@@ -940,9 +947,14 @@ namespace Components::GSC
 
     // The compiler's AddOpcodePos() and RemoveOpcodePos() calls.
     //
-    // Note that x64 makes them to an empty function shared with others. The removes are the
-    // calls of EmitOpcode() (and its copy for one opcode) before it replaces
-    // the previous opcode; the adds pass the source position and type.
+    // x64 compiles both out and makes the calls to an empty function that it
+    // shares with a few others, so we can't just hook the function and have
+    // to hook each call. Which call is which we told apart by what it passes:
+    // the adds pass the source position and its type, while the removes are
+    // the calls that EmitOpcode() (and its copy for one particular opcode)
+    // makes right before it replaces the previous opcode. A good few of them
+    // are tail calls, hence the second list. If a source position ever comes
+    // out wrong, then one of these lists is probably missing a call.
     //
     for (const auto address : std::initializer_list<std::uintptr_t>
     {
@@ -998,8 +1010,8 @@ namespace Components::GSC
   }
 }
 
-// Where VM_Execute() handles an error, the stub in ScriptError.asm calls us
-// with the position of the code that raised it.
+// Where VM_Execute() handles an error, the stub in ScriptError.asm calls
+// us with the position of the code that raised it.
 //
 void ScriptError_VM_Error(const char* codePos)
 {

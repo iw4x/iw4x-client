@@ -148,9 +148,6 @@ namespace Components::GSC
     //
     Utils::Hook::Replace32(0x14021C0C4, 5, 0x180000, 0x1000000);
 
-    // Note that on x86 we also fix a format string in Scr_RandomFloatRange.
-    // x64 strips the script error messages, and so the string.
-
     Utils::Hook (0x14022B80E, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: wait.
     Utils::Hook (0x14022B8AE, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: waittillframeend.
     Utils::Hook (0x14022BE68, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: waittill.

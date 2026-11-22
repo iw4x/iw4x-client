@@ -7,8 +7,9 @@ extern "C"
 
   void FileSystem_RegisterFolders();
 
-  // Whether CL_Vid_Restart_f() restarted the file system (see
-  // Components::FileSystem::FS_ConditionalRestart()).
+  // Whether CL_Vid_Restart_f() restarted the file system this time, which
+  // the stub then decides on reloading the stats by (see
+  // Components::FileSystem::CL_Vid_Restart_f_UpdateLanguageInfo_Hk()).
   //
   extern bool FileSystem_VidRestarted;
 }

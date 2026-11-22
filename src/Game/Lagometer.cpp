@@ -8,12 +8,12 @@ namespace Game
 
   namespace
   {
-    // Alignment against the right and bottom of the safe area.
+    // The alignment against the right and the bottom of the safe area.
     //
     constexpr int HORIZONTAL_ALIGN_RIGHT = 3;
     constexpr int VERTICAL_ALIGN_BOTTOM = 3;
 
-    // Text alignment of CG_DrawDevString(), right and bottom.
+    // The text alignment of CG_DrawDevString(), right and bottom.
     //
     constexpr int TEXT_ALIGN_RIGHT_BOTTOM = 10;
 
@@ -37,7 +37,7 @@ namespace Game
     constexpr float colorMdCyan[4] = {0.0f, 0.5f, 0.5f, 1.0f};
 
     // Note that x64 compiles out CL_IsCGameInitialized() along with its
-    // callers here.
+    // callers here, so this is x86's.
     //
     bool CL_IsCGameInitialized(const int localClientNum)
     {
@@ -45,10 +45,9 @@ namespace Game
     }
 
     // Copy the command out of the ring of the last CMD_BACKUP ones, unless it
-    // has fallen out of it.
+    // has already fallen out of it.
     //
-    // Note that x64 compiles out CL_GetUserCmd() along with its callers
-    // here.
+    // Note that x64 compiles out CL_GetUserCmd() along with its callers here.
     //
     bool CL_GetUserCmd(const int localClientNum, const int cmdNumber, usercmd_s* ucmd)
     {
@@ -74,8 +73,8 @@ namespace Game
       CG_DrawDevString(scrPlace, x, y, 1.0f, 1.0f, text, color, align, cgMedia->bigDevFont);
     }
 
-    // Draw the graph's caption under it and its background, both against the
-    // right bottom.
+    // Draw the graph's background along with its caption under it, both
+    // against the right bottom.
     //
     void DrawGraphBack(ScreenPlacement* scrPlace, const float x, const float y, const float size, const char* text, const float* color)
     {
@@ -83,7 +82,7 @@ namespace Game
       UI_DrawHandlePic(scrPlace, x, y, size, size, HORIZONTAL_ALIGN_RIGHT, VERTICAL_ALIGN_BOTTOM, colorBlack, cgMedia->whiteMaterial);
     }
 
-    // Draw a one unit wide bar of the graph standing on its bottom.
+    // Draw a one unit wide bar of the graph, standing on its bottom.
     //
     void DrawGraphBar(ScreenPlacement* scrPlace, const float x, const float bottom, const float h, const float* color)
     {
@@ -276,8 +275,8 @@ namespace Game
     const auto size (static_cast<float>((*drawServerBandwidthSize)->current.integer));
     const auto bottom (size + y);
 
-    // The kilobits per second the server needs for its clients, with some
-    // headroom.
+    // The kilobits per second that the server needs for its clients, with
+    // some headroom.
     //
     const auto required (static_cast<int>(Live_NecessaryBandwidth((*sv_maxclients)->current.integer) * 0.0009765625 * 0.8999999761581421));
 

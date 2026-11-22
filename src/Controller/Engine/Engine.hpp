@@ -88,8 +88,11 @@ namespace Controller
     // Bind the key to the command, or unbind it if command is nullptr.
     //
     // Note that x64 binds keys to indices into its table of the commands a
-    // key can be bound to, so we can only bind a key to one of those. Any
-    // other command unbinds the key.
+    // key can be bound to (see Components::Bindings). The lookup here only
+    // finds what's already in that table, so any other command unbinds the
+    // key. That's presumably fine for the controller, which only binds the
+    // game's own commands, but it's worth knowing before binding anything
+    // fancier through here.
     //
     inline void
     Key_SetBinding (int client, int keynum, const char* command) noexcept

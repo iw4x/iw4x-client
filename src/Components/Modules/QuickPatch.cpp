@@ -134,8 +134,8 @@ namespace Components
   int QuickPatch::SND_GetAliasOffset(const Game::snd_alias_t* alias)
   {
     // The game looks up the alias's list by its name and walks it without
-    // checking that it found one. Note that x64 takes a default asset for
-    // none, which we do as well.
+    // checking that it found one. Note that x64 takes the default asset when
+    // there is none, and so do we.
     //
     const auto* list = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_SOUND, alias->aliasName).sound;
 
@@ -252,11 +252,11 @@ namespace Components
   void QuickPatch::CL_InitRef_Hk(Game::GfxConfiguration* config)
   {
     // CL_InitRef() creates a GfxConfiguration with the fullscreen display
-    // mode, which r_displayMode inherits as the default value. We override
-    // the field here to force windowed startup on first launch.
+    // mode, which r_displayMode then inherits as its default value. So we
+    // override the field here to start windowed on the first launch.
     //
     // Note that on x86 the field is a bool that r_fullscreen inherits. x64
-    // has the r_displayMode enum in its place, of which 2 is "windowed".
+    // has the r_displayMode enum in its place, where 2 is windowed.
     //
     config->defaultDisplayMode = 2;
 
@@ -336,17 +336,18 @@ namespace Components
     // Hook escape handling on open console to change behaviour to close the
     // console instead of only canceling autocomplete.
     //
-    // Note that x64 compiles out the call to Con_CancelAutoComplete() here,
-    // which the Console component puts back with its own stub. We take the
-    // place over from it.
+    // Note that x64 compiles out the call of Con_CancelAutoComplete() here,
+    // which the Console component puts back with a stub of its own. We take
+    // that place over from it, which is a bit fragile: if the two ever get
+    // installed in the other order, then presumably the console's stub wins.
     //
     Utils::Hook(0x1400EE95D, QuickPatch_CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
 
     // Intermission time dvar
     Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_NONE, "Time in seconds before match server loads the next map");
 
-    // Note that x64 passes the client events to FireWeapon() and
-    // FireWeaponMelee() as tail calls, which we take over as they are.
+    // Note that x64 passes the client events on to FireWeapon() and
+    // FireWeaponMelee() as tail calls, which is why these hooks are jumps.
     //
     g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
     Utils::Hook(0x140194EBF, FireWeapon_Hk, HOOK_JUMP).install()->quick();
@@ -379,8 +380,8 @@ namespace Components
 
     // Fix crash when impact marks run out of room.
     //
-    // Note that x64 has a second copy of the caller that passes the callback
-    // as well.
+    // Note that x64 has a second copy of the caller, which passes the
+    // callback as well.
     //
     for (const auto place : {0x140151E8C, 0x1401521D5})
     {
@@ -394,15 +395,15 @@ namespace Components
     // Disable fullscreen mode on first launch
     //
     // Note that x64 inlines CL_InitRef() into CL_Vid_Restart_f(), so we hook
-    // both of its calls to R_ConfigureRenderer().
+    // both of the R_ConfigureRenderer() calls.
     //
     Utils::Hook(0x1400FBD1D, QuickPatch::CL_InitRef_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400FDE44, QuickPatch::CL_InitRef_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x140032772, QuickPatch::R_EnumDisplayModes_Hk, HOOK_CALL).install()->quick();
 
-    // Note that x64 compiles out con_minicon along with the mini console, so
-    // we register it as the game's CG_RegisterDvars() does on x86 (see
-    // Game::Con_DrawMiniConsole()). As there, we default it to on in debug
+    // x64 compiles out con_minicon along with the mini console, so we
+    // register it the way CG_RegisterDvars() does on x86 (see
+    // Game::Con_DrawMiniConsole()). As there, it defaults to on in debug
     // builds.
     //
     Events::OnDvarInit([]
@@ -433,8 +434,9 @@ namespace Components
 
     // remove system pre-init stuff (improper quit, disk full)
     //
-    // Note that WinMain() goes on only if this returns nonzero, which on x86
-    // we leave to whatever eax holds. We return 1.
+    // Note that WinMain() only goes on if this returns nonzero. On x86 we
+    // leave that to whatever eax happens to hold, which apparently works
+    // out. Here we would rather not count on our luck, so we return 1.
     //
     Utils::Hook::Set<BYTE>(0x1402A2E00, 0xB8); // mov eax, 1
     Utils::Hook::Set<DWORD>(0x1402A2E01, 1);
@@ -443,7 +445,7 @@ namespace Components
     // Don't delete config files if corrupted
     //
     // Note that on x86 we also clear a flag that the "Invalid external
-    // archiving" check sets, which x64 compiles out.
+    // archiving" check sets, but x64 compiles that check out.
     //
     Utils::Hook::Set<BYTE>(0x1401F3EC6, 0xEB);
 
@@ -453,8 +455,8 @@ namespace Components
     // ends up hidden behind the splash screen, which looks like a hang. Note
     // that the game still records the new hardware, we only skip asking.
     //
-    // Note that x64 inlines the prompt into the check, so we return false
-    // where it starts.
+    // x64 inlines the prompt into the check, so we return false right where
+    // the prompt starts.
     //
     Utils::Hook::Set<DWORD>(0x1402A4056, 0x2EEBC030); // xor al, al; jmp 0x1402A4088
 
@@ -497,12 +499,15 @@ namespace Components
     //
     Utils::Hook::Set<BYTE>(0x1401F501E, 0xEB);
 
-    // Note that x64 drops the connection to a server that sends no list of
-    // its iwds, as IW4x servers with sv_pure 0 do, with 'Server has modified
-    // files', and to one whose referenced iwds we lack or hold in another
-    // version with '<iwd> is different from the server'. x86 has neither
-    // check, and an x86 server references its own iwds, which an x64 client
-    // never has. So we make the jumps past both errors unconditional.
+    // x64 drops the connection to a server that sends no list of its iwds,
+    // as IW4x servers with sv_pure 0 do, with 'Server has modified files'.
+    // It also drops it if we lack one of the server's referenced iwds, or
+    // hold it in another version, with '<iwd> is different from the
+    // server'. x86 has neither check, and an x86 server references its own
+    // iwds, which an x64 client never has. Could we teach the check which
+    // iwds to ignore instead? Perhaps, but x86 gets by without it just fine,
+    // so we make the jumps past both errors unconditional (see also
+    // Compatibility).
     //
     Utils::Hook::Set<BYTE>(0x1401002B5, 0xEB); // CL_ParseGamestate
     Utils::Hook::Set<BYTE>(0x1400F88D1, 0xEB); // CL_ParseGamestate (its iwd check)
@@ -510,25 +515,26 @@ namespace Components
     // remove limit on IWD file loading
     Utils::Hook::Nop(0x14027338F, 2);
 
-    // Note that x64 also loads an iwd that isn't localized only if it is
-    // named iw_NN.iwd with NN at most 23, which x86 doesn't check and which
-    // would leave out ours. So we jump over that check to where it loads
-    // the iwd.
+    // x64 also only loads an iwd that isn't localized if it's named
+    // iw_NN.iwd with NN at most 23. Presumably that's how the later revision
+    // keeps stray iwds out, but x86 doesn't check it, and the check would
+    // leave out all of ours. So we jump over it, straight to where the iwd
+    // gets loaded.
     //
     Utils::Hook::Set<BYTE>(0x14027357F, 0xEB); // jmp 0x1402735FD
     Utils::Hook::Set<BYTE>(0x140273580, 0x1402735FD - (0x14027357F + 2));
 
     // Fix stats sleeping
     //
-    // Note that on x86 we return from the DNS lookup of the stats server,
-    // into which x64 inlines the frame that follows it. We skip to that.
+    // On x86 we return from the DNS lookup of the stats server. x64 inlines
+    // the frame that follows it into the lookup, so we skip to that instead.
     //
     Utils::Hook::Set<BYTE>(0x14024B307, 0xEB);
     Utils::Hook(0x1401ADD54, 0x1401ADEC8, HOOK_JUMP).install()->quick();
 
-    // Note that on x86 we also remove the 'impure stats' check, default
-    // sv_pure to 0, remove activeAction execution, and disable bind
-    // protection. x64 compiles out the stats check and has none of the rest.
+    // Note that on x86 we also remove the 'impure stats' check, which x64
+    // compiles out. And there we default sv_pure to 0 as well as remove the
+    // activeAction execution and the bind protection, none of which x64 has.
     //
 
     // require Windows 6 (Vista)
@@ -536,7 +542,7 @@ namespace Components
     Utils::Hook::Set<char>(0x1403A8496, '6');
 
     // Note that on x86 we also disable the 'ignoring asset' notices, which
-    // x64 doesn't print.
+    // x64 doesn't print in the first place.
     //
 
     // disable migration_dvarErrors
@@ -548,9 +554,9 @@ namespace Components
     // fs_game fixes
     //
     // Note that on x86 we make G_GetWeaponIndexForName() load the weapons
-    // from the fastfiles with fs_game set too, where the game loads them
-    // from the raw files. x64 has no raw file loading and always does so in
-    // BG_GetWeaponIndexForName().
+    // from the fastfiles with fs_game set too, where the game would load
+    // them from the raw files. x64 has no raw file loading for them and
+    // always does so in BG_GetWeaponIndexForName().
     //
 
     // filesystem init default_mp.cfg check
@@ -574,8 +580,8 @@ namespace Components
 
     // Redirect logs
     //
-    // Note that x64 compiles out the console log, which we have in its
-    // place.
+    // Note that x64 compiles out the console log, which we bring back in its
+    // place (see Game::Com_PrintMessage()).
     //
     Utils::Hook::PlaceString(0x14019D8FD, 7, 0x140386E68, "logs/games_mp.log");
     Game::logFileName = "logs/console_mp.log";
@@ -588,11 +594,13 @@ namespace Components
 
     // Disable profile system
     //
-    // Note that on x86 the patch for GamerProfile_SetPercentCompleteMP is at
-    // the fadein menu script handler, which we patch the same.
+    // Note that on x86 the patch for GamerProfile_SetPercentCompleteMP is
+    // really at the fadein menu script handler, which we patch the same way.
+    // The label looks like a mistake, but we kept the patch rather than
+    // guess.
     //
-    // @@ That likely meant 0x450A80 (0x1400F15B0 on x64), which only saves
-    //    through GamerProfile_SaveProfile.
+    // @@ That presumably meant 0x450A80 (0x1400F15B0 on x64), which only
+    //    saves through GamerProfile_SaveProfile.
     //
     Utils::Hook::Nop(0x1400FBC10, 5); // GamerProfile_RegisterDvars
     Utils::Hook::Nop(0x1401F439A, 5); // GamerProfile_UpdateSystemDvars
@@ -603,10 +611,12 @@ namespace Components
 
     // Profile reading
     //
-    // Note that x64 inlines the reading into GamerProfile_LogInProfile() and
-    // doesn't print its error. On x86 the reading fails, which marks the
-    // profile unread and skips parsing it. We do the same and skip to where
-    // it leaves the critical section.
+    // x64 inlines the reading into GamerProfile_LogInProfile() and doesn't
+    // print its error. On x86 the reading fails, which marks the profile as
+    // unread and skips parsing it. So we do the same by hand and skip to
+    // where it leaves the critical section. Messing with a critical section
+    // like this feels a bit risky, which is why we make sure to still leave
+    // it.
     //
     Utils::Hook::Set<DWORD>(0x1400F0B81, 0x0146C641); // mov byte ptr [r14+1], 1
     Utils::Hook::Set<BYTE>(0x1400F0B85, 1);
@@ -614,7 +624,7 @@ namespace Components
 
     // GamerProfile_RegisterCommands
     //
-    // Note that x64 has 10 of the 15 profile commands, which we point to
+    // Note that x64 has 10 of the 15 profile commands, which we point at
     // nullsub_1.
     //
     for (const auto& [place, handler] : {std::pair{0x1400F0F6B, 0x1400F0D40}, // profile_menuDvarsSetup
@@ -660,8 +670,8 @@ namespace Components
     Command::Add("unlockstats", QuickPatch::UnlockStats);
 
     // Note that on x86 we also have the dumptechsets command, which writes
-    // shaders and techsets in the x86 zone layout for ZoneBuilder. The x64
-    // build doesn't have ZoneBuilder.
+    // the shaders and techsets in the x86 zone layout for ZoneBuilder. The
+    // x64 build doesn't have ZoneBuilder.
     //
 
 #ifdef DEBUG_MAT_LOG

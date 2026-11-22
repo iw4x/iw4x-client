@@ -155,7 +155,7 @@ namespace Game
     assert(svs_clients[clientNum].header.state >= CS_CONNECTED);
 
     // The stats start with a checksum, which we skip. After it come the 2000
-    // stats that are bytes and then the ones that are ints.
+    // stats that are bytes, and then the ones that are ints.
     //
     if (index < 2000)
     {
@@ -203,7 +203,7 @@ namespace Game
     }
 
     // Note that on x86 we send this as 'M', which x64 uses for a command of
-    // its own, so we send it as 'G', which x64 doesn't (see
+    // its own, so we send it as 'G' instead, which x64 doesn't use (see
     // Components::Stats).
     //
     SV_SendServerCommand(&svs_clients[clientNum], SV_CMD_RELIABLE, "%c %i %i", 'G', index, value);
@@ -224,20 +224,20 @@ namespace Game
     }
 
     // Load the map and spawn the server on it. The command we are executing
-    // decides whether the new server has cheats enabled: devmap enables them
-    // and map disables them.
+    // decides whether the new server has cheats enabled, which devmap does
+    // and map doesn't.
     //
     void SV_Map(const char* map, bool mapIsPreloaded)
     {
       com_errorPrintsCount = 0;
 
       // The map can also be given as its BSP path (maps/mp/<map>.d3dbsp), in
-      // which case we strip it down to the map name since that's what the
-      // map's zone is called. We also lower-case the name and replace '%'
-      // with '_', the same as the game.
+      // which case we strip it down to the map name, since that's what the
+      // map's zone is called. We also lower-case the name and replace '%' with
+      // '_', the same as the game does.
       //
       // Note that x86 strips the extension without checking that the name is
-      // long enough to have one.
+      // long enough to have one, which we would rather not copy.
       //
       char name[64];
       {
@@ -261,8 +261,9 @@ namespace Game
       }
 
       // @@ On x86 the map can also be a savegame (<name>.svg), whose header
-      //    says which map to load. x64 compiles out reading the header, so
-      //    for now we don't support it.
+      //    says which map to load. x64 compiles out reading the header, so for
+      //    now we don't support it. Probably nobody uses savegames in
+      //    multiplayer anyway, but we haven't checked.
       //
       const int savegame (*sv_migrate != 0 ? 1 : 0);
 
@@ -334,7 +335,7 @@ namespace Game
     *allowed = flags;
 
     // Note that x86 first checks that controller 0 is a local controller,
-    // which it always is, and so we don't.
+    // which it always is, so we don't bother.
     //
     LiveStorage_EndGame(0);
 

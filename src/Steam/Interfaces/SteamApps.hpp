@@ -3,8 +3,9 @@
 namespace Steam
 {
   // Note that x64 asks ISteamApps whether the DLC map packs are installed,
-  // which x86 has no import for. We lay it out as Steamworks SDK 1.20 does
-  // STEAMAPPS_INTERFACE_VERSION005, as we do the game's other interfaces.
+  // which x86 has no import for. We lay it out the way Steamworks SDK 1.20
+  // does STEAMAPPS_INTERFACE_VERSION005, the same as the game's other
+  // interfaces.
   //
   class Apps
   {

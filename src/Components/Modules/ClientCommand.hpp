@@ -62,8 +62,8 @@ namespace Components
       PredictedPlayerState,
     };
 
-    // Slots of the frame that ClientCommand_GiveAll_Stub saves, in the order
-    // its pushes leave them.
+    // The slots of the frame that ClientCommand_GiveAll_Stub saves, in the
+    // order its pushes leave them (rax ends up at the lowest address).
     //
     enum GiveAllRegister
     {

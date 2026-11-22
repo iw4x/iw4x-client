@@ -76,23 +76,23 @@ namespace zone
   //
   namespace
   {
-    // The game keeps its fastfiles under zone. The x64 game reads the
-    // stock ones in place, which leaves IW4x's own fastfiles. These are
-    // in the x86 layout under zone/iw4x/x86, where the x86 game reads
-    // them, and we put the converted copy under zone/iw4x/x64.
+    // The game keeps its fastfiles under zone. The x64 game reads the stock
+    // ones in place, which leaves IW4x's own fastfiles. These are in the x86
+    // layout under zone/iw4x/x86, where the x86 game reads them, and we put
+    // the converted copy under zone/iw4x/x64.
     //
-    // Note that on x86 we convert the other way around, writing x86
-    // copies of the stock fastfiles under zone/iw4x/x86.
+    // Note that on x86 we convert the other way around, writing x86 copies
+    // of the stock fastfiles under zone/iw4x/x86.
     //
     const fs::path zone_root ("zone");
     const fs::path source_root ("zone/iw4x/x86");
     const fs::path converted_root ("zone/iw4x/x64");
 
-    // The loose IW4x files are a little different. The game loads these
-    // from fs_basegame which we point at BASEGAME. The x86 game reads
-    // them from main/iw4x/x86 and older installations from
-    // BASEGAME_LEGACY. None of them depends on the word size, so we copy
-    // what the other two locations have.
+    // The loose IW4x files are a little different. The game loads these from
+    // fs_basegame, which we point at BASEGAME. The x86 game reads them from
+    // main/iw4x/x86, and older installations still have them in
+    // BASEGAME_LEGACY. None of them depends on the word size, as far as we
+    // can tell, so we simply copy what the other two locations have.
     //
     const fs::path basegame_root (BASEGAME);
     const fs::path source_basegame_root ("main/iw4x/x86");
@@ -103,11 +103,11 @@ namespace zone
   //
   namespace
   {
-    // There are two fastfile layouts that we care about. x64 is the
-    // layout the game reads and the one shipped by recent Steam
-    // installations. x86 is the layout of IW4x's own fastfiles, which is,
-    // of course, what we are looking for here since those are the files
-    // that have to go through the converter.
+    // There are two fastfile layouts that we care about. x64 is the layout
+    // the game reads and the one shipped by recent Steam installations. x86
+    // is the layout of IW4x's own fastfiles, which is, of course, what we are
+    // looking for here, since those are the files that have to go through
+    // the converter.
     //
     enum class arch {x86, x64};
 
@@ -471,10 +471,11 @@ namespace zone
     // it out. A refusal before that point then leaves the installation
     // exactly as we found it.
     //
-    // Note that on x86 we also move, replace, drop, and prune files to
-    // bring older layouts into shape. The x64 game has no older layout,
-    // and since the x86 game keeps reading the originals, we only ever
-    // copy or convert them.
+    // Note that on x86 we also rearrange files (moving some and dropping
+    // others) to bring older layouts into shape. The x64 game has no older
+    // layout to speak of, and since the x86 game keeps reading the
+    // originals, we only ever copy or convert them here. Which is a relief,
+    // really, since a copy we get wrong can always be made again.
     //
     enum class action
     {
@@ -501,14 +502,15 @@ namespace zone
   //
   namespace
   {
-    // Whether t has to be brought up to date with f. That is the case
-    // if there is nothing at t yet or if f has changed since we produced
-    // t.
+    // Whether t has to be brought up to date with f. That's the case if
+    // there is nothing at t yet or if f has changed since we produced t.
     //
-    // The latter matters since, unlike the stock fastfiles, IW4x's own
-    // files change with every release. Note that a copy keeps the
-    // original's modification time while a conversion is newer than its
-    // input, so in both cases f is only newer once it has changed.
+    // The latter matters since, unlike the stock fastfiles, IW4x's own files
+    // change with every release. Note that a copy keeps the original's
+    // modification time while a conversion is newer than its input, so
+    // either way f is only newer once it has changed. Could we compare
+    // contents instead? We could, but reading every fastfile on every start
+    // seems a steep price for that.
     //
     bool
     stale (const fs::path& f, const fs::path& t)
@@ -523,15 +525,15 @@ namespace zone
       return !ec && ft > tt;
     }
 
-    // There are first the loose IW4x files. The launcher installs them
-    // into source_basegame_root, and installations that go back far
-    // enough still have them in legacy_basegame_root, which the x86 game
-    // folds into the former. Leave both alone since the x86 game keeps
-    // reading them and copy them into basegame_root.
+    // There are first the loose IW4x files. The launcher installs them into
+    // source_basegame_root, and installations that go back far enough still
+    // have them in legacy_basegame_root, which the x86 game folds into the
+    // former. We leave both alone, since the x86 game keeps reading them,
+    // and copy them into basegame_root.
     //
-    // A file can be in both places if the x86 game hasn't got to fold
-    // it yet. The copy in source_basegame_root is then the one the
-    // launcher installed later, so that is the one we keep.
+    // What if a file is in both places? That happens if the x86 game hasn't
+    // got round to folding it yet. The copy in source_basegame_root is then
+    // the one the launcher installed later, so that's the one we keep.
     //
     void
     plan_basegame (plan& p)
@@ -561,18 +563,17 @@ namespace zone
       }
     }
 
-    // Then IW4x's own fastfiles. The x86 game moves them under
-    // source_root from the groups the launcher installs them into, so
-    // an installation it hasn't started on yet still has them in the
-    // groups. Look in both places and convert each into the same group
-    // under converted_root.
+    // Then IW4x's own fastfiles. The x86 game moves them under source_root
+    // from the groups the launcher installs them into, so an installation it
+    // hasn't started on yet still has them in the groups. So we look in both
+    // places and convert each into the same group under converted_root.
     //
-    // A fastfile can again be in both places, in which case the one in
-    // the group is the copy installed later and so the one we convert.
+    // A fastfile can again be in both places, in which case the one in the
+    // group is the copy installed later and so the one we convert.
     //
-    // Note that Steam's map packs in dlc are in the x64 layout and the
-    // game reads them where Steam put them. Their x86 copies under
-    // source_root are, naturally, of no use to us.
+    // Note that Steam's map packs in dlc are in the x64 layout and the game
+    // reads them where Steam put them. Their x86 copies under source_root
+    // are, naturally, of no use to us.
     //
     void
     plan_conversion (plan& p)
@@ -596,10 +597,10 @@ namespace zone
             if ((g.shared != nullptr && g.shared (n)) || !seen.insert (n).second)
               continue;
 
-            // An old IW4x fastfile is something the game would refuse
-            // to load whatever its layout, and anything that isn't in
-            // the x86 layout is not something this conversion knows what
-            // to do with.
+            // An old IW4x fastfile is something the game would refuse to load
+            // whatever its layout, and anything that isn't in the x86 layout
+            // is not something this conversion knows what to do with. Either
+            // way, better to leave it alone than to guess.
             //
             if (outdated (e.path ()) || probe (e.path ()) != arch::x86)
               continue;
@@ -613,11 +614,10 @@ namespace zone
       }
     }
 
-    // Each phase is planned once the one before it has been carried
-    // out, so that it sees the layout left behind. Note that on x86 we
-    // also recover the stock layout from an older converter and take
-    // over IW4x's fastfiles before converting, which the x64 game has no
-    // use for.
+    // Each phase is planned once the one before it has been carried out, so
+    // that it sees the layout left behind. Note that on x86 we also recover
+    // the stock layout from an older converter and take over IW4x's
+    // fastfiles before converting, which the x64 game has no use for.
     //
     struct phase_type
     {
@@ -1060,13 +1060,13 @@ namespace zone
     void
     do_copy (const step& s)
     {
-      // The plan doesn't contain mkdir steps. Maybe it could, but then
-      // every copy would have to carry around the fact that its parent
-      // may or may not exist. It is simpler to deal with that here
-      // where we actually need it.
+      // The plan doesn't contain mkdir steps. Maybe it could, but then every
+      // copy would have to carry around the fact that its parent may or may
+      // not exist. It's simpler to deal with that here where we actually need
+      // it.
       //
-      // Note that the original stays where it is since the x86 game
-      // keeps reading it.
+      // Note that the original stays where it is, since the x86 game keeps
+      // reading it.
       //
       mkdir_p (s.to.parent_path ());
 

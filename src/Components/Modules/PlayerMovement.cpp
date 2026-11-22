@@ -147,9 +147,12 @@ namespace Components
     }
   }
 
-  // Replaces the camera-relative right-vector projection inside PM_LadderMove
-  // (ProjectPointOnPlane at 0x14027A9B0, single call site at 0x1400913FE) with the
-  // ladder-locked form: pml->right = (-Ly, Lx, 0) / |L_xy|.
+  // Replace the camera-relative projection of the right vector in
+  // PM_LadderMove() (the one call of ProjectPointOnPlane() there) with one
+  // locked to the ladder: pml->right = (-Ly, Lx, 0) / |L_xy|. This way
+  // strafing on a ladder no longer depends on where the player looks, which
+  // is probably what most people expected it to do in the first place.
+  //
   float* PlayerMovement::PM_LadderMove_RightVector_Hk(float* source, const float* ladderNormal, float* pmlRight)
   {
     if (PlayerMovement_BGLadderFixedInput && PlayerMovement_BGLadderFixedInput->current.enabled)
@@ -168,9 +171,10 @@ namespace Components
   }
 
   // Point the RIP-relative float operand of the instruction at place (length
-  // bytes, with the displacement in its last 4) at the dvar's current value.
-  // The game keeps its dvars in its own image, so the displacement always
-  // fits.
+  // bytes long, with the displacement in its last 4) at the dvar's current
+  // value. The game keeps its dvars in its own image, so the displacement
+  // always fits. It's a bit of a hack, admittedly, but it saves us a stub
+  // for every constant.
   //
   void PlayerMovement::RepointFloatOperand(std::uintptr_t place, std::size_t length, const Game::dvar_t* dvar)
   {
@@ -280,10 +284,9 @@ namespace Components
       PlayerMovement_BGBouncesAllAngles = Game::Dvar_RegisterEnum("bg_bouncesAllAngles", bg_bouncesAllAnglesValues, DISABLED, Game::DVAR_CODINFO, "Force bounce from all angles");
     });
 
-    // Register our dvars first since we point the game's code at some of
-    // them below.
-    //
-    // Note that on x86 we register them last, after installing our hooks.
+    // Register our dvars first, since we point the game's code at some of
+    // them below. Note that on x86 we register them last, after the hooks,
+    // which would leave us nothing to point at here.
     //
     RegisterMovementDvars();
 
@@ -292,9 +295,10 @@ namespace Components
 
     // PM_CmdScaleForStance
     //
-    // Note that on x86 we hook the loads of the ducked and prone scales. x64
-    // loads them from constants with RIP-relative operands, which we point
-    // at our dvars.
+    // On x86 we hook the loads of the ducked and prone scales. x64 loads them
+    // from constants through RIP-relative operands instead (presumably the
+    // later revision turned those dvars into constants), so we just point
+    // those at our dvars.
     //
     RepointFloatOperand(0x14008F6AA, 8, PlayerMovement_PlayerDuckedSpeedScale);
     RepointFloatOperand(0x14008F6A1, 8, PlayerMovement_PlayerProneSpeedScale);
@@ -302,8 +306,8 @@ namespace Components
     // Hook PM_MoveScale so we can add custom speed scale for Ufo and Noclip
     //
     // Note that on x86 we also hook the spectate scale. On x64 the game reads
-    // player_spectateSpeedScale through the dvar our registration above
-    // returns, so we only point the noclip and ufo constants at our dvars.
+    // player_spectateSpeedScale through the dvar that our registration above
+    // returns, so only the noclip and ufo constants need repointing.
     //
     RepointFloatOperand(0x14008F566, 8, PlayerMovement_CGNoclipScaler);
     RepointFloatOperand(0x14008F586, 8, PlayerMovement_CGUfoScaler);
@@ -327,8 +331,9 @@ namespace Components
 
     // PM_CrashLand
     //
-    // Note that on x86 we hook the Vec3Scale() call that applies the landing
-    // slowdown. x64 inlines it, twice, so we jump over each copy.
+    // On x86 we hook the Vec3Scale() call that applies the landing slowdown.
+    // x64 inlines it, twice even (why twice we are not sure), so we jump over
+    // each copy.
     //
     Utils::Hook(0x14008FED6, PlayerMovement_PM_CrashLand_Stub1, HOOK_JUMP).install()->quick();
     Utils::Hook(0x14008FF78, PlayerMovement_PM_CrashLand_Stub2, HOOK_JUMP).install()->quick();
@@ -341,12 +346,14 @@ namespace Components
 
     // View-independent ladder controls (opt-in via bg_ladderFixedInput)
     //
-    // The pitch stub replaces PM_LadderMove's pitch-scaled climb multiplier
-    // (clamp((forward[2] + 0.25) * 2.5, -1, +1)) with a constant 1.0 so
-    // vertical wishvel becomes 0.5 * cmdScale * forwardmove.
+    // The pitch stub replaces PM_LadderMove()'s climb multiplier, which
+    // scales with the pitch (clamp((forward[2] + 0.25) * 2.5, -1, +1)), with
+    // a constant 1.0, so the vertical wishvel becomes
+    // 0.5 * cmdScale * forwardmove whichever way the player looks.
     //
     // Note that x64 keeps the multiplier in xmm7, so we take the place of the
-    // Vec3Normalize() call that follows and set it there.
+    // Vec3Normalize() call that follows and set it there. A bit roundabout,
+    // but there is no call to hook where the multiplier is computed.
     //
     Utils::Hook(0x1400913DA, PlayerMovement_PM_LadderMove_PitchStub, HOOK_CALL).install()->quick();  // pitch-scaled climb rate block
     Utils::Hook(0x1400913FE, PM_LadderMove_RightVector_Hk, HOOK_CALL).install()->quick();    // camera-relative right-vector projection
@@ -383,7 +390,8 @@ namespace Components
     // sprinting.
     //
     // Note that on x86 we redo the attenuation ourselves when we don't skip
-    // it. On x64 we leave it to the game.
+    // it. On x64 the stub can simply let the game carry on, which seems a lot
+    // less error-prone.
     //
     Utils::Hook(0x140093D05, PlayerMovement_PM_WalkMove_SprintStrafeStub, HOOK_JUMP).install()->quick();
 
@@ -392,7 +400,8 @@ namespace Components
     // Widen the PM_SetMovementDir clamp from +/-90 to +/-127 at the
     // prone/ladder branch and at the generic branch.
     //
-    // Note that x64 shares a single clamp between the branches.
+    // Note that x64 shares a single clamp between the two branches, so one
+    // stub does for both.
     //
     Utils::Hook(0x140091E16, PlayerMovement_PM_SetMovementDir_ClampStub, HOOK_JUMP).install()->quick();
 
@@ -412,7 +421,7 @@ namespace Components
     // backward sprint.
     //
     // Note that x64 inlines PM_GetMaxSpeed() and keeps whether the player is
-    // sprinting in ebp.
+    // sprinting in ebp, which the stubs go by.
     //
     Utils::Hook(0x14009060D, PlayerMovement_PM_GetMaxSpeed_BackDiagonal_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x14009062B, PlayerMovement_PM_GetMaxSpeed_BackPure_Stub, HOOK_JUMP).install()->quick();

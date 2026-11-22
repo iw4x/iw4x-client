@@ -5,11 +5,12 @@
 
 namespace Components
 {
-  // Note that the menus that we compile with OpenAssetTools have to be laid
-  // out the way the game reads them.
-  //
   namespace
   {
+    // Check that the game lays the menu structures out the way OpenAssetTools
+    // compiles them. This is the game's half of the check (see OAT/Shim.hpp
+    // for why there are two).
+    //
     namespace Layout = OAT::Layout;
 
     static_assert(sizeof(Game::windowDef_t) == Layout::windowDef_t);
@@ -47,9 +48,10 @@ namespace Components
 
   Utils::Memory::Allocator Menus::Allocator;
 
-  // Note that on x86 we parse the menu file with the game's precompiler and
-  // menu parser, loading the menus of each loadmenu as we go. Here
-  // OpenAssetTools compiles the file and the files it loads in one go.
+  // On x86 we parse the menu file with the game's precompiler and menu
+  // parser, loading the menus of each loadmenu as we come across it. Here
+  // OpenAssetTools compiles the file and whatever it loads in one go, so the
+  // recursion in the name is now a bit of a misnomer.
   //
   std::vector<Game::menuDef_t*> Menus::LoadMenuByName_Recursive(const std::string& menu)
   {
@@ -436,9 +438,9 @@ namespace Components
     Allocator.free(menuList);
   }
 
-  // Note that on x86 we free what the game's menu parser allocated for the
-  // menu here. OpenAssetTools owns the memory of what it compiles and so we
-  // let go of our share of the file that the menu came from.
+  // On x86 this is where we free what the game's parser allocated for the
+  // menu. OpenAssetTools owns the memory of what it compiles, though, so all
+  // we do is let go of our share of the file the menu came from.
   //
   void Menus::FreeMenuOnly(Game::menuDef_t* menu)
   {
@@ -475,8 +477,9 @@ namespace Components
     // Free the CGDC - The game doesn't do it, but it _should_
     // Otherwise it's full of weird garbage. It's never used until CGame starts anyway!
     {
-      // At this point our menus are already tracked so we will be able to free them
-      // and the HUD menus are freed in bulk by the game
+      // At this point our menus are already tracked, so we can still free
+      // them, and the game frees the HUD menus in bulk.
+      //
       Game::cgDC->menuCount = 0;
     }
 
@@ -596,12 +599,12 @@ namespace Components
       // Uniqueness check - each unique menu should have a unique name for this whole circus to run
       std::unordered_map<std::string, void*> names{};
 
-      // Note that on x86 we also check that our copy of the game's supporting
-      // data stays in sync with it and that our menus use it. Each file that
-      // OpenAssetTools compiles has its own instead (see
-      // ReloadDiskMenus_OnUIInitialization()).
+      // Note that on x86 we also check here that our copy of the game's
+      // supporting data stays in sync with it and that our menus use it. With
+      // OpenAssetTools each file gets supporting data of its own, so there is
+      // no copy to keep in sync. Whether that ever bites us (say, with a menu
+      // that relies on the game's supporting data) we don't know yet.
       //
-
       for (size_t contextIndex = 0; contextIndex < ARRAYSIZE(Menus::GameUiContexts); contextIndex++)
       {
         const auto context = Menus::GameUiContexts[contextIndex];
@@ -667,7 +670,8 @@ namespace Components
     Utils::Hook::Nop(0x14026AC4B, 5);
 
     // Note that on x86 we also disable the two tokens of ItemParse_rect that
-    // IW4 added, which x64 compiles out along with the rest of the parser.
+    // IW4 added. x64 compiles them out along with the rest of the parser, so
+    // there is nothing to disable.
     //
 
     // make Com_Error and similar go back to main_text instead of menu_xboxlive.

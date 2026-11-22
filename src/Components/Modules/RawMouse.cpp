@@ -541,8 +541,8 @@ namespace Components
     tagPOINT c;
     static tagPOINT p;
 
-    // Note that on x86 we check r_fullscreen, which x64 replaces with the
-    // r_displayMode enum, of which 0 is "fullscreen".
+    // On x86 we check r_fullscreen here. x64 replaces that dvar with the
+    // r_displayMode enum, where 0 is fullscreen.
     //
     GetCursorPos (&c);
     if (R_DisplayMode.get<Game::dvar_t*> () && R_DisplayMode.get<int> () == 0)
@@ -629,12 +629,13 @@ namespace Components
 
   RawMouse::RawMouse ()
   {
-    // Note that on x86 we hook the two tail calls of IN_Frame() to
-    // IN_MouseMove() where it deactivates the mouse, and the controller hooks
-    // the one where it activates it. x64 inlines IN_MouseMove() where the
-    // three meet, so the controller hooks that for all of them.
+    // On x86 we hook the two tail calls of IN_Frame() to IN_MouseMove() where
+    // it deactivates the mouse, while the controller hooks the one where it
+    // activates it. x64 inlines IN_MouseMove() at the point where the three
+    // meet, so the controller hooks that one for all of them. That makes the
+    // controller responsible for the mouse in a way it isn't on x86, which
+    // is a bit odd but seems to work out.
     //
-
     // Note that on x86 we also hook in_restart, which x64 doesn't have.
     //
     Utils::Hook (0x1402A3B25, IN_Init, HOOK_CALL).install ()->quick ();

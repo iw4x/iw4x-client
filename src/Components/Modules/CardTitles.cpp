@@ -38,8 +38,8 @@ namespace Components
     std::uint8_t prefix = (row >> (8 * 3)) & 0xFF;
     std::uint8_t data = (row >> (8 * 2)) & 0xFF;
 
-    // Note that the game looks assets up ignoring case, so the table name
-    // may differ in case from the one we expect.
+    // Note that the game looks assets up ignoring case, so we compare the name
+    // the same way in case some table comes in a different case.
     //
     if (data < Game::MAX_CLIENTS && prefix != 0x00 && Game::I_stricmp(table->name, "mp/cardTitleTable.csv") == 0)
     {
@@ -135,14 +135,14 @@ namespace Components
       return false;
     });
 
-    // Tag the card title row in the player card expression with whose card
-    // it is.
+    // Tag the card title row of the player card lookup with whose card it is,
+    // the same as we do on x86, so that TableLookupByRowHook() can tell.
     //
     Utils::Hook(0x14025006A, CardTitles_GetPlayerCardClientInfoStub, HOOK_JUMP).install()->quick();
 
-    // Note that x64 inlines the tableLookupByRow expression into the
-    // expression evaluator, leaving its string table lookup as the place to
-    // substitute the title.
+    // On x86 we hook the tableLookupByRow expression itself. x64 inlines it
+    // into the expression evaluator, which leaves its string table lookup as
+    // the only call we can get at. So that's where we swap in the title.
     //
     Utils::Hook(0x14025540F, TableLookupByRowHook, HOOK_CALL).install()->quick();
   }

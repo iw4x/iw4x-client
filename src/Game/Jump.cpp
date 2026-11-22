@@ -10,11 +10,12 @@ namespace Game
 
   namespace
   {
-    // Predictable event a jump plays, parameterized with the surface type.
+    // The predictable event that a jump plays, with the surface type as its
+    // parameter.
     //
     constexpr int EV_JUMP = 0x6F;
 
-    // Animation script events for jumping forward and backward.
+    // The animation script events for jumping forward and backward.
     //
     constexpr int ANIM_ET_JUMP = 3;
     constexpr int ANIM_ET_JUMPBK = 4;
@@ -83,8 +84,9 @@ namespace Game
       ps->velocity[1] = dir[1] * push;
     }
 
-    // Start a dive if the player has the perk, moves in some direction, and
-    // there is room for it. Return true if the dive started.
+    // Start a dive if the player has the perk and is moving in some
+    // direction, provided there is room for it. Return true if the dive
+    // started.
     //
     bool Jump_StartDive(pmove_s* pm, pml_t* pml)
     {

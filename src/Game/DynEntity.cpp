@@ -15,7 +15,7 @@ namespace Game
   {
     // The client flag that DynEntCl_DestroyEvent() clears. Note that the
     // damage that destroys a dynamic entity on the client clears it along
-    // with the one of its physics object.
+    // with that of its physics object.
     //
     constexpr unsigned __int16 DYNENT_CL_VISIBLE = 1 << 1;
   }
@@ -30,7 +30,8 @@ namespace Game
     }
 
     // Note that x86 checks the flags and the client number of the predicted
-    // player state again, which CG_GetLocalClientGlobalsForEnt() has checked.
+    // player state again, which CG_GetLocalClientGlobalsForEnt() has already
+    // checked. So we don't bother.
     //
     if (CG_GetLocalClientGlobalsForEnt(static_cast<int>(ENTITYNUM_NONE)) != nullptr)
     {

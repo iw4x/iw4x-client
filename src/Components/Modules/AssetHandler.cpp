@@ -8,7 +8,7 @@ namespace Components
   {
     constexpr uintptr_t ImageBase = 0x140000000;
 
-    // Instruction that reaches the game's address target.
+    // An instruction that reaches the game's address target.
     //
     struct Reference
     {
@@ -75,8 +75,12 @@ namespace Components
 
   void AssetHandler::ModifyAsset(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name)
   {
-    // Note that x86 also fixes up assets of its own zones by their format
-    // version, which x64 doesn't load.
+    // Note that on x86 we also fix up the sort keys of a few materials, the
+    // turret of vehicles, and the sort keys of the world, going by the
+    // version of the IW4x zone they came in. On x64 we have no Zones
+    // component, so there is no version to go by and we leave them be. If it
+    // turns out some of these are needed after all, then ZoneConvert is
+    // probably where they belong.
     //
     if (*Game::com_developer && (*Game::com_developer)->current.enabled)
     {
@@ -107,10 +111,10 @@ namespace Components
 
     if (!name) return false;
 
-    // A zone brings an asset we created an empty one for, so it isn't
-    // missing after all.
-    //
     {
+      // If a zone brings an asset we created an empty one for earlier, then it
+      // wasn't missing after all, so forget about it.
+      //
       std::scoped_lock lock(AssetHandler::EmptyAssetsMutex);
 
       std::erase_if(AssetHandler::EmptyAssets, [type, name] (const std::pair<Game::XAssetType, std::string>& e)
@@ -140,7 +144,8 @@ namespace Components
   {
     switch (type)
     {
-    // Stock behaviour (0x14012E97E): always override on async loads
+    // The game itself always overrides these on async loads (see the stub at
+    // 0x14012E97E), so we keep doing that.
     //
     case Game::ASSET_TYPE_LIGHT_DEF:
     case Game::ASSET_TYPE_IMPACT_FX:
@@ -218,10 +223,11 @@ namespace Components
       return DB_AddXAsset_Original(type, header);
     }
 
-    // The callers copy the header of the entry we return back into the
-    // asset they just loaded, so we return one with the header they gave us.
-    // That way the asset stays as it is and doesn't make it into the
-    // database.
+    // We've decided to keep this asset out of the database, but the callers
+    // will copy the header of whatever entry we return back into the asset
+    // they just loaded. So hand them a scratch entry with the very header
+    // they gave us, which leaves the asset untouched. Slightly sneaky, but it
+    // saves us hooking every caller.
     //
     thread_local Game::XAssetEntry entry;
 
@@ -244,8 +250,13 @@ namespace Components
     AssertOffset(Game::XAssetEntry, nextHash, 0x12);
     AssertOffset(Game::XAssetEntry, nextOverride, 0x14);
 
-    // Move the pool to one with as many entries as x86 has. Note that the
-    // entries link to each other by 16-bit indices, which limits the count.
+    // Our zones bring a lot more assets than the stock 37000 entries leave
+    // room for, so move the asset entry pool to one with as many entries as
+    // x86 has.
+    //
+    // Note that the entries link to each other by 16-bit indices, which caps
+    // the pool at 65535 entries (thus the static_assert below). The x86 count
+    // is comfortably below that, so we are fine for now.
     //
     constexpr uintptr_t pool = 0x14151F4E0;
     constexpr size_t gameCount = 37000;
@@ -256,15 +267,17 @@ namespace Components
     Game::XAssetEntry* entries = static_cast<Game::XAssetEntry*>(Utils::Hook::AllocateNear(ImageBase, count * sizeof(Game::XAssetEntry)));
     const uintptr_t to = reinterpret_cast<uintptr_t>(entries);
 
-    // Return where the pool data at the game's address a lives now.
-    //
     auto moved = [to] (uintptr_t a)
     {
       assert(a >= pool && a < pool + gameCount * sizeof(Game::XAssetEntry));
       return to + (a - pool);
     };
 
-    // From the next instruction, ...
+    // Point the game at the new pool wherever it reaches the old one relative
+    // to the next instruction.
+    //
+    // And wherever it reaches it relative to the image base, some of these at
+    // a field of the first entry rather than the entry itself.
     //
     for (const Reference& r: std::initializer_list<Reference>
     {
@@ -278,8 +291,6 @@ namespace Components
       Utils::Hook::Displace(r.place, r.length, r.target, moved(r.target));
     }
 
-    // ... and from the image base, some at a field of the first entry.
-    //
     for (const Reference& r: std::initializer_list<Reference>
     {
       {0x14012D554, 7, 0x14151F4E0}, {0x14012D5B3, 7, 0x14151F4E0}, {0x14012D656, 7, 0x14151F4E0},
@@ -293,8 +304,10 @@ namespace Components
       Utils::Hook::Rebase(r.place, r.length, ImageBase, r.target, moved(r.target));
     }
 
-    // DB_InitThread links the free entries past the first into a list, and
-    // ends it at the last one.
+    // At startup the game links the free entries past the first into a list
+    // that ends at the last one. So both the count and the end of that list
+    // have to follow the new pool, or the extra entries would never be
+    // handed out.
     //
     Utils::Hook::Replace32(0x14012E03B, 5, gameCount - 2, count - 2);
     Utils::Hook::Displace(0x14012E068, 7,
@@ -310,22 +323,26 @@ namespace Components
 
     Dvar::Register<bool>("r_noVoid", false, Game::DVAR_ARCHIVE, "Disable void model (red fx)");
 
-    // DB_FindXAssetHeader and DB_AddXAsset. Note that both start with a
-    // 5-byte store of an argument register to its home slot.
+    // Note that DB_FindXAssetHeader() starts with a 5-byte store of rbx to its
+    // home slot and DB_AddXAsset() with one of rdx, which is what the detours
+    // move out of the way.
     //
     DB_FindXAssetHeader_Original = Utils::Hook::Detour(0x14012D6B0, 5, &AssetHandler::DB_FindXAssetHeader_Hk);
     DB_AddXAsset_Original = Utils::Hook::Detour(0x14012E6E0, 5, &AssetHandler::DB_AddXAsset_Hk);
 
     Utils::Hook(0x14012E97E, AssetHandler_OverrideAssetStub, HOOK_JUMP).install()->quick();
 
-    // Store empty assets: DB_AddXAsset creates a default entry for an asset
-    // a zone only references (its name starts with ',') and that no zone has
-    // brought yet.
-    //
-    // Note that x86 also intercepts the game's own error for a missing asset
-    // to keep it quiet on dedicated servers, which x64 compiles out.
+    // Keep track of the empty assets. DB_AddXAsset() creates a default entry
+    // for an asset that a zone only references (its name starts with ',') and
+    // that no zone has brought yet, which is what we want to hear about.
     //
     Utils::Hook(0x14012E7DA, AssetHandler::DB_CreateDefaultEntry_Hk, HOOK_CALL).install()->quick();
+
+    // Note that on x86 we also hook the game's error about a missing asset to
+    // keep it quiet for technique sets on a dedicated server. x64 doesn't seem
+    // to have that error at all (its "Could not load" message is gone), so
+    // there is nothing to hook.
+    //
 
     // Log missing empty assets
     Scheduler::Loop([]
@@ -352,12 +369,15 @@ namespace Components
         }
       });
 
-    // Make room for what our zones bring on top of the stock ones, as x86
-    // does where x64 holds fewer.
+    // Make room in the pools for what our zones bring on top of the stock
+    // ones. We use the same sizes as x86, which seem to be plenty.
     //
-    // Note that we leave the material pool as it is: the game reaches it
-    // directly to number the materials (0x14012DD10, 0x14012DD30) and keeps
-    // the numbers in an array sized for the stock pool.
+    // Note that, unlike x86, we leave the material pool alone. The game
+    // reaches it directly to turn a material into its index and back
+    // (0x14012DD10 and 0x14012DD30) and presumably keeps such indices around
+    // in arrays sized for the stock pool, so moving it would take a lot more
+    // than this. So far the stock pool has been enough, so let's not go
+    // there unless we have to.
     //
     Game::ReallocateAssetPool(Game::ASSET_TYPE_GAMEWORLD_SP, 1);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_IMAGE, 7168);

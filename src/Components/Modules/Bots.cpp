@@ -124,9 +124,10 @@ namespace Components
 
   int Bots::BuildConnectString(char* buffer, const char*, int num, int, int protocol, int checksum, int statVer, int stats, int port)
   {
-    // Note that we format with our own string, which adds the clan tag,
-    // rather than point the game at it: its code reaches the string through
-    // a 32-bit displacement, which can't reach our module.
+    // Note that we format with our own string (it has the clan tag) rather
+    // than point the game at it. The game reaches its string through a 32-bit
+    // displacement, and our module is probably too far away for that, so it
+    // is easier to replace the whole sprintf() call.
     //
     constexpr const char* connectString = "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\clanAbbrev\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"";
 
@@ -406,7 +407,7 @@ namespace Components
 
     auto clientNum = cl - Game::svs_clients;
 
-    // Keep test client functionality: let the game move the bot.
+    // Keep test client functionality
     //
     if (!g_botai[clientNum].active)
     {
@@ -598,22 +599,30 @@ namespace Components
     AssertOffset(Game::WeaponCompleteDef, altWeaponIndex, 0x58);
     AssertOffset(Game::WeaponDef, inventoryType, 0x60);
 
-    // Intercept sprintf for the connect string in SV_AddTestClient
+    // Build the test client's connect string ourselves, in place of the
+    // game's sprintf() (see BuildConnectString()).
+    //
     Utils::Hook(0x1402352DB, BuildConnectString, HOOK_CALL).install()->quick();
 
-    // SV_UpdateBots, which x64 inlines SV_BotUserMove into. See
-    // Bots_SV_BotUserMoveStub.
+    // x64 inlines SV_BotUserMove() into its caller (presumably SV_UpdateBots()),
+    // so unlike x86 there is no call to hook. Instead we jump to our stub from
+    // where the inlined copy starts building the user command. See
+    // Bots_SV_BotUserMoveStub for what it expects to find in the registers.
     //
     Utils::Hook(0x14023BC41, Bots_SV_BotUserMoveStub, HOOK_JUMP).install()->quick();
 
-    // G_SelectWeaponIndex starts with 'push rbx; sub rsp, 20h'.
+    // G_SelectWeaponIndex() starts with 'push rbx; sub rsp, 20h', which is six
+    // bytes and what the detour moves.
     //
     G_SelectWeaponIndex_Original = Utils::Hook::Detour(0x1401886F0, 6, &Bots::G_SelectWeaponIndex_Hk);
 
     // fix bots using objects (SV_IsClientBot)
     Utils::Hook(0x14018BDE3, Player_UpdateActivate_stub, HOOK_CALL).install()->quick();
 
-    // SV_GetClientPing, which x64 calls from two scoreboards.
+    // x64 calls SV_GetClientPing() from two copies of the scoreboard code: the
+    // score command, which it inlines into ClientCommand() (0x140199080), and
+    // the function that sends the same scores from elsewhere (0x140199900,
+    // probably Cmd_Score_f()). So we hook both.
     //
     Utils::Hook(0x1401991E9, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x140199986, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();

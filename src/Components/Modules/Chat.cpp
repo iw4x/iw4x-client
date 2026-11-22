@@ -14,10 +14,11 @@ extern "C"
 
 namespace
 {
-  // Note that x64 names the server command that prints a chat message U,
-  // where x86 names it h. We queue the command with the game's letter, like
-  // the game's own commands, and it goes over the wire as h (see
-  // Components::Compatibility).
+  // The server command that prints a chat message. x64 calls it U where x86
+  // calls it h, which is a bit unfortunate seeing that we talk to x86
+  // servers and clients. We queue it with the game's letter, the same as
+  // the game's own commands, and let Compatibility translate it on the wire
+  // (see Components::Compatibility for details).
   //
   constexpr char ChatMessageCommand = 'U';
 }
@@ -139,9 +140,10 @@ namespace Components
     // So we have to find the author by name. It's the client approach that induces
     // the least amount of modifications - anything else would probably need
     // the server to send more info (e.g. who's talking by XUID)
-    // For client side, see the CG_AddToTeamChat call at 0x1400E6768
-    // For server side, see G_SayTo at 0x140199D00
-
+    //
+    // On x64 the client side is the chat case of CG_DeployServerCommand() at
+    // 0x1400E6768 and the server side is G_SayTo() at 0x140199D00.
+    //
     const std::string colorlessText = TextRenderer::StripColors(text);
     const std::string rawText = TextRenderer::StripAllTextIcons(colorlessText);
 
@@ -616,9 +618,12 @@ namespace Components
     LoadMutedList();
 
     // Intercept chat sending
-    // Note that x64 has two copies of G_Say: one inlined into the say
-    // commands, which also inlines G_SayTo as a loop over the clients, and
-    // one for the script's sayall.
+    //
+    // Note that x64 has two copies of G_Say(). One is inlined into the say
+    // commands of ClientCommand() (which in turn inline G_SayTo() as a loop
+    // over the clients) and the other is called from two script functions,
+    // presumably sayall and sayteam. So we hook both copies, each with its
+    // own pair of stubs.
     //
     Utils::Hook(0x1401995DA, Chat_PreSayStub1, HOOK_CALL).install()->quick();
     Utils::Hook(0x140199683, Chat_PostSayStub1, HOOK_JUMP).install()->quick();

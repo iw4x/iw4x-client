@@ -44,7 +44,7 @@ namespace Components
       auto r (::select(static_cast<int>(m + 1), &fs, nullptr, nullptr, &tv));
 
       // Note that x64 compiles out NET_ErrorString(), so we print the error
-      // code instead of its name.
+      // code rather than its name.
       //
       if (r == SOCKET_ERROR)
       {
@@ -148,16 +148,18 @@ namespace Components
       return (*Game::com_frameTime - l);
     }
 
-    // The server thread's frame, which we run where SV_Frame() would wake
-    // the thread for it.
+    // The server thread's frame, which we run where SV_Frame() would wake the
+    // thread for it.
     //
-    // Note that on x86 we jump into the thread's function at the frame and
-    // return from it at the end of the frame. x64 has the same frame, so we
-    // run it as the thread does instead.
+    // On x86 we jump into the thread's function at the frame and return from
+    // it at the end of the frame, which is a bit of a trick. x64 has the same
+    // frame, so here we simply run it the way the thread does. That means a
+    // copy of the game's logic, of course, but it's short and far easier to
+    // follow than jumping into the middle of a function.
     //
     void ServerThreadFrame()
     {
-      // Set and clear the flag the game keeps while the server runs its
+      // These set and clear the flag the game keeps while the server runs its
       // frame.
       //
       const auto SV_EnterFrame(reinterpret_cast<void (*)()>(0x1402387C0));
@@ -221,8 +223,8 @@ namespace Components
       SV_LeaveFrame();
     }
 
-    // Com_EventLoop() ends on releasing the buffer of the client's packets.
-    // We then hand the server its own, which its thread would otherwise.
+    // Com_EventLoop() ends by releasing the buffer of the client's packets.
+    // We then hand the server its own, which its thread would otherwise do.
     //
     void Com_EventLoop_End(void* buffer)
     {
@@ -258,8 +260,8 @@ namespace Components
     // depends on the collapsed path, so we preserve that behavior there only.
     // Treat this as a compatibility exception.
     //
-    // ... Actually (#2), the dedicated server path is another legacy with the 
-    // same assumption. 
+    // ... Actually (#2), the dedicated server path is another legacy with the
+    // same assumption.
     //
     // Note that x64 has no ZoneBuilder, so the dedicated server is the only
     // exception here.
@@ -273,7 +275,8 @@ namespace Components
 
       // Disable the blocking server wait so we can drive the cycle.
       //
-      // Note that x64 also inlines it into SV_Frame(), where we jump over it.
+      // Note that x64 also inlines the wait into SV_Frame(), where we jump
+      // over it.
       //
       Utils::Hook::Set<std::uint8_t>(0x14023BF10, 0xC3);
       Utils::Hook::Set<std::uint8_t>(0x14023ABAB, 0xEB);
@@ -290,8 +293,8 @@ namespace Components
     // Hijack the appropriate waiter based on whether we are running a dedicated
     // server or a client.
     //
-    // Note that x64 inlines the server's into SV_Frame() and the client's into
-    // Com_Frame().
+    // Note that x64 inlines the server's waiter into SV_Frame() and the
+    // client's into Com_Frame().
     //
     if (Dedicated::IsEnabled())
     {

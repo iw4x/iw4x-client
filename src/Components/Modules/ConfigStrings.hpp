@@ -8,10 +8,19 @@ namespace Components
   class ConfigStrings : public Component
   {
   public:
-    // Configstrings past the game's, laid out as the x86 client lays them
-    // out: the weapons past 1200 from where the game keeps its own past 1200,
-    // then the models past the game's and then the rumbles, which start one
-    // past the end of the models.
+    // Our configstrings past the game's. A client and a server refer to
+    // configstrings by index, and either of them can be x86, so we lay ours
+    // out exactly the way x86 does.
+    //
+    // As it happens, that works out nicely for the weapons. x86 starts its
+    // extra weapons at its own end (4139), and x64 already keeps its weapons
+    // 1200 to 1399 from that very index (CS_WEAPONFILES_EXTRA). So we just let
+    // the weapons carry on from there past the game's end, followed by the
+    // extra models and then the rumbles.
+    //
+    // Note that the rumbles start one past the end of the models
+    // (EXTRA_MODELCACHE_LAST is already one past the last model). That looks
+    // like an off-by-one, but it's what x86 does, so we keep it.
     //
     static const int BASEGAME_MAX_CONFIGSTRINGS = Game::MAX_CONFIGSTRINGS;
 
@@ -29,7 +38,7 @@ namespace Components
 
     static_assert(EXTRA_WEAPONS_LAST > Game::CS_WEAPONFILES_EXTRA_LAST);
 
-    // Note that the gamestate sends an index in 13 bits.
+    // The gamestate sends an index in 13 bits (see SV_SendClientGameState()).
     //
     static_assert(MAX_CONFIGSTRINGS <= 1 << 13);
 
@@ -45,8 +54,8 @@ namespace Components
   private:
     static void PatchConfigStrings();
 
-    // Return or set the configstring of a model or weapon, past the game's
-    // in the extra configstrings that follow them.
+    // Get or set the configstring of a model or weapon, mapping the ones past
+    // the game's to our extra configstrings that follow them.
     //
     static unsigned int SV_GetConfigString(int index, Game::ConfigString basegameLastPosition, int extendedFirstPosition);
     static void SV_SetConfigString(int index, const char* data, Game::ConfigString basegameLastPosition, int extendedFirstPosition);
@@ -56,9 +65,9 @@ namespace Components
     static void SV_SetCachedModelConfigString(int index, const char* data);
     static const char* CL_GetCachedModelConfigString(int index);
 
-    // Handle the change of one of the extra configstrings, which the game
-    // doesn't know. Return true if we handled it and false to leave it to
-    // the game.
+    // Handle a change of one of our extra configstrings, which the game knows
+    // nothing about. Return true if we handled it and false to leave it to the
+    // game.
     //
     static bool CG_ParseExtraConfigStrings();
     static void CG_ConfigStringModified_Hk(int localClientNum);

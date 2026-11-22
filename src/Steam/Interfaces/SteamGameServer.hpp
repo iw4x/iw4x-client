@@ -2,10 +2,10 @@
 
 namespace Steam
 {
-  // Note that the game calls the methods of the interface by their slots,
-  // and x64 is built against a newer version of it than x86. So we lay it
-  // out as Steamworks SDK 1.20 does SteamGameServer011, the earliest
-  // version whose slots match the ones x64 calls.
+  // As with the other interfaces, x64 calls a newer version of this one
+  // than x86 does. We lay it out the way Steamworks SDK 1.20 does
+  // SteamGameServer011, the earliest version whose slots match the ones
+  // that x64 calls (see Friends for why the earliest).
   //
   class GameServer
   {

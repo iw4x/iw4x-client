@@ -77,7 +77,7 @@ namespace Components
     // Rotation Dvars
     //
     // Note that x64 compiles out sv_mapRotation and sv_mapRotationCurrent,
-    // which x86 registers itself, and so we register them along with ours.
+    // which x86 registers itself, so we register them along with ours.
     //
     static const Game::dvar_t* SVMapRotation;
     static const Game::dvar_t* SVMapRotationCurrent;

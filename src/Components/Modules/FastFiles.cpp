@@ -7,14 +7,8 @@ namespace Components
 {
   namespace
   {
-    // Return the directory of the zone group as the prefix the game puts a
-    // zone file name after (zone\<group>\).
-    //
-    // Note that the installed zones are in the x64 layout and so we read
-    // them in place. IW4x's own zones are in the x86 layout, so for those
-    // we read the copies that ZoneConvert converts into ours. On x86 it is
-    // the other way around and the game can only read the copies of the
-    // installed zones.
+    // Return the directory of a zone group the way the game puts a zone's file
+    // name after it (zone\<group>\).
     //
     std::string ZoneDirectory(const std::string_view group)
     {
@@ -58,12 +52,12 @@ namespace Components
     std::vector<Game::XZoneInfo> data;
     Utils::Merge(&data, zoneInfo, zoneCount);
 
-    // Take the UI zones of the map packs out of the list since the code below
-    // decides whether to load them.
-    //
-    // Note that on x64 the game lists them with the stock UI zones, ahead of
-    // ui_mp. On x86 it leaves them to us and we only load them when there is
-    // no iw4x_ui_mp.
+    // Take the UI zones of the map packs out of the list, since we decide
+    // below whether to load them. x64 lists them itself, along with the stock
+    // UI zones and ahead of ui_mp, while x86 leaves them to us. Presumably
+    // the later revision just took the map packs for granted. But we only
+    // want them if there is no iw4x_ui_mp, so on x64 we have to undo the
+    // game's choice first.
     //
     std::erase_if(data, [] (const Game::XZoneInfo& zone)
     {
@@ -245,11 +239,12 @@ namespace Components
   }
 
   // Count the zone towards the loading progress. The game reads the version
-  // once per zone, right after the magic.
+  // once per zone, right after the magic, which makes it a handy place for
+  // that.
   //
-  // Note that on x86 we also map the versions of IW4x zones onto the stock
-  // one here. On x64 we only load zones of the stock version (see
-  // ReadHeaderStub() for details).
+  // Note that on x86 we also map the versions of our zones onto the stock
+  // one here. On x64 we only ever load zones of the stock version (see
+  // ReadHeaderStub()), so there is nothing to map.
   //
   void FastFiles::ReadVersionStub(unsigned int* version, int size)
   {
@@ -257,12 +252,13 @@ namespace Components
     Game::DB_ReadXFileUncompressed(version, size);
   }
 
-  // Leave a breadcrumb with the zone we are about to load.
+  // Leave a breadcrumb with the zone being loaded, so that a crash report
+  // says which one it was.
   //
-  // Note that on x86 this is also where we recognize IW4x zones by their
-  // header and set up decrypting and deobfuscating the rest of the stream.
-  // On x64 our zones are in the stock unsigned format, so there is nothing
-  // to recognize.
+  // Note that on x86 this is also where we recognize our zones by their
+  // header and set up decrypting the rest of the stream. On x64 our zones
+  // are converted into the stock unsigned format before the game ever sees
+  // them (see ZoneConvert), so there is nothing to recognize.
   //
   void FastFiles::ReadHeaderStub(unsigned int* header, int size)
   {
@@ -271,6 +267,9 @@ namespace Components
     Game::DB_ReadXFileUncompressed(header, size);
   }
 
+  // Return the progress of the whole load rather than of the current zone,
+  // which is all DB_GetLoadedFraction() knows about.
+  //
   float FastFiles::GetFullLoadedFraction()
   {
     float singleProgress = 1.0f / FastFiles::MaxZones;
@@ -281,11 +280,12 @@ namespace Components
 
   // Start counting the zones of a load.
   //
-  // Note that x64 inlines DB_LoadXZone(), whose call we hook on x86, into
-  // DB_LoadXAssets(), so here we hook the Sys_WakeDatabase() call it ends
-  // with. By then it has copied the zones for the database thread and so we
-  // take their count from there, which also leaves out the entries without
-  // a name that it skips.
+  // On x86 we hook the call of DB_LoadXZone(), but x64 inlines it into
+  // DB_LoadXAssets(). So instead we hook the Sys_WakeDatabase() call that
+  // DB_LoadXAssets() ends with. It feels a bit indirect, but by then it has
+  // copied the zones over for the database thread and we can just take
+  // their count from there, which, as a bonus, leaves out the nameless
+  // entries it skips.
   //
   void FastFiles::LoadZonesStub()
   {
@@ -409,10 +409,6 @@ namespace Components
   // common_mp to a map. Most likely the file is damaged but, until we know
   // which ones fail, we still let the player report it.
   //
-  // Note also that on x64 the print is compiled out and the handler is
-  // inlined into most of its callers, and so we hook the Sys_Error() call of
-  // each copy (see the constructor).
-  //
   void FastFiles::Sys_Error_DirtyDisc (const char*)
   {
     const char* zone ((*Game::g_loadFile)->name);
@@ -422,8 +418,8 @@ namespace Components
                      zone);
   }
 
-  // Note that on x86 we also look for the zone in the directories of the
-  // zone builder, which isn't part of the x64 build.
+  // If the zone isn't in the install, then try the home path, the same as
+  // DB_FileExists_Hk() does.
   //
   Game::Sys_File FastFiles::Sys_CreateFile_Stub(const char* dir, const char* filename)
   {
@@ -440,16 +436,16 @@ namespace Components
     return file;
   }
 
-  // Give the zone list of DB_LoadXAssets() room for as many zones as the
-  // game can have loaded at once.
+  // Move the list of zones to load somewhere with room for 32 of them.
   //
-  // DB_LoadXAssets() copies each zone it loads into this list, which the
-  // database thread then loads them from, and nothing checks that they fit.
-  // On x64 the list has room for 8 zones with their count stored right
-  // after it, so the startup load with our zones added writes past its end
-  // and the count lands on the name of the ninth zone. The game refuses to
-  // have more than 32 zones loaded, so a list of 32 holds any load it
-  // accepts.
+  // DB_LoadXAssets() copies each zone it's asked to load into this list,
+  // which the database thread then loads them from, and nothing checks that
+  // they fit. On x64 the list only has room for 8, with their count right
+  // after it. So the startup load, with our zones added, writes past the
+  // end and the count ends up on top of the name of the ninth zone, which
+  // makes for some rather confusing errors. Since the game refuses to have
+  // more than 32 zones loaded at once, a list of 32 should hold any load it
+  // would accept.
   //
   void FastFiles::ReallocateZoneList()
   {
@@ -459,8 +455,8 @@ namespace Components
 
     const uintptr_t to = reinterpret_cast<uintptr_t>(Utils::Hook::AllocateNear(0x14012F0A1, zoneSize * zoneCount));
 
-    Utils::Hook::Displace(0x14012F0A1, 7, list, to);               // DB_LoadXAssets(), names
-    Utils::Hook::Displace(0x14012F9E9, 7, list, to);               // DB_Thread(), names
+    Utils::Hook::Displace(0x14012F0A1, 7, list, to); // DB_LoadXAssets(), names
+    Utils::Hook::Displace(0x14012F9E9, 7, list, to); // DB_Thread(), names
     Utils::Hook::Displace(0x14012F9E2, 7, list + 0x40, to + 0x40); // DB_Thread(), flags
   }
 
@@ -474,8 +470,8 @@ namespace Components
     Utils::Hook(0x14012FA7B, Sys_CreateFile_Stub, HOOK_CALL).install()->quick();
     Utils::Hook (0x14012FAFE, Sys_Error_MissingZone, HOOK_CALL).install ()->quick ();
 
-    // Note that two of the copies of DB_DirtyDiscError() end with a jump to
-    // Sys_Error() (see Sys_Error_DirtyDisc() for details).
+    // Note that two of the copies of the dirty disc handler end with a jump to
+    // Sys_Error() rather than a call.
     //
     Utils::Hook (0x140117FE7, Sys_Error_DirtyDisc, HOOK_JUMP).install ()->quick ();
     Utils::Hook (0x1401180C8, Sys_Error_DirtyDisc, HOOK_JUMP).install ()->quick ();
@@ -485,30 +481,27 @@ namespace Components
 
     Utils::Hook(0x14012D3A0, DB_FileExists_Hk, HOOK_JUMP).install()->quick();
 
-    // Load_XModelSurfs takes the count it passes to Load_XSurfaceArray from
-    // varXModelLodInfo->numsurfs. That is valid when the surfs are loaded inline
-    // under an XModel, where Load_XModelLodInfoArray points varXModelLodInfo at the current LOD.
-    //
     // A top-level XModelSurfs asset reaches this loader without setting varXModelLodInfo
     // first, so the pointer is whatever the last XModel load left behind. That XModel may
     // belong to a zone that has since been unloaded and decommitted, making the read fault.
     // Where it doesn't fault, it yields another model's surface count.
     //
-    // Take the count from the asset being loaded instead, varXModelSurfs->numsurfs,
-    // which is valid on both paths.
-    //
-    // Note that on x64 the count is at 0x10.
+    // So we take the count from the asset being loaded instead,
+    // varXModelSurfs->numsurfs, which is valid either way. Note that on x64
+    // it's at 0x10 rather than 8, since the two pointers before it are 8
+    // bytes each.
     //
     AssertOffset(Game::XModelSurfs, numsurfs, 0x10);
     Utils::Hook::Displace(0x140123945, 7, 0x140DB5180, 0x140DB5170); // mov rax, varXModelSurfs
     Utils::Hook::Set<BYTE>(0x14012394C + 3, 0x10);                  // movzx edx, word ptr [rax+numsurfs]
 
-    // Redirect zone paths.
+    // Redirect zone paths
     //
-    // Note that x64 looks up the directory of the playlist zone with a copy
-    // of DB_GetZoneLocation() that takes no name, so we leave that one
-    // alone. We don't ship the playlist zone and for a zone we don't have we
-    // return the language directory, the same as the game.
+    // Note that x64 looks up the directory of the playlist zone with a second
+    // copy of DB_GetZoneLocation() that takes no name, which we leave alone.
+    // Should we hook it too? Probably not: we don't ship a playlist zone, and
+    // for a zone we don't have we would return the language directory
+    // anyway, the same as the game does.
     //
     Utils::Hook(0x1402A3910, FastFiles::GetZoneLocation, HOOK_JUMP).install()->quick();
 
@@ -520,23 +513,26 @@ namespace Components
     Utils::Hook(0x1401F335E, FastFiles::LoadDLCUIZones, HOOK_CALL).install()->quick();
     Utils::Hook(0x140030C84, FastFiles::LoadGfxZones, HOOK_CALL).install()->quick();
 
-    // Allow loading of unsigned zones, which is the format our zones are in.
+    // Allow loading unsigned zones, which is what ours are converted into.
     //
-    // DB_LoadXFileInternal() accepts the unsigned magic and passes on that
-    // the zone isn't signed. DB_AuthLoad_InflateInit() can then set up a
-    // plain inflate stream for it but first fails every such zone as not
-    // supported, so we drop the jump to the failure.
+    // DB_LoadXFileInternal() accepts the unsigned magic and passes on that the
+    // zone isn't signed, and DB_AuthLoad_InflateInit() could then set up a
+    // plain inflate stream for it. But before that it fails every such zone as
+    // not supported. That looks like a leftover from development (why else
+    // accept the magic?), and dropping the jump to the failure is all it
+    // takes.
     //
     // Note that on x86 we also accept any header and skip the hash checks of
-    // signed zones, both of which only IW4x zones need.
+    // signed zones, but those are only needed for our zones in the x86
+    // format.
     //
     Utils::Hook::Nop(0x140118066, 2);
 
-    // Fix fastfile progress.
+    // Fix fastfile progress
     //
     // Note that x64 inlines the two small x86 functions whose
-    // DB_GetLoadedFraction() call we hook there, so here we hook the calls
-    // where they ended up.
+    // DB_GetLoadedFraction() calls we hook there, so here we hook those calls
+    // wherever they ended up.
     //
     Utils::Hook(0x14012F101, FastFiles::LoadZonesStub, HOOK_CALL).install()->quick();
     Utils::Hook(0x140109A3D, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
@@ -544,8 +540,13 @@ namespace Components
     Utils::Hook(0x1400B2991, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
     Utils::Hook(0x14024F565, FastFiles::GetFullLoadedFraction, HOOK_CALL).install()->quick();
 
-    // Add custom zone paths. Steam installs its map packs into dlc in the
-    // x64 layout, so we fall back to reading those in place.
+    // The installed zones are in the x64 layout, so we can read those in
+    // place. Our own zones, on the other hand, are in the x86 layout, so for
+    // those we read the copies that ZoneConvert makes (on x86 it's the other
+    // way around, and there the game can only read converted copies of the
+    // installed zones). Steam installs its map packs into dlc in the x64
+    // layout, so if there are no converted copies of those, we fall back to
+    // reading them in place.
     //
     FastFiles::AddZonePath(ZoneConvert::SearchPath("patch"));
     FastFiles::AddZonePath(ZoneConvert::SearchPath("dlc"));

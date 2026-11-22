@@ -7,7 +7,7 @@ namespace Components
 {
   namespace
   {
-    // The stats of the first controller: the player data at 4, whether we
+    // The stats of the first controller. The player data is at 4, whether we
     // have it at 0x2000, and whether it changed since we last wrote it at
     // 0x2001.
     //
@@ -247,8 +247,8 @@ namespace Components
     return Utils::Hook::Call<int(void*, void*, int, const char*)>(0x1401F8BE0)(state, ddlContext, unused, value);
   }
 
-  // Set a field of our player data, the path to it and then the value, as
-  // the setPlayerData command does on x86.
+  // Set a field of our player data, given the path to it and then the
+  // value, the way the setPlayerData command does on x86.
   //
   // Note that on x86 we skip the warning the game prints when we set our
   // player data while connected to a server.
@@ -313,7 +313,8 @@ namespace Components
     }
   }
 
-  // Set our stats as the server tells us to (the N server command, J on x64).
+  // Set our stats as the server tells us to (the N server command, which
+  // is J on x64).
   //
   // The command is a list of offset and data pairs with each data byte
   // encoded as a hex pair or as Z or O for 0 or 1. The game writes the data
@@ -414,22 +415,23 @@ namespace Components
     // So we overwrite the function used specifically for Steam storage to return always the same hash
     // The one we used to have our steam ID/filename combination
     //
-    // Note that x64 inlines the hash into the write, where we patch it with
-    // the Steam ID below.
+    // Note that x64 inlines the hash into the write, where we patch it in
+    // along with the Steam ID below.
     //
     Utils::Hook(0x14024BD70, HashFilename, HOOK_JUMP).install()->quick(); // Read
 
     // TODO: Allow playerdata changes in setPlayerData UI script.
 
-    // Note that x64 compiles out the setPlayerData command, which our
-    // unlockstats runs, and so we register it ourselves.
+    // x64 compiles out the setPlayerData command (presumably the later
+    // revision only changes player data through its backend), which our
+    // unlockstats runs, so we register it ourselves.
     //
     Command::Add("setPlayerData", LiveStorage_DataSetCmd);
 
     // Rename stat file
     //
     // Note that x64 picks the format of the profile name with or without
-    // fs_game and makes it with one call.
+    // fs_game and makes it with a single call.
     //
     Utils::Hook::PlaceString(0x14024B452, 7, 0x14039F368, "%s"); // Read
     Utils::Hook::PlaceString(0x14024BA98, 7, 0x14039F368, "%s"); // Write
@@ -437,9 +439,11 @@ namespace Components
 
     // Patch stats steamid
     //
-    // Note that on x64 the read keeps the ID in r13 and the write in r14. In
-    // the write we also replace the inlined file name hash, making the part
-    // it takes from the ID (in rdi) zero and the rest our hash.
+    // On x64 the read keeps the ID in r13 and the write keeps it in r14. In
+    // the write we also replace the inlined file name hash: the part it
+    // takes from the ID (in rdi) becomes zero and the rest our hash. That's a
+    // lot of bytes to write by hand, so if the stats ever stop reading after
+    // a change here, this is probably the first place to look.
     //
     {
       constexpr std::uintptr_t read (0x14024B3C2);
@@ -460,7 +464,8 @@ namespace Components
     }
 
     // Note that on x86 we also set the custom class names when fs_game is
-    // set, which x64 always does.
+    // set, which x64 always does anyway.
+    //
 
     // Never use remote stat saving
     Utils::Hook::Set<BYTE>(0x14024BA6C, 0xEB);
@@ -484,8 +489,8 @@ namespace Components
 
     // 'M' Seems to be used on Xbox only for parsing platform specific ranks
     //
-    // Note that on x86 we take this as the M server command, which x64 uses
-    // for one of its own, so we take it as G (see Game::SV_SetClientStat()).
+    // On x86 we take this as the M server command, but x64 uses M for one of
+    // its own, so here we take it as G (see Game::SV_SetClientStat()).
     //
     ServerCommands::OnCommand('G', [](const Command::Params* params)
       {

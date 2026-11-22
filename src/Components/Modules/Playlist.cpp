@@ -41,10 +41,11 @@ namespace Components
     }
   }
 
-  // Note that on x86 we jump to LoadPlaylist() at the end of Live_Init().
-  // x64 sets a flag after its playlist download there, so we load ours in
-  // place of the check whether the playlist fastfile exists. We return that
-  // it does so the game doesn't try to download it.
+  // On x86 we jump to LoadPlaylist() at the end of Live_Init(). There x64
+  // sets a flag after its playlist download instead, so we load ours in
+  // place of the check whether the playlist fastfile exists. And we say that
+  // it does, so that the game doesn't go and try to download it. A bit of a
+  // white lie, but a harmless one since we disable the download anyway.
   //
   bool Playlist::LoadPlaylist_Hk()
   {
@@ -184,7 +185,7 @@ namespace Components
     // Default playlists
     //
     // Note that x64 defaults to "playlists.patch2", which it loads through a
-    // RIP-relative operand, so we place our string where it can reach.
+    // RIP-relative operand, so we place our string where that can reach.
     //
     Utils::Hook::PlaceString(0x1401F4D31, 7, 0x14038B958, "playlists_default.info");
 
@@ -192,7 +193,8 @@ namespace Components
     Utils::Hook::Set<BYTE>(0x1402A7140, 0xC3);
 
     // Note that on x86 we also keep Win_LoadPlaylistFastfile() from deleting
-    // the playlist, which we disable below anyway.
+    // the playlist, which is moot since we disable that function below
+    // anyway.
     //
 
     // Disable Playlist_ValidatePlaylistNum

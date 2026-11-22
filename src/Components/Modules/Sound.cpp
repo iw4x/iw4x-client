@@ -7,14 +7,14 @@ namespace Components
     constexpr std::int8_t StreamFormatMp3 = 5;
 
     // The length of the stream's file, which the stream thread keeps in the
-    // stream after it opens the file.
+    // stream once it has opened the file.
     //
     constexpr std::size_t StreamFileLength = 0x84;
 
     const auto SND_ParseStreamHeader =
       reinterpret_cast<bool (*) (void*, const std::uint8_t*, std::uint32_t)> (0x1402BAF40);
 
-    // The MPEG sample rates by version (2.5, reserved, 2, 1) and index.
+    // The MPEG sample rates by version (2.5, reserved, 2, then 1) and index.
     //
     constexpr int SampleRates[4][3] {
       {11025, 12000, 8000}, {0, 0, 0}, {22050, 24000, 16000}, {44100, 48000, 32000}};
@@ -37,12 +37,16 @@ namespace Components
       return ((p[6] & 0x7F) << 21 | (p[7] & 0x7F) << 14 | (p[8] & 0x7F) << 7 | (p[9] & 0x7F)) + 10;
     }
 
-    // Return true if the game would divide by zero over the stream. It takes
-    // a stream that isn't a RIFF file for an MP3 with its own header, or with
-    // an ID3v2.3 tag that carries the sample count, and divides by the length
-    // it computes from that count in milliseconds. A plain MP3 has neither.
-    //
     bool
+    // Return true if the game would divide by zero over the stream.
+    //
+    // The game takes a stream that isn't a RIFF file for an MP3 with a header
+    // of its own, or with an ID3v2.3 tag that carries the sample count. Either
+    // way it then divides by the length in milliseconds that it computes from
+    // that count. A plain MP3 has neither, which gives a length of zero. Why
+    // it never checks for that we can only guess, presumably because the
+    // game only ever streams its own files.
+    //
     WouldDivideByZero (const std::uint8_t* data, std::uint32_t size)
     {
       constexpr std::uint32_t riff (0x46464952);
@@ -81,7 +85,8 @@ namespace Components
       const auto version ((frame >> 19) & 3);
       const auto index ((frame >> 10) & 3);
 
-      // Note that the game reads -1 past the end of its rates.
+      // Note that for an index past its rates the game reads the -1 that
+      // happens to follow them, so we do the same.
       //
       const std::int64_t rate (index < 3 && version != 1 ? SampleRates[version][index] : -1);
 
@@ -102,7 +107,7 @@ namespace Components
     bool
     ReadFrame (const std::uint8_t* data, std::uint32_t size, std::uint32_t offset, Mp3Frame& f)
     {
-      // The bitrates in kbit/s by MPEG 2 or 1, layer, and index.
+      // The bitrates in kbit/s by MPEG 2 or 1, then the layer, then the index.
       //
       constexpr int bitrates[2][3][15] {
         {{0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256},
@@ -151,10 +156,11 @@ namespace Components
       return f.length > 4;
     }
 
-    // Find the first frame past any ID3 tag. We only take a frame where the
-    // next one agrees with it, since a frame sync can turn up in other data.
-    //
     bool
+    // Find the first frame past any ID3 tag. We only take a frame if the next
+    // one agrees with it, since a frame sync can just as well turn up in other
+    // data.
+    //
     FindFirstFrame (const std::uint8_t* data, std::uint32_t size, Mp3Frame& f)
     {
       std::uint32_t start (0);
@@ -180,10 +186,12 @@ namespace Components
       return false;
     }
 
-    // Count the samples from a Xing or VBRI header if the encoder wrote one,
-    // and otherwise from the length at the first frame's bitrate.
-    //
     std::int64_t
+    // Count the samples from the Xing or VBRI header if the encoder wrote one,
+    // and otherwise estimate them from the length at the first frame's
+    // bitrate (which is exact for a constant bitrate and close enough for
+    // anything else, we hope).
+    //
     CountSamples (const std::uint8_t* data, std::uint32_t size, const Mp3Frame& f, std::int64_t length)
     {
       const int side (f.channels == 1 ? (f.mpeg1 ? 17 : 9) : (f.mpeg1 ? 32 : 17));
@@ -206,24 +214,25 @@ namespace Components
       return bytes * 8 * f.rate / f.bitrate;
     }
 
-    // Print the error x86 prints when it can't play a streamed sound, which
-    // x64 doesn't have. The stream starts with the name of its sound.
-    //
-    // Note that on x86 we also add that the Miles codecs may be missing and
-    // stop the stream from being played again. x64 decodes the MP3s itself
-    // and closes a stream whose header it couldn't read.
-    //
     void
+    // Print the error that x86 prints when it can't play a streamed sound,
+    // which x64 doesn't have. The stream starts with the name of its sound.
+    //
+    // Note that on x86 we also mention that the Miles codecs may be missing,
+    // and stop the stream from being played again. x64 decodes the MP3s
+    // itself and closes a stream whose header it couldn't read, so neither
+    // seems to apply.
+    //
     PrintAliasError (const char* name)
     {
       Logger::PrintError (Game::CON_CHANNEL_SOUND, "Couldn't play alias '{}' - no MP3 frame we can read\n", name);
     }
 
-    // Fill in the header the way the game does for an MP3 with its own
-    // header, having read the magic (readPosition 8). We compute the
-    // average bytes as the game does.
-    //
     bool
+    // Fill in the header the way the game does for an MP3 with its own header,
+    // having read the magic (readPosition 8). We compute the average bytes
+    // the same way as the game does, too.
+    //
     FillMp3Header (Game::StreamHeader* h, const std::uint8_t* data, std::uint32_t size, std::int64_t length)
     {
       Mp3Frame f;
@@ -256,35 +265,30 @@ namespace Components
   Sound::
   Sound ()
   {
-    // Note that on x86 we work around a few bugs in the sound and voice
-    // initialization, none of which x64 has:
-    //
-    // The x86 game initializes the sound driver (Miles over DirectSound)
-    // before it creates its window, which leaves DirectSound bound to the
-    // wrong window, or to none, so we initialize it after the renderer.
-    // x64 plays sound through XAudio2, which isn't bound to a window, and
-    // binds the DirectSound of voice chat to the desktop window.
-    //
-    // We also patch a double release of the DirectSound interface in Miles,
-    // which x64 doesn't use.
-    //
-    // Finally we fix the creation of the voice playback buffers, which x86
-    // starts without checking that DirectSound is initialized, with a
-    // clobbered argument, and releases uninitialized on failure, and whose
-    // failure poisons the buffer array with null pointers. x64 checks that
-    // DirectSound is initialized, creates the buffer inline, releases it only
-    // if it was created, and skips the null buffers wherever it uses them.
-
     // Read the header of a plain MP3 stream ourselves.
     //
-    // Note that x86 streams through Miles, which reads plain MP3s, while x64
-    // reads the header with SND_ParseStreamHeader(), which only knows the
-    // game's own MP3s and divides by zero on a plain one. IW4x's sounds are
-    // plain MP3s, which are also what an x86 server may have us download.
+    // On x86 the streams go through Miles, which reads plain MP3s just fine.
+    // x64 reads the header with SND_ParseStreamHeader() instead, which only
+    // knows the game's own MP3s and divides by zero on a plain one. And our
+    // sounds are plain MP3s, which is also what an x86 server may have us
+    // download, so this isn't some corner case.
     //
     // We replace the call in the stream thread's open, which passes the
-    // header, the stream's first data and its size. See Sound.asm for how we
-    // pass the stream itself, which holds the length of its file.
+    // header along with the stream's first data and its size. The stub adds
+    // the stream itself (from rbx) as the fourth argument, since that's where
+    // the length of its file is.
+    //
+    // Note that on x86 we also work around a few bugs in the initialization
+    // of the sound and of voice chat, none of which x64 has. The x86 game
+    // starts its sound driver (Miles over DirectSound) before it creates its
+    // window, which leaves DirectSound bound to the wrong window or to none.
+    // x64 plays sound through XAudio2, which isn't bound to a window at all,
+    // and binds the DirectSound of voice chat to the desktop window. We also
+    // patch a double release of the DirectSound interface in Miles, which x64
+    // doesn't use. Finally, x86 creates the voice playback buffers rather
+    // carelessly, and a failure there leaves null pointers behind that the
+    // game later trips over. x64 checks each step and skips the null buffers
+    // wherever it uses them, so there is nothing for us to fix.
     //
     Utils::Hook (0x1402C2D99, Sound_ParseStreamHeaderStub, HOOK_CALL).install ()->quick ();
   }

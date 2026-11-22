@@ -4,7 +4,7 @@ namespace Components
 {
   namespace
   {
-    // The game's gameState_t, grown to our configstrings.
+    // The game's gameState_t, only with room for our configstrings.
     //
     struct GameState
     {
@@ -15,7 +15,7 @@ namespace Components
 
     constexpr uintptr_t ImageBase = 0x140000000;
 
-    // The client's gameState_t and the clientActive_t it is part of.
+    // On x64 the client's gameState_t lives inside clientActive_t...
     //
     constexpr uintptr_t ClientActive = 0x140C5AC20;
     constexpr uintptr_t ClientGameState = 0x140C9B960;
@@ -23,7 +23,7 @@ namespace Components
     constexpr uint32_t ClientOffsetsSize = ConfigStrings::BASEGAME_MAX_CONFIGSTRINGS * sizeof(int);
     constexpr uint32_t ClientGameStateSize = ClientOffsetsSize + sizeof(GameState::stringData) + sizeof(int);
 
-    // The server's configstrings and the server_t they are part of.
+    // ...and the server's configstrings inside server_t.
     //
     constexpr uintptr_t Server = 0x1464FBD80;
     constexpr uintptr_t ServerConfigStrings = 0x1464FCDA2;
@@ -31,8 +31,10 @@ namespace Components
     GameState* clGameState;
     uint16_t* svConfigStrings;
 
-    // Return where the client's gameState_t data at the game's address a
-    // lives now.
+    // Return where the client's gameState_t field at the game's address a
+    // lives now. Since the offsets grow, the fields after them don't all move
+    // by the same amount, so we have to figure out which of the three a points
+    // into.
     //
     uintptr_t Moved(uintptr_t a)
     {
@@ -53,7 +55,7 @@ namespace Components
       return reinterpret_cast<uintptr_t>(&clGameState->dataCount);
     }
 
-    // Instruction to patch: its address and length.
+    // An instruction we patch, by its address and length.
     //
     struct Instruction
     {
@@ -61,7 +63,7 @@ namespace Components
       size_t length;
     };
 
-    // Instruction that reaches the game's address target.
+    // An instruction that reaches the game's address target.
     //
     struct Reference
     {
@@ -73,12 +75,36 @@ namespace Components
 
   void ConfigStrings::PatchConfigStrings()
   {
+    // The game keeps both the client's and the server's configstrings in
+    // fixed-size arrays inside bigger structures (clientActive_t and server_t),
+    // so there is no room to grow them where they are. Instead we move both to
+    // our own memory and point every reference at it. We allocate near the
+    // image since most references are 32-bit displacements from the next
+    // instruction (or offsets from the image base or the enclosing structure),
+    // and those have to reach the new place.
+    //
+    // Fair warning: this means a lot of addresses below, and they are tedious
+    // to get right. If you add one, check how the instruction reaches the
+    // game's address, which tells you which of the loops it belongs in.
+    //
     clGameState = static_cast<GameState*>(Utils::Hook::AllocateNear(ImageBase, sizeof(GameState)));
     svConfigStrings = static_cast<uint16_t*>(Utils::Hook::AllocateNear(ImageBase, MAX_CONFIGSTRINGS * sizeof(uint16_t)));
 
-    // Move the client's gameState_t that CL_ParseGamestate, CL_ClearState,
-    // CL_GetConfigString, CL_ConfigstringModified and the demo reach, from
-    // the next instruction, ...
+    // The client's gameState_t, reached from the next instruction. These are in
+    // CL_ParseGamestate(), the demo recording (CL_Record_f()), and the client
+    // code that clears, reads, and changes a configstring (we haven't bothered
+    // naming each of those functions).
+    //
+    // The same, reached from the image base...
+    //
+    // ...and from clientActive_t, all of which are in CL_ParseGamestate().
+    //
+    // The server's configstrings, reached from the next instruction, in
+    // SV_SendClientGameState(), SV_SpawnServer(), and the functions that get
+    // and set a configstring...
+    //
+    // ...and from server_t. Note that the game keeps the empty configstring in
+    // the word right before them, which we leave where it is.
     //
     for (const Reference& s: std::initializer_list<Reference>
     {
@@ -98,8 +124,6 @@ namespace Components
       Utils::Hook::Displace(s.place, s.length, s.target, Moved(s.target));
     }
 
-    // ... from the image base, ...
-    //
     for (const Reference& s: std::initializer_list<Reference>
     {
       {0x1400F3F60, 8, 0x140C9B960}, {0x1400F4051, 8, 0x140C9B960},
@@ -109,8 +133,6 @@ namespace Components
       Utils::Hook::Rebase(s.place, s.length, ImageBase, s.target, Moved(s.target));
     }
 
-    // ... and from the clientActive_t, in CL_ParseGamestate.
-    //
     for (const Reference& s: std::initializer_list<Reference>
     {
       {0x1400FFF49, 7, 0x140C9B960}, {0x1400FFFFC, 7, 0x140C9B960}, {0x140100084, 7, 0x140C9B960}
@@ -119,12 +141,6 @@ namespace Components
       Utils::Hook::Rebase(s.place, s.length, ClientActive, s.target, Moved(s.target));
     }
 
-    // Move the server's configstrings that SV_SendClientGameState,
-    // SV_ClearConfigStrings, SV_GetConfigstring(Const), SV_SetConfigstring
-    // and SV_SpawnServer reach, from the next instruction and from the
-    // server_t. Note that the empty configstring in the word before them
-    // stays.
-    //
     for (const Reference& s: std::initializer_list<Reference>
     {
       {0x140237382, 7, 0x1464FCDA2}, {0x14023742E, 7, 0x1464FCDA2}, {0x14023866A, 7, 0x1464FCDA2},
@@ -144,16 +160,27 @@ namespace Components
       Utils::Hook::Rebase(s.place, s.length, Server, s.target, reinterpret_cast<uintptr_t>(svConfigStrings));
     }
 
-    // SV_SpawnServer fills them up to their end, which is the start of the
-    // next global.
+    // SV_SpawnServer() fills the configstrings with the empty string up to
+    // their end, which on x64 also happens to be the start of the next global.
+    // So this is the one reference to their end rather than their start.
     //
     Utils::Hook::Displace(0x140239BFA, 7,
                           ServerConfigStrings + BASEGAME_MAX_CONFIGSTRINGS * sizeof(uint16_t),
                           reinterpret_cast<uintptr_t>(svConfigStrings + MAX_CONFIGSTRINGS));
 
-    // Raise the bounds of the loops over every configstring and of the
-    // checks on an index, in the client, the server and the save game. Note
-    // that CG_ConfigStringModified keeps its own and so ignores ours.
+    // Now the counts. These are the bounds checks on an index in the client,
+    // the server, and what seems to be the save game.
+    //
+    // Note that CG_ConfigStringModified() keeps bounds of its own and so never
+    // sees ours, which is what CG_ConfigStringModified_Hk() is for.
+    //
+    // The same for the checks against the last index...
+    //
+    // ...the size of the string offsets, which the client clears and uses to
+    // get at the data that follows them...
+    //
+    // ...and the size of the whole gameState_t, which the client allocates,
+    // copies, and clears.
     //
     for (const Instruction& s: std::initializer_list<Instruction>
     {
@@ -173,10 +200,6 @@ namespace Components
       Utils::Hook::Replace32(s.place, s.length, BASEGAME_MAX_CONFIGSTRINGS - 1, MAX_CONFIGSTRINGS - 1);
     }
 
-    // Raise the sizes: clearing the string offsets, reaching the data of the
-    // copy CL_ConfigstringModified makes, and allocating, copying and
-    // clearing the whole gameState_t.
-    //
     for (const Instruction& s: std::initializer_list<Instruction>
     {
       {0x1400F3FDA, 6}, {0x1400FFD47, 6}, {0x1400F400F, 7}
@@ -193,8 +216,8 @@ namespace Components
       Utils::Hook::Replace32(s.place, s.length, ClientGameStateSize, sizeof(GameState));
     }
 
-    // Clear the server's configstrings along with the server_t, in
-    // SV_ClearConfigStrings and SV_SpawnServer.
+    // The game clears its configstrings as part of clearing server_t, which no
+    // longer covers ours, so we clear them along with it.
     //
     Utils::Hook(0x1402386B6, SV_ClearServer, HOOK_CALL).install()->quick();
     Utils::Hook(0x140239AD0, SV_ClearServer, HOOK_CALL).install()->quick();
@@ -275,8 +298,8 @@ namespace Components
       return false;
     }
 
-    // Note that the game sets up the weapons whose configstrings are
-    // before ours itself.
+    // Note that the game sets up the weapons whose configstrings come before
+    // ours itself, so here we only see the ones past them.
     //
     if (index >= EXTRA_WEAPONS_FIRST && index <= EXTRA_WEAPONS_LAST)
     {
@@ -286,11 +309,12 @@ namespace Components
       return true;
     }
 
-    // Note that ModelCache leaves the models where the game keeps them when
-    // we play a demo, in which case there is nowhere to keep the extra ones.
-    //
     if (index >= EXTRA_MODELCACHE_FIRST && index <= EXTRA_MODELCACHE_LAST)
     {
+      // If ModelCache left the models where the game keeps them (which it does
+      // when we play a demo), then there is nowhere to put the extra ones, so we
+      // just drop them.
+      //
       if (!ModelCache::modelsHaveBeenReallocated)
       {
         return true;
@@ -304,7 +328,7 @@ namespace Components
       return true;
     }
 
-    // The game has nothing to do for a rumble, the same as on x86.
+    // There is nothing to do for a rumble, the same as on x86.
     //
     if (index >= RUMBLE_FIRST && index <= RUMBLE_LAST)
     {
@@ -367,11 +391,8 @@ namespace Components
   {
     PatchConfigStrings();
 
-    // Remap the configstrings of the models past the game's to the extra
-    // ones, wherever the game reads or sets the configstring of a model.
-    //
-    // Note that x64 inlines some of the functions whose calls we hook on x86
-    // into their callers, and so we hook more calls.
+    // Note that we hook more calls than on x86, since x64 inlines some of the
+    // functions we hook there into their callers.
     //
     for (const uintptr_t place: {0x14019B4AB, 0x14019B6E8, 0x1401AAFD2, 0x1401AB0D2, 0x1401AC036, 0x1401AC0DF})
     {
@@ -386,9 +407,9 @@ namespace Components
       Utils::Hook(place, CL_GetCachedModelConfigString, HOOK_CALL).install()->quick();
     }
 
-    // Handle the extra configstrings, which the game ignores, before it
-    // gets to them.
+    // Handle the extra configstrings before the game gets to them, since it
+    // would otherwise just ignore them.
     //
-    Utils::Hook(0x1400E65B7, CG_ConfigStringModified_Hk, HOOK_CALL).install()->quick(); // CG_ParseServerCommand
+    Utils::Hook(0x1400E65B7, CG_ConfigStringModified_Hk, HOOK_CALL).install()->quick(); // CG_DeployServerCommand
   }
 }

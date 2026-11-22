@@ -244,8 +244,10 @@ namespace Components
       return;
     }
 
-    // Note that on x86 we also restrict all the weapons of IW4x zones from
-    // the alpha 2 format on, which x64 doesn't load.
+    // Note that on x86 we also restrict all the weapons of our zones from the
+    // alpha 2 format on. x64 doesn't load zones in those formats in the first
+    // place (they're converted, see ZoneConvert), so there is nothing to
+    // restrict.
     //
     if (type == Game::XAssetType::ASSET_TYPE_WEAPON)
     {
@@ -289,8 +291,8 @@ namespace Components
       }
     }
 
-    // Note that on x86 we also restrict the menus of IW4x zones from format
-    // version 359 on, which x64 doesn't load.
+    // Note that on x86 we also restrict the menus of our zones from format
+    // version 359 on, which x64 doesn't load either.
     //
   }
 
@@ -308,11 +310,12 @@ namespace Components
     return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp->g_glassData;
   }
 
-  // Load the sun of the map from its sun file, if it has one.
+  // Load the map's sun from its sun file, if it has one.
   //
-  // On x86 we replace the call to R_FlushSun() in R_LoadWorld(), which x64
-  // inlines. So we replace the call right after it instead, before which
-  // R_LoadWorld() doesn't touch the sun.
+  // On x86 we replace the call of R_FlushSun() in R_LoadWorld(), which x64
+  // inlines. So we replace the call right after it instead, which should
+  // amount to the same since R_LoadWorld() doesn't touch the sun in
+  // between.
   //
   void Maps::LoadRawSun()
   {
@@ -515,7 +518,7 @@ namespace Components
   }
 
   // Set sv_cheats for the server that the map or devmap command is spawning
-  // and then make the call we replace.
+  // (see the constructor), and then make the call we replaced.
   //
   void Maps::SV_SpawnServer_SetCheats()
   {
@@ -527,7 +530,7 @@ namespace Components
     Utils::Hook::Call<void()>(0x1401AA2D0)();
   }
 
-  // Note that the zone is the loadscreen zone of the map (<map>_load).
+  // Note that the zone here is the loadscreen zone of the map (<map>_load).
   //
   void Maps::LoadMapLoadscreenStub(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync)
   {
@@ -780,9 +783,9 @@ namespace Components
     return FoundCustomMaps;
   }
 
-  // Note that on x86 we read the pool back from one of the instructions that
-  // AssetHandler patches when it reallocates it. On x64 AssetHandler keeps
-  // it in g_assetEntryPool instead.
+  // On x86 we read the pool back from one of the instructions that
+  // AssetHandler patches when it reallocates it, which is a bit of a trick.
+  // On x64 AssetHandler simply keeps it in g_assetEntryPool.
   //
   Game::XAssetEntry* Maps::GetAssetEntryPool()
   {
@@ -982,8 +985,8 @@ namespace Components
 #ifdef DEBUG
     // Check trigger models
     //
-    // Note that x64 inlines InitTrigger(), which we hook on x86, into each of
-    // the trigger spawn functions.
+    // On x86 we hook InitTrigger(), but x64 inlines it into each of the
+    // trigger spawn functions, so we hook every copy.
     //
     Utils::Hook(0x140186D21, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
     Utils::Hook(0x140186EC9, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
@@ -1006,17 +1009,19 @@ namespace Components
     // Restrict asset loading
     AssetHandler::OnLoad(Maps::LoadAssetRestrict);
 
-    // Raise the size of the PMem pool from the stock 300 MiB to 640 MiB, as
-    // x86 does. At 450 MiB several ported maps (mp_cement, mp_boardwalk,
-    // mp_carbon, mp_radar, mp_exchange, mp_meteora and IW4x's DLC
-    // mp_underground) fail mid-load with "Need N more bytes of ram for alloc
-    // to succeed". PMem_Init() only reserves the range (MEM_RESERVE) and the
-    // pages are committed as zones load. On x86 the size is a trade-off,
-    // since the reservation takes address space from the rest of the
-    // process, which x64 has plenty of.
+    // Raise the size of the PMem pool from the stock 300 MiB to 640 MiB, the
+    // same as x86. We first tried 450 MiB, but several ported maps
+    // (mp_cement, mp_boardwalk, mp_carbon, mp_radar, mp_exchange, mp_meteora,
+    // and our own DLC's mp_underground) still failed halfway through the load
+    // with "Need N more bytes of ram for alloc to succeed".
+    //
+    // Is 640 MiB a lot to ask for? Not really: PMem_Init() only reserves the
+    // range and the pages get committed as zones load. On x86 the size is
+    // something of a trade-off, since the reservation takes address space
+    // away from the rest of the process, but x64 has plenty of that.
     //
     // Note that on x86 we leave the pool to ZoneBuilder when it's enabled,
-    // which the x64 build leaves out.
+    // and there is no ZoneBuilder on x64.
     //
     Utils::Hook::Set<DWORD>(0x140289067, 0x28000000); // 640 MiB
     Utils::Hook::Set<DWORD>(0x1402890B7, 0x28000000);
@@ -1024,7 +1029,7 @@ namespace Components
     // Intercept BSP name resolving
     //
     // Note that on x64 the game ends with a jump to Com_sprintf(), which we
-    // replace with a jump to us.
+    // turn into a jump to us.
     //
     Utils::Hook(0x140272D5D, Maps::GetBSPName, HOOK_JUMP).install()->quick();
 
@@ -1038,7 +1043,7 @@ namespace Components
     // WorldData pointer replacement
     //
     // Note that on x64 the game loads the pointer into rcx with a 7-byte
-    // instruction.
+    // instruction, hence the call and the two nops.
     //
     Utils::Hook(0x140169706, Maps_GetWorldDataStub, HOOK_CALL).install()->quick();
     Utils::Hook::Nop(0x14016970B, 2);
@@ -1048,14 +1053,15 @@ namespace Components
 
     // Intercept map loading for usermap initialization
     //
-    // On x86 we hook the two calls to SV_SpawnServer(). On x64 we also call
-    // it ourselves for the map and devmap commands, and so we hook it as a
-    // whole instead.
+    // On x86 we hook the two calls of SV_SpawnServer(). On x64 we also call
+    // it ourselves, for the map and devmap commands (see below), so it's
+    // simpler to detour it as a whole.
     //
-    // Note also that x64 inlines the function that loads the loadscreen zone
-    // of a map, which we hook the calls to on x86, into most of its callers.
-    // So we hook the loading of the zone in each copy, where the one for
-    // StartMatch() moved into SV_SpawnServer().
+    // The loadscreen zone is messier. x64 inlines the function that loads
+    // the loadscreen zone of a map, whose calls we hook on x86, into most of
+    // its callers, so we hook the load of the zone in each copy. The copy
+    // for StartMatch() seems to have moved into SV_SpawnServer() along the
+    // way.
     //
     SV_SpawnServer_Original = Utils::Hook::Detour(0x140239750, 5, &SV_SpawnServer_Hk);
     Utils::Hook(0x1400FA06D, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick(); // CL_ConnectionlessPacket
@@ -1065,15 +1071,15 @@ namespace Components
     Utils::Hook(0x140239848, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick(); // SV_SpawnServer
 
     // Restore the map and devmap commands, which x64 compiles out along with
-    // the rest of the operator commands, the way x86 registers them when the
-    // server starts.
+    // the rest of the operator commands. We register them when the server
+    // starts, the same as x86.
     //
     // On x86 SV_SpawnServer() then sets sv_cheats to whether the command was
-    // devmap, right after clearing the config strings. x64 compiles that out
-    // as well, so we set it there ourselves, though only for these commands.
-    // x64 passes no devmap for its other spawns and so taking it from there
-    // would disable cheats on a fast restart, which on x86 keeps them as they
-    // are.
+    // devmap, right after it clears the config strings. x64 compiles that
+    // out as well, so we set it ourselves at the same point, but only for
+    // these two commands. Why not for every spawn? Because x64 passes no
+    // devmap for its other spawns, and taking it from there would turn the
+    // cheats off on a fast restart, which on x86 leaves them as they were.
     //
     Events::OnSVInit([]
     {
@@ -1100,9 +1106,9 @@ namespace Components
     // Download the map before a map rotation if necessary
     // Conflicts with Theater's SV map rotation check, but this one is safer!
     //
-    // Note that x64 inlines the function that handles the map change, which
-    // we hook the call to on x86, into CL_ConnectionlessPacket(). So we jump
-    // to the stub where the copy starts.
+    // Note that x64 inlines the function that handles the map change, whose
+    // call we hook on x86, into CL_ConnectionlessPacket(). So we jump to the
+    // stub right where that copy starts.
     //
     Utils::Hook(0x1400F9FAF, Maps_RotateCheckStub, HOOK_JUMP).install()->quick();
 

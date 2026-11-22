@@ -138,8 +138,9 @@ namespace Components::GSC
   {
     AddFunctions();
 
-    // Note that on x64 the position is in rcx and we replace the fetch of
-    // the opcode and the next position, which the stub redoes.
+    // Note that on x64 the code position is in rcx at this point, and we
+    // replace the fetch of the opcode and of the next position, which the
+    // stub then redoes.
     //
     Utils::Hook(0x140229FAB, ScriptExtension_VMExecuteInternalStub, HOOK_JUMP).install()->quick();
 

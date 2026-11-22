@@ -122,8 +122,9 @@ namespace Game
   typedef bool(*Key_IsCatcherActive_t)(int localClientNum, int mask);
   extern Key_IsCatcherActive_t Key_IsCatcherActive;
 
-  // Note that x64 binds a key to the index of its command in the table of the
-  // commands a key can be bound to, with 0 for none.
+  // Note that x64 binds a key to the index of its command in the table of
+  // the commands a key can be bound to, with 0 for none (see
+  // Components::Bindings).
   //
   typedef void(*Key_SetBinding_t)(int localClientNum, int keynum, int binding);
   extern Key_SetBinding_t Key_SetBinding;
@@ -139,14 +140,14 @@ namespace Game
   typedef int(*Key_GetBindingForCmd_t)(const char* cmd);
   extern Key_GetBindingForCmd_t Key_GetBindingForCmd;
 
-  // Return the command of the binding, or nullptr for none.
+  // Return the command of the binding, or nullptr if there is none.
   //
   const char* Key_GetCmdForBinding(int binding);
 
   typedef bool(*CG_ScoreboardKeyEvent_t)(int localClientNum, int key);
   extern CG_ScoreboardKeyEvent_t CG_ScoreboardKeyEvent;
 
-  // Note that x64 inlines these into CG_ScoreboardKeyEvent() and so we scroll
+  // Note that x64 inlines these into CG_ScoreboardKeyEvent(), so we scroll
   // with the keys that scroll the scoreboard there.
   //
   void CG_ScrollScoreboardUp(int localClientNum);
@@ -557,7 +558,7 @@ namespace Game
   typedef int(*CG_DObjGetWorldTagPos_t)(const centity_s* cent, const DObj* obj, unsigned int tagName, float* pos);
   extern CG_DObjGetWorldTagPos_t CG_DObjGetWorldTagPos;
 
-  // Return true if the local player uses a turret whose weapon has an
+  // Return true if the local player is using a turret whose weapon has an
   // overlay.
   //
   typedef bool(*CG_UsingTurretOverlay_t)(int localClientNum);
@@ -724,11 +725,12 @@ namespace Game
 
   extern visField_t* visionDefFields;
 
-  // Parse token into the field of settings that visionDefFields describes
-  // at fieldNum. Return true if the token holds a value of the field's type.
+  // Parse the token into the field of settings that visionDefFields
+  // describes at fieldNum. Return true if the token holds a value of the
+  // field's type.
   //
-  // Note that x64 inlines it into LoadVisionFile(), so we reimplement it from
-  // the x86 game.
+  // Note that x64 inlines this into LoadVisionFile(), so we reimplement it
+  // from the x86 game.
   //
   bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings);
 
@@ -788,11 +790,11 @@ namespace Game
 
   extern Game::cgMedia_t* cgMedia;
 
-  // Team balance of the party, formatted as "(axis:allies)".
+  // The team balance of the party, formatted as "(axis:allies)".
   //
   extern char* partyTeamCounts;
 
-  // Number of free DObj handles out of DOBJ_HANDLE_COUNT.
+  // The number of free DObj handles out of DOBJ_HANDLE_COUNT.
   //
   constexpr int DOBJ_HANDLE_COUNT = 0x800;
   extern int* dobjFreeCount;
@@ -865,8 +867,9 @@ namespace Game
   // runs a command bound to a key.
   //
   // Note that on x64 the key code passes the key number and time of its own
-  // buttons to these functions directly, and so they don't read them from
-  // the command. Here we read them and pass them on.
+  // buttons to these functions directly, so they don't read them from the
+  // command. Here we read them and pass them on, which is what lets
+  // Components::Bindings run such a command the x86 way.
   //
   void IN_KeyDown(kbutton_t* button);
   void IN_KeyUp(kbutton_t* button);
@@ -881,15 +884,17 @@ namespace Game
   void QuatRot(vec3_t* vec, const vec4_t* quat);
   void QuatMultiply(const vec4_t* q1, const vec4_t* q2, vec4_t* res);
 
-  // Draw a debug line, string, or the edges of bounds (rotated by quat) in
-  // the world as the first local client sees it.
+  // Draw a debug line or string in the world as the first local client
+  // sees it. R_AddDebugBounds() draws the edges of the bounds instead,
+  // rotated by quat if there is one.
   //
   // Note that on x86 these add to the debug lines and strings that the
   // renderer draws along with the scene, which x64 compiles out. So we draw
   // them ourselves with the 2D commands of the frame, projected through the
-  // client's refdef. This means they draw over the scene and may only be
-  // called where the frame's 2D commands are added, such as the renderer
-  // pipeline of Components::Scheduler.
+  // client's refdef. This means they draw over the scene rather than in it,
+  // which is a bit of a cheat but good enough for debugging. It also means
+  // they may only be called where the frame's 2D commands are added, such
+  // as the renderer pipeline of Components::Scheduler.
   //
   void R_AddDebugLine(const float* color, const float* start, const float* end);
   void R_AddDebugString(const float* color, const float* pos, float scale, const char* text);
@@ -905,7 +910,7 @@ namespace Game
   typedef void(*RB_DrawStretchPicRotate_t)(Material* material, float x, float y, float w, float h, float s0, float t0, float s1, float t1, float sinAngle, float cosAngle, unsigned int color);
   extern RB_DrawStretchPicRotate_t RB_DrawStretchPicRotate;
 
-  // The pulse effect of DrawText2D(): the letters type in one after another
+  // The pulse effect of DrawText2D(). The letters type in one after another
   // with a random letter at the end, and later decay away at random times.
   //
   // Note that x64 inlines these into DrawText2D(), so we reimplement them
@@ -918,10 +923,10 @@ namespace Game
   float GraphGetValueFromFraction(int knotCount, const float(*knots)[2], float fraction);
   float GraphFloat_GetValue(const GraphFloat* graph, const float fraction);
 
-  // Copy the translation of reference into token, which has room for 1024
-  // characters, and return true. If there is no translation, copy the
-  // reference marked as unlocalized, or return false without copying
-  // anything if errType is LOCMSG_NOERR.
+  // Copy the translation of the reference into token, which has room for
+  // 1024 characters, and return true. If there is no translation, copy the
+  // reference marked as unlocalized instead, or return false without
+  // copying anything if errType is LOCMSG_NOERR.
   //
   // Note that x64 inlines this function into SEH_LocalizeTextMessage().
   //
@@ -930,11 +935,11 @@ namespace Game
   void I_strncpyz_s(char* dest, std::size_t destsize, const char* src, std::size_t count);
   void I_strcpy(char* dest, std::size_t destsize, const char* src);
 
-  // Return the address as text in a static buffer. Our version of the x86
-  // function, which x64 compiles out.
+  // Return the address as text in a static buffer. This is our version of
+  // the x86 function, which x64 compiles out.
   //
-  // Note that we print the port of an IP address unsigned, as x86 did once
-  // patched by Components::Network.
+  // Note that we print the port of an IP address unsigned, as x86 does once
+  // Components::Network has patched it.
   //
   const char* NET_AdrToString(netadr_t a);
 }

@@ -196,15 +196,15 @@ namespace Components
       }
     });
 
-    // SCR_UpdateFrame, which x64 inlines.
+    // SCR_UpdateFrame(), which x64 inlines.
     //
     Utils::Hook(0x140101D11, ScrPlace_EndFrame_Hk, HOOK_CALL).install()->quick();
 
     // Hook G_Glass_Update so we may fix TLS issues
     Utils::Hook(0x14019EFB4, ServerFrame_Hk, HOOK_CALL).install()->quick();
 
-    // CL_CheckForResend. Note that x64 inlines CL_CheckTimeout, which x86
-    // hooks and which comes right after it.
+    // CL_CheckForResend(). On x86 we hook CL_CheckTimeout(), which comes right
+    // after it, but x64 inlines that one.
     //
     Utils::Hook(0x1400FAC24, ClientFrame_Hk, HOOK_CALL).install()->quick();
 

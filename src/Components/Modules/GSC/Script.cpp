@@ -61,11 +61,12 @@ namespace Components::GSC
     strncpy_s(searchPath, dir, _TRUNCATE);
     strncat_s(searchPath, "/", _TRUNCATE);
 
-    // Note that on x86 we leave the allocation track type, which the game's
-    // memory tracking only counts by, to whatever is on the stack. We pass
-    // the one that FileSystem does.
-    //
     auto numFiles = 0;
+    // Note that on x86 we leave the allocation track type to whatever happens
+    // to be on the stack, which seems harmless since the game's memory
+    // tracking only counts by it. Here we pass the same one as FileSystem
+    // does.
+    //
     const auto** files = Game::FS_ListFiles(searchPath, "gsc", Game::FS_LIST_ALL, &numFiles, 10);
 
     for (auto i = 0; i < numFiles; ++i)
@@ -248,8 +249,9 @@ namespace Components::GSC
       }
     }
 
-    // Note that x64 inlines BuiltIn_GetFunction() into Scr_GetFunction(),
-    // which looks it up after us.
+    // Not one of ours. Note that x64 inlines BuiltIn_GetFunction() into
+    // Scr_GetFunction(), which then looks the name up among the game's
+    // after we return.
     //
     return nullptr;
   }
@@ -313,8 +315,8 @@ namespace Components::GSC
       }
     }
 
-    // Note that x64 inlines BuiltIn_GetMethod() into Scr_GetMethod(), which
-    // looks it up after us.
+    // As above, x64 inlines BuiltIn_GetMethod() into Scr_GetMethod(), which
+    // then looks the name up after us.
     //
     return nullptr;
   }
@@ -444,7 +446,8 @@ namespace Components::GSC
     // Skip check in GScr_CheckAllowedToSetPersistentData to prevent log spam in RuntimeError.
     // On IW5 the function is entirely nullsubbed
     //
-    // Note that x64 inlines it into its three callers.
+    // Note that x64 inlines the check into its three callers, hence the
+    // three jumps.
     //
     Utils::Hook::Set<std::uint8_t>(0x1401A51DF, 0xEB);
     Utils::Hook::Set<std::uint8_t>(0x1401A594F, 0xEB);
@@ -456,10 +459,12 @@ namespace Components::GSC
 
     // Fetch custom functions
     //
-    // Note that on x86 we replace the calls of BuiltIn_GetFunction() and
-    // BuiltIn_GetMethod(), the last lookups, which x64 inlines. So we look
-    // ours up after the lookups before them, the same as on x86. The one of
-    // the methods only gets the name, so Script.asm passes the type along.
+    // On x86 we replace the calls of BuiltIn_GetFunction() and
+    // BuiltIn_GetMethod(), the last of the lookups, but x64 inlines both. So
+    // we hook the lookups right before them instead, which still means ours
+    // are found before the game's own, the same as on x86. The method one
+    // only gets the name, so Script_Scr_GetMethod_Stub passes the type
+    // along.
     //
     Utils::Hook(0x1401A735E, Scr_GetFunction_Hk, HOOK_CALL).install()->quick(); // Scr_GetFunction
     Utils::Hook(0x1401A74A0, Script_Scr_GetMethod_Stub, HOOK_CALL).install()->quick(); // Scr_GetMethod
@@ -473,7 +478,8 @@ namespace Components::GSC
 
     // Restore IW3's compiler behaviour when dealing with 'overriding builtin function'
     //
-    // Note that x64 jumps with a near jnz.
+    // Note that x64 jumps with a near jnz here, which is 6 bytes rather than
+    // the 2 of a short one.
     //
     Utils::Hook::Nop(0x14021B610, 6); // Scr_GetFunction
     Utils::Hook::Nop(0x14021B62B, 6); // Scr_GetMethod

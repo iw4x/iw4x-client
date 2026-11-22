@@ -98,18 +98,24 @@ namespace Components
   {
     RegisterBrandingDvars();
 
-    // UI version string, replacing its "%s.%i" format.
+    // UI version string
+    //
+    // Note that on x64 this is the "%s.%i" format that the UI builds its
+    // version from, reached through a 'lea'. So we place our string in its
+    // stead, which the format then leaves as is since it has no conversions.
     //
     Utils::Hook::PlaceString(0x14026F26E, 7, 0x1403A290C, "IW4x " REVISION_STR);
 
-    // Short version dvar default.
+    // Short version dvar
     //
     Utils::Hook::PlaceString(0x1401F54FF, 7, 0x140389580, REVISION_STR);
 
-    // Com_Init_Try_Block_Function's version line.
+    // Com_Init_Try_Block_Function
     //
-    // Note that on x86 we also replace the date, where x64 prints the
-    // platform. It takes the build number from GetBuildNumber() below.
+    // Note that on x86 we also replace the date in this version line. x64
+    // doesn't print one there, it prints the platform ("win64") instead,
+    // which seems fine to keep. The build number comes from GetBuildNumber()
+    // below.
     //
     Utils::Hook::PlaceString(0x1401F54A5, 7, 0x140387AA8, BUILD_TYPE);
 #ifdef EXPERIMENTAL_BUILD
@@ -120,12 +126,12 @@ namespace Components
 
     Utils::Hook(0x1401E6960, GetBuildNumber, HOOK_JUMP).install()->quick();
 
-    // UI version string color.
+    // Version string color
     //
     constexpr Game::vec4_t buildLocColor = {1.0f, 1.0f, 1.0f, 0.8f};
     Utils::Hook::PlaceData(0x14026F28C, 7, 0x1403A4E30, buildLocColor, sizeof(buildLocColor));
 
-    // Place UI version string in bottom right corner (ui_buildLocation).
+    // Place ui version string to bottom right corner (ui_buildlocation)
     //
     Utils::Hook(0x14026FA90, Dvar_RegisterUIBuildLocation, HOOK_CALL).install()->quick();
 
@@ -133,14 +139,19 @@ namespace Components
 
     Utils::Hook(0x1401B15BE, MSG_WriteVersionStringHeader, HOOK_CALL).install()->quick();
 
-    // Draw version after debug overlays when connected.
+    // Draw the version after the debug overlays while connected, which is
+    // where x86 draws it (from CG_DrawFullScreenDebugOverlays()).
     //
-    // Note that this replaces the call Dvar installs at the same site, which
-    // is why we chain to it.
+    // Note that on x64 this is the very UI_PaintMenus() call that Dvar
+    // already turns into a call of our Game::CL_DrawDebugOverlays(), and so
+    // our hook calls that in turn. This only works because Branding registers
+    // after Dvar and so installs last, which is a bit fragile. But the
+    // alternative, one hook for both, would tie Dvar's debug info and our
+    // version together, which feels worse.
     //
     Utils::Hook(0x140101D0C, CL_DrawDebugOverlays_Hk, HOOK_CALL).install()->quick();
 
-    // Console title.
+    // Console title
     //
     if (Dedicated::IsEnabled())
     {

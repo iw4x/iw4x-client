@@ -11,8 +11,8 @@ namespace Components
 {
   namespace
   {
-    // The server id that the client keeps from the server's configstrings
-    // and checks the vote's time against.
+    // The server id that the client keeps from the server's configstrings,
+    // and which it checks the vote's time against.
     //
     const int* ServerId = reinterpret_cast<const int*>(0x140C9B95C);
   }
@@ -66,9 +66,10 @@ namespace Components
     return Game::level->numConnectedClients / 2 + 1;
   }
 
-  // Note that x64 compiles out SEH_ReadVoteReference(), so we reimplement
-  // it from x86. As there, we look the text up by its load name in the
-  // arenas that ArenaLength keeps for the map list.
+  // x64 compiles out SEH_ReadVoteReference(), presumably along with the
+  // rest of the vote that the later revision no longer had any use for. So
+  // this is x86's. As there, we look the text up by its load name in the
+  // arenas, which ArenaLength keeps for the map list.
   //
   const char* Vote::SEH_ReadVoteReference(const char* text, unsigned int* consumed)
   {
@@ -412,8 +413,10 @@ namespace Components
     }
   }
 
-  // Note that x64 drops CheckVote() from G_RunFrame(), so we reimplement it
-  // from x86 and run it where x86 does, after the call that comes before it.
+  // x64 drops CheckVote() from G_RunFrame(), so we bring back x86's and run
+  // it where x86 does, right after the call that precedes it. Running it
+  // anywhere else in the frame would probably work just as well, but this
+  // way the timing is the same as on x86.
   //
   void Vote::G_RunFrame_Hk()
   {
@@ -442,8 +445,10 @@ namespace Components
 
     if (Game::level->time - Level.voteTime >= 0)
     {
-      // Note that x86 rounds the weighted abstains with fistp, which rounds
-      // to nearest even, after it adds just under one half.
+      // Note that x86 rounds the weighted abstains with fistp, which rounds to
+      // nearest even, after adding just under one half. Probably someone's
+      // idea of rounding up that the compiler took literally. Odd, but we
+      // want the same count as an x86 server, so we do the same.
       //
       const auto abstain (static_cast<float>(Level.numVotingClients - Level.voteNo - Level.voteYes) * g_voteAbstainWeight->current.value);
       const auto weighted (static_cast<int>(std::nearbyint(static_cast<double>(abstain) + 0.4999999990686774)));
@@ -478,9 +483,10 @@ namespace Components
     Game::SV_SetConfigstring(Game::CS_VOTE_TIME, "");
   }
 
-  // Note that x86 counts the clients that may vote in CalculateRanks()'s
-  // loop over the clients, which x64 keeps without the count. So we count
-  // them once it has sorted the clients.
+  // x86 counts the clients that may vote in CalculateRanks()'s loop over
+  // the clients, which x64 keeps but without the count. So we count them
+  // ourselves once it has sorted the clients. We could have hooked the loop
+  // itself, but the sort is a single call, which seemed a lot simpler.
   //
   void Vote::CalculateRanks_qsort_Hk(void* base, std::size_t count, std::size_t size, int (*compare)(const void*, const void*))
   {
@@ -500,8 +506,8 @@ namespace Components
     }
   }
 
-  // G_InitGame() clears level with this, and with it x86 clears the vote
-  // fields that we keep.
+  // G_InitGame() clears level with this memset, and on x86 that clears the
+  // vote fields along with it, which we keep separately.
   //
   void* Vote::G_InitGame_memset_Hk(void* dest, int value, std::size_t size)
   {
@@ -509,10 +515,11 @@ namespace Components
     return std::memset(dest, value, size);
   }
 
-  // Note that x64 compiles out the client's vote along with its fields in
-  // cgs, so we reimplement CG_ParseVote(), the vote cases of
-  // CG_ConfigStringModified(), the vote's reset in CG_MapRestart(), and
-  // CG_DrawVote() from x86.
+  // x64 compiles out the client's side of the vote along with its fields in
+  // cgs. So we bring back CG_ParseVote() and CG_DrawVote() from x86, along
+  // with the vote's parts of CG_ConfigStringModified() and CG_MapRestart().
+  // It's a fair bit of code to carry, but votes are one of those things
+  // people would definitely miss.
   //
   void Vote::CG_ParseVoteTime(const char* string)
   {
@@ -661,8 +668,8 @@ namespace Components
     Events::OnDvarInit([]{
       Vote::SV_VotesRequired = Game::Dvar_RegisterInt("sv_votesRequired", 0, 0, 18, Game::DVAR_NONE, "Set the amount of votes required for a vote to pass.\n0 = (players / 2) + 1");
 
-      // Note that x64 compiles out these two with the vote, so we register
-      // them as x86 does.
+      // x64 compiles out these two along with the vote, so we register them
+      // the way x86 does.
       //
       g_oldVoting = Game::Dvar_RegisterBool("g_oldVoting", true, Game::DVAR_ARCHIVE | Game::DVAR_INTERNAL, "Use old voting method");
       g_voteAbstainWeight = Game::Dvar_RegisterFloat("g_voteAbstainWeight", 0.5f, 0.0f, 1.0f, Game::DVAR_ARCHIVE | Game::DVAR_INTERNAL, "How much an abstained vote counts as a 'no' vote");

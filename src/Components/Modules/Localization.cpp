@@ -99,11 +99,14 @@ namespace Components
     return key;
   }
 
-  // Return an entry whose value is what Get() finds for the key.
+  // Return an entry whose value is whatever Get() finds for the key.
   //
-  // Note that x64 inlines SEH_StringEd_GetString(), which we replace with
-  // Get() on x86, into each of its callers. So we hook the lookup of the
-  // entry in each copy, which then reads the value from what we return.
+  // On x86 we replace SEH_StringEd_GetString() with Get() outright, but x64
+  // inlines it into each of its callers. So instead we hook the lookup of
+  // the entry in each copy, which then reads the value from what we return.
+  // The entry is thread-local since the copies may well run on different
+  // threads, and presumably each caller is done with it before it looks up
+  // the next one.
   //
   Game::XAssetHeader Localization::DB_FindLocalizeEntry_Hk([[maybe_unused]] Game::XAssetType type, const char* key)
   {
@@ -416,11 +419,12 @@ namespace Components
 
   namespace
   {
-    // Return the next line of a string file, without its trailing space and
+    // Return the next line of a string file, without its trailing blanks and
     // its comment, which starts at a "//" outside of quotes.
     //
-    // Note that the line itself ends at a '\n' and the next one starts past
-    // any '\r' and '\n' that follow.
+    // Note that the line ends at a '\n' and the next one starts past any '\r'
+    // and '\n' that follow, presumably so that both kinds of line endings
+    // work (empty lines get skipped along the way).
     //
     std::string_view ReadLine(std::string_view& text)
     {
@@ -460,10 +464,12 @@ namespace Components
       return line;
     }
 
-    // If the line starts with the keyword, in any case, skip it and the
-    // blanks after it, and return true.
+    // If the line starts with the keyword, in any case, then skip it and the
+    // blanks after it and return true.
     //
-    // Note that the game doesn't check that the keyword ends there.
+    // Note that, like the game, we don't check that the keyword ends there,
+    // so REFERENCEX would pass for REFERENCE. Probably nobody ever writes
+    // that, but this way we read the same files the same way.
     //
     bool ReadKeyword(std::string_view& line, std::string_view keyword)
     {
@@ -482,8 +488,7 @@ namespace Components
       return true;
     }
 
-    // Return the value that follows a keyword, without its blanks and
-    // quotes.
+    // Return the value that follows a keyword, without its blanks and quotes.
     //
     std::string ReadValue(std::string_view line)
     {
@@ -510,8 +515,8 @@ namespace Components
       return std::string(line);
     }
 
-    // Return true if each "&&N" placeholder in the string is a digit from 1
-    // to 9 used once, which is what the game's formatting expects.
+    // Return true if each "&&N" placeholder in the string is a digit from 1 to
+    // 9 used once, which is what the game's formatting expects.
     //
     bool IsFormatValid(std::string_view value)
     {
@@ -644,7 +649,7 @@ namespace Components
     const auto* forceEnglish (*reinterpret_cast<const Game::dvar_t* const*>(0x14651EFA0)); // loc_forceEnglish
 
     // Note that the game falls back to English if no language is available,
-    // which it then doesn't load strings for.
+    // and then it doesn't load any strings for it, so neither do we.
     //
     const auto index (language->current.integer);
     const auto available (*reinterpret_cast<const int*>(0x140424020 + 0x18 * index + 8));
@@ -686,15 +691,12 @@ namespace Components
 
     // Resolving hook
     //
-    // Note that the third copy of SEH_StringEd_GetString() is in
-    // SEH_LocalizeTextMessage(), which we replace below.
+    // There are three copies of SEH_StringEd_GetString() on x64. The third is
+    // in SEH_LocalizeTextMessage(), which we replace altogether below.
     //
     Utils::Hook(0x14024D819, DB_FindLocalizeEntry_Hk, HOOK_CALL).install()->quick(); // SEH_StringEd_GetString
     Utils::Hook(0x14024D71E, DB_FindLocalizeEntry_Hk, HOOK_CALL).install()->quick(); // SE_GetString
 
-    // Note that SEH_LocalizeTextMessage() starts with a 5-byte store of an
-    // argument register to its home slot.
-    //
     Utils::Hook(0x14024D0B0, SEH_LocalizeTextMessageStub, HOOK_JUMP).install()->quick();
 
     UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::DVAR_NONE, "Use localization strings");
@@ -718,14 +720,15 @@ namespace Components
       }
     });
 
-    // Read the string files in localizedstrings, a mod's for one, whenever
+    // Read the string files in localizedstrings (a mod's, for one) whenever
     // the game reads its language.
     //
-    // Note that x64 compiles out the reading of the files, which we take the
-    // strings from on x86 by replacing the game's SetString(), so we read
-    // them as the game does on x86. It reads them only for a language that
-    // is available, with loc_forceEnglish only taking the English ones, and
-    // stops at the first error.
+    // x64 compiles out the reading of these files. On x86 we take the strings
+    // from them by replacing the game's SetString(), but here there is nothing
+    // left to replace, so we read them ourselves the way the game does on
+    // x86. That is, we only read them for a language that is available (and
+    // with loc_forceEnglish only the English ones), stopping at the first
+    // error.
     //
     SEH_UpdateLanguageInfo_Original = Utils::Hook::Detour(0x14024D840, 5, SEH_UpdateLanguageInfo_Hk);
 

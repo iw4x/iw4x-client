@@ -24,10 +24,9 @@
 #include <Utils/Logging/Log.h>
 #include <Zone/Zone.h>
 
-// Note that the client includes Shim.hpp without the OpenAssetTools headers
-// and so can't check that the game's structures are laid out the way we
-// compile them. So we check our side against the layout it names and the
-// client checks the game's (see Menus.cpp).
+// Check that OAT lays the menu structures out the way Shim.hpp says. This
+// is our half of the check, and Menus.cpp does the game's (see Shim.hpp for
+// why it takes two).
 //
 namespace Components::OAT::Layout
 {
@@ -52,8 +51,14 @@ namespace
 {
   using namespace Components::OAT;
 
-  // The callbacks of the file we are compiling, which OpenAssetTools prints
-  // its messages through (see con below).
+  // The callbacks of the file being compiled.
+  //
+  // OAT prints through free functions (see con below), which have no way to
+  // know whose file they are printing about, so we keep the callbacks here
+  // for the duration of LoadMenuFile(). It's thread-local so that two
+  // threads compiling at once wouldn't print into each other's callbacks,
+  // though as far as we know the menus are only ever loaded from the main
+  // thread.
   //
   thread_local const MenuCallbacks* callbacks = nullptr;
 
@@ -66,7 +71,7 @@ namespace
   }
 
   // Return true if the name is that of a function of the menu expressions,
-  // such as sin or milliseconds.
+  // like sin or milliseconds, ignoring case the same as the game.
   //
   bool IsExpressionFunction(const std::string_view name)
   {
@@ -87,15 +92,26 @@ namespace
     return false;
   }
 
-  // Note that the menus that we dumped from the game's zones write the
-  // parenthesis that opens the argument of a function before its name, as
-  // in ( sin milliseconds( ) / 1500 ) for sin( milliseconds( ) / 1500 ). The
-  // game takes the name of a function for the parenthesis that opens it,
-  // while OpenAssetTools expects one after the name.
+  // Rewrite the function calls of the menu expressions the way OAT expects
+  // them.
   //
-  // So we move such a parenthesis after the name, which is where it opens
-  // the argument for the game as well. We leave the strings and comments of
-  // the file alone.
+  // The menus that we dumped from the game's zones write the parenthesis
+  // that opens a function's argument before the function's name, as in
+  // ( sin milliseconds( ) / 1500 ) for what one would write as
+  // sin( milliseconds( ) / 1500 ). That's presumably how the dumper prints
+  // the compiled expression, and the game's parser is fine with it, since
+  // it takes a function name right after a parenthesis as opening that
+  // function. OAT isn't, it wants the parenthesis after the name. And many
+  // of our menus started out as such dumps, so they are full of this.
+  //
+  // We could fix the menus themselves, of course, but then every mod's
+  // menus that were dumped the same way would still break. So instead we
+  // move such a parenthesis after the name as we read the file, which means
+  // the same thing to the game anyway. We only do it when the parenthesis is
+  // followed by a known function name and the name isn't already followed
+  // by a parenthesis of its own, and we leave strings and comments alone,
+  // which should keep us from rewriting anything that was fine to begin
+  // with.
   //
   std::string MoveFunctionParentheses(const std::string& text)
   {
@@ -183,9 +199,9 @@ namespace
     return r;
   }
 
-  // Search path that opens the files through the game's filesystem, which
-  // is where the game's menu parser reads the menus and their includes from
-  // on x86. So we find the files in the iwds and the mod as it does.
+  // Open the files through the game's file system, which is where the
+  // game's own parser reads the menus and their includes from on x86. That
+  // way we find them in the iwds and the mod the same as it does.
   //
   class GameSearchPath final : public ISearchPath
   {
@@ -204,6 +220,9 @@ namespace
         return {};
       }
 
+      // Every file goes through the rewrite, includes too, since presumably
+      // the dumped .inc files have the same kind of expressions in them.
+      //
       auto text(MoveFunctionParentheses(*data));
 
       const auto length(static_cast<std::int64_t>(text.size()));
@@ -216,8 +235,8 @@ namespace
       return path;
     }
 
-    // The menu compiler only opens files by name and so we have nothing to
-    // list.
+    // The menu compiler only ever opens files by name, so there is nothing for
+    // us to list here.
     //
     void Find(const SearchPathSearchOptions&, const std::function<void(const std::string&)>&) override
     {
@@ -227,10 +246,13 @@ namespace
     const MenuCallbacks& callbacks_;
   };
 
-  // Creator that resolves an asset that the menus refer to through the
-  // game's asset database.
-  //
   template <typename Asset, typename T>
+  // Resolve an asset that the menus refer to, a material or a sound, through
+  // the game's asset database rather than having OAT load it from disk.
+  //
+  // If the game doesn't have it, then we take no action and leave it to OAT,
+  // which presumably reports it as missing.
+  //
   class GameAssetCreator final : public AssetCreator<Asset>
   {
   public:
@@ -256,8 +278,10 @@ namespace
     const std::function<T*(const std::string&)>& find_;
   };
 
-  // Point the items back at their menu, which the game's menu parser does
-  // and OpenAssetTools leaves to the game's zone loader.
+  // Point each item back at its menu. The game's parser does that as it
+  // parses, while OAT leaves it to the game's zone loader, which fills it in
+  // when it loads a menu from a zone. Our menus never go through that, so
+  // without this every item would be left without a parent.
   //
   void SetItemParents(IW4::MenuList& list)
   {
@@ -283,6 +307,14 @@ namespace
 
 namespace Components::OAT
 {
+  // The way OAT works is that it compiles assets into a zone, the same as if
+  // it was building a fast file, with a collection of creators that each
+  // know how to make one kind of asset. So we make a zone of our own for
+  // the file and ask it for the file as a menu list, with OAT's menu list
+  // creator doing the work and ours supplying the assets the menus refer
+  // to. The compiled menus then live in the zone's memory, which is what we
+  // hand back as the keepalive.
+  //
   std::optional<MenuFile> LoadMenuFile(const std::string& file, const MenuCallbacks& c)
   {
     const auto* previous(callbacks);
@@ -294,10 +326,11 @@ namespace Components::OAT
       ~restore() { callbacks = previous; }
     } r {previous};
 
-    // Note that the game's menu parser keeps the script of an event handler
-    // as it is, and so a command it doesn't know only fails when the menu
-    // runs it. OpenAssetTools only compiles such scripts in its permissive
-    // mode.
+    // The game's parser keeps the script of an event handler as it is, so a
+    // command it doesn't know only fails once the menu runs it. OAT, on the
+    // other hand, compiles the scripts and rejects such a command right away,
+    // unless it's in its permissive mode. Our menus are written for the game,
+    // not for OAT, so permissive it is.
     //
     ObjLoading::Configuration.MenuPermissiveParsing = true;
 
@@ -342,18 +375,8 @@ namespace Components::OAT
   }
 }
 
-// The lines that the menu parser reads.
-//
-// Note that OpenAssetTools leaves the file name of the line that ends the
-// file null and its lexer reads it when it reaches the end of a menu file.
-// So we take the place of IParserLineStream.cpp and name a line without a
-// file.
-//
 namespace
 {
-  // A UTF-8 BOM is an encoding signature and is only valid at the start of
-  // a file.
-  //
   constexpr std::string_view utf8_bom("\xEF\xBB\xBF", 3);
 
   std::shared_ptr<std::string> LineFileName(std::shared_ptr<std::string> name, const char* fallback)
@@ -362,6 +385,14 @@ namespace
   }
 }
 
+// The lines that OAT's parser reads.
+//
+// We take the place of OAT's IParserLineStream.cpp here, which we don't
+// build. And while at it we change one detail: OAT leaves the file name of
+// the line that ends a file null, but its lexer then reads that name when
+// it reaches the end of a menu file. So rather than leave it null, we give
+// such a line a name of its own.
+//
 ParserLine::ParserLine()
   : m_filename(LineFileName(nullptr, "<eof>")),
     m_line_number(0)
@@ -373,6 +404,11 @@ ParserLine::ParserLine(std::shared_ptr<std::string> filename, const int lineNumb
     m_line_number(lineNumber),
     m_line(std::move(line))
 {
+  // A UTF-8 BOM is an encoding signature and is only valid at the start of
+  // a file, so that's the only place we strip it. Some editors like to add
+  // one, and we would rather not have the lexer take it for part of the
+  // first token.
+  //
   if (m_line_number == 1 && m_line.starts_with(utf8_bom))
   {
     m_line.erase(0, utf8_bom.size());
@@ -384,11 +420,12 @@ bool ParserLine::IsEof() const
   return m_line_number <= 0;
 }
 
-// The log of OpenAssetTools, which we print through the callbacks of the
-// file we are compiling.
+// OAT's log, which we print through the callbacks of the file being
+// compiled.
 //
-// Note that its own prints to the standard streams, which the game doesn't
-// show.
+// OAT's own implementation prints to the standard streams, which nobody
+// ever sees in the game, so its warnings about our menus would just
+// vanish. This way they end up in the console with the rest.
 //
 namespace con
 {

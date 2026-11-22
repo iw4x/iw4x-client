@@ -6,7 +6,9 @@ namespace Utils::Compression
 {
   std::string ZLib::Compress(const std::string& data)
   {
-    // Note that zlib lengths are 32-bit on Windows.
+    // Note that zlib lengths are 32-bit on Windows, even in a 64-bit build.
+    // We are unlikely to ever compress anything that big, but a silently
+    // truncated length would be no fun to debug.
     //
     if (data.size() > std::numeric_limits<uLong>::max() / 2)
     {

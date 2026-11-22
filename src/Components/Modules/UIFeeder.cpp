@@ -97,9 +97,9 @@ namespace Components
     return false;
   }
 
-  // Note that on x86 we go in at the start of these three with stubs that
-  // continue in the game's function when we don't take the feeder. On x64
-  // we detour them instead.
+  // On x86 we go in at the start of these three with stubs that continue in
+  // the game's function when the feeder isn't ours. On x64 we detour them
+  // instead, which is less work and, hopefully, less to get wrong.
   //
   int (*UIFeeder::UI_FeederCount_Original)(int localClientNum, float feeder);
   const char* (*UIFeeder::UI_FeederItemText_Original)(int localClientNum, Game::itemDef_s* item, float feeder, int index, int column, float* s0, float* t0, float* s1, float* t1, Game::Material** handle);
@@ -145,7 +145,9 @@ namespace Components
     UI_FeederSelection_Original(localClientNum, feeder, index);
   }
 
-  // Our feeders select on click, not when the mouse moves over a row.
+  // Our feeders select on click, not when the mouse merely moves over a
+  // row. Selecting on hover is what the game does for its own lists, but
+  // for a server list it would be rather annoying.
   //
   void UIFeeder::MouseSelect_Hk(const int localClientNum, const float feeder, const int index)
   {
@@ -160,7 +162,8 @@ namespace Components
   }
 
   // A click on one of our feeders selects the row, and only a second click
-  // on it runs the list's double click script.
+  // on it runs the list's double click script. Otherwise a single click on
+  // a server would presumably try to join it right away.
   //
   void UIFeeder::HandleKey_Hk(void* dc, Game::itemDef_s* item, Game::MenuEventHandlerSet* handler)
   {
@@ -294,7 +297,7 @@ namespace Components
     AssertOffset(UIFeeder::Container, index, 0x4);
     AssertOffset(UIFeeder::Container, column, 0x8);
 
-    // We and UIFeeder.asm read these.
+    // Both we and the stubs in UIFeeder.asm read these.
     //
     AssertOffset(Game::itemDef_s, type, 0xC4);
     AssertOffset(Game::itemDef_s, dataType, 0xC8);

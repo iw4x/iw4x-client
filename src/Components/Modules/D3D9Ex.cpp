@@ -756,8 +756,11 @@ namespace Components
   // and the device with the interface it doesn't have, crashing on the null
   // pointer. Under Wine this typically means DXVK couldn't initialize Vulkan.
   //
-  // Note that x64 inlines R_InitDirect3D() into R_InitGraphicsApi(), so we
-  // check the interface where it gets it.
+  // Note that x64 inlines R_InitDirect3D() into its caller (presumably
+  // R_InitGraphicsApi(), the one that goes on to create the window). So
+  // there is no R_InitDirect3D() call to hook as on x86 and we hook the
+  // Direct3DCreate9() call itself, which is why we take the SDK version and
+  // return the interface.
   //
   IDirect3D9* D3D9Ex::R_InitDirect3D_Hk (UINT sdk)
   {

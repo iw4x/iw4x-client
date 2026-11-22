@@ -244,8 +244,8 @@ namespace Components
     Steer(pitch, DeflectionLimit(m_pitch), PendingPitch, DeflectionPitch, referenceSeconds, step, elapsedSeconds);
   }
 
-  // Note that on x86 CL_GetMouseMovementWithSensitivity() takes the client
-  // in esi, which needs a stub. x64 passes it as the first argument.
+  // Note that on x86 CL_GetMouseMovementWithSensitivity() takes the client in
+  // esi, which takes a stub. x64 just passes it as the first argument.
   //
   void RemoteControl::CL_GetMouseMovementWithSensitivity_Hk(void* cl, float* yaw, float* pitch)
   {

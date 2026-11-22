@@ -8,6 +8,9 @@ namespace Components
 
   bool SlowMotion::Com_UpdateSlowMotion(int msec)
   {
+    // While we hold the slow motion back, scale the frame the way the game
+    // does, only without updating the slow motion.
+    //
     if (Delay <= 0)
     {
       return false;
@@ -19,9 +22,6 @@ namespace Components
 
   float SlowMotion::CL_UpdateSlowMotion(float frameTime)
   {
-    // While we hold the slow motion back, scale the frame as the game does
-    // without updating the slow motion.
-    //
     if (Delay <= 0)
     {
       return Game::Com_UpdateSlowMotion(frameTime);
@@ -33,8 +33,8 @@ namespace Components
 
   void SlowMotion::ScrCmd_SetSlowMotion_Stub(int index, const char* string)
   {
-    // Note that on x64 we go in where the game sets the slow motion config
-    // string as its last call, so we set it first.
+    // On x64 we go in where the game sets the slow motion configstring, which
+    // is its last call, so we set it first.
     //
     Game::SV_SetConfigstring(index, string);
 
@@ -93,18 +93,27 @@ namespace Components
     Delay = 0;
     Utils::Hook(0x140178132, ScrCmd_SetSlowMotion_Stub, HOOK_JUMP).install()->quick();
 
-    // Note that x64 keeps the slow motion twice, which Com_SetSlowMotion()
-    // starts together. Com_Frame() inlines the update of the one x86 has,
-    // by the milliseconds that passed, which we skip as x86 does the call
-    // (see SlowMotion.asm for the registers there). The other, which the
-    // client updates by the seconds of each command's frame, we hold back for
-    // the same delay.
+    // This one is a bit more involved than on x86, since x64 keeps the slow
+    // motion twice, and Com_SetSlowMotion() starts both together.
+    //
+    // Com_Frame() inlines the update of the one that x86 also has, by the
+    // milliseconds that passed. On x86 we skip that call while we hold the
+    // slow motion back, so here we jump to the stub where the inlined update
+    // starts. The stub saves every volatile register, since presumably the
+    // game keeps a few of them live across this point (xmm ones included).
+    // It passes the milliseconds from r9d and then either skips the update
+    // or goes on with the game's own check, which it has to redo since we
+    // replaced it.
+    //
+    // The other copy, which the client updates by the seconds of each
+    // command's frame, we hold back for the same delay (see
+    // CL_UpdateSlowMotion()).
     //
     Utils::Hook(0x1401F4253, SlowMotion_Com_UpdateSlowMotion_Stub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x1400F7BB7, CL_UpdateSlowMotion, HOOK_CALL).install()->quick(); // CL_CreateCmd
 
-    // Note that on x86 we hook the two calls to CG_DrawDisconnect() in
-    // CG_DrawLagometer(), which x64 compiles out along with them (see
+    // On x86 we hook the two CG_DrawDisconnect() calls in CG_DrawLagometer(),
+    // which x64 compiles out along with the lagometer (see
     // Game::CG_DrawLagometer()).
     //
     Game::CG_DrawLagometer_DrawDisconnect = CG_DrawDisconnect_Stub;

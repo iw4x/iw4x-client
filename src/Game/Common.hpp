@@ -13,7 +13,7 @@ namespace Game
 
   // Hand the client the packets that came in since the last call.
   //
-  // Note that x64 inlines it into the end of Com_EventLoop(), so we
+  // Note that x64 inlines this into the end of Com_EventLoop(), so we
   // reimplement it from there.
   //
   void Com_ClientPacketEvent();
@@ -24,14 +24,14 @@ namespace Game
   typedef void(*Com_Shutdown_t)(const char* finalmsg);
   extern Com_Shutdown_t Com_Shutdown;
 
-  // Message of the error Com_Error() is handling.
+  // The message of the error that Com_Error() is handling.
   //
   extern char* com_errorMessage;
 
-  // Print functions.
+  // The print functions.
   //
-  // Note that x64 has no console print path, so these are our own versions
-  // of the x86 functions. See Com_PrintMessage() for details.
+  // Note that x64 has no console print path at all, so these are our own
+  // versions of the x86 functions (see Com_PrintMessage() for details).
   //
   void Com_Printf(int channel, const char* fmt, ...);
   void Com_DPrintf(int channel, const char* fmt, ...);
@@ -39,7 +39,7 @@ namespace Game
   void Com_PrintWarning(int channel, const char* fmt, ...);
   void Com_PrintMessage(int channel, const char* msg, int error);
 
-  // Function that, if set, sees each message before Com_PrintMessage()
+  // A function that, if set, sees each message before Com_PrintMessage()
   // prints it. Returning true takes the message, and Com_PrintMessage() then
   // prints nothing.
   //
@@ -49,7 +49,7 @@ namespace Game
   //
   void Com_OpenLogFile();
 
-  // Function that, if set, opens the log file in place of
+  // A function that, if set, opens the log file in place of
   // Com_OpenLogFile().
   //
   extern void (*Com_OpenLogFileOverride)();
@@ -63,7 +63,8 @@ namespace Game
   typedef int(*Com_sprintf_t)(char* dest, int size, const char* fmt, ...);
   extern Com_sprintf_t Com_sprintf;
 
-  // Format into one of two rotating per-thread buffers.
+  // Format into one of two rotating per-thread buffers. Two isn't many, so
+  // it's probably best not to hold on to the result for long.
   //
   typedef const char*(*va_t)(const char* fmt, ...);
   extern va_t va;
@@ -112,8 +113,9 @@ namespace Game
 
   extern char* Com_GetCommandLine();
 
-  // Load the info string fileName from the fastfiles, which must start with
-  // ident, into loadBuffer of 0x2000 bytes, and return what follows ident.
+  // Load the info string fileName, which must start with ident, from the
+  // fastfiles into loadBuffer of 0x2000 bytes, and return what follows
+  // ident.
   //
   // Note that x64 inlines this into Com_LoadInfoString(), which then also
   // validates the info string.

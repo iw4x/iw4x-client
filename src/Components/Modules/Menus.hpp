@@ -4,8 +4,8 @@ namespace Components
 {
   // Note that x64 has neither the precompiler nor the menu parser that we
   // load the menus on disk with on x86. So we compile them with
-  // OpenAssetTools instead (see OAT/Shim.hpp) and keep the rest of what we
-  // do with them as on x86.
+  // OpenAssetTools instead (see OAT/Shim.hpp), and everything we do with them
+  // after that stays as on x86.
   //
   class Menus : public Component
   {
@@ -20,11 +20,14 @@ namespace Components
     static std::unordered_map<std::string, Game::menuDef_t*> MenusFromDisk;
     static std::unordered_map<std::string, Game::MenuList*> MenuListsFromDisk;
 
-    // The memory of the file that each menu from disk was compiled from.
+    // The memory of the file each menu from disk was compiled from.
     //
-    // Note that on x86 we free the menus from disk one by one, while
-    // OpenAssetTools compiles the menus of a file into memory they share.
-    // So a file stays loaded until we free the last of its menus.
+    // On x86 we free the menus from disk one by one, since the game's parser
+    // allocates each of them on its own. OpenAssetTools, on the other hand,
+    // compiles all the menus of a file into memory they share. So each menu
+    // holds a share of its file, and the file goes away once we free the last
+    // of them. Which means a file may well stay loaded for longer than on
+    // x86, but menus are small, so it probably doesn't matter.
     //
     static std::unordered_map<Game::menuDef_t*, std::shared_ptr<void>> MenuFiles;
 

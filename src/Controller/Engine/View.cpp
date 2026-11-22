@@ -477,7 +477,8 @@ namespace Controller
         return;
 
       // Note that on x86 we also leave the target alone while auto aim is
-      // active. x64 compiles auto aim out.
+      // active. x64 compiles auto aim out, so there is nothing to wait for
+      // here.
       //
       if (using_offhand (aa.ps) ||
           aa.autoMeleeState == Game::AIM_MELEE_STATE_UPDATING)

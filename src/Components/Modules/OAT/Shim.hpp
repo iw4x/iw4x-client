@@ -6,9 +6,40 @@
 #include <optional>
 #include <string>
 
-// Note that we include this into both the client and the OpenAssetTools
-// shim (see Shim.cpp), which is C++23 and doesn't see the game headers. So
-// we only declare the game types here and keep to what C++20 has.
+// Compile raw menu files with OpenAssetTools.
+//
+// On x86 IW4x loads the raw menus in our iwds through the game's own menu
+// parser, the PC_*() and Menu_Parse() family. x64 compiled all of that
+// out. Presumably the later revision only ever loads menus from zones, so
+// to the game it's just dead code. To us it means that every raw menu we
+// ship is quietly ignored and the game falls back to its stock ones, the
+// main menu included.
+//
+// So what can we do? One option would be to bring the parser back by
+// porting x86's, function by function. But the parser comes with its own
+// precompiler and expression compiler, which is a good chunk of code that
+// we would then have to keep in step with what the game expects. Another
+// is to convert our menus into a zone at build time. But then a mod's
+// menus on disk would stop working, which x86 supports and people rely
+// on. What we went with instead is OpenAssetTools (OAT), which already
+// has a menu compiler for IW4 that produces the game's menu structures,
+// the same ones a zone would hold. We have OAT compile the file as the
+// game's file system finds it, and then hand the menus over to Menus,
+// which does the rest the same way as x86.
+//
+// The catch is that OAT needs C++23 while the client is C++20. So the shim
+// is compiled as part of the oat target (see deps/premake/oat.lua) and this
+// header is the only thing the two sides share. That's why it keeps to
+// what C++20 has and only declares the few game types it mentions rather
+// than include anything from OAT.
+//
+// It also means that neither side can see both definitions of a menu
+// structure, so neither can check by itself that OAT lays them out the
+// way the game does. If they ever disagree, the game would read OAT's
+// menus a few bytes off, which presumably makes for some very creative
+// crashes. So we check them in two halves: Shim.cpp checks OAT's types
+// against the sizes and offsets below and Menus.cpp checks the game's
+// against the same numbers.
 //
 namespace Game
 {
@@ -19,18 +50,22 @@ namespace Game
 
 namespace Components::OAT
 {
-  // The menus of a menu or menu list file, compiled by OpenAssetTools.
+  // The menus of a menu (.menu) or menu list (.txt) file, as OAT compiled
+  // them.
   //
   struct MenuFile
   {
     Game::MenuList* list;
 
     // The memory that the menus live in, which stays valid for as long as
-    // we hold on to it.
+    // someone holds on to it. It's OAT's zone underneath, but the client has
+    // no business knowing that, hence the void.
     //
     std::shared_ptr<void> keepalive;
   };
 
+  // The kinds of messages OAT prints while it compiles a file.
+  //
   enum class MenuMessage
   {
     debug,
@@ -41,28 +76,35 @@ namespace Components::OAT
 
   struct MenuCallbacks
   {
-    // Read the file through the game's filesystem, or return nullopt if it
-    // doesn't exist. The compiler opens the menu file and the files it
-    // includes through this.
+    // Read the file through the game's file system, or return nullopt if it
+    // doesn't exist. OAT opens both the menu file and every file it includes
+    // through this, which is how it finds them in the iwds and the mod, the
+    // same as the game's parser does on x86.
     //
     std::function<std::optional<std::string> (const std::string& file)> read;
 
-    // Find the material or sound that the menus refer to, as the game's
-    // menu parser does.
+    // Find a material or a sound that the menus refer to, which the game's
+    // parser looks up in the asset database as well.
     //
     std::function<Game::Material* (const std::string& name)> material;
     std::function<Game::snd_alias_list_t* (const std::string& name)> sound;
 
+    // Print a message that OAT has for us (see con in Shim.cpp).
+    //
     std::function<void (MenuMessage, const std::string&)> print;
   };
 
-  // Compile the menu (.menu) or menu list (.txt) file, or return nullopt if
-  // it doesn't exist or doesn't compile.
+  // Compile the menu or menu list file, or return nullopt if it doesn't
+  // exist or doesn't compile. Whatever went wrong will have been printed
+  // through the callbacks by then.
   //
   std::optional<MenuFile> LoadMenuFile(const std::string& file, const MenuCallbacks& callbacks);
 
-  // The layout of the menu structures as OpenAssetTools compiles them, which
-  // has to be the game's (see Menus.cpp).
+  // The layout of the menu structures as OAT compiles them, which has to be
+  // the game's (see above). These are the sizes of the structures a compiled
+  // menu is made of, plus the offsets of a few fields we reach into. It's not
+  // every field, though, so two layouts that differ inside a structure of
+  // the same size would still slip through.
   //
   namespace Layout
   {

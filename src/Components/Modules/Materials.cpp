@@ -138,11 +138,11 @@ namespace Components
     return true;
   }
 
-  // Write the icon into the death message as the length of the material
+  // Write the icon into the death message as the length of the material's
   // name followed by the name, the way IW5 does.
   //
-  // Note that on x64 the game writes the 8-byte material pointer, which we
-  // replace the same way as the 4-byte one on x86.
+  // Note that on x64 the game writes the 8-byte material pointer here, which
+  // we replace the same way as the 4-byte one on x86.
   //
   int Materials::WriteDeathMessageIcon(char* string, int offset, Game::Material* material)
   {
@@ -200,24 +200,25 @@ namespace Components
     // Allow codo images
     //
     // Note that on x64 the game checks the version of the image file header
-    // inline and fails without printing an error. So we jump to the stub in
+    // inline and fails without printing anything. So we jump to the stub in
     // place of the check.
     //
     Materials::ImageVersionCheckHook.initialize(0x14006A1F8, Materials_ImageVersionCheck, HOOK_JUMP)->install();
 
-    // Note that x64 also fails with "Image file corrupt." if the size of the
-    // image file isn't the one its header gives for the full resolution,
-    // which x86 doesn't check. Some of our images (angry_joy, for example)
-    // give the size without the header, so we skip that check and read what
-    // the header says, as on x86.
+    // x64 also fails with "Image file corrupt." if the size of the image file
+    // isn't the one its header gives for the full resolution, which x86
+    // doesn't check at all. Some of our images (angry_joy, for one) give the
+    // size without the header, so we skip that check and read what the
+    // header says, as x86 does. Arguably those images are the ones at fault,
+    // but fixing them all seems a lot more work than one byte.
     //
     Utils::Hook::Set<BYTE>(0x14006A2B3, 0xEB); // jz -> jmp
 
     // Adapt death message to IW5 material format
     //
-    // Note that x64 inlines the function that writes the icon, which we jump
-    // from on x86, into the function that prints the death message. So we
-    // replace the instructions that write the material there.
+    // On x86 we jump from the function that writes the icon, but x64 inlines
+    // it into the one that prints the death message. So we replace the
+    // instructions that write the material there instead.
     //
     Utils::Hook(0x1400EBF20, Materials_DeathMessageStub, HOOK_CALL).install()->quick();
     Utils::Hook::Nop(0x1400EBF25, 6);
@@ -225,16 +226,16 @@ namespace Components
     // Resolve preview images to loadscreens
     Utils::Hook(0x14006A1A6, Materials::FormatImagePath, HOOK_CALL).install()->quick();
 
-    // @@ On x86 we also replace the comparison function of the material
-    //    sort with one of our own that calls it, to have a place to break at
-    //    while debugging. We haven't found the sort on x64 since the game
-    //    compiles out the code we would find it by.
+    // @@ On x86 we also replace the comparison function of the material sort
+    //    with one of our own that calls it, just to have a place to break at
+    //    while debugging. We haven't found the sort on x64, since the game
+    //    compiles out the code we would find it by. Probably not a big loss.
     //
 
 #ifdef DEBUG
     // Note that x64 compiles out the error for a missing image file, which
     // we also dump on x86. The caller then reports that it couldn't load the
-    // image, and we dump that report with the same path.
+    // image, so we dump that report instead, with the same path.
     //
     if (Flags::HasFlag("dump"))
     {

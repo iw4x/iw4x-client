@@ -203,8 +203,8 @@ namespace Utils
 
     namespace
     {
-      // Feed data to a libtomcrypt hash in pieces that fit its unsigned long
-      // length, which is 32-bit on Windows.
+      // Feed the data to a libtomcrypt hash in pieces that fit its unsigned
+      // long length, which is 32-bit on Windows.
       //
       void HashProcess(int (*process)(hash_state*, const unsigned char*, unsigned long), hash_state* state, const std::uint8_t* data, std::size_t length)
       {

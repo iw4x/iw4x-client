@@ -157,8 +157,8 @@ namespace Components
   {
     if (Dedicated::IsEnabled()) return;
 
-    // Note that the expressions' GetClientMatchData looks strings up the
-    // same way, which we leave alone as x86 does.
+    // Note that the GetClientMatchData expression looks its strings up the
+    // same way. We leave that one alone, the same as x86 does.
     //
     Utils::Hook(0x1402503D5, StructuredData_GetString, HOOK_CALL).install()->quick(); // GetPlayerData
 

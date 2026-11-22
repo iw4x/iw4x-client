@@ -205,8 +205,9 @@ namespace Components
       DedicatedRotation.addEntry("gametype", params->get(1));
     });
 
-    // Note that x64 compiles out map_rotate along with the rest of the
-    // operator commands, so we register it here where x86 does.
+    // x64 compiles out map_rotate along with the rest of the operator
+    // commands, presumably since its playlists did the rotating. So we
+    // register it here, which is where x86 does it as well.
     //
     Command::AddSV("map_rotate", []([[maybe_unused]] const Command::Params* params)
     {
@@ -417,10 +418,11 @@ namespace Components
     SVNextMap = Dvar::Register<const char*>("sv_nextMap", "", Game::DVAR_SERVERINFO, "");
   }
 
-  // Rotate the map when the level ends, then end it.
+  // Rotate the map when the level ends, and then end it.
   //
-  // Note that x64 compiles out the map_rotate command that x86 ExitLevel()
-  // adds first, and so we add it ourselves before we jump to it.
+  // x86's ExitLevel() adds map_rotate to the command buffer first, but x64
+  // compiles that command out, and the call to it went with it. So we add it
+  // ourselves before going on to the game's ExitLevel().
   //
   void MapRotation::ExitLevel_Hk()
   {

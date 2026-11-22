@@ -52,10 +52,11 @@ namespace Steam
       return path;
     }
 
-    // Registry key where the Steam client records its process id.
+    // The registry key where the Steam client records its process id.
     //
     // Note that WOW64 doesn't redirect HKEY_CURRENT_USER\Software\Valve, so
-    // this key is the same for 32-bit and 64-bit processes.
+    // this key is the same for 32-bit and 64-bit processes, which saves us
+    // looking in two places.
     //
     constexpr const char* steamProcessKey = "Software\\Valve\\Steam\\ActiveProcess";
 

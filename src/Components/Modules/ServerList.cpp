@@ -1609,8 +1609,8 @@ namespace Components
     // Set default masterServerName + port and save it
     //
     // Note that on x64 the flags of masterServerName come from the 8-bit
-    // displacement of 'lea r8d, [rdi+4]' with rdi zero, and those of
-    // masterPort from the 32-bit stack argument of its registration.
+    // displacement of a 'lea r8d, [rdi+4]' with rdi zero, while those of
+    // masterPort come from the 32-bit stack argument of its registration.
     //
     Utils::Hook::PlaceString(0x1401F4961, 7, 0x14038B428, "dp.iw4x.io");
     Utils::Hook::Set<std::uint8_t>(0x1401F4960, Game::DVAR_NONE); // masterServerName

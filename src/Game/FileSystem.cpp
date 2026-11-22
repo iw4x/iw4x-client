@@ -36,7 +36,7 @@ namespace Game
   fileHandleData_t* fsh = reinterpret_cast<fileHandleData_t*>(0x146642A20);
 
   // Note that x64 only flushes inside FS_Write() for handles opened for
-  // synchronous writes.
+  // synchronous writes, so for everything else this is the only way.
   //
   void FS_Flush(fileHandle_t f)
   {

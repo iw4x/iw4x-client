@@ -613,8 +613,11 @@ namespace Components
       Utils::Hook(0x1402A7C85, ReplaceFont, HOOK_CALL).install()->quick();
     }
 
-    // Note that the window procedure is a rip-relative lea that can't hold
-    // our address, so RegisterClassHook() sets it instead.
+    // Use our window procedure (and background) for the console window. On
+    // x86 we just point the game at ConWndProc(), but on x64 the game loads
+    // its procedure with a rip-relative lea, which can't reach our module. So
+    // we hook its RegisterClassA() call instead and fill in both in the window
+    // class there (see RegisterClassHook()).
     //
     Utils::Hook::Nop(0x1402A7ADF, 6);
     Utils::Hook(0x1402A7ADF, RegisterClassHook, HOOK_CALL).install()->quick();
@@ -629,9 +632,13 @@ namespace Components
     Utils::Hook::Set<uint32_t>(0x1402A7DDB, 10);
 #endif
 
-    // Subclass input line with full pointers. Note that the game calls
-    // SetWindowLongA() and stores its sign-extended 32-bit result as the
-    // previous window procedure.
+    // Subclass the input line with full pointers. The game does it with
+    // SetWindowLongA(), which takes and returns a 32-bit LONG, and then stores
+    // the sign-extended result as the previous window procedure. That only
+    // works as long as both procedures happen to fit in 32 bits, which is a
+    // bit of a gamble on x64. So we call SetWindowLongPtrA() instead and store
+    // the previous procedure ourselves, which is also why we nop the game's
+    // store.
     //
     Utils::Hook::Nop(0x1402A7E1E, 6);
     Utils::Hook(0x1402A7E1E, SubclassInputLine, HOOK_CALL).install()->quick();
@@ -767,10 +774,13 @@ namespace Components
     Game::Con_TimeNudgedMessageWindows(localClientNum, serverTimeNudge);
   }
 
-  // Note that x64 inlines Con_UpdateNotifyMessage() into
-  // CL_ConsolePrint_AddLine() without the mini console and error windows,
-  // so we start their messages right before it. Like x86 we leave them be
-  // while it is printing already, as it then returns straight away.
+  // x64 inlines Con_UpdateNotifyMessage() into CL_ConsolePrint_AddLine(),
+  // and without the mini console and error windows, since it doesn't have
+  // them. So we start their messages right before the call.
+  //
+  // The flag we check is the one CL_ConsolePrint_AddLine() sets while it's
+  // already printing, in which case it returns straight away. So we leave
+  // the windows be as well, the same as x86 does.
   //
   char Console::CL_ConsolePrint_AddLine_Hk(const int localClientNum, const int channel, const char* txt, const int duration, const int pixelWidth, const char color, const int flags)
   {
@@ -854,18 +864,21 @@ namespace Components
 
   Console::Console()
   {
-    // In-game console that x64 compiles out. Feed it the console lines,
-    // set it up with the console, draw it with the screen, and give it the
-    // keys.
+    // x64 compiles out the in-game console, so we bring our own (see
+    // Game::Con_InitConsoleWindow() for why and how). Here we hook it into
+    // the places that x86 calls it from. We set it up along with the rest of
+    // the console and feed it the lines, then draw it with the screen and
+    // hand it the keys.
     //
     Con_UpdateNotifyLine_Original = Utils::Hook::Detour(0x1400EE410, 5, &Con_UpdateNotifyLine_Hk);
     Utils::Hook(0x1400EBC71, Console_CL_ConsolePrintStub, HOOK_JUMP).install()->quick();
 
     Utils::Hook(0x1400EDDFD, Con_OneTimeInit_Hk, HOOK_CALL).install()->quick();
 
-    // Mini console and error windows that x64 compiles out. Set them up,
-    // clear them, move their messages in time, and start their messages
-    // along with the game message windows (see Game::Con_InitMessageWindows()).
+    // The same goes for the mini console and the error windows. Wherever the
+    // game sets up or clears its own message windows, we do the same for
+    // ours, and likewise when it moves their messages in time (see
+    // Game::Con_InitMessageWindows()).
     //
     Utils::Hook(0x1400F4D73, Con_InitMessageBuffer_Hk, HOOK_CALL).install()->quick();
 
@@ -892,7 +905,7 @@ namespace Components
     Utils::Hook(0x1400EEAC2, Console_CL_KeyEventDisconnectedStub, HOOK_JUMP).install()->quick();
     Utils::Hook(0x1400EE5E0, Game::CL_CharEvent, HOOK_JUMP).install()->quick();
 
-    // Console colors.
+    // Patch console dvars
     //
     Utils::Hook(0x1400ED73C, RegisterConColor, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400ED78D, RegisterConColor, HOOK_CALL).install()->quick();
@@ -900,8 +913,12 @@ namespace Components
     Utils::Hook(0x1400ED82F, RegisterConColor, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400ED881, RegisterConColor, HOOK_CALL).install()->quick();
 
-    // Scale the console font metrics with con_scale: Con_CheckResize,
-    // Field_AdjustScroll, and Field_Draw.
+    // Scale ingame-console with render resolution (raw pixels)
+    //
+    // Note that on x64 the only game code left that measures console text is
+    // Con_CheckResize(), Field_AdjustScroll(), and Field_Draw(), so those are
+    // the calls we scale. The rest of what x86 scales here is drawing that x64
+    // compiles out, and our own console code does its own scaling.
     //
     Game::con_scale = Dvar::Register<float>("con_scale", 0.0f, 0.0f, 4.0f, Game::DVAR_ARCHIVE, "Size multiplier of the ingame console. 0 derives it from the render resolution.").get<Game::dvar_t*>();
 
@@ -940,8 +957,11 @@ namespace Components
       // Redirect input (]command)
       Utils::Hook(0x1402A79B4, Game::Conbuf_AppendText, HOOK_CALL).install()->quick();
 
-      // Note that x64 Com_Init has no dedicated console block to hijack, so
-      // show the console ahead of the call that followed it.
+      // On x86 we show the console from the block of
+      // Com_Init_Try_Block_Function() that only runs on a dedicated server,
+      // where the game hides the splash window and shows its console. x64
+      // compiles that block out, so there is nothing to hijack and we do both
+      // ourselves, right before the call that used to follow the block.
       //
       Utils::Hook(0x1401F50C3, []
       {

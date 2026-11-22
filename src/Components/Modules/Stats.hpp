@@ -16,8 +16,9 @@ namespace Components
 
     static void SendStats();
 
-    // The Steam ID and the file name hash we encrypt the stats with, those of
-    // the stat files of earlier IW4x versions.
+    // The Steam ID and the file name hash we encrypt the stats with, which are
+    // those of the stat files of earlier IW4x versions. That way the old files
+    // still read.
     //
     static constexpr std::uint64_t STATS_ID = 0x110000100001337;
     static constexpr std::uint32_t STATS_HASH = 0xFC30D07E;

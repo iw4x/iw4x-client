@@ -26,7 +26,7 @@ namespace Game
 
   typedef unsigned __int16 scr_string_t;
 
-  // File system handle, 64-bit on x64.
+  // The file system handle, which is 64-bit on x64.
   //
   typedef int64_t fileHandle_t;
 
@@ -688,7 +688,7 @@ namespace Game
   struct menuDef_t;
 
   // Note that on x64 ParseConfigStringToStruct() reads the offset as a
-  // pointer-sized value, and so a field is 0x18 bytes.
+  // pointer-sized value, so a field is 0x18 bytes.
   //
   struct cspField_t
   {
@@ -1912,7 +1912,8 @@ namespace Game
     char buffer[256];
   };
 
-  // Note that x64 binds keys to command indices rather than strings.
+  // Note that x64 binds keys to command indices rather than strings (see
+  // Components::Bindings).
   //
   struct KeyState
   {
@@ -2896,7 +2897,7 @@ namespace Game
     int max_stream_channels;
   };
 
-  // The header SND_ParseStreamHeader() fills in for the stream thread.
+  // The header that SND_ParseStreamHeader() fills in for the stream thread.
   //
   struct StreamHeader
   {
@@ -4408,7 +4409,7 @@ namespace Game
     Material* background;
   };
 
-  // @@ TODO: verify x64 size (0xA4 on x86).
+  // @@ We haven't checked the x64 size of windowDef_t yet (0xA4 on x86).
   //
 
   enum expDataType
@@ -5160,8 +5161,8 @@ namespace Game
     float colors[5][4];
   };
 
-  // Note that on x64 the offset is pointer-sized, which the game adds to the
-  // address of the state the field is part of.
+  // Note that on x64 the offset is pointer-sized, and the game adds it to
+  // the address of the state that the field is part of.
   //
   struct NetField
   {
@@ -6539,9 +6540,10 @@ namespace Game
 
   static_assert(sizeof(HunkUser) == 0x38);
 
-  // Offset of the first allocation in a hunk user.
+  // The offset of the first allocation in a hunk user.
   //
-  // Note that x64 doesn't place it right after the last field.
+  // Note that x64 doesn't place it right after the last field, for reasons
+  // unknown.
   //
   constexpr int HUNK_USER_HEADER_SIZE = 0x40;
 
@@ -6649,8 +6651,8 @@ namespace Game
     VariableValue stack[2048];
   };
 
-  // @@ TODO: x64 has no error_message and error_index, fix the layout when
-  //    porting GSC.
+  // @@ x64 has no error_message and error_index, so this layout is
+  //    probably off past them. Fix it when we port GSC.
   //
   struct scrVarPub_t
   {
@@ -6684,7 +6686,8 @@ namespace Game
     unsigned __int16 saveIdMapRev[36864];
   };
 
-  // @@ TODO: verify x64 size (0x24060 on x86).
+  // @@ We haven't checked the x64 size of scrVarPub_t yet (0x24060 on
+  //    x86).
   //
 
   struct scrCompilePub_t
@@ -6732,7 +6735,7 @@ namespace Game
     int profileUsage;
   };
 
-  // @@ TODO: verify x64 size (24 on x86).
+  // @@ We haven't checked the x64 size of OpcodeLookup yet (24 on x86).
   //
 
   struct SourceLookup
@@ -6839,7 +6842,7 @@ namespace Game
     scr_block_t* block;
   };
 
-  // @@ TODO: verify x64 size (0x4 on x86).
+  // @@ We haven't checked the x64 size of sval_u yet (0x4 on x86).
   //
 
   struct stype_t
@@ -6848,7 +6851,7 @@ namespace Game
     unsigned int pos;
   };
 
-  // @@ TODO: verify x64 size (0x8 on x86).
+  // @@ We haven't checked the x64 size of stype_t yet (0x8 on x86).
   //
 
   struct scr_const_t
@@ -7189,8 +7192,8 @@ namespace Game
     FS_LIST_ALL = 0x1,
   };
 
-  // Note that x64 numbers the server message ops as the Steam game does,
-  // without svc_nop, where x86 numbers them from svc_nop.
+  // Note that x64 numbers the server message ops the way the Steam game
+  // does, without svc_nop, while x86 numbers them from svc_nop.
   //
   enum svc_ops_e
   {
@@ -7264,7 +7267,7 @@ namespace Game
     netProfileInfo_t prof;
   };
 
-  // @@ TODO: verify x64 size (0x62C on x86).
+  // @@ We haven't checked the x64 size of netchan_t yet (0x62C on x86).
   //
 
   struct FxEditorElemAtlas
@@ -7630,7 +7633,7 @@ namespace Game
   };
 
   // Note that on x64 the fields we skip with __pad3 hold pointers, which
-  // make it 8 bytes longer and pad the struct to 8-byte alignment.
+  // makes it 8 bytes longer and pads the struct to 8-byte alignment.
   //
   struct gclient_s
   {
@@ -7967,7 +7970,8 @@ namespace Game
     int migrationState;
   };
 
-  // @@ TODO: verify x64 size (1624 on x86).
+  // @@ We haven't checked the x64 size of clientHeader_t yet (1624 on
+  //    x86).
   //
 
   struct svscmd_info_t
@@ -8145,7 +8149,8 @@ namespace Game
   static_assert(offsetof(clientConnection_t, demoplaying) == 0x40194);
   static_assert(offsetof(clientConnection_t, netchan) == 0x401C8);
 
-  // @@ TODO: verify x64 size (0x615E8 on x86).
+  // @@ We have only checked the offsets above, not the x64 size of
+  //    clientConnection_t (0x615E8 on x86).
   //
 
   struct CModelAllocData
@@ -8264,7 +8269,8 @@ namespace Game
     token_s token; //last read token
   };
 
-  // @@ TODO: verify x64 layout. On x86:
+  // @@ We haven't checked the x64 layout of the precompiler structures
+  //    above yet. On x86 it's:
   //
   //    sizeof (token_s)                 == 0x430
   //    offsetof (script_s, token)       == 0x78
@@ -9078,7 +9084,8 @@ namespace Game
     GfxEntCellRefInfo* entInfo[4];
   };
 
-  // @@ TODO: verify x64 layout and restore 64-byte alignment (x86 has it).
+  // @@ We haven't checked the x64 layout yet, and the 64-byte alignment
+  //    that x86 has is missing here.
   //
   struct GfxScene
   {
@@ -9310,7 +9317,8 @@ namespace Game
     entityState_s noDeltaEntities[1024];
   };
 
-  // @@ TODO: verify x64 size (0xA7AEC on x86).
+  // @@ We haven't checked the x64 size of clientStatic_t yet (0xA7AEC on
+  //    x86).
   //
 
   struct ConDrawInputGlob
@@ -9527,7 +9535,7 @@ namespace Game
     char pad2[4];
   };
 
-  // @@ TODO: verify x64 size (0x90 on x86).
+  // @@ We haven't checked the x64 size of FxEffect yet (0x90 on x86).
   //
 
   struct CEntVehicleInfo
@@ -9585,7 +9593,8 @@ namespace Game
     bool wasOverheat;
   };
 
-  // @@ TODO: verify x64 size (0x24 on x86).
+  // @@ We haven't checked the x64 size of CEntTurretInfo yet (0x24 on
+  //    x86).
   //
 
   struct clientControllers_t
@@ -9601,7 +9610,7 @@ namespace Game
     unsigned __int8 tag[4];
   };
 
-  // @@ TODO: verify x64 size (0x8 on x86).
+  // @@ We haven't checked the x64 size of CEntPlayerInfo yet (0x8 on x86).
   //
 
   union $79C409BC84BCEABA56F6D25E37F2711D
@@ -9822,7 +9831,8 @@ namespace Game
   static_assert(offsetof(cg_s, selectedLocationAngle) == 0x768A0);
   static_assert(offsetof(cg_s, selectedLocationAnglePrev) == 0x768B4);
 
-  // @@ TODO: verify rest of x64 layout. On x86:
+  // @@ We have only checked part of the x64 layout of cg_s. On x86 the
+  //    rest is:
   //
   //    sizeof (cg_s)                          == 0xFD540
   //    offsetof (cg_s, predictedPlayerEntity) == 0x311C
@@ -10298,7 +10308,8 @@ namespace Game
 
   static_assert(sizeof(trace_t) == 0x30);
 
-  // @@ TODO: verify x64 size (0x2C on x86).
+  // @@ We haven't checked the size above against the game yet. On x86
+  //    trace_t is 0x2C bytes.
   //
 
   struct pmove_s
@@ -10326,7 +10337,8 @@ namespace Game
   static_assert(offsetof(pmove_s, tracemask) == 0x58);
 
 
-  // @@ TODO: verify x64 size (296 on x86).
+  // @@ We have only checked the offset above, not the x64 size of pmove_s
+  //    (296 on x86).
   //
 
   struct pml_t
@@ -10348,7 +10360,8 @@ namespace Game
 
   static_assert(sizeof(pml_t) == 0x88);
 
-  // @@ TODO: verify x64 size (0x84 on x86).
+  // @@ We haven't checked the size above against the game yet. On x86
+  //    pml_t is 0x84 bytes.
   //
 
   enum EffectiveStance
@@ -10594,8 +10607,8 @@ namespace Game
     int numConnectedClients;
     int sortedClients[18];
 
-    // Note that x64 drops the vote fields that x86 has here, so we keep
-    // them ourselves in Vote.
+    // Note that x64 drops the vote fields that x86 has here, so we keep them
+    // ourselves in Vote.
     //
     SpawnVar spawnVar;
     int savepersist;
@@ -10631,7 +10644,8 @@ namespace Game
   static_assert(offsetof(level_locals_t, numConnectedClients) == 0x3FC);
   static_assert(offsetof(level_locals_t, spawnVar) == 0x448);
 
-  // @@ TODO: verify x64 size (0x2F78 on x86).
+  // @@ We have only checked the offsets above, not the x64 size of
+  //    level_locals_t (0x2F78 on x86).
   //
 
   enum ScreenPlacementMode
@@ -11037,7 +11051,7 @@ namespace Game
     char alliesWins;
   };
 
-  // @@ TODO: verify x64 size (0x23D8 on x86).
+  // @@ We haven't checked the x64 size of PartyData yet (0x23D8 on x86).
   //
 
   struct MessageLine
@@ -11089,9 +11103,9 @@ namespace Game
     Message errorMessages[5];
   };
 
-  // Console state that x64 keeps. The console window, the display line
-  // offset, and the output visibility are compiled out with the in-game
-  // console.
+  // The console state that x64 keeps. The console window went out with the
+  // in-game console, and so did the display line offset and the output
+  // visibility (see Game::Con_InitConsoleWindow()).
   //
   struct Console
   {
@@ -11179,7 +11193,8 @@ namespace Game
     unsigned char __pad1[0x138];
   };
 
-  // @@ TODO: verify x64 size. The tail keeps the x86 0x138 bytes.
+  // @@ We haven't checked the x64 size of clientUIActive_t yet. For now
+  //    the tail keeps the 0x138 bytes it has on x86.
   //
   static_assert(offsetof(clientUIActive_t, migrationState) == 0x8);
   static_assert(offsetof(clientUIActive_t, keyCatchers) == 0xB40);
@@ -11768,7 +11783,7 @@ namespace Game
     RumbleDevguiGraphInfo devguiGraphInfo;
   };
 
-  // @@ TODO: verify x64 size (236 on x86).
+  // @@ We haven't checked the x64 size of RumbleGraph yet (236 on x86).
   //
 
   struct RumbleInfo
@@ -11784,7 +11799,7 @@ namespace Game
     dvar_t* loopDvar;
   };
 
-  // @@ TODO: verify x64 size (36 on x86).
+  // @@ We haven't checked the x64 size of RumbleInfo yet (36 on x86).
   //
 
 
@@ -12101,7 +12116,7 @@ namespace Game
     unsigned __int16 tris;
   };
 
-  // @@ TODO: verify x64 size (0x40 on x86).
+  // @@ We haven't checked the x64 size of FxMark yet (0x40 on x86).
   //
 
   struct FxPointGroup
@@ -12133,7 +12148,7 @@ namespace Game
     FxTriGroup item;
   };
 
-  // @@ TODO: verify x64 size (68 on x86).
+  // @@ We haven't checked the x64 size of FxTriGroupPool yet (68 on x86).
   //
 
   struct FxMarksSystem
@@ -12151,7 +12166,7 @@ namespace Game
     FxTriGroupPool* triGroups;
   };
 
-  // @@ TODO: verify x64 layout. On x86:
+  // @@ We haven't checked the x64 layout of FxMarksSystem yet. On x86 it's:
   //
   //    offsetof (FxMarksSystem, firstFreePointGroup) == 0x1014
   //    offsetof (FxMarksSystem, triGroups)           == 0x1024

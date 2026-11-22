@@ -54,11 +54,12 @@ namespace Components
 
   Lean::Lean()
   {
-    // Note that on x86 we also register these as key commands. Cmd_AddCommand()
-    // has no such flag on x64, where the key code only binds the commands of
-    // its own table.
-    //
-    // @@ So for now the lean commands can't be bound on x64.
+    // Note that on x86 we also register these as key commands, which is what
+    // lets them be bound there. Cmd_AddCommand() has no such flag on x64,
+    // where a key can only be bound to the commands of the game's own table.
+    // But they can still be bound, since Bindings adds any other command to
+    // that table and runs it the x86 way, key up included. So in the end
+    // nobody should notice the difference, at least we hope.
     //
     Command::AddRaw("+leanleft", IN_LeanLeft_Down);
     Command::AddRaw("-leanleft", IN_LeanLeft_Up);

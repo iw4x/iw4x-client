@@ -17,10 +17,15 @@ namespace Steam
     SteamID m_steamIDLobby;
   };
 
-  // Note that the game calls the methods of the interface by their slots,
-  // and x64 is built against a newer version of it than x86. So we lay it
-  // out as Steamworks SDK 1.20 does SteamFriends013, the earliest version
-  // whose slots match the ones x64 calls.
+  // Note that the game calls the methods of an interface by their slots,
+  // and x64 is built against a newer version of this one than x86. So we
+  // lay it out the way Steamworks SDK 1.20 does SteamFriends013, which is
+  // the earliest version whose slots match the ones that x64 calls. Why
+  // the earliest? The game gets its interfaces through steam_api's plain
+  // accessors (SteamFriends() and so on) and never names a version, so the
+  // slots it calls are all we have to go by. Any version that matches them
+  // would do, and the oldest one seems the least likely to add anything
+  // we don't need.
   //
   class Friends
   {

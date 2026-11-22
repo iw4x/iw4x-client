@@ -92,7 +92,6 @@ namespace Game
   // Note that x64 compiles out the following functions, so these are our
   // own versions of the x86 ones.
   //
-
   // Return the name of the entity's type, which must not be an event.
   //
   extern const char* G_GetEntityTypeName(const gentity_s* ent);

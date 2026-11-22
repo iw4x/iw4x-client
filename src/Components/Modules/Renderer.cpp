@@ -103,9 +103,9 @@ namespace Components
     Renderer::BeginRecoverDeviceSignal();
   }
 
-  // Note that x64 drops the empty call before R_Shutdown() in
-  // CL_Vid_Restart_f() where we begin vid_restart on x86, so we begin it in
-  // place of R_Shutdown().
+  // On x86 we begin vid_restart at an empty call right before R_Shutdown()
+  // in CL_Vid_Restart_f(). x64 drops that call, so we begin it in place of
+  // R_Shutdown() instead, which should come down to the same.
   //
   void Renderer::R_Shutdown_Hk(int destroyWindow)
   {
@@ -487,7 +487,8 @@ namespace Components
     if (!r_drawAABBTrees.get<bool>()) return;
 
     // Note that on x86 we read the clip map through a pointer at 0x7998E0,
-    // which the game never sets. We use the clip map itself.
+    // which the game never seems to set (so presumably the AABB trees never
+    // drew there). Here we use the clip map itself.
     //
     Game::clipMap_t* clipMap = Game::cm;
     if (!clipMap->name) return;
@@ -773,8 +774,8 @@ namespace Components
   {
     if (Dedicated::IsEnabled()) return;
 
-    // Note that the debug draws use our own R_AddDebugLine() and
-    // R_AddDebugString() (see Game for details).
+    // Note that the debug draws go through our own R_AddDebugLine() and
+    // R_AddDebugString() (see Game).
     //
     Scheduler::Loop([]
     {
@@ -803,7 +804,7 @@ namespace Components
 
     // Log broken materials
     //
-    // The log reports these fields.
+    // The log reports these fields, so they had better be where we think.
     //
     AssertOffset(Game::GfxCmdBufState, material, 0x120);
     AssertOffset(Game::GfxCmdBufState, techType, 0x128);
@@ -814,7 +815,8 @@ namespace Components
     Utils::Hook(0x14006BABF, Renderer_TextureFromCodeErrorStub2, HOOK_CALL).install()->quick();
 
     // Note that on x86 we also enhance cg_drawMaterial (0x5086DA,
-    // 0x580F53). x64 registers the dvar but never reads it.
+    // 0x580F53). x64 registers the dvar but never reads it, which is a bit
+    // of a mystery, so there is nothing to enhance.
     //
 
     // Note that x64 inlines the present function we hook on x86 into

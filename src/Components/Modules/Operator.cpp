@@ -24,8 +24,9 @@ namespace Components
     const auto& sv_kickBanTime = *reinterpret_cast<const Game::dvar_t* const*> (0x14650B738);
     const auto& sv_rejoinTimeout = *reinterpret_cast<const Game::dvar_t* const*> (0x14650B6A8);
 
-    // Whether the server restarts the map on its next frame, and whether the
-    // restart reloads the scripts.
+    // Whether the server restarts the map on its next frame, and whether that
+    // restart reloads the scripts. x64 still keeps both, presumably for its
+    // own fast_restart, which is lucky for us.
     //
     auto& sv_restartMap = *reinterpret_cast<int*> (0x1422CC060);
     auto& sv_restartLoadScripts = *reinterpret_cast<int*> (0x1422CC064);
@@ -33,8 +34,8 @@ namespace Components
     constexpr int CS_LOCALIZED_STRINGS = 0x1FF;
     constexpr int CS_SHADERS = 0x9B5;
 
-    // The briefly banned guids and when we banned them, laid out as on x86
-    // since we archive them for the new host the same way.
+    // The briefly banned guids along with when we banned them. They are laid
+    // out as on x86, since we archive them for the new host the same way.
     //
     struct TempBan
     {
@@ -49,7 +50,7 @@ namespace Components
 
     static_assert (sizeof (TempBans) == 0x180);
 
-    // Return the slot of the first free ban, or else of the oldest.
+    // Return the slot of the first free ban, or else of the oldest one.
     //
     int SV_TempBanGetFreeSlot ()
     {
@@ -99,11 +100,12 @@ namespace Components
     }
 
     // Kick the client for the reason. If we pass a buffer for the player's
-    // name, also return their name without its colors and their guid.
+    // name, then also return their name without its colors along with their
+    // guid.
     //
-    // The host can't be kicked. In an online game other than a private match
-    // the server migrates to another host instead and we return true without
-    // filling the buffers.
+    // The host can't be kicked, for obvious reasons. In an online game that
+    // isn't a private match the server migrates to another host instead, in
+    // which case we return true without filling the buffers.
     //
     bool SV_KickClient (Game::client_s* cl, char* playerName, int maxPlayerNameLen, const char* reason, char* guid)
     {
@@ -135,11 +137,13 @@ namespace Components
       return true;
     }
 
-    // Kick the player whose name is the first argument, or everyone if it's
-    // all, for the reason that is the second.
+    // Kick the player whose name is the first argument (or everyone, if it's
+    // all) for the reason that is the second.
     //
-    // Note that we only return true for a single player we kicked, and that
-    // all only kicks everyone if no player is called that.
+    // Note that we only return true for a single player that we kicked. And
+    // all only means everyone if no player happens to be called that. What if
+    // someone actually is? Then they alone get kicked, which is x86's quirk
+    // rather than ours, and probably not worth fixing.
     //
     bool SV_KickUser (const Command::Params* params, char* playerName, int maxPlayerNameLen, char* guid)
     {
@@ -202,9 +206,10 @@ namespace Components
 
     // Kick a player and briefly ban their guid.
     //
-    // Note that x86 leaves the name and guid uninitialized when the host
-    // migrates instead of being kicked, and so we start them empty, which
-    // bans no guid.
+    // Note that x86 leaves the name and the guid uninitialized when the host
+    // migrates rather than being kicked, so presumably it bans whatever
+    // happens to be on the stack. We start them empty instead, which bans no
+    // guid.
     //
     template <bool (*kick) (const Command::Params*, char*, int, char*)>
     void SV_Ban_f (const Command::Params* params)
@@ -221,7 +226,7 @@ namespace Components
 
     // Drop the client if we haven't heard from them for sv_rejoinTimeout
     // seconds, and unregister a free slot from the party. Return true if we
-    // dropped or unregistered it.
+    // did either.
     //
     bool SV_DropClientIfInactive (int clientNum, const char* reason, bool tellThem)
     {
@@ -243,7 +248,8 @@ namespace Components
       return true;
     }
 
-    // Return the length of the string as drawn, without its color codes.
+    // Return the length of the string as drawn, that is, without its color
+    // codes.
     //
     int I_DrawStrlen (const char* s)
     {
@@ -265,7 +271,7 @@ namespace Components
       return r;
     }
 
-    // Print the info string a key and value per line, with the keys padded
+    // Print the info string with a key and its value per line, the keys padded
     // to a column.
     //
     void Info_Print (const char* s)
@@ -398,8 +404,8 @@ namespace Components
       }
     }
 
-    // Restart the map on the server's next frame, or now if the server isn't
-    // running, which also reloads the scripts.
+    // Restart the map on the server's next frame, or right away if the server
+    // isn't running, which also reloads the scripts.
     //
     void SV_MapRestart_f ()
     {
@@ -441,7 +447,7 @@ namespace Components
 
     void SV_DumpHudElems_f ()
     {
-      // The names of the hud element types and teams.
+      // The names of the hud element types and of the teams.
       //
       constexpr const char* types[] {
         "free", "text", "value", "playername", "mapname", "gametype", "material", "timer down", "timer up",
@@ -501,13 +507,16 @@ namespace Components
       Game::Com_Printf (Game::CON_CHANNEL_PARSERSCRIPT, "\n%i archived + %i current = %i hud elems\n", archived, current, archived + current);
     }
 
-    // The script variables, laid out as on x86 with the values widened.
+    // The script variables, laid out as on x86 but with the values widened.
     //
-    // An object's entry follows the entry its id indexes, where the first
-    // word of the value is its reference count and the sibling the first of
-    // its children. The children are at one of two bases, depending on the
-    // object's id, and their siblings index the hash, whose id is the next
-    // child's.
+    // The layout takes a bit of explaining. An object's entry follows the
+    // entry its id indexes, and the first word of its value is its reference
+    // count, while the sibling is the first of its children. The children
+    // live at one of two bases, depending on the object's id, and each one's
+    // sibling indexes the hash, whose id is that of the next child. It's the
+    // game's own scheme, not ours, and we only follow it far enough to count.
+    // If the counts ever look off, then this is probably where we got it
+    // wrong.
     //
     struct VariableValueInternal
     {
@@ -567,8 +576,8 @@ namespace Components
       return e.status & VAR_MASK;
     }
 
-    // Return the id of the child that follows the one at index, or 0 if it
-    // is the last.
+    // Return the id of the child that follows the one at index, or 0 if it's
+    // the last.
     //
     unsigned int NextChild (unsigned int index, unsigned int base)
     {
@@ -581,8 +590,8 @@ namespace Components
       return *reinterpret_cast<const std::uint16_t*> (&ObjectEntry (id).u);
     }
 
-    // Return the variables the object uses, counting each array it points
-    // to shared among its references.
+    // Return the number of variables the object uses, counting each array it
+    // points to as shared among its references.
     //
     float Scr_GetObjectUsage (unsigned int parentId)
     {
@@ -606,7 +615,7 @@ namespace Components
       return r;
     }
 
-    // Return the variables the endon list of the thread uses.
+    // Return the number of variables the thread's endon list uses.
     //
     float Scr_GetEndonUsage (unsigned int localId)
     {
@@ -628,9 +637,9 @@ namespace Components
       return r;
     }
 
-    // Return the variables the suspended thread uses, and the ones its endon
-    // lists use in endonUsage. We walk its stack from the top, where each
-    // code position is a call into the thread's parent.
+    // Return the number of variables the suspended thread uses, and the number
+    // its endon lists use in endonUsage. We walk its stack from the top, where
+    // each code position is a call into the thread's parent.
     //
     float Scr_GetThreadUsage (const Game::VariableStackBuffer* stackBuf, float* endonUsage)
     {
@@ -666,8 +675,8 @@ namespace Components
       return r;
     }
 
-    // A suspended thread's code positions from where it is to where it was
-    // started, and the variables it uses.
+    // A suspended thread's code positions, from where it is back to where it
+    // was started, along with the variables it uses.
     //
     struct ThreadDebugInfo
     {
@@ -694,10 +703,11 @@ namespace Components
     }
 
     // Print the suspended threads grouped by where they are, and how many
-    // variables each group and the entities of each class use.
+    // variables each group uses (and the entities of each class).
     //
-    // Note that x86 prints nothing if no thread is suspended, and prints that
-    // it's out of memory if it can't allocate the threads, where we throw.
+    // Note that x86 prints nothing if no thread is suspended, and says it's
+    // out of memory if it can't allocate the threads. We throw in that case,
+    // which seems more honest.
     //
     void Scr_DumpScriptThreads ()
     {
@@ -715,8 +725,8 @@ namespace Components
         const Game::VariableStackBuffer* stackBuf (e.u.stackValue);
         constexpr std::size_t entry_size (1 + sizeof (Game::VariableUnion));
 
-        // Collect the code positions from the bottom of the stack, followed
-        // by where the thread is, which we store in the reverse order.
+        // Collect the code positions from the bottom of the stack, followed by
+        // where the thread is, storing them in reverse order.
         //
         const char* pos[32];
         int n (0);
@@ -826,10 +836,12 @@ namespace Components
 
   void Operator::AddServerCommands ()
   {
-    // Note that on x86 heartbeat schedules the next heartbeat to the master
-    // server, which x86 never sends, and so it only changes the time that
-    // the server archives for the new host. x64 compiles out both, and so we
-    // add it doing nothing.
+    // On x86 heartbeat schedules the next heartbeat to the master server,
+    // which x86 never actually sends, so all it changes is the time that the
+    // server archives for the new host. x64 compiles out both, so we add it as
+    // a command that does nothing. Why bother? Because a server config that
+    // runs heartbeat would otherwise print an unknown command, and somebody
+    // would presumably report that as a bug.
     //
     Command::AddSV ("heartbeat", [] (const Command::Params*) {});
 
@@ -863,20 +875,20 @@ namespace Components
     Command::AddSV ("dumpuser", SV_DumpUser_f);
     Command::AddSV ("map_restart", [] (const Command::Params*) {SV_MapRestart_f ();});
 
-    // Note that x64 still has fast_restart's function, which restarts the
-    // map the same way without reloading the scripts.
+    // Note that x64 still has fast_restart's function, which restarts the map
+    // the same way but without reloading the scripts.
     //
     Command::AddSV ("fast_restart", [] (const Command::Params*) {SV_FastRestart_f ();});
 
-    // Note that on x86 gameCompleteStatus does nothing either.
+    // On x86 gameCompleteStatus does nothing either.
     //
     Command::AddSV ("gameCompleteStatus", [] (const Command::Params*) {});
 
     Command::AddSV ("killserver", [] (const Command::Params*) {Game::Com_Shutdown ("EXE_SERVERKILLED");});
     Command::AddSV ("scriptUsage", [] (const Command::Params*) {Scr_DumpScriptThreads ();});
 
-    // Note that on x86 dobjList and stringUsage are the stubs of debugging
-    // commands, and so they only print.
+    // On x86 dobjList and stringUsage are the stubs of debugging commands,
+    // so all they do is print.
     //
     Command::AddSV ("dobjList", [] (const Command::Params*)
     {
@@ -894,8 +906,8 @@ namespace Components
     Command::AddSV ("dumpHudElems", [] (const Command::Params*) {SV_DumpHudElems_f ();});
     Command::AddSV ("setPerk", SV_SetPerk_f);
 
-    // Note that on x86 connectString prints the client number given and an
-    // empty connect string.
+    // On x86 connectString prints the client number it's given followed by an
+    // empty connect string. Not very useful, but that's what it does.
     //
     Command::AddSV ("connectString", [] (const Command::Params* params)
     {
@@ -906,14 +918,16 @@ namespace Components
   Operator::
   Operator ()
   {
-    // Reject the challenge of a briefly banned guid, which the client sends
-    // as the second argument of getchallenge. We check once SV_GetChallenge()
-    // has found the challenge slot for the client, which we clear.
+    // Reject the challenge of a briefly banned guid, which the client sends as
+    // the second argument of getchallenge. We check once SV_GetChallenge() has
+    // found the client's challenge slot, which we then clear.
     //
     Utils::Hook (0x140236C0E, Operator_SV_GetChallengeStub, HOOK_JUMP).install ()->quick ();
 
-    // Carry the brief bans over to the new host, after the value that the
-    // server archives in place of x86's heartbeat time and its other value.
+    // Carry the brief bans over to the new host. They go right after the value
+    // that the server archives in place of x86's heartbeat time and its other
+    // value. What those two values are on x64 we aren't sure, but as long as
+    // we put ours after them, it doesn't really matter.
     //
     Utils::Hook (0x1401A2921, Operator_ArchiveTempBansStub, HOOK_JUMP).install ()->quick ();
     Utils::Hook (0x1401A1B37, Operator_RestoreTempBansStub, HOOK_JUMP).install ()->quick ();

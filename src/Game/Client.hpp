@@ -100,11 +100,12 @@ namespace Game
   extern cgs_t* cgsArray;
   extern cgEntity_s* cg_entitiesArray;
 
-  // Client info the cgame keeps, one per client.
+  // The client info the cgame keeps, one per client.
   //
   extern clientInfo_t* cgClientInfo;
 
-  // Player card data the cgame caches, MAX_CLIENTS cards per local client.
+  // The player card data the cgame caches, MAX_CLIENTS cards per local
+  // client.
   //
   extern PlayerCardData* playerCardCache;
 

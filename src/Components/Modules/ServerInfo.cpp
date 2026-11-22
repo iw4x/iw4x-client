@@ -100,11 +100,12 @@ namespace Components
     const auto x = 320.0f - (*Game::cg_scoreboardWidth)->current.value * 0.5f;
     const auto x2 = 320.0f + (*Game::cg_scoreboardWidth)->current.value * 0.5f;
 
-    // Note that on x86 we draw only when the stream friendly UI of
-    // Components::Friends is off. x64 doesn't have Friends, so we always draw.
+    // Note that on x86 we only draw this when the stream friendly UI of
+    // Components::Friends is off. x64 doesn't have Friends, so we always
+    // draw.
     //
     {
-      // The host name of cgs, as CG_ParseServerInfo() copies it.
+      // The host name in cgs, as CG_ParseServerInfo() copies it there.
       //
       const auto* hostname(reinterpret_cast<const char*>(0x1405853D0));
       constexpr float white[4] {1.0f, 1.0f, 1.0f, 1.0f};
@@ -189,9 +190,9 @@ namespace Components
     // Draw IP and hostname on the scoreboard
     Utils::Hook(0x1400E40EF, CG_DrawScoreboard_Players_Hk, HOOK_CALL).install()->quick();
 
-    // Note that on x86 we skip the native getstatus handler, which x64
+    // Note that on x86 we also skip the native getstatus handler, which x64
     // compiles out.
-
+    //
     // Add uiscript
     UIScript::Add("ServerStatus", ServerStatus);
 

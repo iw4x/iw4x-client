@@ -100,12 +100,13 @@ namespace Game
 
   extern XZone* g_zones;
 
-  // The file the database thread is loading a zone from, null between
+  // The file the database thread is loading a zone from, or null between
   // loads.
   //
   extern DBFile** g_loadFile;
 
-  // The count of zones DB_LoadXAssets() last handed the database thread.
+  // The number of zones that DB_LoadXAssets() last handed to the database
+  // thread.
   //
   extern unsigned int* g_zoneInfoCount;
   extern unsigned short* db_hashTable;

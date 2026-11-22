@@ -62,13 +62,14 @@ namespace Components
     // Address "race" condition where commands received from RCon can be null
     //
     // Note that x64 inlines Cmd_ExecuteServerString() into
-    // Cmd_ExecuteSingleCommand().
+    // Cmd_ExecuteSingleCommand(), so there are two copies of the comparison
+    // to hook.
     //
     Utils::Hook(0x1401E7437, I_stricmp_Stub, HOOK_CALL).install()->quick(); // Cmd_ExecuteSingleCommand
     Utils::Hook(0x1401E75F7, I_stricmp_Stub, HOOK_CALL).install()->quick(); // Cmd_ExecuteServerString
 
     // Note that on x86 we also rename the message CL_PacketEvent() prints
-    // for an illegible packet to match IW5. x64 compiles the message out.
+    // for an illegible packet to match IW5. x64 compiles that message out.
     //
   }
 }

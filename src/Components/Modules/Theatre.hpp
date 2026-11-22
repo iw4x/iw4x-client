@@ -23,9 +23,10 @@ namespace Components
     friend void (::Theatre_StoreBaseline)(Game::msg_t* snapshotMsg);
     friend bool (::Theatre_AdjustTimeDelta)();
 
-    // Extension of the demos the game records.
+    // The extension of the demos the game records.
     //
-    // Note that x64 records with its protocol, 16, where x86 does with 13.
+    // Note that x64 records with its own protocol, 16, where x86 records with
+    // 13, so for now the two builds' demos don't mix.
     //
     static constexpr auto* DemoExtension = "dm_16";
 

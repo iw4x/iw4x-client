@@ -51,10 +51,6 @@ namespace Components
     std::memcpy(reinterpret_cast<void*>(0x148CCA7E0), &fastfiles, sizeof(fastfiles));
     Game::R_LoadGraphicsAssets();
 
-    // Note that on x86 we also filter out the 'dvar set' and 'sending splash
-    // open' lines here, which x64 compiles out.
-    //
-
     Utils::Hook::Call<void()>(0x1400FBD40)(); // CL_InitRenderer
   }
 
@@ -155,12 +151,16 @@ namespace Components
       // Make sure all callbacks are handled
       Scheduler::Loop(Steam::SteamAPI_RunCallbacks, Scheduler::Pipeline::SERVER);
 
-      Utils::Hook(0x1401F5633, InitDedicatedServer, HOOK_CALL).install()->quick(); // Com_Init
+      // Note that on x86 we also nop the 'dvar set' and 'sending splash open'
+      // lines here. x64 compiles them out, so there is nothing left to silence.
+      //
+      Utils::Hook(0x1401F5633, InitDedicatedServer, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
       // steam sometimes doesn't like the server
       //
-      // Note that x64 inlines Steam_CheckConsistency(), which we return from
-      // on x86, into Steam_Frame(), so we always take the jump over it.
+      // On x86 we return from Steam_CheckConsistency() right away. x64 inlines
+      // it into Steam_Frame(), so instead we turn the jnz in front of it into a
+      // jmp ('nop; jmp') and always skip it.
       //
       Utils::Hook::Set<WORD>(0x14024BC13, 0xE990);
 
@@ -168,9 +168,11 @@ namespace Components
 
       // other party stuff?
       //
-      // Note that x64 also inlines it twice into PartyHost_StartParty(),
-      // once for the start itself and once for the host key handler that
-      // x64 inlines there as well, and we jump over both copies.
+      // Note that x64 also inlines this into PartyHost_StartParty() twice: once
+      // for the start itself and once more in what looks like the host key
+      // handler, which it seems to have inlined there as well. So we jump over
+      // both copies, the second one with a short jmp that we write over its
+      // first instruction.
       //
       Utils::Hook::Set<BYTE>(0x14010EE40, 0xC3);
       Utils::Hook::Set<BYTE>(0x1401123E4, 0xEB);
@@ -188,17 +190,13 @@ namespace Components
       Utils::Hook::Set<BYTE>(0x140101C10, 0xC3); // called from Com_Frame, seems to do renderer stuff
       Utils::Hook::Set<BYTE>(0x1400F8190, 0xC3); // CL_CheckForResend, which tries to connect to the local server constantly
 
-      // Note that on x86 we also silence the UI expression 'DebugPrint' here,
-      // which x64 compiles out.
+      // Note that the x64 R_Shutdown() doesn't have the bsp checks that we nop
+      // on x86, and it compiles out the warnings about removed subsystems that
+      // we nop there as well.
       //
-
       Utils::Hook::Set<BYTE>(0x1402A8D20, 0xC3); // some mixer-related function called on shutdown
       Utils::Hook::Set<BYTE>(0x1401F4960, 0);    // masterServerName flags
 
-      // Note that x64 R_Shutdown() doesn't have the bsp check we nop on x86,
-      // and that it compiles out the warning messages on removed subsystems
-      // that we nop there as well.
-      //
       Utils::Hook::Nop(0x1400FD65E, 2);          // some check preventing proper game functioning
       Utils::Hook::Nop(0x1402366FB, 6);          // cl->messageAcknowledge > cl->gamestateMessageNum check in SV_ExecuteClientMessage
       Utils::Hook::Nop(0x1400FD682, 5);          // some deinit renderer function
@@ -206,8 +204,9 @@ namespace Components
 
       // recommended settings check
       //
-      // Note that x64 interleaves the check with restoring registers, so we
-      // nop the check and jump over the rest.
+      // On x86 this is one run of code that we just nop. x64 interleaves the
+      // check with restoring registers, so we can't nop all of it. Instead we
+      // nop the call and jump over the rest of the check.
       //
       Utils::Hook::Nop(0x1401F53A5, 5);
       Utils::Hook::Set<BYTE>(0x1401F53BC, 0xEB);
@@ -215,8 +214,8 @@ namespace Components
       Utils::Hook::Nop(0x1402A4355, 5);          // Disable splash screen
 
       // do not trigger host migration, even if the server is a 'bad host'
-      //
-      // Note that x64 inlines the bad host test into its caller.
+      // Note that x64 inlines the bad host test into its caller, so this is
+      // where we jump over it.
       //
       Utils::Hook::Set<BYTE>(0x14023A4EF, 0xEB);
 
@@ -233,7 +232,6 @@ namespace Components
       Utils::Hook::Set<BYTE>(0x140033AD0, 0xC3);
 
       // stop saving a config_mp.cfg
-      //
       // Note that x64 inlines Com_WriteConfiguration() into Com_Frame(), so we
       // always take the jump over it.
       //
@@ -291,10 +289,9 @@ namespace Components
       ZeroMemory(PlayerGuids, sizeof(PlayerGuids));
 
       // Intercept server commands
-      //
-      // Note that on x86 we also tell Steam that we played with each player,
-      // through the Steam proxy that the x64 build doesn't have (see
-      // premake5.lua for details).
+      // Note that on x86 we also tell Steam that we played with each player.
+      // That goes through the Steam proxy, which the x64 build doesn't have (see
+      // premake5.lua for why).
       //
       ServerCommands::OnCommand(20, [](const Command::Params* params)
       {

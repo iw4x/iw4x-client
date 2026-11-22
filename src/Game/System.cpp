@@ -2,7 +2,8 @@
 
 namespace Game
 {
-  // Note that x64 folds this function and FS_FreeFileList() into one.
+  // Note that x64 folds this function and FS_FreeFileList() into one,
+  // which the linker does with functions that compile to the same code.
   //
   Sys_FreeFileList_t Sys_FreeFileList = Sys_FreeFileList_t(0x140277530);
   Sys_IsDatabaseReady_t Sys_IsDatabaseReady = Sys_IsDatabaseReady_t(0x140208940);
@@ -53,7 +54,7 @@ namespace Game
     while (critSect->writeCount) Sys_Sleep(1);
   }
 
-  // Note that x64 inlines this lock.
+  // Note that x64 inlines this lock, so we have our own copy.
   //
   void Sys_LockWrite(FastCriticalSection* critSect)
   {

@@ -224,9 +224,9 @@ namespace Components
         }
         else
         {
-          // Note that on x86 we also pass the new name on to our Steam
-          // friends, which the x64 build doesn't have (see premake5.lua for
-          // details).
+          // Note that on x86 we also pass the new name on to our Steam friends.
+          // The x64 build can't do that since it has no Steam proxy (see
+          // premake5.lua for why).
           //
           lastValidName = name;
         }
@@ -250,7 +250,7 @@ namespace Components
 
   const Game::dvar_t* Dvar::Dvar_RegisterFov(const char* dvarName, float value, float min, float /*max*/, std::uint16_t flags, const char* description)
   {
-    // Allow the same maximum as single player.
+    // Register cg_fov with the maximum of 160 that x86 gives it.
     //
     return Game::Dvar_RegisterFloat(dvarName, value, min, 160.0f, flags, description);
   }
@@ -362,8 +362,8 @@ namespace Components
     return dvar->domain.enumeration.strings[dvar->current.integer];
   }
 
-  // Set the party dvar that the party code sets right before party_host and
-  // then set party_host the way it does when we start hosting a party.
+  // Set the party dvar that the party code sets right before party_host, and
+  // then set party_host the way that code does when we start hosting.
   //
   void Dvar::Dvar_SetPartyHost(const Game::dvar_t* dvar, bool value)
   {
@@ -371,8 +371,8 @@ namespace Components
     Game::Dvar_SetBool(Game::party_host, true);
   }
 
-  // As above but the way the party code clears party_host when we stop being
-  // in a party.
+  // As above, but the way the party code clears party_host when we stop
+  // being in a party.
   //
   void Dvar::Dvar_ClearPartyHost(const Game::dvar_t* dvar, bool value)
   {
@@ -382,30 +382,31 @@ namespace Components
 
   Dvar::Dvar()
   {
-    // Restore sv_cheats, which x64 no longer registers in Dvar_Init but still
-    // reads by name, with the x86 flags.
+    // x64 no longer registers sv_cheats in Dvar_Init() but still reads it by
+    // name, so we register it ourselves, with the x86 flags.
     //
     Game::dvar_cheats = Game::Dvar_RegisterBool("sv_cheats", false, Game::DVAR_INIT | Game::DVAR_SYSTEMINFO, "External Dvar");
 
-    // Restore party_host, which x64 compiles out along with setting it, with
-    // the x86 flags. Our components read it to tell whether we host the
-    // party.
-    //
-    // The party code sets it right after two other party dvars, which x64
-    // still sets, and so we hook the second of those calls. We become the
-    // host either by starting a party or when the host leaves the party and
-    // hands it over to us.
+    // x64 also compiles out party_host, along with the code that sets it, but
+    // our components read it to tell whether we host the party. So we bring it
+    // back with the x86 flags and set it ourselves.
     //
     Game::party_host = Game::Dvar_RegisterBool("party_host", false, Game::DVAR_ROM, "True if we are the host of the party");
 
+    // The party code sets party_host right after two other party dvars, which
+    // x64 still sets, so we hook the second of those calls. We become the host
+    // either by starting a party or (as far as we can tell from what surrounds
+    // the second call) when the host leaves and hands the party over to us.
+    //
     Utils::Hook(0x1401122DF, Dvar_SetPartyHost, HOOK_CALL).install()->quick();   // PartyHost_StartParty
     Utils::Hook(0x140111DB8, Dvar_SetPartyHost, HOOK_CALL).install()->quick();   // Host migration
     Utils::Hook(0x14010C1DC, Dvar_ClearPartyHost, HOOK_CALL).install()->quick(); // Party_StopParty
 
-    // Set flags of cg_drawFPS to archive.
+    // set flags of cg_drawFPS to archive
     //
-    // Note that the registration passes its flags with xor r9d, r9d, which
-    // leaves no immediate to patch.
+    // Note that on x64 the registration passes its flags with 'xor r9d, r9d',
+    // which leaves no immediate to or the flag into as on x86. So we hook the
+    // registration instead.
     //
     Utils::Hook(0x1400D77C3, Dvar_RegisterDrawFps, HOOK_CALL).install()->quick();
 
@@ -454,24 +455,31 @@ namespace Components
     // remove write protection from fs_game
     Utils::Hook::Xor<std::uint32_t>(0x1402763B2, Game::DVAR_INIT);
 
-    // Raise cg_fov maximum to 160.
+    // set cg_fov max to 160.0
     //
-    // Note that the maximum is a RIP-relative load which can't reach a
-    // constant of ours, so we register the dvar ourselves.
+    // On x86 we point the registration at our own maximum. On x64 it loads the
+    // maximum with a rip-relative movss, which can't reach a constant of ours,
+    // so we register the dvar ourselves (see Dvar_RegisterFov()).
     //
     Utils::Hook(0x1400D763B, Dvar_RegisterFov, HOOK_CALL).install()->quick();
 
-    // Set profileMenuOption_volume default and maximum to 1.
+    // set max volume to 1
+    //
+    // For the same reason as with cg_fov we register profileMenuOption_volume
+    // ourselves. Note that the game passes the same register (xmm6) as both
+    // the default and the maximum, so we make 1 its default as well, which
+    // seems to be what the stock code intended anyway.
     //
     Utils::Hook(0x1400F110D, Dvar_RegisterVolume, HOOK_CALL).install()->quick();
 
     // un-cheat ui_showList and ui_debugMode
     //
-    // Note that their flags are lea r8d, [rbx+4] with ebx zero, so we clear
-    // the displacement.
+    // Note that on x64 their flags come from 'lea r8d, [rbx+4]' with ebx zero,
+    // so the flags are the displacement and that is what we clear the cheat
+    // flag from.
     //
-    Utils::Hook::Xor<std::uint8_t>(0x14026FADA, Game::DVAR_CHEAT);
-    Utils::Hook::Xor<std::uint8_t>(0x14026FD5B, Game::DVAR_CHEAT);
+    Utils::Hook::Xor<std::uint8_t>(0x14026FADA, Game::DVAR_CHEAT); // ui_showList
+    Utils::Hook::Xor<std::uint8_t>(0x14026FD5B, Game::DVAR_CHEAT); // ui_debugMode
 
     // un-cheat player_breath_fire_delay
     Utils::Hook::Xor<std::uint32_t>(0x14008BDBF, Game::DVAR_CHEAT);
@@ -505,27 +513,29 @@ namespace Components
     // Script_SetDvar
     Utils::Hook(0x14025BFDA, SetFromStringByNameSafeExternal, HOOK_CALL).install()->quick();
 
-    // Item_HandleKey (yes/no, dvar enum, slider and multi items) and the
-    // slider cursor.
-    //
-    // Note that x64 inlines the per-type key handlers, which share these
-    // calls.
+    // Item_HandleKey() (the yes/no, dvar enum, slider, and multi items) and
+    // the slider cursor. Note that x64 inlines the key handlers of each item
+    // type, and they share these calls.
     //
     Utils::Hook(0x14025D97A, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
     Utils::Hook(0x14025DAD5, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
     Utils::Hook(0x140267894, SetFromStringByNameExternal, HOOK_CALL).install()->quick();
 
-    // Hook Dvar_SetFromStringByName inside the inlined CG_SetClientDvarFromServer so we can protect dvars
+    // Hook Dvar_SetFromStringByName inside CG_SetClientDvarFromServer so we can protect dvars
+    //
+    // Note that x64 inlines CG_SetClientDvarFromServer() into
+    // CG_DeployServerCommand(), which is where this call ends up.
+    //
     Utils::Hook(0x1400E6EDC, DvarSetFromStringByName_Stub, HOOK_CALL).install()->quick();
 
     // Fix crash
     Utils::Hook(0x1402834B0, Dvar_EnumToString_Stub, HOOK_JUMP).install()->quick();
 
-    // Restore the jump dvars that x64 compiles out, with the x86 defaults
-    // and limits, and replace the jump movement that reads them.
-    //
-    // Note that we keep jump_height and jump_slowdownEnable free of the
-    // cheat flag, as x86 did.
+    // x64 compiles out the jump dvars, and the jump code reads constants
+    // instead. So we bring them back, with the x86 defaults and limits, and
+    // replace the jump code with ours, which reads them (see Game::Jump_Start()
+    // and friends). Note that we keep jump_height and jump_slowdownEnable free
+    // of the cheat flag, the same as x86 does.
     //
     constexpr std::uint16_t jumpFlags = Game::DVAR_CHEAT | Game::DVAR_CODINFO | Game::DVAR_INTERNAL;
     constexpr std::uint16_t jumpFreeFlags = Game::DVAR_CODINFO | Game::DVAR_INTERNAL;
@@ -544,11 +554,10 @@ namespace Components
     Utils::Hook(0x140087680, Game::Jump_GetLandFactor, HOOK_JUMP).install()->quick();
     Utils::Hook(0x1400876E0, Game::Jump_Start, HOOK_JUMP).install()->quick();
 
-    // Restore the aim assist dvars that x64 compiles out, with the x86
-    // defaults and limits, and replace the aim assist that reads them.
-    //
-    // Note that, as x86 did, we raise the perk_extendedMeleeRange maximum
-    // and say that aim_lockon_strength is for yaw.
+    // The same goes for the aim assist dvars: we bring them back with the x86
+    // defaults and limits and replace the aim assist code that reads them.
+    // Note that, as on x86, we also raise the perk_extendedMeleeRange maximum
+    // and say in aim_lockon_strength's description that it's for yaw.
     //
     constexpr std::uint16_t aimSavedFlags = Game::DVAR_CHEAT | Game::DVAR_SAVED;
 
@@ -595,8 +604,8 @@ namespace Components
     Utils::Hook(0x140080FE0, Game::AimAssist_UpdateMouseInput, HOOK_JUMP).install()->quick();
     Utils::Hook(0x140080160, Game::AimAssist_ApplyAutoMelee, HOOK_JUMP).install()->quick();
 
-    // Restore the upper right debug info that x64 compiles out, drawn after
-    // the UI menus as on x86.
+    // And the upper right debug info, which x64 compiles out as well. We draw
+    // it after the UI menus, the same as x86.
     //
     Game::cg_debugInfoCornerOffset = Game::Dvar_RegisterVec2("cg_debugInfoCornerOffset", 0.0f, -30.0f, -200.0f, 640.0f, Game::DVAR_CHEAT, "Offset from top-right corner, for cg_drawFPS, etc");
 

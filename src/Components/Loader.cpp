@@ -106,7 +106,7 @@ namespace Components
     //
     Register(new ZoneConvert());
 
-    // High priority.
+    // High priority
     //
     Register(new Singleton());
 
@@ -202,8 +202,9 @@ namespace Components
 
     Register(new GSC::GSC());
 
-    // Note that on x86 we register BotLib's precompiler before this, which
-    // we leave out.
+    // On x86 BotLib's precompiler goes right here. BotLib is the one component
+    // we haven't got around to porting yet, so for now there is nothing to
+    // register.
     //
     Register(new ViewModelFxSetup::Setup());
 

@@ -2,6 +2,9 @@
 
 extern "C"
 {
+  // The stub at the end of FS_BuildOSPath()'s folder fallback (see the
+  // constructor).
+  //
   void Logger_BuildOSPath_Stub();
 
   void Logger_RedirectOSPath(const char* file, char* folder);

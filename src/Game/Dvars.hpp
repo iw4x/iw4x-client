@@ -108,14 +108,14 @@ namespace Game
 
   extern const dvar_t** dev_timescale;
 
-  // Note that x64 compiles out the registration of sv_cheats, which the Dvar
-  // component restores.
+  // Note that x64 compiles out the registration of sv_cheats, which the
+  // Dvar component restores.
   //
   extern const dvar_t* dvar_cheats;
 
-  // Note that x64 also compiles out party_host, along with setting it when we
-  // start hosting a party or stop being in one. The Dvar component restores
-  // both.
+  // Note that x64 also compiles out party_host, along with setting it when
+  // we start hosting a party or stop being in one. The Dvar component
+  // restores both.
   //
   extern const dvar_t* party_host;
 
@@ -161,7 +161,8 @@ namespace Game
   extern const dvar_t** drawServerBandwidthPos;
 
   // Note that the game registers drawServerBandwidthSize under the name
-  // drawEntityCountSize, so the two graphs share the dvar.
+  // drawEntityCountSize, so the two graphs end up sharing the dvar.
+  // Presumably a copy and paste slip, but we leave it be.
   //
   extern const dvar_t** drawServerBandwidthSize;
   extern const dvar_t** drawKillcamData;

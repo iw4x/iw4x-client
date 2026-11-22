@@ -668,19 +668,22 @@ namespace Components
     Utils::Hook(0x14023B1B7, Auth_DirectConnectStub, HOOK_CALL).install()->quick();
     Utils::Hook(0x140236084, Info_ValueForKeyStub, HOOK_CALL).install()->quick();
 
-    // Let a client that knows the private password take a private slot.
+    // Let a client that knows the private password take one of the private
+    // slots, the same as on x86 (where we patch it at 0x460FAD).
     //
-    // Note that SV_DirectConnect() searches for a free slot starting from
-    // r14d, which it loads from sv_privateClients. The stub replaces that
-    // load and starts from slot 0 instead for such a client.
+    // SV_DirectConnect() normally starts looking for a free slot past the
+    // private ones, at sv_privateClients, which it loads into r14d right
+    // here. So the stub takes that load over: if the client's password
+    // matched (see Info_ValueForKeyStub()), then it starts from slot 0 and
+    // otherwise it loads sv_privateClients just like the game would have.
     //
     Utils::Hook(0x140236100, Auth_DirectConnectPrivateClientStub, HOOK_CALL).install()->quick();
     Utils::Hook::Nop(0x140236100 + 5, 6);
 
-    // Replace the protocol mismatch error SV_DirectConnect sends. Its stock
-    // message is EXE_SERVER_IS_DIFFERENT_VER with a hardcoded "2.0" argument,
-    // which tells the player nothing. We keep the engine's check and only
-    // change what it says.
+    // When the protocol doesn't match, SV_DirectConnect() sends
+    // EXE_SERVER_IS_DIFFERENT_VER with a hardcoded "2.0" as the version,
+    // which doesn't tell the player much of anything. So we keep the game's
+    // check but change what it says.
     //
     Utils::Hook(0x140235B03, Auth_ProtocolMismatchStub, HOOK_CALL).install()->quick();
 
@@ -697,16 +700,20 @@ namespace Components
     //
     Utils::Hook::Set<std::uint32_t>(0x14024A260, 0xC301B0); // mov al, 1; ret
 
-    // Note that x64 also inlines this check into the Steam client code, so
-    // we jump over each copy to where it continues with a valid SteamID.
+    // Note that x64 also inlines this check into its Steam code, in the six
+    // places below (you can spot each copy by the 'and edx, 0F00000h' that
+    // picks out the universe bits), which means patching the function alone
+    // isn't enough. So we jump over each copy to where it carries on with a
+    // valid SteamID. A bit tedious, but short of rewriting those functions
+    // there doesn't seem to be a better way.
     //
     for (const auto& [place, valid] : {std::pair<std::uintptr_t, std::uintptr_t>
-         {0x14024A441, 0x14024A494},  // In 0x14024A430
-         {0x14024AAF0, 0x14024AB50},  // In 0x14024AAD0
-         {0x14024BCF1, 0x14024BD5D},  // In 0x14024BB20, before PLATFORM_STEAM_DISCONNECTED
-         {0x14024C271, 0x14024C2D0},  // In 0x14024C1F0
-         {0x14024C34C, 0x14024C3A7},  // In 0x14024C320, before its lobby check
-         {0x14024C63F, 0x14024C69F}}) // In 0x14024C5B0
+         {0x14024A441, 0x14024A494},  // In 0x14024A430.
+         {0x14024AAF0, 0x14024AB50},  // In 0x14024AAD0.
+         {0x14024BCF1, 0x14024BD5D},  // In 0x14024BB20, before PLATFORM_STEAM_DISCONNECTED.
+         {0x14024C271, 0x14024C2D0},  // In 0x14024C1F0.
+         {0x14024C34C, 0x14024C3A7},  // In 0x14024C320, before its lobby check.
+         {0x14024C63F, 0x14024C69F}}) // In 0x14024C5B0.
     {
       assert(valid - (place + 2) <= 0x7F);
 

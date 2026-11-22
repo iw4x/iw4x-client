@@ -43,7 +43,7 @@ namespace Game
 
   const char* G_GetEntityTypeName(const gentity_s* ent)
   {
-    // Entity type names, which outlive the x64 function that used them.
+    // The entity type names, which outlived the x64 function that used them.
     //
     const char* const* names (reinterpret_cast<const char* const*>(0x140422AB0));
 

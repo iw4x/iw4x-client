@@ -6,17 +6,17 @@ namespace Game
 
   namespace
   {
-    // Number of frames that cg_drawFPS summarizes.
+    // The number of frames that cg_drawFPS averages over.
     //
     constexpr int FPS_FRAMES = 32;
 
-    // Levels of the cg_drawFPS enum.
+    // The levels of the cg_drawFPS enum.
     //
     constexpr int FPS_SIMPLE_RANGES = 2;
     constexpr int FPS_VERBOSE_VIEWPOS = 4;
 
-    // Text alignment of CG_DrawDevString(): horizontal in the low two bits,
-    // vertical in the next two.
+    // The text alignment of CG_DrawDevString(), horizontal in the low two
+    // bits and vertical in the next two.
     //
     constexpr int TEXT_ALIGN_LEFT = 1;
     constexpr int TEXT_ALIGN_RIGHT = 2;
@@ -26,7 +26,7 @@ namespace Game
     constexpr int TEXT_ALIGN_MIDDLE = 0xC;
     constexpr int TEXT_ALIGN_VERTICAL = 0xC;
 
-    // Screen alignment that leaves virtual coordinates unanchored.
+    // The screen alignment that leaves virtual coordinates unanchored.
     //
     constexpr int SCREEN_ALIGN_LEFT = 1;
     constexpr int SCREEN_ALIGN_TOP = 1;
@@ -40,8 +40,8 @@ namespace Game
     constexpr float colorLabel[4] = {1.0f, 1.0f, 1.0f, 0.75f};
     constexpr float colorCaption[4] = {0.0f, 1.0f, 0.0f, 0.75f};
 
-    // Milliseconds of the last FPS_FRAMES frames, as a ring indexed by the
-    // running frame count.
+    // The milliseconds of the last FPS_FRAMES frames, as a ring indexed by
+    // the running frame count.
     //
     int frameTimes[FPS_FRAMES];
     int frameCount;
@@ -68,7 +68,7 @@ namespace Game
       return static_cast<float>(R_TextWidth(label, 0, cgMedia->smallDevFont));
     }
 
-    // Draw a value line ending at the corner, with its label after it when
+    // Draw a value line that ends at the corner, with its label after it if
     // cg_drawFPSLabels is set, and return the height to advance by.
     //
     float CornerPrint(const ScreenPlacement* scrPlace, float x, float y, float labelWidth, const char* text, const char* label, const float* color)
@@ -87,7 +87,7 @@ namespace Game
       return static_cast<float>(CG_DrawDevString(scrPlace, x, y, TEXT_SCALE_X, TEXT_SCALE_Y, text, color, TEXT_ALIGN_RIGHT | TEXT_ALIGN_TOP, font)) * LINE_SPACING;
     }
 
-    // Draw a section caption, centered over the values when labels are on,
+    // Draw a section caption, centered over the values if the labels are on,
     // and return the height to advance by.
     //
     float CaptionPrint(const ScreenPlacement* scrPlace, float x, float y, float labelWidth, const char* text, const float* color)
@@ -138,8 +138,10 @@ namespace Game
       }
       deviation /= FPS_FRAMES;
 
-      // Note that frames faster than a millisecond measure as zero, so we
-      // clamp the divisors to keep the rates finite.
+      // Note that a frame faster than a millisecond measures as zero, so we
+      // clamp the divisors to keep the rates finite. Not that anyone is likely
+      // to run the game that fast, but a division by zero isn't much fun
+      // either.
       //
       total = std::max(total, 1);
       fastest = std::max(fastest, 1);
@@ -206,8 +208,8 @@ namespace Game
 
       y += CaptionPrint(scrPlace, x, y, labelWidth, "-Snapshot-", colorCaption);
 
-      // Note that, as on x86, the server time is the one of the snapshot we
-      // are interpolating towards, which is absent until it arrives.
+      // Note that, as on x86, the server time is that of the snapshot we are
+      // interpolating towards, which isn't there until it arrives.
       //
       if (cg->nextSnap)
       {
@@ -293,8 +295,8 @@ namespace Game
     contents[0] = '\0';
     contents[charLimit - 1] = '\0';
 
-    // The surface type in bits 20 to 24 of the surface flags, which counts
-    // the surface types of infoParms from 1.
+    // The surface type is in bits 20 to 24 of the surface flags, counting the
+    // surface types of infoParms from 1.
     //
     const auto surfaceType ((trace.surfaceFlags >> 20) & 0x1F);
     std::strncpy(surfaceFlags, static_cast<unsigned int>(surfaceType - 1) <= 29 ? infoParms[surfaceType - 1].name : "^1default^7", charLimit);
@@ -313,7 +315,8 @@ namespace Game
 
     auto contentsLen (std::strlen(contents));
 
-    // Append the names of the flags and contents past the surface types.
+    // Append the names of the flags and contents that come after the surface
+    // types.
     //
     for (auto i = 30; infoParms[i].name != nullptr; ++i)
     {

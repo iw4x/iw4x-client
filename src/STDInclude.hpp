@@ -74,7 +74,7 @@
 // Enable additional literals
 using namespace std::literals;
 
-// Integer types of <cstdint>, which we spell without std::.
+// The integer types of <cstdint>, which we spell without std::.
 //
 using std::int8_t;
 using std::int16_t;

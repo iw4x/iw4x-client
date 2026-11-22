@@ -97,7 +97,8 @@ namespace Components
   }
 
   // Note that on x86 our stub takes the client from a register. On x64 we
-  // take it from the name buffer we're copying to, which is the client's.
+  // take it from the name buffer we're copying into, which belongs to the
+  // client.
   //
   void PlayerName::SV_UserinfoChanged_Hk(char* dest, const char* source, int size)
   {
@@ -118,8 +119,8 @@ namespace Components
 
     // Allow colored names ingame. Hook placed in ClientUserinfoChanged
     //
-    // Note that x64 also inlines ClientUserinfoChanged() into ClientConnect(),
-    // so we hook its copy there as well.
+    // Note that x64 also inlines ClientUserinfoChanged() into
+    // ClientConnect(), so we hook its copy there as well.
     //
     Utils::Hook(0x140196973, ClientCleanName, HOOK_CALL).install()->quick();
     Utils::Hook(0x1401969BB, ClientCleanName, HOOK_CALL).install()->quick();

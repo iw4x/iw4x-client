@@ -74,11 +74,11 @@ namespace Game
   typedef int(*Scr_IsValidGameType_t)(const char* pszGameType);
   extern Scr_IsValidGameType_t Scr_IsValidGameType;
 
-  // Return the UI name of the game type, or null if the server doesn't
-  // know it.
+  // Return the UI name of the game type, or null if the server doesn't know
+  // it.
   //
-  // Note that x64 inlines it into Scr_IsValidGameType(), so we reimplement
-  // it from x86.
+  // Note that x64 inlines this into Scr_IsValidGameType(), so we
+  // reimplement it from x86.
   //
   const char* Scr_GetGameTypeNameForScript(const char* pszGameType);
 
@@ -163,12 +163,13 @@ namespace Game
   typedef void(*Scr_ErrorInternal_t)();
   extern Scr_ErrorInternal_t Scr_ErrorInternal;
 
-  // Raise a script error, the second one about the object and the third
-  // one about the parameter at paramIndex.
+  // Raise a script error. The second function's is about the object and
+  // the third's about the parameter at paramIndex.
   //
-  // Note that x64 compiles out the message these take on x86, along with
-  // the scrVarPub fields that keep it for the error report, so we print it
-  // before raising the error.
+  // Note that x64 compiles out the message that these take on x86, along
+  // with the scrVarPub fields that keep it for the error report. So we
+  // print the message ourselves before raising the error, which at least
+  // gets it into the console.
   //
   void Scr_Error(const char* error);
   void Scr_ObjectError(const char* error);

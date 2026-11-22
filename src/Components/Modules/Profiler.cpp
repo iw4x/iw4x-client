@@ -1,15 +1,16 @@
 #include "Profiler.hpp"
 
-// Render commands are submitted by the main thread in 0x14001B610 and
-// executed by the backend thread (0x140050400), which also waits for the
-// GPU and presents the frame. On x86 the game has empty profiling calls at
-// each of these points ("wait cmds", "wait renderer", "exec cmds", "end
-// frame", and "wait for main"), which we use for our zones. x64 compiles
-// them out, so we use the same points without them.
+// The main thread submits the render commands in 0x14001B610 and the
+// backend thread (0x140050400) executes them, which also waits for the GPU
+// and presents the frame. On x86 the game has empty profiling calls at
+// each of these points ("wait cmds" and "end frame", for example), which
+// is where we put our zones. x64 compiles those calls out (presumably they
+// were empty in the retail build anyway), so we put the zones at the same
+// points without them.
 //
-// Note that most waits go through 0x1400470D0, which processes worker
-// commands until the predicate it's passed returns true. On x86 it also
-// takes whether to block, which x64 always does.
+// Note that most of the waits go through 0x1400470D0, which processes
+// worker commands until the predicate it's passed returns true. On x86 it
+// also takes whether to block, while x64 always seems to.
 //
 namespace Components
 {
@@ -19,7 +20,8 @@ namespace Components
   }
 
   // Note that on x86 we also have a zone for issuing the render commands,
-  // which x64 inlines into R_EndFrame(). We keep the zones for its waits.
+  // which x64 inlines into R_EndFrame(). We keep the zones for its waits,
+  // though.
   //
   void Profiler::WaitForWorkerCommands_Hk(predicate_t predicate)
   {
@@ -69,7 +71,7 @@ namespace Components
   }
 
   // Note that x64 inlines Present() into its caller, which also checks the
-  // flags whether to present at all. So we wrap that.
+  // flags to decide whether to present at all. So we wrap that instead.
   //
   void Profiler::SwapBuffers_Hk(int flags)
   {

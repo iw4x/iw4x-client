@@ -58,8 +58,8 @@ namespace Controller
       constexpr std::uintptr_t cl_key_event_call {0x1401F3C7D};
       constexpr std::uintptr_t cl_key_event_address {0x1400EE7C0};
 
-      // Note that x64 inlines IN_MouseMove() into IN_Frame(), where we
-      // jump to the epilogue once we return.
+      // Note that x64 inlines IN_MouseMove() into IN_Frame(), where we jump
+      // to the epilogue once we return.
       //
       constexpr std::uintptr_t in_frame_mouse_move_call {0x1402A1148};
       constexpr std::uintptr_t in_frame_mouse_move_jump {0x1402A114D};
@@ -67,7 +67,7 @@ namespace Controller
       constexpr std::uintptr_t ui_bypass_mouse_call {0x14026F306};
 
       // Note that x64 moves the cursor to the previous and the next item in
-      // one function.
+      // one function, presumably the two x86 ones folded together.
       //
       constexpr std::uintptr_t menu_cursor_focus_call {0x140263EBD};
       constexpr std::uintptr_t menu_focus_first_call {0x14025BCBE};
@@ -96,8 +96,9 @@ namespace Controller
 
       constexpr std::uintptr_t player_use_entity_patch {0x14018BE41};
 
-      // The instructions that reach the key name table, and their lengths.
-      // Note that x64 inlines Key_KeynumToString() into Key_WriteBindings().
+      // The instructions that reach the key name table, along with their
+      // lengths. Note that x64 inlines Key_KeynumToString() into
+      // Key_WriteBindings(), hence the reference there.
       //
       constexpr struct {std::uintptr_t place; std::size_t length;} keyname_table_refs[] {
         {0x1400EF88E, 7}, // Key_KeynumToStringBuf
@@ -113,8 +114,8 @@ namespace Controller
 
       constexpr size_t controller_key_count {mapping::engine_key_count};
 
-      // Note that x64 reaches the key name table with 32-bit displacements,
-      // so we place ours near the game.
+      // Note that x64 reaches the key name table through 32-bit
+      // displacements, so we have to place ours near the game.
       //
       constexpr size_t combined_key_name_count {Game::KEY_NAME_COUNT + controller_key_count + 1};
 
@@ -193,14 +194,14 @@ namespace Controller
         }
       }
 
-      // Note that on x86 we hook the tail call of IN_Frame() to
-      // IN_MouseMove() where it activates the mouse. x64 inlines
-      // IN_MouseMove() where it meets the paths that deactivate it, so we
-      // run our frame only when the mouse is active.
+      // On x86 we hook the tail call of IN_Frame() to IN_MouseMove() where it
+      // activates the mouse. x64 inlines IN_MouseMove() at the point where
+      // that path meets the ones that deactivate it, so here we run our frame
+      // only when the mouse is active, which should come down to the same.
       //
-      // Note also that on x86 we hook the call to CL_MouseEvent() in
-      // IN_MouseMove(), which RawMouse replaces. x64 has it in the inlined
-      // IN_MouseMove() that we replace.
+      // Note also that on x86 we hook the CL_MouseEvent() call in
+      // IN_MouseMove(), which RawMouse replaces. x64 has that call in the
+      // inlined IN_MouseMove() that we replace altogether.
       //
       void
       in_frame_trampoline () noexcept
@@ -732,7 +733,8 @@ namespace Controller
       Utils::Hook::Set<BYTE> (write_delta_field_width_1, 16);
       Utils::Hook::Set<BYTE> (write_delta_field_width_2, 16);
 
-      // Note that x64 inlines MSG_ReadDeltaUsercmdKey() twice, as x86 does.
+      // Note that x64 inlines MSG_ReadDeltaUsercmdKey() twice, the same as
+      // x86 does, which is at least one thing that didn't change.
       //
       Utils::Hook (read_delta_movement_patch_1, Controller_ReadDeltaMovementStub1, HOOK_JUMP).install ()->quick ();
       Utils::Hook (read_delta_movement_patch_2, Controller_ReadDeltaMovementStub2, HOOK_JUMP).install ()->quick ();
@@ -754,9 +756,9 @@ namespace Controller
 
       // Let the player keep the aim assist they choose.
       //
-      // Note that on x86 we change the registration of these dvars, which we
-      // register ourselves on x64 (see Components::Dvar for details), with
-      // acceleration already enabled.
+      // On x86 we change the registration of these dvars. On x64 we register
+      // them ourselves (see Components::Dvar), with acceleration already
+      // enabled.
       //
       for (const Game::dvar_t* d: {Game::aim_accel_turnrate_enabled,
                                    Game::aim_slowdown_enabled,

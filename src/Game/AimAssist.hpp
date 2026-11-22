@@ -2,7 +2,8 @@
 
 namespace Game
 {
-  // Aim assist dvars that x64 compiles out, registered by Components::Dvar.
+  // The aim assist dvars that x64 compiles out, which Components::Dvar
+  // registers for us.
   //
   extern const dvar_t* aim_aimAssistRangeScale;
   extern const dvar_t* aim_autoAimRangeScale;
@@ -44,11 +45,14 @@ namespace Game
   extern const dvar_t* aim_scale_view_axis;
   extern const dvar_t* perk_extendedMeleeRange;
 
-  // Aim assist reimplemented against the dvars above.
+  // Aim assist, reimplemented against the dvars above.
   //
-  // Note that x64 inlines the tweakables and ADS lerp updates into
-  // AimAssist_UpdateMouseInput() and folds the dvars into constants, some of
-  // which unrelated code shares.
+  // Why reimplement it at all? Because x64 inlines the tweakables and the
+  // ADS lerp updates into AimAssist_UpdateMouseInput() and folds the dvars
+  // into constants, some of which unrelated code shares. So there is nothing
+  // left to point at our dvars, and patching the constants would change
+  // that other code too. Rewriting the functions seemed like the lesser
+  // evil, even if it means we now have to keep them in step with x86.
   //
   void AimAssist_UpdateTweakables(int localClientNum);
   void AimAssist_UpdateAdsLerp(const AimInput* input);
@@ -59,7 +63,7 @@ namespace Game
   // dvars debug.
   //
   // Note that x64 compiles out AimAssist_DrawDebugOverlay() along with what
-  // it calls, so we reimplement it from x86.
+  // it calls, so this is x86's, more or less.
   //
   void AimAssist_DrawDebugOverlay(int localClientNum);
 }

@@ -147,8 +147,9 @@ namespace Components
   {
     PlayerCards_SetCachedPlayerData_Original(localClientNum, clientNum, cardIndex);
 
-    // Note that the game fills the card, leaving its clan empty, only for
-    // these arguments and only if the client info is valid.
+    // The game only fills the card (leaving its clan empty) for these
+    // arguments, and only if the client info is valid. So we bail out in the
+    // same cases, since filling in a card it didn't would be odd.
     //
     if (localClientNum != 0 ||
         clientNum < 0 || clientNum >= static_cast<int>(Game::MAX_CLIENTS) ||
@@ -204,8 +205,8 @@ namespace Components
 
     Utils::Hook(0x1401FC061, Dvar_InfoString_Stub, HOOK_CALL).install()->quick();
 
-    // Note that x64 inlines a copy of ClientUserinfoChanged into
-    // ClientConnect.
+    // Note that x64 inlines a copy of ClientUserinfoChanged() into
+    // ClientConnect(), which is why we hook it twice.
     //
     Utils::Hook(0x1401969AA, ClanTags_ClientUserinfoChanged_Stub, HOOK_CALL).install()->quick();
     Utils::Hook(0x140196068, ClanTags_ClientConnectUserinfo_Stub, HOOK_CALL).install()->quick();

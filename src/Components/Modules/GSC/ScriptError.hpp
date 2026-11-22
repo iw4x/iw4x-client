@@ -31,8 +31,8 @@ namespace Components::GSC
 
     static void VM_Error(const char* codePos);
 
-    // Print the source position of the code position, which on x86 replaces
-    // the game's own.
+    // Print the source position of the code position. On x86 this replaces
+    // the game's own function, which x64 doesn't have.
     //
     static void Scr_PrintPrevCodePos(int channel, const char* codePos, unsigned int index);
 

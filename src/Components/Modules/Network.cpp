@@ -322,13 +322,20 @@ namespace Components
     Utils::Hook::Set<std::uint8_t>(0x1400FB630, 30);
     Utils::Hook::Set<std::uint8_t>(0x1400FB2CC, 125);
 
-    // Handle client packets. See Network.asm for the registers at the hook
-    // point, the 'lea rdx, "keyAuthorize"' in CL_DispatchConnectionlessPacket.
+    // Handle client packets
+    //
+    // We jump to the stub from the 'lea rdx, "keyAuthorize"' in
+    // CL_DispatchConnectionlessPacket(), right where the game is about to go
+    // through the commands it knows. At that point the address is in rdi,
+    // the command in rsi, and the message in r12. If we handled the packet,
+    // then the stub jumps to where the game is done with it. Otherwise it
+    // redoes the lea and lets the game carry on.
     //
     Utils::Hook(0x1400F9E0C, Network_CL_HandleCommandStub, HOOK_JUMP).install()->quick();
 
-    // Disable unused OOB packets handlers just to be sure. Note that the
-    // near jumps become a nop and a jump to the same target.
+    // Disable unused OOB packets handlers just to be sure. Note that on x64
+    // these are near jumps, so one becomes a nop followed by a jump to the
+    // same target. Not pretty, but it keeps the instruction the same size.
     //
     Utils::Hook::Set<std::uint8_t>(0x1400F9C26, 0x90); // CL_SteamServerAuth
     Utils::Hook::Set<std::uint8_t>(0x1400F9C27, 0xE9);
@@ -345,8 +352,8 @@ namespace Components
     // Com_GetProtocol
     Utils::Hook::Set<std::uint32_t>(0x1402720B1, PROTOCOL);
 
-    // Set the default, min and max of the protocol dvar. Note that the
-    // registration copies all three from the one register.
+    // Set the default, min, and max of the protocol dvar, which the
+    // registration all takes from the one register.
     //
     Utils::Hook::Set<std::uint32_t>(0x140238823, PROTOCOL);
 
@@ -359,8 +366,8 @@ namespace Components
     Utils::Hook::Set<std::uint8_t>(0x1401AFE80, 0xC3); // main LSP response func
     Utils::Hook::Set<std::uint8_t>(0x1401B0220, 0xC3); // Telling LSP that we're playing a private match
 
-    // Don't create lsp_socket. Note that we leave INVALID_SOCKET behind
-    // with 'or eax, -1', which the game sign-extends.
+    // Don't create lsp_socket. We leave INVALID_SOCKET behind with an
+    // 'or eax, -1', which the game then sign-extends.
     //
     Utils::Hook::Set<std::uint8_t>(0x1402A5DD2, 0x83);
     Utils::Hook::Set<std::uint8_t>(0x1402A5DD3, 0xC8);
@@ -374,14 +381,16 @@ namespace Components
     // Disable the IWNet IP detection (default 'got ipdetect' flag to 1)
     Utils::Hook::Set<std::uint8_t>(0x146784F01, 1);
 
-    // Note that x64 also waits for the IWnet login and for its NAT punch
-    // before it lets xrequirelivesignin through and closes the connecting and
-    // getting data popups, where x86 only waits for the IP detection. Without
-    // IWnet neither comes, so we start out logged in (state 2) and report the
-    // NAT punch as ready (mov al, 1; ret).
+    // x64 also waits for the IWnet login and for its NAT punch before it lets
+    // xrequirelivesignin through and closes the connecting popups, while x86
+    // only waits for the IP detection. Without IWnet neither of them ever
+    // comes, and the popups would just sit there. So we start out logged in
+    // (state 2) and report the NAT punch as ready. Lying to the game like
+    // this feels a bit risky, but so far it hasn't caused any trouble that we
+    // know of.
     //
     Utils::Hook::Set<std::uint32_t>(0x146784F04, 2);
-    Utils::Hook::Set<std::array<std::uint8_t, 3>>(0x1401B2500, {0xB0, 0x01, 0xC3}); // NET_IsNatPunchReady
+    Utils::Hook::Set<std::array<std::uint8_t, 3>>(0x1401B2500, {0xB0, 0x01, 0xC3}); // NET_IsNatPunchReady: mov al, 1; ret
 
     OnClientPacket("resolveAddress", []([[maybe_unused]] const Address& address, [[maybe_unused]] const std::string& data)
     {

@@ -7,16 +7,17 @@ namespace Components
 {
   namespace
   {
-    // A hud icon names its material in one of two ways after the selector,
-    // the width and the height. The game puts the material itself there,
-    // which it only does in buffers it draws right away. The controller's
-    // key names carry the x86 form instead, a length and then the name,
-    // since they go through the string functions and a material's bytes
-    // can be zero.
+    // A hud icon names its material in one of two ways, after the selector
+    // and the size. The game puts the material pointer itself there, but it
+    // only does that in buffers it draws right away. The controller's key
+    // names carry the x86 form instead, a length followed by the name, since
+    // they go through the string functions and a pointer's bytes can be zero.
     //
-    // We tell them apart by the name: it is made of lowercase letters,
-    // digits and underscores, while a material's high bytes are zero.
-    // Returns the length of the name, or zero for a material.
+    // So which one is it? We tell them apart by the name, which is made of
+    // lowercase letters, digits, and underscores, while the high bytes of a
+    // pointer are zero. It's a heuristic, admittedly, but a user-mode pointer
+    // never has its top bytes set, so it seems safe enough. Return the
+    // length of the name, or zero for a material pointer.
     //
     std::size_t HudIconNameLength(const char* text)
     {
@@ -40,7 +41,7 @@ namespace Components
       return length;
     }
 
-    // The size of the material part, either form.
+    // Return the size of the material part, whichever form it's in.
     //
     std::size_t HudIconMaterialSize(const char* text)
     {
@@ -48,7 +49,7 @@ namespace Components
       return length != 0 ? 1 + length : sizeof(Game::Material*);
     }
 
-    // The materials of the hud icons that name them, by name.
+    // The materials of the hud icons that name theirs, by name.
     //
     std::mutex HudIconMutex;
     std::unordered_map<std::string, Game::Material*> HudIconMaterials;
@@ -987,8 +988,9 @@ namespace Components
 
   bool TextRenderer::IsButtonGlyph(const char* text)
   {
-    // After the caret: the icon type, width, height, then the material (see
+    // After the caret come the icon type and the size, then the material (see
     // HudIconMaterial()).
+    //
     if (!text[0] || !text[1] || !text[2])
     {
       return false;
@@ -1054,7 +1056,7 @@ namespace Components
     const auto h = static_cast<float>((font->pixelHeight * (*text - 16) + 16) >> 5) * yScale;
     ++text;
 
-    // A material's bytes can be zero, so we don't look for the end of the
+    // A pointer's bytes can be zero, so we don't look for the end of the
     // string in there.
     //
     const auto nameLength = HudIconNameLength(text);
@@ -1520,8 +1522,10 @@ namespace Components
         }
 
         // The material (see HudIconMaterial()). We stop at the end of the
-        // string, so we may cut a real one short, but then no string
-        // function would have kept the rest anyway.
+        // string, so we may cut a real pointer short. But then no string
+        // function would have kept the rest of it anyway.
+        //
+        // As above.
         //
         for (std::size_t i = 0, n = *in ? HudIconMaterialSize(in) : 0; i < n && *in; ++i)
         {
@@ -1570,10 +1574,6 @@ namespace Components
           ++in;
         }
 
-        // The material (see HudIconMaterial()). We stop at the end of the
-        // string, so we may cut a real one short, but then no string
-        // function would have kept the rest anyway.
-        //
         for (std::size_t i = 0, n = *in ? HudIconMaterialSize(in) : 0; i < n && *in; ++i)
         {
           ++in;
@@ -1645,7 +1645,7 @@ namespace Components
 
   int TextRenderer::Field_AdjustScroll_PrintLen(const char* string)
   {
-    // Note that on x64 the game passes us only the field's buffer, so we get
+    // Note that on x64 the game only passes us the field's buffer, so we get
     // to the field from there.
     //
     static_assert(offsetof(Game::field_t, buffer) == 0x18);
@@ -1657,7 +1657,7 @@ namespace Components
   void TextRenderer::PatchColorLimit(const char limit)
   {
     // Note that x64 compares the color code minus '0' (that is, the color
-    // index) with the last one where x86 compares the code itself.
+    // index) with the last one, where x86 compares the code itself.
     //
     const auto index = static_cast<char>(ColorIndexForChar(limit));
 
@@ -1806,7 +1806,7 @@ namespace Components
 
   TextRenderer::TextRenderer()
   {
-    // We read these in the glyphs and the font icons.
+    // We read these fields in the glyphs and the font icons.
     //
     AssertSize(Game::Glyph, 0x18);
     AssertOffset(Game::Font_s, glyphCount, 0xC);
@@ -1826,11 +1826,12 @@ namespace Components
 
     // Forget the materials we keep for the hud and font icons whenever a zone
     // unloads, since the zone takes its materials with it, and look them up
-    // again.
+    // again when we next need them.
     //
-    // Note that on x86 we keep the font icons' until the next UI
-    // initialization, which leaves an icon whose material was in an unloaded
-    // zone, a map's or a mod's, pointing at freed memory until then.
+    // Note that on x86 we keep the font icons' materials until the next UI
+    // initialization. That leaves an icon whose material was in an unloaded
+    // zone (a map's or a mod's) pointing at freed memory until then, which
+    // presumably just never got noticed.
     //
     DB_UnloadXZone_Original = Utils::Hook::Detour(0x14012FD80, 5, &DB_UnloadXZone_Hk);
 

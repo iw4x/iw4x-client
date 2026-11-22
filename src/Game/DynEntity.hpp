@@ -22,8 +22,8 @@ namespace Game
 
   extern const dvar_t** dynEnt_active;
 
-  // Destroy the dynamic entity on the client, as the server tells it with
-  // the j server command, and play its destroy effect.
+  // Destroy the dynamic entity on the client, as the server tells it to
+  // with the j server command, and play its destroy effect.
   //
   // Note that x64 compiles out this function along with the command, so we
   // reimplement it from x86.

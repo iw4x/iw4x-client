@@ -10,7 +10,7 @@
 
 namespace Components
 {
-  // The fields the game reads where we hook it.
+  // The fields the game reads at the places where we hook it.
   //
   static_assert(offsetof(Game::WeaponDef, notetrackSoundMapKeys) == 0x30);
   static_assert(offsetof(Game::centity_s, nextState.number) == 0xE8);
@@ -792,11 +792,13 @@ namespace Components
   {
     CG_FireWeapon_Original(localClientNum, cent, event, param, tagName, weapon, isPlayerView);
 
-    // Note that on x86 we go in where the game plays the fire sound, which x64
-    // inlines. So we make what it does of its arguments before playing it:
-    // no weapon means the entity's, a turret is the player's view only while
-    // their view is locked to it, and the player's view fires the weapon of
-    // their viewmodel.
+    // On x86 we go in where the game plays the fire sound, which x64 inlines.
+    // So here we first do what the game does with its arguments before it
+    // plays the sound. No weapon means the entity's, while a turret counts as
+    // the player's view only while their view is locked to it. Otherwise the
+    // player's view fires the weapon of their viewmodel. If the game ever
+    // changes how it picks the weapon, then this copy of its logic would
+    // quietly drift, but that seems unlikely for a shipped game.
     //
     if (weapon == 0)
     {
@@ -818,8 +820,7 @@ namespace Components
 
     if (isPlayerView)
     {
-      // BG_GetViewmodelWeaponIndex
-      weapon = Utils::Hook::Call<unsigned int(Game::playerState_s*, unsigned int)>(0x14009C7F0)(&cg->predictedPlayerState, weapon);
+      weapon = Utils::Hook::Call<unsigned int(Game::playerState_s*, unsigned int)>(0x14009C7F0)(&cg->predictedPlayerState, weapon); // BG_GetViewmodelWeaponIndex
     }
 
     CG_FireWeapon_Rumble(localClientNum, cent, Game::BG_GetWeaponDef(weapon), isPlayerView);
@@ -1011,7 +1012,9 @@ namespace Components
   {
     LoadConstantRumbleConfigStrings();
 
-    // Note that on x86 the game passes savegame alone.
+    // Note that on x86 the game passes savegame alone. What migrate does on
+    // x64 we don't really know (host migration, presumably), so we just pass
+    // it on.
     //
     return Utils::Hook::Call<void(int, int)>(0x140231A30)(savegame, migrate);
   }
@@ -1091,9 +1094,9 @@ namespace Components
 
   void Rumble::CG_EntityEvent_Hk(int localClientNum, Game::centity_s* cent, int event, bool isPlayerView)
   {
-    // Note that on x86 we go in after the game's check for no event. Here we
-    // go in at the start, so we do the check ourselves and continue past it,
-    // where nothing the game did before is left for it to depend on.
+    // On x86 we go in after the game's check for no event. Here we go in at
+    // the start, so we do that check ourselves. Nothing the game did before
+    // that point is left for it to depend on, so we can just carry on past it.
     //
     if (!event)
     {
@@ -1327,6 +1330,7 @@ namespace Components
   {
     // Note that on x86 we install nothing for ZoneBuilder, which x64 lacks.
     //
+
     // WeaponMelee rumble
     Utils::Hook(0x1401894BE, Rumble_MeleeRumble_Stub, HOOK_JUMP).install()->quick();
 
@@ -1365,7 +1369,9 @@ namespace Components
     // Frame rumble update
     Utils::Hook(0x1401F4440, SCR_UpdateRumble, HOOK_CALL).install()->quick();
     // Note that x64 inlines the entity sounds into CG_UpdateEntInfo(), which
-    // on x86 come after it, so we now update the rumbles after them.
+    // on x86 come after it, so we now update the rumbles after both. That
+    // shouldn't make any difference you could feel, but it's worth knowing
+    // if the timing ever seems off.
     //
     Utils::Hook(0x1400B847D, CG_UpdateEntInfo_Hk, HOOK_CALL).install()->quick();
 

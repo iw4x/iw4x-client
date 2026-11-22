@@ -242,8 +242,9 @@ namespace Components
     Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font6, MY_X, 110.0f, 1, 1, 0.4f, TextRenderer::WHITE_COLOR, 3);
   }
 
-  // Note that x64 compiles out CG_DrawDebugOverlays(), whose end we hook on
-  // x86. So we draw ours after the call that comes before it in CG_Draw2D().
+  // On x86 we draw our debug overlays at the end of CG_DrawDebugOverlays(),
+  // which x64 compiles out. So instead we draw them after the call that
+  // comes right before where it would have been in CG_Draw2D().
   //
   void Debug::CG_DrawDebugOverlays_Hk(const int localClientNum)
   {
@@ -367,9 +368,10 @@ namespace Components
 
   bool Debug::ScoreboardDrawn;
 
-  // Note that x64 drops what CG_DrawScoreboard() returns, which on x86
-  // CG_Draw2D() keeps to leave out the mini console and the errors under the
-  // scoreboard.
+  // On x86 CG_Draw2D() keeps what CG_DrawScoreboard() returns so that it can
+  // leave out the mini console and the errors while the scoreboard is up.
+  // x64 drops that (it has neither of those to leave out), so we keep it
+  // ourselves for our copies of them.
   //
   int Debug::CG_DrawScoreboard_Hk(const int localClientNum)
   {
@@ -378,9 +380,9 @@ namespace Components
     return r;
   }
 
-  // Note that x64 compiles out what x86 draws in CG_Draw2D() between
-  // CG_DrawDebugOverlays() and the say field, so we draw it right before
-  // Con_DrawSay().
+  // x64 also compiles out what x86 draws in CG_Draw2D() between
+  // CG_DrawDebugOverlays() and the say field (the vote, the lagometer, and
+  // so on), so we draw all of that right before Con_DrawSay().
   //
   void Debug::CG_Draw2D_Hk(const int localClientNum, const int x, const int y)
   {
@@ -412,9 +414,9 @@ namespace Components
     Utils::Hook::Call<void(int, int, int)>(0x1400ECEF0)(localClientNum, x, y); // Con_DrawSay
   }
 
-  // Note that x64 compiles out CG_AddLagometerFrameInfo(), which x86 calls in
-  // CG_DrawActiveFrame() once it sets the time, a little before the call we
-  // hook.
+  // And then CG_AddLagometerFrameInfo(), which x86 calls in
+  // CG_DrawActiveFrame() once it has set the time. We call it a little
+  // before the call we hook, which seems close enough for the lagometer.
   //
   void Debug::CG_DrawActiveFrame_Hk(const int localClientNum)
   {
@@ -432,8 +434,9 @@ namespace Components
     Utils::Hook(0x1400D0FE6, CG_Draw2D_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400B82A4, CG_DrawActiveFrame_Hk, HOOK_CALL).install()->quick();
 
-    // Note that x64 reaches the function of the assert command through a
-    // 32-bit displacement, so we give it a relay to ours.
+    // Replace the assert command, which on x64 is an empty function, with
+    // ours. The game loads the function with a lea whose 32-bit displacement
+    // can't reach our module, so we point it at a relay to ours instead.
     //
     Utils::Hook::Displace(0x1401F547C, 7, 0x140080E30, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(0x1401F5483, reinterpret_cast<void*>(Com_Assert_f))));
 

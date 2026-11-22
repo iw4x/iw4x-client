@@ -93,8 +93,16 @@ namespace Components
 
     if (Dedicated::IsEnabled()) return;
 
-    // Install handler. See UIScript.asm for the registers at the hook point,
-    // where UI_RunMenuScript() goes on past "StartServer".
+    // Install handler
+    //
+    // We jump to the stub where UI_RunMenuScript() goes on past its
+    // "StartServer" case. The stub passes the script's name (at rbp+30h)
+    // and the rest of its arguments (through rbx) to our handler. If one of
+    // ours took the script, then it jumps to where the game is done with it,
+    // and otherwise it redoes the store we replaced and lets the game look
+    // further. Note that this means the game's own scripts up to
+    // "StartServer" always win over ours, which so far seems to be what we
+    // want.
     //
     Utils::Hook(0x1402703E7, UIScript_RunMenuScriptStub, HOOK_JUMP).install()->quick();
 

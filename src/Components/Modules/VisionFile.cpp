@@ -108,8 +108,8 @@ namespace Components
 
   VisionFile::VisionFile()
   {
-    // Note that the field's name makes it 16 bytes on x64, where it's 12 on
-    // x86.
+    // Note that the field's name pointer makes it 16 bytes on x64, where it's
+    // 12 on x86.
     //
     AssertSize(Game::visField_t, 16);
 

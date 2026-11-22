@@ -246,7 +246,9 @@ namespace Components::GSC
 
     AddScriptFunctions();
 
-    // Note that on x64 the builtin function table entries are 24 bytes.
+    // Note that on x64 the entries of the builtin function table are 24
+    // bytes: the name and the function, both 8-byte pointers, and then the
+    // type, which is why the addresses step by 0x18.
     //
     Utils::Hook::Set<Game::BuiltinFunction>(0x140421280, GScr_OpenFile);
     Utils::Hook::Set<int>(0x140421288, 0);

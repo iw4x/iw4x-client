@@ -18,8 +18,8 @@ namespace Components
   public:
     Weapon();
 
-    // Note that on x86 the game's limit is 1200. x64 has 1400, as the Steam
-    // version has, and keeps the configstrings of the weapons past 1200
+    // Note that on x86 the game's limit is 1200. x64 has 1400, the same as the
+    // Steam version, and keeps the configstrings of the weapons past 1200
     // where we keep them on x86, from CS_WEAPONFILES_EXTRA on.
     //
     static const int BASEGAME_WEAPON_LIMIT = 1400;

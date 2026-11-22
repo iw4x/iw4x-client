@@ -15,15 +15,16 @@ namespace Components
   // Show the error Com_Error() was handling when another one happened. This
   // replaces its Sys_Error() call for such a recursive error.
   //
-  // The game passes the com_errorMessage dvar, the localized version of the
-  // first error, as the format. We've seen it come out empty (with an image
-  // that failed to load during startup), leaving the player with an empty
-  // dialog and us with an empty report. So we show the original message
-  // when that happens. Note that neither is a format string: either may
-  // well contain a '%'.
+  // The game passes the localized version of the first error as the
+  // format. We've seen it come out empty (with an image that failed to
+  // load during startup), which leaves the player with an empty dialog and
+  // us with an empty report. So in that case we show the original message
+  // instead. Note that neither is a format string, since either may well
+  // contain a '%'.
   //
-  // Note also that x64 leaves the original message out of the call, so we
-  // read it from the buffer Com_Error() keeps it in.
+  // Note also that on x86 the game passes the original message along as the
+  // argument. x64 leaves it out of the call, so we read it from the buffer
+  // that Com_Error() keeps it in (Game::com_errorMessage).
   //
   void Exception::Sys_Error_Recursive_Hk (const char* format)
   {
@@ -81,10 +82,10 @@ namespace Components
     Utils::Hook(0x1401F3797, LongJmp_Internal_Stub, HOOK_CALL).install()->quick(); // Com_Error()
     Utils::Hook(0x1401F35A3, Sys_Error_Recursive_Hk, HOOK_CALL).install()->quick(); // Com_Error()
 
-    // Script errors.
-    //
-    // Note that x64 inlines Scr_Error() into the other script error
-    // functions and VM_Execute(), so each copy has its own longjmp() call.
+    // On x86 we hook the longjmp() of Scr_Error() and a few others. x64
+    // inlines Scr_Error() into the other script error functions and into
+    // VM_Execute(), each copy with its own longjmp() call, which is why the
+    // list is this long.
     //
     static constexpr uintptr_t scriptErrorJumps[] =
     {

@@ -30,9 +30,9 @@ namespace Components
 
   bool ServerCommands::CG_IsGameServerCommand(char id)
   {
-    // Look the command up the way CG_DeployServerCommand() does: any id past
-    // 'z' and any whose case in its switch is the one that does nothing is
-    // not a command of the game.
+    // Look the command up the way CG_DeployServerCommand() does: an id past
+    // 'z' isn't one of the game's commands, and neither is one whose case in
+    // the switch is the one that does nothing.
     //
     constexpr std::uintptr_t image(0x140000000);
     constexpr std::uintptr_t unknownCase(0x1400E7567);
@@ -47,13 +47,15 @@ namespace Components
 
   void ServerCommands::CG_DeployServerCommand_Hk(int localClientNum)
   {
-    // Note that on x86 we go in where the game finds the command unknown,
-    // which on x64 is spread over its switch. So we go in before it and look
-    // the command up ourselves.
+    // On x86 we go in where the game finds the command unknown, which on x64
+    // is spread over its switch. So instead we go in before it and look the
+    // command up ourselves (see CG_IsGameServerCommand()).
     //
-    // Note also that x64 numbers the game's commands differently from x86,
-    // so that ids which are free on x86 may be the game's own on x64 (such as
-    // 'M'), and the game handles them before us.
+    // Note also that x64 numbers the game's commands differently from x86, so
+    // an id that is free on x86 may be one of the game's own on x64 (M, for
+    // one), and then the game handles it before we get to see it. That's
+    // presumably the cause if one of our commands seems to do nothing on x64
+    // only (see Compatibility for how we deal with the ones we know of).
     //
     Command::ClientParams params;
 

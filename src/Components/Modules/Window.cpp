@@ -168,8 +168,8 @@ namespace Components
     Window::NoBorder = Dvar::Register<bool>("r_noborder", true, Game::DVAR_ARCHIVE, "Do not use a border in windowed mode");
     Window::NativeCursor = Dvar::Register<bool>("ui_nativeCursor", false, Game::DVAR_ARCHIVE, "Display native cursor");
 
-    // Note that x64 picks the window style by r_displayMode, of which we
-    // replace the windowed one.
+    // Note that x64 picks the window style by r_displayMode, and we only
+    // replace the windowed one, which is the only one r_noborder is about.
     //
     Utils::Hook(0x1400327B4, Window_StyleHookStub, HOOK_CALL).install()->quick(); // Vid_CreateWindow
 
@@ -208,8 +208,9 @@ namespace Components
 
     // Use custom message handler
     //
-    // Note that on x86 we set the window procedure that the game puts in its
-    // window class. On x64 it loads its address with a lea.
+    // On x86 we set the window procedure that the game puts in its window
+    // class. On x64 the game loads its address with a lea, whose 32-bit
+    // displacement can't reach our module, so we point it at a relay.
     //
     Utils::Hook::Displace(0x1402A4383, 7, 0x1402A90A0, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(0x1402A4383 + 7, reinterpret_cast<void*>(Window::MessageHandler))));
 

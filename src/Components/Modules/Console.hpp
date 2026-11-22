@@ -22,6 +22,20 @@ extern "C"
 
 namespace Components
 {
+  // The consoles, of which there are a few.
+  //
+  // The in-game console is the game's own on x86. On x64 it's ours (see
+  // Game::Con_InitConsoleWindow() for the whole story), and here we only
+  // hook it into the game and scale its text.
+  //
+  // Then there is the console window that the game creates on Windows,
+  // which we restyle. We also stop it from clearing its output whenever
+  // the text fills up, and cut the oldest lines instead (see
+  // MakeRoomForText()). That window only shows with -console, and without
+  // it a dedicated server gets a curses console in its terminal instead.
+  // With -stdout, on the other hand, we skip both and simply print to the
+  // standard output.
+  //
   class Console : public Component
   {
   public:
@@ -36,7 +50,8 @@ namespace Components
 
     static void ShowAsyncConsole();
 
-    // Size multiplier of the in-game console.
+    // Return the size multiplier of the in-game console: con_scale if it's
+    // set and otherwise one derived from the render resolution.
     //
     static float GetConsoleScale();
 

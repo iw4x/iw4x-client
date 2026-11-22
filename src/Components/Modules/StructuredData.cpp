@@ -209,8 +209,8 @@ namespace Components
   {
     if (Dedicated::IsEnabled()) return;
 
-    // Note that on x86 we do not execute this when building zones, which x64
-    // can't.
+    // Note that on x86 we skip this while building zones, which x64 can't
+    // do.
     //
     {
       // Correctly upgrade stats
@@ -265,5 +265,6 @@ namespace Components
 
     // Note that on x86 we also patch the player data definition with the
     // versions of IW4x when ZoneBuilder builds the zones, which x64 lacks.
+    //
   }
 }

@@ -457,7 +457,7 @@ namespace Game
     }
   }
 
-  // Backend time of the frame the text draws in, rg.time on x86.
+  // The backend time of the frame that the text draws in, rg.time on x86.
   //
   static const int* rg_time = reinterpret_cast<const int*>(0x148F0CF88);
 
@@ -521,8 +521,8 @@ namespace Game
 
   void GetDecayingLetterInfo(unsigned int letter, int* randSeed, int decayTimeElapsed, int fxBirthTime, int fxDecayDuration, unsigned char alpha, bool* resultSkipDrawing, char* resultAlpha, unsigned int* resultLetter, bool* resultDrawExtraFxChar)
   {
-    // Letters the decay shows in place of the real one, the game's table
-    // at 0x1403DAE40.
+    // The letters that the decay shows in place of the real one, the game's
+    // table at 0x1403DAE40.
     //
     static const char letters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 
@@ -709,8 +709,8 @@ namespace Game
     constexpr float debugNearPlane(1.0f);
     constexpr float debugLineWidth(1.0f);
 
-    // Project the world point p to screen coordinates of the first local
-    // client's view and return false if it's behind the near plane.
+    // Project the world point p to the screen coordinates of the first local
+    // client's view, and return false if it's behind the near plane.
     //
     bool R_ProjectDebugPoint(const float* p, float& x, float& y)
     {
@@ -737,7 +737,7 @@ namespace Game
     }
 
     // Move the end of the segment from a to b that is behind the near plane
-    // onto it and return false if all of it is behind.
+    // onto it, and return false if all of the segment is behind.
     //
     bool R_ClipDebugLine(float (&a)[3], float (&b)[3])
     {
@@ -787,8 +787,9 @@ namespace Game
       return;
     }
 
-    // Draw the line as a thin picture rotated about its center, of which the
-    // game turns the x axis by the angle towards the y axis of the screen.
+    // Draw the line as a thin picture rotated about its center. Note that the
+    // game turns the picture's x axis by the angle towards the y axis of the
+    // screen, which is easy to get backwards.
     //
     const auto dx(bx - ax);
     const auto dy(by - ay);
@@ -823,8 +824,8 @@ namespace Game
     const auto* center(b->midPoint);
     const auto* halfSize(b->halfSize);
 
-    // The corners, with bit 0, 1, and 2 of the index selecting the positive
-    // half size along x, y, and z.
+    // The corners, with bits 0, 1, and 2 of the index selecting the positive
+    // half size along x, y, and z, respectively.
     //
     vec3_t v[8];
 
@@ -974,9 +975,9 @@ namespace Game
   }
 
   // Note that a release without a key number comes from the console, and
-  // the x86 function takes it to unstick the button. The x64 function always
-  // gets a key number from the key code, and so here we handle such a
-  // release ourselves.
+  // the x86 function takes it as a way to unstick the button. The x64
+  // function always gets a key number from the key code, so we handle such
+  // a release ourselves here.
   //
   void IN_KeyUp(kbutton_t* button)
   {
@@ -1016,7 +1017,7 @@ namespace Game
 
   // Note that on x64 SEH_StringEd_GetString() also returns the reference
   // itself if translations are disabled or the reference is shorter than 2
-  // characters, the same as the check x86 makes here first.
+  // characters, which is the same check that x86 makes here first.
   //
   // Note also that x64 compiles out the warning that x86 prints when there
   // is no translation and the warnings aren't errors.

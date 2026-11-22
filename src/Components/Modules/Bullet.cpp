@@ -42,11 +42,14 @@ namespace Components
 
     Utils::Hook(0x14009C820, BG_GetSurfacePenetrationDepthStub, HOOK_JUMP).install()->quick();
 
-    // Load range of bullets without a penetrating weapon from bg_bulletRange
-    // instead of the constant in Bullet_Fire.
+    // Take the bullet's range from bg_bulletRange rather than the stock 8192.
     //
-    // Note that the game allocates dvars in its own image, so the operand
-    // reaches the value directly.
+    // On x86 we hook Bullet_Fire() for this, but on x64 the range is a single
+    // 'movss xmm6' of a constant, so we just point that load at the dvar's
+    // value. We can't change the constant in place since six other loads
+    // share it. And this only works because the game allocates its dvars in
+    // its own image, which keeps the value within reach of the load's 32-bit
+    // displacement.
     //
     Utils::Hook::Displace(0x140161BC5, 8, 0x14036EA4C,
                           reinterpret_cast<uintptr_t>(&BGBulletRange->current.value));

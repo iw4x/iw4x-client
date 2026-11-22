@@ -92,9 +92,13 @@ namespace Components
     // Place hooks in PM_CheckDuck. If the elevators dvar is set to easy the
     // flags for duck/prone will always be removed from the player state
     //
-    // Note that x64 inlines PM_Trace() into PM_CheckDuck(), so we hook the
-    // calls through the pmove handler table it makes there. Our stub makes
-    // the same call and then lets us adjust the results.
+    // Note that x64 inlines PM_Trace() into PM_CheckDuck(), so there is no
+    // PM_Trace() call to hook as on x86. What's left is the call of the trace
+    // function that it picks from a table ('call [rbp+r10*8]'; presumably the
+    // client and the server trace differently). So our stub makes that same
+    // call and then lets us adjust the results. It's a bit fragile since it
+    // relies on rbp and r10 still holding the table and the index, but we
+    // couldn't find a better spot.
     //
     Utils::Hook(0x14008EBCA, Elevators_PM_TraceStub, HOOK_CALL).install()->quick();
     Utils::Hook(0x14008EAE3, Elevators_PM_TraceStub, HOOK_CALL).install()->quick();

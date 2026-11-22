@@ -4,12 +4,13 @@ namespace Utils
 {
   namespace
   {
-    // Granularity of the code we place in relay pages, which fits one
+    // The granularity of the code we place in relay pages, which fits one
     // absolute jump padded with int3.
     //
     constexpr std::size_t RelaySize = 16;
 
-    // Page of relays and trampolines and the number of bytes taken in it.
+    // A page of relays and trampolines, along with the number of bytes taken
+    // in it.
     //
     struct RelayPage
     {
@@ -96,8 +97,12 @@ namespace Utils
     }
 
     // Write size bytes of code at p, taking it from bytes and padding it with
-    // int3 up to padded bytes. Note that we keep the page executable while we
-    // write since other threads may be running the code already there.
+    // int3 up to padded bytes.
+    //
+    // Note that we keep the page executable while we write, since other
+    // threads may already be running the code that's there. Writable and
+    // executable at once isn't pretty, but taking execute away for a moment
+    // could crash a thread that happens to be in the page.
     //
     void WriteCode(uint8_t* p, const void* bytes, std::size_t size, std::size_t padded)
     {
@@ -111,7 +116,7 @@ namespace Utils
       FlushInstructionCache(GetCurrentProcess(), p, padded);
     }
 
-    // Write code of size bytes into a relay page within rel32 reach of next
+    // Write code of size bytes into a relay page within rel32 reach of next,
     // and return where it went.
     //
     uint8_t* PlaceCode(uintptr_t next, const void* bytes, std::size_t size)
@@ -149,8 +154,8 @@ namespace Utils
 
     // Return the bytes of an absolute jump to target:
     //
-    //    jmp qword ptr [rip]
-    //    dq  <target>
+    // jmp qword ptr [rip]
+    // dq  <target>
     //
     std::array<uint8_t, 14> AbsoluteJump(const void* target)
     {
@@ -368,8 +373,8 @@ namespace Utils
       throw std::runtime_error(std::format("{} bytes at {:#x} can't hold a jump", length, place));
     }
 
-    // Build the trampoline: the instructions we overwrite, then a jump back
-    // past them.
+    // Build the trampoline, that is, the instructions we overwrite followed
+    // by a jump back past them.
     //
     std::vector<uint8_t> trampoline (reinterpret_cast<const uint8_t*>(place), reinterpret_cast<const uint8_t*>(place) + length);
 
@@ -407,9 +412,10 @@ namespace Utils
 
   void Hook::Replace32(uintptr_t place, size_t length, uint32_t from, uint32_t to)
   {
-    // Find the field among the bytes past the first opcode byte, insisting
-    // on a single match so that we never patch an unrelated operand that
-    // happens to hold the same value.
+    // Find the field among the bytes past the first opcode byte. We insist
+    // on a single match, so that we never patch an unrelated operand that
+    // happens to hold the same value. Without decoding the instruction this
+    // is about as careful as we can be.
     //
     const uint8_t* code = reinterpret_cast<const uint8_t*>(place);
     size_t field = 0;
@@ -455,7 +461,7 @@ namespace Utils
 
   const char* Hook::PlaceString(uintptr_t place, size_t length, uintptr_t from, std::string_view text)
   {
-    // Note that AllocateNear() zeroes memory, which terminates the copy.
+    // Note that AllocateNear() zeroes the memory, which terminates the copy.
     //
     char* p (static_cast<char*>(AllocateNear(place, text.size() + 1)));
     std::memcpy(p, text.data(), text.size());

@@ -162,7 +162,8 @@ namespace Components::GSC
     Utils::Hook(0x1401AA13D, Scr_SetClientFieldStub, HOOK_CALL).install()->quick(); // Scr_SetObjectField
 
     // Note that x64 tail jumps from Scr_GetObjectField() to
-    // Scr_GetEntityField(), so ours returns to its caller in turn.
+    // Scr_GetEntityField(), which is why this one is a jump: ours then
+    // returns straight to the caller of Scr_GetObjectField().
     //
     Utils::Hook(0x1401A9DC9, Scr_GetEntityFieldStub, HOOK_JUMP).install()->quick(); // Scr_GetObjectField
   }

@@ -9,9 +9,10 @@ namespace Game::Engine
 
     // Let the game round the size and allocate the buffer.
     //
-    // Note that x64 inlines LargeLocalBegin() and LargeLocalBeginRight()
-    // into its LargeLocal constructor, which stores the start position and
-    // the rounded size into the same two fields as ours.
+    // Note that x64 inlines LargeLocalBegin() and LargeLocalBeginRight() into
+    // its LargeLocal constructor, which stores the start position and the
+    // rounded size into the same two fields as ours. Lucky for us, since it
+    // means we can simply let it do the work.
     //
     LargeLocalConstruct(this, sizeParam);
   }

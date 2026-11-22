@@ -201,8 +201,10 @@ namespace Components
 
   void Events::CL_Disconnect_Hk(int localClientNum)
   {
-    // Note that CL_Disconnect() does nothing unless the client runs, and
-    // resets the connection state it ends with.
+    // Since we hook the start of CL_Disconnect() (see below), we have to work
+    // out beforehand what it's going to do. It does nothing unless the client
+    // is running, and it resets the connection state on the way out, so we
+    // take both now.
     //
     const bool running(Game::clientUIActives[0].isRunning);
     const bool wasConnected(Game::clientUIActives[0].connectionState >= Game::CA_CONNECTED);
@@ -280,8 +282,9 @@ namespace Components
   {
     NET_Config_Original(enableNetworking);
 
-    // Note that x64 inlines NET_OpenIP(), after which x86 starts the
-    // network, into NET_Config(). Its IP socket tells that it got a port.
+    // On x86 we run these right after NET_OpenIP() opens the sockets. x64
+    // inlines NET_OpenIP() into NET_Config(), so we run them after the whole
+    // of NET_Config() instead, and only if it actually got us an IP socket.
     //
     if (*Game::ip_socket == 0)
     {
@@ -314,7 +317,8 @@ namespace Components
 
   Events::Events()
   {
-    // Note that x64 also inlines SV_FreeClient() into one of its callers.
+    // Note that x64 also inlines SV_FreeClient() into one of its callers, so
+    // there are two calls to hook where x86 has one.
     //
     Utils::Hook(0x140236926, ClientDisconnect_Hk, HOOK_CALL).install()->quick(); // SV_FreeClient
     Utils::Hook(0x140236A4B, ClientDisconnect_Hk, HOOK_CALL).install()->quick(); // SV_FreeClient
@@ -341,7 +345,13 @@ namespace Components
 
     Utils::Hook(0x140101F06, UI_Init_Hk, HOOK_CALL).install()->quick();
 
-    // CL_Disconnect, at the very end, whether we were connected or not.
+    // CL_Disconnect but at the very end, whether we were connected or not
+    //
+    // On x86 we hook its end. x64 has no single place there that we could get
+    // at, so we detour the whole function (it starts with 'push rdi; sub rsp,
+    // 20h', six bytes) and run our tasks after it returns. This is a bit
+    // roundabout, since we then have to guess what it did (see
+    // CL_Disconnect_Hk()), but it seems to be the simplest option.
     //
     CL_Disconnect_Original = Utils::Hook::Detour(0x1400F8E00, 6, &CL_Disconnect_Hk);
   }

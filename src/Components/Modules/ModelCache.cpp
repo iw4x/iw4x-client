@@ -7,7 +7,7 @@ namespace Components
     constexpr uintptr_t ImageBase = 0x140000000;
 
     // The game's model arrays: the server's G_ModelIndex() cache and the
-    // client game's cgs_t::gameModels, which cgsArray holds at 0x190.
+    // cgame's cgs_t::gameModels (which cgsArray holds at 0x190).
     //
     constexpr uintptr_t CachedModels = 0x1419F0E40;
     constexpr uintptr_t GameModels = 0x140585520;
@@ -15,7 +15,7 @@ namespace Components
 
     constexpr uint32_t BaseModelsSize = ModelCache::BASE_GMODEL_COUNT * sizeof(Game::XModel*);
 
-    // Instruction that reaches the game's address target.
+    // An instruction that reaches one of the game's addresses above.
     //
     struct Reference
     {
@@ -77,10 +77,13 @@ namespace Components
 
     // Reallocate G_ModelIndex
     //
-    // The game reaches the cache from the next instruction and, in two of
-    // its lookups, from the image base. The loop that registers the models
-    // of the configstrings keeps walking the game's count of them, the same
-    // as on x86.
+    // The game mostly reaches the cache relative to the next instruction,
+    // which Displace() points at our copy. Two of its lookups add an offset
+    // to the image base instead, so those we rebase. Why the compiler mixed
+    // the two we don't know, but missing either kind would leave the game
+    // reading the old array. Note that the loop that registers the models of
+    // the configstrings keeps walking the game's count of them, the same as
+    // on x86.
     //
     for (const Reference& r: std::initializer_list<Reference>
     {
@@ -99,9 +102,10 @@ namespace Components
 
     // Reallocate cg models
     //
-    // As above, with two more lookups that reach the models from cgsArray
-    // and the loop that registers them in CG_RegisterGraphics(), whose
-    // call to R_RegisterModel() we hook on x86.
+    // The same again, with two more lookups that reach the models from
+    // cgsArray. Among these is also the loop in CG_RegisterGraphics() that
+    // registers the models, where on x86 we hook its R_RegisterModel() call
+    // instead.
     //
     for (const Reference& r: std::initializer_list<Reference>
     {

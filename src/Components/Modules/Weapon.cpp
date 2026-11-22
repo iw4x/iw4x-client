@@ -24,7 +24,7 @@ namespace Components
     //
     constexpr uintptr_t ClientGame = 0x140474820;
 
-    // Instruction at place of length bytes.
+    // An instruction at place, length bytes long.
     //
     struct Instruction
     {
@@ -32,7 +32,7 @@ namespace Components
       size_t length;
     };
 
-    // Instruction that reaches the game's address target.
+    // An instruction that reaches one of the game's addresses, target.
     //
     struct Reference
     {
@@ -41,7 +41,7 @@ namespace Components
       uintptr_t target;
     };
 
-    // Instruction whose 32-bit field holds from.
+    // An instruction whose 32-bit field holds from.
     //
     struct Value
     {
@@ -50,8 +50,8 @@ namespace Components
       uint32_t from;
     };
 
-    // A game array of count elements of size bytes at from, which we move
-    // to one with room for the weapons we add.
+    // One of the game's arrays, count elements of size bytes at from, which we
+    // move to one with room for the weapons we add.
     //
     struct Array
     {
@@ -81,11 +81,11 @@ namespace Components
       }
     };
 
-    // Point the references at the arrays that hold their targets, those that
-    // reach them from the next instruction and those that reach them from
-    // the image base the game keeps in a register.
-    //
     void
+    // Point the references at the arrays that now hold their targets. Some of
+    // them reach their target from the next instruction, the others from the
+    // image base, which the game keeps in a register.
+    //
     Retarget(std::initializer_list<const Array*> arrays,
              std::initializer_list<Reference> next,
              std::initializer_list<Reference> base)
@@ -114,10 +114,10 @@ namespace Components
       }
     }
 
-    // Replace the 16-bit slot of an unwind code, which holds an offset or
+    void
+    // Replace the 16-bit slot of an unwind code, which holds an offset or a
     // size scaled down by 8.
     //
-    void
     ReplaceUnwindSlot(uintptr_t place, [[maybe_unused]] uint32_t from, uint32_t to)
     {
       assert(from % 8 == 0 && to % 8 == 0 && to / 8 <= 0xFFFF);
@@ -128,16 +128,20 @@ namespace Components
   }
 
   // An x86 server parses the weapons that have a raw file, each into its own
-  // def, where a fastfile shares one def between a weapon's variants. The
-  // ammo, clip and shared ammo cap indices that the server sends are
-  // numbered by distinct def, so such a weapon gets its own copy here.
+  // def, while a fastfile shares one def between a weapon's variants. The
+  // ammo and clip indices that the server sends (and those of the shared
+  // ammo caps) are numbered by distinct def, so such a weapon gets a copy
+  // of its own here, or else the indices wouldn't line up and a weapon
+  // would presumably end up with another one's ammo.
   //
   // Note that on x86 we load the weapon from its raw file, which x64 has no
-  // parser for, and so the copy holds what the fastfile has. We also fix the
-  // rumbles of a raw file there, which a fastfile has right.
+  // parser for, so the copy simply holds what the fastfile has. That's
+  // probably what the raw file says anyway in most cases, but not always.
+  // (On x86 we also fix the rumbles of a raw file there, which a fastfile
+  // has right.)
   //
   // @@ Port the raw weapon file parser so that a raw file that differs from
-  //    the fastfile takes effect, as it does on x86.
+  //    the fastfile takes effect, the same as on x86.
   //
   Game::XAssetHeader Weapon::LoadWeaponCompleteDef(const Game::XAssetType type, const char* name)
   {
@@ -183,11 +187,9 @@ namespace Components
     constexpr uint32_t base (BASEGAME_WEAPON_LIMIT);
     constexpr uint32_t limit (WEAPON_LIMIT);
 
-    // The weapon complete defs and defs, and the ammo types, shared ammo
-    // caps and clips, which BG_ClearWeaponDef() clears and BG_SetupWeaponDef()
-    // fills.
-    //
-    // Note that x64 keeps these as pointers.
+    // The weapon complete defs and defs along with the ammo types and the
+    // clips (and shared ammo caps). BG_ClearWeaponDef() clears them all and
+    // BG_SetupWeaponDef() fills them. Note that x64 keeps these as pointers.
     //
     {
       static const Array completeDefs (0x14043F1B0, sizeof(void*));
@@ -233,13 +235,17 @@ namespace Components
     }
 
     // Patch the ammo types and shared ammo caps on the stack, which the two
-    // ammo counts of a player mark in arrays with an entry per weapon. We
-    // grow their frames and move what is past the arrays along: in the first
-    // one past the one array, and in the second one past the two.
+    // ammo counts of a player mark in arrays with an entry per weapon. We grow
+    // their frames and move what is past the arrays along with them: in the
+    // first function past its one array, and in the second past its two. This
+    // is easily the hairiest part of raising the limit, and we would gladly
+    // have done it some other way, but the arrays live on the stack and
+    // there is no other way to make them bigger.
     //
-    // Note that on x64 the frame sizes and the offsets of the saved
-    // registers are also in the unwind info, which has to match for the
-    // stack to unwind through these functions.
+    // Note that on x64 the frame sizes and the offsets of the saved registers
+    // are also in the unwind info, which has to match for the stack to unwind
+    // through these functions. Get it wrong and nothing happens until an
+    // exception passes through, which is about the worst time to find out.
     //
     {
       constexpr uint32_t grow (ADDED_WEAPONS * sizeof(int));
@@ -341,10 +347,11 @@ namespace Components
       }
     }
 
-    // The cgame's weapons, static and of the local client.
+    // The cgame's weapons, the static ones and those of the local client.
     //
     // Note that a loop over the array before the latter ends at a field of
-    // its last element, which only happens to lie within ours.
+    // its last element, which only happens to lie within ours. It works, but
+    // it's worth knowing about if these arrays ever move again.
     //
     {
       static const Array cg_weaponsStaticArray (0x1406B29A0, 24);
@@ -382,13 +389,13 @@ namespace Components
       }
     }
 
-    // The hint materials in cgMedia_t, the weapons' from the fifth on, which
-    // CG_RegisterWeapon(), CG_RegisterGraphics() and CG_DrawCursorhint()
-    // reach. The latter takes a hint up to one past the last weapon.
+    // The hint materials in cgMedia_t, the weapons' from the fifth one on,
+    // which CG_RegisterWeapon() and CG_RegisterGraphics() reach. So does
+    // CG_DrawCursorhint(), which takes a hint up to one past the last weapon.
     //
-    // Note that the effects that the cgame looks up by the three digits of a
-    // configstring seem to reach into it but do not: the lookups subtract
-    // the digits' character codes from where they point.
+    // Note that the effects the cgame looks up by the three digits of a
+    // configstring seem to reach into it but don't: the lookups subtract the
+    // digits' character codes from where they point.
     //
     {
       static const Array hintMaterials (0x140469260, sizeof(void*), base + 5);
@@ -405,9 +412,9 @@ namespace Components
     }
 
     // The primary weapon of each alternate mode weapon, which cg_s holds and
-    // the cgame reaches relative to it. We move it out and clear it along
-    // with cg_s, and the copy that the cgame keeps across a renderer restart
-    // along with it.
+    // the cgame reaches relative to it. We move it out and clear it along with
+    // cg_s, and the copy the cgame keeps across a renderer restart along with
+    // it.
     //
     {
       static const Array primaries (ClientGame + 0x7592C, sizeof(uint16_t));
@@ -446,12 +453,14 @@ namespace Components
       }
     }
 
-    // The game splits an item index into its weapon and model, as the
-    // remainder and quotient of the limit, dividing by multiplying with the
-    // reciprocal and shifting by 41 in all. We do the same with ours.
+    // The game splits an item index into its weapon and model as the
+    // remainder and quotient of the limit. It divides the usual compiler way,
+    // multiplying with the reciprocal and shifting by 41 in all, and we do the
+    // same with our limit. Hopefully there are no copies of this division
+    // left that we missed, since one would quietly split the index wrong.
     //
-    // Note that on x86 the limit is a power of two times the game's and so
-    // we shift further instead.
+    // Note that on x86 the limit is a power of two times the game's, so there
+    // we can simply shift further instead.
     //
     {
       constexpr uint32_t reciprocal (static_cast<uint32_t>(((1ull << 41) + base - 1) / base));
@@ -474,10 +483,11 @@ namespace Components
       }
     }
 
-    // The limit, where the game multiplies by it to make an item index, on
-    // the weapons that the cgame registers from the configstrings and clears,
-    // and on the index past which a kill icon is a means of death's and the
-    // offset of the weapon of an alternate model.
+    // The limit itself, where the game multiplies by it to make an item index
+    // and where the cgame registers and clears the weapons from the
+    // configstrings. Past the limit a kill icon is a means of death's rather
+    // than a weapon's, which also takes the limit, as does the offset of the
+    // weapon of an alternate model.
     //
     for (const Instruction& i: std::initializer_list<Instruction>
     {
@@ -497,7 +507,7 @@ namespace Components
     Utils::Hook::Replace32(0x1400AEFD5, 6, static_cast<uint32_t>(-static_cast<int32_t>(base + 8)), static_cast<uint32_t>(-static_cast<int32_t>(limit + 8)));
 
     // CG_EntityEvent() takes the weapon of a weapon pickup or change only if
-    // its index less one is within the limit's.
+    // its index less one is within the limit.
     //
     Utils::Hook::Replace32(0x1400AD429, 5, base - 2, limit - 2);
   }
@@ -599,7 +609,8 @@ namespace Components
     equippedWeapon->usedBefore = false;
 
     // Note that on x86 we call the body of PlayerCmd_SwitchToWeapon(), which
-    // x64 inlines into it. It reads the same weapon name argument.
+    // x64 inlines into it. It reads the same weapon name argument, so calling
+    // the command itself works just as well.
     //
     Game::PlayerCmd_SwitchToWeapon(entref);
   }
@@ -679,16 +690,18 @@ namespace Components
     AssertOffset(Game::dvar_t, current, 0x10);
 
     if (!Flags::HasFlag("steamdemo") && !Flags::HasFlag("retaildemo"))
+    // The Steam version uses a limit of 1400 weapons, the same as x64, while
+    // the other clients use the default of 1200.
+    //
     {
-      // Steam version uses a limit of 1400 weapons, the same as x64, and
-      // other clients use the default limit of 1200 weapons
       PatchLimit();
     }
 
-    // Note that on x86 we load weapons from their raw files, which also
-    // takes the warning about a missing raw file, the existence check that
-    // follows and the double load with fs_game out of the way. x64 loads
-    // them from the fastfiles only, so we make our copies where it does.
+    // On x86 we load weapons from their raw files, which also gets the
+    // game's warning about a missing raw file out of the way (and the double
+    // load with fs_game that follows it). x64 loads them from the fastfiles
+    // only, so we make our copies where it does (see
+    // LoadWeaponCompleteDef()).
     //
     Utils::Hook(0x14009C950, LoadWeaponCompleteDef, HOOK_CALL).install()->quick(); // BG_GetWeaponIndexForName
 
@@ -706,23 +719,24 @@ namespace Components
     Utils::Hook(0x140094DAA, PM_Weapon_stub, HOOK_CALL).install()->quick(); // ^
     Utils::Hook(0x140095172, PM_Weapon_stub, HOOK_CALL).install()->quick(); // ^
 
-    // Note that on x86 we also clear the weapons independently from fs_game,
-    // freeing the ones loaded from raw files. x64 has no such weapons to
-    // free and clears the rest regardless.
-
-    // The game reads the def of the weapon to select without checking that
-    // the server registered it. So we select nothing in that case, the same
-    // as on x86.
+    // Note that on x86 we also clear the weapons independently of fs_game,
+    // freeing the ones loaded from raw files. x64 has no such weapons to free
+    // and clears the rest regardless.
+    //
+    // The game reads the def of the weapon to select without checking that the
+    // server registered it. So we select nothing in that case, the same as on
+    // x86.
     //
     // Note that x64 inlines CG_UpdatePrimaryForAltModeWeapon() into
-    // CG_SelectWeaponIndex(), whose check of the def comes after it on x86
-    // and so we check it once, where the former reads it.
+    // CG_SelectWeaponIndex(). On x86 the latter's check of the def comes after
+    // it, so here we check it once, where the former reads the def, which
+    // seems the earliest place that matters.
     //
     Utils::Hook(0x1400C5272, Weapon_CG_SelectWeaponIndex_Stub, HOOK_CALL).install()->quick();
 
     // The game draws a weapon item from the weapon and model indexes packed
-    // in the entity's item index, but doesn't check that the weapon is
-    // actually loaded and crashes if it isn't. So we skip such an item, the
+    // into the entity's item index, but doesn't check that the weapon is
+    // actually loaded, and crashes if it isn't. So we skip such an item, the
     // same as the game does when the weapon has no model for that index.
     //
     // @@ Not clear how we end up with an item for a weapon we don't have.
@@ -736,22 +750,24 @@ namespace Components
 
     // Javelin fix (PM_Weapon_OffHandEnd)
     //
-    // Note that x64 already resets grenadeTimeLeft after it, which we leave
-    // to the dvar as on x86.
+    // Note that x64 already resets grenadeTimeLeft after it, so on x64 the
+    // fix is probably redundant. We leave it to the dvar anyway, the same as
+    // on x86.
     //
     AssertOffset(Game::playerState_s, grenadeTimeLeft, 0x34);
     Weapon_BGWeaponOffHandFix = Game::Dvar_RegisterBool("bg_weaponOffHandFix", true, Game::DVAR_CODINFO, "Reset grenadeTimeLeft after using off hand weapon");
     Utils::Hook(0x140098EA0, Weapon_JavelinResetHook_Stub, HOOK_CALL).install()->quick();
 
-    // The game creates the view model tree from the animations of the hand
+    // The game creates the view model tree from the animations of the hands
     // when the weapon is dual wielded. But it doesn't create those for a
-    // weapon with noDualWield set and so, if a server or script hands out such
-    // a weapon dual wielded anyway, the tree ends up with no animations and
-    // the game crashes as soon as it animates it. So we fall back to the
-    // weapon's own animations in this case, which the game makes sure exist.
+    // weapon with noDualWield set, so if a server or script hands out such a
+    // weapon dual wielded anyway, the tree ends up with no animations and the
+    // game crashes as soon as it animates it. So in that case we fall back to
+    // the weapon's own animations, which the game makes sure exist.
     //
-    // Note that rax points to cg_weaponsStatic and rsi is three times the
-    // weapon, the index of its animations followed by those of each hand.
+    // Note that rax points to cg_weaponsStatic at this point and rsi is three
+    // times the weapon, the index of its animations followed by those of each
+    // hand.
     //
     Utils::Hook(0x1400C83E2, Weapon_CG_CreateViewModelTree_Stub, HOOK_CALL).install()->quick();
 

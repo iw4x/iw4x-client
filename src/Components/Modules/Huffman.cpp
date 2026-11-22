@@ -5,8 +5,10 @@ namespace Components
   Huffman::Huffman()
   {
     // Note that on x64 MSG_ReadBitsCompress() takes the size of the input
-    // after it and the size of the output, which its callers pass (0x800 in
-    // SV_ExecuteClientMessage() and 0x20000 in CL_ParseServerMessage()).
+    // right after it and the size of the output at the end, which its callers
+    // pass (0x800 in SV_ExecuteClientMessage() and 0x20000 in
+    // CL_ParseServerMessage()). So at least we don't have to guess how big
+    // the buffers are.
     //
     Utils::Hook(0x140236641, +[](const unsigned char* from, int fromSize, unsigned char* to, int toSize) // SV_ExecuteClientMessage
       { return Utils::Huffman::Decompress(from, to, fromSize, toSize); }, HOOK_CALL).install()->quick();

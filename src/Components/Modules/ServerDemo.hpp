@@ -89,10 +89,14 @@ namespace Components
 
     [[nodiscard]] static bool ValidClientNum(int clientNum);
 
-    // True if a new map has loaded since the last call. sv_serverId counts maps in its high
-    // nibble and restarts in its low nibble, and clients are only sent a new gamestate when
-    // the high nibble changes (SV_ExecuteClientMessage). After a fast_restart the
-    // existing gamestate stays valid, so recordings continue across it.
+    // Return true if a new map has loaded since the last call.
+    //
+    // sv_serverId counts the maps in its high nibble and the restarts in its
+    // low one, and the clients only get a new gamestate when the high nibble
+    // changes (see SV_ExecuteClientMessage()). After a fast_restart the
+    // existing gamestate stays valid, so a recording simply carries on
+    // across it.
+    //
     [[nodiscard]] static bool HasMapChanged();
 
     [[nodiscard]] static std::size_t MaxBufferBytes(); // sv_demoBufferSize, in bytes

@@ -226,8 +226,9 @@ namespace Components
     ConnectError(error);
   }
 
-  // Note that x86 hands the menus a zeroed spot of the game's memory for
-  // onlinegame, which reads as a dvar that is false. On x64 we keep our own.
+  // Note that for onlinegame x86 hands the menus a zeroed spot of the game's
+  // memory, which reads as a dvar that is false. That's a bit too clever
+  // for our taste, so on x64 we keep a dvar of our own for that instead.
   //
   const Game::dvar_t* Party::UIDvarIntStub(const char* dvar)
   {
@@ -289,16 +290,19 @@ namespace Components
 
     // various changes to SV_DirectConnect-y stuff to allow non-party joinees
     //
-    // Note that x86 writes the jmp opcode over the first byte of the jge here
-    // and so jumps by a displacement that starts with its second byte. What
-    // it means to do, and what we do, is to always take the jump.
+    // Note that x86 writes the jmp opcode over the first byte of the jge here,
+    // so it jumps by a displacement that starts with the jge's second byte.
+    // It works out, but what it means to do is always take the jump, which is
+    // what we do with a nop and a proper jmp.
     //
     Utils::Hook::Set<WORD>(0x140235FD6, 0xE990);
     Utils::Hook::Set<BYTE>(0x140236098, 0xEB);
 
-    // Note that in an online game x64 SV_UserinfoChanged() drops the client
-    // the session doesn't hold, where x86 registers it with the session. So
-    // we skip the drop where x86 skips the registration.
+    // In an online game x64's SV_UserinfoChanged() drops a client that the
+    // session doesn't hold, where x86 registers it with the session instead.
+    // Presumably the later revision trusts its backend to have registered
+    // everyone already. So we skip the drop at the point where x86 skips the
+    // registration.
     //
     Utils::Hook::Nop(0x140238096, 2);
     Utils::Hook::Set<BYTE>(0x14023810C, 0xEB);
@@ -310,8 +314,8 @@ namespace Components
 
     // AnonymousAddRequest
     //
-    // Note that x64 compares the 64-bit lobby id in one go, and so we skip
-    // one jump where x86 handles each half.
+    // Note that x64 compares the 64-bit lobby id in one go, so there is one
+    // jump to skip where x86 has one per half.
     //
     Utils::Hook::Set<BYTE>(0x14010E5D6, 0xEB);
     Utils::Hook::Nop(0x14010E5FB, 2);
@@ -319,7 +323,9 @@ namespace Components
     // HandleClientHandshake
     //
     // As above. Here x64 also jumps when the Steam check fails, where x86
-    // jumps when it passes.
+    // jumps when it passes, which is why we nop rather than force it. Why the
+    // compiler flipped the branch we can only guess, probably just a
+    // different layout of the same code.
     //
     Utils::Hook::Nop(0x14010D285, 2);
     Utils::Hook::Nop(0x14010D293, 2);
@@ -338,8 +344,8 @@ namespace Components
 
     // function checking party heartbeat timeouts, cause random issues
     //
-    // Note that x64 inlines PartyHost_TimeoutMembers(), whose call we nop on
-    // x86, into PartyHost_Frame(). So we skip the timeout there.
+    // On x86 we nop the call of PartyHost_TimeoutMembers(), but x64 inlines
+    // it into PartyHost_Frame(), so we skip the timeout there.
     //
     Utils::Hook::Set<BYTE>(0x140110214, 0xEB); // PartyHost_TimeoutMembers
 
@@ -349,8 +355,8 @@ namespace Components
 
     // Allow xpartygo in public lobbies
     //
-    // Note that x64 jumps to the same early return from both checks, which
-    // we skip.
+    // Note that x64 jumps to the same early return from both checks, and we
+    // skip both of the jumps.
     //
     Utils::Hook::Nop(0x1400FBEF1, 2);
     Utils::Hook::Nop(0x1400FBEF7, 2);
@@ -369,14 +375,17 @@ namespace Components
 
     // Force xblive_privatematch 0 and rename it
     //
-    // Note that x64 already registers it as 0.
+    // Note that x64 already registers it as 0, so the rename is all that's
+    // left to do.
     //
     Utils::Hook::PlaceString(0x1402A22A3, 7, 0x1403A7E68, "xblive_privateserver");
 
     // Remove migration shutdown, it causes crashes and will be destroyed when erroring anyways
     //
     // Note that x86 also nops the instructions that compute where to store,
-    // which x64 shares with the rest of the function.
+    // which on x64 are shared with the rest of the function, so we leave
+    // those alone. Computing an address nobody stores to seems harmless
+    // enough.
     //
     Utils::Hook::Nop(0x1400FD52C, 11);
 
@@ -388,9 +397,11 @@ namespace Components
 
     // Disable host migration
     //
-    // Note that x86 also registers party_hostmigration as false, which x64
-    // compiles down to true. So we also skip the migration where the host
-    // times out, which x86 skips because of that.
+    // x86 also registers party_hostmigration as false, while x64 compiles it
+    // down to always true, so there is no dvar left to turn off. So we also
+    // skip the migration when the host times out, which on x86 doesn't
+    // happen because of that dvar. Not the most elegant fix, but migrations
+    // don't really work for us anyway.
     //
     Utils::Hook::Set<BYTE>(0x14010EC66, 0xEB);
     Utils::Hook::Nop(0x140109A69, 5); // PartyMigrate_Frame
@@ -398,8 +409,8 @@ namespace Components
 
     // Patch playlist stuff for non-party behavior
     //
-    // Note that x64 reaches the xblive_privatematch dvar from the next
-    // instruction, and so we keep our pointer where it can reach it.
+    // Note that x64 reaches the xblive_privatematch dvar relative to the next
+    // instruction, so we keep our pointer somewhere it can reach.
     //
     auto** partyEnable (static_cast<Game::dvar_t**>(Utils::Hook::AllocateNear(0x140000000, sizeof(Game::dvar_t*))));
     *partyEnable = PartyEnable.get<Game::dvar_t*>();
@@ -429,7 +440,7 @@ namespace Components
     // Synchronize / Send network messages when the server starts so that clients can load the game with us
     // Otherwise they timeout while the host load
     //
-    // Note that x64 inlines the function whose call to Com_SyncThreads() we
+    // Note that x64 inlines the function whose call of Com_SyncThreads() we
     // hook on x86 into PartyHost_StartMatch().
     //
     Utils::Hook(0x140111FAC, SV_SpawnServer_Com_SyncThreads_Hook, HOOK_CALL).install()->quick();
@@ -800,7 +811,7 @@ namespace Components
       }
 
       // Note that on x86 we also tell our Steam friends about the server,
-      // which the x64 build doesn't have (see premake5.lua for details).
+      // which the x64 build doesn't have (see premake5.lua).
       //
       ServerList::Insert(address, info);
     });

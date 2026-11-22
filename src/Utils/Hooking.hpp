@@ -108,16 +108,18 @@ namespace Utils
     //
     // Note that the game reaches its globals through such displacements,
     // either from the next instruction or from the image base it keeps in a
-    // register, so this is where a global it outgrows has to move.
+    // register. So when we give one of its globals more room, this is where
+    // it has to move to. Our own image won't do, since the loader may well
+    // have put it out of reach.
     //
     static void* AllocateNear(uintptr_t place, size_t size);
 
     // Return target or, if a 32-bit displacement from next doesn't reach it,
-    // a relay near next that jumps to it. Throw std::runtime_error if there is
-    // no free spot in range.
+    // a relay near next that jumps to it. Throw std::runtime_error if there
+    // is no free spot in range.
     //
     // Note that next is the address of the instruction after the one that
-    // reaches target, which is what its displacement is from.
+    // reaches target, since that's what its displacement counts from.
     //
     static void* Relay(uintptr_t next, void* target);
 
@@ -127,7 +129,9 @@ namespace Utils
     //
     // Note that the first length bytes at place must be whole instructions
     // that don't depend on where they are, since the trampoline runs them
-    // elsewhere before jumping back past them.
+    // elsewhere before jumping back past them. A rip-relative operand in
+    // there would quietly point somewhere else, so check the disassembly
+    // before picking the length.
     //
     static void* Detour(uintptr_t place, size_t length, void* stub);
 
@@ -143,13 +147,13 @@ namespace Utils
     //
     static void Replace32(uintptr_t place, size_t length, uint32_t from, uint32_t to);
 
-    // Make the instruction at place of length bytes reach to instead of
-    // from through its rip-relative operand.
+    // Make the instruction at place of length bytes reach to instead of from
+    // through its rip-relative operand.
     //
     static void Displace(uintptr_t place, size_t length, uintptr_t from, uintptr_t to);
 
     // Copy size bytes of data into memory that the instruction at place of
-    // length bytes reaches and make its rip-relative operand point there
+    // length bytes reaches, and make its rip-relative operand point there
     // instead of from. Return the copy.
     //
     // Note that our own image may lie beyond the 32-bit reach of the game's
@@ -161,8 +165,8 @@ namespace Utils
     //
     static const char* PlaceString(uintptr_t place, size_t length, uintptr_t from, std::string_view text);
 
-    // Make the instruction at place of length bytes reach to instead of
-    // from through its displacement from base, such as the image base the
+    // Make the instruction at place of length bytes reach to instead of from
+    // through its displacement from base, such as the image base that the
     // game keeps in a register.
     //
     static void Rebase(uintptr_t place, size_t length, uintptr_t base, uintptr_t from, uintptr_t to);

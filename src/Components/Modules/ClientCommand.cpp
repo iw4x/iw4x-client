@@ -421,7 +421,10 @@ namespace Components
     const auto* fileName = VA("%s%s%s%s", "EntInfo", (*filenameSuffix) ? "_" : "", filenameSuffix, ".csv");
     Logger::Print(Game::CON_CHANNEL_SERVER, "Opening file \"{}\" for writing.\n", fileName);
 
-    // Note that x64 compiles out the text mode open, so lines end in LF.
+    // On x86 we open the file in the text mode. x64 doesn't seem to have a
+    // text mode open at all (its only writer opens with "wb"), so here the
+    // lines end in LF rather than CRLF. Nothing we know of reads this file
+    // back, so it's probably fine.
     //
     Game::fileHandle_t h (Game::FS_FOpenFileWrite(fileName));
     if (!h)
@@ -719,8 +722,8 @@ namespace Components
 
   void ClientCommand::GiveAll_Hk(std::uintptr_t* frame)
   {
-    // The stub's call replaces the read, so the return address is just past
-    // the call.
+    // The stub's call is where the read used to be, so the return address is
+    // just past that call, 5 bytes in.
     //
     const std::unordered_map<std::uintptr_t, GiveAllSite>::const_iterator i (GiveAllSites.find(frame[REG_RETURN] - 5));
     assert(i != GiveAllSites.end());
@@ -732,7 +735,8 @@ namespace Components
     {
     case GiveAllSource::Stack:
       {
-        // The site's rsp is just past the return address.
+        // The site's rsp is what it was before the stub's call, that is, just
+        // past the return address the call pushed.
         //
         const std::uintptr_t rsp (reinterpret_cast<std::uintptr_t>(frame + REG_RETURN + 1));
         ps = *reinterpret_cast<Game::playerState_s**>(rsp + site.location);
@@ -757,7 +761,8 @@ namespace Components
 
   void ClientCommand::PatchGiveAll()
   {
-    // Drop the read-only flag from g_giveAll.
+    // x64 registers g_giveAll read-only, which we don't want, so drop that
+    // flag.
     //
     Utils::Hook::Replace32(0x14019EA01, 6, Game::DVAR_ROM | Game::DVAR_CHEAT | Game::DVAR_INTERNAL, Game::DVAR_CHEAT | Game::DVAR_INTERNAL);
 
@@ -765,39 +770,47 @@ namespace Components
     GiveAllDvar.type = Game::DVAR_TYPE_BOOL;
     GiveAllDvar.current.enabled = true;
 
-    // The stock game has g_giveAll as a global dvar. Weapon code reads it in
-    // a number of places and, if it is enabled, behaves as if the player has
-    // every weapon: it is the inlined weapon slot lookup, which then answers
-    // with the last slot instead of searching the player's weapons.
+    // This one takes a bit of explaining, so let's start with what we are
+    // after and get to the machine state after that.
     //
-    // Our give all command applies to one client, so instead of setting the
-    // dvar we substitute the pointer that each read sees: GiveAllDvar, which
-    // looks like g_giveAll and is always enabled, if the player involved has
-    // give all, and the real g_giveAll otherwise. Note that this preserves
-    // the global behavior since HasGiveAll() is true for everyone when the
+    // In the stock game g_giveAll is a global dvar. The weapon code reads it
+    // in a number of places and, if it's enabled, behaves as if the player
+    // has every weapon. On x64 most of these reads are in the inlined lookup
+    // of a weapon's slot, which then answers with the last slot instead of
+    // going through the player's weapons.
+    //
+    // Our give all command, however, is per client, and setting the real dvar
+    // would hand it to everyone. We could teach each of those places about
+    // GiveAllClients, but there are quite a few of them and they already do
+    // exactly what we want once they see an enabled dvar. So what we do
+    // instead is substitute the pointer each read gets: GiveAllDvar (which
+    // looks like g_giveAll and is always enabled) if the player involved has
+    // give all, and the real g_giveAll otherwise. Note that this keeps the
+    // stock behavior intact, since HasGiveAll() is true for everyone while the
     // real dvar is enabled.
     //
-    // Every read is a 7-byte mov of the dvar pointer into a register, which
-    // we replace with a call to the stub and two nops. The stub saves the
-    // flags and all the general purpose registers as a frame and calls
-    // GiveAll_Hk(), which finds the player from the frame and stores the
-    // pointer into the frame slot of the register the mov loaded. The stub
-    // then restores everything, so the next instruction sees exactly what
-    // the mov would have produced, possibly with our dvar instead.
+    // As for the mechanics, on x64 every read is a 7-byte
+    // 'mov reg, cs:g_giveAll', which we replace with a call to the stub and
+    // two nops. The stub saves the flags and the general purpose registers
+    // as a frame and calls GiveAll_Hk(), which finds the player and stores
+    // the pointer into the frame slot of the register the mov would have
+    // loaded. Once the stub restores everything, the next instruction sees
+    // what the mov would have left, only possibly with our dvar.
     //
-    // Each site records where its player is at that point, which we read
-    // from the disassembly by following the register that the lookup then
-    // scans (the player state's weapon list at 0x220):
+    // The awkward part is finding the player, since there is no convention as
+    // to where it is at any given read. So each entry records that, which we
+    // worked out from the disassembly by following the register that the
+    // lookup then walks (the player state's weapon list at 0x220):
     //
     //   PlayerState           a register holds the playerState_s*
     //   Entity                a register holds the gentity_s*
-    //   Stack                 a slot at this offset from the site's rsp
-    //                         holds the playerState_s*
-    //   PredictedPlayerState  the cgame predicted player state
+    //   Stack                 a slot at this offset from the site's rsp holds
+    //                         the playerState_s*
+    //   PredictedPlayerState  the cgame's predicted player state
     //
-    // Note that a few reads are hoisted out of loops over one entity's
-    // weapons and repeated after calls inside them; each copy has its own
-    // entry.
+    // Note also that a few reads are hoisted out of loops over one entity's
+    // weapons and then repeated after the calls inside them. Each such copy
+    // gets its own entry.
     //
     const GiveAllSite sites[] =
     {
@@ -860,7 +873,8 @@ namespace Components
       Utils::Hook::Nop(site.address + 5, 2);
     }
 
-    // Note that x64 has the same six callers of BG_GetAmmoPlayerMax as x86.
+    // These are the same six callers of BG_GetAmmoPlayerMax() that we hook on
+    // x86, which x64 luckily didn't inline.
     //
     for (const std::uintptr_t address : { 0x1400DAC0A, 0x1400DACA9, 0x140164995, 0x14016604A, 0x14016BE86, 0x14016D907 })
     {

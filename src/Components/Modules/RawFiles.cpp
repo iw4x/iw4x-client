@@ -138,12 +138,14 @@ namespace Components
   {
     // Note that on x86 we also remove the fs_game check of Scr_ReadFile(),
     // which lets scripts be modded from disk without fs_game. x64 only reads
-    // scripts from the fastfiles.
+    // scripts from the fastfiles, so there is no such check to remove. Does
+    // that mean script mods on disk don't work on x64? Not entirely,
+    // presumably, since GSC/Script loads custom scripts from disk itself.
     //
-
     Utils::Hook(0x14012F350, ReadRawFile, HOOK_JUMP).install()->quick();
 
-    // Note that x64 inlines UI_GetMenuBuffer() into UI_LoadGameTypes().
+    // Note that x64 inlines UI_GetMenuBuffer() into UI_LoadGameTypes(), which
+    // is where we jump from.
     //
     Utils::Hook(0x14026D598, RawFiles_GetMenuBufferStub, HOOK_JUMP).install()->quick();
     Utils::Hook(Game::Com_LoadInfoString, Com_LoadInfoString_Hk, HOOK_JUMP).install()->quick();

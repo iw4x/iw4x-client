@@ -39,7 +39,8 @@ namespace Steam
 
   // Note that on x86 the game registers the original maps alone and leaves
   // the DLC map packs to us. So we report none installed, which keeps x64
-  // from registering DLC_2 and DLC_3 itself.
+  // from registering DLC_2 and DLC_3 itself. A white lie, but otherwise
+  // the map packs would presumably end up registered twice.
   //
   bool Apps::BIsDlcInstalled([[maybe_unused]] unsigned int appID)
   {

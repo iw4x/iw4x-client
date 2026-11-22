@@ -17,9 +17,10 @@ namespace
     }
   }
 
-  // Note that x64 compiles out CG_AddLagometerSnapshotInfo(), which x86
-  // calls in CG_ReadNextSnapshot() right after CL_GetSnapshot(), so we call
-  // it here.
+  // x64 compiles out CG_AddLagometerSnapshotInfo(), which x86 calls in
+  // CG_ReadNextSnapshot() right after CL_GetSnapshot(), so we call it here.
+  // Presumably the later revision lost the lagometer along the way, and
+  // with it the need.
   //
   int CL_GetSnapshotStub(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot)
   {
@@ -35,9 +36,9 @@ namespace
     return result;
   }
 
-  // Note that on x86 we take over where CL_ReadDemoNetworkPacket() returns
-  // once it parsed the message, which on x64 is right after it calls
-  // CL_ParseServerMessage().
+  // On x86 we take over where CL_ReadDemoNetworkPacket() returns once it
+  // has parsed the message, which on x64 is right after its
+  // CL_ParseServerMessage() call.
   //
   void CL_ReadDemoNetworkPacketStub(int localClientNum, Game::msg_t* msg)
   {
@@ -73,8 +74,8 @@ namespace
       {
         for (auto i = lastExecutedServerCommand + 1; i <= serverCommandSequence; ++i)
         {
-          // Note that x64 numbers the server commands as the Steam game
-          // does, which makes the fast restart 'x' ('B' on x86).
+          // Note that x64 numbers the server commands the way the Steam game
+          // does, which makes the fast restart x (it's B on x86).
           //
           static constexpr auto mapRestart = 'x';
           if (clc->serverCommands[i & 127][0] == mapRestart)
@@ -121,7 +122,8 @@ namespace Components
   }
 
   // CL_Record_f() writes the configstrings op right after the map and the
-  // gametype, where the server's gamestate has the configstrings checksum.
+  // gametype, which is where the server's gamestate has the configstrings
+  // checksum.
   //
   void Theatre::GamestateWriteStub(Game::msg_t* msg, char byte)
   {
@@ -209,8 +211,8 @@ namespace Components
     return false;
   }
 
-  // CL_Record_f() ends on clearing the client archive index, which we do
-  // once we wrote the baseline after the gamestate.
+  // CL_Record_f() ends by clearing the client archive index, which we do
+  // once we have written the baseline after the gamestate.
   //
   void Theatre::BaselineToFileStub()
   {
@@ -249,8 +251,9 @@ namespace Components
     (write)(&ps->movementDir, sizeof(int), localClientNum);
     (write)(&ps->bobCycle, sizeof(int), localClientNum);
 
-    // Note that on x86 we write the size of a pointer here, which is that of
-    // the command time there.
+    // Note that on x86 we write the size of a pointer here, which happens to
+    // be that of the command time there. On x64 it wouldn't be, and the demo
+    // would quietly come out four bytes off, so we spell out the int.
     //
     (write)(&ps->commandTime, sizeof(int), localClientNum);
     (write)(viewangles, sizeof(float[3]), localClientNum);
@@ -260,9 +263,9 @@ namespace Components
     (write)(&locationSelectionInfo, sizeof(int), localClientNum);
   }
 
-  // Note that on x86 we take the demo's name from where CL_Record_f()
-  // prints it, which x64 compiles out. So we take it from where the command
-  // opens the demo instead.
+  // On x86 we take the demo's name from where CL_Record_f() prints it, which
+  // x64 compiles out. So we take it from where the command opens the demo
+  // instead.
   //
   Game::fileHandle_t Theatre::RecordStub(const char* file)
   {
@@ -276,9 +279,9 @@ namespace Components
     return Game::FS_FOpenFileWrite(file);
   }
 
-  // Note that on x86 we write the metadata where CL_StopRecord_f() prints
-  // that it stopped, which x64 compiles out. So we run the command ourselves
-  // and write it if a demo was recording.
+  // On x86 we write the metadata where CL_StopRecord_f() prints that it
+  // stopped, which x64 compiles out. So we run the command ourselves and
+  // write the metadata if a demo was recording.
   //
   void Theatre::CL_StopRecord_f_Hk()
   {
@@ -482,7 +485,7 @@ namespace Components
   // checks.
   //
   // Note that x64 has 4339 configstrings where x86 has 4139, so we can't
-  // bound them with CS_LAST as on x86.
+  // bound them with CS_LAST the way we do on x86.
   //
   constexpr unsigned long MaxConfigstringIndex = Game::MAX_CONFIGSTRINGS - 1;
 
@@ -626,13 +629,17 @@ namespace Components
     CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games");
     CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 100, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
 
-    // Note that on x86 we also play Steam and retail demos (the steamdemo
-    // and retaildemo flags). The x64 game is the Steam build without the
-    // scrambled messages, and it records with its own protocol, so we play
-    // only its own demos.
+    // Note that on x86 we also play Steam and retail demos (the steamdemo and
+    // retaildemo flags). The x64 game is the Steam build without the
+    // scrambled messages, and it records with its own protocol, so for now we
+    // only play its own demos.
+    //
+    // @@ Perhaps the x86 demos could go through Compatibility's translation
+    //    as well, since they hold what an x86 server sent. We haven't tried
+    //    that yet.
     //
     // Note also that x64 inlines CG_ReadNextSnapshot() into
-    // CG_ProcessSnapshots() twice.
+    // CG_ProcessSnapshots() twice, hence the two hooks.
     //
     Utils::Hook(0x1400E95D9, CL_GetSnapshotStub, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400E969B, CL_GetSnapshotStub, HOOK_CALL).install()->quick();

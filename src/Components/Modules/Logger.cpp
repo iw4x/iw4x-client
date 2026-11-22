@@ -186,8 +186,8 @@ namespace Components
     }
   }
 
-  // Pass each printed message to Sentry and then either to the pipe, which
-  // takes it, or to the network log.
+  // Pass each printed message on to Sentry and then either to the pipe,
+  // which takes it, or to the network log.
   //
   bool Logger::InterceptPrintMessage([[maybe_unused]] int channel, const char* msg)
   {
@@ -450,8 +450,14 @@ namespace Components
     // set logfile to 1 by default (logs enabled)
     Utils::Hook(0x1401F4A75, Dvar_RegisterLogfile, HOOK_CALL).install()->quick();
 
-    // See Logger.asm for the registers at the hook point, after
-    // FS_BuildOSPath() falls back to the default game folder.
+    // Hook FS_BuildOSPath() right after it falls back to the default game
+    // folder, so that RedirectOSPath() can move the game log into userraw.
+    // It's an odd place for a log redirect, admittedly, but this is where
+    // the log file's path gets built. At that point the base path is in rbx,
+    // the folder in r12, the file in r13, and the result in r14. The stub
+    // passes the file and the folder, then puts the function's arguments
+    // back into their registers (the call clobbers them, and the game goes
+    // on to read rcx right away) and repeats the 'mov rsi, -1' we replaced.
     //
     Utils::Hook(0x140273B19, Logger_BuildOSPath_Stub, HOOK_JUMP).install()->quick();
 
@@ -460,9 +466,10 @@ namespace Components
     Utils::Hook(Game::G_LogPrintf, G_LogPrintf_Hk, HOOK_JUMP).install()->quick();
     Game::Com_PrintMessageInterceptor = InterceptPrintMessage;
 
-    // Note that x64 compiles out the call to Com_OpenLogFile() that we
-    // replace on x86, along with the rest of the console log, which
-    // Game::Com_PrintMessage() brings back. So we open the log in its place.
+    // On x86 we replace the call of Com_OpenLogFile(), but x64 compiles it out
+    // along with the rest of the console log (presumably the later revision
+    // logged somewhere else entirely), which Game::Com_PrintMessage() brings
+    // back. So we open the log in its place.
     //
     Game::Com_OpenLogFileOverride = Com_OpenLogFile_Stub;
 

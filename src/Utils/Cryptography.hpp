@@ -365,8 +365,8 @@ namespace Utils
       static std::string Compute(const std::uint8_t* data, std::size_t length, bool hex = false);
     };
 
-    // Note that the hash is 32-bit on x64 too since x86 and x64 builds compare
-    // each other's hashes (of playlists and user maps, for example).
+    // Note that the hash stays 32-bit on x64, since x86 and x64 builds
+    // compare each other's hashes (of playlists and user maps, for example).
     //
     class JenkinsOneAtATime
     {

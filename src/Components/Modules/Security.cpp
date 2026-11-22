@@ -75,7 +75,7 @@ namespace Components
   int Security::G_GetClientScore_Hk(int clientNum)
   {
     // Note that the game reads the score without checking that the level has
-    // its clients.
+    // its clients, which it doesn't before the game is initialized.
     //
     if (!Game::level->clients)
     {
@@ -154,24 +154,27 @@ namespace Components
 
     // CL_HandleRelayPacket
     //
-    // Note that x64 inlines it into CL_ConnectionlessPacket(), so we jump
-    // from where it starts to where that function returns true, as it does
-    // once it relayed the packet.
+    // x64 inlines it into CL_ConnectionlessPacket(), so we jump from where it
+    // starts to where that function returns true, the same as it does once
+    // it has relayed the packet.
+    //
+    // Note that on x86 we also disable Svcmd_EntityList_f, which x64 compiles
+    // out.
     //
     Utils::Hook(0x1400F97FE, 0x1400F96F3, HOOK_JUMP).install()->quick();
-
-    // Note that on x86 we disable Svcmd_EntityList_f, which x64 compiles out.
 
     // Patch selectStringTableEntryInDvar
     Utils::Hook::Displace(0x1400FBAD0, 7, 0x14026A0E0, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(0x1400FBAD0 + 7, reinterpret_cast<void*>(SelectStringTableEntryInDvar_Stub))));
 
-    // Skip Steam_Frame()'s checks of the clients of a Steam game server,
-    // which run every 10 seconds and drop the ones Steam hasn't
-    // authenticated after 40, none of ours being.
+    // Skip Steam_Frame()'s checks of the clients of a Steam game server. They
+    // run every 10 seconds and drop the clients that Steam hasn't
+    // authenticated after 40, and none of ours ever are.
     //
-    // Note that x86 has no such checks, only the message they kick with.
-    // Our Steam layer never reports the game server as connected to Steam,
-    // which they also wait for, but we don't want to depend on that.
+    // Note that x86 has no such checks, only the message they kick with. Our
+    // Steam layer never reports the game server as connected to Steam, which
+    // the checks also wait for, so strictly speaking they would never run.
+    // But what if that changes one day? Then every client would get dropped
+    // after 40 seconds, which we would rather not find out the hard way.
     //
     Utils::Hook::Set<WORD>(0x14024BB3D, 0xE990);
 
@@ -181,14 +184,16 @@ namespace Components
     // Requests can be malicious
     Utils::Hook(0x14010CDE3, AtolAdjustPlayerLimit, HOOK_CALL).install()->quick(); // PartyHost_HandleJoinPartyRequest
 
-    // Note that on x86 we fix the call to G_LogPrintf() in GScr_LogPrint(),
-    // which passes the script's text as the format. On x64 the logprint
-    // function does nothing.
+    // Note that on x86 we also fix the call of G_LogPrintf() in
+    // GScr_LogPrint(), which passes the script's text as the format. On x64
+    // logprint does nothing at all, so there is nothing to fix.
+    //
 
     // Fix packets causing buffer overflow
     //
     // Note that x64 already drops a packet that is larger than the deferred
-    // message.
+    // message itself, so there this may well be redundant. It costs nothing
+    // to keep, though.
     //
     Utils::Hook(0x14023B2DD, NET_DeferPacketToClient_Hk, HOOK_CALL).install()->quick();
 

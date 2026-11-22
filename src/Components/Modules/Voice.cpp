@@ -459,7 +459,7 @@ namespace Components
     Utils::Hook(0x14023B2B2, SV_VoicePacket, HOOK_CALL).install()->quick();
 
     // Note that x64 inlines the party's mute toggle into UI_RunMenuScript(),
-    // where we take over from its check of the party.
+    // so we take over at its check of the party.
     //
     Utils::Hook(0x140270923, Voice_UI_Mute_Player_Stub, HOOK_JUMP).install()->quick();
 
@@ -469,8 +469,8 @@ namespace Components
     sv_voice = Game::Dvar_RegisterBool("sv_voice", false, Game::DVAR_NONE, "Use server side voice communications");
     sv_alltalk = Game::Dvar_RegisterBool("sv_alltalk", false, Game::DVAR_NONE, "Allow talking across teams");
 
-    // Note that x64 compiles out the game's cl_showSend along with its
-    // prints, so we register it as x86 does for our own.
+    // x64 compiles out the game's cl_showSend along with its prints, so we
+    // register it ourselves, as x86 does, for our own prints.
     //
     cl_showSend = Game::Dvar_RegisterBool("cl_showSend", false, Game::DVAR_NONE, "Enable debugging information for sent commands");
   

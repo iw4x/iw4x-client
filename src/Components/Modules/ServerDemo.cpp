@@ -382,9 +382,10 @@ namespace Components
       AppendArchiveRecord(data, cl);
     }
 
-    // Netchan_Transmit stamps the message with the current outgoingSequence and
-    // only then increments it, so read before the call-through this is the sequence the
-    // message is sent with.
+    // Netchan_Transmit() stamps the message with the current outgoingSequence
+    // and only then increments it, so, read before the call, this is the
+    // sequence the message goes out with.
+    //
     AppendNetworkRecord(data, cl->header.netchan.outgoingSequence, wireData, wireLength);
 
     if (!data.fileActive && !data.autoRecordSuppressed && SVDemoAutoRecord.get<bool>())
@@ -400,8 +401,9 @@ namespace Components
 
   bool ServerDemo::SV_Netchan_Transmit_Stub(Game::client_s* client, const void* data, const int length)
   {
-    // Record before calling through: SV_Netchan_Transmit encodes the message in place
-    // before sending it.
+    // Record before calling through, since SV_Netchan_Transmit() encodes the
+    // message in place before it sends it.
+    //
     OnTransmit(client, static_cast<const unsigned char*>(data), length);
 
     return Utils::Hook::Call<bool(Game::client_s*, const void*, int)>(SV_NETCHAN_TRANSMIT)(client, data, length);

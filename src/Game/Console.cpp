@@ -54,13 +54,14 @@ namespace Game
 
   namespace
   {
-    // Server time of the local client, cl.serverTime.
+    // The server time of the local client, cl.serverTime.
     //
-    // Note that clientActive_t keeps the x86 layout, so we read it directly.
+    // Note that clientActive_t keeps the x86 layout, so we can simply read
+    // it.
     //
     const int* cl_serverTime = reinterpret_cast<const int*>(0x1406CFE18);
 
-    // Flag that marks a key as a character for UI_KeyEvent().
+    // The flag that marks a key as a character for UI_KeyEvent().
     //
     constexpr int K_CHAR_FLAG = 0x400;
 
@@ -68,16 +69,16 @@ namespace Game
     constexpr int CON_TEXT_SIZE = 0x10000;
     constexpr int CON_HISTORY_COUNT = 32;
 
-    // Most matches that the input hint lists.
+    // The most matches that the input hint lists.
     //
     constexpr int CON_MAX_SHOWN_MATCHES = 24;
 
-    // Most arguments that the input hint lists.
+    // The most arguments that the input hint lists.
     //
     constexpr int CON_MAX_SHOWN_ARGS = 16;
 
-    // Layout of the input hint and the output window, before the IW4x
-    // growth with the font height.
+    // The layout of the input hint and the output window, before IW4x grows
+    // it with the font height.
     //
     constexpr double CON_PADDING = 6.0;
     constexpr double CON_BORDER = 2.0;
@@ -87,17 +88,19 @@ namespace Game
     constexpr double CON_SCROLL_BAR_WIDTH = 10.0;
     constexpr float CON_SLIDER_MIN_HEIGHT = 10.0f;
 
-    // Characters of the match names and values that the input hint shows.
+    // How many characters of the match names and values the input hint
+    // shows.
     //
     constexpr int CON_NAME_CHARS = 28;
     constexpr int CON_VALUE_CHARS = 40;
 
-    // Alignment of the input line: virtual coordinates, unanchored.
+    // The alignment of the input line, in virtual coordinates and
+    // unanchored.
     //
     constexpr int CON_INPUT_ALIGN = 5;
 
-    // Colors of the console text. The prompt and the build string take the
-    // IW4x color in place of yellow.
+    // The colors of the console text. Note that the prompt and the build
+    // string take the IW4x color in place of yellow.
     //
     constexpr float colorConsole[4] = {0.70f, 1.00f, 0.00f, 1.00f};
     constexpr float colorDvarName[4] = {1.0f, 1.0f, 0.8f, 1.0f};
@@ -107,26 +110,26 @@ namespace Game
     constexpr float colorDomain[4] = {0.8f, 0.8f, 1.0f, 1.0f};
     constexpr float colorWhite[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-    // IW4x prompt in place of "IW4 MP: 1.0> ".
-    //
+// The IW4x prompt, which takes the place of "IW4 MP: 1.0> ".
+//
 #ifdef EXPERIMENTAL_BUILD
     constexpr const char* conPrompt = "IW4x MP: " REVISION_STR "-develop> ";
 #else
     constexpr const char* conPrompt = "IW4x MP: " REVISION_STR "> ";
 #endif
 
-    // Console window.
+    // The console window.
     //
     MessageLine consoleLines[CON_LINE_COUNT];
     Message consoleMessages[CON_LINE_COUNT];
     char consoleText[CON_TEXT_SIZE];
     MessageWindow consoleWindow;
 
-    // Mini console and error windows.
+    // The mini console and error windows.
     //
-    // Note that x64 compiles them out along with con_minicon, so we keep them
-    // here as x86 does. Like the console window, they are only for the first
-    // local client.
+    // Note that x64 compiles them out along with con_minicon, so we keep
+    // them here the way x86 does. Like the console window, they are only for
+    // the first local client, which is presumably all anyone ever uses on PC.
     //
     constexpr int CON_MINICON_LINE_COUNT = 100;
     constexpr int CON_MINICON_TEXT_SIZE = 0x1000;
@@ -147,24 +150,24 @@ namespace Game
     const dvar_t** con_minicontime = reinterpret_cast<const dvar_t**>(0x1406C4E00);
     const dvar_t** con_miniconlines = reinterpret_cast<const dvar_t**>(0x1406C4E08);
 
-    // Window indices of Con_IsChannelVisible().
+    // The window indices of Con_IsChannelVisible().
     //
     constexpr int CON_DEST_MINICON = 1;
     constexpr int CON_DEST_ERROR = 2;
 
-    // Line of the window at the bottom of the output, and whether the
-    // output shows.
+    // The line of the window at the bottom of the output, and whether the
+    // output shows at all.
     //
     int displayLineOffset;
     bool outputVisible;
 
-    // Channels the console shows, a bit each.
+    // The channels the console shows, one bit each.
     //
     std::uint32_t consoleFilter[CON_MAX_CHANNELS / 32];
 
     const dvar_t* con_default_console_filter;
 
-    // Input line, its history, and the input hint.
+    // The input line along with its history and the input hint.
     //
     field_t g_consoleField;
     int nextHistoryLine;
@@ -177,10 +180,10 @@ namespace Game
     //
     bool conMatchSubstring;
 
-    // Tab completion state.
+    // The tab completion state.
     //
-    // Note that tab completes only right after another key; tab after tab
-    // cycles through the matches.
+    // Note that tab only completes right after another key, while tab after
+    // tab cycles through the matches.
     //
     bool completeOnTab;
     const char* completionString;
@@ -195,8 +198,8 @@ namespace Game
     cmd_function_s Con_HideChannel_f_VAR;
     cmd_function_s Con_VisibleChannelList_f_VAR;
 
-    // Directory and extension of the file argument that the commands
-    // complete.
+    // The directory and extension of the file argument that a command
+    // completes.
     //
     // Note that x64 commands carry no autocomplete fields, so we keep the
     // x86 ones here.
@@ -237,7 +240,7 @@ namespace Game
       }
     }
 
-    // Font metrics and text drawing, scaled for the console font.
+    // The font metrics and text drawing, scaled for the console font.
     //
     int Con_TextHeight(Font_s* font)
     {
@@ -255,19 +258,17 @@ namespace Game
       R_AddCmdDrawText(text, maxChars, font, x, y, scale, scale, 0.0f, color, 0);
     }
 
-    // Growth of the console font height with con_scale.
+    // Return how much the console font height grows with con_scale.
     //
     double Con_FontHeightGrowth()
     {
       return static_cast<double>(Con_TextHeight(cls->consoleFont) - R_TextHeight(cls->consoleFont));
     }
 
-    //
     // Console window.
     //
-
-    // Time that the typewriter effect starts printing a line with the
-    // flags, or 0 if the flags don't ask for it.
+    // Return the time that the typewriter effect starts printing a line
+    // with these flags, or 0 if the flags don't ask for it.
     //
     int Con_GetTypewriterStartTime(const MessageWindow* msgwnd, int flags)
     {
@@ -278,7 +279,7 @@ namespace Game
 
       const int time(*cl_serverTime);
 
-      // Start after the last typewriter line still printing.
+      // Start after the last typewriter line that is still printing.
       //
       for (int i(msgwnd->activeLineCount - 1); i >= 0; --i)
       {
@@ -300,8 +301,8 @@ namespace Game
       return time + 250;
     }
 
-    // Time that the typewriter effect takes to print the line and fade it
-    // out.
+    // Return the time the typewriter effect takes to print the line and fade
+    // it out.
     //
     int Con_GetTypewriterDuration(const MessageWindow* msgwnd, MessageLine* line)
     {
@@ -314,8 +315,8 @@ namespace Game
       return std::max(printTime, (*con_typewriterDecayStartTime)->current.integer) + (*con_typewriterDecayDuration)->current.integer;
     }
 
-    // Keep the bottom line of the output on the window when it loses its
-    // first line.
+    // Keep the bottom line of the output on the window when the window loses
+    // its first line.
     //
     void Con_ClampDisplayLineOffset()
     {
@@ -422,7 +423,7 @@ namespace Game
 
       ++msgwnd->activeLineCount;
 
-      // Shorten the time on screen of the oldest message past the padding.
+      // Cut short the time on screen of the oldest message past the padding.
       //
       const int pastPadding(msgwnd->padding - msgwnd->lineCount + msgwnd->activeLineCount);
 
@@ -447,10 +448,8 @@ namespace Game
       displayLineOffset = 0;
     }
 
-    //
     // Console channels.
     //
-
     void Con_SetChannelVisible(int channel, bool visible)
     {
       const std::uint32_t bit(1u << (channel & 31));
@@ -470,7 +469,7 @@ namespace Game
       return (consoleFilter[channel >> 5] & (1u << (channel & 31))) != 0;
     }
 
-    // Show or hide the channels that match filter.
+    // Show or hide the channels that match the filter.
     //
     void Con_FilterAdd(const char* filter, bool show)
     {
@@ -511,7 +510,7 @@ namespace Game
         Con_FilterAdd(Cmd_Argv(i), show);
       }
 
-      // Have the configuration written again.
+      // Have the configuration written out again.
       //
       *Sys::GetTls<int>(Sys::TLS_OFFSET::DVAR_MODIFIED_FLAGS) |= DVAR_ARCHIVE;
     }
@@ -548,12 +547,11 @@ namespace Game
       }
     }
 
-    //
     // Input line and its hint.
     //
-
-    // Tokenize the input line and return the command, without the leading
-    // slash and blanks. The caller ends the tokenized string.
+    // Tokenize the input line and return the command without the leading
+    // slash and blanks. Note that the caller has to end the tokenized
+    // string.
     //
     const char* Con_TokenizeInput()
     {
@@ -584,7 +582,7 @@ namespace Game
              I_stricmp(cmd, "togglep") == 0;
     }
 
-    // Whether the input line has a blank after the command.
+    // Return true if the input line has a blank after the command.
     //
     bool Con_AnySpaceAfterCommand()
     {
@@ -606,7 +604,7 @@ namespace Game
       return false;
     }
 
-    // Offset of the first argument in the input line.
+    // Return the offset of the first argument in the input line.
     //
     int Con_FirstArgumentOffset()
     {
@@ -631,10 +629,12 @@ namespace Game
       return i;
     }
 
-    // Whether query matches the first matchTextLen characters of matchText.
+    // Return true if the query matches the first matchTextLen characters of
+    // matchText.
     //
-    // The prefix pass compares the start of query. Otherwise query must hold
-    // the characters in order, next to each other with con_matchPrefixOnly.
+    // The prefix pass compares the start of the query. Otherwise the query
+    // has to hold the characters in order, and next to each other with
+    // con_matchPrefixOnly.
     //
     bool Con_IsAutoCompleteMatch(const char* query, const char* matchText, int matchTextLen)
     {
@@ -720,7 +720,7 @@ namespace Game
       return true;
     }
 
-    // Input hint drawing, at the conDrawInputGlob pen.
+    // The input hint drawing, at the conDrawInputGlob pen.
     //
     void ConDraw_Box(float x, float y, float width, float height, const float* color)
     {
@@ -823,8 +823,8 @@ namespace Game
       ConDrawInput_NextLine();
     }
 
-    // Describe the values that a dvar of the type takes into buf, setting
-    // outLineCount to the lines past the first.
+    // Describe the values that a dvar of this type takes into buf, setting
+    // outLineCount to the number of lines past the first.
     //
     // Note that x64 drops the descriptions, so we keep the x86 ones here.
     //
@@ -974,7 +974,7 @@ namespace Game
       return buf;
     }
 
-    // Copy name to buf, cutting off its extension.
+    // Copy the name to the buffer, cutting off its extension.
     //
     void Com_StripExtension(const char* in, char* out)
     {
@@ -1002,8 +1002,8 @@ namespace Game
       *out = '\0';
     }
 
-    // List the argument choices that start with the first argument under
-    // the input line.
+    // List the argument choices that start with the first argument under the
+    // input line.
     //
     void ConDrawInput_AutoCompleteArg(const char** stringList, int stringCount)
     {
@@ -1070,8 +1070,8 @@ namespace Game
       }
     }
 
-    // List of the files that the command completes its argument from, or
-    // nullptr.
+    // Return the list of files that the command completes its argument from,
+    // or nullptr if it doesn't complete one.
     //
     const char** Cmd_GetAutoCompleteFileList(const char* cmdName, int* fileCount, int allocTrackType)
     {
@@ -1135,7 +1135,7 @@ namespace Game
       int domainLineCount;
       Dvar_DomainToString(dvar->type, dvar->domain, domain, sizeof(domain), &domainLineCount);
 
-      // Note that x86 also draws the description above the domain. x64
+      // Note that x86 also draws the description above the domain, but x64
       // dvars have none.
       //
       ConDrawInput_Box(domainLineCount + 1, (*con_inputHintBoxColor)->current.vector);
@@ -1177,7 +1177,7 @@ namespace Game
 
     // Field_Draw() with str in place of the field text.
     //
-    // Note that x64 inlines it into Field_Draw().
+    // Note that x64 inlines this into Field_Draw().
     //
     void Field_DrawTextOverride(int localClientNum, const field_t* edit, int x, int y, int horzAlign, int vertAlign, const char* str, int drawLen, int cursorPos)
     {
@@ -1217,8 +1217,8 @@ namespace Game
       CL_DrawTextWithCursor(scrPlace, str, drawLen, font, static_cast<float>(x), static_cast<float>(textY), horzAlign, vertAlign, xScale * scale, yScale * scale, colorWhite, style, cursorPos, overstrike ? '_' : '|');
     }
 
-    // Copy src into dest with the first query substring in it highlighted,
-    // and a blank after. Return the length of dest.
+    // Copy src into dest with the first substring that matches the query
+    // highlighted, followed by a blank. Return the length of dest.
     //
     int Con_HighlightSubstring(const char* src, const char* query, char* dest)
     {
@@ -1249,8 +1249,8 @@ namespace Game
       return n;
     }
 
-    // Copy src into dest with the characters of query in it highlighted, in
-    // order, and a blank after. Return the length of dest.
+    // Copy src into dest with the characters of the query highlighted in
+    // order, followed by a blank. Return the length of dest.
     //
     int Con_HighlightCharacters(const char* src, const char* query, char* dest)
     {
@@ -1371,12 +1371,13 @@ namespace Game
         return;
       }
 
-      // With con_matchPrefixOnly, take the substring matches, then the
-      // prefix ones if there are too many, then the substring ones again
-      // if there are none.
+      // With con_matchPrefixOnly we take the substring matches, then the
+      // prefix ones if there are too many, and then the substring ones again
+      // if there are none. It's a bit of a dance, presumably meant to show
+      // the most useful matches first.
       //
-      // Note that IW4x leaves out the commands from the prefix pass after a
-      // dvar command, as from the others.
+      // Note that IW4x leaves the commands out of the prefix pass after a dvar
+      // command, the same as from the others.
       //
       if (!(*con_matchPrefixOnly)->current.enabled)
       {
@@ -1455,10 +1456,8 @@ namespace Game
       Cmd_EndTokenizedString();
     }
 
-    //
     // Output window.
     //
-
     void SCR_DrawSmallStringExt(int x, int y, const char* string, const float* color)
     {
       Con_DrawText(string, std::numeric_limits<int>::max(), cls->consoleFont, static_cast<float>(x), static_cast<float>(y + Con_TextHeight(cls->consoleFont)), color);
@@ -1582,10 +1581,8 @@ namespace Game
       con->visiblePixelWidth = static_cast<int>(con->screenMax[0] - con->screenMin[0] - 10.0f - 18.0);
     }
 
-    //
     // Tab completion.
     //
-
     void Con_FindMatches(const char* s)
     {
       const int completionLen(static_cast<int>(std::strlen(completionString)));
@@ -1625,7 +1622,7 @@ namespace Game
         return;
       }
 
-      // Shorten the shortest match to the part it shares with s.
+      // Shorten the shortest match to the part that it shares with s.
       //
       int i(0);
 
@@ -1644,8 +1641,8 @@ namespace Game
     }
 
     // Find the matches of the completion string, setting cmdMatchLen and
-    // dvarMatchLen to the shortest match length after the commands and
-    // after the dvars.
+    // dvarMatchLen to the shortest match length after the commands and after
+    // the dvars, respectively.
     //
     void Con_FindAllMatches(bool doCommands, int* cmdMatchLen, int* dvarMatchLen)
     {
@@ -1711,7 +1708,7 @@ namespace Game
       }
     }
 
-    // Find the longest start that the list entries beginning with prefix
+    // Find the longest start that the list entries beginning with the prefix
     // share.
     //
     void Con_ShortestMatchInList(const char** list, int count, const char* prefix, char* dest, int destSize)
@@ -1746,7 +1743,7 @@ namespace Game
     }
 
     // Replace the last argLen characters of the input line, before its
-    // trailing blanks, with completion.
+    // trailing blanks, with the completion.
     //
     void Con_ReplaceArgument(const char* completion, int argLen)
     {
@@ -1935,7 +1932,7 @@ namespace Game
       }
       else if (conDrawInputGlob.matchCount > CON_MAX_SHOWN_MATCHES)
       {
-        // List the matches that the input hint can't.
+        // List the matches that the input hint has no room for.
         //
         Com_Printf(CON_CHANNEL_DONT_FILTER, "]%s\n", g_consoleField.buffer);
         Cmd_ForEach(Con_PrintMatches);
@@ -1946,10 +1943,8 @@ namespace Game
       Field_AdjustScroll(scrPlace, &g_consoleField);
     }
 
-    //
     // Keys.
     //
-
     void Con_PageUp()
     {
       displayLineOffset -= 2;
@@ -2018,7 +2013,8 @@ namespace Game
       Com_Printf(CON_CHANNEL_DONT_FILTER, "]%s\n", g_consoleField.buffer);
 
       // Note that IW4x runs the line as a command even without the leading
-      // slash, where x86 says it in chat when in game.
+      // slash, where x86 would say it in chat while in game. Probably what
+      // most people expect from a console anyway.
       //
       if (g_consoleField.buffer[0] == '\\' || g_consoleField.buffer[0] == '/')
       {
@@ -2043,7 +2039,7 @@ namespace Game
 
       Con_ResetInputField();
 
-      // Show the line now if the frame doesn't redraw the console.
+      // Show the line right away if the frame doesn't redraw the console.
       //
       if (CL_IsNotInGame())
       {
@@ -2114,7 +2110,7 @@ namespace Game
       Con_UpdateMessageWindowLine(localClientNum, &consoleWindow, lineFeed, flags);
     }
 
-    // Keep the output at the bottom if it was.
+    // Keep the output at the bottom if it was there.
     //
     if (lineFeed && displayLineOffset == consoleWindow.activeLineCount - 1)
     {
@@ -2124,13 +2120,14 @@ namespace Game
 
   namespace
   {
-    // Whether the mini console or the error window shows the channel with
-    // the print flags, as x86's Con_IsChannelVisible() works it out for
-    // them.
+    // Return true if the mini console or the error window shows the channel
+    // with these print flags, the way x86's Con_IsChannelVisible() works it
+    // out for them.
     //
     // Note that the mini console goes by the console filter but never shows
-    // the game message channels, and that the error window only shows the
-    // error channel, which x86's Con_InitChannels() puts in its filter.
+    // the game message channels. The error window, on the other hand, only
+    // shows the error channel, which x86's Con_InitChannels() puts in its
+    // filter.
     //
     bool Con_IsMessageWindowChannelVisible(const int dest, const int channel, const int flags)
     {
@@ -2158,8 +2155,8 @@ namespace Game
       return type == 2 || type == 3;
     }
 
-    // Start a message of the duration in the window, the dvar's seconds if
-    // it is zero.
+    // Start a message of the duration in the window, or of the dvar's
+    // seconds if the duration is zero.
     //
     void Con_AddMessage(const int localClientNum, MessageWindow* msgwnd, int duration, const dvar_t* durationDvar)
     {
@@ -2200,8 +2197,8 @@ namespace Game
       }
     }
 
-    // Shift the messages of the window by the nudge, keeping each between
-    // zero and a second past the time.
+    // Shift the messages of the window by the nudge, keeping each one
+    // between zero and a second past the time.
     //
     void Con_TimeNudgedWindow(MessageWindow* msgwnd, const int serverTimeNudge, const int serverTime)
     {
@@ -2243,7 +2240,7 @@ namespace Game
       msgwnd->activeLineCount = 0;
     }
 
-    // Draw the window from its oldest line down, at the left top of the
+    // Draw the window from its oldest line down, at the top left of the
     // point.
     //
     void Con_DrawMessageWindow(const int localClientNum, MessageWindow* msgwnd, const int x, const int y, const float alpha)
@@ -2366,7 +2363,7 @@ namespace Game
       return;
     }
 
-    // Start over if the line count changed.
+    // Start over if the line count has changed.
     //
     if (miniconWindow.lineCount != (*con_miniconlines)->current.integer)
     {
@@ -2468,7 +2465,8 @@ namespace Game
     }
 
     // Note that IW4x opens the console whatever sv_running and
-    // sv_allowClientConsole say.
+    // sv_allowClientConsole say. A server that wants to keep it closed is
+    // out of luck, but we would rather not take the console away.
     //
     if (down)
     {
@@ -2685,7 +2683,7 @@ namespace Game
       return;
     }
 
-    // Console_CharEvent().
+    // Console_CharEvent()
     //
     if (Field_CharEvent(localClientNum, ScrPlace_GetFullPlacement(), &g_consoleField, key))
     {

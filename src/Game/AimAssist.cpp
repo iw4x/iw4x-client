@@ -44,8 +44,8 @@ namespace Game
 
   namespace
   {
-    // Weapon states during which auto melee doesn't apply and those during
-    // which it tracks its target.
+    // The weapon states during which auto melee doesn't apply, and those
+    // during which it tracks its target.
     //
     constexpr int WEAPON_STATE_NO_MELEE_FIRST = 0x1A;
     constexpr int WEAPON_STATE_MELEE_CHARGE = 0xD;
@@ -54,7 +54,7 @@ namespace Game
     constexpr int BUTTON_MELEE = 0x4;
     constexpr int BUTTON_ADS = 0x800;
 
-    // Turret and vehicle eFlags.
+    // The turret and vehicle eFlags.
     //
     constexpr int EF_TURRET_ACTIVE = 0xC00;
 
@@ -89,7 +89,8 @@ namespace Game
       return nullptr;
     }
 
-    // Return the first screen target within range and the auto melee region.
+    // Return the first screen target within range and inside the auto melee
+    // region.
     //
     const AimScreenTarget* AimAssist_GetBestMeleeTarget(const AimAssistGlobals& aa, float range)
     {
@@ -230,7 +231,7 @@ namespace Game
       aa.autoMeleeYaw = aa.viewAngles[1];
       aa.autoMeleeYawTarget = 0.0f;
 
-      // Charge toward the target unless prone.
+      // Charge toward the target, unless prone.
       //
       if ((aa.ps.pm_flags & PMF_PRONE) == 0 && target->distSqr > 0.0f)
       {
@@ -326,7 +327,8 @@ namespace Game
     constexpr float colorWhite[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     constexpr float colorYellow[4] = {1.0f, 1.0f, 0.0f, 1.0f};
 
-    // Note that x64 compiles out CL_DrawText() along with its callers here.
+    // Note that x64 compiles out CL_DrawText() along with its callers here,
+    // so this is x86's.
     //
     void CL_DrawText(const ScreenPlacement* scrPlace, const char* text, const int maxChars, Font_s* font, float x, float y, const int horzAlign, const int vertAlign, float xScale, float yScale, const float* color, const int style)
     {
@@ -334,17 +336,17 @@ namespace Game
       R_AddCmdDrawText(text, maxChars, font, x, y, xScale, yScale, 0.0f, color, style);
     }
 
-    // Return how far up the crosshair sits, as a fraction of half the
-    // screen height.
+    // Return how far up the crosshair sits, as a fraction of half the screen
+    // height.
     //
     float CG_GetCrosshairVerticalOffset(const cg_s* cgameGlob)
     {
       return Utils::Hook::Call<float(const cg_s*)>(0x1400B9150)(cgameGlob);
     }
 
-    // Draw the box of each target within the range of the assistance being
-    // debugged, with its rank, entity, distance, speed, and distance from
-    // the crosshair above it.
+    // Draw a box around each target within the range of the assistance being
+    // debugged. Above it go the target's rank and entity, followed by its
+    // distance and speed and how far it is from the crosshair.
     //
     void AimAssist_DrawTargets(const int localClientNum, const cg_s* cgameGlob, const float* color)
     {
@@ -370,8 +372,7 @@ namespace Game
 
       const auto* scrPlace (ScrPlace_GetActivePlacement(localClientNum));
 
-      // Whether the target is out of the range while we debug that
-      // assistance.
+      // Whether the target is out of the range while we debug that assistance.
       //
       const auto outOf ([] (const dvar_t* debug, const float distSqr, const float range)
       {
@@ -399,7 +400,7 @@ namespace Game
         const auto maxY (static_cast<float>((1.0f + t.clipMaxs[1]) * halfHeight));
         const auto h (maxY - y);
 
-        // Raise the box with the crosshair.
+        // Raise the box along with the crosshair.
         //
         y = static_cast<float>(y - static_cast<double>(CG_GetCrosshairVerticalOffset(cgameGlob)) * aa.screenHeight * 0.5);
 
@@ -424,7 +425,7 @@ namespace Game
     }
 
     // Draw a box of the region's size in the middle of the screen, raised
-    // with the crosshair.
+    // along with the crosshair.
     //
     void AimAssist_DrawCenterBox(const AimAssistGlobals& aa, const float verticalOffset, const float regionWidth, const float regionHeight, const float* color)
     {
@@ -454,8 +455,9 @@ namespace Game
     const auto verticalOffset (CG_GetCrosshairVerticalOffset(cg));
 
     // Note that x64 drops the auto aim region from AimTweakables along with
-    // the auto aim, so we work it out as x86's AimAssist_UpdateTweakables()
-    // does.
+    // the auto aim itself, so we work it out the way x86's
+    // AimAssist_UpdateTweakables() does. It's only for drawing, so if it's a
+    // little off, nobody gets hurt.
     //
     const auto* scr (ScrPlace_GetViewPlacement(localClientNum));
     const auto autoAimRegionWidth (static_cast<float>(static_cast<float>(scr->scaleVirtualToReal[0] * aim_autoaim_region_width->current.value) / aa.screenWidth) * aa.fovScaleInv);

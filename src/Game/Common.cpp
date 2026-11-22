@@ -58,7 +58,8 @@ namespace Game
     if (g_parse)
     {
       // ParseThreadInfo holds 16 parseInfo_t of 0x438 bytes followed by the
-      // index of the current one. Note that negativeNumbers is at 0x408.
+      // index of the current one, and negativeNumbers is at 0x408. We don't
+      // have the structures declared, hence the arithmetic.
       //
       g_parse[0x438 * *reinterpret_cast<int*>(g_parse + 0x4380) + 0x408] = parse != 0;
     }
@@ -159,7 +160,9 @@ namespace Game
     {
       Sys_EnterCriticalSection(CRITSECT_CONSOLE);
 
-      // Skip the message until the file system can open the log file.
+      // Skip the message until the file system can open the log file. Anything
+      // printed before that never makes it into the log, which is a pity but
+      // hard to avoid.
       //
       if (*fs_searchpaths != nullptr)
       {
@@ -210,7 +213,7 @@ namespace Game
     }
 
     // Note that Com_Printf() below comes back here through
-    // Com_LogPrintMessage(), which this flag stops.
+    // Com_LogPrintMessage(), and this flag is what stops that from recursing.
     //
     opening_qconsole = true;
 
@@ -238,7 +241,7 @@ namespace Game
       return;
     }
 
-    // Add the message to the in-game console, the error type selecting
+    // Add the message to the in-game console, with the error type selecting
     // its color.
     //
     if (channel != CON_CHANNEL_LOGFILEONLY)
@@ -318,17 +321,17 @@ namespace Game
 
     ++com_errorPrintsCount;
 
-    // @@ TODO: x86 also passes msg to sub_4B62C0, which we haven't
-    //    identified yet. It then opens the console on the first error, which
-    //    x64 doesn't have.
+    // @@ x86 also passes msg to sub_4B62C0, which we haven't identified yet.
+    //    It then opens the console on the first error, which x64 doesn't have.
+    //    Probably nothing important, but we don't really know.
     //
     Com_PrintMessage(channel, msg, 3);
   }
 
   void Com_ClientPacketEvent()
   {
-    // The loopback packets of a socket, the packets the network thread
-    // queued, and those still on the socket (Sys_GetPacket()).
+    // The loopback packets of a socket, then the packets the network thread
+    // queued, and then those still on the socket (Sys_GetPacket()).
     //
     const auto NET_GetLoopPacket(reinterpret_cast<int (*)(netsrc_t sock, netadr_t* from, msg_t* msg)>(0x140204D30));
     const auto NET_GetQueuedPacket(reinterpret_cast<bool (*)(netadr_t* from, msg_t* msg)>(0x140204C70));
@@ -336,8 +339,8 @@ namespace Game
 
     const auto CL_PacketEvent(reinterpret_cast<bool (*)(int localClientNum, netadr_t* from, msg_t* msg, int time)>(0x1400FC620));
 
-    // Note that the game takes the buffer from its stack allocator, where we
-    // keep our own since only the main thread gets here.
+    // Note that the game takes the buffer from its stack allocator, while we
+    // keep our own, which is fine since only the main thread ever gets here.
     //
     assert(Sys_IsMainThread());
 
