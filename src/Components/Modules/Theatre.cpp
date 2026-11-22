@@ -307,9 +307,19 @@ namespace Components
     CurrentSelection = 0;
     Demos.clear();
 
-    const auto demos = FileSystem::GetFileList("demos/", DemoExtension);
+    // Note that we list the x86 demos along with ours, each with its own
+    // extension, so that we play and delete the right file.
+    //
+    std::vector<std::pair<std::string, const char*>> demos;
+    for (const char* extension : {DemoExtension, X86DemoExtension})
+    {
+      for (auto& demo : FileSystem::GetFileList("demos/", extension))
+      {
+        demos.emplace_back(std::move(demo), extension);
+      }
+    }
 
-    for (auto demo : demos)
+    for (const auto& [demo, extension] : demos)
     {
       if (FileSystem::File meta = std::format("demos/{}.json", demo))
       {
@@ -320,6 +330,7 @@ namespace Components
 
           DemoInfo demoInfo;
           demoInfo.name = demo.substr(0, demo.find_last_of("."));
+          demoInfo.extension = extension;
           demoInfo.author = metaObject["author"].get<std::string>();
           demoInfo.gametype = metaObject["gametype"].get<std::string>();
           demoInfo.mapname = metaObject["mapname"].get<std::string>();
@@ -348,8 +359,8 @@ namespace Components
 
       Logger::Print("Deleting demo {}...\n", demoInfo.name);
 
-      FileSystem::_DeleteFile("demos", std::format("{}.{}", demoInfo.name, DemoExtension));
-      FileSystem::_DeleteFile("demos", std::format("{}.{}.json", demoInfo.name, DemoExtension));
+      FileSystem::_DeleteFile("demos", std::format("{}.{}", demoInfo.name, demoInfo.extension));
+      FileSystem::_DeleteFile("demos", std::format("{}.{}.json", demoInfo.name, demoInfo.extension));
 
       // Reset our ui_demo_* dvars here, because the theater menu needs it.
       Dvar::Var("ui_demo_mapname").set("");
@@ -368,9 +379,46 @@ namespace Components
   {
     if (CurrentSelection < Demos.size())
     {
-      Command::Execute(std::format("demo {}", Demos[CurrentSelection].name), true);
+      const auto& demo (Demos[CurrentSelection]);
+      Command::Execute(std::format("demo {}.{}", demo.name, demo.extension), true);
       Command::Execute("demoback", false);
     }
+  }
+
+  // CL_PlayDemo_f() takes the name as is if it ends with our extension and
+  // otherwise appends that extension. We also take a name that ends with the
+  // x86 one as is, so that an x86 demo can be played by its full name.
+  //
+  int Theatre::CL_PlayDemo_f_CompareExtension(const char* nameEnd, const char* extension)
+  {
+    if (Game::I_stricmp(nameEnd, extension) == 0)
+    {
+      return 0;
+    }
+
+    return Game::I_stricmp(nameEnd, std::format(".{}", X86DemoExtension).c_str());
+  }
+
+  // And if there is no demo of that name with our extension, then try the
+  // x86 one, so that an x86 demo also plays by its bare name.
+  //
+  int Theatre::CL_PlayDemo_f_OpenDemo(const char* path, Game::fileHandle_t* file)
+  {
+    const int r (Game::FS_FOpenFileRead(path, file));
+
+    if (*file == 0)
+    {
+      const std::string_view p (path);
+      const auto extension (std::format(".{}", DemoExtension));
+
+      if (p.ends_with(extension))
+      {
+        const auto x86 (std::format("{}.{}", p.substr(0, p.size() - extension.size()), X86DemoExtension));
+        return Game::FS_FOpenFileRead(x86.c_str(), file);
+      }
+    }
+
+    return r;
   }
 
   unsigned int Theatre::GetDemoCount()
@@ -629,14 +677,10 @@ namespace Components
     CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games");
     CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 100, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
 
-    // Note that on x86 we also play Steam and retail demos (the steamdemo and
-    // retaildemo flags). The x64 game is the Steam build without the
-    // scrambled messages, and it records with its own protocol, so for now we
-    // only play its own demos.
-    //
-    // @@ Perhaps the x86 demos could go through Compatibility's translation
-    //    as well, since they hold what an x86 server sent. We haven't tried
-    //    that yet.
+    // Note that on x86 we also play the demos of the Steam and retail games
+    // (the steamdemo and retaildemo flags), which need their own reads of
+    // the messages and fixes of the snapshots. The x64 build doesn't port
+    // those yet, so it plays IW4x demos only, its own and x86's.
     //
     // Note also that x64 inlines CG_ReadNextSnapshot() into
     // CG_ProcessSnapshots() twice, hence the two hooks.
@@ -668,6 +712,11 @@ namespace Components
     // Fix issue with locationSelectionInfo by disabling it
     Utils::Hook(0x14010130E, CL_WriteDemoClientArchive_Hk, HOOK_CALL).install()->quick();
     Utils::Hook(0x1400DF280, CG_CompassDrawPlayerMapLocationSelector_Stub, HOOK_CALL).install()->quick();
+
+    // Play the x86 demos as well (see DemoExtension).
+    //
+    Utils::Hook(0x1400FC9F1, CL_PlayDemo_f_CompareExtension, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400FCA36, CL_PlayDemo_f_OpenDemo, HOOK_CALL).install()->quick();
 
     // Hook commands to enforce metadata generation
     Utils::Hook(0x1400FCEF6, RecordStub, HOOK_CALL).install()->quick();
