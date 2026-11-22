@@ -93,6 +93,41 @@ namespace Game
   typedef void (*Dvar_ClearModified_t) (const dvar_t* dvar);
   extern Dvar_ClearModified_t Dvar_ClearModified;
 
+  // The pool that the game allocates its dvars from, in the order they were
+  // registered.
+  //
+  constexpr int DVAR_COUNT = 0x1000;
+
+  extern dvar_t* dvarPool;
+
+  // Register a new dvar, or register an existing one again, which is what
+  // every Dvar_Register*() function comes down to.
+  //
+  // Note that the type is a byte on x64, and that the value and the domain
+  // are passed by pointer.
+  //
+  typedef dvar_t*(*Dvar_RegisterNew_t)(const char* dvarName, unsigned char type, unsigned int flags, const DvarValue* value, const DvarLimits* domain, const char* description);
+  extern Dvar_RegisterNew_t Dvar_RegisterNew;
+
+  typedef void(*Dvar_Reregister_t)(dvar_t* dvar, const char* dvarName, unsigned char type, unsigned int flags, const DvarValue* resetValue, const DvarLimits* domain, const char* description);
+  extern Dvar_Reregister_t Dvar_Reregister;
+
+  // Return the description of the dvar, or nullptr if it has none.
+  //
+  // Note that x64 drops the description field from dvar_t, even though
+  // every registration still passes one down to Dvar_RegisterNew() and
+  // Dvar_Reregister(), which simply ignore it. So we keep the descriptions
+  // ourselves, in a table that parallels the pool, and Components::Dvar
+  // fills it in from those two functions (see Dvar_SetDescription()).
+  //
+  const char* Dvar_GetDescription(const dvar_t* dvar);
+
+  // Set the description of the dvar. Like x86, we keep the pointer rather
+  // than a copy, so it has to outlive the dvar, which every caller's string
+  // literal does.
+  //
+  void Dvar_SetDescription(const dvar_t* dvar, const char* description);
+
   extern const dvar_t** com_developer;
   extern const dvar_t** com_logfile;
   extern const dvar_t** com_developer_script;

@@ -39,6 +39,12 @@ namespace Components
     static Var Name;
 
   private:
+    static Game::Dvar_RegisterNew_t Dvar_RegisterNew_Original;
+    static Game::Dvar_Reregister_t Dvar_Reregister_Original;
+
+    static Game::dvar_t* Dvar_RegisterNew_Hk(const char* dvarName, unsigned char type, unsigned int flags, const Game::DvarValue* value, const Game::DvarLimits* domain, const char* description);
+    static void Dvar_Reregister_Hk(Game::dvar_t* dvar, const char* dvarName, unsigned char type, unsigned int flags, const Game::DvarValue* resetValue, const Game::DvarLimits* domain, const char* description);
+
     static const Game::dvar_t* Dvar_RegisterName(const char* dvarName, const char* value, std::uint16_t flags, const char* description);
     static const Game::dvar_t* Dvar_RegisterSVNetworkFps(const char* dvarName, int value, int min, int max, std::uint16_t flags, const char* description);
     static const Game::dvar_t* Dvar_RegisterDrawFps(const char* dvarName, const char** valueList, int defaultIndex, std::uint16_t flags, const char* description);

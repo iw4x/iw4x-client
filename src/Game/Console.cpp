@@ -1114,6 +1114,23 @@ namespace Game
       return nullptr;
     }
 
+    // Return the number of lines of the description.
+    //
+    int Con_GetDescriptionLineCount(const char* description)
+    {
+      int lineCount(1);
+
+      for (const char* p(description); *p != '\0'; ++p)
+      {
+        if (*p == '\n')
+        {
+          ++lineCount;
+        }
+      }
+
+      return lineCount;
+    }
+
     void ConDrawInput_DetailedDvarMatch(const dvar_t* dvar, void*)
     {
       if (!Con_IsAutoCompleteMatch(dvar->name, conDrawInputGlob.inputText, conDrawInputGlob.inputTextLen) ||
@@ -1149,10 +1166,24 @@ namespace Game
       int domainLineCount;
       Dvar_DomainToString(dvar->type, dvar->domain, domain, sizeof(domain), &domainLineCount);
 
-      // Note that x86 also draws the description above the domain, but x64
-      // dvars have none.
+      // The description goes above the domain, in the same box. Note that on
+      // x64 it comes from our own table (see Dvar_GetDescription()).
       //
-      ConDrawInput_Box(domainLineCount + 1, (*con_inputHintBoxColor)->current.vector);
+      const char* description(Dvar_GetDescription(dvar));
+      const int descriptionLineCount(description != nullptr ? Con_GetDescriptionLineCount(description) : 0);
+
+      ConDrawInput_Box(descriptionLineCount + domainLineCount + 1, (*con_inputHintBoxColor)->current.vector);
+
+      if (description != nullptr)
+      {
+        ConDrawInput_Text(description, colorWhite);
+
+        for (int i(0); i < descriptionLineCount; ++i)
+        {
+          ConDrawInput_NextLine();
+        }
+      }
+
       ConDrawInput_Text(domain, colorDomain);
       ConDrawInput_NextLine();
 

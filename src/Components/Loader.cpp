@@ -110,9 +110,13 @@ namespace Components
     //
     Register(new Singleton());
 
+    // Note that Dvar has to come before any component that registers a dvar
+    // (Auth does), so that the dvar keeps its description (see
+    // Dvar::Dvar()).
+    //
+    Register(new Dvar());
     Register(new Auth());
     Register(new Command());
-    Register(new Dvar());
     Register(new Exception());
     Register(new IPCPipe());
     Register(new Network());

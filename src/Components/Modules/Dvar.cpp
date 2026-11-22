@@ -5,6 +5,9 @@ namespace Components
 {
   Dvar::Var Dvar::Name;
 
+  Game::Dvar_RegisterNew_t Dvar::Dvar_RegisterNew_Original;
+  Game::Dvar_Reregister_t Dvar::Dvar_Reregister_Original;
+
   Dvar::Var::Var(const std::string& dvarName)
     : dvar_(Game::Dvar_FindVar(dvarName.data()))
   {
@@ -202,6 +205,31 @@ namespace Components
     return Game::Dvar_RegisterFloat(dvarName, value, min, max, flag, description);
   }
 
+  // A new dvar takes the description it's registered with, even if that's
+  // none, the same as on x86.
+  //
+  Game::dvar_t* Dvar::Dvar_RegisterNew_Hk(const char* dvarName, unsigned char type, unsigned int flags, const Game::DvarValue* value, const Game::DvarLimits* domain, const char* description)
+  {
+    Game::dvar_t* dvar (Dvar_RegisterNew_Original(dvarName, type, flags, value, domain, description));
+    Game::Dvar_SetDescription(dvar, description);
+    return dvar;
+  }
+
+  // An existing dvar only takes a description if the registration comes with
+  // one, again the same as on x86. Note that this is also how a dvar that a
+  // config created (with "External Dvar") gets its real description once the
+  // code that owns it registers it.
+  //
+  void Dvar::Dvar_Reregister_Hk(Game::dvar_t* dvar, const char* dvarName, unsigned char type, unsigned int flags, const Game::DvarValue* resetValue, const Game::DvarLimits* domain, const char* description)
+  {
+    Dvar_Reregister_Original(dvar, dvarName, type, flags, resetValue, domain, description);
+
+    if (description != nullptr)
+    {
+      Game::Dvar_SetDescription(dvar, description);
+    }
+  }
+
   const Game::dvar_t* Dvar::Dvar_RegisterName(const char* dvarName, const char* /*value*/, std::uint16_t flags, const char* description)
   {
     // Name watcher
@@ -382,6 +410,15 @@ namespace Components
 
   Dvar::Dvar()
   {
+    // Keep the dvar descriptions, which x64 drops (see
+    // Game::Dvar_GetDescription()). Note that this has to come before any
+    // dvar gets registered, ours below included, since a description we
+    // miss is gone for good. Which is also why Dvar is one of the first
+    // components we load.
+    //
+    Dvar_RegisterNew_Original = Utils::Hook::Detour(0x140284790, 5, &Dvar_RegisterNew_Hk);
+    Dvar_Reregister_Original = Utils::Hook::Detour(0x140284FC0, 5, &Dvar_Reregister_Hk);
+
     // x64 no longer registers sv_cheats in Dvar_Init() but still reads it by
     // name, so we register it ourselves, with the x86 flags.
     //

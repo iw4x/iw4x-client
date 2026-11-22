@@ -23,6 +23,32 @@ namespace Game
   Dvar_ClearModified_t Dvar_ClearModified = Dvar_ClearModified_t(0x140283440);
   Dvar_Reset_t Dvar_Reset = Dvar_Reset_t(0x140285260);
 
+  Dvar_RegisterNew_t Dvar_RegisterNew = Dvar_RegisterNew_t(0x140284790);
+  Dvar_Reregister_t Dvar_Reregister = Dvar_Reregister_t(0x140284FC0);
+
+  dvar_t* dvarPool = reinterpret_cast<dvar_t*>(0x1466818E0);
+
+  namespace
+  {
+    // The descriptions of the dvars in the pool, by their index.
+    //
+    const char* dvarDescriptions[DVAR_COUNT];
+  }
+
+  const char* Dvar_GetDescription(const dvar_t* dvar)
+  {
+    assert(dvar >= dvarPool && dvar < dvarPool + DVAR_COUNT);
+
+    return dvarDescriptions[dvar - dvarPool];
+  }
+
+  void Dvar_SetDescription(const dvar_t* dvar, const char* description)
+  {
+    assert(dvar >= dvarPool && dvar < dvarPool + DVAR_COUNT);
+
+    dvarDescriptions[dvar - dvarPool] = description;
+  }
+
   Dvar_SetFromStringByName_t Dvar_SetFromStringByName = Dvar_SetFromStringByName_t(0x140285A20);
   Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource = Dvar_SetFromStringByNameFromSource_t(0x140285A80);
   Dvar_SetFromStringFromSource_t Dvar_SetFromStringFromSource = Dvar_SetFromStringFromSource_t(0x140285AF0);
