@@ -241,5 +241,11 @@ targets:static_library ("oat",
     "__STDC_WANT_LIB_EXT1__=1"
   },
 
+  -- Note that our debug build defines DEBUG, which OAT has as the name of a
+  -- log level (see src/Utils/Utils/Logging/Log.h). So we take it back for
+  -- OAT, which doesn't use it otherwise.
+  --
+  undefines = {"DEBUG"},
+
   export = {}
 })
