@@ -15,9 +15,9 @@ namespace Components
 
     constexpr uintptr_t ImageBase = 0x140000000;
 
-    // On x64 the client's gameState_t lives inside clientActive_t...
+    // On x64 the client's gameState_t lives inside clientStatic_t...
     //
-    constexpr uintptr_t ClientActive = 0x140C5AC20;
+    constexpr uintptr_t ClientStatic = 0x140C5AC20;
     constexpr uintptr_t ClientGameState = 0x140C9B960;
 
     constexpr uint32_t ClientOffsetsSize = ConfigStrings::BASEGAME_MAX_CONFIGSTRINGS * sizeof(int);
@@ -76,7 +76,7 @@ namespace Components
   void ConfigStrings::PatchConfigStrings()
   {
     // The game keeps both the client's and the server's configstrings in
-    // fixed-size arrays inside bigger structures (clientActive_t and server_t),
+    // fixed-size arrays inside bigger structures (clientStatic_t and server_t),
     // so there is no room to grow them where they are. Instead we move both to
     // our own memory and point every reference at it. We allocate near the
     // image since most references are 32-bit displacements from the next
@@ -97,7 +97,7 @@ namespace Components
     //
     // The same, reached from the image base...
     //
-    // ...and from clientActive_t, all of which are in CL_ParseGamestate().
+    // ...and from clientStatic_t, all of which are in CL_ParseGamestate().
     //
     // The server's configstrings, reached from the next instruction, in
     // SV_SendClientGameState(), SV_SpawnServer(), and the functions that get
@@ -138,7 +138,7 @@ namespace Components
       {0x1400FFF49, 7, 0x140C9B960}, {0x1400FFFFC, 7, 0x140C9B960}, {0x140100084, 7, 0x140C9B960}
     })
     {
-      Utils::Hook::Rebase(s.place, s.length, ClientActive, s.target, Moved(s.target));
+      Utils::Hook::Rebase(s.place, s.length, ClientStatic, s.target, Moved(s.target));
     }
 
     for (const Reference& s: std::initializer_list<Reference>

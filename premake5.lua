@@ -305,7 +305,10 @@ project "iw4x"
 
   -- BotLib precompiler.
   --
-  -- We leave the precompiler of the BotLib scripts out of the x64 build.
+  -- We leave the precompiler of the BotLib scripts out of the x64 build,
+  -- since x64 compiles the game's precompiler out. The two directives it
+  -- adds for the menus are in the OAT shim instead (see
+  -- RewriteElifdef() in src/Components/Modules/OAT/Shim.cpp).
   --
   removefiles
   {
