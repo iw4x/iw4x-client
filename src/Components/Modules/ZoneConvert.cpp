@@ -132,6 +132,8 @@ namespace zone
     const size_t preamble_size (8 + 4 + 1 + 8);
     const size_t authed_size (0x2000);
     const int zone_version (276);
+    const int alpha_version_first (316);
+    const int alpha_version_last (360);
 
     struct magic_type
     {
@@ -203,6 +205,21 @@ namespace zone
       //
       int v;
       memcpy (&v, h + 8, sizeof (v));
+
+      // Pre-release zones (some of the IW4x DLC maps) have their own
+      // versions and are always signed. We can't run the pointer test on
+      // them since, from 319 on, their stream is encrypted. But they only
+      // ever existed for the x86 game, so the header alone is enough to
+      // tell that they need converting. The converter then reads them in
+      // their old layouts.
+      //
+      if (v >= alpha_version_first && v <= alpha_version_last)
+      {
+        if (memcmp (h, "IWff0100", 8) != 0)
+          return nullopt;
+
+        return arch::x86;
+      }
 
       if (v != zone_version)
         return nullopt;
