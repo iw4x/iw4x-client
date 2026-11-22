@@ -83,12 +83,21 @@ namespace Components
       return;
     }
 
-    const auto key = Game::Key_StringToKeynum(params.get(1));
+    auto key = Game::Key_StringToKeynum(params.get(1));
     if (key == -1)
     {
       Logger::Print("\"{}\" isn't a valid key\n", params.get(1));
       return;
     }
+
+    // The game (x86 and x64 alike) binds the lower case of a letter, which
+    // is the key the key events come with. The config, on the other hand,
+    // names the keys in upper case, so without this every letter from it
+    // would end up bound in a slot that no key press ever reaches.
+    //
+    // Note that unbind doesn't do this in either game, so neither does ours.
+    //
+    key = std::tolower(key);
 
     if (params.size() == 2)
     {
