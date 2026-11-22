@@ -533,9 +533,29 @@ namespace Components
     Utils::Hook(0x1401ADD54, 0x1401ADEC8, HOOK_JUMP).install()->quick();
 
     // Note that on x86 we also remove the 'impure stats' check, which x64
-    // compiles out. And there we default sv_pure to 0 as well as remove the
-    // activeAction execution and the bind protection, none of which x64 has.
+    // compiles out. And there we remove the activeAction execution and the
+    // bind protection, neither of which x64 has.
     //
+
+    // Bring back sv_pure, defaulting to 0 the same as on x86.
+    //
+    // x64 compiles the dvar out but not the checks, which now read a
+    // constant 1 through a pointer (0x140423E48), so every server is pure.
+    // A pure server lists its iwds and drops any client that references an
+    // iwd outside the list (EXE_UNPURECLIENTDETECTED). And since reading a
+    // file other than a .cfg, .menu, and the like from one of our iwds counts
+    // as referencing it, which the raw weapon files do, even the host's own
+    // client of a private match ends up dropped. So we register the dvar the
+    // way x86 does and point the game at its value instead.
+    //
+    // Note that the pointer at 0x14041F030 refers to the same constant, but
+    // as far as we can tell it's another folded dvar that merely happens to
+    // be 1 as well, so we leave it alone.
+    //
+    {
+      auto* sv_pure (Dvar::Register<bool>("sv_pure", false, Game::DVAR_CODINFO | Game::DVAR_SERVERINFO, "Cannot use modified IWD files").get<Game::dvar_t*>());
+      Utils::Hook::Set<bool*>(0x140423E48, &sv_pure->current.enabled);
+    }
 
     // require Windows 6 (Vista)
     Utils::Hook::Set<BYTE>(0x1402A3B1B, 6);
