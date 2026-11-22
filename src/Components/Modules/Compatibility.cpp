@@ -63,6 +63,12 @@ namespace Components
     // compiled out, so we handle it ourselves under a letter that's free on
     // x64 (see CG_DestroyDynEntCommand()).
     //
+    // Note also that T, which x86 sends as X, is the position that the
+    // predictStreamPos script method sends, and neither game's client does
+    // anything with it (both cgames ignore the letter). Presumably it's a
+    // leftover of the consoles' streaming. We translate it anyway, so that it
+    // goes over the wire the same as from an x86 server rather than empty.
+    //
     using ServerCommandLetter = std::pair<char, char>;
 
     constexpr ServerCommandLetter ServerCommandLetters[]
@@ -74,7 +80,7 @@ namespace Components
       {'y', 'C'}, {'z', 'D'}, {'A', 'E'}, {'B', 'F'}, {'C', 'G'}, {'D', 'H'},
       {'E', 'I'}, {'F', 'J'}, {'G', 'M'}, {'H', 'L'}, {'J', 'N'}, {'K', 'O'},
       {'M', 'Q'}, {'N', 'R'}, {'O', 'S'}, {'P', 'T'}, {'Q', 'U'}, {'R', 'V'},
-      {'S', 'W'}, {'U', 'h'}, {'V', 'i'}, {'X', 'j'}
+      {'S', 'W'}, {'T', 'X'}, {'U', 'h'}, {'V', 'i'}, {'X', 'j'}
     };
 
     constexpr char DESTROY_DYNENT_COMMAND = 'X';
