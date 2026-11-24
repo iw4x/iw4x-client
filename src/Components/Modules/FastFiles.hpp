@@ -36,6 +36,12 @@ namespace Components
     static std::atomic<unsigned int> CurrentZone;
     static std::atomic<unsigned int> MaxZones;
 
+    // The index of the mod's zone as of the last time we looked, or -1 (see
+    // ModZoneIndex()).
+    //
+    static std::atomic<int> ModZone;
+    static int FindModZoneIndex();
+
     static bool StreamRead;
 
     static Dvar::Var g_loadingInitialZones;
