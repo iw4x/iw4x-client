@@ -297,6 +297,18 @@ namespace Components
 
   void FileSystem::FsRestartSync(int localClientNum, int checksumFeed)
   {
+    // Let the database thread finish what it's loading before we take the
+    // lock. FS_Restart() waits for it anyway, but the database thread reads
+    // the images of the zones it loads through us (see LoadTextureSync()), so
+    // waiting with the lock held deadlocks. Which is what happens when the
+    // command line starts a map (+map) while the startup zones, mod.ff among
+    // them, are still loading.
+    //
+    while (!Game::Sys_IsDatabaseReady())
+    {
+      std::this_thread::sleep_for(1ms);
+    }
+
     std::lock_guard _(FSMutex);
     Maps::GetUserMap()->freeIwd();
     Utils::Hook::Call<void(int, int)>(0x1402764D0)(localClientNum, checksumFeed); // FS_Restart
@@ -758,7 +770,83 @@ namespace Components
 
 bool FileSystem_VidRestarted = false;
 
+namespace
+{
+  // The fs_game that the command line sets, the way Com_StartupVariable()
+  // finds it: each '+' starts a command, and we are after "set fs_game <dir>"
+  // (or seta).
+  //
+  std::string GetStartupFsGame()
+  {
+    std::string fsGame;
+
+    for (const auto& line : Utils::String::Split(GetCommandLineA(), '+'))
+    {
+      std::vector<std::string> tokens;
+      std::string token;
+      auto quoted = false;
+
+      for (const auto c : line)
+      {
+        if (c == '"')
+        {
+          quoted = !quoted;
+        }
+        else if (!quoted && std::isspace(static_cast<unsigned char>(c)))
+        {
+          if (!token.empty())
+          {
+            tokens.emplace_back(std::move(token));
+            token.clear();
+          }
+        }
+        else
+        {
+          token += c;
+        }
+      }
+
+      if (!token.empty())
+      {
+        tokens.emplace_back(std::move(token));
+      }
+
+      if (tokens.size() >= 3 &&
+        (Utils::String::ToLower(tokens[0]) == "set" || Utils::String::ToLower(tokens[0]) == "seta") &&
+        Utils::String::ToLower(tokens[1]) == "fs_game")
+      {
+        fsGame = tokens[2];
+      }
+    }
+
+    return fsGame;
+  }
+}
+
 void FileSystem_RegisterFolders()
 {
+  // Note that on x64 the +set fs_game of the command line isn't applied yet
+  // when the file system first starts (x86 has it by then), so FS_Startup()
+  // leaves the mod's directory out and FastFiles::LoadInitialZones() doesn't
+  // load its mod.ff. A map from the command line (+map, +devmap) then loads
+  // without it and hangs on the mod's scripts. So we apply it ourselves, right
+  // before FS_Startup() gets to fs_game. Only the first time, though, so as
+  // to not undo someone unloading the mod later on.
+  //
+  static auto appliedStartupFsGame = false;
+
+  if (!appliedStartupFsGame)
+  {
+    appliedStartupFsGame = true;
+
+    if (*Game::fs_gameDirVar && !*(*Game::fs_gameDirVar)->current.string)
+    {
+      if (const auto fsGame = GetStartupFsGame(); !fsGame.empty())
+      {
+        Game::Dvar_SetString(*Game::fs_gameDirVar, fsGame.data());
+      }
+    }
+  }
+
   Components::FileSystem::RegisterFolders();
 }
