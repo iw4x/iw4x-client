@@ -29,51 +29,6 @@ namespace Components
     static_assert(sizeof(Game::MenuList) == Layout::MenuList);
     static_assert(sizeof(Game::listBoxDef_s) == Layout::listBoxDef_s);
     static_assert(sizeof(Game::multiDef_s) == Layout::multiDef_s);
-
-    // The index of the zone of the mod's fastfile, or -1 when it's not
-    // loaded.
-    //
-    int GetModZoneIndex()
-    {
-      const auto index = Game::DB_GetZoneIndex("mod");
-      return index > 0 ? index : -1;
-    }
-
-    // The menu of this name of the mod's fastfile, if it has one. We let such
-    // menus be, rather than replacing them with a copy from disk: the disk
-    // would otherwise always win, so a mod could not ship a menu in its mod.ff
-    // that IW4x also ships loose in its own IWDs (main_text, pc_options_*, ...).
-    //
-    Game::menuDef_t* FindModZoneMenu(const char* name)
-    {
-      const auto modZoneIndex = GetModZoneIndex();
-
-      if (modZoneIndex < 0)
-      {
-        return nullptr;
-      }
-
-      Game::menuDef_t* menu = nullptr;
-
-      Game::Sys_LockRead(Game::db_hashCritSect);
-
-      // Note that the entry we find may be the one of another zone that
-      // overrides ours, so we follow the overrides as well.
-      //
-      for (auto* entry = Game::DB_FindXAssetEntry(Game::ASSET_TYPE_MENU, name); entry;
-        entry = entry->nextOverride ? &Game::g_assetEntryPool[entry->nextOverride] : nullptr)
-      {
-        if (static_cast<unsigned char>(entry->zoneIndex) == modZoneIndex)
-        {
-          menu = entry->asset.header.menu;
-          break;
-        }
-      }
-
-      Game::Sys_UnlockRead(Game::db_hashCritSect);
-
-      return menu;
-    }
   }
 
   /// This variable dispenses us from the horror of having a text file in IWD containing the menus we want to load
@@ -194,11 +149,14 @@ namespace Components
       return;
     }
 
-    // Leave the menus the mod's fastfile has alone (see FindModZoneMenu()).
+    // Leave the menus the mod's fastfile has alone, rather than replacing them
+    // with a copy from disk: the disk would otherwise always win, so a mod
+    // could not ship a menu in its mod.ff that IW4x also ships loose in its
+    // own IWDs (main_text, pc_options_*, ...).
     //
     for (int i = 0; i < static_cast<int>(menus.size()); i++)
     {
-      auto* modMenu = FindModZoneMenu(menus[i]->window.name);
+      auto* modMenu = FastFiles::FindModZoneAsset(Game::ASSET_TYPE_MENU, menus[i]->window.name).menu;
 
       if (!modMenu)
       {
@@ -703,7 +661,7 @@ namespace Components
     // case when the UI comes up along with it, we couldn't tell which menus it
     // has. So we do this all over again once it has (see the constructor).
     //
-    ReloadedWithModZone = GetModZoneIndex() >= 0 && FastFiles::Ready();
+    ReloadedWithModZone = FastFiles::ModZoneIndex() >= 0 && FastFiles::Ready();
 
     // Step 3 - Keep supporting data around
 
@@ -776,14 +734,14 @@ namespace Components
     Components::Events::AfterUIInit(ReloadDiskMenus_OnUIInitialization);
 
     // Reload once more after the mod's fastfile finished loading, so that we
-    // can tell which menus it has (see FindModZoneMenu()). The database may
+    // can tell which menus it has (see LoadScriptMenu()). The database may
     // tell us so on the render thread, so the reload goes to the main one.
     //
     Events::AfterDatabaseLoaded([]
     {
       Scheduler::Once([]
       {
-        if (UIInitialized && !ReloadedWithModZone && GetModZoneIndex() >= 0 && FastFiles::Ready())
+        if (UIInitialized && !ReloadedWithModZone && FastFiles::ModZoneIndex() >= 0 && FastFiles::Ready())
         {
           DebugPrint("The mod's fastfile finished loading, reloading menus");
           ReloadDiskMenus();

@@ -11,6 +11,18 @@ namespace Components
     static std::string Current();
     static bool Ready();
     static bool Exists(const std::string& file);
+
+    // The index of the zone of the mod's fastfile, or -1 when it's not
+    // loaded.
+    //
+    static int ModZoneIndex();
+
+    // The asset of this type and name that the mod's fastfile has, if it has
+    // one, even when another zone's asset of the same name is the one the
+    // database returns.
+    //
+    static Game::XAssetHeader FindModZoneAsset(Game::XAssetType type, const char* name);
+
     // Return true if zone ships with the install (or the current mod), in
     // which case a usermap must never be allowed to take its name.
     //
