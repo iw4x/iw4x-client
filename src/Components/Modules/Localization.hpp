@@ -19,7 +19,15 @@ namespace Components
   private:
     static std::recursive_mutex LocalizeMutex;
     static std::unordered_map<std::string, Game::LocalizeEntry*> LocalizeMap;
+
+    // The keys of LocalizeMap whose string we last read from a string file
+    // rather than set ourselves (see Get()).
+    //
+    static std::unordered_set<std::string> FileStrings;
+
     static Dvar::Var UseLocalization;
+
+    static void Set(const std::string& psLocalReference, const std::string& psNewString, bool fromFile);
 
     static std::function<void(Game::LocalizeEntry*)> ParseCallback;
 

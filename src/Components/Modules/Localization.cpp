@@ -11,11 +11,17 @@ namespace Components
   Dvar::Var Localization::UseLocalization;
   void(*Localization::SEH_UpdateLanguageInfo_Original)();
   std::unordered_map<std::string, Game::LocalizeEntry*> Localization::LocalizeMap;
+  std::unordered_set<std::string> Localization::FileStrings;
 
   std::optional<std::string> Localization::PrefixOverride;
   std::function<void(Game::LocalizeEntry*)> Localization::ParseCallback;
 
   void Localization::Set(const std::string& psLocalReference, const std::string& psNewString)
+  {
+    Set(psLocalReference, psNewString, false);
+  }
+
+  void Localization::Set(const std::string& psLocalReference, const std::string& psNewString, const bool fromFile)
   {
     std::lock_guard _(LocalizeMutex);
     Utils::Memory::Allocator* allocator = Utils::Memory::GetAllocator();
@@ -24,6 +30,15 @@ namespace Components
     if (PrefixOverride.has_value())
     {
       key.insert(0, PrefixOverride.value());
+    }
+
+    if (fromFile)
+    {
+      FileStrings.insert(key);
+    }
+    else
+    {
+      FileStrings.erase(key);
     }
 
     if (LocalizeMap.contains(key))
@@ -77,26 +92,33 @@ namespace Components
     }
 
     Game::LocalizeEntry* entry = nullptr;
+    auto fromFile = false;
 
     {
       std::lock_guard _(LocalizeMutex);
 
-      if (LocalizeMap.contains(key))
+      if (const auto i = LocalizeMap.find(key); i != LocalizeMap.end())
       {
-        entry = LocalizeMap[key];
+        entry = i->second;
+        fromFile = FileStrings.contains(i->first);
       }
     }
 
-    // Next the strings of the mod's fastfile, which should win over the ones
-    // of the other zones the same way the mod's string files above do. The
-    // database won't have it that way, though: a zone of higher priority
-    // keeps its string over the mod's (localized_ui_mp, for one), and one
-    // that loads after the mod's replaces it (IW4x's own zones, say). The
-    // mod's string is still in there, just behind theirs.
+    // Next the strings of the mod's fastfile, which win over everything but
+    // the strings we set ourselves: over the string files (the mod's own
+    // included, the same as its menus do) and over the other zones. The
+    // database won't have the latter, though: a zone of higher priority keeps
+    // its string over the mod's (localized_ui_mp, for one), and one that loads
+    // after the mod's replaces it (IW4x's own zones, say). The mod's string is
+    // still in there, just behind theirs.
     //
-    if ((!entry || !entry->value) && key)
+    if ((!entry || !entry->value || fromFile) && key)
     {
-      entry = FastFiles::FindModZoneAsset(Game::ASSET_TYPE_LOCALIZE_ENTRY, key).localize;
+      if (auto* modEntry = FastFiles::FindModZoneAsset(Game::ASSET_TYPE_LOCALIZE_ENTRY, key).localize;
+          modEntry && modEntry->value)
+      {
+        entry = modEntry;
+      }
     }
 
     if (!entry || !entry->value)
@@ -608,7 +630,7 @@ namespace Components
 
         if (english || !forceEnglish)
         {
-          Set(reference, string);
+          Set(reference, string, true);
         }
       }
       else
