@@ -418,8 +418,7 @@ namespace Components
     // until we send ours again, so such a menu should probably run the
     // UpdateClasses UI script after it.
     //
-    Utils::Hook::Set<BYTE>(0x140266B54, 0xB0);
-    Utils::Hook::Set<BYTE>(0x140266B55, 0x01);
+    Utils::Hook::Set<std::uint16_t>(0x140266B54, 0x01B0); // mov al, 1
     Utils::Hook::Nop(0x140266B56, 3);
 
     Utils::Hook(0x1401F7084, LiveStorage_DataSetValue_Stub, HOOK_CALL).install()->quick();
