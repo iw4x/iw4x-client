@@ -240,6 +240,9 @@ namespace Game
   typedef void(*UI_LoadArenas_t)();
   extern UI_LoadArenas_t UI_LoadArenas;
 
+  typedef void(*UI_LoadArenasFromFile_t)();
+  extern UI_LoadArenasFromFile_t UI_LoadArenasFromFile;
+
   typedef const char* (*UI_GetGameTypeDisplayName_t)(const char* pszGameType);
   extern UI_GetGameTypeDisplayName_t UI_GetGameTypeDisplayName;
 

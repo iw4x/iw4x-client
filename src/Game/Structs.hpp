@@ -9494,6 +9494,16 @@ namespace Game
     int active;
   };
 
+  static_assert(sizeof(mapInfo) == 0xB00);
+
+  // Our map entry is the game's with a longer map name at the end, so that
+  // every field the game knows about stays where it was.
+  //
+  static_assert(sizeof(newMapArena_t) == 0xB20);
+  static_assert(offsetof(newMapArena_t, oldMapName) == offsetof(mapInfo, mapLoadName));
+  static_assert(offsetof(newMapArena_t, other) == offsetof(mapInfo, mapCustomCount));
+  static_assert(offsetof(newMapArena_t, mapName) == sizeof(mapInfo));
+
   struct gameTypeInfo
   {
     char gameType[12];

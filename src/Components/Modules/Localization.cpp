@@ -1,5 +1,5 @@
 #include "Localization.hpp"
-#include "ArenaLength.hpp"
+#include "Arena.hpp"
 #include "AssetHandler.hpp"
 #include "Controller.hpp"
 #include "FastFiles.hpp"
@@ -404,11 +404,11 @@ namespace Components
     if (!Dedicated::IsEnabled())
       Game::UI_LoadArenas();
 
-    for (int i = 0; i < *Game::arenaCount; ++i)
+    for (const Game::newMapArena_t& entry : arena::maps())
     {
-      if (!_stricmp(ArenaLength::NewArenas[i].mapName, mapName))
+      if (!_stricmp(entry.mapName, mapName))
       {
-        auto* uiName = &ArenaLength::NewArenas[i].uiName[0];
+        const auto* uiName = &entry.uiName[0];
         if ((uiName[0] == 'M' && uiName[1] == 'P') || (uiName[0] == 'P' && uiName[1] == 'A')) // MPUI/PATCH
         {
           return Get(uiName);

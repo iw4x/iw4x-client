@@ -11,7 +11,7 @@
 #include "Modules/Sentry.hpp"
 #include "Modules/UIScript.hpp"
 #include "Modules/ConfigStrings.hpp"
-#include "Modules/ArenaLength.hpp"
+#include "Modules/Arena.hpp"
 #include "Modules/AssetHandler.hpp"
 #include "Modules/Bans.hpp"
 #include "Modules/Bindings.hpp"
@@ -125,7 +125,7 @@ namespace Components
     Register(new Sentry());
     Register(new UIScript());
     Register(new ConfigStrings());
-    Register(new ArenaLength());
+    Register(new arena());
     Register(new AssetHandler());
     Register(new Bans());
     Register(new Bindings());

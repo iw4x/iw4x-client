@@ -1,5 +1,5 @@
 #include "Maps.hpp"
-#include "ArenaLength.hpp"
+#include "Arena.hpp"
 #include "AssetHandler.hpp"
 #include "Events.hpp"
 #include "FastFiles.hpp"
@@ -434,21 +434,20 @@ namespace Components
     // True by default - cause some maps won't have an arenafile entry
     dependencies.requiresTeamZones = true;
 
-    for (int i = 0; i < *Game::arenaCount; ++i)
+    for (const Game::newMapArena_t& entry : arena::maps())
     {
-      Game::newMapArena_t* arena = &ArenaLength::NewArenas[i];
-      if (arena->mapName == map)
+      if (entry.mapName == map)
       {
         // If it's in the arena file, surely it's a vanilla map that doesn't need teams...
         dependencies.requiresTeamZones = false;
 
         for (std::size_t j = 0; j < std::extent_v<decltype(Game::newMapArena_t::keys)>; ++j)
         {
-          const auto* key = arena->keys[j];
-          const auto* value = arena->values[j];
+          const auto* key = entry.keys[j];
+          const auto* value = entry.values[j];
           if (key == "dependency"s)
           {
-            dependencies.requiredMaps = Utils::String::Split(arena->values[j], ' ');
+            dependencies.requiredMaps = Utils::String::Split(entry.values[j], ' ');
           }
           else if (key == "allieschar"s)
           {
@@ -910,16 +909,15 @@ namespace Components
     const std::string fieldName = Game::SL_ConvertToString(Game::Scr_GetConstString(1));
 
     Game::UI_UpdateArenas();
-    for (int i = 0; i < *Game::arenaCount; ++i)
+    for (const Game::newMapArena_t& entry : arena::maps())
     {
-      Game::newMapArena_t* arena = &ArenaLength::NewArenas[i];
-      if (arena->mapName == mapName)
+      if (entry.mapName == mapName)
       {
         // Found the map!
         for (std::size_t j = 0; j < std::extent_v<decltype(Game::newMapArena_t::keys)>; ++j)
         {
-          const auto* key = arena->keys[j];
-          const auto* value = arena->values[j];
+          const auto* key = entry.keys[j];
+          const auto* value = entry.values[j];
 
           // Foudn the field!
           if (key == fieldName)
@@ -944,10 +942,9 @@ namespace Components
     Game::Scr_MakeArray();
 
     Game::UI_UpdateArenas();
-    for (int i = 0; i < *Game::arenaCount; ++i)
+    for (const Game::newMapArena_t& entry : arena::maps())
     {
-      Game::newMapArena_t* arena = &ArenaLength::NewArenas[i];
-      Game::Scr_AddString(arena->mapName);
+      Game::Scr_AddString(entry.mapName);
       Game::Scr_AddArray();
     }
   }

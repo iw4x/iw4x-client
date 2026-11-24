@@ -3,7 +3,7 @@
 #include "ClientCommand.hpp"
 #include "MapRotation.hpp"
 #include "Events.hpp"
-#include "ArenaLength.hpp"
+#include "Arena.hpp"
 
 using namespace Utils::String;
 
@@ -69,20 +69,18 @@ namespace Components
   // x64 compiles out SEH_ReadVoteReference(), presumably along with the
   // rest of the vote that the later revision no longer had any use for. So
   // this is x86's. As there, we look the text up by its load name in the
-  // arenas, which ArenaLength keeps for the map list.
+  // arenas, which the arena component keeps for the map list.
   //
   const char* Vote::SEH_ReadVoteReference(const char* text, unsigned int* consumed)
   {
     Utils::Hook::Call<void()>(0x140269D20)(); // UI_UpdateArenas
 
-    for (auto i = 0; i < Game::sharedUiInfo->mapCount; ++i)
+    for (const Game::newMapArena_t& entry : arena::maps())
     {
-      const auto& arena (ArenaLength::NewArenas[i]);
-
-      *consumed = static_cast<unsigned int>(std::strlen(arena.mapName));
-      if (Game::I_strnicmp(text, arena.mapName, static_cast<int>(*consumed)) == 0)
+      *consumed = static_cast<unsigned int>(std::strlen(entry.mapName));
+      if (Game::I_strnicmp(text, entry.mapName, static_cast<int>(*consumed)) == 0)
       {
-        return Game::UI_SafeTranslateString(arena.uiName);
+        return Game::UI_SafeTranslateString(entry.uiName);
       }
     }
 
@@ -706,21 +704,24 @@ namespace Components
       }
     });
 
-    // Note that ArenaLength moves the map list, which on x86 we read from
-    // where the game no longer fills it.
+    // Note that ui_currentMap is a position in the map list as the menu shows
+    // it, which the game sorts by display name. So we have to go through the
+    // sorted list rather than index the arena file's order with it.
     //
     UIScript::Add("voteTypeMap", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
     {
-      Game::Cbuf_AddText(0, VA("callvote typemap %s %s\n", Game::sharedUiInfo->gameTypes[(*Game::ui_netGameType)->current.integer].gameType,
-        ArenaLength::NewArenas[(*Game::ui_currentMap)->current.integer].mapName));
+      if (const Game::newMapArena_t* map = arena::sorted_map((*Game::ui_currentMap)->current.integer))
+      {
+        Game::Cbuf_AddText(0, VA("callvote typemap %s %s\n", Game::sharedUiInfo->gameTypes[(*Game::ui_netGameType)->current.integer].gameType,
+          map->mapName));
+      }
     });
 
     UIScript::Add("voteMap", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
     {
-      if ((*Game::ui_currentMap)->current.integer >= 0 &&
-        (*Game::ui_currentMap)->current.integer < Game::sharedUiInfo->mapCount)
+      if (const Game::newMapArena_t* map = arena::sorted_map((*Game::ui_currentMap)->current.integer))
       {
-        Game::Cbuf_AddText(0, VA("callvote map %s\n", ArenaLength::NewArenas[(*Game::ui_currentMap)->current.integer].mapName));
+        Game::Cbuf_AddText(0, VA("callvote map %s\n", map->mapName));
       }
     });
 

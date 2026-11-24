@@ -22,15 +22,6 @@ namespace Utils
     std::mutex RelayMutex;
     std::vector<RelayPage> RelayPages;
 
-    // Return true if a rel32 branch whose next instruction is at next
-    // reaches target.
-    //
-    bool Reaches(uintptr_t next, uintptr_t target)
-    {
-      const intptr_t d = static_cast<intptr_t>(target - next);
-      return d >= std::numeric_limits<int32_t>::min() && d <= std::numeric_limits<int32_t>::max();
-    }
-
     // Allocate size bytes with protection, rounded up to whole pages, such
     // that a 32-bit displacement from place reaches each of them. Throw
     // std::runtime_error if there is no free spot in range.
@@ -47,7 +38,7 @@ namespace Utils
 
       auto tryAllocate = [place, size, protection] (uintptr_t a) -> uint8_t*
       {
-        if (!Reaches(place, a) || !Reaches(place, a + size))
+        if (!Hook::Reaches(place, a) || !Hook::Reaches(place, a + size))
         {
           return nullptr;
         }
@@ -133,7 +124,7 @@ namespace Utils
       {
         const uintptr_t b = reinterpret_cast<uintptr_t>(p.base);
 
-        if (p.used + padded <= p.size && Reaches(next, b) && Reaches(next, b + p.size))
+        if (p.used + padded <= p.size && Hook::Reaches(next, b) && Hook::Reaches(next, b + p.size))
         {
           page = &p;
           break;
@@ -171,7 +162,7 @@ namespace Utils
     {
       const uintptr_t n = reinterpret_cast<uintptr_t>(next);
 
-      if (Reaches(n, reinterpret_cast<uintptr_t>(target)))
+      if (Hook::Reaches(n, reinterpret_cast<uintptr_t>(target)))
       {
         return target;
       }
@@ -405,9 +396,20 @@ namespace Utils
     return t;
   }
 
+  bool Hook::Reaches(uintptr_t base, uintptr_t target)
+  {
+    const intptr_t d = static_cast<intptr_t>(target - base);
+    return d >= std::numeric_limits<int32_t>::min() && d <= std::numeric_limits<int32_t>::max();
+  }
+
   void* Hook::AllocateNear(uintptr_t place, size_t size)
   {
     return AllocateReachable(place, size, PAGE_READWRITE);
+  }
+
+  void Hook::FreeNear(void* p)
+  {
+    VirtualFree(p, 0, MEM_RELEASE);
   }
 
   void Hook::Replace32(uintptr_t place, size_t length, uint32_t from, uint32_t to)

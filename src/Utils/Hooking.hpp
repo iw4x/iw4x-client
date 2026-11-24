@@ -102,6 +102,11 @@ namespace Utils
     static void RedirectJump(void* place, void* stub);
     static void RedirectJump(uintptr_t place, void* stub);
 
+    // Return true if a 32-bit displacement from base reaches target. For a
+    // rip-relative operand, base is the address of the next instruction.
+    //
+    static bool Reaches(uintptr_t base, uintptr_t target);
+
     // Allocate size bytes of zeroed, read-write memory that a 32-bit
     // displacement from place reaches throughout. Throw std::runtime_error if
     // there is no free spot in range.
@@ -113,6 +118,10 @@ namespace Utils
     // have put it out of reach.
     //
     static void* AllocateNear(uintptr_t place, size_t size);
+
+    // Free memory that AllocateNear() returned.
+    //
+    static void FreeNear(void* p);
 
     // Return target or, if a 32-bit displacement from next doesn't reach it,
     // a relay near next that jumps to it. Throw std::runtime_error if there
