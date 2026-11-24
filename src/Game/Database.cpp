@@ -39,6 +39,8 @@ namespace Game
   FastCriticalSection* db_hashCritSect = reinterpret_cast<FastCriticalSection*>(0x14151B4B0);
 
   XZone* g_zones = reinterpret_cast<XZone*>(0x1415F81A0);
+  int* g_zoneCount = reinterpret_cast<int*>(0x1415FA1B8);
+  unsigned char* g_zoneHandles = reinterpret_cast<unsigned char*>(0x1415FA198);
   DBFile** g_loadFile = reinterpret_cast<DBFile**>(0x140D34610);
   unsigned int* g_zoneInfoCount = reinterpret_cast<unsigned int*>(0x1415FAC10);
   unsigned short* db_hashTable = reinterpret_cast<unsigned short*>(0x1415093A0);
@@ -107,15 +109,9 @@ namespace Game
 
   bool DB_IsZoneLoaded(const char* zone)
   {
-    int zoneCount = Utils::Hook::Get<int>(0x1415FA1B8);
-    char* zoneIndices = reinterpret_cast<char*>(0x1415FA198);
-    char* zoneData = reinterpret_cast<char*>(0x1415F81A0);
-
-    for (int i = 0; i < zoneCount; ++i)
+    for (int i = 0; i < *g_zoneCount; ++i)
     {
-      std::string name = zoneData + 4 + 0xA4 * (zoneIndices[i] & 0xFF);
-
-      if (name == zone)
+      if (!std::strcmp(g_zones[g_zoneHandles[i]].name, zone))
       {
         return true;
       }
@@ -126,15 +122,11 @@ namespace Game
 
   std::vector<std::string> DB_GetLoadedZones()
   {
-    int zoneCount = Utils::Hook::Get<int>(0x1415FA1B8);
-    char* zoneIndices = reinterpret_cast<char*>(0x1415FA198);
-    char* zoneData = reinterpret_cast<char*>(0x1415F81A0);
-
     std::vector<std::string> zones;
 
-    for (int i = 0; i < zoneCount; ++i)
+    for (int i = 0; i < *g_zoneCount; ++i)
     {
-      zones.emplace_back(zoneData + 4 + 0xA4 * (zoneIndices[i] & 0xFF));
+      zones.emplace_back(g_zones[g_zoneHandles[i]].name);
     }
 
     return zones;
