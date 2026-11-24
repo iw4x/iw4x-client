@@ -10,6 +10,7 @@ namespace Game
   DB_GetRawBuffer_t DB_GetRawBuffer = DB_GetRawBuffer_t(0x14012DD60);
   DB_GetRawFileLen_t DB_GetRawFileLen = DB_GetRawFileLen_t(0x14012DE90);
   DB_GetLoadedFraction_t DB_GetLoadedFraction = DB_GetLoadedFraction_t(0x140117CC0);
+  DB_SyncXAssets_t DB_SyncXAssets = DB_SyncXAssets_t(0x14012F970);
   DB_IsXAssetDefault_t DB_IsXAssetDefault = DB_IsXAssetDefault_t(0x14012E160);
   DB_LoadXAssets_t DB_LoadXAssets = DB_LoadXAssets_t(0x14012EC20);
   DB_FileExists_t DB_FileExists = DB_FileExists_t(0x14012D3A0);
