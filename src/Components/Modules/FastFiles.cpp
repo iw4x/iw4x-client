@@ -146,6 +146,44 @@ namespace Components
     return (Game::Sys_IsDatabaseReady() && Game::Sys_IsDatabaseReady2());
   }
 
+  int FastFiles::ModZoneIndex()
+  {
+    const auto index = Game::DB_GetZoneIndex("mod");
+    return index > 0 ? index : -1;
+  }
+
+  Game::XAssetHeader FastFiles::FindModZoneAsset(const Game::XAssetType type, const char* name)
+  {
+    Game::XAssetHeader header{};
+
+    const auto modZoneIndex = ModZoneIndex();
+
+    if (modZoneIndex < 0)
+    {
+      return header;
+    }
+
+    Game::Sys_LockRead(Game::db_hashCritSect);
+
+    // Note that the entry we find may be the one of a zone that overrides
+    // the mod's (one of a higher priority, or one that loads after it), so we
+    // follow the overrides as well.
+    //
+    for (auto* entry = Game::DB_FindXAssetEntry(type, name); entry;
+      entry = entry->nextOverride ? &Game::g_assetEntryPool[entry->nextOverride] : nullptr)
+    {
+      if (static_cast<unsigned char>(entry->zoneIndex) == modZoneIndex)
+      {
+        header = entry->asset.header;
+        break;
+      }
+    }
+
+    Game::Sys_UnlockRead(Game::db_hashCritSect);
+
+    return header;
+  }
+
   std::optional<std::string> FastFiles::GetInstalledZoneLocation(const char* file)
   {
     std::vector<std::string> paths;

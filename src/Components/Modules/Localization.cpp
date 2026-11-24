@@ -2,6 +2,7 @@
 #include "ArenaLength.hpp"
 #include "AssetHandler.hpp"
 #include "Controller.hpp"
+#include "FastFiles.hpp"
 #include "GSC/Script.hpp"
 
 namespace Components
@@ -63,36 +64,6 @@ namespace Components
     LocalizeMap[key] = entry;
   }
 
-  // The entry of this key that the mod's fastfile has, if it has one.
-  //
-  Game::LocalizeEntry* Localization::FindModZoneEntry(const char* key)
-  {
-    const auto modZoneIndex = Game::DB_GetZoneIndex("mod");
-
-    if (modZoneIndex <= 0)
-    {
-      return nullptr;
-    }
-
-    Game::LocalizeEntry* result = nullptr;
-
-    Game::Sys_LockRead(Game::db_hashCritSect);
-
-    for (auto* entry = Game::DB_FindXAssetEntry(Game::ASSET_TYPE_LOCALIZE_ENTRY, key); entry;
-      entry = entry->nextOverride ? &Game::g_assetEntryPool[entry->nextOverride] : nullptr)
-    {
-      if (static_cast<unsigned char>(entry->zoneIndex) == static_cast<unsigned int>(modZoneIndex))
-      {
-        result = entry->asset.header.localize;
-        break;
-      }
-    }
-
-    Game::Sys_UnlockRead(Game::db_hashCritSect);
-
-    return result;
-  }
-
   const char* Localization::Get(const char* key)
   {
     if (!UseLocalization.get<bool>()) return key;
@@ -125,7 +96,7 @@ namespace Components
     //
     if ((!entry || !entry->value) && key)
     {
-      entry = FindModZoneEntry(key);
+      entry = FastFiles::FindModZoneAsset(Game::ASSET_TYPE_LOCALIZE_ENTRY, key).localize;
     }
 
     if (!entry || !entry->value)
