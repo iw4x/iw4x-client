@@ -3,6 +3,7 @@
 #include <algorithm> // ranges::find_if()
 #include <cassert>
 #include <cstddef>   // offsetof()
+#include <cstdint>
 #include <format>    // format()
 #include <limits>    // numeric_limits
 #include <stdexcept> // length_error, runtime_error
@@ -102,8 +103,8 @@ namespace Components
     {
       uintptr_t place;
       size_t    length;
-      ptrdiff_t game;
-      ptrdiff_t ours;
+      int32_t   game;
+      int32_t   ours;
     };
 
     // A global array as IW4 has it, together with the instructions that depend
