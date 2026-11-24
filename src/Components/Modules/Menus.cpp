@@ -1,5 +1,6 @@
 #include "Menus.hpp"
 #include "Events.hpp"
+#include "FastFiles.hpp"
 
 #include "OAT/Shim.hpp"
 
@@ -28,10 +29,58 @@ namespace Components
     static_assert(sizeof(Game::MenuList) == Layout::MenuList);
     static_assert(sizeof(Game::listBoxDef_s) == Layout::listBoxDef_s);
     static_assert(sizeof(Game::multiDef_s) == Layout::multiDef_s);
+
+    // The index of the zone of the mod's fastfile, or -1 when it's not
+    // loaded.
+    //
+    int GetModZoneIndex()
+    {
+      const auto index = Game::DB_GetZoneIndex("mod");
+      return index > 0 ? index : -1;
+    }
+
+    // The menu of this name of the mod's fastfile, if it has one. We let such
+    // menus be, rather than replacing them with a copy from disk: the disk
+    // would otherwise always win, so a mod could not ship a menu in its mod.ff
+    // that IW4x also ships loose in its own IWDs (main_text, pc_options_*, ...).
+    //
+    Game::menuDef_t* FindModZoneMenu(const char* name)
+    {
+      const auto modZoneIndex = GetModZoneIndex();
+
+      if (modZoneIndex < 0)
+      {
+        return nullptr;
+      }
+
+      Game::menuDef_t* menu = nullptr;
+
+      Game::Sys_LockRead(Game::db_hashCritSect);
+
+      // Note that the entry we find may be the one of another zone that
+      // overrides ours, so we follow the overrides as well.
+      //
+      for (auto* entry = Game::DB_FindXAssetEntry(Game::ASSET_TYPE_MENU, name); entry;
+        entry = entry->nextOverride ? &Game::g_assetEntryPool[entry->nextOverride] : nullptr)
+      {
+        if (static_cast<unsigned char>(entry->zoneIndex) == static_cast<unsigned int>(modZoneIndex))
+        {
+          menu = entry->asset.header.menu;
+          break;
+        }
+      }
+
+      Game::Sys_UnlockRead(Game::db_hashCritSect);
+
+      return menu;
+    }
   }
 
   /// This variable dispenses us from the horror of having a text file in IWD containing the menus we want to load
   std::vector<std::string> Menus::CustomIW4xMenus;
+
+  bool Menus::ReloadedWithModZone = false;
+  bool Menus::UIInitialized = false;
 
   Dvar::Var Menus::PrintMenuDebug;
 
@@ -141,6 +190,47 @@ namespace Components
     if (menus.empty())
     {
       Components::Logger::PrintError(Game::CON_CHANNEL_UI, "Could not load menu {}\n", menu);
+      return;
+    }
+
+    // Leave the menus the mod's fastfile has alone (see FindModZoneMenu()).
+    //
+    for (int i = 0; i < static_cast<int>(menus.size()); i++)
+    {
+      auto* modMenu = FindModZoneMenu(menus[i]->window.name);
+
+      if (!modMenu)
+      {
+        continue;
+      }
+
+      DebugPrint("Skipped menu {} from disk, the mod's fastfile has it", menus[i]->window.name);
+
+      // A menu that is new to the game (one of ours, like pc_options_game)
+      // only gets into the UI by way of the disk. So we add the one of the
+      // mod's fastfile in its place, the same as AfterLoadedMenuFromDisk()
+      // would add the one from disk.
+      //
+      if (allowNewMenus && !MenuAlreadyExists(modMenu->window.name))
+      {
+        if (Game::uiContext->menuCount >= 0 && static_cast<std::size_t>(Game::uiContext->menuCount) < ARRAYSIZE(Game::uiContext->Menus))
+        {
+          Game::uiContext->Menus[Game::uiContext->menuCount] = modMenu;
+          Game::uiContext->menuCount++;
+        }
+        else
+        {
+          Logger::PrintError(Game::CON_CHANNEL_UI, "Cannot add menu {}: MAX_MENUS exceeded\n", modMenu->window.name);
+        }
+      }
+
+      FreeMenuOnly(menus[i]);
+      menus.erase(menus.begin() + i);
+      i--;
+    }
+
+    if (menus.empty())
+    {
       return;
     }
 
@@ -279,6 +369,11 @@ namespace Components
           }
           else
           {
+            // Note that the menu we put back is open now, so it takes over
+            // the state of ours. Otherwise it stays in the menu stack without
+            // being visible (main_text, say, once we leave it to mod.ff).
+            //
+            replacement->window.dynamicFlags[0] = context->menuStack[i]->window.dynamicFlags[0];
             context->menuStack[i] = replacement;
           }
         }
@@ -468,6 +563,7 @@ namespace Components
     //  which contains the whole UIContext, and that destroys all pointers there
     // The game doesn't care about memory because it uses LargeLocalReset to free it all.. from what i've seen
     OverridenMenus.clear();
+    UIInitialized = true;
 
     // Note that on x86 we also clear our copy of the game's supporting data
     // here. OpenAssetTools compiles the supporting data of each file along
@@ -584,6 +680,12 @@ namespace Components
       }
     }
 
+    // If the mod's fastfile hasn't finished loading yet, which is usually the
+    // case when the UI comes up along with it, we couldn't tell which menus it
+    // has. So we do this all over again once it has (see the constructor).
+    //
+    ReloadedWithModZone = GetModZoneIndex() >= 0 && FastFiles::Ready();
+
     // Step 3 - Keep supporting data around
 
     // Debug-only check
@@ -653,6 +755,18 @@ namespace Components
 
     Components::Events::OnCGameInit(ReloadDiskMenus_OnCGameStart);
     Components::Events::AfterUIInit(ReloadDiskMenus_OnUIInitialization);
+
+    // Reload once more after the mod's fastfile finished loading, so that we
+    // can tell which menus it has (see FindModZoneMenu()).
+    //
+    Scheduler::Loop([]
+    {
+      if (UIInitialized && !ReloadedWithModZone && GetModZoneIndex() >= 0 && FastFiles::Ready())
+      {
+        DebugPrint("The mod's fastfile finished loading, reloading menus");
+        ReloadDiskMenus();
+      }
+    }, Scheduler::Pipeline::MAIN, 100ms);
 
     Components::Scheduler::Once([]() {
       PrintMenuDebug = Dvar::Register<bool>("g_log_menu_allocations", false, Game::DVAR_SAVED, "Prints all menu allocations and swapping in the console");
