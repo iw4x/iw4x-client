@@ -48,6 +48,11 @@ namespace Components
     // Client & Server (triggered every FS/Vidrestart)
     static void OnCGameInit(const std::function<void()>& callback);
 
+    // Client & Server (triggered each time the database has linked the zones
+    // it finished loading). Note that this runs on whichever thread called
+    // DB_PostLoadXZone(), which may be the render thread.
+    static void AfterDatabaseLoaded(const std::function<void()>& callback);
+
   private:
     static Utils::Concurrency::Container<ClientCallback> ClientDisconnectTasks_;
     static Utils::Concurrency::Container<ClientConnectCallback> ClientConnectTasks_;
@@ -59,6 +64,7 @@ namespace Components
     static Utils::Concurrency::Container<Callback> NetworkInitTasks_;
     static Utils::Concurrency::Container<Callback> CGameInitTasks_;
     static Utils::Concurrency::Container<Callback> UIInitTasks_;
+    static Utils::Concurrency::Container<Callback> DatabaseLoadedTasks_;
     static Utils::Concurrency::Container<CLDisconnectCallback> CL_DisconnectedTask_;
 
     // For speed this one does not use concurrency container. Be careful
@@ -82,6 +88,7 @@ namespace Components
 
     static void NET_Config_Hk(int enableNetworking);
     static void UI_Init_Hk(int localClientNum);
+    static void Sys_DatabaseCompleted2_Hk();
 
     static int CL_InitCGame_Hk();
   };

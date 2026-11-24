@@ -13,6 +13,7 @@ namespace Components
   Utils::Concurrency::Container<Events::Callback> Events::NetworkInitTasks_;
   Utils::Concurrency::Container<Events::Callback> Events::CGameInitTasks_;
   Utils::Concurrency::Container<Events::Callback> Events::UIInitTasks_;
+  Utils::Concurrency::Container<Events::Callback> Events::DatabaseLoadedTasks_;
 
   Events::ClientCmdCallback Events::ClientCmdButtonsTasks_;
   Events::ClientCmdCallback Events::ClientKeyMoveTasks_;
@@ -71,6 +72,14 @@ namespace Components
   void Events::AfterUIInit(const std::function<void()>& callback)
   {
     UIInitTasks_.access([&callback](Callback& tasks)
+    {
+      tasks.emplace_back(callback);
+    });
+  }
+
+  void Events::AfterDatabaseLoaded(const std::function<void()>& callback)
+  {
+    DatabaseLoadedTasks_.access([&callback](Callback& tasks)
     {
       tasks.emplace_back(callback);
     });
@@ -315,6 +324,23 @@ namespace Components
     });
   }
 
+  // DB_PostLoadXZone() calls this once it has linked the assets of the zones
+  // the database thread finished loading, which is when FastFiles::Ready()
+  // turns true.
+  //
+  void Events::Sys_DatabaseCompleted2_Hk()
+  {
+    Utils::Hook::Call<void()>(0x140208A10)(); // Sys_DatabaseCompleted2
+
+    DatabaseLoadedTasks_.access([](Callback& tasks)
+    {
+      for (const auto& func : tasks)
+      {
+        func();
+      }
+    });
+  }
+
   Events::Events()
   {
     // Note that x64 also inlines SV_FreeClient() into one of its callers, so
@@ -340,6 +366,13 @@ namespace Components
     Utils::Hook(0x1401F50A5, Com_InitDvars_Hk, HOOK_CALL).install()->quick(); // Com_Init_Try_Block_Function
 
     Utils::Hook(0x1402387DB, SV_Init_Hk, HOOK_CALL).install()->quick(); // SV_Init
+
+    // DB_PostLoadXZone() completes in one of two places: after it has linked
+    // the assets the database thread copied over, and (as a tail call) when
+    // there was nothing to link.
+    //
+    Utils::Hook(0x14012F337, Sys_DatabaseCompleted2_Hk, HOOK_CALL).install()->quick(); // DB_PostLoadXZone
+    Utils::Hook(0x14012F1D1, Sys_DatabaseCompleted2_Hk, HOOK_JUMP).install()->quick(); // DB_PostLoadXZone
 
     NET_Config_Original = Utils::Hook::Detour(0x1402A5C50, 5, &NET_Config_Hk); // NET_OpenIP
 

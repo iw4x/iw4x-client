@@ -757,16 +757,20 @@ namespace Components
     Components::Events::AfterUIInit(ReloadDiskMenus_OnUIInitialization);
 
     // Reload once more after the mod's fastfile finished loading, so that we
-    // can tell which menus it has (see FindModZoneMenu()).
+    // can tell which menus it has (see FindModZoneMenu()). The database may
+    // tell us so on the render thread, so the reload goes to the main one.
     //
-    Scheduler::Loop([]
+    Events::AfterDatabaseLoaded([]
     {
-      if (UIInitialized && !ReloadedWithModZone && GetModZoneIndex() >= 0 && FastFiles::Ready())
+      Scheduler::Once([]
       {
-        DebugPrint("The mod's fastfile finished loading, reloading menus");
-        ReloadDiskMenus();
-      }
-    }, Scheduler::Pipeline::MAIN, 100ms);
+        if (UIInitialized && !ReloadedWithModZone && GetModZoneIndex() >= 0 && FastFiles::Ready())
+        {
+          DebugPrint("The mod's fastfile finished loading, reloading menus");
+          ReloadDiskMenus();
+        }
+      }, Scheduler::Pipeline::MAIN);
+    });
 
     Components::Scheduler::Once([]() {
       PrintMenuDebug = Dvar::Register<bool>("g_log_menu_allocations", false, Game::DVAR_SAVED, "Prints all menu allocations and swapping in the console");
