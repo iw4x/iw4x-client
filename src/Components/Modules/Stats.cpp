@@ -408,6 +408,16 @@ namespace Components
     // Allow playerdata to be changed while connected to a server
     Utils::Hook::Set<BYTE>(0x1401F6FCF, 0xEB);
 
+    // The same for the setPlayerData menu script, which the game ignores
+    // unless we are disconnected (it only runs if the connection state is
+    // below connected). A script's setPlayerData on the server never reaches
+    // the host's own stats on x64, so menus that let players change their
+    // player data in game have to set it themselves. The call is replaced
+    // with "mov al, 1".
+    Utils::Hook::Set<BYTE>(0x140266B54, 0xB0);
+    Utils::Hook::Set<BYTE>(0x140266B55, 0x01);
+    Utils::Hook::Nop(0x140266B56, 3);
+
     Utils::Hook(0x1401F7084, LiveStorage_DataSetValue_Stub, HOOK_CALL).install()->quick();
 
     // IW4x stats hashing used to be a constant because fs_game profiles were broken (Steam ID constant, filename constant)
