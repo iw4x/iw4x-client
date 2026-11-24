@@ -63,7 +63,7 @@ namespace Components
       for (auto* entry = Game::DB_FindXAssetEntry(Game::ASSET_TYPE_MENU, name); entry;
         entry = entry->nextOverride ? &Game::g_assetEntryPool[entry->nextOverride] : nullptr)
       {
-        if (static_cast<unsigned char>(entry->zoneIndex) == static_cast<unsigned int>(modZoneIndex))
+        if (static_cast<unsigned char>(entry->zoneIndex) == modZoneIndex)
         {
           menu = entry->asset.header.menu;
           break;
