@@ -10,6 +10,7 @@ namespace Components
 
     static void Set(const std::string& psLocalReference, const std::string& psNewString);
     static const char* Get(const char* key);
+    static Game::LocalizeEntry* FindModZoneEntry(const char* key);
 
     static std::optional<std::string> PrefixOverride;
     static void ParseOutput(const std::function<void(Game::LocalizeEntry*)>& callback);
