@@ -1,5 +1,7 @@
 #include "Maps.hpp"
 #include "ArenaLength.hpp"
+#include "AssetHandler.hpp"
+#include "Events.hpp"
 #include "FastFiles.hpp"
 #include "RawFiles.hpp"
 #include "StartupMessages.hpp"
@@ -23,6 +25,8 @@ namespace Components
 
   bool Maps::SPMap;
   std::vector<Maps::DLC> Maps::DlcPacks;
+
+  void (*Maps::SV_SpawnServer_Original)(const char*, int, int, int, int);
 
   const char* Maps::UserMapFiles[4] =
   {
@@ -99,8 +103,8 @@ namespace Components
       Game::unzClose(this->searchPath.iwd->handle);
 
       // Use game's free function
-      Utils::Hook::Call<void(void*)>(0x6B5CF2)(this->searchPath.iwd->buildBuffer);
-      Utils::Hook::Call<void(void*)>(0x6B5CF2)(this->searchPath.iwd);
+      Utils::Hook::Call<void(void*)>(0x14027DD10)(this->searchPath.iwd->buildBuffer); // free
+      Utils::Hook::Call<void(void*)>(0x14027DD10)(this->searchPath.iwd); // free
 
       ZeroMemory(&this->searchPath, sizeof(this->searchPath));
     }
@@ -189,7 +193,7 @@ namespace Components
       data.push_back({ patchZone.data(), zoneInfo->allocFlags, zoneInfo->freeFlags });
     }
 
-    return FastFiles::LoadLocalizeZones(data.data(), data.size(), sync);
+    return FastFiles::LoadLocalizeZones(data.data(), static_cast<unsigned int>(data.size()), sync);
   }
 
   void Maps::OverrideMapEnts(Game::MapEnts* ents)
@@ -240,9 +244,14 @@ namespace Components
       return;
     }
 
+    // Note that on x86 we also restrict all the weapons of our zones from the
+    // alpha 2 format on. x64 doesn't load zones in those formats in the first
+    // place (they're converted, see ZoneConvert), so there is nothing to
+    // restrict.
+    //
     if (type == Game::XAssetType::ASSET_TYPE_WEAPON)
     {
-      if ((!strstr(name.data(), "_mp") && name != "none" && name != "destructible_car") || Zones::Version() >= VERSION_ALPHA2)
+      if (!strstr(name.data(), "_mp") && name != "none" && name != "destructible_car")
       {
         *restrict = true;
         return;
@@ -278,16 +287,13 @@ namespace Components
       {
         mapEntities = ents.getBuffer();
         asset.mapEnts->entityString = mapEntities.data();
-        asset.mapEnts->numEntityChars = mapEntities.size() + 1;
+        asset.mapEnts->numEntityChars = static_cast<int>(mapEntities.size() + 1);
       }
     }
 
-    // This is broken
-    if ((type == Game::XAssetType::ASSET_TYPE_MENU || type == Game::XAssetType::ASSET_TYPE_MENULIST) && Zones::Version() >= 359)
-    {
-      *restrict = true;
-      return;
-    }
+    // Note that on x86 we also restrict the menus of our zones from format
+    // version 359 on, which x64 doesn't load either.
+    //
   }
 
   Game::G_GlassData* Maps::GetWorldData()
@@ -304,16 +310,25 @@ namespace Components
     return Game::DB_XAssetPool[Game::XAssetType::ASSET_TYPE_GAMEWORLD_MP].gameWorldMp->g_glassData;
   }
 
+  // Load the map's sun from its sun file, if it has one.
+  //
+  // On x86 we replace the call of R_FlushSun() in R_LoadWorld(), which x64
+  // inlines. So we replace the call right after it instead, which should
+  // amount to the same since R_LoadWorld() doesn't touch the sun in
+  // between.
+  //
   void Maps::LoadRawSun()
   {
-    Game::R_FlushSun();
+    AssertOffset(Game::GfxWorld, sun, 0x198);
 
-    Game::GfxWorld* world = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+    Game::GfxWorld* world = *reinterpret_cast<Game::GfxWorld**>(0x148CCA620);
 
     if (FileSystem::File(std::format("sun/{}.sun", Maps::CurrentMainZone)))
     {
       Game::R_LoadSunThroughDvars(Maps::CurrentMainZone.data(), &world->sun);
     }
+
+    Utils::Hook::Call<void()>(0x14003E560)();
   }
 
   void Maps::ForceRefreshArenas()
@@ -332,8 +347,9 @@ namespace Components
         return;
       }
 
-      Game::sharedUiInfo_t* uiInfo = reinterpret_cast<Game::sharedUiInfo_t*>(0x62E4B78);
-      uiInfo->updateArenas = 1;
+      AssertOffset(Game::sharedUiInfo_t, updateArenas, 0x1E0C);
+
+      Game::sharedUiInfo->updateArenas = 1;
       Game::UI_UpdateArenas();
     }
     else
@@ -495,6 +511,39 @@ namespace Components
     }
   }
 
+  void Maps::SV_SpawnServer_Hk(const char* server, int mapIsPreloaded, int savegame, int devmap, int migrate)
+  {
+    PrepareUsermap(server);
+    SV_SpawnServer_Original(server, mapIsPreloaded, savegame, devmap, migrate);
+  }
+
+  // Set sv_cheats for the server that the map or devmap command is spawning
+  // (see the constructor), and then make the call we replaced.
+  //
+  void Maps::SV_SpawnServer_SetCheats()
+  {
+    if (Game::sv_spawnCheats)
+    {
+      Game::Dvar_SetBool(Game::dvar_cheats, *Game::sv_spawnCheats);
+    }
+
+    Utils::Hook::Call<void()>(0x1401AA2D0)();
+  }
+
+  // Note that the zone here is the loadscreen zone of the map (<map>_load).
+  //
+  void Maps::LoadMapLoadscreenStub(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync)
+  {
+    std::string_view name (zoneInfo->name);
+
+    assert(name.ends_with("_load"));
+
+    name.remove_suffix(5);
+    PrepareUsermap(std::string(name).data());
+
+    Game::DB_LoadXAssets(zoneInfo, zoneCount, sync);
+  }
+
   unsigned int Maps::GetUsermapHash(const std::string& map)
   {
     if (Utils::IO::DirectoryExists(std::format("usermaps/{}", map)))
@@ -609,7 +658,7 @@ namespace Components
       return;
     }
 
-    Utils::Hook::Call<void(void*, int)>(0x4DA110)(party, localControllerIndex);
+    Utils::Hook::Call<void(void*, int)>(0x140111E00)(party, localControllerIndex);
   }
 
   void Maps::DownloadsComplete(const int localClientNum)
@@ -684,7 +733,7 @@ namespace Components
 
   bool Maps::IsCustomMap()
   {
-    Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+    Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x148CCA620);
     if (gameWorld) return (gameWorld->checksum & 0xFFFF0000) == 0xC0D40000;
     return false;
   }
@@ -734,9 +783,13 @@ namespace Components
     return FoundCustomMaps;
   }
 
+  // On x86 we read the pool back from one of the instructions that
+  // AssetHandler patches when it reallocates it, which is a bit of a trick.
+  // On x64 AssetHandler simply keeps it in g_assetEntryPool.
+  //
   Game::XAssetEntry* Maps::GetAssetEntryPool()
   {
-    return *reinterpret_cast<Game::XAssetEntry**>(0x48E6F4);
+    return Game::g_assetEntryPool;
   }
 
   // dlcIsTrue serves as a check if the map is a custom map and if it's missing
@@ -781,7 +834,7 @@ namespace Components
 
   void Maps::HideModel()
   {
-    Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+    Game::GfxWorld*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x148CCA620);
     if (!gameWorld) return;
 
     std::string model = Dvar::Var("r_hideModel").get<std::string>();
@@ -798,7 +851,13 @@ namespace Components
     }
   }
 
-  void Maps::G_SpawnTurretHook(Game::gentity_s* ent, int unk, int unk2)
+  void Maps::HideModelStub(void* viewInfo)
+  {
+    HideModel();
+    Utils::Hook::Call<void(void*)>(0x14005FCC0)(viewInfo);
+  }
+
+  void Maps::G_SpawnTurretHook(Game::gentity_s* ent, const char* weaponName, int unk)
   {
     if (Maps::CurrentMainZone == "mp_backlot_sh"s || Maps::CurrentMainZone == "mp_con_spring"s ||
       Maps::CurrentMainZone == "mp_mogadishu_sh"s || Maps::CurrentMainZone == "mp_nightshift_sh"s)
@@ -806,7 +865,7 @@ namespace Components
       return;
     }
 
-    Utils::Hook::Call<void(Game::gentity_s*, int, int)>(0x408910)(ent, unk, unk2);
+    Utils::Hook::Call<void(Game::gentity_s*, const char*, int)>(0x14018F730)(ent, weaponName, unk); // G_SpawnTurret
   }
 
   bool Maps::SV_SetTriggerModelHook(Game::gentity_s* ent) {
@@ -815,13 +874,13 @@ namespace Components
     //std::string classname = Game::SL_ConvertToString(ent->script_classname);
     //std::string targetname = Game::SL_ConvertToString(ent->targetname);
 
-    return Utils::Hook::Call<bool(Game::gentity_s*)>(0x5050C0)(ent);
+    return Utils::Hook::Call<bool(Game::gentity_s*)>(0x140231FE0)(ent); // SV_SetTriggerModel
   }
 
   unsigned short Maps::CM_TriggerModelBounds_Hk(unsigned int triggerIndex, Game::Bounds* bounds)
   {
 
-    auto* ents = *reinterpret_cast<Game::MapEnts**>(0x1AA651C);  // Use me for debugging
+    auto* ents = Game::cm->mapEnts;  // Use me for debugging
 
     if (ents)
     {
@@ -832,7 +891,7 @@ namespace Components
       }
       else
       {
-        return Utils::Hook::Call<unsigned short(int, Game::Bounds*)>(0x4416C0)(triggerIndex, bounds);
+        return Utils::Hook::Call<unsigned short(int, Game::Bounds*)>(0x1401E8210)(triggerIndex, bounds); // CM_TriggerModelBounds
       }
     }
 
@@ -917,16 +976,23 @@ namespace Components
       }, Scheduler::Pipeline::MAIN);
 
     // disable turrets on CoD:OL 448+ maps for now
-    Utils::Hook(0x5EE577, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
-    Utils::Hook(0x44A4D5, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14017A00E, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14018FD3F, Maps::G_SpawnTurretHook, HOOK_CALL).install()->quick();
 
     // Catch trigger errors before they're critical
-    Utils::Hook(0x5050D4, Maps::CM_TriggerModelBounds_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140231FF4, Maps::CM_TriggerModelBounds_Hk, HOOK_CALL).install()->quick(); // SV_SetTriggerModel
 
 #ifdef DEBUG
     // Check trigger models
-    Utils::Hook(0x5FC0F1, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5FC2671, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
+    //
+    // On x86 we hook InitTrigger(), but x64 inlines it into each of the
+    // trigger spawn functions, so we hook every copy.
+    //
+    Utils::Hook(0x140186D21, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140186EC9, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140186F89, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140187037, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14018748C, Maps::SV_SetTriggerModelHook, HOOK_CALL).install()->quick();
 #endif
 
     //
@@ -934,52 +1000,94 @@ namespace Components
 //#define SORT_SMODELS
 #if !defined(DEBUG) || !defined(SORT_SMODELS)
     // Don't sort static models
-    Utils::Hook::Nop(0x53D815, 2);
+    Utils::Hook::Nop(0x14005381A, 2);
 #endif
 
     // Don't draw smodels
-    //Utils::Hook::Set<BYTE>(0x541E40, 0xC3);
+    //Utils::Hook::Set<BYTE>(0x14005FCC0, 0xC3);
 
     // Restrict asset loading
     AssetHandler::OnLoad(Maps::LoadAssetRestrict);
 
-    // PMem pool size (stock is 300 MiB). At 450 MiB several ported maps (mp_cement, mp_boardwalk,
-    // mp_carbon, mp_radar, mp_exchange, mp_meteora and IW4x's DLC mp_underground) fail mid-load
-    // with "Need N more bytes of ram for alloc to succeed". PMem_Init only reserves this range
-    // (MEM_RESERVE) and commits as zones load, but on a 32-bit client the reservation is not
-    // free: it is address space that nothing else can use for the life of the process.
+    // Raise the size of the PMem pool from the stock 300 MiB to 640 MiB, the
+    // same as x86. We first tried 450 MiB, but several ported maps
+    // (mp_cement, mp_boardwalk, mp_carbon, mp_radar, mp_exchange, mp_meteora,
+    // and our own DLC's mp_underground) still failed halfway through the load
+    // with "Need N more bytes of ram for alloc to succeed".
     //
-    // ZoneBuilder sets its own, larger pool and is constructed before us, so leave it alone.
-    if (!ZoneBuilder::IsEnabled())
-    {
-      Utils::Hook::Set<DWORD>(0x64A029, 0x28000000); // 640 MiB
-      Utils::Hook::Set<DWORD>(0x64A057, 0x28000000);
-    }
+    // Is 640 MiB a lot to ask for? Not really: PMem_Init() only reserves the
+    // range and the pages get committed as zones load. On x86 the size is
+    // something of a trade-off, since the reservation takes address space
+    // away from the rest of the process, but x64 has plenty of that.
+    //
+    // Note that on x86 we leave the pool to ZoneBuilder when it's enabled,
+    // and there is no ZoneBuilder on x64.
+    //
+    Utils::Hook::Set<DWORD>(0x140289067, 0x28000000); // 640 MiB
+    Utils::Hook::Set<DWORD>(0x1402890B7, 0x28000000);
 
     // Intercept BSP name resolving
-    Utils::Hook(0x4C5979, Maps::GetBSPName, HOOK_CALL).install()->quick();
+    //
+    // Note that on x64 the game ends with a jump to Com_sprintf(), which we
+    // turn into a jump to us.
+    //
+    Utils::Hook(0x140272D5D, Maps::GetBSPName, HOOK_JUMP).install()->quick();
 
     // Intercept map zone loading/unloading
-    Utils::Hook(0x42C2AF, Maps::LoadMapZones, HOOK_CALL).install()->quick();
-    Utils::Hook(0x60B477, Maps::UnloadMapZones, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14012EBEA, Maps::LoadMapZones, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401F32FA, Maps::UnloadMapZones, HOOK_CALL).install()->quick();
 
     // Ignore SP entities
-    Utils::Hook(0x444810, Maps::IgnoreEntityStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14028B110, Maps::IgnoreEntityStub, HOOK_JUMP).install()->quick();
 
     // WorldData pointer replacement
-    Utils::Hook(0x4D90B6, Maps_GetWorldDataStub, HOOK_CALL).install()->quick();
+    //
+    // Note that on x64 the game loads the pointer into rcx with a 7-byte
+    // instruction, hence the call and the two nops.
+    //
+    Utils::Hook(0x140169706, Maps_GetWorldDataStub, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x14016970B, 2);
 
     // Allow loading raw suns
-    Utils::Hook(0x51B46A, Maps::LoadRawSun, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140037320, Maps::LoadRawSun, HOOK_CALL).install()->quick();
 
     // Intercept map loading for usermap initialization
-    Utils::Hook(0x6245E3, Maps_SpawnServerStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x62493E, Maps_SpawnServerStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x42CF58, Maps_LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x487CDD, Maps_LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4CA3E9, Maps_LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A9D51, Maps_LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5B34DD, Maps_LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+    //
+    // On x86 we hook the two calls of SV_SpawnServer(). On x64 we also call
+    // it ourselves, for the map and devmap commands (see below), so it's
+    // simpler to detour it as a whole.
+    //
+    // The loadscreen zone is messier. x64 inlines the function that loads
+    // the loadscreen zone of a map, whose calls we hook on x86, into most of
+    // its callers, so we hook the load of the zone in each copy. The copy
+    // for StartMatch() seems to have moved into SV_SpawnServer() along the
+    // way.
+    //
+    SV_SpawnServer_Original = Utils::Hook::Detour(0x140239750, 5, &SV_SpawnServer_Hk);
+    Utils::Hook(0x1400FA06D, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick(); // CL_ConnectionlessPacket
+    Utils::Hook(0x1400FA359, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick(); // CL_DownloadsComplete
+    Utils::Hook(0x1400FDF23, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400FE305, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140239848, Maps::LoadMapLoadscreenStub, HOOK_CALL).install()->quick(); // SV_SpawnServer
+
+    // Restore the map and devmap commands, which x64 compiles out along with
+    // the rest of the operator commands. We register them when the server
+    // starts, the same as x86.
+    //
+    // On x86 SV_SpawnServer() then sets sv_cheats to whether the command was
+    // devmap, right after it clears the config strings. x64 compiles that
+    // out as well, so we set it ourselves at the same point, but only for
+    // these two commands. Why not for every spawn? Because x64 passes no
+    // devmap for its other spawns, and taking it from there would turn the
+    // cheats off on a fast restart, which on x86 leaves them as they were.
+    //
+    Events::OnSVInit([]
+    {
+      Command::AddSV("map", []([[maybe_unused]] const Command::Params* params) {Game::SV_Map_f();});
+      Command::AddSV("devmap", []([[maybe_unused]] const Command::Params* params) {Game::SV_DevMap_f();});
+    });
+
+    Utils::Hook(0x140239ABC, Maps::SV_SpawnServer_SetCheats, HOOK_CALL).install()->quick();
 
     Command::Add("delayReconnect", []()
       {
@@ -992,18 +1100,23 @@ namespace Components
 
     if (Dedicated::IsEnabled())
     {
-      Utils::Hook(0x4A7251, Maps::LoadNewMapCommand, HOOK_CALL).install()->quick();
+      Utils::Hook(0x140239910, Maps::LoadNewMapCommand, HOOK_CALL).install()->quick(); // SV_SpawnServer
     }
 
     // Download the map before a map rotation if necessary
     // Conflicts with Theater's SV map rotation check, but this one is safer!
-    Utils::Hook(0x5AA91C, Maps_RotateCheckStub, HOOK_CALL).install()->quick();
+    //
+    // Note that x64 inlines the function that handles the map change, whose
+    // call we hook on x86, into CL_ConnectionlessPacket(). So we jump to the
+    // stub right where that copy starts.
+    //
+    Utils::Hook(0x1400F9FAF, Maps_RotateCheckStub, HOOK_JUMP).install()->quick();
 
     // Remember the connection state before the game sets it to connected for
     // a map change.
     //
-    Utils::Hook(0x5AA907, Maps_SetConnectedStub, HOOK_CALL).install()->quick();
-    Utils::Hook::Nop(0x5AA90C, 5);
+    Utils::Hook(0x1400F9F9C, Maps_SetConnectedStub, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x1400F9FA1, 6);
 
     // Ignore the server's request for our stats unless we are connected to
     // it.
@@ -1013,16 +1126,16 @@ namespace Components
     // after it rotated to a map we don't have) puts us back to connecting
     // and we sit on a black screen until it times out.
     //
-    Utils::Hook(0x5AA943, Maps_RequestStatsStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x5AC6E9, Maps::DownloadsComplete, HOOK_CALL).install()->quick(); // CL_ParseGamestate
-    Utils::Hook(0x5A96D6, Maps::StartMatch, HOOK_CALL).install()->quick(); // xpartygo command.
-    Utils::Hook(0x5B59DE, Maps::StartMatch, HOOK_CALL).install()->quick(); // Lobby start timer.
+    Utils::Hook(0x1400FA09B, Maps_RequestStatsStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14010034E, Maps::DownloadsComplete, HOOK_CALL).install()->quick(); // CL_ParseGamestate
+    Utils::Hook(0x1400FBF16, Maps::StartMatch, HOOK_JUMP).install()->quick(); // xpartygo command.
+    Utils::Hook(0x14010EDF0, Maps::StartMatch, HOOK_CALL).install()->quick(); // Lobby start timer.
 
     // Load usermap arena file
-    Utils::Hook(0x630A88, Maps::LoadArenaFileStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140269A06, Maps::LoadArenaFileStub, HOOK_CALL).install()->quick();
 
     // Allow hiding specific smodels
-    Utils::Hook(0x50E67C, Maps_HideModelStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140022BB0, Maps::HideModelStub, HOOK_CALL).install()->quick();
 
     // gsc: GetMapList()
     Components::GSC::Script::AddFunction(
@@ -1036,7 +1149,7 @@ namespace Components
       GSCr_GetMapArenaInfo
     );
 
-    if (Dedicated::IsEnabled() || ZoneBuilder::IsEnabled())
+    if (Dedicated::IsEnabled())
     {
       return;
     }
@@ -1044,7 +1157,7 @@ namespace Components
     // Client only
     Scheduler::Loop([]
       {
-        auto*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x66DEE94);
+        auto*& gameWorld = *reinterpret_cast<Game::GfxWorld**>(0x148CCA620);
         if (!Game::CL_IsCgameInitialized() || !gameWorld || !Maps::RListSModels.get<bool>()) return;
 
         std::map<std::string, int> models;
@@ -1089,14 +1202,4 @@ Game::G_GlassData* Maps_GetWorldData()
 int Maps_TriggerReconnectForMap(Game::msg_t* msg, const char* mapname)
 {
   return Components::Maps::TriggerReconnectForMap(msg, mapname);
-}
-
-void Maps_PrepareUsermap(const char* mapname)
-{
-  Components::Maps::PrepareUsermap(mapname);
-}
-
-void Maps_HideModel()
-{
-  Components::Maps::HideModel();
 }

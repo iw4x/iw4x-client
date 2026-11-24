@@ -62,7 +62,12 @@ namespace Components::GSC
     strncat_s(searchPath, "/", _TRUNCATE);
 
     auto numFiles = 0;
-    const auto** files = Game::FS_ListFiles(searchPath, "gsc", Game::FS_LIST_ALL, &numFiles);
+    // Note that on x86 we leave the allocation track type to whatever happens
+    // to be on the stack, which seems harmless since the game's memory
+    // tracking only counts by it. Here we pass the same one as FileSystem
+    // does.
+    //
+    const auto** files = Game::FS_ListFiles(searchPath, "gsc", Game::FS_LIST_ALL, &numFiles, 10);
 
     for (auto i = 0; i < numFiles; ++i)
     {
@@ -213,12 +218,12 @@ namespace Components::GSC
       for (const auto& func : CommonOverridenFunctions)
       {
         const auto& name = func.aliases.at(0);
-        Game::Scr_RegisterFunction(reinterpret_cast<int>(func.actionFunc), name.data());
+        Game::Scr_RegisterFunction(reinterpret_cast<uintptr_t>(func.actionFunc), name.data());
       }
     }
 
     // If no function was found let's call game's function
-    return Utils::Hook::Call<Game::BuiltinFunction(const char**, int* type)>(0x4BCF80)(pName, type); // Common_GetFunction
+    return Utils::Hook::Call<Game::BuiltinFunction(const char**, int* type)>(0x140181740)(pName, type); // Common_GetFunction
   }
 
   Game::BuiltinFunction Script::BuiltIn_GetFunctionStub(const char** pName, int* type)
@@ -240,12 +245,25 @@ namespace Components::GSC
       for (const auto& func : CustomScrFunctions)
       {
         const auto& name = func.aliases.at(0);
-        Game::Scr_RegisterFunction(reinterpret_cast<int>(func.actionFunc), name.data());
+        Game::Scr_RegisterFunction(reinterpret_cast<uintptr_t>(func.actionFunc), name.data());
       }
     }
 
-    // If no function was found let's call game's function
-    return Utils::Hook::Call<Game::BuiltinFunction(const char**, int*)>(0x5FA2B0)(pName, type); // BuiltIn_GetFunction
+    // Not one of ours. Note that x64 inlines BuiltIn_GetFunction() into
+    // Scr_GetFunction(), which then looks the name up among the game's
+    // after we return.
+    //
+    return nullptr;
+  }
+
+  Game::BuiltinFunction Script::Scr_GetFunction_Hk(const char** pName, int* type)
+  {
+    if (const auto func = Utils::Hook::Call<Game::BuiltinFunction(const char**, int*)>(0x1401A89A0)(pName, type))
+    {
+      return func;
+    }
+
+    return BuiltIn_GetFunctionStub(pName, type);
   }
 
   Game::BuiltinMethod Script::Common_GetMethodStub(const char** pName)
@@ -266,12 +284,12 @@ namespace Components::GSC
       for (const auto& meth : CommonOverridenMethods)
       {
         const auto& name = meth.aliases.at(0);
-        Game::Scr_RegisterFunction(reinterpret_cast<int>(meth.actionFunc), name.data());
+        Game::Scr_RegisterFunction(reinterpret_cast<uintptr_t>(meth.actionFunc), name.data());
       }
     }
 
     // If no method was found let's call game's function
-    return Utils::Hook::Call<Game::BuiltinMethod(const char**)>(0x4DBA50)(pName); // Player_GetMethod
+    return Utils::Hook::Call<Game::BuiltinMethod(const char**)>(0x140181810)(pName); // Player_GetMethod
   }
 
   Game::BuiltinMethod Script::BuiltIn_GetMethodStub(const char** pName, int* type)
@@ -293,12 +311,24 @@ namespace Components::GSC
       for (const auto& meth : CustomScrMethods)
       {
         const auto& name = meth.aliases.at(0);
-        Game::Scr_RegisterFunction(reinterpret_cast<int>(meth.actionFunc), name.data());
+        Game::Scr_RegisterFunction(reinterpret_cast<uintptr_t>(meth.actionFunc), name.data());
       }
     }
 
-    // If no method was found let's call game's function
-    return Utils::Hook::Call<Game::BuiltinMethod(const char**, int*)>(0x5FA360)(pName, type); // Player_GetMethod
+    // As above, x64 inlines BuiltIn_GetMethod() into Scr_GetMethod(), which
+    // then looks the name up after us.
+    //
+    return nullptr;
+  }
+
+  Game::BuiltinMethod Script::Scr_GetMethod_Hk(const char** pName, int* type)
+  {
+    if (const auto meth = Utils::Hook::Call<Game::BuiltinMethod(const char**)>(0x14016B940)(pName))
+    {
+      return meth;
+    }
+
+    return BuiltIn_GetMethodStub(pName, type);
   }
 
   unsigned int Script::SetExpFogStub()
@@ -365,7 +395,7 @@ namespace Components::GSC
         return;
       }
 
-      Utils::Hook::Call<void(const float*)>(0x4C10F0)(u.vectorValue);
+      Utils::Hook::Call<void(const float*)>(0x140223560)(u.vectorValue); // RemoveRefToVector
       break;
     default:
       break;
@@ -415,26 +445,48 @@ namespace Components::GSC
   {
     // Skip check in GScr_CheckAllowedToSetPersistentData to prevent log spam in RuntimeError.
     // On IW5 the function is entirely nullsubbed
-    Utils::Hook::Set<std::uint8_t>(0x5F8DBF, 0xEB);
+    //
+    // Note that x64 inlines the check into its three callers, hence the
+    // three jumps.
+    //
+    Utils::Hook::Set<std::uint8_t>(0x1401A51DF, 0xEB);
+    Utils::Hook::Set<std::uint8_t>(0x1401A594F, 0xEB);
+    Utils::Hook::Set<std::uint8_t>(0x1401A65A2, 0xEB);
 
-    Utils::Hook(0x48EFFE, Scr_LoadGameType_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x48F008, Scr_StartupGameType_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x45D44A, GScr_LoadGameTypeScript_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14019D598, Scr_LoadGameType_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14019D5A2, Scr_StartupGameType_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401A6C81, GScr_LoadGameTypeScript_Stub, HOOK_CALL).install()->quick();
 
     // Fetch custom functions
-    Utils::Hook(0x44E72E, BuiltIn_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
-    Utils::Hook(0x4EC8DD, BuiltIn_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
-    Utils::Hook(0x4EC881, Common_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
+    //
+    // On x86 we replace the calls of BuiltIn_GetFunction() and
+    // BuiltIn_GetMethod(), the last of the lookups, but x64 inlines both. So
+    // we hook the lookups right before them instead, which still means ours
+    // are found before the game's own, the same as on x86. The method one
+    // only gets the name, so Script_Scr_GetMethod_Stub passes the type
+    // along.
+    //
+    Utils::Hook(0x1401A735E, Scr_GetFunction_Hk, HOOK_CALL).install()->quick(); // Scr_GetFunction
+    Utils::Hook(0x1401A74A0, Script_Scr_GetMethod_Stub, HOOK_CALL).install()->quick(); // Scr_GetMethod
+    Utils::Hook(0x1401A743A, Common_GetMethodStub, HOOK_CALL).install()->quick(); // Scr_GetMethod
 
-    Utils::Hook(0x44E712, Common_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
+    Utils::Hook(0x1401A734A, Common_GetFunctionStub, HOOK_CALL).install()->quick(); // Scr_GetFunction
 
-
-    Utils::Hook(0x5F41A3, SetExpFogStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x482740, AddRefToValueStub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x48E170, RemoveRefToValueStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14017F5D4, SetExpFogStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140220C30, AddRefToValueStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1402234C0, RemoveRefToValueStub, HOOK_JUMP).install()->quick();
 
     // Restore IW3's compiler behaviour when dealing with 'overriding builtin function'
-    Utils::Hook::Nop(0x613EDA, 2); // Scr_GetFunction
-    Utils::Hook::Nop(0x613EF0, 2); // Scr_GetMethod
+    //
+    // Note that x64 jumps with a near jnz here, which is 6 bytes rather than
+    // the 2 of a short one.
+    //
+    Utils::Hook::Nop(0x14021B610, 6); // Scr_GetFunction
+    Utils::Hook::Nop(0x14021B62B, 6); // Scr_GetMethod
   }
+}
+
+Game::BuiltinMethod Script_Scr_GetMethod_Hk(const char** pName, int* type)
+{
+  return Components::GSC::Script::Scr_GetMethod_Hk(pName, type);
 }

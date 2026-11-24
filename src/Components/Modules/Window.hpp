@@ -12,7 +12,7 @@ namespace Components
   class Window : public Component
   {
   public:
-    typedef BOOL(WndProcCallback)(WPARAM wParam, LPARAM lParam);
+    typedef LRESULT(WndProcCallback)(WPARAM wParam, LPARAM lParam);
     typedef void(CreateCallback)();
     typedef void(DeviceChangeCallback)(WPARAM wParam, LPARAM lParam);
 
@@ -49,7 +49,7 @@ namespace Components
 
     static int IsNoBorder();
 
-    static BOOL WINAPI MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+    static LRESULT WINAPI MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
     static int WINAPI ShowCursorHook(BOOL show);
     static void DrawCursorStub(Game::ScreenPlacement* scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign, const float* color, Game::Material* material);

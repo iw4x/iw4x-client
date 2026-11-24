@@ -12,6 +12,17 @@ extern "C"
   bool Chat_SendChat;
 }
 
+namespace
+{
+  // The server command that prints a chat message. x64 calls it U where x86
+  // calls it h, which is a bit unfortunate seeing that we talk to x86
+  // servers and clients. We queue it with the game's letter, the same as
+  // the game's own commands, and let Compatibility translate it on the wire
+  // (see Components::Compatibility for details).
+  //
+  constexpr char ChatMessageCommand = 'U';
+}
+
 namespace Components
 {
   Dvar::Var Chat::cg_chatWidth;
@@ -60,13 +71,13 @@ namespace Components
     if (IsMuted(player))
     {
       Chat_SendChat = false;
-      Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You are muted\"", 0x65));
+      Game::SV_GameSendServerCommand(static_cast<int>(player - Game::g_entities), Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You are muted\"", 0x65));
     }
 
     if (sv_disableChat.get<bool>())
     {
       Chat_SendChat = false;
-      Game::SV_GameSendServerCommand(player - Game::g_entities, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
+      Game::SV_GameSendServerCommand(static_cast<int>(player - Game::g_entities), Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"Chat is disabled\"", 0x65));
     }
 
     // Message might be empty after the special characters or '/'
@@ -129,9 +140,10 @@ namespace Components
     // So we have to find the author by name. It's the client approach that induces
     // the least amount of modifications - anything else would probably need
     // the server to send more info (e.g. who's talking by XUID)
-    // For client side, see 0x593D6D and 0x593DD7
-    // For server side, see 0x5DF7E5
-
+    //
+    // On x64 the client side is the chat case of CG_DeployServerCommand() at
+    // 0x1400E6768 and the server side is G_SayTo() at 0x140199D00.
+    //
     const std::string colorlessText = TextRenderer::StripColors(text);
     const std::string rawText = TextRenderer::StripAllTextIcons(colorlessText);
 
@@ -155,9 +167,9 @@ namespace Components
     char nameBuffer[64]{};
     for (size_t i = 0; i < ARRAYSIZE(Game::g_serverSession->dyn.users); i++)
     {
-      if (Voice::CL_IsPlayerMuted(i))
+      if (Voice::CL_IsPlayerMuted(static_cast<int>(i)))
       {
-        int gotName = Game::CL_GetClientName(0, i, nameBuffer, ARRAYSIZE(nameBuffer));
+        int gotName = Game::CL_GetClientName(0, static_cast<int>(i), nameBuffer, ARRAYSIZE(nameBuffer));
         if (gotName)
         {
           std::string rawPlayerName = TextRenderer::StripColors(nameBuffer);
@@ -183,7 +195,7 @@ namespace Components
     return false;
   }
 
-  void Chat::CG_AddToTeamChat(const char* text)
+  void Chat::CG_AddToTeamChat([[maybe_unused]] int localClientNum, const char* text)
   {
     if (CL_IsMessageFromMutedUser(text))
     {
@@ -299,7 +311,7 @@ namespace Components
     });
 
     Logger::Print("{} was muted\n", client->name);
-    Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You were muted\"", 0x65));
+    Game::SV_GameSendServerCommand(static_cast<int>(client - Game::svs_clients), Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You were muted\"", 0x65));
   }
 
   void Chat::UnmuteClient(const Game::client_s* client)
@@ -307,7 +319,7 @@ namespace Components
     UnmuteInternal(client->steamID);
 
     Logger::Print("{} was unmuted\n", client->name);
-    Game::SV_GameSendServerCommand(client - Game::svs_clients, Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You were unmuted\"", 0x65));
+    Game::SV_GameSendServerCommand(static_cast<int>(client - Game::svs_clients), Game::SV_CMD_CAN_IGNORE, Utils::String::VA("%c \"You were unmuted\"", 0x65));
   }
 
   void Chat::UnmuteInternal(const std::uint64_t id, bool everyone)
@@ -402,7 +414,7 @@ namespace Components
       const auto* client = Game::SV_GetPlayerByNum();
       if (client && !client->bIsTestClient)
       {
-        Voice::SV_MuteClient(client - Game::svs_clients);
+        Voice::SV_MuteClient(static_cast<int>(client - Game::svs_clients));
         MuteClient(client);
       }
     });
@@ -431,7 +443,7 @@ namespace Components
       if (client)
       {
         UnmuteClient(client);
-        Voice::SV_UnmuteClient(client - Game::svs_clients);
+        Voice::SV_UnmuteClient(static_cast<int>(client - Game::svs_clients));
         return;
       }
 
@@ -463,12 +475,12 @@ namespace Components
 
       if (!name.empty())
       {
-        Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name, message));
+        Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", ChatMessageCommand, name, message));
         Logger::Print("{}: {}\n", name, message);
       }
       else
       {
-        Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
+        Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", ChatMessageCommand, message));
         Logger::Print("Console: {}\n", message);
       }
     });
@@ -491,12 +503,12 @@ namespace Components
 
       if (!name.empty())
       {
-        Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", 0x68, name.data(), message));
+        Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}: {}\"", ChatMessageCommand, name.data(), message));
         Logger::Print("{} -> {}: {}\n", name, clientNum, message);
       }
       else
       {
-        Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", 0x68, message));
+        Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"Console: {}\"", ChatMessageCommand, message));
         Logger::Print("Console -> {}: {}\n", clientNum, message);
       }
     });
@@ -512,7 +524,7 @@ namespace Components
       if (params->size() < 2) return;
 
       const auto message = params->join(1);
-      Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
+      Game::SV_GameSendServerCommand(-1, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", ChatMessageCommand, message));
       Logger::Print("Raw: {}\n", message);
     });
 
@@ -530,7 +542,7 @@ namespace Components
       const auto clientNum = static_cast<int>(std::min<std::size_t>(parsedInput, Game::MAX_CLIENTS));
 
       const auto message = params->join(2);
-      Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", 0x68, message));
+      Game::SV_GameSendServerCommand(clientNum, Game::SV_CMD_CAN_IGNORE, Utils::String::Format("{:c} \"{}\"", ChatMessageCommand, message));
       Logger::Print("Raw -> {}: {}\n", clientNum, message);
     });
 
@@ -563,7 +575,7 @@ namespace Components
     Game::Scr_AddInt(mode);
     Game::Scr_AddString(message);
 
-    const auto objId = Game::Scr_GetEntityId(self - Game::g_entities, 0);
+    const auto objId = Game::Scr_GetEntityId(static_cast<int>(self - Game::g_entities), 0);
     Game::AddRefToObject(objId);
     const auto id = Game::VM_Execute_0(Game::AllocThread(objId), codePos, paramcount);
 
@@ -597,7 +609,7 @@ namespace Components
 
   Chat::Chat()
   {
-    AssertOffset(Game::client_s, steamID, 0x43F00);
+    AssertOffset(Game::client_s, steamID, 0x43F20);
 
     cg_chatWidth = Dvar::Register<int>("cg_chatWidth", 52, 1, std::numeric_limits<int>::max(), Game::DVAR_ARCHIVE, "The normalized maximum width of a chat message");
     sv_disableChat = Dvar::Register<bool>("sv_disableChat", false, Game::DVAR_NONE, "Disable chat messages from clients");
@@ -606,12 +618,23 @@ namespace Components
     LoadMutedList();
 
     // Intercept chat sending
-    Utils::Hook(0x4D000B, Chat_PreSayStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4D00D4, Chat_PostSayStub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4D0110, Chat_PostSayStub, HOOK_CALL).install()->quick();
+    //
+    // Note that x64 has two copies of G_Say(). One is inlined into the say
+    // commands of ClientCommand() (which in turn inline G_SayTo() as a loop
+    // over the clients) and the other is called from two script functions,
+    // presumably sayall and sayteam. So we hook both copies, each with its
+    // own pair of stubs.
+    //
+    Utils::Hook(0x1401995DA, Chat_PreSayStub1, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140199683, Chat_PostSayStub1, HOOK_JUMP).install()->quick();
+    Utils::Hook::Nop(0x140199688, 2);
+
+    Utils::Hook(0x140199B99, Chat_PreSayStub2, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140199C70, Chat_PostSayStub2, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140199CC2, Chat_PostSayStub2, HOOK_CALL).install()->quick();
 
     // Change logic that does word splitting with new lines for chat messages to support fonticons
-    Utils::Hook(0x592E10, Chat_CG_AddToTeamChat_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400E5BF0, CG_AddToTeamChat, HOOK_JUMP).install()->quick();
 
     // Add back removed command from CoD4
     Command::Add("mp_QuickMessage", []() -> void
@@ -632,9 +655,4 @@ namespace Components
 const char* Chat_EvaluateSay(char* text, Game::gentity_s* player, int mode)
 {
   return Components::Chat::EvaluateSay(text, player, mode);
-}
-
-void Chat_CG_AddToTeamChat(const char* text)
-{
-  Components::Chat::CG_AddToTeamChat(text);
 }

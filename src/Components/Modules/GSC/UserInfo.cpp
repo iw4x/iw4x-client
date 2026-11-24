@@ -11,7 +11,7 @@ namespace Components::GSC
 
   void UserInfo::SV_GetUserInfo_Stub(int index, char* buffer, int bufferSize)
   {
-    Utils::Hook::Call<void(int, char*, int)>(0x49A160)(index, buffer, bufferSize);
+    Utils::Hook::Call<void(int, char*, int)>(0x140238740)(index, buffer, bufferSize);
 
     Utils::InfoString map(buffer);
 
@@ -102,15 +102,16 @@ namespace Components::GSC
   int UserInfo::G_ShutdownGame_Hk(const int freeScripts)
   {
     ClearAllOverrides();
-    return Utils::Hook::Call<int(int)>(0x4D0630)(freeScripts);
+    return Utils::Hook::Call<int(int)>(0x14019F2E0)(freeScripts); // G_ShutdownGame
   }
 
   UserInfo::UserInfo()
   {
-    Utils::Hook(0x445268, SV_GetUserInfo_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x478B04, SV_GetUserInfo_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401968D6, SV_GetUserInfo_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140195F93, SV_GetUserInfo_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401960CA, SV_GetUserInfo_Stub, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x4C1EC9, G_ShutdownGame_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140232066, G_ShutdownGame_Hk, HOOK_CALL).install()->quick();
 
     AddScriptMethods();
 

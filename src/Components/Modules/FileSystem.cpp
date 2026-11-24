@@ -1,4 +1,5 @@
 #include "FileSystem.hpp"
+#include "Maps.hpp"
 
 namespace Components
 {
@@ -10,13 +11,15 @@ namespace Components
   std::recursive_mutex FileSystem::FSMutex;
   Utils::Memory::Allocator FileSystem::MemAllocator;
 
+  int (*FileSystem::FS_FOpenFileReadForThread_Original)(const char* filename, Game::fileHandle_t* file, int thread);
+
   void FileSystem::File::read(Game::FsThread thread)
   {
     std::lock_guard _(FSMutex);
 
     assert(!filePath.empty());
 
-    int handle;
+    Game::fileHandle_t handle;
     const auto len = Game::FS_FOpenFileReadForThread(filePath.data(), &handle, thread);
 
     if (!handle)
@@ -125,9 +128,15 @@ namespace Components
 
   void FileSystem::FileWriter::open(bool append)
   {
+    // x64 inlines FS_FOpenFileAppend(), which we call on x86, into
+    // FS_FOpenFileByMode(), so we open the file through the latter. If the
+    // file can't be opened, it leaves the handle 0, the same as
+    // FS_FOpenFileWrite() does, so the rest of the writer doesn't have to
+    // care which one it was.
+    //
     if (append)
     {
-      this->handle = Game::FS_FOpenFileAppend(this->filePath.data());
+      Game::FS_FOpenFileByMode(this->filePath.data(), &this->handle, Game::FS_APPEND);
     }
     else
     {
@@ -165,7 +174,7 @@ namespace Components
     std::vector<std::string> fileList;
 
     auto numFiles = 0;
-    const auto** files = Game::FS_ListFiles(path.data(), extension.data(), behaviour, &numFiles);
+    const auto** files = Game::FS_ListFiles(path.data(), extension.data(), behaviour, &numFiles, 10);
 
     if (files)
     {
@@ -206,10 +215,14 @@ namespace Components
     return fileList;
   }
 
+  // On x86 we call FS_BuildPathToFile() here, which only passes its
+  // arguments on to FS_BuildOSPath(). x64 inlines it, so we just call the
+  // latter ourselves.
+  //
   bool FileSystem::_DeleteFile(const std::string& folder, const std::string& file)
   {
     char path[MAX_PATH]{};
-    Game::FS_BuildPathToFile((*Game::fs_basepath)->current.string, reinterpret_cast<char*>(0x63D0BB8), Utils::String::VA("%s/%s", folder.data(), file.data()), reinterpret_cast<char**>(&path));
+    Game::FS_BuildOSPath((*Game::fs_basepath)->current.string, Game::fs_gamedir, Utils::String::VA("%s/%s", folder.data(), file.data()), path);
     return Game::FS_Remove(path);
   }
 
@@ -255,19 +268,17 @@ namespace Components
     if (!fs_homepath.empty()) Game::FS_AddLocalizedGameDirectory(fs_homepath.data(), folder);
   }
 
+  // Note that on x86 we also register the directory of the zone builder's
+  // sources. There is no zone builder on x64, so userraw is all there is.
+  //
   void FileSystem::RegisterFolders()
   {
-    if (ZoneBuilder::IsEnabled())
-    {
-      RegisterFolder("zonedata");
-    }
-
     RegisterFolder("userraw");
   }
 
   int FileSystem::Cmd_Exec_f_Stub(const char* s0, [[maybe_unused]] const char* s1)
   {
-    int f;
+    Game::fileHandle_t f;
     const auto len = Game::FS_FOpenFileByMode(s0, &f, Game::FS_READ);
     if (len < 0)
     {
@@ -281,28 +292,66 @@ namespace Components
   void FileSystem::FsStartupSync(const char* a1)
   {
     std::lock_guard _(FSMutex);
-    return Utils::Hook::Call<void(const char*)>(0x4823A0)(a1); // FS_Startup
+    return Utils::Hook::Call<void(const char*)>(0x140276D70)(a1); // FS_Startup
   }
 
   void FileSystem::FsRestartSync(int localClientNum, int checksumFeed)
   {
     std::lock_guard _(FSMutex);
     Maps::GetUserMap()->freeIwd();
-    Utils::Hook::Call<void(int, int)>(0x461A50)(localClientNum, checksumFeed); // FS_Restart
+    Utils::Hook::Call<void(int, int)>(0x1402764D0)(localClientNum, checksumFeed); // FS_Restart
     Maps::GetUserMap()->reloadIwd();
   }
 
-  void FileSystem::FsShutdownSync(int closemfp)
+  // Restart the file system if it needs one, returning true if it did.
+  //
+  // x64 compiles FS_ConditionalRestart() out (FS_NeedRestart() is left with
+  // a single caller, in CL_ParseGamestate()), so this is the x86 one. On x86
+  // we hook its call of FS_Restart() to go through FsRestartSync(), and here
+  // we can simply call that ourselves.
+  //
+  bool FileSystem::FS_ConditionalRestart(const int localClientNum, const int checksumFeed)
+  {
+    if (!Utils::Hook::Call<int(int)>(0x140275FD0)(checksumFeed)) // FS_NeedRestart
+    {
+      return false;
+    }
+
+    FsRestartSync(localClientNum, checksumFeed);
+    return true;
+  }
+
+  // x86 restarts the file system in CL_Vid_Restart_f(), right before it
+  // updates the language, so that a mod or a language picked from the menu
+  // takes effect. And if it did restart, it reloads the mod's stats further
+  // down (see FileSystem_VidRestarted). Not sure why x64 leaves this out,
+  // perhaps the later revision handles mods some other way. Either way we
+  // want x86's behavior, so we put the restart back in front of
+  // SEH_UpdateLanguageInfo().
+  //
+  void FileSystem::CL_Vid_Restart_f_UpdateLanguageInfo_Hk()
+  {
+    AssertOffset(Game::clientConnection_t, checksumFeed, 0x130);
+
+    FileSystem_VidRestarted = FS_ConditionalRestart(0, Game::clientConnections[0].checksumFeed);
+
+    Utils::Hook::Call<void()>(0x14024D840)(); // SEH_UpdateLanguageInfo
+  }
+
+  // Note that FS_Shutdown() takes no argument on x64 (Com_Quitf() still
+  // passes it 1, presumably out of habit).
+  //
+  void FileSystem::FsShutdownSync()
   {
     std::lock_guard _(FSMutex);
     Maps::GetUserMap()->freeIwd();
-    Utils::Hook::Call<void(int)>(0x4A46C0)(closemfp); // FS_Shutdown
+    Utils::Hook::Call<void()>(0x140276A30)(); // FS_Shutdown
   }
 
   void FileSystem::DelayLoadImagesSync()
   {
     std::lock_guard _(FSMutex);
-    return Utils::Hook::Call<void()>(0x494060)(); // DB_LoadDelayedImages
+    return Utils::Hook::Call<void()>(0x14012EA90)(); // DB_LoadDelayedImages
   }
 
   int FileSystem::LoadTextureSync(Game::GfxImageLoadDef** loadDef, Game::GfxImage* image)
@@ -314,7 +363,7 @@ namespace Components
   void FileSystem::IwdFreeStub(Game::iwd_t* iwd)
   {
     Maps::GetUserMap()->handlePackfile(iwd);
-    Utils::Hook::Call<void(void*)>(0x4291A0)(iwd);
+    Utils::Hook::Call<void(void*)>(0x14027DD10)(iwd); // free
   }
 
   const char* FileSystem::Sys_DefaultInstallPath_Hk()
@@ -385,23 +434,16 @@ namespace Components
   }
 
   int FileSystem::
-  FS_FOpenFileReadForThread_Hk (const char* filename, int* file, int thread)
+  FS_FOpenFileReadForThread_Hk (const char* filename, Game::fileHandle_t* file, int thread)
   {
-    // Note that we call the stub in FileSystem.asm through a volatile pointer
-    // since otherwise the optimizer sees that it doesn't touch any registers
-    // and assumes the call preserves them, which the engine function doesn't.
-    //
-    static auto (* volatile fs_fopen_file_read_for_thread) (const char*, int*, int)
-      (&FileSystem_FS_FOpenFileReadForThread);
-
-    int r (fs_fopen_file_read_for_thread (filename, file, thread));
+    int r (FS_FOpenFileReadForThread_Original (filename, file, thread));
 
     if (r == -1)
     {
       for (int l: lookup_languages () | std::views::drop (1))
       {
         fallback_language = l;
-        r = fs_fopen_file_read_for_thread (filename, file, thread);
+        r = FS_FOpenFileReadForThread_Original (filename, file, thread);
         fallback_language = -1;
 
         if (r != -1)
@@ -482,7 +524,7 @@ namespace Components
   Game::HunkUser* Hunk_UserCreate_Stub(int maxSize, const char* name, bool fixed, int type)
   {
     maxSize *= FILE_COUNT_MULTIPLIER;
-    return Utils::Hook::Call<Game::HunkUser*(int, const char*, bool, int)>(0x430E90)(maxSize, name, fixed, type);
+    return Utils::Hook::Call<Game::HunkUser*(int, const char*, bool, int)>(0x14027D390)(maxSize, name, fixed, type);
   }
 
   bool FileSystem::FileWrapper_Rotate(const char* ospath)
@@ -547,93 +589,165 @@ namespace Components
   FileSystem::FileSystem()
   {
     // Thread safe file system interaction
-    Utils::Hook(0x4F4BFF, AllocateFile, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140277607, AllocateFile, HOOK_CALL).install()->quick();
     Utils::Hook(Game::FS_FreeFile, FreeFile, HOOK_JUMP).install()->quick();
 
     // Filesystem config checks
-    Utils::Hook(0x6098FD, Cmd_Exec_f_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401E7220, Cmd_Exec_f_Stub, HOOK_CALL).install()->quick();
 
     // Don't strip the folders from the config name (otherwise our ExecIsFSStub fails)
-    Utils::Hook::Nop(0x6098F2, 5);
+    //
+    // On x64 that takes two nops rather than one: the call that strips the
+    // folders, and the move of its result from rax into the argument
+    // register. Without the second, rcx would get whatever rax holds after
+    // the dropped call rather than the full name it already has.
+    //
+    Utils::Hook::Nop(0x1401E7211, 5);
+    Utils::Hook::Nop(0x1401E721D, 3);
 
     // Register additional folders
-    Utils::Hook(0x482647, FileSystem_StartupStub, HOOK_JUMP).install()->quick();
+    //
+    // We do it in FS_Startup() right after it adds the base game directories
+    // and before it gets to fs_game, the same as x86. Every directory added
+    // goes in front of the ones before it, so this way userraw overrides the
+    // base game and a mod overrides userraw.
+    //
+    // Note that FS_Startup() starts on fs_game by loading the dvar into rax,
+    // which is the instruction we replace, so the stub repeats that load
+    // after calling us. No volatile register is live at that point, which
+    // makes this one rather painless.
+    //
+    Utils::Hook(0x14027706C, FileSystem_StartupStub, HOOK_JUMP).install()->quick();
 
     // exec whitelist removal
-    Utils::Hook::Nop(0x609685, 5);
-    Utils::Hook::Nop(0x60968C, 2);
+    //
+    // x86 calls a function to check the config against the whitelist, while
+    // x64 inlines it as a loop over the three entries. So rather than nop a
+    // call, we make the jump it takes on a match unconditional, and every
+    // config is then on the whitelist.
+    //
+    Utils::Hook::Set<std::uint8_t>(0x1401E76C6, 0xEB);
 
     // ignore 'no iwd files found in main'
-    Utils::Hook::Nop(0x642A4B, 5);
+    Utils::Hook::Nop(0x1402732AF, 5);
 
     // Ignore bad magic, when trying to free hunk when it's already cleared
-    Utils::Hook::Set<std::uint16_t>(0x49AACE, 0xC35E);
+    //
+    // x86 writes a 'pop esi; ret' over the start of the error call so the
+    // function returns right there. On x64 the error sits in a branch of its
+    // own, and jumping from there to the epilogue amounts to the same thing.
+    //
+    Utils::Hook(0x14027DCA2, 0x14027DD09, HOOK_JUMP).install()->quick();
 
     // Synchronize filesystem starts
-    Utils::Hook(0x4290C6, FsStartupSync, HOOK_CALL).install()->quick(); // FS_InitFilesystem
-    Utils::Hook(0x461A88, FsStartupSync, HOOK_CALL).install()->quick(); // FS_Restart
+    Utils::Hook(0x140275362, FsStartupSync, HOOK_CALL).install()->quick(); // FS_InitFilesystem
+    Utils::Hook(0x1402765CF, FsStartupSync, HOOK_CALL).install()->quick(); // FS_Restart
 
     // Synchronize filesystem restarts
-    Utils::Hook(0x4A745B, FsRestartSync, HOOK_CALL).install()->quick(); // SV_SpawnServer
-    Utils::Hook(0x4C8609, FsRestartSync, HOOK_CALL).install()->quick(); // FS_ConditionalRestart
-    Utils::Hook(0x5AC68E, FsRestartSync, HOOK_CALL).install()->quick(); // CL_ParseServerMessage
+    //
+    // x64 has one FS_Restart() call that x86 doesn't, in the function that
+    // starts a party match (see Maps::StartMatch()). We are not sure whether
+    // x86 restarts there some other way, but either way the call needs the
+    // lock. What x64 lacks is the call in FS_ConditionalRestart(), which we
+    // make ourselves (see above).
+    //
+    Utils::Hook(0x140239802, FsRestartSync, HOOK_CALL).install()->quick(); // SV_SpawnServer
+    Utils::Hook(0x140100308, FsRestartSync, HOOK_CALL).install()->quick(); // CL_ParseGamestate
+    Utils::Hook(0x140111FCF, FsRestartSync, HOOK_CALL).install()->quick(); // StartMatch
+
+    // Restart the file system on vid_restart the way x86 does (see
+    // CL_Vid_Restart_f_UpdateLanguageInfo_Hk()).
+    //
+    // The second hook replaces the 'cmp dword_140C5AE68, r15d' that decides
+    // whether to reload the stats. The stub forces the reload if we
+    // restarted and otherwise repeats the comparison, against 0 since r15d
+    // is zero throughout CL_Vid_Restart_f().
+    //
+    Utils::Hook(0x1400FDD86, CL_Vid_Restart_f_UpdateLanguageInfo_Hk, HOOK_CALL).install()->quick(); // CL_Vid_Restart_f
+    Utils::Hook(0x1400FDF36, FileSystem_VidRestartedStub, HOOK_CALL).install()->quick(); // CL_Vid_Restart_f
+    Utils::Hook::Nop(0x1400FDF3B, 2);
 
     // Synchronize filesystem stops
-    Utils::Hook(0x461A55, FsShutdownSync, HOOK_CALL).install()->quick(); // FS_Restart
-    Utils::Hook(0x4D40DB, FsShutdownSync, HOOK_CALL).install()->quick(); // Com_Quitf
+    //
+    // On x86 we also hook the call of FS_Shutdown() in FS_Restart(), but x64
+    // inlines it there. That seems fine, though, since every caller of
+    // FS_Restart() already goes through FsRestartSync(), which takes the lock
+    // and frees the user map's iwd.
+    //
+    Utils::Hook(0x1401F58D1, FsShutdownSync, HOOK_CALL).install()->quick(); // Com_Quitf
 
     // Synchronize db image loading
-    Utils::Hook(0x415AB8, DelayLoadImagesSync, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4D32BC, LoadTextureSync, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140117F41, DelayLoadImagesSync, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14011AE16, LoadTextureSync, HOOK_CALL).install()->quick();
 
     // Handle IWD freeing
-    Utils::Hook(0x642F60, IwdFreeStub, HOOK_CALL).install()->quick();
+    //
+    // x64 has two copies of the loop that frees the search paths, one in
+    // FS_Shutdown() and one inlined into FS_Restart() (on x86 it's only in
+    // the former, which the latter calls). Both have to let the user map
+    // know that its iwd is going away.
+    //
+    Utils::Hook(0x140276ABC, IwdFreeStub, HOOK_CALL).install()->quick(); // FS_Shutdown
+    Utils::Hook(0x14027656C, IwdFreeStub, HOOK_CALL).install()->quick(); // FS_Restart
 
     // Set the working dir based on info from the Xlabs launcher
-    Utils::Hook(0x4326E0, Sys_DefaultInstallPath_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14028C750, Sys_DefaultInstallPath_Hk, HOOK_JUMP).install()->quick();
 
     // Make the exe run from a folder other than the game folder
-    Utils::Hook(0x406D26, FS_FileOpenReadText_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1402A2BDF, FS_FileOpenReadText_Hk, HOOK_CALL).install()->quick();
 
-    // Note that ZoneBuilder hooks FS_FOpenFileReadForThread() itself.
+    // Note that on x86 we leave FS_FOpenFileReadForThread() alone when the
+    // zone builder is enabled, since the zone builder hooks it itself. There
+    // is no zone builder on x64.
     //
-    if (!ZoneBuilder::IsEnabled ())
-    {
-      Utils::Hook (Game::FS_FOpenFileReadForThread, FS_FOpenFileReadForThread_Hk, HOOK_JUMP).install ()->quick ();
-      Utils::Hook (0x6432EF, SEH_GetCurrentLanguage_Hk, HOOK_CALL).install ()->quick (); // FS_FOpenFileReadForThread: SEH_GetCurrentLanguage().
-      Utils::Hook (0x6433FB, SEH_GetCurrentLanguage_Hk, HOOK_CALL).install ()->quick (); // FS_FOpenFileReadForThread: SEH_GetCurrentLanguage().
-    }
+    FS_FOpenFileReadForThread_Original = Utils::Hook::Detour (0x140274100, 5, &FS_FOpenFileReadForThread_Hk);
+    Utils::Hook (0x1402741B1, SEH_GetCurrentLanguage_Hk, HOOK_CALL).install ()->quick (); // FS_FOpenFileReadForThread: SEH_GetCurrentLanguage().
+    Utils::Hook (0x14027448E, SEH_GetCurrentLanguage_Hk, HOOK_CALL).install ()->quick (); // FS_FOpenFileReadForThread: SEH_GetCurrentLanguage().
 
-    Utils::Hook (0x51F4C4, Image_LoadError, HOOK_CALL).install ()->quick (); // Delayed image load: Com_Error().
-    Utils::Hook (0x51F5AC, Image_LoadError, HOOK_CALL).install ()->quick (); // Load_Texture: Com_Error().
+    Utils::Hook (0x140037AC3, Image_LoadError, HOOK_CALL).install ()->quick (); // Delayed image load: Com_Error().
+    Utils::Hook (0x140037BC9, Image_LoadError, HOOK_CALL).install ()->quick (); // Load_Texture: Com_Error().
 
     // Make the exe run from a folder other than the game folder
-    Utils::Hook::Nop(0x4290D8, 5); // FS_IsBasePathValid
-    Utils::Hook::Set<uint8_t>(0x4290DF, 0xEB);
+    //
+    // x86 nops the call of FS_IsBasePathValid() and makes the jump on its
+    // result unconditional. x64 inlines the check into FS_InitFilesystem(),
+    // so we jump from where it starts to past the error it raises.
+    //
+    Utils::Hook(0x14027536C, 0x1402753B4, HOOK_JUMP).install()->quick(); // FS_IsBasePathValid
     // ^^ This check by the game above is super redundant, IW4x has other checks in place to make sure we
     // are running from a properly installed directory. This only breaks the containerized patch and we don't need it
 
     // Patch FS dvar values
-    Utils::Hook(0x643194, Sys_DefaultCDPath_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x643232, Sys_HomePath_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x6431B6, Sys_Cwd_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x51C29A, Sys_Cwd_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140276332, Sys_DefaultCDPath_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14027647E, Sys_HomePath_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14027635A, Sys_Cwd_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140035C5F, Sys_Cwd_Hk, HOOK_CALL).install()->quick();
 
     // patch max file amount returned by Sys_ListFiles
-    Utils::Hook::Set<std::uint32_t>(0x45A66B, (NEW_MAX_FILES_LISTED + FILE_COUNT_MULTIPLIER) * 4);
-    Utils::Hook::Set<std::uint32_t>(0x64AF78, NEW_MAX_FILES_LISTED);
-    Utils::Hook::Set<std::uint32_t>(0x64B04F, NEW_MAX_FILES_LISTED);
-    Utils::Hook::Set<std::uint32_t>(0x45A8CE, NEW_MAX_FILES_LISTED);
+    //
+    // On x86 Sys_ListFilteredFiles() also checks the count on entry, which is
+    // the fourth patch there. On x64 it's inlined into Sys_ListFiles() right
+    // where the count starts at 0, and the check went with it. Note also that
+    // the list holds 8-byte pointers on x64, hence the sizeof.
+    //
+    Utils::Hook::Set<std::uint32_t>(0x14028C95F + 1, static_cast<std::uint32_t>((NEW_MAX_FILES_LISTED + FILE_COUNT_MULTIPLIER) * sizeof(const char*)));
+    Utils::Hook::Set<std::uint32_t>(0x14028CA40 + 3, NEW_MAX_FILES_LISTED);
+    Utils::Hook::Set<std::uint32_t>(0x14028CCB7 + 3, NEW_MAX_FILES_LISTED);
 
     // Sys_ListFiles
-    Utils::Hook(0x45A806, Hunk_UserCreate_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x45A6A0, Hunk_UserCreate_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14028C99C, Hunk_UserCreate_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14028CBE5, Hunk_UserCreate_Stub, HOOK_CALL).install()->quick();
 
     // FS_ListFilteredFiles
-    Utils::Hook(0x4FCE82,  Hunk_UserCreate_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook::Set<std::uint32_t>(0x6427F0 + 2, NEW_MAX_FILES_LISTED);
-    Utils::Hook::Set<uint32_t>(0X4FCE8B + 1, (NEW_MAX_FILES_LISTED + FILE_COUNT_MULTIPLIER) * 4 + 4);
-
+    //
+    // There are two count checks here on x64: the one in FS_AddFileToList()
+    // and the one in the copy of it that x64 inlines into
+    // FS_ListFilteredFiles().
+    //
+    Utils::Hook(0x140275592, Hunk_UserCreate_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook::Set<std::uint32_t>(0x140272DCA + 2, NEW_MAX_FILES_LISTED); // FS_AddFileToList
+    Utils::Hook::Set<std::uint32_t>(0x140275810 + 3, NEW_MAX_FILES_LISTED);
+    Utils::Hook::Set<std::uint32_t>(0x140275597 + 1, static_cast<std::uint32_t>((NEW_MAX_FILES_LISTED + FILE_COUNT_MULTIPLIER) * sizeof(const char*) + sizeof(const char*)));
   }
 
   FileSystem::~FileSystem()
@@ -641,6 +755,8 @@ namespace Components
     assert(FileSystem::MemAllocator.empty());
   }
 }
+
+bool FileSystem_VidRestarted = false;
 
 void FileSystem_RegisterFolders()
 {

@@ -3,9 +3,15 @@
 extern "C"
 {
   void FileSystem_StartupStub();
-  int FileSystem_FS_FOpenFileReadForThread(const char* filename, int* file, int thread);
+  void FileSystem_VidRestartedStub();
 
   void FileSystem_RegisterFolders();
+
+  // Whether CL_Vid_Restart_f() restarted the file system this time, which
+  // the stub then decides on reloading the stats by (see
+  // Components::FileSystem::CL_Vid_Restart_f_UpdateLanguageInfo_Hk()).
+  //
+  extern bool FileSystem_VidRestarted;
 }
 
 namespace Components
@@ -78,7 +84,7 @@ namespace Components
       void seek(int offset, int origin) const;
 
     private:
-      int handle;
+      Game::fileHandle_t handle;
       int size;
       std::string name;
     };
@@ -92,7 +98,7 @@ namespace Components
       void write(const std::string& data) const;
 
     private:
-      int handle;
+      Game::fileHandle_t handle;
       std::string filePath;
 
       void open(bool append = false);
@@ -138,7 +144,9 @@ namespace Components
 
     static void FsStartupSync(const char* a1);
     static void FsRestartSync(int localClientNum, int checksumFeed);
-    static void FsShutdownSync(int closemfp);
+    static bool FS_ConditionalRestart(int localClientNum, int checksumFeed);
+    static void CL_Vid_Restart_f_UpdateLanguageInfo_Hk();
+    static void FsShutdownSync();
     static void DelayLoadImagesSync();
     static int LoadTextureSync(Game::GfxImageLoadDef** loadDef, Game::GfxImage* image);
 
@@ -146,7 +154,9 @@ namespace Components
 
     static FILE* FS_FileOpenReadText_Hk(const char* file);
 
-    static int FS_FOpenFileReadForThread_Hk (const char* filename, int* file, int thread);
+    static int (*FS_FOpenFileReadForThread_Original) (const char* filename, Game::fileHandle_t* file, int thread);
+
+    static int FS_FOpenFileReadForThread_Hk (const char* filename, Game::fileHandle_t* file, int thread);
     static int SEH_GetCurrentLanguage_Hk ();
     static void Image_LoadError (Game::errorParm_t error, const char* fmt, const char* name);
   };

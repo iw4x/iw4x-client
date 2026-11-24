@@ -3,13 +3,10 @@
 extern "C"
 {
   void Theatre_BaselineStoreStub();
-  void Theatre_BaselineToFileStub();
   void Theatre_AdjustTimeDeltaStub();
-  void Theatre_ServerTimedOutStub();
   void Theatre_UISetActiveMenuStub();
 
   void Theatre_StoreBaseline(Game::msg_t* snapshotMsg);
-  void Theatre_WriteBaseline();
   bool Theatre_AdjustTimeDelta();
 }
 
@@ -24,13 +21,24 @@ namespace Components
 
   private:
     friend void (::Theatre_StoreBaseline)(Game::msg_t* snapshotMsg);
-    friend void (::Theatre_WriteBaseline)();
     friend bool (::Theatre_AdjustTimeDelta)();
+
+    // The extension of the demos the game records, and that of the demos
+    // that x86 records (and that ServerDemo writes on x64 as well).
+    //
+    // Note that the number in the extension is the protocol, which is 16 on
+    // x64 and 13 on x86. But since we always speak x86 on the wire (see
+    // Compatibility), what goes into a demo is the same either way, so we
+    // play both.
+    //
+    static constexpr auto* DemoExtension = "dm_16";
+    static constexpr auto* X86DemoExtension = "dm_13";
 
     class DemoInfo
     {
     public:
       std::string name;
+      std::string extension;
       std::string mapname;
       std::string gametype;
       std::string author;
@@ -65,6 +73,8 @@ namespace Components
 
     static void GamestateWriteStub(Game::msg_t* msg, char byte);
     static void RecordGamestateStub();
+    static void BaselineToFileStub();
+    static bool CL_ServerTimedOut_Stub();
 
     static int CL_FirstSnapshot_Stub();
     static void SV_SpawnServer_Stub();
@@ -72,7 +82,10 @@ namespace Components
     static void CG_CompassDrawPlayerMapLocationSelector_Stub(int localClientNum, Game::CompassType compassType, const Game::rectDef_s* parentRect, const Game::rectDef_s* rect, Game::Material* material, float* color);
     static void CL_WriteDemoClientArchive_Hk(void(*write)(const void* buffer, int len, int localClientNum), const Game::playerState_s* ps, const float* viewangles, const float* selectedLocation, float selectedLocationAngle, int localClientNum, int index);
 
-    static void RecordStub(int channel, char* message, char* file);
-    static void StopRecordStub(int channel, char* message);
+    static Game::fileHandle_t RecordStub(const char* file);
+    static void CL_StopRecord_f_Hk();
+
+    static int CL_PlayDemo_f_CompareExtension(const char* nameEnd, const char* extension);
+    static int CL_PlayDemo_f_OpenDemo(const char* path, Game::fileHandle_t* file);
   };
 }

@@ -44,8 +44,13 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
   SetProcessDEPPolicy(PROCESS_DEP_ENABLE);
 
 #ifndef DISABLE_BINARY_CHECK
-  const auto* binary = reinterpret_cast<const char*> (0x6F9358);
-  if (!binary || std::memcmp (binary, BASEGAME_NAME, 14) != 0)
+  // Note that on x86 we check the iw4mp_ceg.exe name that the game
+  // relaunches itself through Steam with, while x64 has iw4mp_steam.exe
+  // there instead. Either way, it's a cheap way to make sure we were loaded
+  // into the game we think we were.
+  //
+  const auto* binary = reinterpret_cast<const char*> (0x140377ED8);
+  if (!binary || std::memcmp (binary, BASEGAME_NAME, sizeof (BASEGAME_NAME)) != 0)
   {
     MessageBoxA(nullptr,
                   "Failed to load game binary.\n"
@@ -58,7 +63,7 @@ BOOL APIENTRY DllMain(HINSTANCE /*hinstDLL*/, DWORD fdwReason, LPVOID /*lpvReser
   }
 #endif
 
-  Utils::Hook (0x6BAC0F, Main::EntryPoint, HOOK_JUMP).install ()->quick ();
+  Utils::Hook (0x1402FC0A4, Main::EntryPoint, HOOK_JUMP).install ()->quick ();
 
   return TRUE;
 }

@@ -43,7 +43,7 @@ namespace Components
   Dvar::Var RawMouse::M_RawInput;
   Dvar::Var RawMouse::M_RawInputVerbose;
   Dvar::Var RawMouse::R_AutoPriority = nullptr;
-  Dvar::Var RawMouse::R_FullScreen = nullptr;
+  Dvar::Var RawMouse::R_DisplayMode = nullptr;
 
   rawMouseValue_t RawMouse::MouseRawX {0, 0};
   rawMouseValue_t RawMouse::MouseRawY {0, 0};
@@ -194,7 +194,7 @@ namespace Components
     return true;
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnRawInput (LPARAM l, WPARAM)
   {
     // If the dvar is disabled, we still receive the message but should ignore
@@ -281,7 +281,7 @@ namespace Components
 
   // Fallback handler for standard Windows mouse messages.
   //
-  BOOL
+  LRESULT
   RawMouse::OnLegacyMouseEvent (UINT m, LPARAM l, WPARAM w)
   {
     int e ((w & MK_LBUTTON) != 0);
@@ -314,7 +314,7 @@ namespace Components
     return DefWindowProcA (Window::GetWindow (), m, w, l);
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnKillFocus ([[maybe_unused]] LPARAM l, WPARAM)
   {
     RawMouse::InFocus = false;
@@ -340,7 +340,7 @@ namespace Components
     return DefWindowProc (Window::GetWindow (), WM_KILLFOCUS, 0, 0);
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnSetFocus ([[maybe_unused]] LPARAM l, WPARAM)
   {
     RawMouse::InFocus = true;
@@ -476,7 +476,7 @@ namespace Components
     ResetMouseRawEvents ();
 
     R_AutoPriority = Dvar::Var ("r_autopriority");
-    R_FullScreen = Dvar::Var (0x069F0DA0);
+    R_DisplayMode = Dvar::Var (0x148CC4960);
   }
 
   void
@@ -541,8 +541,11 @@ namespace Components
     tagPOINT c;
     static tagPOINT p;
 
+    // On x86 we check r_fullscreen here. x64 replaces that dvar with the
+    // r_displayMode enum, where 0 is fullscreen.
+    //
     GetCursorPos (&c);
-    if (R_FullScreen.get<Game::dvar_t*> () && R_FullScreen.get<bool> ())
+    if (R_DisplayMode.get<Game::dvar_t*> () && R_DisplayMode.get<int> () == 0)
       ClampMousePos (c);
 
     int dx (c.x - p.x);
@@ -576,49 +579,49 @@ namespace Components
     }
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnLBDown (LPARAM l, WPARAM w)
   {
     return OnLegacyMouseEvent (WM_LBUTTONDOWN, l, w);
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnLBUp (LPARAM l, WPARAM w)
   {
     return OnLegacyMouseEvent (WM_LBUTTONUP, l, w);
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnRBDown (LPARAM l, WPARAM w)
   {
     return OnLegacyMouseEvent (WM_RBUTTONDOWN, l, w);
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnRBUp (LPARAM l, WPARAM w)
   {
     return OnLegacyMouseEvent (WM_RBUTTONUP, l, w);
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnMBDown (LPARAM l, WPARAM w)
   {
     return OnLegacyMouseEvent (WM_MBUTTONDOWN, l, w);
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnMBUp (LPARAM l, WPARAM w)
   {
     return OnLegacyMouseEvent (WM_MBUTTONUP, l, w);
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnXBDown (LPARAM l, WPARAM w)
   {
     return OnLegacyMouseEvent (WM_XBUTTONDOWN, l, w);
   }
 
-  BOOL
+  LRESULT
   RawMouse::OnXBUp (LPARAM l, WPARAM w)
   {
     return OnLegacyMouseEvent (WM_XBUTTONUP, l, w);
@@ -626,17 +629,22 @@ namespace Components
 
   RawMouse::RawMouse ()
   {
-    Utils::Hook (0x475E65, IN_MouseMove, HOOK_JUMP).install ()->quick ();
-    Utils::Hook (0x475E8D, IN_MouseMove, HOOK_JUMP).install ()->quick ();
+    // On x86 we hook the two tail calls of IN_Frame() to IN_MouseMove() where
+    // it deactivates the mouse, while the controller hooks the one where it
+    // activates it. x64 inlines IN_MouseMove() at the point where the three
+    // meet, so the controller hooks that one for all of them. That makes the
+    // controller responsible for the mouse in a way it isn't on x86, which
+    // is a bit odd but seems to work out.
+    //
+    // Note that on x86 we also hook in_restart, which x64 doesn't have.
+    //
+    Utils::Hook (0x1402A3B25, IN_Init, HOOK_CALL).install ()->quick ();
 
-    Utils::Hook (0x467C03, IN_Init, HOOK_CALL).install ()->quick ();
-    Utils::Hook (0x64D095, IN_Init, HOOK_JUMP).install ()->quick ();
+    Utils::Hook (0x1401F6771, IN_Frame, HOOK_CALL).install ()->quick ();
+    Utils::Hook (0x1400FD3DA, IN_Frame, HOOK_CALL).install ()->quick ();
+    Utils::Hook (0x1400F6DC1, IN_Frame, HOOK_CALL).install ()->quick ();
 
-    Utils::Hook (0x60BFB9, IN_Frame, HOOK_CALL).install ()->quick ();
-    Utils::Hook (0x4A87E2, IN_Frame, HOOK_CALL).install ()->quick ();
-    Utils::Hook (0x48A0E6, IN_Frame, HOOK_CALL).install ()->quick ();
-
-    Utils::Hook (0x473517, IN_RecenterMouse, HOOK_CALL).install ()->quick ();
+    Utils::Hook (0x1402A9448, IN_RecenterMouse, HOOK_CALL).install ()->quick ();
 
     M_RawInput =
       Dvar::Register<bool> ("m_rawinput",

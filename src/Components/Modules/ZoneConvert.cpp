@@ -76,63 +76,46 @@ namespace zone
   //
   namespace
   {
-    // The game keeps its fastfiles under zone and we put the converted
-    // copy under zone/iw4x/x86.
+    // The game keeps its fastfiles under zone. The x64 game reads the stock
+    // ones in place, which leaves IW4x's own fastfiles. These are in the x86
+    // layout under zone/iw4x/x86, where the x86 game reads them, and we put
+    // the converted copy under zone/iw4x/stage.
     //
-    // Note that this means iw4x will turn up when we enumerate
-    // directories under zone looking for zone groups. So keep the name
-    // separately and use it to recognize our own subtree. We could
-    // extract it from converted_root, of course, though spelling it out
-    // here makes this special case below a bit easier to see.
+    // Why not zone/iw4x/x64? For now that's where our mm variant keeps its
+    // fastfiles (and main/iw4x/x64 its loose files, which is why BASEGAME is
+    // main/iw4x/stage), though once it moves elsewhere (zone/iw4x/mm, say),
+    // we can probably take both over. Note also that we leave zone/iw4x/x86
+    // and main/iw4x/x86 as they are, so that a player can go back to the x86
+    // game (say, while we fix something on x64 that keeps them from moving
+    // over).
+    //
+    // Note that on x86 we convert the other way around, writing x86 copies
+    // of the stock fastfiles under zone/iw4x/x86.
     //
     const fs::path zone_root ("zone");
-    const fs::path converted_root ("zone/iw4x/x86");
-    const string converted_name ("iw4x");
+    const fs::path source_root ("zone/iw4x/x86");
+    const fs::path converted_root ("zone/iw4x/stage");
 
-    // The loose IW4x files are a little different. The game loads these
-    // from fs_basegame which we point at BASEGAME. Older installations
-    // used BASEGAME_LEGACY, so for now we have to know about both
-    // locations.
-    //
-    // Presumably at some point the legacy location can disappear
-    // together with the migration code. Until then there isn't much to
-    // gain from trying to hide this distinction elsewhere.
+    // The loose IW4x files are a little different. The game loads these from
+    // fs_basegame, which we point at BASEGAME. The x86 game reads them from
+    // main/iw4x/x86, and older installations still have them in
+    // BASEGAME_LEGACY. None of them depends on the word size, as far as we
+    // can tell, so we simply copy what the other two locations have.
     //
     const fs::path basegame_root (BASEGAME);
+    const fs::path source_basegame_root ("main/iw4x/x86");
     const fs::path legacy_basegame_root (BASEGAME_LEGACY);
-
-    // The old converter left converted.txt in the backup directories it
-    // made. Nothing creates this file anymore, though naturally
-    // installations that went through the old converter can still have
-    // it. So keep recognizing it as part of the old layout.
-    //
-    const string legacy_marker ("converted.txt");
-
-    // And this is the other part of that layout. The language backup
-    // was simply called "old" while the other zone groups had "_old"
-    // appended to their names.
-    //
-    // This is perhaps a little too liberal as a test since any
-    // directory with such a name will match. It is, though, the
-    // convention the old converter used and at this point all we need
-    // to do is recognize it.
-    //
-    bool
-    legacy_backup (const string& n)
-    {
-      return n == "old" || n.ends_with ("_old");
-    }
   }
 
   // The fastfiles.
   //
   namespace
   {
-    // There are two fastfile layouts that we care about. x86 is the
-    // layout the game reads and x64 is the one shipped by recent Steam
-    // installations. The latter is, of course, what we are looking for
-    // here since those are the files that have to go through the
-    // converter.
+    // There are two fastfile layouts that we care about. x64 is the layout
+    // the game reads and the one shipped by recent Steam installations. x86
+    // is the layout of IW4x's own fastfiles, which is, of course, what we are
+    // looking for here, since those are the files that have to go through
+    // the converter.
     //
     enum class arch {x86, x64};
 
@@ -149,6 +132,8 @@ namespace zone
     const size_t preamble_size (8 + 4 + 1 + 8);
     const size_t authed_size (0x2000);
     const int zone_version (276);
+    const int alpha_version_first (316);
+    const int alpha_version_last (360);
 
     struct magic_type
     {
@@ -220,6 +205,21 @@ namespace zone
       //
       int v;
       memcpy (&v, h + 8, sizeof (v));
+
+      // Pre-release zones (some of the IW4x DLC maps) have their own
+      // versions and are always signed. We can't run the pointer test on
+      // them since, from 319 on, their stream is encrypted. But they only
+      // ever existed for the x86 game, so the header alone is enough to
+      // tell that they need converting. The converter then reads them in
+      // their old layouts.
+      //
+      if (v >= alpha_version_first && v <= alpha_version_last)
+      {
+        if (memcmp (h, "IWff0100", 8) != 0)
+          return nullopt;
+
+        return arch::x86;
+      }
 
       if (v != zone_version)
         return nullopt;
@@ -480,19 +480,6 @@ namespace zone
       {"dlc",         &official_dlc}
     };
 
-    // This is deliberately just the group-name test. Once the caller
-    // has found one of our groups it can use the entry above to decide
-    // whether a particular fastfile is, after all, one of the game's.
-    //
-    bool
-    own_group (const string& n)
-    {
-      return ranges::any_of (own_groups,
-                             [&n] (const group_type& g)
-      {
-        return n == g.name;
-      });
-    }
   }
 
   // The plan.
@@ -509,23 +496,19 @@ namespace zone
     // it out. A refusal before that point then leaves the installation
     // exactly as we found it.
     //
+    // Note that on x86 we also rearrange files (moving some and dropping
+    // others) to bring older layouts into shape. The x64 game has no older
+    // layout to speak of, and since the x86 game keeps reading the
+    // originals, we only ever copy or convert them here. Which is a relief,
+    // really, since a copy we get wrong can always be made again.
+    //
     enum class action
     {
-      move,    // Move the file with nothing already at the destination.
       copy,    // Copy the file, leaving the original where it is.
-      replace, // Move the file over what is already at the destination.
-      drop,    // Remove the file since the destination is newer.
-      convert, // Convert the file and write the result to `to`.
-      prune    // Remove the directory together with empty directories below it.
+      convert  // Convert the file and write the result to `to`.
     };
 
-    // A step is one such operation. For move, copy, replace, and
-    // convert we need both sides. For drop and prune there is naturally
-    // nowhere to move anything to, so `to` is simply left empty.
-    //
-    // Perhaps we could have separate representations for those cases,
-    // though there doesn't seem to be much gained by making the plan
-    // itself harder to walk.
+    // A step is one such operation, from one file to another.
     //
     struct step
     {
@@ -544,413 +527,122 @@ namespace zone
   //
   namespace
   {
-    // There is first the old IW4x directory next to the game. What used
-    // to live there is now read from BASEGAME, so if we still find the
-    // old directory we want to fold it into the new one instead of
-    // leaving it behind indefinitely.
+    // Whether t has to be brought up to date with f. That's the case if
+    // there is nothing at t yet or if f has changed since we produced t.
     //
-    // The only slightly interesting case is a file that already exists
-    // in both places. This normally means the launcher has installed a
-    // newer copy into BASEGAME since the old layout was created. So
-    // keep that one and throw away the old copy instead of moving it
-    // over the top.
+    // The latter matters since, unlike the stock fastfiles, IW4x's own files
+    // change with every release. Note that a copy keeps the original's
+    // modification time while a conversion is newer than its input, so
+    // either way f is only newer once it has changed. Could we compare
+    // contents instead? We could, but reading every fastfile on every start
+    // seems a steep price for that.
+    //
+    bool
+    stale (const fs::path& f, const fs::path& t)
+    {
+      error_code ec;
+      fs::file_time_type tt (fs::last_write_time (t, ec));
+
+      if (ec)
+        return true;
+
+      fs::file_time_type ft (fs::last_write_time (f, ec));
+      return !ec && ft > tt;
+    }
+
+    // There are first the loose IW4x files. The launcher installs them into
+    // source_basegame_root, and installations that go back far enough still
+    // have them in legacy_basegame_root, which the x86 game folds into the
+    // former. We leave both alone, since the x86 game keeps reading them,
+    // and copy them into basegame_root.
+    //
+    // What if a file is in both places? That happens if the x86 game hasn't
+    // got round to folding it yet. The copy in source_basegame_root is then
+    // the one the launcher installed later, so that's the one we keep.
     //
     void
     plan_basegame (plan& p)
     {
-      if (!fs::is_directory (legacy_basegame_root))
-        return;
+      set<fs::path> seen;
 
-      for (const fs::directory_entry& e:
-             fs::recursive_directory_iterator (legacy_basegame_root))
+      for (const fs::path& b: {source_basegame_root, legacy_basegame_root})
       {
-        if (!e.is_regular_file ())
+        if (!fs::is_directory (b))
           continue;
 
-        fs::path r (e.path ().lexically_relative (legacy_basegame_root));
-        fs::path t (basegame_root / r);
-
-        if (fs::exists (t))
-          p.push_back ({action::drop, e.path (), {}});
-        else
-          p.push_back ({action::move, e.path (), move (t)});
-      }
-
-      // And once all the files have somewhere to go, the old directory itself
-      // can disappear.
-      //
-      p.push_back ({action::prune, legacy_basegame_root, {}});
-    }
-
-    // Recovery is a little more involved. An older converter used to
-    // replace the fastfiles in a group with their x86 copies and move
-    // the originals into a backup directory next to it. So, for
-    // example, what started as dlc could end up split between dlc and
-    // dlc_old.
-    //
-    // What we want now is fairly clear: put the originals back where
-    // the game expects them and move the converted copies under
-    // converted_root. The trouble is that an installation may have
-    // changed since the old converter ran, and in a few states there is
-    // no longer enough information to tell which file came from where.
-    //
-    // Perhaps the safest thing in those cases is simply not to invent
-    // an answer. We have looked at the whole installation before
-    // executing the plan, so a refusal here still leaves it exactly as
-    // we found it.
-    //
-    [[noreturn]] void
-    refuse (const fs::path& b, const fs::path& g, const string& w)
-    {
-      fail ("{}\n\n"
-            "This installation was converted by an older version of IW4x, and its "
-            "fastfiles cannot be put back where they belong without guessing.\n\n"
-            "Move the fastfiles in \"{}\" back to \"{}\", delete \"{}\", and start "
-            "the game again. See \"{}\" for what was found.",
-            w,
-            b.generic_string (),
-            g.generic_string (),
-            b.generic_string (),
-            log_file);
-    }
-
-    // Now, "old" is a bit special. The other backup directories have
-    // the original group name in "<group>_old", while here the old
-    // converter simply used "old" regardless of the language. So we
-    // have to recover the language name from what is still under zone.
-    //
-    string
-    backup_language (const fs::path& b)
-    {
-      vector<string> ls;
-
-      for (const fs::directory_entry& e: fs::directory_iterator (zone_root))
-      {
-        if (!e.is_directory ())
-          continue;
-
-        string n (e.path ().filename ().generic_string ());
-
-        if (n == converted_name || own_group (n) || legacy_backup (n))
-          continue;
-
-        ls.push_back (move (n));
-      }
-
-      // If there is only one language directory, then that's that.
-      //
-      if (ls.size () == 1)
-        return ls.front ();
-
-      // Otherwise things get a little more interesting. The old
-      // converter moved the originals out and put the converted files
-      // back under the same names. So the language directory the backup
-      // came from should still have, at least to some degree, the same
-      // set of filenames.
-      //
-      // Let's count these matches and see if one language comes out
-      // ahead.
-      //
-      vector<pair<size_t, string>> rs;
-
-      for (string& l: ls)
-      {
-        size_t n (0);
-
-        for (const fs::directory_entry& e: fs::directory_iterator (b))
-        {
-          if (fs::exists (zone_root / l / e.path ().filename ()))
-            ++n;
-        }
-
-        rs.emplace_back (n, move (l));
-      }
-
-      ranges::sort (rs, ranges::greater ());
-
-      // There are two ways this can fail to tell us anything. We may
-      // have no matches at all or two languages may match equally well.
-      // Perhaps we could try to be cleverer here, but a wrong guess
-      // means putting the originals into the wrong language directory
-      // and then carrying on as if everything was fine. Better leave
-      // that decision to the user.
-      //
-      if (rs.empty () ||
-          rs.front ().first == 0 ||
-          (rs.size () > 1 && rs.front ().first == rs[1].first))
-      {
-        fail ("\"{}\" holds the fastfiles an older version of IW4x replaced, and "
-              "there is no telling which of the language directories under \"{}\" "
-              "they came out of.\n\n"
-              "Move them back into the directory they belong to, delete \"{}\", "
-              "and start the game again.",
-              b.generic_string (),
-              zone_root.generic_string (),
-              b.generic_string ());
-      }
-
-      return rs.front ().second;
-    }
-
-    void
-    plan_recovery (plan& p)
-    {
-      if (!fs::is_directory (zone_root))
-        return;
-
-      // Now go through the backups. For "<group>_old" the group name is
-      // right there in the directory name. For "old" we have just gone
-      // through the trouble of figuring it out above.
-      //
-      for (const fs::directory_entry& e: fs::directory_iterator (zone_root))
-      {
-        if (!e.is_directory ())
-          continue;
-
-        const fs::path& b (e.path ());
-        string n (b.filename ().generic_string ());
-
-        if (!legacy_backup (n))
-          continue;
-
-        string g (n == "old"
-                  ? backup_language (b)
-                  : n.substr (0, n.size () - strlen ("_old")));
-
-        fs::path sd (zone_root / g);       // Where the group is read from.
-        fs::path cd (converted_root / g);  // Where iw4x reads it from.
-
-        for (const fs::directory_entry& f: fs::directory_iterator (b))
-        {
-          string fn (f.path ().filename ().generic_string ());
-
-          // The old marker is easy enough. It was only there for the converter
-          // and has no meaning once we have recovered the directory.
-          //
-          if (fn == legacy_marker)
-          {
-            p.push_back ({action::drop, f.path (), {}});
-            continue;
-          }
-
-          // Everything else is supposed to be one of the originals.
-          // Bail out if it isn't even a regular file since at that
-          // point the old layout no longer has the shape we know how to
-          // recover.
-          //
-          if (!f.is_regular_file ())
-            refuse (b, sd, "There is something in the backup directory that is not a fastfile.");
-
-          fs::path s (sd / fn); // The converted copy, if it is still in place.
-          fs::path c (cd / fn); // Where it belongs now.
-
-          // First, we may already be halfway through this recovery. If
-          // c exists, then presumably we moved the converted copy there
-          // on an earlier start and stopped before putting the original
-          // back.
-          //
-          // This is fine as long as s is now empty. If it isn't, then
-          // we have a file in both places and there is no useful way to
-          // tell which state we are looking at.
-          //
-          if (fs::exists (c))
-          {
-            if (fs::exists (s))
-              refuse (b, sd, "There is a copy of this fastfile in both places, and "
-                             "nothing to say which of the two the game should read.");
-
-            p.push_back ({action::move, f.path (), move (s)});
-            continue;
-          }
-
-          // If s doesn't exist either, things are simpler. There is no
-          // converted copy left to preserve, so just put the original
-          // back.
-          //
-          // Perhaps the old converter never got to this file. Or
-          // perhaps the converted copy was removed later. It doesn't
-          // really matter here.
-          //
-          if (!fs::exists (s))
-          {
-            p.push_back ({action::move, f.path (), move (s)});
-            continue;
-          }
-
-          // Which leaves the old converter's normal state: the original
-          // is in the backup and something with the same name is still
-          // in the group. That something should be the x86 copy.
-          //
-          // Check this rather than assuming it from the name. If it is
-          // x64, then it plainly isn't the converted copy. If we cannot
-          // tell what it is, then we are back to guessing.
-          //
-          optional<arch> a (probe (s));
-
-          if (a != arch::x86)
-          {
-            refuse (b, sd,
-                    a
-                    ? "The fastfile in the group directory is itself in the x64 "
-                      "layout, so it is not the converted copy of the one in the "
-                      "backup directory."
-                    : "The fastfile in the group directory cannot be read, so "
-                      "there is no telling whether it is the converted copy of "
-                      "the one in the backup directory.");
-          }
-
-          // Now move the converted copy out of the way and put the
-          // original back. Note that the order matters. If we stop
-          // after the first move, then on the next start c exists and s
-          // doesn't, which is precisely the interrupted case above.
-          //
-          p.push_back ({action::move, s, move (c)});
-          p.push_back ({action::move, f.path (), move (s)});
-        }
-
-        p.push_back ({action::prune, b, {}});
-      }
-    }
-
-    // With the old backups dealt with, let's look at the groups that
-    // are ours. Our fastfiles belong under converted_root now. The x64
-    // ones are useful where they are for a little longer since
-    // plan_conversion() still needs them as input.
-    //
-    void
-    plan_adoption (plan& p)
-    {
-      for (const group_type& g: own_groups)
-      {
-        fs::path d (zone_root / g.name);
-
-        if (!fs::is_directory (d))
-          continue;
-
-        for (const fs::directory_entry& e: fs::directory_iterator (d))
+        for (const fs::directory_entry& e: fs::recursive_directory_iterator (b))
         {
           if (!e.is_regular_file ())
             continue;
 
-          string n (e.path ().filename ().generic_string ());
+          fs::path r (e.path ().lexically_relative (b));
 
-          // dlc is/was shared, as discussed above. Steam's stock files
-          // stay where Steam put them: they belong to the game and an
-          // integrity check would bring them back anyway.
-          //
-          // The game does, however, read this group from
-          // converted_root, so a copy of them has to turn up there as
-          // well. For the x64 ones that happens on its own since the
-          // next pass writes its output there. Which leaves the ones
-          // that are already in the layout the game reads: those we
-          // simply copy across.
-          //
-          if (g.shared != nullptr && g.shared (n))
-          {
-            fs::path t (converted_root / g.name / n);
-
-            // Perhaps we copied it on an earlier start. Note also that
-            // the copy under converted_root is what the next pass
-            // writes, so finding something there means this file has
-            // been dealt with either way.
-            //
-            if (!fs::exists (t) && probe (e.path ()) == arch::x86)
-              p.push_back ({action::copy, e.path (), move (t)});
-
-            continue;
-          }
-
-        // And leave x64 alone for now. These are the files the next pass will
-        // actually convert.
-        //
-          if (probe (e.path ()) == arch::x64)
+          if (!seen.insert (r).second)
             continue;
 
-          // An old IW4x fastfile, on the other hand, is something the game
-          // would refuse to load. Installations that go back far enough
-          // still have these in here and, if we moved them, they would
-          // replace the current copy installed under converted_root.
-          //
-          if (outdated (e.path ()))
-          {
-            p.push_back ({action::drop, e.path (), {}});
-            continue;
-          }
+          fs::path t (basegame_root / r);
 
-          // There can already be a file with this name under
-          // converted_root. In that case what we have here is the copy
-          // installed afterwards, so it is the one we want to keep.
-          //
-          p.push_back ({action::replace, e.path (), converted_root / g.name / n});
+          if (stale (e.path (), t))
+            p.push_back ({action::copy, e.path (), move (t)});
         }
-
-        p.push_back ({action::prune, move (d), {}});
       }
     }
 
-    // Now all that should be left for us in the normal zone tree are
-    // the x64 fastfiles. Keep those where steam put them and write the
-    // converted copy under the corresponding group in converted_root.
+    // Then IW4x's own fastfiles. The x86 game moves them under source_root
+    // from the groups the launcher installs them into, so an installation it
+    // hasn't started on yet still has them in the groups. So we look in both
+    // places and convert each into the same group under converted_root.
+    //
+    // A fastfile can again be in both places, in which case the one in the
+    // group is the copy installed later and so the one we convert.
+    //
+    // Note that Steam's map packs in dlc are in the x64 layout and the game
+    // reads them where Steam put them. Their x86 copies under source_root
+    // are, naturally, of no use to us.
     //
     void
     plan_conversion (plan& p)
     {
-      if (!fs::is_directory (zone_root))
-        return;
-
-      for (const fs::directory_entry& e: fs::directory_iterator (zone_root))
+      for (const group_type& g: own_groups)
       {
-        if (!e.is_directory ())
-          continue;
+        set<string> seen;
 
-        string g (e.path ().filename ().generic_string ());
-
-        // Our converted tree will, naturally, turn up in this walk as
-        // well. Old backups can turn up here too, though those should
-        // have been dealt with above. Neither is input to the
-        // converter.
-        //
-        if (g == converted_name || legacy_backup (g))
-          continue;
-
-        for (const fs::directory_entry& f: fs::directory_iterator (e.path ()))
+        for (const fs::path& d: {zone_root / g.name, source_root / g.name})
         {
-          if (!f.is_regular_file ())
+          if (!fs::is_directory (d))
             continue;
 
-          fs::path t (converted_root / g / f.path ().filename ());
+          for (const fs::directory_entry& e: fs::directory_iterator (d))
+          {
+            if (!e.is_regular_file ())
+              continue;
 
-           // Perhaps we got this far on an earlier start. If the result
-          // is already there, then there isn't anything left to do for
-          // this file.
-          //
-          if (fs::exists (t))
-            continue;
+            string n (e.path ().filename ().generic_string ());
 
-          // And by now only x64 fastfiles are interesting. Everything else was
-          // either adopted above or isn't something this conversion
-          // knows what to do with.
-          //
-          if (probe (f.path ()) != arch::x64)
-            continue;
+            if ((g.shared != nullptr && g.shared (n)) || !seen.insert (n).second)
+              continue;
 
-          p.push_back ({action::convert, f.path (), move (t)});
+            // An old IW4x fastfile is something the game would refuse to load
+            // whatever its layout, and anything that isn't in the x86 layout
+            // is not something this conversion knows what to do with. Either
+            // way, better to leave it alone than to guess.
+            //
+            if (outdated (e.path ()) || probe (e.path ()) != arch::x86)
+              continue;
+
+            fs::path t (converted_root / g.name / n);
+
+            if (stale (e.path (), t))
+              p.push_back ({action::convert, e.path (), move (t)});
+          }
         }
       }
     }
 
-    // Finally, there is a reason these are separate phases and, perhaps
-    // more importantly, why they are in this order.
-    //
-    // Recovery can put fastfiles back into one of our groups. Adoption
-    // then takes our files out of those groups and puts them under
-    // converted_root. What remains after that is what conversion gets
-    // to look at.
-    //
-    // We could perhaps make one pass do all of this, though then it
-    // would have to reason about filesystem changes that have not
-    // happened yet. Keeping the phases separate means each one sees the
-    // layout left by the one before it.
+    // Each phase is planned once the one before it has been carried out, so
+    // that it sees the layout left behind. Note that on x86 we also recover
+    // the stock layout from an older converter and take over IW4x's
+    // fastfiles before converting, which the x64 game has no use for.
     //
     struct phase_type
     {
@@ -959,10 +651,8 @@ namespace zone
     };
 
     const phase_type phases[] = {
-      {"moving IW4x's own files under \"" BASEGAME "\"", &plan_basegame},
-      {"putting the stock layout back",                  &plan_recovery},
-      {"taking over IW4x's fastfiles",                   &plan_adoption},
-      {"converting fastfiles",                           &plan_conversion}
+      {"copying IW4x's own files into \"" BASEGAME "\"", &plan_basegame},
+      {"converting IW4x's fastfiles",                     &plan_conversion}
     };
   }
 
@@ -1393,31 +1083,15 @@ namespace zone
     }
 
     void
-    do_move (const step& s)
-    {
-      // The plan doesn't contain mkdir steps. Maybe it could, but then
-      // every move would have to carry around the fact that its parent
-      // may or may not exist. It is simpler to deal with that here
-      // where we actually need it.
-      //
-      mkdir_p (s.to.parent_path ());
-
-      error_code ec;
-      fs::rename (s.from, s.to, ec);
-
-      if (ec)
-        fail ("\"{}\" could not be moved to \"{}\": {}.\n\n"
-              "This game reads that file from where it was being moved to, so it "
-              "cannot start until the move goes through.",
-              s.from.generic_string (), s.to.generic_string (), ec.message ());
-    }
-
-    void
     do_copy (const step& s)
     {
-      // Same story as do_move() with the destination directory. The
-      // difference is at the other end: this is for the files that are
-      // not ours to move, so the original stays where it is.
+      // The plan doesn't contain mkdir steps. Maybe it could, but then every
+      // copy would have to carry around the fact that its parent may or may
+      // not exist. It's simpler to deal with that here where we actually need
+      // it.
+      //
+      // Note that the original stays where it is, since the x86 game keeps
+      // reading it.
       //
       mkdir_p (s.to.parent_path ());
 
@@ -1429,86 +1103,6 @@ namespace zone
               "This game reads that file from where it was being copied to, so it "
               "cannot start until the copy goes through.",
               s.from.generic_string (), s.to.generic_string (), ec.message ());
-    }
-
-    void
-    do_replace (const step& s)
-    {
-      // This is basically a move except there may already be something
-      // where we are going. Try to get it out of the way first.
-      //
-      // We could perhaps diagnose remove() separately. But if it failed
-      // in a way that matters then do_move() is going to fail on the
-      // same destination immediately afterwards and that is the more
-      // useful operation to report.
-      //
-      error_code ec;
-      fs::remove (s.to, ec);
-
-      do_move (s);
-    }
-
-    void
-    do_drop (const step& s)
-    {
-      // A drop is best effort. If the file stays around then the rest
-      // of the plan can still make progress, so remember what happened
-      // and carry on.
-      //
-      error_code ec;
-      fs::remove (s.from, ec);
-
-      if (ec)
-        log ("\"{}\" could not be removed: {}",
-             s.from.generic_string (), ec.message ());
-    }
-
-    void
-    do_prune (const step& s)
-    {
-      // It may already be gone. If so, then pruning has rather
-      // conveniently been done for us.
-      //
-      if (!fs::is_directory (s.from))
-        return;
-
-      // At this point the files we cared about have been moved out and
-      // what should remain is mostly their old directory structure.
-      // "Should" is doing some work here since a user, or perhaps Steam
-      // may have put something else in there.
-      //
-      // We don't know what such a thing is and, more importantly, it
-      // isn't part of the plan. So don't inspect files and decide
-      // whether they look disposable. Just try to remove directories. A
-      // directory with something left in it will refuse to go away,
-      // which is exactly what we want.
-      //
-      // There is the usual little wrinkle that the children have to go
-      // before their parents. Remember them during the walk and then
-      // replay the list backwards.
-      //
-      vector<fs::path> ds;
-
-      for (const fs::directory_entry& e:
-             fs::recursive_directory_iterator (s.from))
-      {
-        if (e.is_directory ())
-          ds.push_back (e.path ());
-      }
-
-      error_code ec;
-
-      for (const fs::path& d: ds | views::reverse)
-        fs::remove (d, ec);
-
-      // And finally see if the root can go as well. If it cannot, then
-      // presumably one of those unknown things is still somewhere below
-      // it. Leave the whole remainder alone and say so once.
-      //
-      fs::remove (s.from, ec);
-
-      if (fs::exists (s.from))
-        log ("\"{}\" still holds something and was left alone", s.from.generic_string ());
     }
 
     // Most actions are things we can do here and now. Conversion is a
@@ -1530,12 +1124,8 @@ namespace zone
     // enum's order.
     //
     const action_type actions[] = {
-      {"moving",     &do_move},
       {"copying",    &do_copy},
-      {"replacing",  &do_replace},
-      {"dropping",   &do_drop},
-      {"converting", nullptr},
-      {"pruning",    &do_prune}
+      {"converting", nullptr}
     };
 
     const action_type&
@@ -1552,7 +1142,7 @@ namespace zone
     //
     const char* const converter_name ("Unlinker.exe");
     const char* const converter_args (
-      R"("{0}" --game IW4MS --convert-to IW4 -o "{1}" "{2}")");
+      R"("{0}" --game IW4 --convert-to IW4MS -o "{1}" "{2}")");
 
     // The converters take much longer than this, of course. This is
     // just how long we let WaitForMultipleObjects() keep us before
@@ -1681,8 +1271,8 @@ namespace zone
       // we asked for. Probe it rather than assuming a zero exit code
       // implies the right layout.
       //
-      if (probe (s.to) != arch::x86)
-        return format ("\"{}\" did not come out in the x86 layout", s.to.generic_string ());
+      if (probe (s.to) != arch::x64)
+        return format ("\"{}\" did not come out in the x64 layout", s.to.generic_string ());
 
       return {};
     }
@@ -1691,8 +1281,8 @@ namespace zone
     spawn (const vector<const step*>& ss, progress& pg)
     {
       if (!fs::exists (converter_name))
-        fail ("This installation ships fastfiles in the x64 layout, which have to "
-              "be converted before the game can read them, and {} was not found "
+        fail ("IW4x's own fastfiles are in the x86 layout, which have to be "
+              "converted before the game can read them, and {} was not found "
               "next to the game.\n\n"
               "If you did install it, antivirus software such as Windows Defender "
               "may have quarantined it. Add an exclusion for the IW4x folder and "

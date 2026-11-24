@@ -8,12 +8,25 @@ namespace Components::GSC
 {
   using namespace Utils::String;
 
+  namespace
+  {
+    void Print(const int channel, const char* text)
+    {
+      Logger::Print(static_cast<Game::conChannel_t>(channel), "{}", text);
+    }
+
+    void PrintError(const int channel, const char* text)
+    {
+      Logger::PrintError(static_cast<Game::conChannel_t>(channel), "{}", text);
+    }
+  }
+
   int ScriptError::Developer_;
+
+  std::vector<ScriptError::ThreadStart> ScriptError::ThreadStarts;
 
   Game::scrParserGlob_t ScriptError::ScrParserGlob;
   Game::scrParserPub_t ScriptError::ScrParserPub;
-
-  std::vector<ScriptError::ThreadStart> ScriptError::ThreadStarts;
 
   int ScriptError::Scr_IsInOpcodeMemory(const char* pos)
   {
@@ -28,6 +41,11 @@ namespace Components::GSC
     Game::OpcodeLookup* opcodeLookup;
     Game::SourceLookup* sourcePosLookup;
 
+    // x86 can also break into the script debugger here or abort on the error,
+    // but x64 has neither and goes on to end the script itself after we
+    // return. So all we are left to do is say where the error is, which is
+    // probably the most useful part anyway.
+    //
     if (!Developer_)
     {
       return;
@@ -280,7 +298,7 @@ namespace Components::GSC
       --sourcePos;
     }
 
-    *col = buf - *startLine;
+    *col = static_cast<int>(buf - *startLine);
     return static_cast<int>(lineNum);
   }
 
@@ -313,13 +331,13 @@ namespace Components::GSC
   {
     if (!codePos)
     {
-      Game::Com_PrintMessage(channel, "<frozen thread>\n", 0);
+      Print(channel, "<frozen thread>\n");
       return;
     }
 
     if (codePos == Game::g_EndPos)
     {
-      Game::Com_PrintMessage(channel, "<removed thread>\n", 0);
+      Print(channel, "<removed thread>\n");
       return;
     }
 
@@ -327,7 +345,7 @@ namespace Components::GSC
     {
       if (Scr_IsInOpcodeMemory(codePos - 1))
       {
-        Game::Com_PrintMessage(channel, VA("@ %d\n", codePos - Game::scrVarPub->programBuffer), 0);
+        Print(channel, VA("@ %d\n", static_cast<int>(codePos - Game::scrVarPub->programBuffer)));
         return;
       }
     }
@@ -343,7 +361,7 @@ namespace Components::GSC
       }
     }
 
-    Game::Com_PrintMessage(channel, VA("%s\n\n", codePos), 0);
+    Print(channel, VA("%s\n\n", codePos));
   }
 
   int ScriptError::Scr_GetLineInfo(const char* buf, unsigned int sourcePos, int* col, char* line, Game::SourceBufferInfo* binfo)
@@ -374,44 +392,41 @@ namespace Components::GSC
     assert(filename);
     auto lineNum = Scr_GetLineInfo(buf, sourcePos, &col, line, nullptr);
 
-    Game::Com_PrintMessage(channel, VA("(file '%s'%s, line %d)\n", filename, ScrParserGlob.saveSourceBufferLookup ? " (savegame)" : "", lineNum + 1), 0);
-    Game::Com_PrintMessage(channel, VA("%s\n", line), 0);
+    Print(channel, VA("(file '%s'%s, line %d)\n", filename, ScrParserGlob.saveSourceBufferLookup ? " (savegame)" : "", lineNum + 1));
+    Print(channel, VA("%s\n", line));
 
     for (auto i = 0; i < col; ++i)
     {
-      Game::Com_PrintMessage(channel, " ", 0);
+      Print(channel, " ");
     }
 
-    Game::Com_PrintMessage(channel, "*\n", 0);
+    Print(channel, "*\n");
   }
 
   void ScriptError::RuntimeErrorInternal(int channel, const char* codePos, unsigned int index, const char* msg)
   {
     assert(Scr_IsInOpcodeMemory(codePos));
 
-    Game::Com_PrintError(channel, "\n******* script runtime error *******\n%s: ", msg);
+    PrintError(channel, VA("\n******* script runtime error *******\n%s: ", msg));
     Scr_PrintPrevCodePos(channel, codePos, index);
 
     if (Game::scrVmPub->function_count)
     {
       for (auto i = Game::scrVmPub->function_count - 1; i >= 1; --i)
       {
-        Game::Com_PrintError(channel, "called from:\n");
+        PrintError(channel, "called from:\n");
         Scr_PrintPrevCodePos(0, Game::scrVmPub->function_frame_start[i].fs.pos, Game::scrVmPub->function_frame_start[i].fs.localId == 0);
       }
 
-      Game::Com_PrintError(channel, "started from:\n");
+      PrintError(channel, "started from:\n");
       Scr_PrintPrevCodePos(0, Game::scrVmPub->function_frame_start[0].fs.pos, 1);
     }
 
-    Game::Com_PrintError(channel, "************************************\n");
+    PrintError(channel, "************************************\n");
   }
 
-  void ScriptError::RuntimeError(const char* codePos, unsigned int index, const char* msg, const char* dialogMessage)
+  void ScriptError::RuntimeError(const char* codePos, unsigned int index, const char* msg, [[maybe_unused]] const char* dialogMessage)
   {
-    bool abort_on_error;
-    const char* dialogMessageSeparator;
-
     if (!Developer_)
     {
       assert(Scr_IsInOpcodeMemory(codePos));
@@ -421,33 +436,15 @@ namespace Components::GSC
       }
     }
 
-    if (Game::scrVmPub->debugCode)
-    {
-      Game::Com_Printf(Game::CON_CHANNEL_PARSERSCRIPT, "%s\n", msg);
-      if (!Game::scrVmPub->terminal_error)
-      {
-        return;
-      }
-      goto error;
-    }
+    RuntimeErrorInternal(Game::CON_CHANNEL_PARSERSCRIPT, codePos, index, msg);
+  }
 
-    abort_on_error = Game::scrVmPub->terminal_error;
-    RuntimeErrorInternal(abort_on_error ? Game::CON_CHANNEL_LOGFILEONLY : Game::CON_CHANNEL_PARSERSCRIPT, codePos, index, msg);
-    if (abort_on_error)
-    {
-    error:
-      if (!dialogMessage)
-      {
-        dialogMessage = "";
-        dialogMessageSeparator = "";
-      }
-      else
-      {
-        dialogMessageSeparator = "\n";
-      }
-
-      Game::Com_Error(Game::scrVmPub->terminal_error ? Game::ERR_SCRIPT_DROP : Game::ERR_SCRIPT, "\x15script runtime error\n(see console for details)\n%s%s%s", msg, dialogMessageSeparator, dialogMessage);
-    }
+  void ScriptError::VM_Error(const char* codePos)
+  {
+    // x64 doesn't keep the error's message (the script printed it when it
+    // raised the error), so this generic one is the best we can do.
+    //
+    RuntimeError(codePos, 0, "script runtime error", nullptr);
   }
 
   void ScriptError::CompileError(unsigned int sourcePos, const char* msg, ...)
@@ -461,31 +458,33 @@ namespace Components::GSC
     vsnprintf_s(text, _TRUNCATE, msg, argptr);
     va_end(argptr);
 
+    // Note that x64 doesn't keep the message of an error in an evaluated
+    // expression and simply gives up with a fatal error, which is presumably
+    // what x86 would do too, minus the message. So we at least say what the
+    // error was.
+    //
     if (Game::scrVarPub->evaluate)
     {
-      if (!Game::scrVarPub->error_message)
-      {
-        Game::scrVarPub->error_message = VA("%s", text);
-      }
+      Game::Sys_Error(text);
     }
     else
     {
       Game::Scr_ShutdownAllocNode();
-      Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
-      Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
+      PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
+      PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
 
       if (!Developer_ || !ScrParserPub.sourceBuf)
       {
-        Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "%s\n", text);
+        PrintError(Game::CON_CHANNEL_PARSERSCRIPT, VA("%s\n", text));
         line[0] = '\0';
 
-        Game::Com_Printf(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n");
+        Print(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n");
         Game::Com_Error(Game::ERR_SCRIPT_DROP, "\x15" "script compile error\n%s\n%s\n(see console for details)\n", text, line);
       }
       else
       {
         assert(ScrParserPub.sourceBuf);
-        Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "%s: ", text);
+        PrintError(Game::CON_CHANNEL_PARSERSCRIPT, VA("%s: ", text));
 
         Scr_PrintSourcePos(Game::CON_CHANNEL_PARSERSCRIPT, ScrParserPub.scriptfilename, ScrParserPub.sourceBuf, sourcePos);
         const auto lineNumber = Scr_GetLineInfo(ScrParserPub.sourceBuf, sourcePos, &col, line, nullptr);
@@ -503,18 +502,18 @@ namespace Components::GSC
     assert(!Game::scrVarPub->evaluate);
     assert(Scr_IsInOpcodeMemory(codePos));
 
-    Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
-    Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
+    PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "\n");
+    PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "******* script compile error *******\n");
 
     va_start(argptr, msg);
     vsnprintf_s(text, _TRUNCATE, msg, argptr);
     va_end(argptr);
 
-    Game::Com_PrintError(Game::CON_CHANNEL_PARSERSCRIPT, "%s: ", text);
+    PrintError(Game::CON_CHANNEL_PARSERSCRIPT, VA("%s: ", text));
 
     Scr_PrintPrevCodePos(Game::CON_CHANNEL_PARSERSCRIPT, codePos, 0);
 
-    Game::Com_Printf(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n");
+    Print(Game::CON_CHANNEL_PARSERSCRIPT, "************************************\n");
 
     Scr_GetTextSourcePos(ScrParserPub.sourceBuf, codePos, line);
 
@@ -601,6 +600,14 @@ namespace Components::GSC
       Game::Engine::Hunk_FreeDebugMem(ScrParserGlob.saveSourceBufferLookup);
       ScrParserGlob.saveSourceBufferLookup = nullptr;
     }
+  }
+
+  void ScriptError::EmitThreadInternal_Hk(void* node, const unsigned int sourcePos, void* a3, void* a4)
+  {
+    AddThreadStartOpcodePos(sourcePos);
+    RecordThreadStart(static_cast<const Game::sval_u*>(node));
+
+    EmitThreadInternal_Original(node, sourcePos, a3, a4);
   }
 
   // Remember where the thread (function) that we are about to emit starts,
@@ -737,7 +744,7 @@ namespace Components::GSC
 
   char* ScriptError::Scr_ReadFile_LoadObj([[maybe_unused]] const char* filename, const char* extFilename, const char* codePos, bool archive)
   {
-    int f;
+    Game::fileHandle_t f;
 
     auto len = Game::FS_FOpenFileByMode(extFilename, &f, Game::FS_READ);
     if (len < 0)
@@ -760,7 +767,7 @@ namespace Components::GSC
 
   char* ScriptError::Scr_ReadFile(const char* filename, const char* extFilename, const char* codePos, bool archive)
   {
-    int file;
+    Game::fileHandle_t file;
 
     if (Game::FS_FOpenFileRead(extFilename, &file) < 0)
     {
@@ -871,17 +878,25 @@ namespace Components::GSC
     return filePosId;
   }
 
-  void ScriptError::Scr_Settings_Hk([[maybe_unused]] int developer, int developer_script, int abort_on_error)
+  unsigned int ScriptError::Scr_LoadScript_Hk(const char* filename)
   {
-    assert(!abort_on_error || developer);
-    Developer_ = (*Game::com_developer)->current.enabled;
-    Game::scrVarPub->developer_script = developer_script != 0;
-    Game::scrVmPub->abort_on_error = abort_on_error != 0;
+    // x64 inlines Scr_LoadScriptInternal() here, with room for the precache
+    // entries it has no use for, so we make room for them as well.
+    //
+    Game::PrecacheEntry entries[1024];
+    return Scr_LoadScriptInternal_Hk(filename, entries, 0);
   }
 
   void ScriptError::MT_Reset_Stub()
   {
-    Utils::Hook::Call<void()>(0x4D9620)();
+    Utils::Hook::Call<void()>(0x14021CFE0)(); // MT_Reset
+
+    // x64 has no Scr_Settings(), which is where x86 sets developer, so we take
+    // it from the dvar as each load of the scripts starts. That should come
+    // down to the same thing, unless someone flips developer halfway through
+    // a load, which seems unlikely.
+    //
+    Developer_ = (*Game::com_developer)->current.enabled;
 
     // We are about to compile the scripts from scratch, so forget the
     // threads of the previous ones.
@@ -894,7 +909,7 @@ namespace Components::GSC
 
   void ScriptError::SL_ShutdownSystem_Stub(unsigned int user)
   {
-    Utils::Hook::Call<void(unsigned int)>(0x4F46D0)(user);
+    Utils::Hook::Call<void(unsigned int)>(0x1402203A0)(user); // SL_ShutdownSystem
 
     Scr_ShutdownOpcodeLookup();
     Game::Engine::Hunk_ShutdownDebugMemory();
@@ -903,262 +918,102 @@ namespace Components::GSC
   ScriptError::ScriptError()
   {
 #ifdef SCRIPT_ERROR_PATCH
-    std::vector<std::pair<std::size_t, void*>> patches;
-    patches.reserve(200);
+    Utils::Hook(0x14021BC6B, MT_Reset_Stub, HOOK_CALL).install()->quick(); // Scr_BeginLoadScripts
+    Utils::Hook(0x14021BFD8, SL_ShutdownSystem_Stub, HOOK_CALL).install()->quick(); // Scr_FreeScripts
 
-    const auto p = [&patches](const std::size_t a, auto b)
+    Utils::Hook(0x14021B7AA, Scr_LoadScriptInternal_Hk, HOOK_CALL).install()->quick(); // ScriptCompile
+    Utils::Hook(0x14021C140, Scr_LoadScript_Hk, HOOK_JUMP).install()->quick();
+
+    // Read animtrees from disk first as well, as x86 does. x64 reads them from
+    // the zones only, which would make a mod's animtree on disk quietly not
+    // count.
+    //
+    Utils::Hook(0x140210889, Scr_AddSourceBuffer, HOOK_CALL).install()->quick(); // Scr_LoadAnimTreeAtIndex
+
+    // x64 keeps only one RuntimeError() call, for the stack overflow in
+    // VM_Execute(), and leaves the others out. So we also take over where
+    // VM_Execute() handles an error, which is where x86 makes that call (see
+    // ScriptError_VM_Error()).
+    //
+    Utils::Hook(0x140229ED1, RuntimeError, HOOK_CALL).install()->quick();
+
+    Utils::Hook(0x14022C47D, ScriptError_VM_ErrorStub, HOOK_JUMP).install()->quick();
+    Utils::Hook::Nop(0x14022C47D + 5, 4);
+
+    Utils::Hook(0x14021D190, CompileError, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14021D030, CompileError2, HOOK_JUMP).install()->quick();
+
+    EmitThreadInternal_Original = Utils::Hook::Detour(0x140217BB0, 6, EmitThreadInternal_Hk);
+
+    // The compiler's AddOpcodePos() and RemoveOpcodePos() calls.
+    //
+    // x64 compiles both out and makes the calls to an empty function that it
+    // shares with a few others, so we can't just hook the function and have
+    // to hook each call. Which call is which we told apart by what it passes:
+    // the adds pass the source position and its type, while the removes are
+    // the calls that EmitOpcode() (and its copy for one particular opcode)
+    // makes right before it replaces the previous opcode. A good few of them
+    // are tail calls, hence the second list. If a source position ever comes
+    // out wrong, then one of these lists is probably missing a call.
+    //
+    for (const auto address : std::initializer_list<std::uintptr_t>
     {
-      patches.emplace_back(a, reinterpret_cast<void*>(b));
-    };
-
-    p(0x44AC44, Scr_Settings_Hk);
-    p(0x60BE0B, Scr_Settings_Hk);
-
-    p(0x4656A7, MT_Reset_Stub); // Scr_BeginLoadScripts
-    p(0x42904B, SL_ShutdownSystem_Stub); // Scr_FreeScripts
-
-    p(0x426C8A, Scr_LoadScriptInternal_Hk); // ScriptCompile
-    p(0x45D959, Scr_LoadScriptInternal_Hk); // Scr_LoadScript
-
-    p(0x61E3AD, RuntimeError); // VM_Notify
-    p(0x621976, RuntimeError); // VM_Execute
-    p(0x62246E, RuntimeError); // VM_Execute_0
-
-    p(0x611F7C, CompileError2); // Scr_CheckAnimsDefined
-    p(0x612E76, CompileError2); // LinkThread
-    p(0x612E8D, CompileError2); // ^^
-    p(0x612EA2, CompileError2); // ^^
-
-    Utils::Hook(0x4227E0, Scr_PrintPrevCodePos, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x61A680, ScriptError_EmitThreadInternal_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook::Nop(0x61A680 + 5, 2);
-
-    p(0x61228C, AddOpcodePos); // EmitGetInteger
-    p(0x6122C0, AddOpcodePos); // ^^
-    p(0x6121FF, AddOpcodePos); // ^^
-    p(0x612223, AddOpcodePos); // ^^
-    p(0x612259, AddOpcodePos); // ^^
-    p(0x6122ED, AddOpcodePos); // ^^
-
-    p(0x6128BE, AddOpcodePos); // EmitValue
-
-    p(0x6128F3, AddOpcodePos); // EmitGetFloat
-
-    p(0x612702, AddOpcodePos); // EmitGetString
-
-    p(0x612772, AddOpcodePos); // EmitGetIString
-
-    p(0x6127E4, AddOpcodePos); // EmitGetVector
-
-    p(0x612843, AddOpcodePos); // EmitGetAnimation
-
-    p(0x6166DD, AddOpcodePos); // EmitPreFunctionCall
-
-    p(0x617D10, AddOpcodePos); // EmitOrEvalVariableExpression
-
-    p(0x615160, AddOpcodePos); // EmitOrEvalLocalVariable
-
-    p(0x6155B3, AddOpcodePos); // EmitArrayVariable
-    p(0x6155BF, AddOpcodePos); // ^^
-
-    p(0x6170D7, AddOpcodePos); // EmitBoolAndExpression
-
-    p(0x614971, AddOpcodePos); // ??
-
-    p(0x6151B6, AddOpcodePos); // EmitLocalVariableRef
-
-    p(0x619CC1, AddOpcodePos); // EmitArrayVariableRef
-    p(0x619CC9, AddOpcodePos); // ^^
-
-    p(0x615261, AddOpcodePos); // EmitGameRef
-
-    p(0x615309, AddOpcodePos); // EmitClearArray
-    Utils::Hook(0x615319, AddOpcodePos, HOOK_JUMP).install()->quick(); // EmitClearArray
-
-    p(0x614D79, AddOpcodePos); // ??
-
-    p(0x6153B9, AddOpcodePos); // ??
-
-    p(0x614B74, AddOpcodePos); // ??
-
-    p(0x614ED9, AddOpcodePos); // ??
-
-    p(0x614E29, AddOpcodePos); // ??
-
-    p(0x614CC9, AddOpcodePos); // ??
-
-    p(0x614C19, AddOpcodePos); // ??
-
-    p(0x6167A5, AddOpcodePos); // ??
-
-    p(0x614AB1, AddOpcodePos); // ??
-
-    p(0x614A11, AddOpcodePos); // ??
-
-    p(0x616FB7, AddOpcodePos); // EmitBoolOrExpression
-
-    p(0x6171EE, AddOpcodePos); // EmitOrEvalBinaryOperatorExpression
-
-    p(0x616E6B, AddOpcodePos); // EmitOrEvalPrimitiveExpressionList
-
-    p(0x618199, AddOpcodePos); // EmitReturnStatement
-
-    p(0x61A2F2, AddOpcodePos); // EmitEndStatement
-
-    p(0x61826A, AddOpcodePos); // EmitWaitStatement
-    p(0x618272, AddOpcodePos); // ^^
-    p(0x61827E, AddOpcodePos); // ^^
-
-    p(0x61832E, RemoveOpcodePos); // EmitIfStatement (EmitOpcode inlined?)
-    p(0x618366, AddOpcodePos); // ^^
-    p(0x6183C8, AddOpcodePos); // ^^
-
-    p(0x6184A6, RemoveOpcodePos); // EmitIfElseStatement (EmitOpcode inlined?)
-    p(0x6184DD, AddOpcodePos); // ^^
-    p(0x618601, AddOpcodePos); // ^^
-    p(0x618569, AddOpcodePos); // ^^
-    p(0x618685, AddOpcodePos); // ^^
-
-    p(0x618876, RemoveOpcodePos); // EmitWhileStatement (EmitOpcode inlined?)
-    p(0x6188AD, AddOpcodePos); // ^^
-    p(0x6189F5, AddOpcodePos); // ^^
-    p(0x618A09, AddOpcodePos); // ^^
-
-    p(0x618CC2, RemoveOpcodePos); // EmitForStatement (EmitOpcode inlined?)
-    p(0x618CF9, AddOpcodePos); // ^^
-    p(0x618EAE, AddOpcodePos); // ^^
-    p(0x618EC2, AddOpcodePos); // ^^
-
-    p(0x61A0C7, AddOpcodePos); // EmitIncStatement
-    p(0x61A0DA, AddOpcodePos); // ^^
-
-    p(0x61A1A7, AddOpcodePos); // EmitDecStatement
-    p(0x61A1BA, AddOpcodePos); // ^^
-
-    p(0x61A239, AddOpcodePos); // EmitBinaryEqualsOperatorExpression
-    p(0x61A253, AddOpcodePos); // ^^
-
-    p(0x61909D, AddOpcodePos); // EmitWaittillStatement
-    p(0x6190A5, AddOpcodePos); // ^^
-    p(0x6190B1, AddOpcodePos); // ^^
-    p(0x6190BE, AddOpcodePos); // ^^
-
-    p(0x6148D0, AddOpcodePos); // EmitSafeSetWaittillVariableField
-
-    p(0x6192B3, AddOpcodePos); // EmitWaittillmatchStatement
-    p(0x6192BB, AddOpcodePos); // ^^
-    p(0x6192C7, AddOpcodePos); // ^^
-    p(0x6192D5, AddOpcodePos); // ^^
-    p(0x6192EC, AddOpcodePos); // ^^
-
-    p(0x617412, AddOpcodePos); // EmitWaittillFrameEnd
-    p(0x61741A, AddOpcodePos); // ^^
-
-    p(0x61944B, AddOpcodePos); // EmitNotifyStatement
-    p(0x619551, AddOpcodePos); // ^^
-    p(0x61955F, AddOpcodePos); // ^^
-    p(0x61956B, AddOpcodePos); // ^^
-
-    p(0x61965E, AddOpcodePos); // EmitEndOnStatement
-    p(0x61966A, AddOpcodePos); // ^^
-
-    p(0x619835, AddOpcodePos); // EmitSwitchStatement
-
-    p(0x617860, AddOpcodePos); // EmitBreakStatement
-
-    p(0x617990, AddOpcodePos); // EmitContinueStatement
-
-    p(0x61A70D, AddOpcodePos); // EmitThreadInternal
-    p(0x61A716, AddOpcodePos); // ^^
-
-    p(0x617BB8, AddOpcodePos); // InitThread
-    p(0x617BC0, AddOpcodePos); // ^^
-
-    p(0x6157B7, AddOpcodePos); // EmitGetFunction
-    p(0x615997, AddOpcodePos); // ^^
-    p(0x6158D7, AddOpcodePos); // ^^
-
-    p(0x616BBD, AddOpcodePos); // EmitMethod
-    p(0x616C2E, AddOpcodePos); // ^^
-
-    p(0x615A42, RemoveOpcodePos); // ?? (EmitOpcode inlined?)
-    p(0x615AF7, RemoveOpcodePos); // ^^
-    p(0x615B78, AddOpcodePos); // ^^
-
-    p(0x615D0D, AddOpcodePos); // ??
-    p(0x615D19, AddOpcodePos); // ^^
-
-    p(0x6163FD, AddOpcodePos); // ??
-    p(0x616420, AddOpcodePos); // ^^
-
-    p(0x615E5B, RemoveOpcodePos); // ?? (EmitOpcode inlined?)
-    p(0x615E93, AddOpcodePos); // ^^
-
-    p(0x6161C5, AddOpcodePos); // ??
-
-    p(0x61645D, AddOpcodePos); // ??
-    p(0x616480, AddOpcodePos); // ^^
-
-    p(0x615FEB, RemoveOpcodePos); // ?? (EmitOpcode inlined?)
-    p(0x616023, AddOpcodePos); // ^^
-
-    p(0x616365, AddOpcodePos); // ??
-
-    p(0x616605, AddOpcodePos); // ??
-
-    p(0x6167F2, AddOpcodePos); // EmitCallBuiltinMethodOpcode
-
-    p(0x617C6F, AddOpcodePos); // EmitClearFieldVariable
-
-    p(0x617482, AddOpcodePos); // EmitSafeSetVariableField
-
-    p(0x617B61, AddOpcodePos); // EmitFormalParameterList
-
-    p(0x6154F4, AddOpcodePos); // ??
-    p(0x61551B, AddOpcodePos); // ^^
-    p(0x61554D, AddOpcodePos); // ^^
-
-    p(0x6150C1, AddOpcodePos); // EmitAnimObject
-
-    p(0x615021, AddOpcodePos); // EmitLevelObject
-
-    p(0x614F81, AddOpcodePos); // ??
-
-    p(0x612CF2, AddOpcodePos); // EmitFunction
-
-    p(0x619FFA, AddOpcodePos); // ??
-
-    p(0x61407E, RemoveOpcodePos); // EmitOpcode
-    p(0x61409F, RemoveOpcodePos); // ^^
-    p(0x6140C0, RemoveOpcodePos); // ^^
-    p(0x6140D7, RemoveOpcodePos); // ^^
-    p(0x614164, RemoveOpcodePos); // ^^
-    p(0x61417A, RemoveOpcodePos); // ^^
-    p(0x61419D, RemoveOpcodePos); // ^^
-    p(0x6141B4, RemoveOpcodePos); // ^^
-    p(0x6141CE, RemoveOpcodePos); // ^^
-    p(0x6141F9, RemoveOpcodePos); // ^^
-    p(0x614214, RemoveOpcodePos); // ^^
-    p(0x614277, RemoveOpcodePos); // ^^
-    p(0x61428E, RemoveOpcodePos); // ^^
-    p(0x6142CD, RemoveOpcodePos); // ^^
-
-    for (const auto& patch : patches)
+      0x140210FF4, 0x140211011, 0x1402114F6, 0x1402115FE, 0x140211607,
+      0x140211C6D, 0x140211EDF, 0x140211EF1, 0x1402123E4, 0x1402125A8,
+      0x140212714, 0x140212863, 0x14021290D, 0x140212953, 0x140212995,
+      0x1402129DA, 0x140212A17, 0x140212B4B, 0x140212C0F, 0x140212CCA,
+      0x140212D50, 0x140212FDB, 0x140212FF8, 0x140213051, 0x140213111,
+      0x140213233, 0x140213353, 0x140213361, 0x1402139A5, 0x140213D4E,
+      0x140213F18, 0x140213FE3, 0x1402140B1, 0x140214181, 0x140214251,
+      0x14021432F, 0x140214419, 0x14021473A, 0x140214825, 0x14021488F,
+      0x140214931, 0x140214B45, 0x140214D0A, 0x140214DD6, 0x140214F85,
+      0x1402151EF, 0x14021540C, 0x140215588, 0x140215656, 0x140215805,
+      0x1402161AD, 0x1402161D4, 0x1402162B7, 0x1402162C0, 0x1402162C9,
+      0x1402163C3, 0x140216429, 0x14021669E, 0x14021671E, 0x1402168E0,
+      0x1402168E9, 0x140216A11, 0x140216A1A, 0x140216C69, 0x140216EC9,
+      0x1402172DE, 0x140217C8C, 0x140217D46, 0x140217DC5, 0x140217DD1,
+      0x140217EC2, 0x140217F1B, 0x140217F8D, 0x140217FFA, 0x140218153,
+      0x1402181A9, 0x1402181B5, 0x14021847A, 0x140218483, 0x14021848C,
+      0x140218499, 0x14021857C, 0x1402187D2, 0x1402187DB, 0x1402187E4,
+      0x1402187F2, 0x140218808, 0x140218B1F, 0x140218C8E, 0x140218CA8,
+      0x140219307
+    })
     {
-      Utils::Hook(patch.first, patch.second, HOOK_CALL).install()->quick();
+      Utils::Hook(address, AddOpcodePos, HOOK_CALL).install()->quick();
     }
 
-    Utils::Hook(0x434260, CompileError, HOOK_JUMP).install()->quick();
+    for (const auto address : std::initializer_list<std::uintptr_t>
+    {
+      0x140210DEC, 0x1402112B7, 0x1402113B3, 0x1402128EA, 0x140213389,
+      0x140214FC7, 0x14021542F, 0x140215847, 0x140215938, 0x140215B58,
+      0x140215C18, 0x140215CD8, 0x140215EEA, 0x140215F0B, 0x140215F20,
+      0x140215F41, 0x140215F62, 0x140215F83, 0x140215FB9, 0x140217E81,
+      0x140219317
+    })
+    {
+      Utils::Hook(address, AddOpcodePos, HOOK_JUMP).install()->quick();
+    }
+
+    for (const auto address : std::initializer_list<std::uintptr_t>
+    {
+      0x140211C30, 0x140212B0E, 0x140213483, 0x1402134A9, 0x1402134DD,
+      0x1402134FB, 0x1402135C3, 0x1402135E1, 0x140213611, 0x14021362F,
+      0x140213651, 0x14021368B, 0x1402136AE, 0x14021371D, 0x14021373C,
+      0x140213780, 0x140214F40, 0x140215090, 0x140215163, 0x1402157C0,
+      0x140215ED2, 0x140215EF3, 0x140215F29, 0x140215F4A, 0x140215F6B,
+      0x140216386, 0x140218AE2
+    })
+    {
+      Utils::Hook(address, RemoveOpcodePos, HOOK_CALL).install()->quick();
+    }
 #endif
   }
 }
 
-void ScriptError_AddThreadStartOpcodePos(unsigned int sourcePos)
+// Where VM_Execute() handles an error, the stub in ScriptError.asm calls
+// us with the position of the code that raised it.
+//
+void ScriptError_VM_Error(const char* codePos)
 {
-  Components::GSC::ScriptError::AddThreadStartOpcodePos(sourcePos);
-}
-
-void ScriptError_RecordThreadStart(const Game::sval_u* node)
-{
-  Components::GSC::ScriptError::RecordThreadStart(node);
+  Components::GSC::ScriptError::VM_Error(codePos);
 }

@@ -2,8 +2,6 @@
 
 extern "C"
 {
-  void Threading_FrameEpilogueStub();
-  void Threading_PacketEventStub();
   void Threading_SVFrameWaitStub();
   void Threading_ComFrameWaitStub();
 

@@ -1,5 +1,3 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN ScriptPatches_RemoveRefToObject_Bad:PROC
@@ -7,23 +5,19 @@ EXTERN ScriptPatches_RemoveRefToObject_Bad:PROC
 .code
 
 ScriptPatches_RemoveRefToObject_Stub PROC
-  mov     eax, [esp+4h]
-  cmp     eax, 9002h
+  cmp     ecx, 9002h
   jae     bad
 
-  push    esi
-  push    edi
-  mov     edi, [esp+0Ch]
+  mov     [rsp+8h], rbx
 
-  push    437196h
-  ret
+  mov     rax, 1402233A5h
+  jmp     rax
 
 bad:
-  push    dword ptr [esp]
-  push    eax
+  mov     rdx, [rsp]
+  sub     rsp, 28h
   call    ScriptPatches_RemoveRefToObject_Bad
-
-  add     esp, 8h
+  add     rsp, 28h
   ret
 ScriptPatches_RemoveRefToObject_Stub ENDP
 

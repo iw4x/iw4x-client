@@ -16,7 +16,7 @@ namespace Components
     static Dvar::Var CGDrawVersionY;
 
     static void CG_DrawVersion();
-    static void CG_DrawVersion_Hk(int localClientNum);
+    static void CL_DrawDebugOverlays_Hk(int localClientNum);
 
     // Use IW4x Branding
     static void Dvar_SetVersionString(const Game::dvar_t* dvar, const char* value);

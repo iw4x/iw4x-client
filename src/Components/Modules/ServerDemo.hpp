@@ -50,7 +50,7 @@ namespace Components
       std::optional<int> lastConnectTime; // client_s::lastConnectTime, detects slot reuse
 
       std::vector<unsigned char> buffer;
-      int demoFile = 0;
+      Game::fileHandle_t demoFile = 0;
       std::size_t fileBytes = 0;  // bytes written to the open file
       std::string fileBaseName;   // open file's name, no extension
 
@@ -73,8 +73,8 @@ namespace Components
 
     // bool SV_Netchan_Transmit(client_s*, const void* data, int length), and its only caller
     // (inside SV_SendMessageToClient).
-    static constexpr std::uintptr_t SV_NETCHAN_TRANSMIT = 0x47CB60;
-    static constexpr std::uintptr_t SV_NETCHAN_TRANSMIT_CALL_SITE = 0x48FF67;
+    static constexpr std::uintptr_t SV_NETCHAN_TRANSMIT = 0x14023D390;
+    static constexpr std::uintptr_t SV_NETCHAN_TRANSMIT_CALL_SITE = 0x140240A6F;
 
     static std::array<ClientData, Game::MAX_CLIENTS> Clients;
 
@@ -89,10 +89,14 @@ namespace Components
 
     [[nodiscard]] static bool ValidClientNum(int clientNum);
 
-    // True if a new map has loaded since the last call. sv_serverId counts maps in its high
-    // nibble and restarts in its low nibble, and clients are only sent a new gamestate when
-    // the high nibble changes (SV_ExecuteClientMessage, 0x414DFB). After a fast_restart the
-    // existing gamestate stays valid, so recordings continue across it.
+    // Return true if a new map has loaded since the last call.
+    //
+    // sv_serverId counts the maps in its high nibble and the restarts in its
+    // low one, and the clients only get a new gamestate when the high nibble
+    // changes (see SV_ExecuteClientMessage()). After a fast_restart the
+    // existing gamestate stays valid, so a recording simply carries on
+    // across it.
+    //
     [[nodiscard]] static bool HasMapChanged();
 
     [[nodiscard]] static std::size_t MaxBufferBytes(); // sv_demoBufferSize, in bytes

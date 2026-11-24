@@ -194,7 +194,7 @@ namespace Utils
         {
           this->free();
 
-          if (ecc_ansi_x963_import(reinterpret_cast<const std::uint8_t*>(pubKeyBuffer.data()), pubKeyBuffer.size(), this->getKeyPtr()) != CRYPT_OK)
+          if (ecc_ansi_x963_import(reinterpret_cast<const std::uint8_t*>(pubKeyBuffer.data()), static_cast<unsigned long>(pubKeyBuffer.size()), this->getKeyPtr()) != CRYPT_OK)
           {
             ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
           }
@@ -204,7 +204,7 @@ namespace Utils
         {
           this->free();
 
-          if (ecc_import(reinterpret_cast<const std::uint8_t*>(key.data()), key.size(), this->getKeyPtr()) != CRYPT_OK)
+          if (ecc_import(reinterpret_cast<const std::uint8_t*>(key.data()), static_cast<unsigned long>(key.size()), this->getKeyPtr()) != CRYPT_OK)
           {
             ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
           }
@@ -296,7 +296,7 @@ namespace Utils
         {
           this->free();
 
-          if (rsa_import(reinterpret_cast<const std::uint8_t*>(keyBuffer.data()), keyBuffer.size(), this->getKeyPtr()) != CRYPT_OK)
+          if (rsa_import(reinterpret_cast<const std::uint8_t*>(keyBuffer.data()), static_cast<unsigned long>(keyBuffer.size()), this->getKeyPtr()) != CRYPT_OK)
           {
             ZeroMemory(this->getKeyPtr(), sizeof(*this->getKeyPtr()));
           }
@@ -365,11 +365,14 @@ namespace Utils
       static std::string Compute(const std::uint8_t* data, std::size_t length, bool hex = false);
     };
 
+    // Note that the hash stays 32-bit on x64, since x86 and x64 builds
+    // compare each other's hashes (of playlists and user maps, for example).
+    //
     class JenkinsOneAtATime
     {
     public:
-      static std::size_t Compute(const std::string& data);
-      static std::size_t Compute(const char* key, std::size_t len);
+      static std::uint32_t Compute(const std::string& data);
+      static std::uint32_t Compute(const char* key, std::size_t len);
     };
   }
 }

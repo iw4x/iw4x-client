@@ -4,7 +4,7 @@ extern "C"
 {
   void ScriptPatches_RemoveRefToObject_Stub();
 
-  void ScriptPatches_RemoveRefToObject_Bad(unsigned int id, unsigned int caller);
+  void ScriptPatches_RemoveRefToObject_Bad(unsigned int id, uintptr_t caller);
 }
 
 namespace Components::GSC
@@ -15,7 +15,7 @@ namespace Components::GSC
     ScriptPatches();
 
   private:
-    friend void (::ScriptPatches_RemoveRefToObject_Bad)(unsigned int id, unsigned int caller);
+    friend void (::ScriptPatches_RemoveRefToObject_Bad)(unsigned int id, uintptr_t caller);
 
     static Game::game_hudelem_s* HECmd_GetHudElem(Game::scr_entref_t entref);
 
@@ -26,6 +26,6 @@ namespace Components::GSC
 
     static unsigned int VM_ArchiveStack_Hk ();
 
-    static void RemoveRefToObject_Bad (unsigned int id, unsigned int caller);
+    static void RemoveRefToObject_Bad (unsigned int id, uintptr_t caller);
   };
 }

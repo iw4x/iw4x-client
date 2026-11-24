@@ -52,13 +52,11 @@ namespace Components
       int nesting_;
     };
 
-    Command();
-
     using commandCallback = std::function<void(const Params*)>;
 
     static void Add(const char* name, const std::function<void()>& callback);
     static void Add(const char* name, const commandCallback& callback);
-    static void AddRaw(const char* name, void(*callback)(), bool key = false);
+    static void AddRaw(const char* name, void(*callback)());
     static void AddSV(const char* name, const commandCallback& callback);
     static void Execute(std::string command, bool sync = true);
 
@@ -74,8 +72,5 @@ namespace Components
 
     static void MainCallback();
     static void MainCallbackSV();
-
-    static const std::vector<std::string>& GetExceptions();
-    static bool CL_ShouldSendNotify_Hk(const char* cmd);
   };
 }

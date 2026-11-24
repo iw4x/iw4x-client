@@ -1,28 +1,31 @@
-.686
-.model flat, C
 option casemap:none
 
 EXTERN FileSystem_RegisterFolders:PROC
+EXTERN FileSystem_VidRestarted:BYTE
 
 .code
 
 FileSystem_StartupStub PROC
-  pushad
-  push    esi
+  sub     rsp, 20h
   call    FileSystem_RegisterFolders
-  pop     esi
-  popad
+  add     rsp, 20h
 
-  mov     edx, ds:[63D0CC0h]
+  mov     rax, 146642A08h
+  mov     rax, [rax]
 
-  push    48264Dh
-  ret
+  mov     rcx, 140277073h
+  jmp     rcx
 FileSystem_StartupStub ENDP
 
-FileSystem_FS_FOpenFileReadForThread PROC
-  sub     esp, 33Ch
-  push    643276h
+FileSystem_VidRestartedStub PROC
+  cmp     byte ptr [FileSystem_VidRestarted], 0
+  jnz     done
+
+  mov     r11, 140C5AE68h
+  cmp     dword ptr [r11], 0
+
+done:
   ret
-FileSystem_FS_FOpenFileReadForThread ENDP
+FileSystem_VidRestartedStub ENDP
 
 END

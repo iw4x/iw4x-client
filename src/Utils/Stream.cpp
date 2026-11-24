@@ -50,7 +50,7 @@ namespace Utils
     return (this->buffer_.size() == this->position_);
   }
 
-  void Stream::Reader::seek(unsigned int position)
+  void Stream::Reader::seek(std::size_t position)
   {
     if (this->buffer_.size() >= position)
     {
@@ -127,8 +127,8 @@ namespace Utils
 
     for (auto& entry : this->ptrList)
     {
-      unsigned int ePtr = reinterpret_cast<unsigned int>(entry.first);
-      unsigned int tPtr = reinterpret_cast<unsigned int>(pointer);
+      uintptr_t ePtr = reinterpret_cast<uintptr_t>(entry.first);
+      uintptr_t tPtr = reinterpret_cast<uintptr_t>(pointer);
 
       if (HasIntersection(ePtr, entry.second, tPtr, length))
       {
@@ -154,7 +154,7 @@ namespace Utils
     // clearly half of this stuff is unused
     if (stream == Game::XFILE_BLOCK_RUNTIME)
     {
-      this->increaseBlockSize(stream, size * count);
+      this->increaseBlockSize(stream, static_cast<unsigned int>(size * count));
       return this->at();
     }
 
@@ -174,7 +174,7 @@ namespace Utils
       __debugbreak();
     }
 
-    this->increaseBlockSize(stream, size * count);
+    this->increaseBlockSize(stream, static_cast<unsigned int>(size * count));
     this->assertPointer(str, size * count);
 
     return this->at() - (size * count);

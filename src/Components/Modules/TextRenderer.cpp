@@ -3,13 +3,81 @@
 #include "Controller.hpp"
 #include "Events.hpp"
 
-namespace Game
-{
-  float* con_screenMin = reinterpret_cast<float*>(0xA15F48);
-}
-
 namespace Components
 {
+  namespace
+  {
+    // A hud icon names its material in one of two ways, after the selector
+    // and the size. The game puts the material pointer itself there, but it
+    // only does that in buffers it draws right away. The controller's key
+    // names carry the x86 form instead, a length followed by the name, since
+    // they go through the string functions and a pointer's bytes can be zero.
+    //
+    // So which one is it? We tell them apart by the name, which is made of
+    // lowercase letters, digits, and underscores, while the high bytes of a
+    // pointer are zero. It's a heuristic, admittedly, but a user-mode pointer
+    // never has its top bytes set, so it seems safe enough. Return the
+    // length of the name, or zero for a material pointer.
+    //
+    std::size_t HudIconNameLength(const char* text)
+    {
+      const auto length = static_cast<std::uint8_t>(*text);
+
+      if (length == 0 || length >= 64)
+      {
+        return 0;
+      }
+
+      for (std::size_t i = 1; i <= length; ++i)
+      {
+        const auto c = text[i];
+
+        if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_'))
+        {
+          return 0;
+        }
+      }
+
+      return length;
+    }
+
+    // Return the size of the material part, whichever form it's in.
+    //
+    std::size_t HudIconMaterialSize(const char* text)
+    {
+      const auto length = HudIconNameLength(text);
+      return length != 0 ? 1 + length : sizeof(Game::Material*);
+    }
+
+    // The materials of the hud icons that name theirs, by name.
+    //
+    std::mutex HudIconMutex;
+    std::unordered_map<std::string, Game::Material*> HudIconMaterials;
+
+    Game::Material* HudIconMaterial(const char* text)
+    {
+      if (const auto length = HudIconNameLength(text))
+      {
+        std::string name(text + 1, length);
+
+        std::lock_guard lock(HudIconMutex);
+
+        auto i = HudIconMaterials.find(name);
+        if (i == HudIconMaterials.end())
+        {
+          const auto material = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_MATERIAL, name.data()).material;
+          i = HudIconMaterials.emplace(std::move(name), material).first;
+        }
+
+        return i->second;
+      }
+
+      Game::Material* material;
+      std::memcpy(&material, text, sizeof(material));
+      return material;
+    }
+  }
+
   unsigned TextRenderer::colorTableDefault[TEXT_COLOR_COUNT]
   {
     ColorRgb(0, 0, 0),          // TEXT_COLOR_BLACK
@@ -95,7 +163,10 @@ namespace Components
   Dvar::Var TextRenderer::r_colorBlind;
   Game::dvar_t* TextRenderer::g_ColorBlind_MyTeam;
   Game::dvar_t* TextRenderer::g_ColorBlind_EnemyTeam;
-  Game::dvar_t** TextRenderer::con_inputBoxColor = reinterpret_cast<Game::dvar_t**>(0x9FD4BC);
+  Game::field_t* TextRenderer::consoleField;
+  void (*TextRenderer::Message_Key_Original)(int localClientNum, int key);
+  void (*TextRenderer::Dvar_GetUnpackedColorByName_Original)(const char* name, float* expandedColor);
+  void (*TextRenderer::DB_UnloadXZone_Original)(unsigned int zoneIndex, bool createDefault);
 
   TextRenderer::BufferedLocalizedString::BufferedLocalizedString(const char* reference, const std::size_t bufferSize)
     : stringReference(reference),
@@ -431,7 +502,7 @@ namespace Components
       y - FONT_ICON_AUTOCOMPLETE_BOX_PADDING,
       boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
       static_cast<float>(totalLines) * lineHeight + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
-      (*con_inputBoxColor)->current.vector);
+      (*Game::con_inputBoxColor)->current.vector);
 
     auto currentY = y + lineHeight;
 
@@ -471,7 +542,7 @@ namespace Components
       y - FONT_ICON_AUTOCOMPLETE_BOX_PADDING,
       boxWidth + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2 + arrowPadding,
       static_cast<float>(totalLines) * lineHeight + FONT_ICON_AUTOCOMPLETE_BOX_PADDING * 2,
-      (*con_inputBoxColor)->current.vector);
+      (*Game::con_inputBoxColor)->current.vector);
 
     // Draw header line "Search results for: xyz"
     auto currentY = y + lineHeight;
@@ -512,10 +583,9 @@ namespace Components
       DrawAutocompleteResults(instance, x, y, font, textXScale, textYScale);
   }
 
-  void TextRenderer::Con_DrawInput_Hk(const int localClientNum)
+  void TextRenderer::Con_DrawInputOverlay([[maybe_unused]] const int localClientNum, Game::field_t* field, const float x)
   {
-    // Call original function
-    Utils::Hook::Call<void(int)>(0x5A4480)(localClientNum);
+    consoleField = field;
 
     auto& autocompleteContext = autocompleteContextArray[FONT_ICON_ACI_CONSOLE];
     if (cg_fontIconAutocomplete.get<bool>() == false)
@@ -526,11 +596,10 @@ namespace Components
 
     const auto scale = Console::GetConsoleScale();
 
-    UpdateAutocompleteContext(autocompleteContext, Game::g_consoleField, Game::cls->consoleFont, scale);
+    UpdateAutocompleteContext(autocompleteContext, field, Game::cls->consoleFont, scale);
     if (autocompleteContext.autocompleteActive)
     {
-      const auto x = Game::conDrawInputGlob->leftX;
-      const auto y = Game::con_screenMin[1] + 6.0f + static_cast<float>(2 * Game::R_TextHeight(Game::cls->consoleFont)) * scale;
+      const auto y = Game::con->screenMin[1] + 6.0f + static_cast<float>(2 * Game::R_TextHeight(Game::cls->consoleFont)) * scale;
       DrawAutocomplete(FONT_ICON_ACI_CONSOLE, x, y, Game::cls->consoleFont, scale, scale);
     }
   }
@@ -677,7 +746,7 @@ namespace Components
       return false;
 
     if (autocompleteInstance == FONT_ICON_ACI_CONSOLE)
-      return AutocompleteHandleKeyDown(autocompleteContext, key, Game::scrPlaceFull, Game::g_consoleField);
+      return consoleField != nullptr && AutocompleteHandleKeyDown(autocompleteContext, key, Game::scrPlaceFull, consoleField);
 
     if (autocompleteInstance == FONT_ICON_ACI_CHAT)
       return AutocompleteHandleKeyDown(autocompleteContext, key, &Game::scrPlaceView[localClientNum], &Game::playerKeys[localClientNum].chatField);
@@ -685,17 +754,25 @@ namespace Components
     return false;
   }
 
-  void TextRenderer::Console_Key_Hk(const int localClientNum, const int key)
+  bool TextRenderer::Console_KeyFilter(const int localClientNum, const int key, Game::field_t* field)
   {
-    if (HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CONSOLE, key))
-      return;
-
-    Utils::Hook::Call<void(int, int)>(0x4311E0)(localClientNum, key);
+    consoleField = field;
+    return HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CONSOLE, key);
   }
 
   bool TextRenderer::ChatHandleKeyDown(const int localClientNum, const int key)
   {
     return HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CHAT, key);
+  }
+
+  void TextRenderer::Message_Key_Hk(const int localClientNum, const int key)
+  {
+    if (ChatHandleKeyDown(localClientNum, key))
+    {
+      return;
+    }
+
+    Message_Key_Original(localClientNum, key);
   }
 
   float TextRenderer::GetMonospaceWidth(Game::Font_s* font, int rendererFlags)
@@ -911,25 +988,33 @@ namespace Components
 
   bool TextRenderer::IsButtonGlyph(const char* text)
   {
-    // After the caret: the icon type, width, height, name length, then the
-    // material name.
-    if (!text[0] || !text[1] || !text[2] || !text[3])
+    // After the caret come the icon type and the size, then the material (see
+    // HudIconMaterial()).
+    //
+    if (!text[0] || !text[1] || !text[2])
     {
       return false;
     }
 
-    // The name can be cut short, so stop at the terminator as DrawHudIcon
-    // does rather than trust the length.
-    const auto nameLen = static_cast<uint8_t>(text[3]);
-    for (auto i = 0u; i < nameLen; i++)
+    std::string_view name;
+
+    if (const auto length = HudIconNameLength(text + 3))
     {
-      if (text[4 + i] == 0)
+      name = std::string_view(text + 4, length);
+    }
+    else
+    {
+      Game::Material* material;
+      std::memcpy(&material, text + 3, sizeof(material));
+
+      if (material == nullptr || material->info.name == nullptr)
       {
         return false;
       }
+
+      name = material->info.name;
     }
 
-    const std::string_view name(text + 4, nameLen);
     return name.starts_with("button_") || name.starts_with("dpad_");
   }
 
@@ -971,34 +1056,36 @@ namespace Components
     const auto h = static_cast<float>((font->pixelHeight * (*text - 16) + 16) >> 5) * yScale;
     ++text;
 
-    if (*text == 0)
-    {
-      return 0.0f;
-    }
+    // A pointer's bytes can be zero, so we don't look for the end of the
+    // string in there.
+    //
+    const auto nameLength = HudIconNameLength(text);
+    auto* material = HudIconMaterial(text);
 
-    const auto materialNameLen = static_cast<uint8_t>(*text);
-    ++text;
-
-    for (auto i = 0u; i < materialNameLen; i++)
+    // For the x86 form, which names the material, we take the controller's
+    // glyph for it and fall back to the default material for one that isn't
+    // 2d, as x86 does.
+    //
+    if (nameLength != 0)
     {
-      if (text[i] == 0)
+      const std::string materialName(text + 1, nameLength);
+
+      if (auto* textMaterial = Controller::TextGlyphMaterial(materialName.data(), material))
       {
-        return 0.0f;
+        material = textMaterial;
+      }
+
+      if (material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || std::strcmp(material->techniqueSet->name, "2d") != 0)
+      {
+        material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
       }
     }
 
-    const std::string materialName(text, materialNameLen);
-    text += materialNameLen;
+    text += HudIconMaterialSize(text);
 
-    auto* material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, materialName.data()).material;
-    if (auto* textMaterial = Controller::TextGlyphMaterial(materialName.data(), material))
+    if (material == nullptr)
     {
-      material = textMaterial;
-    }
-
-    if (material == nullptr || material->techniqueSet == nullptr || material->techniqueSet->name == nullptr || std::strcmp(material->techniqueSet->name, "2d") != 0)
-    {
-      material = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, "default").material;
+      return 0.0f;
     }
 
     const auto yy = y - (h + yScale * static_cast<float>(font->pixelHeight)) * 0.5f;
@@ -1164,7 +1251,7 @@ namespace Components
 
             if (renderFlags & Game::TEXT_RENDERFLAG_PADDING)
               xa += xScale * padding;
-            count += (fontIconEnd - curText) + 1;
+            count += static_cast<int>(fontIconEnd - curText) + 1;
             --maxLengthRemaining;
             curText = fontIconEnd;
             continue;
@@ -1321,10 +1408,9 @@ namespace Components
             continue;
           }
 
-          if (*text >= '\x01' && *text <= '\x02' && text[1] != '\0' && text[2] != '\0' && text[3] != '\0')
+          if (*text >= '\x01' && *text <= '\x02' && text[1] != '\0' && text[2] != '\0')
           {
             const auto width = text[1];
-            const auto materialNameLength = text[3];
 
             // This is how the game calculates width and height. Probably some 1 byte floating point number.
             // Details to be investigated if necessary.
@@ -1337,11 +1423,9 @@ namespace Components
               maxWidth = lineWidth;
             }
 
-            text += 4;
-            for (auto currentLength = 0; currentLength < materialNameLength && *text; currentLength++)
-            {
-              ++text;
-            }
+            // Skip the size and the material (see HudIconMaterial()).
+            //
+            text += 3 + HudIconMaterialSize(text + 3);
             continue;
           }
         }
@@ -1362,7 +1446,7 @@ namespace Components
           }
         }
 
-        lineWidth += R_GetCharacterGlyph(font, letter)->dx;
+        lineWidth += Game::R_GetCharacterGlyph(font, letter)->dx;
         if (lineWidth > maxWidth)
         {
           maxWidth = lineWidth;
@@ -1437,17 +1521,15 @@ namespace Components
           ++in;
         }
 
-        if (*in) // material name length + material name characters
+        // The material (see HudIconMaterial()). We stop at the end of the
+        // string, so we may cut a real pointer short. But then no string
+        // function would have kept the rest of it anyway.
+        //
+        // As above.
+        //
+        for (std::size_t i = 0, n = *in ? HudIconMaterialSize(in) : 0; i < n && *in; ++i)
         {
-          const auto materialNameLength = *in;
           ++in;
-          for (auto i = 0; i < materialNameLength; i++)
-          {
-            if (*in)
-            {
-              ++in;
-            }
-          }
         }
       }
       else
@@ -1492,17 +1574,9 @@ namespace Components
           ++in;
         }
 
-        if (*in) // material name length + material name characters
+        for (std::size_t i = 0, n = *in ? HudIconMaterialSize(in) : 0; i < n && *in; ++i)
         {
-          const auto materialNameLength = *in;
           ++in;
-          for (auto i = 0; i < materialNameLength; i++)
-          {
-            if (*in)
-            {
-              ++in;
-            }
-          }
         }
 
         continue;
@@ -1569,21 +1643,37 @@ namespace Components
     return lenWithInvisibleTail;
   }
 
+  int TextRenderer::Field_AdjustScroll_PrintLen(const char* string)
+  {
+    // Note that on x64 the game only passes us the field's buffer, so we get
+    // to the field from there.
+    //
+    static_assert(offsetof(Game::field_t, buffer) == 0x18);
+
+    const auto* field = reinterpret_cast<const Game::field_t*>(string - offsetof(Game::field_t, buffer));
+    return SEH_PrintStrlenWithCursor(string, field);
+  }
+
   void TextRenderer::PatchColorLimit(const char limit)
   {
-    Utils::Hook::Set<char>(0x535629, limit); // DrawText2d
-    Utils::Hook::Set<char>(0x4C1BE4, limit); // SEH_PrintStrlen
-    Utils::Hook::Set<char>(0x4863DD, limit); // No idea
-    Utils::Hook::Set<char>(0x486429, limit); // No idea
-    Utils::Hook::Set<char>(0x49A5A8, limit); // No idea
-    Utils::Hook::Set<char>(0x505721, limit); // R_TextWidth
-    Utils::Hook::Set<char>(0x505801, limit); // No idea
-    Utils::Hook::Set<char>(0x50597F, limit); // No idea
-    Utils::Hook::Set<char>(0x5815DB, limit); // No idea
-    Utils::Hook::Set<char>(0x592ED0, limit); // No idea
-    Utils::Hook::Set<char>(0x5A2E2E, limit); // No idea
+    // Note that x64 compares the color code minus '0' (that is, the color
+    // index) with the last one, where x86 compares the code itself.
+    //
+    const auto index = static_cast<char>(ColorIndexForChar(limit));
 
-    Utils::Hook::Set<char>(0x5A2733, static_cast<char>(ColorIndexForChar(limit))); // No idea
+    Utils::Hook::Set<char>(0x14004E3DE, index); // DrawText2D
+    Utils::Hook::Set<char>(0x14024D690, index); // SEH_PrintStrlen
+    Utils::Hook::Set<char>(0x140269527, index); // No idea
+    Utils::Hook::Set<char>(0x1402695A0, index); // No idea
+    Utils::Hook::Set<char>(0x14001AA7F, index); // R_TextWidth
+    Utils::Hook::Set<char>(0x14001ABED, index); // No idea
+    Utils::Hook::Set<char>(0x14001AD6E, index); // No idea
+    Utils::Hook::Set<char>(0x1400D14ED, index); // No idea
+    Utils::Hook::Set<char>(0x1400E5CF4, index); // No idea
+    Utils::Hook::Set<char>(0x1400EBB52, index); // No idea
+    Utils::Hook::Set<char>(0x1400EE532, index); // PrintableCharsCount
+    Utils::Hook::Set<char>(0x14028A503, index); // I_CleanStr
+    Utils::Hook::Set<char>(0x1402A77EF, index); // No idea
   }
 
   // Patches team overhead normally
@@ -1617,6 +1707,14 @@ namespace Components
     return true;
   }
 
+  void TextRenderer::Dvar_GetUnpackedColorByName_Hk(const char* name, float* expandedColor)
+  {
+    if (Dvar_GetUnpackedColorByName(name, expandedColor))
+    {
+      Dvar_GetUnpackedColorByName_Original(name, expandedColor);
+    }
+  }
+
   void TextRenderer::UpdateColorTable()
   {
     if (cg_newColors.get<bool>())
@@ -1624,8 +1722,8 @@ namespace Components
     else
       currentColorTable = &colorTableDefault;
 
-    (*currentColorTable)[TEXT_COLOR_AXIS] = *reinterpret_cast<unsigned*>(0x66E5F70);
-    (*currentColorTable)[TEXT_COLOR_ALLIES] = *reinterpret_cast<unsigned*>(0x66E5F74);
+    (*currentColorTable)[TEXT_COLOR_AXIS] = *reinterpret_cast<unsigned*>(0x148CC82C0);
+    (*currentColorTable)[TEXT_COLOR_ALLIES] = *reinterpret_cast<unsigned*>(0x148CC82C4);
     (*currentColorTable)[TEXT_COLOR_RAINBOW] = HsvToRgb({ static_cast<uint8_t>((Game::Sys_Milliseconds() / 200) % 256), 255,255 });
     (*currentColorTable)[TEXT_COLOR_SERVER] = sv_customTextColor->current.unsignedInt;
   }
@@ -1638,6 +1736,26 @@ namespace Components
     stringListFlipHorizontal.Format(Utils::String::VA("%c", FONT_ICON_MODIFIER_FLIP_HORIZONTALLY));
     stringListFlipVertical.Format(Utils::String::VA("%c", FONT_ICON_MODIFIER_FLIP_VERTICALLY));
     stringListBig.Format(Utils::String::VA("%c", FONT_ICON_MODIFIER_BIG));
+  }
+
+  void TextRenderer::ForgetFontIconMaterials()
+  {
+    for (auto& [name, entry] : fontIconLookup)
+    {
+      entry.material = nullptr;
+    }
+  }
+
+  void TextRenderer::DB_UnloadXZone_Hk(unsigned int zoneIndex, bool createDefault)
+  {
+    {
+      std::lock_guard lock(HudIconMutex);
+      HudIconMaterials.clear();
+    }
+
+    ForgetFontIconMaterials();
+
+    DB_UnloadXZone_Original(zoneIndex, createDefault);
   }
 
   void TextRenderer::InitFontIcons()
@@ -1688,6 +1806,14 @@ namespace Components
 
   TextRenderer::TextRenderer()
   {
+    // We read these fields in the glyphs and the font icons.
+    //
+    AssertSize(Game::Glyph, 0x18);
+    AssertOffset(Game::Font_s, glyphCount, 0xC);
+    AssertOffset(Game::Font_s, glyphs, 0x20);
+    AssertOffset(Game::Material, techniqueSet, 0x58);
+    AssertOffset(Game::MaterialInfo, textureAtlasRowCount, 0xA);
+
     currentColorTable = &colorTableDefault;
 
     cg_newColors = Dvar::Register<bool>("cg_newColors", true, Game::DVAR_ARCHIVE, "Use Warfare 2 color code style.");
@@ -1698,14 +1824,25 @@ namespace Components
     // Initialize font icons when initializing UI
     Components::Events::AfterUIInit(InitFontIcons);
 
+    // Forget the materials we keep for the hud and font icons whenever a zone
+    // unloads, since the zone takes its materials with it, and look them up
+    // again when we next need them.
+    //
+    // Note that on x86 we keep the font icons' materials until the next UI
+    // initialization. That leaves an icon whose material was in an unloaded
+    // zone (a map's or a mod's) pointing at freed memory until then, which
+    // presumably just never got noticed.
+    //
+    DB_UnloadXZone_Original = Utils::Hook::Detour(0x14012FD80, 5, &DB_UnloadXZone_Hk);
+
     // Replace vanilla text drawing function with a reimplementation with extensions
-    Utils::Hook(0x535410, DrawText2D, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14004E040, DrawText2D, HOOK_JUMP).install()->quick();
 
     // Consider material text icons and font icons when calculating text width
-    Utils::Hook(0x5056C0, R_TextWidth_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14001AA00, R_TextWidth_Hk, HOOK_JUMP).install()->quick();
 
     // Patch ColorIndex
-    Utils::Hook(0x417770, ColorIndex, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14028A1E0, ColorIndex, HOOK_JUMP).install()->quick();
 
     // Add a colorblind mode for team colors
     r_colorBlind = Dvar::Register<bool>("r_colorBlind", false, Game::DVAR_ARCHIVE, "Use color-blindness-friendly colors");
@@ -1715,38 +1852,24 @@ namespace Components
     g_ColorBlind_MyTeam = Game::Dvar_RegisterColor("g_ColorBlind_MyTeam", 1, 0.859f, 0.125f, 1, Game::DVAR_ARCHIVE, "Ally team color for colorblind mode");
 
     // Replace team colors with colorblind team colors when colorblind is enabled
-    Utils::Hook(0x406530, TextRenderer_GetUnpackedColorByNameStub, HOOK_JUMP).install()->quick();
+    Dvar_GetUnpackedColorByName_Original = Utils::Hook::Detour(0x140283810, 6, &Dvar_GetUnpackedColorByName_Hk);
 
     // Consider the cursor being inside the color escape sequence when getting the print length for a field
-    Utils::Hook(0x488CBD, TextRenderer_Field_AdjustScroll_PrintLen_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEBB6, Field_AdjustScroll_PrintLen, HOOK_CALL).install()->quick();
 
     // Draw fonticon autocompletion for say field
-    Utils::Hook(0x4CA1BD, Field_Draw_Say, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ED067, Field_Draw_Say, HOOK_CALL).install()->quick();
 
     // Draw fonticon autocompletion for console field
-    Utils::Hook(0x5A50A5, Con_DrawInput_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A50BB, Con_DrawInput_Hk, HOOK_CALL).install()->quick();
+    //
+    // Note that the x64 console is our own (see Game::Con_DrawInputOverlay).
+    //
+    Game::Con_DrawInputOverlay = Con_DrawInputOverlay;
 
     // Handle key inputs for console and chat
-    Utils::Hook(0x4F685C, Console_Key_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4F6694, TextRenderer_Message_Key_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4F684C, TextRenderer_Message_Key_Stub, HOOK_CALL).install()->quick();
+    Game::Console_KeyFilter = Console_KeyFilter;
+    Message_Key_Original = Utils::Hook::Detour(0x1400EFE70, 5, &Message_Key_Hk);
 
     PatchColorLimit(COLOR_LAST_CHAR);
   }
-}
-
-bool TextRenderer_ChatHandleKeyDown(int localClientNum, int key)
-{
-  return Components::TextRenderer::ChatHandleKeyDown(localClientNum, key);
-}
-
-int TextRenderer_SEH_PrintStrlenWithCursor(const char* string, const Game::field_t* field)
-{
-  return Components::TextRenderer::SEH_PrintStrlenWithCursor(string, field);
-}
-
-bool TextRenderer_Dvar_GetUnpackedColorByName(const char* name, float* expandedColor)
-{
-  return Components::TextRenderer::Dvar_GetUnpackedColorByName(name, expandedColor);
 }

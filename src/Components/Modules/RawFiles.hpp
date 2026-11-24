@@ -1,5 +1,12 @@
 #pragma once
 
+extern "C"
+{
+  void RawFiles_GetMenuBufferStub();
+
+  char* RawFiles_GetMenuBuffer(const char* filename);
+}
+
 namespace Components
 {
   class RawFiles : public Component
@@ -17,6 +24,8 @@ namespace Components
     static char* ReadRawFile(const char* filename, char* buf, int size);
 
   private:
+    friend char* (::RawFiles_GetMenuBuffer)(const char* filename);
+
     static char* GetMenuBuffer(const char* filename);
     static char* Com_LoadInfoString_LoadObj(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer);
     static const char* Com_LoadInfoString_Hk(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer);

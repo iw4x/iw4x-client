@@ -1,56 +1,30 @@
-.686
-.model flat, C
-option casemap:none
-
 EXTERN Threading_SVFrameWaitFunc:PROC
 EXTERN Threading_ComFrameWait:PROC
 
 .code
 
-Threading_FrameEpilogueStub PROC
-  pop     edi
-  pop     esi
-  pop     ebx
-  mov     esp, ebp
-  pop     ebp
-  ret
-Threading_FrameEpilogueStub ENDP
-
-Threading_PacketEventStub PROC
-  mov     eax, 49F0B0h
-  call    eax
-
-  mov     eax, 458160h
-  jmp     eax
-Threading_PacketEventStub ENDP
-
 Threading_SVFrameWaitStub PROC
-  pushad
+  sub     rsp, 20h
   call    Threading_SVFrameWaitFunc
-  popad
+  add     rsp, 20h
 
-  push    4CD420h
-  ret
+  mov     rax, 141BD7948h
+  mov     rax, [rax]
+
+  mov     rcx, 14023AA9Bh
+  jmp     rcx
 Threading_SVFrameWaitStub ENDP
 
 Threading_ComFrameWaitStub PROC
-  push    ecx
-  pushad
-
-  push    edi
+  sub     rsp, 20h
+  mov     ecx, ebx
   call    Threading_ComFrameWait
-  add     esp, 4
+  add     rsp, 20h
 
-  mov     [esp+20h], eax
-  popad
-  pop     eax
   mov     ecx, eax
 
-  mov     edx, dword ptr ds:[1AD7934h]
-  cmp     byte ptr [edx+10h], 0
-
-  push    47DDC1h
-  ret
+  mov     rax, 1401F4082h
+  jmp     rax
 Threading_ComFrameWaitStub ENDP
 
 END

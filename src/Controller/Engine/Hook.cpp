@@ -25,31 +25,12 @@
 extern "C"
 {
   void Controller_PlayerUseEntityStub ();
-  void Controller_CommandAssignmentStub ();
-  void Controller_ItemSetFocusStub ();
-  void Controller_MouseMoveStub ();
-  void Controller_RemoteControlMoveStub ();
-  void Controller_LocationSelectionStub ();
   void Controller_WriteDeltaMovementStub ();
   void Controller_ReadDeltaMovementStub1 ();
   void Controller_ReadDeltaMovementStub2 ();
   void Controller_LocalizedKeyNamesStub ();
 
   bool Controller_ShouldUse (const Game::gentity_s* player, unsigned held);
-
-  int Controller_CommandAssignment (int client,
-                                    const char* command,
-                                    int (*keys_out)[2]);
-
-  void Controller_MenuCursorFocusPoint (const Game::itemDef_s* item,
-                                        float* point);
-
-  void Controller_MouseMove (int client,
-                             Game::usercmd_s* cmd,
-                             float frame_time);
-
-  void Controller_RemoteControlMove (int client, Game::usercmd_s* cmd);
-  bool Controller_LocationSelection (int client, Game::usercmd_s* cmd);
 
   void Controller_ReadDeltaMovement (Game::msg_t* msg,
                                      int key,
@@ -68,68 +49,77 @@ namespace Controller
 
     namespace
     {
-      constexpr auto in_frame_mouse_move_call {0x475E9E};
+      constexpr std::uintptr_t command_assignment_address {0x1400EF670};
 
-      constexpr auto command_assignment_address {0x5A7890};
+      constexpr std::uintptr_t menu_set_binding_call_1 {0x14025D226};
+      constexpr std::uintptr_t menu_set_binding_call_2 {0x14025D234};
+      constexpr std::uintptr_t menu_set_binding_call_3 {0x14025D251};
 
-      constexpr auto menu_set_binding_call_1 {0x47D473};
-      constexpr auto menu_set_binding_call_2 {0x47D485};
-      constexpr auto menu_set_binding_call_3 {0x47D49D};
+      constexpr std::uintptr_t cl_key_event_call {0x1401F3C7D};
+      constexpr std::uintptr_t cl_key_event_address {0x1400EE7C0};
 
-      constexpr auto cl_key_event_call {0x43D179};
-      constexpr auto cl_key_event_address {0x4F6480};
+      // Note that x64 inlines IN_MouseMove() into IN_Frame(), where we jump
+      // to the epilogue once we return.
+      //
+      constexpr std::uintptr_t in_frame_mouse_move_call {0x1402A1148};
+      constexpr std::uintptr_t in_frame_mouse_move_jump {0x1402A114D};
 
-      constexpr auto cl_mouse_event_call {0x64C507};
-      constexpr auto cl_mouse_event_address {0x4D7C50};
+      constexpr std::uintptr_t ui_bypass_mouse_call {0x14026F306};
 
-      constexpr auto ui_bypass_mouse_call {0x48E527};
+      // Note that x64 moves the cursor to the previous and the next item in
+      // one function, presumably the two x86 ones folded together.
+      //
+      constexpr std::uintptr_t menu_cursor_focus_call {0x140263EBD};
+      constexpr std::uintptr_t menu_focus_first_call {0x14025BCBE};
+      constexpr std::uintptr_t menu_set_focus_call {0x14025BE2D};
+      constexpr std::uintptr_t menu_set_focus_by_dvar_call {0x14025BF4A};
+      constexpr std::uintptr_t item_set_focus_address {0x140260F00};
 
-      constexpr auto menu_prev_cursor_focus_call {0x639F91};
-      constexpr auto menu_next_cursor_focus_call {0x63A03F};
-      constexpr auto menu_focus_first_call {0x63BF8B};
-      constexpr auto menu_set_focus_call {0x63C0E7};
-      constexpr auto menu_set_focus_by_dvar_call {0x63C1D3};
-      constexpr auto ui_placement_address {0x48E980};
-      constexpr auto scr_place_apply_x_address {0x4B9620};
-      constexpr auto scr_place_apply_y_address {0x4F1430};
+      constexpr std::uintptr_t cl_mouse_move_call {0x1400F7BC4};
+      constexpr std::uintptr_t cl_remote_control_move_call {0x1400F7B75};
+      constexpr std::uintptr_t cl_remote_control_move_address {0x1400F7380};
+      constexpr std::uintptr_t cl_location_selection_call {0x1400F7B92};
+      constexpr std::uintptr_t cl_location_selection_address {0x1400F7CE0};
 
-      constexpr auto cl_mouse_move_call {0x5A6DAE};
-      constexpr auto cl_remote_control_move_call {0x5A6D4E};
-      constexpr auto cl_location_selection_call {0x5A6D72};
+      constexpr std::uintptr_t write_delta_movement_patch {0x140204572};
+      constexpr std::uintptr_t write_delta_field_width_1 {0x1402046E0};
+      constexpr std::uintptr_t write_delta_field_width_2 {0x140204794};
 
-      constexpr auto write_delta_movement_patch {0x60E38D};
-      constexpr auto write_delta_movement_return {0x60E40E};
-      constexpr auto write_delta_field_width_1 {0x60E501};
-      constexpr auto write_delta_field_width_2 {0x60E5CD};
+      constexpr std::uintptr_t read_delta_movement_patch_1 {0x140203A9A};
+      constexpr std::uintptr_t read_delta_movement_patch_2 {0x140203B9E};
 
-      constexpr auto read_delta_movement_patch_1 {0x492127};
-      constexpr auto read_delta_movement_return_1 {0x4921BF};
-      constexpr auto read_delta_movement_patch_2 {0x492009};
-      constexpr auto read_delta_movement_return_2 {0x492085};
+      constexpr std::uintptr_t cg_register_dvars_call {0x1400FBC1F};
+      constexpr std::uintptr_t cg_register_dvars_address {0x1400D7520};
 
-      constexpr auto cg_register_dvars_call {0x4059FE};
-      constexpr auto cg_register_dvars_address {0x4F8DC0};
+      constexpr std::uintptr_t key_write_bindings_call {0x1401F3FA8};
+      constexpr std::uintptr_t key_write_bindings_address {0x1400EFCB0};
 
-      constexpr auto key_write_bindings_call {0x60B223};
-      constexpr auto key_write_bindings_address {0x4A5A20};
+      constexpr std::uintptr_t player_use_entity_patch {0x14018BE41};
 
-      constexpr auto player_use_entity_patch {0x5FE396};
+      // The instructions that reach the key name table, along with their
+      // lengths. Note that x64 inlines Key_KeynumToString() into
+      // Key_WriteBindings(), hence the reference there.
+      //
+      constexpr struct {std::uintptr_t place; std::size_t length;} keyname_table_refs[] {
+        {0x1400EF88E, 7}, // Key_KeynumToStringBuf
+        {0x1400EFB5E, 7}, // Key_StringToKeynum
+        {0x1400EFB65, 7},
+        {0x1400EFD01, 7}, // Key_WriteBindings
+        {0x1400EFD6E, 8},
+      };
 
-      constexpr auto aim_accel_enabled_flags {0x43F8E0};
-      constexpr auto aim_accel_enabled_default {0x43F8E2};
-      constexpr auto aim_slowdown_enabled_flags {0x43F945};
-      constexpr auto aim_lockon_enabled_flags {0x43FC76};
-
-      constexpr auto keyname_table_slot_1 {0x4A780A};
-      constexpr auto keyname_table_slot_2 {0x4A7810};
-      constexpr auto keyname_table_slot_3 {0x435C9F};
-      constexpr auto localized_keyname_call {0x435C97};
+      constexpr std::uintptr_t localized_keyname_patch {0x1400EF895};
 
       runtime* the_runtime {nullptr};
 
       constexpr size_t controller_key_count {mapping::engine_key_count};
 
-      keyname_t combined_key_names[Game::KEY_NAME_COUNT + controller_key_count + 1] {};
+      // Note that x64 reaches the key name table through 32-bit
+      // displacements, so we have to place ours near the game.
+      //
+      constexpr size_t combined_key_name_count {Game::KEY_NAME_COUNT + controller_key_count + 1};
+
+      keyname_t* combined_key_names {nullptr};
       keyname_t combined_glyphs_xbox[Game::LOCALIZED_KEY_NAME_COUNT + controller_key_count + 1] {};
       keyname_t combined_glyphs_playstation[Game::LOCALIZED_KEY_NAME_COUNT + controller_key_count + 1] {};
 
@@ -137,29 +127,6 @@ namespace Controller
       driving () noexcept
       {
         return the_runtime != nullptr && the_runtime->driving ();
-      }
-
-      void
-      in_frame_trampoline () noexcept
-      {
-        Components::RawMouse::IN_MouseMove ();
-
-        try
-        {
-          the_runtime->frame ();
-        }
-        catch (const std::exception& e)
-        {
-          Components::Logger::PrintError (
-            Game::CON_CHANNEL_ERROR,
-            "controller: input frame failed: {}\n",
-            e.what ());
-        }
-        catch (...)
-        {
-          Components::Logger::PrintError (Game::CON_CHANNEL_ERROR,
-                                          "controller: input frame failed\n");
-        }
       }
 
       int
@@ -181,18 +148,18 @@ namespace Controller
       }
 
       void
-      menu_set_binding (int client, int keynum, const char* binding) noexcept
+      menu_set_binding (int client, int keynum, int binding) noexcept
       {
         if (mapping::is_controller_key (keynum))
         {
           if (the_runtime != nullptr)
             the_runtime->binds ().note_manual_rebind ();
 
-          if (binding != nullptr)
-            binding = controller_command_for (binding);
+          if (const char* const c = Game::Key_GetCmdForBinding (binding))
+            binding = Game::Key_GetBindingForCmd (controller_command_for (c));
         }
 
-        Key_SetBinding (client, keynum, binding);
+        Game::Key_SetBinding (client, keynum, binding);
       }
 
       void
@@ -206,13 +173,43 @@ namespace Controller
           cl_key_event_address) (client, key, down, time);
       }
 
-      int
-      cl_mouse_event (int x, int y, int dx, int dy) noexcept
+      void
+      run_frame () noexcept
       {
-        note_mouse_move (dx, dy);
+        try
+        {
+          the_runtime->frame ();
+        }
+        catch (const std::exception& e)
+        {
+          Components::Logger::PrintError (
+            Game::CON_CHANNEL_ERROR,
+            "controller: input frame failed: {}\n",
+            e.what ());
+        }
+        catch (...)
+        {
+          Components::Logger::PrintError (Game::CON_CHANNEL_ERROR,
+                                          "controller: input frame failed\n");
+        }
+      }
 
-        return Utils::Hook::Call<int (int, int, int, int)> (
-          cl_mouse_event_address) (x, y, dx, dy);
+      // On x86 we hook the tail call of IN_Frame() to IN_MouseMove() where it
+      // activates the mouse. x64 inlines IN_MouseMove() at the point where
+      // that path meets the ones that deactivate it, so here we run our frame
+      // only when the mouse is active, which should come down to the same.
+      //
+      // Note also that on x86 we hook the CL_MouseEvent() call in
+      // IN_MouseMove(), which RawMouse replaces. x64 has that call in the
+      // inlined IN_MouseMove() that we replace altogether.
+      //
+      void
+      in_frame_trampoline () noexcept
+      {
+        Components::RawMouse::IN_MouseMove ();
+
+        if (Game::s_wmv->mouseActive)
+          run_frame ();
       }
 
       bool
@@ -243,14 +240,7 @@ namespace Controller
             item == nullptr || item->type != Game::ITEM_TYPE_TEXT)
           return;
 
-        using placement_t = const Game::ScreenPlacement* (*) (int);
-        using apply_t = float (*) (const Game::ScreenPlacement*, float, int);
-
-        const auto ui_placement (reinterpret_cast<placement_t> (ui_placement_address));
-        const auto apply_x (reinterpret_cast<apply_t> (scr_place_apply_x_address));
-        const auto apply_y (reinterpret_cast<apply_t> (scr_place_apply_y_address));
-
-        const Game::ScreenPlacement* const p (ui_placement (0));
+        const Game::ScreenPlacement* const p (Game::ScrPlace_GetViewPlacement (0));
 
         // The test places the item's text rectangle on screen and the cursor
         // as a full screen point, so place the rectangle the same way and
@@ -263,16 +253,30 @@ namespace Controller
 
         constexpr int full_screen (4);
 
-        const float x0 (apply_x (p, 0.0f, full_screen));
-        const float y0 (apply_y (p, 0.0f, full_screen));
-        const float sx (apply_x (p, 1.0f, full_screen) - x0);
-        const float sy (apply_y (p, 1.0f, full_screen) - y0);
+        const float x0 (Game::ScrPlace_ApplyX (p, 0.0f, full_screen));
+        const float y0 (Game::ScrPlace_ApplyY (p, 0.0f, full_screen));
+        const float sx (Game::ScrPlace_ApplyX (p, 1.0f, full_screen) - x0);
+        const float sy (Game::ScrPlace_ApplyY (p, 1.0f, full_screen) - y0);
 
         if (sx == 0.0f || sy == 0.0f)
           return;
 
         point[0] = (x + w * 0.5f - x0) / sx;
         point[1] = (y + h * 0.5f - y0) / sy;
+      }
+
+      int
+      item_set_focus (Game::UiContext* dc,
+                      Game::itemDef_s* item,
+                      float x,
+                      float y,
+                      int send_script) noexcept
+      {
+        float point[2] {x, y};
+        menu_cursor_focus_point (item, point);
+
+        return Utils::Hook::Call<int (Game::UiContext*, Game::itemDef_s*, float, float, int)> (
+          item_set_focus_address) (dc, item, point[0], point[1], send_script);
       }
 
       void
@@ -287,13 +291,20 @@ namespace Controller
       void
       cl_remote_control_move (int client, usercmd_s* cmd) noexcept
       {
+        Utils::Hook::Call<void (int, usercmd_s*)> (
+          cl_remote_control_move_address) (client, cmd);
+
         if (driving ())
           the_runtime->view ().apply_remote_move (client, *cmd);
       }
 
       bool
-      cl_location_selection (int client, usercmd_s*) noexcept
+      cl_location_selection (int client, usercmd_s* cmd) noexcept
       {
+        if (!Utils::Hook::Call<bool (int, usercmd_s*)> (
+              cl_location_selection_address) (client, cmd))
+          return false;
+
         if (driving ())
           the_runtime->view ().apply_location_selection (client);
 
@@ -325,10 +336,10 @@ namespace Controller
       }
 
       void
-      key_write_bindings (int client, int file) noexcept
+      key_write_bindings (int client, Game::fileHandle_t file) noexcept
       {
-        Utils::Hook::Call<void (int, int)> (key_write_bindings_address) (client,
-                                                                         file);
+        Utils::Hook::Call<void (int, Game::fileHandle_t)> (
+          key_write_bindings_address) (client, file);
 
         const PlayerKeyState& ks (playerKeys[client]);
 
@@ -339,7 +350,7 @@ namespace Controller
           if (keynum <= Game::K_LAST_KEY)
             continue;
 
-          const char* const binding (ks.keys[keynum].binding);
+          const char* const binding (key_binding (ks, keynum));
 
           if (binding == nullptr || binding[0] == '\0')
             continue;
@@ -362,6 +373,10 @@ namespace Controller
       void
       build_key_name_tables ()
       {
+        combined_key_names = static_cast<keyname_t*> (
+          Utils::Hook::AllocateNear (keyname_table_refs[0].place,
+                                     sizeof (keyname_t) * combined_key_name_count));
+
         std::memcpy (combined_key_names,
                      Game::keyNames,
                      sizeof (keyname_t) * Game::KEY_NAME_COUNT);
@@ -399,10 +414,14 @@ namespace Controller
         combined_glyphs_xbox[glyphs] = {nullptr, 0};
         combined_glyphs_playstation[glyphs] = {nullptr, 0};
 
-        Utils::Hook::Set<keyname_t*> (keyname_table_slot_1, combined_key_names);
-        Utils::Hook::Set<keyname_t*> (keyname_table_slot_2, combined_key_names);
-        Utils::Hook::Set<keyname_t*> (keyname_table_slot_3, combined_key_names);
-        Utils::Hook (localized_keyname_call, Controller_LocalizedKeyNamesStub, HOOK_CALL).install ()->quick ();
+        for (const auto& r: keyname_table_refs)
+          Utils::Hook::Displace (r.place,
+                                 r.length,
+                                 reinterpret_cast<std::uintptr_t> (Game::keyNames),
+                                 reinterpret_cast<std::uintptr_t> (combined_key_names));
+
+        Utils::Hook (localized_keyname_patch, Controller_LocalizedKeyNamesStub, HOOK_CALL).install ()->quick ();
+        Utils::Hook::Nop (localized_keyname_patch + 5, 2);
       }
     }
 
@@ -428,7 +447,7 @@ namespace Controller
         //
         const std::string path ("images/" + std::string (name) + ".iwi");
 
-        int file (0);
+        Game::fileHandle_t file (0);
         Game::FS_FOpenFileReadDatabase (path.c_str (), &file);
 
         if (file == 0)
@@ -713,6 +732,10 @@ namespace Controller
       Utils::Hook (write_delta_movement_patch, Controller_WriteDeltaMovementStub, HOOK_JUMP).install ()->quick ();
       Utils::Hook::Set<BYTE> (write_delta_field_width_1, 16);
       Utils::Hook::Set<BYTE> (write_delta_field_width_2, 16);
+
+      // Note that x64 inlines MSG_ReadDeltaUsercmdKey() twice, the same as
+      // x86 does, which is at least one thing that didn't change.
+      //
       Utils::Hook (read_delta_movement_patch_1, Controller_ReadDeltaMovementStub1, HOOK_JUMP).install ()->quick ();
       Utils::Hook (read_delta_movement_patch_2, Controller_ReadDeltaMovementStub2, HOOK_JUMP).install ()->quick ();
       Utils::Hook (cg_register_dvars_call, cg_register_dvars, HOOK_CALL).install ()->quick ();
@@ -731,27 +754,32 @@ namespace Controller
 
       build_key_name_tables ();
 
-      Utils::Hook::Set<BYTE> (aim_accel_enabled_flags, Game::DVAR_ARCHIVE);
-      Utils::Hook::Set<BYTE> (aim_accel_enabled_default, 1);
-      Utils::Hook::Set<BYTE> (aim_slowdown_enabled_flags, Game::DVAR_ARCHIVE);
-      Utils::Hook::Set<BYTE> (aim_lockon_enabled_flags, Game::DVAR_ARCHIVE);
+      // Let the player keep the aim assist they choose.
+      //
+      // On x86 we change the registration of these dvars. On x64 we register
+      // them ourselves (see Components::Dvar), with acceleration already
+      // enabled.
+      //
+      for (const Game::dvar_t* d: {Game::aim_accel_turnrate_enabled,
+                                   Game::aim_slowdown_enabled,
+                                   Game::aim_lockon_enabled})
+        const_cast<Game::dvar_t*> (d)->flags = Game::DVAR_ARCHIVE;
 
-      Utils::Hook (command_assignment_address, Controller_CommandAssignmentStub, HOOK_JUMP).install ()->quick ();
+      Utils::Hook (command_assignment_address, command_assignment, HOOK_JUMP).install ()->quick ();
       Utils::Hook (menu_set_binding_call_1, menu_set_binding, HOOK_CALL).install ()->quick ();
       Utils::Hook (menu_set_binding_call_2, menu_set_binding, HOOK_CALL).install ()->quick ();
       Utils::Hook (menu_set_binding_call_3, menu_set_binding, HOOK_CALL).install ()->quick ();
-      Utils::Hook (in_frame_mouse_move_call, in_frame_trampoline, HOOK_CALL).install ()->quick ();
       Utils::Hook (cl_key_event_call, cl_key_event, HOOK_CALL).install ()->quick ();
-      Utils::Hook (cl_mouse_event_call, cl_mouse_event, HOOK_CALL).install ()->quick ();
+      Utils::Hook (in_frame_mouse_move_call, in_frame_trampoline, HOOK_CALL).install ()->quick ();
+      Utils::Hook::Set<std::uint16_t> (in_frame_mouse_move_jump, 0xC0EB); // jmp 0x1402A110F
       Utils::Hook (ui_bypass_mouse_call, ui_bypass_mouse_input, HOOK_CALL).install ()->quick ();
-      Utils::Hook (menu_prev_cursor_focus_call, Controller_ItemSetFocusStub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (menu_next_cursor_focus_call, Controller_ItemSetFocusStub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (menu_focus_first_call, Controller_ItemSetFocusStub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (menu_set_focus_call, Controller_ItemSetFocusStub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (menu_set_focus_by_dvar_call, Controller_ItemSetFocusStub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (cl_mouse_move_call, Controller_MouseMoveStub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (cl_remote_control_move_call, Controller_RemoteControlMoveStub, HOOK_CALL).install ()->quick ();
-      Utils::Hook (cl_location_selection_call, Controller_LocationSelectionStub, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_cursor_focus_call, item_set_focus, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_focus_first_call, item_set_focus, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_set_focus_call, item_set_focus, HOOK_CALL).install ()->quick ();
+      Utils::Hook (menu_set_focus_by_dvar_call, item_set_focus, HOOK_CALL).install ()->quick ();
+      Utils::Hook (cl_mouse_move_call, cl_mouse_move, HOOK_CALL).install ()->quick ();
+      Utils::Hook (cl_remote_control_move_call, cl_remote_control_move, HOOK_CALL).install ()->quick ();
+      Utils::Hook (cl_location_selection_call, cl_location_selection, HOOK_CALL).install ()->quick ();
 
       runtime* const r (&rt);
 
@@ -768,38 +796,6 @@ bool
 Controller_ShouldUse (const Game::gentity_s* player, unsigned held)
 {
   return Controller::engine::should_use (player, held);
-}
-
-int
-Controller_CommandAssignment (int client,
-                              const char* command,
-                              int (*keys_out)[2])
-{
-  return Controller::engine::command_assignment (client, command, keys_out);
-}
-
-void
-Controller_MenuCursorFocusPoint (const Game::itemDef_s* item, float* point)
-{
-  Controller::engine::menu_cursor_focus_point (item, point);
-}
-
-void
-Controller_MouseMove (int client, Game::usercmd_s* cmd, float frame_time)
-{
-  Controller::engine::cl_mouse_move (client, cmd, frame_time);
-}
-
-void
-Controller_RemoteControlMove (int client, Game::usercmd_s* cmd)
-{
-  Controller::engine::cl_remote_control_move (client, cmd);
-}
-
-bool
-Controller_LocationSelection (int client, Game::usercmd_s* cmd)
-{
-  return Controller::engine::cl_location_selection (client, cmd);
 }
 
 void

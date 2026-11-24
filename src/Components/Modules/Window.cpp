@@ -135,7 +135,7 @@ namespace Components
     SetCursor(LoadCursor(nullptr, isLoading ? IDC_APPSTARTING : IDC_ARROW));
   }
 
-  BOOL WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+  LRESULT WINAPI Window::MessageHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
   {
     // Handle raw input device change events.
     //
@@ -152,7 +152,7 @@ namespace Components
       return cb->second(lParam, wParam);
     }
 
-    return reinterpret_cast<decltype(&Window::MessageHandler)>(0x4731F0)(hWnd, Msg, wParam, lParam);
+    return Utils::Hook::Call<LRESULT(HWND, UINT, WPARAM, LPARAM)>(0x1402A90A0)(hWnd, Msg, wParam, lParam); // MainWndProc
   }
 
   void Window::EnableDpiAwareness()
@@ -168,14 +168,17 @@ namespace Components
     Window::NoBorder = Dvar::Register<bool>("r_noborder", true, Game::DVAR_ARCHIVE, "Do not use a border in windowed mode");
     Window::NativeCursor = Dvar::Register<bool>("ui_nativeCursor", false, Game::DVAR_ARCHIVE, "Display native cursor");
 
-    Utils::Hook(0x507643, Window_StyleHookStub, HOOK_CALL).install()->quick();
+    // Note that x64 picks the window style by r_displayMode, and we only
+    // replace the windowed one, which is the only one r_noborder is about.
+    //
+    Utils::Hook(0x1400327B4, Window_StyleHookStub, HOOK_CALL).install()->quick(); // Vid_CreateWindow
 
     // Main window creation
-    Utils::Hook::Nop(0x5076AA, 1);
-    Utils::Hook(0x5076AB, Window::CreateMainWindow, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x140032853, 1);
+    Utils::Hook(0x140032854, Window::CreateMainWindow, HOOK_CALL).install()->quick();
 
     // Mark the cursor as visible
-    Utils::Hook(0x48E5D3, Window::DrawCursorStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14026F3BA, Window::DrawCursorStub, HOOK_CALL).install()->quick();
 
     // Draw the cursor if necessary
     Scheduler::Loop([]
@@ -201,10 +204,15 @@ namespace Components
     }, Scheduler::Pipeline::RENDERER);
 
     // Don't let the game interact with the native cursor
-    Utils::Hook::Set(0x6D7348, Window::ShowCursorHook);
+    Utils::Hook::Set(0x1403616E0, Window::ShowCursorHook);
 
     // Use custom message handler
-    Utils::Hook::Set(0x64D298, Window::MessageHandler);
+    //
+    // On x86 we set the window procedure that the game puts in its window
+    // class. On x64 the game loads its address with a lea, whose 32-bit
+    // displacement can't reach our module, so we point it at a relay.
+    //
+    Utils::Hook::Displace(0x1402A4383, 7, 0x1402A90A0, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(0x1402A4383 + 7, reinterpret_cast<void*>(Window::MessageHandler))));
 
     Window::OnWndMessage(WM_SETCURSOR, [](WPARAM, LPARAM)
     {

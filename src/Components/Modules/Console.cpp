@@ -53,23 +53,6 @@ namespace Components
 
   std::jthread Console::ConsoleThread;
 
-  Game::SafeArea Console::OriginalSafeArea;
-
-  Dvar::Var Console::con_scale;
-  float Console::ConsoleScale = 1.0f;
-
-  double Console::InputBoxOffset = 32.0;
-  double Console::BuildStringOffset = 16.0;
-  double Console::DvarColumnWidth = 348.0;
-
-  bool Console::isCommand;
-
-  const char** Console::GetAutoCompleteFileList(const char* path, const char* extension, Game::FsListBehavior_e behavior, int* numfiles, [[maybe_unused]] int allocTrackType)
-  {
-    if (path == reinterpret_cast<char*>(0xBAADF00D) || path == reinterpret_cast<char*>(0xCDCDCDCD) || ::Utils::Memory::IsBadReadPtr(path)) return nullptr;
-    return Game::FS_ListFiles(path, extension, behavior, numfiles);
-  }
-
   void Console::RefreshStatus()
   {
     const std::string mapname = (*Game::sv_mapname)->current.string;
@@ -464,9 +447,9 @@ namespace Components
 
   BOOL CALLBACK Console::ResizeChildWindow(HWND hwndChild, LPARAM lParam)
   {
-    auto id = GetWindowLong(hwndChild, GWL_ID);
-    auto isInputBox = id == INPUT_BOX;
-    auto isOutputBox = id == OUTPUT_BOX;
+    const LONG_PTR id = GetWindowLongPtrA(hwndChild, GWLP_ID);
+    const bool isInputBox = id == INPUT_BOX;
+    const bool isOutputBox = id == OUTPUT_BOX;
 
     if (isInputBox || isOutputBox)
     {
@@ -481,9 +464,7 @@ namespace Components
 
         GetWindowPos(hwndChild, &childX, &childY);
 
-        HWND parent = Utils::Hook::Get<HWND>(0x64A3288);
-
-        auto scale = GetDpiScale(parent);
+        const float scale = GetDpiScale(Game::s_wcd->hWnd);
 
         if (isInputBox)
         {
@@ -525,7 +506,7 @@ namespace Components
   {
     constexpr auto maxChars = 0x4000;
     constexpr auto maxAffectedChars = 0x100;
-    HWND outputBox = Utils::Hook::Get<HWND>(0x64A328C);
+    HWND outputBox = Game::s_wcd->hwndBuffer;
 
     auto totalClearLength = 0;
 
@@ -558,10 +539,10 @@ namespace Components
       SendMessageA(outputBox, WM_SETREDRAW, TRUE, 0);
     }
 
-    Utils::Hook::Set(0x64A38B8, totalChars - totalClearLength);
+    *Game::s_totalChars = totalChars - totalClearLength;
   }
 
-  LRESULT CALLBACK Console::ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, unsigned int lParam)
+  LRESULT CALLBACK Console::ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
   {
     switch (Msg)
     {
@@ -592,7 +573,7 @@ namespace Components
       return 0;
     }
 
-    return reinterpret_cast<WNDPROC>(0x64DC50)(hWnd, Msg, wParam, lParam);
+    return Game::ConWndProc(hWnd, Msg, wParam, lParam);
   }
 
   ATOM CALLBACK Console::RegisterClassHook(WNDCLASSA* lpWndClass)
@@ -600,48 +581,72 @@ namespace Components
     DeleteObject(lpWndClass->hbrBackground);
     HBRUSH brush = CreateSolidBrush(BackgroundColor);
     lpWndClass->hbrBackground = brush;
+    lpWndClass->lpfnWndProc = ConWndProc;
 
     return RegisterClassA(lpWndClass);
   }
 
+  LONG_PTR Console::SubclassInputLine(HWND hWnd, int nIndex, LONG_PTR dwNewLong)
+  {
+    const LONG_PTR r = SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
+    *Game::SysInputLineWndProc = reinterpret_cast<WNDPROC>(r);
+    return r;
+  }
+
   void Console::ApplyConsoleStyle()
   {
-    Utils::Hook::Set<std::uint8_t>(0x428A8E, 0);    // Adjust logo Y pos
-    Utils::Hook::Set<std::uint8_t>(0x428A90, 0);    // Adjust logo X pos
-    Utils::Hook::Set<std::uint8_t>(0x428AF2, 67);   // Adjust output Y pos
-    Utils::Hook::Set<std::uint32_t>(0x428AC5, 397); // Adjust input Y pos
-    Utils::Hook::Set<std::uint32_t>(0x428951, 609); // Reduce window width
-    Utils::Hook::Set<std::uint32_t>(0x42895D, 423); // Reduce window height
-    Utils::Hook::Set<std::uint32_t>(0x428AC0, 597); // Reduce input width
-    Utils::Hook::Set<std::uint32_t>(0x428AED, 596); // Reduce output width
+    Utils::Hook::Set<uint32_t>(0x1402A7D0B, 0);   // Adjust logo Y pos
+    Utils::Hook::Set<uint32_t>(0x1402A7D13, 0);   // Adjust logo X pos
+    Utils::Hook::Set<uint32_t>(0x1402A7DDB, 67);  // Adjust output Y pos
+    Utils::Hook::Set<uint32_t>(0x1402A7D7D, 397); // Adjust input Y pos
+    Utils::Hook::Set<uint32_t>(0x1402A7B1C, 609); // Reduce window width
+    Utils::Hook::Set<uint32_t>(0x1402A7B24, 423); // Reduce window height
+    Utils::Hook::Set<uint32_t>(0x1402A7D75, 597); // Reduce input width
+    Utils::Hook::Set<uint32_t>(0x1402A7DD3, 596); // Reduce output width
 
     DWORD fontsInstalled;
     CustomConsoleFont = AddFontMemResourceEx(const_cast<void*>(reinterpret_cast<const void*>(Font::Terminus::DATA)), Font::Terminus::LENGTH, 0, &fontsInstalled);
 
     if (fontsInstalled > 0)
     {
-      Utils::Hook::Nop(0x428A44, 6);
-      Utils::Hook(0x428A44, ReplaceFont, HOOK_CALL).install()->quick();
+      Utils::Hook::Nop(0x1402A7C85, 6);
+      Utils::Hook(0x1402A7C85, ReplaceFont, HOOK_CALL).install()->quick();
     }
 
-    Utils::Hook::Nop(0x42892D, 6);
-    Utils::Hook(0x42892D, RegisterClassHook, HOOK_CALL).install()->quick();
+    // Use our window procedure (and background) for the console window. On
+    // x86 we just point the game at ConWndProc(), but on x64 the game loads
+    // its procedure with a rip-relative lea, which can't reach our module. So
+    // we hook its RegisterClassA() call instead and fill in both in the window
+    // class there (see RegisterClassHook()).
+    //
+    Utils::Hook::Nop(0x1402A7ADF, 6);
+    Utils::Hook(0x1402A7ADF, RegisterClassHook, HOOK_CALL).install()->quick();
 
-    Utils::Hook::Set(0x4288E6 + 4, &ConWndProc);
-
-    auto style = WS_CAPTION | WS_SIZEBOX | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
-    Utils::Hook::Set(0x42893F + 1, style);
-    Utils::Hook::Set(0x4289E2 + 1, style);
+    const DWORD style = WS_CAPTION | WS_SIZEBOX | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+    Utils::Hook::Set(0x1402A7B06 + 1, style);
+    Utils::Hook::Set(0x1402A7B9A + 2, style);
 
 #ifdef REMOVE_HEADERBAR
     // Remove that hideous header window -rox
-    Utils::Hook::Set(0x428A7C, static_cast<char>(0xEB));
-    Utils::Hook::Set(0X428AF1 + 1, static_cast<char>(10));
+    Utils::Hook::Set<uint8_t>(0x1402A7CCA, 0xEB);
+    Utils::Hook::Set<uint32_t>(0x1402A7DDB, 10);
 #endif
 
+    // Subclass the input line with full pointers. The game does it with
+    // SetWindowLongA(), which takes and returns a 32-bit LONG, and then stores
+    // the sign-extended result as the previous window procedure. That only
+    // works as long as both procedures happen to fit in 32 bits, which is a
+    // bit of a gamble on x64. So we call SetWindowLongPtrA() instead and store
+    // the previous procedure ourselves, which is also why we nop the game's
+    // store.
+    //
+    Utils::Hook::Nop(0x1402A7E1E, 6);
+    Utils::Hook(0x1402A7E1E, SubclassInputLine, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x1402A7E2E, 10);
+
     // Never reset text
-    Utils::Hook::Nop(0x4F57DF, 0x4F57F6 - 0x4F57DF);
-    Utils::Hook(0x4F57DF, Console_Sys_PrintStub, HOOK_JUMP).install()->quick();
+    Utils::Hook::Nop(0x1402A7836, 0x1402A784E - 0x1402A7836);
+    Utils::Hook(0x1402A7836, Console_Sys_PrintStub, HOOK_JUMP).install()->quick();
 
   }
 
@@ -701,84 +706,6 @@ namespace Components
     ExitProcess(1);
   }
 
-  float Console::GetConsoleScale()
-  {
-    auto scale = con_scale.get<float>();
-
-    if (scale <= 0.0f)
-      scale = static_cast<float>(Renderer::Height()) / 1080.0f;
-
-    return std::clamp(scale, 1.0f, 4.0f);
-  }
-
-  float Console::GetFontScale(Game::Font_s* font)
-  {
-    return (font != nullptr && font == Game::cls->consoleFont) ? ConsoleScale : 1.0f;
-  }
-
-  int Console::R_TextHeight_Stub(Game::Font_s* font)
-  {
-    return static_cast<int>(static_cast<float>(Game::R_TextHeight(font)) * GetFontScale(font));
-  }
-
-  int Console::R_TextWidth_Stub(const char* text, const int maxChars, Game::Font_s* font)
-  {
-    return static_cast<int>(static_cast<float>(Game::R_TextWidth(text, maxChars, font)) * GetFontScale(font));
-  }
-
-  void Console::R_AddCmdDrawText_Stub(const char* text, const int maxChars, Game::Font_s* font, const float x, const float y, const float xScale, const float yScale, const float rotation, const float* color, const int style)
-  {
-    const auto scale = GetFontScale(font);
-    Game::R_AddCmdDrawText(text, maxChars, font, x, y, xScale * scale, yScale * scale, rotation, color, style);
-  }
-
-  void Console::R_AddCmdDrawConsoleText_Stub(const char* text, const int textSize, const int offset, const int length, Game::Font_s* font, const float x, const float y, const float xScale, const float yScale, const float* color, const int style)
-  {
-    const auto scale = GetFontScale(font);
-    Game::R_AddCmdDrawConsoleText(text, textSize, offset, length, font, x, y, xScale * scale, yScale * scale, color, style);
-  }
-
-  void Console::CL_DrawTextWithCursor_Stub(Game::ScreenPlacement* scrPlace, const char* text, const int maxChars, Game::Font_s* font, const float x, const float y, const int horzAlign, const int vertAlign, const float xScale, const float yScale, const float* color, const int style, const int cursorPos, const char cursorChar)
-  {
-    const auto scale = GetFontScale(font);
-    Game::CL_DrawTextWithCursor(scrPlace, text, maxChars, font, x, y, horzAlign, vertAlign, xScale * scale, yScale * scale, color, style, cursorPos, cursorChar);
-  }
-
-  void Console::StoreSafeArea()
-  {
-    // Backup the original safe area
-    OriginalSafeArea = *Game::safeArea;
-
-    ConsoleScale = GetConsoleScale();
-
-    const auto baseFontHeight = Game::cls->consoleFont != nullptr ? Game::R_TextHeight(Game::cls->consoleFont) : 0;
-    const auto fontHeight = static_cast<int>(static_cast<float>(baseFontHeight) * ConsoleScale);
-    const auto growth = static_cast<double>(fontHeight - baseFontHeight);
-
-    // The game hardcodes these to fit unscaled console font, so grow
-    // them alongside it
-    InputBoxOffset = 32.0 + growth;
-    BuildStringOffset = 16.0 + growth;
-    DvarColumnWidth = 348.0 * ConsoleScale;
-
-    // Apply new safe area and border
-    float border = 6.0f;
-    Game::safeArea->top = border;
-    Game::safeArea->left = border;
-    Game::safeArea->bottom = static_cast<float>(Renderer::Height()) - border;
-    Game::safeArea->right = static_cast<float>(Renderer::Width()) - border;
-
-    Game::safeArea->fontHeight = fontHeight;
-    Game::safeArea->textHeight = static_cast<int>((Game::safeArea->bottom - Game::safeArea->top - (2 * Game::safeArea->fontHeight) - 24.0) / Game::safeArea->fontHeight);
-    Game::safeArea->textWidth = static_cast<int>(Game::safeArea->right - Game::safeArea->left - 10.0f - 18.0);
-  }
-
-  void Console::RestoreSafeArea()
-  {
-    // Restore the initial safe area
-    *Game::safeArea = OriginalSafeArea;
-  }
-
   void Console::SetSkipShutdown()
   {
     SkipShutdown = true;
@@ -794,7 +721,7 @@ namespace Components
 
   HWND Console::GetWindow()
   {
-    return *reinterpret_cast<HWND*>(0x64A3288);
+    return Game::s_wcd->hWnd;
   }
 
   void Console::ShowAsyncConsole()
@@ -802,179 +729,227 @@ namespace Components
     ConsoleThread = std::jthread(ConsoleRunner);
   }
 
+  float Console::GetConsoleScale()
+  {
+    return Game::Con_GetConsoleScale();
+  }
+
+  void (*Console::Con_UpdateNotifyLine_Original)(int localClientNum, int channel, bool lineFeed, int flags);
+
+  void Console::Con_UpdateNotifyLine_Hk(int localClientNum, int channel, bool lineFeed, int flags)
+  {
+    Game::Con_UpdateConsoleLine(localClientNum, channel, lineFeed, flags);
+    Game::Con_UpdateMiniconLine(localClientNum, channel, lineFeed, flags);
+    Con_UpdateNotifyLine_Original(localClientNum, channel, lineFeed, flags);
+    Game::Con_UpdateErrorLine(localClientNum, channel, lineFeed, flags);
+  }
+
+  void Console::Con_OneTimeInit_Hk()
+  {
+    Game::Con_InitConsoleWindow();
+    Con_InitMessageBuffer_Hk();
+  }
+
+  void Console::Con_InitMessageBuffer_Hk()
+  {
+    Utils::Hook::Call<void()>(0x1400ED2C0)(); // Con_InitMessageBuffer
+    Game::Con_InitMessageWindows();
+  }
+
+  void Console::Con_ClearNotify_Hk(const int localClientNum)
+  {
+    Utils::Hook::Call<void(int)>(0x1400EC110)(localClientNum); // Con_ClearNotify
+    Game::Con_ClearMessageWindows(localClientNum);
+  }
+
+  void Console::Con_TimeJumped_Hk(const int localClientNum, const int serverTime)
+  {
+    Utils::Hook::Call<void(int, int)>(0x1400EDE60)(localClientNum, serverTime); // Con_TimeJumped
+    Game::Con_TimeJumpedMessageWindows(localClientNum, serverTime);
+  }
+
+  void Console::Con_TimeNudged_Hk(const int localClientNum, const int serverTimeNudge)
+  {
+    Utils::Hook::Call<void(int, int)>(0x1400EDFD0)(localClientNum, serverTimeNudge); // Con_TimeNudged
+    Game::Con_TimeNudgedMessageWindows(localClientNum, serverTimeNudge);
+  }
+
+  // x64 inlines Con_UpdateNotifyMessage() into CL_ConsolePrint_AddLine(),
+  // and without the mini console and error windows, since it doesn't have
+  // them. So we start their messages right before the call.
+  //
+  // The flag we check is the one CL_ConsolePrint_AddLine() sets while it's
+  // already printing, in which case it returns straight away. So we leave
+  // the windows be as well, the same as x86 does.
+  //
+  char Console::CL_ConsolePrint_AddLine_Hk(const int localClientNum, const int channel, const char* txt, const int duration, const int pixelWidth, const char color, const int flags)
+  {
+    if (!Utils::Hook::Get<int>(0x1406C4F08))
+    {
+      Game::Con_UpdateMessageWindowsMessage(localClientNum, channel, duration, flags);
+    }
+
+    return Utils::Hook::Call<char(int, int, const char*, int, int, char, int)>(0x1400EB890)(localClientNum, channel, txt, duration, pixelWidth, color, flags);
+  }
+
+  void Console::Con_Init_Hk()
+  {
+    Utils::Hook::Call<void()>(0x1400ED0A0)();
+    Game::Con_InitInput();
+  }
+
+  void Console::Con_InitChannels_Hk()
+  {
+    Game::Con_InitConsoleChannels();
+    Utils::Hook::Call<void()>(0x1400F0030)();
+  }
+
+  int Console::R_TextHeight_Hk(Game::Font_s* font)
+  {
+    return static_cast<int>(static_cast<float>(Game::R_TextHeight(font)) * Game::Con_GetFontScale(font));
+  }
+
+  int Console::R_TextWidth_Hk(const char* text, int maxChars, Game::Font_s* font)
+  {
+    return static_cast<int>(static_cast<float>(Game::R_TextWidth(text, maxChars, font)) * Game::Con_GetFontScale(font));
+  }
+
+  void Console::CL_DrawTextWithCursor_Hk(Game::ScreenPlacement* scrPlace, const char* text, int maxChars, Game::Font_s* font, float x, float y, int horzAlign, int vertAlign, float xScale, float yScale, const float* color, int style, int cursorPos, char cursorChar)
+  {
+    const float scale(Game::Con_GetFontScale(font));
+    Game::CL_DrawTextWithCursor(scrPlace, text, maxChars, font, x, y, horzAlign, vertAlign, xScale * scale, yScale * scale, color, style, cursorPos, cursorChar);
+  }
+
   Game::dvar_t* Console::RegisterConColor(const char* dvarName, float r, float g, float b, float a, float min, float max, unsigned __int16 flags, const char* description)
   {
-    static struct
+    struct ConColor
     {
       const char* name;
       float color[4];
-    } patchedColors[] =
-    {
-      { "con_inputBoxColor",     { 0.20f, 0.20f, 0.20f, 1.00f } },
-      { "con_inputHintBoxColor", { 0.30f, 0.30f, 0.30f, 1.00f } },
-      { "con_outputBarColor",    { 0.50f, 0.50f, 0.50f, 0.60f } },
-      { "con_outputSliderColor", { 0.70f, 1.00f, 0.00f, 1.00f } },
-      { "con_outputWindowColor", { 0.25f, 0.25f, 0.25f, 0.85f } },
     };
 
-    for (std::size_t i = 0; i < ARRAYSIZE(patchedColors); ++i)
+    static constexpr ConColor colors[] =
     {
-      if (std::strcmp(dvarName, patchedColors[i].name) == 0)
+      {"con_inputBoxColor",     {0.20f, 0.20f, 0.20f, 1.00f}},
+      {"con_inputHintBoxColor", {0.30f, 0.30f, 0.30f, 1.00f}},
+      {"con_outputBarColor",    {0.50f, 0.50f, 0.50f, 0.60f}},
+      {"con_outputSliderColor", {0.70f, 1.00f, 0.00f, 1.00f}},
+      {"con_outputWindowColor", {0.25f, 0.25f, 0.25f, 0.85f}},
+    };
+
+    for (const ConColor& c: colors)
+    {
+      if (std::strcmp(dvarName, c.name) == 0)
       {
-        r = patchedColors[i].color[0];
-        g = patchedColors[i].color[1];
-        b = patchedColors[i].color[2];
-        a = patchedColors[i].color[3];
+        r = c.color[0];
+        g = c.color[1];
+        b = c.color[2];
+        a = c.color[3];
         break;
       }
     }
 
-    return reinterpret_cast<Game::Dvar_RegisterVec4_t>(0x471500)(dvarName, r, g, b, a, min, max, flags, description);
-  }
-
-  bool Console::Con_IsDvarCommand_Stub(const char* cmd)
-  {
-    isCommand = Game::Con_IsDvarCommand(cmd);
-    return isCommand;
-  }
-
-  void Console::Cmd_ForEach_Stub(void(*callback)(const char* str))
-  {
-    if (!isCommand)
-    {
-      Game::Cmd_ForEach(callback);
-    }
-  }
-
-  void Console::Con_ToggleConsole()
-  {
-    ConsoleScale = GetConsoleScale();
-
-    Game::Field_Clear(Game::g_consoleField);
-    if (Game::conDrawInputGlob->matchIndex >= 0 && Game::conDrawInputGlob->autoCompleteChoice[0] != '\0')
-    {
-      Game::conDrawInputGlob->matchIndex = -1;
-      Game::conDrawInputGlob->autoCompleteChoice[0] = '\0';
-    }
-
-    Game::g_consoleField->fixedSize = 1;
-    Game::con->outputVisible = false;
-    Game::g_consoleField->widthInPixels = *Game::g_console_field_width;
-    Game::g_consoleField->charHeight = *Game::g_console_char_height;
-
-    for (std::size_t localClientNum = 0; localClientNum < Game::MAX_LOCAL_CLIENTS; ++localClientNum)
-    {
-      assert((Game::clientUIActives[0].keyCatchers & Game::KEYCATCH_CONSOLE) == (Game::clientUIActives[localClientNum].keyCatchers & Game::KEYCATCH_CONSOLE));
-      Game::clientUIActives[localClientNum].keyCatchers ^= 1;
-    }
-  }
-
-  void Console::AddConsoleCommand()
-  {
-    Command::Add("con_echo", []
-    {
-      Con_ToggleConsole();
-      Game::I_strncpyz(Game::g_consoleField->buffer, "\\echo ", sizeof(Game::field_t::buffer));
-      Game::g_consoleField->cursor = static_cast<int>(std::strlen(Game::g_consoleField->buffer));
-      Game::Field_AdjustScroll(Game::ScrPlace_GetFullPlacement(), Game::g_consoleField);
-    });
+    return Game::Dvar_RegisterVec4(dvarName, r, g, b, a, min, max, flags, description);
   }
 
   Console::Console()
   {
-    AssertOffset(Game::clientUIActive_t, connectionState, 0x9B8);
-    AssertOffset(Game::clientUIActive_t, keyCatchers, 0x9B0);
+    // x64 compiles out the in-game console, so we bring our own (see
+    // Game::Con_InitConsoleWindow() for why and how). Here we hook it into
+    // the places that x86 calls it from. We set it up along with the rest of
+    // the console and feed it the lines, then hand it the keys. The drawing
+    // goes through Scheduler instead (see below).
+    //
+    Con_UpdateNotifyLine_Original = Utils::Hook::Detour(0x1400EE410, 5, &Con_UpdateNotifyLine_Hk);
+    Utils::Hook(0x1400EBC71, Console_CL_ConsolePrintStub, HOOK_JUMP).install()->quick();
 
-    // Console '%s: %s> ' string
-#ifdef EXPERIMENTAL_BUILD
-    Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " REVISION_STR "-develop> ");
-#else
-    Utils::Hook::Set<const char*>(0x5A44B4, "IW4x MP: " REVISION_STR "> ");
-#endif
+    Utils::Hook(0x1400EDDFD, Con_OneTimeInit_Hk, HOOK_CALL).install()->quick();
 
-    // Patch console color
-    static float consoleColor[] = { 0.70f, 1.00f, 0.00f, 1.00f };
-    Utils::Hook::Set<float*>(0x5A451A, consoleColor);
-    Utils::Hook::Set<float*>(0x5A4400, consoleColor);
+    // The same goes for the mini console and the error windows. Wherever the
+    // game sets up or clears its own message windows, we do the same for
+    // ours, and likewise when it moves their messages in time (see
+    // Game::Con_InitMessageWindows()).
+    //
+    Utils::Hook(0x1400F4D73, Con_InitMessageBuffer_Hk, HOOK_CALL).install()->quick();
 
-    // Remove the need to type '\' or '/' to send a console command
-    Utils::Hook::Set<std::uint8_t>(0x431565, 0xEB);
+    for (const auto place : {0x1400EB64C, 0x1400EB6B3, 0x1400F4C29, 0x1400F8948, 0x1400FC480, 0x1400FCABD, 0x1400FFC65})
+    {
+      Utils::Hook(place, Con_ClearNotify_Hk, HOOK_CALL).install()->quick();
+    }
 
-    // Internal console
-    Utils::Hook(0x4F690C, Con_ToggleConsole, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4F65A5, Con_ToggleConsole, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400F475D, Con_TimeJumped_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400F52D1, Con_TimeNudged_Hk, HOOK_CALL).install()->quick();
 
-    // Allow the client console to always be opened (sv_allowClientConsole)
-    Utils::Hook::Nop(0x4F68EC, 2);
+    for (const auto place : {0x1400EB7F4, 0x1400EB86B, 0x1400EBFAC})
+    {
+      Utils::Hook(place, CL_ConsolePrint_AddLine_Hk, HOOK_CALL).install()->quick();
+    }
+    Utils::Hook(0x1400FAF02, Con_Init_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400F0025, Con_InitChannels_Hk, HOOK_JUMP).install()->quick();
 
-    // Patch safearea for ingame-console
-    Utils::Hook(0x5A50EF, Console_DrawSolidConsoleStub, HOOK_CALL).install()->quick();
+    // Draw the console in the renderer pipeline, which Scheduler runs right
+    // after the ScrPlace_EndFrame() call that ends the screen of a frame.
+    //
+    // Note that we used to hook that call ourselves, but so does Scheduler,
+    // and since it registers after us, its hook quietly replaced ours and
+    // the console never drew. Drawing from the pipeline comes down to the
+    // same thing: ScrPlace_EndFrame() only marks the frame as ended, and
+    // what changes with that is the placement that
+    // ScrPlace_GetActivePlacement() returns. But by then the game has gone
+    // back to the full screen placement anyway, so the console sees the
+    // same one either way.
+    //
+    Scheduler::Loop([]
+    {
+      if (Game::cls->rendererStarted)
+      {
+        Game::Con_DrawConsole(0);
+      }
+    }, Scheduler::Pipeline::RENDERER);
 
-    // Scale ingame-console with render resolution (raw pixels)
-    con_scale = Dvar::Register<float>("con_scale", 0.0f, 0.0f, 4.0f, Game::DVAR_ARCHIVE, "Size multiplier of the ingame console. 0 derives it from the render resolution.");
-
-    // Console metrics: Con_CheckResize, Con_DrawInput, SCR_DrawSmallStringExt
-    Utils::Hook(0x5A239C, R_TextHeight_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A44C5, R_TextHeight_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x465FF7, R_TextHeight_Stub, HOOK_CALL).install()->quick();
-
-    // Console metrics: ConDrawInput_TextAndOver
-    Utils::Hook(0x5A3204, R_TextWidth_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A38B0, R_TextWidth_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A3908, R_TextWidth_Stub, HOOK_CALL).install()->quick();
-
-    // Input field metrics: Field_DrawTextOverride, Field_AdjustScroll
-    Utils::Hook(0x4795C0, R_TextHeight_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x488C88, R_TextWidth_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x488CF2, R_TextWidth_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x488D3A, R_TextWidth_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x488D61, R_TextWidth_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x488E14, R_TextWidth_Stub, HOOK_CALL).install()->quick();
-
-    Utils::Hook(0x5A3135, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick();              // ConDrawInput_Text
-    Utils::Hook(0x5A3185, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick();              // ConDrawInput_TextClamped
-    Utils::Hook(0x5A31F5, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick();              // ConDrawInput_TextAndOver
-    Utils::Hook(0x5A3A11, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick();              // ConDrawInput_ValueMatches
-    Utils::Hook(0x5A3D9C, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick();              // ConDrawInput_DetailedDvarMatch
-    Utils::Hook(0x466049, R_AddCmdDrawText_Stub, HOOK_CALL).install()->quick();              // SCR_DrawSmallStringExt
-    Utils::Hook(0x5A431D, R_AddCmdDrawConsoleText_Stub, HOOK_CALL).install()->quick(); // Con_DrawOutputText
-    Utils::Hook(0x479635, CL_DrawTextWithCursor_Stub, HOOK_CALL).install()->quick();   // Field_DrawTextOverride
-
-    // Con_DrawOutputWindow
-    Utils::Hook::Set<double*>(0x5A4370, &InputBoxOffset);
-    Utils::Hook::Set<double*>(0x5A43F8, &BuildStringOffset);
-
-    // ConDrawInput_DvarMatch, ConDrawInput_DetailedDvarMatch
-    Utils::Hook::Set<double*>(0x5A36B7, &DvarColumnWidth);
-    Utils::Hook::Set<double*>(0x5A3B29, &DvarColumnWidth);
-    Utils::Hook::Set<double*>(0x5A3B85, &DvarColumnWidth);
-    Utils::Hook::Set<double*>(0x5A3BDD, &DvarColumnWidth);
-
-    // Check for bad food ;)
-    Utils::Hook(0x4CB9F4, GetAutoCompleteFileList, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EE892, Console_CL_KeyEventStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400EE95D, Console_CL_KeyEventEscapeStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400EEA62, Console_CL_KeyEventDownStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400EEAC2, Console_CL_KeyEventDisconnectedStub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400EE5E0, Game::CL_CharEvent, HOOK_JUMP).install()->quick();
 
     // Patch console dvars
-    Utils::Hook(0x4829AB, RegisterConColor, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4829EE, RegisterConColor, HOOK_CALL).install()->quick();
-    Utils::Hook(0x482A31, RegisterConColor, HOOK_CALL).install()->quick();
-    Utils::Hook(0x482A7A, RegisterConColor, HOOK_CALL).install()->quick();
-    Utils::Hook(0x482AC3, RegisterConColor, HOOK_CALL).install()->quick();
+    //
+    Utils::Hook(0x1400ED73C, RegisterConColor, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ED78D, RegisterConColor, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ED7E1, RegisterConColor, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ED82F, RegisterConColor, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400ED881, RegisterConColor, HOOK_CALL).install()->quick();
+
+    // Scale ingame-console with render resolution (raw pixels)
+    //
+    // Note that on x64 the only game code left that measures console text is
+    // Con_CheckResize(), Field_AdjustScroll(), and Field_Draw(), so those are
+    // the calls we scale. The rest of what x86 scales here is drawing that x64
+    // compiles out, and our own console code does its own scaling.
+    //
+    Game::con_scale = Dvar::Register<float>("con_scale", 0.0f, 0.0f, 4.0f, Game::DVAR_ARCHIVE, "Size multiplier of the ingame console. 0 derives it from the render resolution.").get<Game::dvar_t*>();
+
+    Utils::Hook(0x1400ED236, R_TextHeight_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEB95, R_TextWidth_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEC03, R_TextWidth_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEC40, R_TextWidth_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEC60, R_TextWidth_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EECF9, R_TextWidth_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EEFC6, R_TextHeight_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400EF045, CL_DrawTextWithCursor_Hk, HOOK_CALL).install()->quick();
+
+#ifdef _DEBUG
+    Command::AddRaw("con_echo", Game::Con_EchoCommand);
+#endif
 
     // Modify console style
     ApplyConsoleStyle();
 
     // Don't resize the console
-    Utils::Hook(0x64DC6B, 0x64DCC2, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1402A768B, 0x1402A772B, HOOK_JUMP).install()->quick();
 
-    // Con_DrawInput
-    Utils::Hook(0x5A45BD, Con_IsDvarCommand_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5A466C, Cmd_ForEach_Stub, HOOK_CALL).install()->quick();
-
-#ifdef _DEBUG
-    AddConsoleCommand();
-#endif
-
-    if (Dedicated::IsEnabled() && !ZoneBuilder::IsEnabled())
+    if (Dedicated::IsEnabled())
     {
       Scheduler::Loop(RefreshStatus, Scheduler::Pipeline::MAIN);
     }
@@ -982,27 +957,32 @@ namespace Components
     // External console
     if (Flags::HasFlag("stdout"))
     {
-      Utils::Hook(0x4B2080, StdOutPrint, HOOK_JUMP).install()->quick();
-      Utils::Hook(0x43D570, StdOutError, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x1402A78C0, StdOutPrint, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x1402A3480, StdOutError, HOOK_JUMP).install()->quick();
     }
-    else if (Flags::HasFlag("console") || ZoneBuilder::IsEnabled()) // ZoneBuilder uses the game's console, until the native one is adapted.
+    else if (Flags::HasFlag("console"))
     {
-      Utils::Hook::Nop(0x60BB58, 11);
-
       // Redirect input (]command)
-      Utils::Hook(0x47025A, 0x4F5770, HOOK_CALL).install()->quick();
+      Utils::Hook(0x1402A79B4, Game::Conbuf_AppendText, HOOK_CALL).install()->quick();
 
-      Utils::Hook(0x60BB68, []
+      // On x86 we show the console from the block of
+      // Com_Init_Try_Block_Function() that only runs on a dedicated server,
+      // where the game hides the splash window and shows its console. x64
+      // compiles that block out, so there is nothing to hijack and we do both
+      // ourselves, right before the call that used to follow the block.
+      //
+      Utils::Hook(0x1401F50C3, []
       {
+        Game::Sys_HideSplashWindow();
         ShowAsyncConsole();
+        Utils::Hook::Call<void()>(0x140208B70)();
       }, HOOK_CALL).install()->quick();
 
-      Utils::Hook(0x4D69A2, []
+      Utils::Hook(0x1402A3DD6, []
       {
         SetSkipShutdown();
 
-        // Sys_DestroyConsole
-        Utils::Hook::Call<void()>(0x4528A0)();
+        Game::Sys_DestroyConsole();
 
         if (ConsoleThread.joinable())
         {
@@ -1024,13 +1004,18 @@ namespace Components
         TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
       }
 
-      Utils::Hook::Nop(0x60BB58, 11);
+      Utils::Hook(0x1401F50C3, []
+      {
+        Game::Sys_HideSplashWindow();
+        Game::Sys_ShowConsole();
+        Utils::Hook::Call<void()>(0x140208B70)();
+      }, HOOK_CALL).install()->quick();
 
-      Utils::Hook(0x4305E0, Create, HOOK_JUMP).install()->quick();
-      Utils::Hook(0x4528A0, Destroy, HOOK_JUMP).install()->quick();
-      Utils::Hook(0x4B2080, Print, HOOK_JUMP).install()->quick();
-      Utils::Hook(0x43D570, Error, HOOK_JUMP).install()->quick();
-      Utils::Hook(0x4859A5, Input, HOOK_CALL).install()->quick();
+      Utils::Hook(0x1402A7F30, Create, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x1402A7E90, Destroy, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x1402A78C0, Print, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x1402A3480, Error, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x1402A3708, Input, HOOK_CALL).install()->quick();
     }
     else
     {
@@ -1053,12 +1038,17 @@ void Console_MakeRoomForText(int addedCharacters)
   Components::Console::MakeRoomForText(addedCharacters);
 }
 
-void Console_StoreSafeArea()
+bool Console_CL_ConsoleKeyEvent(int localClientNum, int key, int down)
 {
-  Components::Console::StoreSafeArea();
+  return Game::CL_ConsoleKeyEvent(localClientNum, key, down);
 }
 
-void Console_RestoreSafeArea()
+bool Console_Con_CancelAutoComplete()
 {
-  Components::Console::RestoreSafeArea();
+  return Game::Con_CancelAutoComplete();
+}
+
+void Console_Console_Key(int localClientNum, int key)
+{
+  Game::Console_Key(localClientNum, key);
 }

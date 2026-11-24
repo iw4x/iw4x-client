@@ -1,4 +1,4 @@
--- DirectX SDK headers and x86 libraries.
+-- DirectX SDK headers and x64 libraries.
 --
 -- Note that the client names the SDK libraries it links (see premake5.lua),
 -- so the export only adds their directory.
@@ -12,6 +12,6 @@ targets:binless_library ("dxsdk",
   export =
   {
     includedirs = {"Include"},
-    libdirs     = {"Lib/x86"}
+    libdirs     = {"Lib/x64"}
   }
 })

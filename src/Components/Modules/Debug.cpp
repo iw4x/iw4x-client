@@ -1,6 +1,7 @@
 #include "Debug.hpp"
 #include "Events.hpp"
 #include "TextRenderer.hpp"
+#include "Vote.hpp"
 
 #include "Game/Engine/ScopedCriticalSection.hpp"
 
@@ -241,8 +242,14 @@ namespace Components
     Game::UI_DrawText(scrPlace, strFinal, std::numeric_limits<int>::max(), font6, MY_X, 110.0f, 1, 1, 0.4f, TextRenderer::WHITE_COLOR, 3);
   }
 
+  // On x86 we draw our debug overlays at the end of CG_DrawDebugOverlays(),
+  // which x64 compiles out. So instead we draw them after the call that
+  // comes right before where it would have been in CG_Draw2D().
+  //
   void Debug::CG_DrawDebugOverlays_Hk(const int localClientNum)
   {
+    Utils::Hook::Call<void(int)>(0x1400A8750)(localClientNum);
+
     assert(DebugOverlay);
     if (!DebugOverlay)
     {
@@ -279,7 +286,7 @@ namespace Components
     char from_ospath[MAX_OSPATH]{};
     const char* bug;
 
-    if (!*Game::logfile)
+    if (!Game::logfile)
     {
       Logger::PrintError(Game::CON_CHANNEL_ERROR, "CopyFile failed: logfile wasn't opened\n");
     }
@@ -298,10 +305,10 @@ namespace Components
 
     Game::Engine::ScopedCriticalSection _(Game::CRITSECT_CONSOLE, Game::Engine::SCOPED_CRITSECT_NORMAL);
 
-    if (*Game::logfile)
+    if (Game::logfile)
     {
-      Game::FS_FCloseFile(*Game::logfile);
-      *Game::logfile = 0;
+      Game::FS_FCloseFile(Game::logfile);
+      Game::logfile = 0;
     }
 
     Game::FS_BuildOSPath(Game::Sys_DefaultInstallPath(), "", "logs/console_mp.log", from_ospath);
@@ -359,16 +366,81 @@ namespace Components
     return PlayerDebugHealth;
   }
 
+  bool Debug::ScoreboardDrawn;
+
+  // On x86 CG_Draw2D() keeps what CG_DrawScoreboard() returns so that it can
+  // leave out the mini console and the errors while the scoreboard is up.
+  // x64 drops that (it has neither of those to leave out), so we keep it
+  // ourselves for our copies of them.
+  //
+  int Debug::CG_DrawScoreboard_Hk(const int localClientNum)
+  {
+    const auto r = Utils::Hook::Call<int(int)>(0x1400E3F20)(localClientNum);
+    ScoreboardDrawn = r != 0;
+    return r;
+  }
+
+  // x64 also compiles out what x86 draws in CG_Draw2D() between
+  // CG_DrawDebugOverlays() and the say field (the vote, the lagometer, and
+  // so on), so we draw all of that right before Con_DrawSay().
+  //
+  void Debug::CG_Draw2D_Hk(const int localClientNum, const int x, const int y)
+  {
+    Vote::CG_DrawVote(localClientNum);
+    Game::CG_DrawLagometer(localClientNum);
+    Game::CG_DrawEntityCount(localClientNum);
+    Game::CG_DrawServerBandwidth(localClientNum);
+    Game::CG_DrawServerKillcamData(localClientNum);
+
+    if (const auto drawMaterialType = (*Game::cg_drawMaterial)->current.integer)
+    {
+      Game::CG_DrawMaterial(localClientNum, drawMaterialType);
+    }
+    else
+    {
+      Game::AimAssist_DrawDebugOverlay(localClientNum);
+    }
+
+    if (!ScoreboardDrawn)
+    {
+      if (Game::con_minicon->current.enabled)
+      {
+        Game::Con_DrawMiniConsole(localClientNum, 2, 4, 1.0f);
+      }
+
+      Game::Con_DrawErrors(localClientNum, 2, 300, 1.0f);
+    }
+
+    Utils::Hook::Call<void(int, int, int)>(0x1400ECEF0)(localClientNum, x, y); // Con_DrawSay
+  }
+
+  // And then CG_AddLagometerFrameInfo(), which x86 calls in
+  // CG_DrawActiveFrame() once it has set the time. We call it a little
+  // before the call we hook, which seems close enough for the lagometer.
+  //
+  void Debug::CG_DrawActiveFrame_Hk(const int localClientNum)
+  {
+    Game::CG_AddLagometerFrameInfo(&Game::cgArray[localClientNum]);
+
+    Utils::Hook::Call<void(int)>(0x1400E2A30)(localClientNum);
+  }
+
   Debug::Debug()
   {
     Events::OnDvarInit(CL_InitDebugDvars);
 
-    // Hook end of CG_DrawDebugOverlays (This is to ensure some checks are done before our hook is executed).
-    Utils::Hook(0x49CB0A, CG_DrawDebugOverlays_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x1400D0FC9, CG_DrawDebugOverlays_Hk, HOOK_CALL).install()->quick(); // CG_Draw2D
+    Utils::Hook(0x1400D0F84, CG_DrawScoreboard_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400D0FE6, CG_Draw2D_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400B82A4, CG_DrawActiveFrame_Hk, HOOK_CALL).install()->quick();
 
-    Utils::Hook::Set<void(*)()>(0x60BCEA, Com_Assert_f);
+    // Replace the assert command, which on x64 is an empty function, with
+    // ours. The game loads the function with a lea whose 32-bit displacement
+    // can't reach our module, so we point it at a relay to ours instead.
+    //
+    Utils::Hook::Displace(0x1401F547C, 7, 0x140080E30, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(0x1401F5483, reinterpret_cast<void*>(Com_Assert_f))));
 
-    Utils::Hook(0x4487F7, Dvar_Register_PlayerDebugHealth, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14008BF72, Dvar_Register_PlayerDebugHealth, HOOK_CALL).install()->quick();
 
 #ifdef _DEBUG
     Command::Add("bug", Com_Bug_f);

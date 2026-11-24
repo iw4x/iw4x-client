@@ -4,7 +4,7 @@ extern "C"
 {
   void SlowMotion_Com_UpdateSlowMotion_Stub();
 
-  void SlowMotion_Com_UpdateSlowMotion(int timePassed);
+  bool SlowMotion_Com_UpdateSlowMotion(int msec);
 }
 
 namespace Components
@@ -15,15 +15,16 @@ namespace Components
     SlowMotion();
 
   private:
-    friend void (::SlowMotion_Com_UpdateSlowMotion)(int timePassed);
-
     static int Delay;
 
     static const Game::dvar_t* cg_drawDisconnect;
 
-    static void Com_UpdateSlowMotion(int timePassed);
+    friend bool (::SlowMotion_Com_UpdateSlowMotion)(int msec);
 
-    static void ScrCmd_SetSlowMotion_Stub();
+    static bool Com_UpdateSlowMotion(int msec);
+    static float CL_UpdateSlowMotion(float frameTime);
+
+    static void ScrCmd_SetSlowMotion_Stub(int index, const char* string);
 
     static void CG_DrawDisconnect_Stub(int localClientNum);
   };

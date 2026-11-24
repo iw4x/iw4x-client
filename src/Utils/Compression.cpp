@@ -6,8 +6,17 @@ namespace Utils::Compression
 {
   std::string ZLib::Compress(const std::string& data)
   {
+    // Note that zlib lengths are 32-bit on Windows, even in a 64-bit build.
+    // We are unlikely to ever compress anything that big, but a silently
+    // truncated length would be no fun to debug.
+    //
+    if (data.size() > std::numeric_limits<uLong>::max() / 2)
+    {
+      return {};
+    }
+
     Memory::Allocator allocator;
-    unsigned long length = (data.size() * 2);
+    uLong length = static_cast<uLong>(data.size() * 2);
     if (!length) length = 2;
 
     // Make sure the buffer is large enough
@@ -21,7 +30,7 @@ namespace Utils::Compression
     constexpr auto compression = Z_BEST_COMPRESSION;
 #endif
 
-    if (compress2((Bytef*)(buffer), &length, (const Bytef*)(data.data()), data.size(), compression) != Z_OK)
+    if (compress2((Bytef*)(buffer), &length, (const Bytef*)(data.data()), static_cast<uLong>(data.size()), compression) != Z_OK)
     {
       return {};
     }
@@ -48,7 +57,7 @@ namespace Utils::Compression
 
     do
     {
-      stream.avail_in = std::min(static_cast<std::size_t>(CHUNK), data.size() - (dataPtr - data.data()));
+      stream.avail_in = static_cast<uInt>(std::min(static_cast<std::size_t>(CHUNK), data.size() - (dataPtr - data.data())));
       stream.next_in = reinterpret_cast<const std::uint8_t*>(dataPtr);
       dataPtr += stream.avail_in;
 

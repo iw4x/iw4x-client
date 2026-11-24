@@ -54,16 +54,23 @@ namespace Components
 
   Lean::Lean()
   {
-    Command::AddRaw("+leanleft", IN_LeanLeft_Down, true);
-    Command::AddRaw("-leanleft", IN_LeanLeft_Up, true);
+    // Note that on x86 we also register these as key commands, which is what
+    // lets them be bound there. Cmd_AddCommand() has no such flag on x64,
+    // where a key can only be bound to the commands of the game's own table.
+    // But they can still be bound, since Bindings adds any other command to
+    // that table and runs it the x86 way, key up included. So in the end
+    // nobody should notice the difference, at least we hope.
+    //
+    Command::AddRaw("+leanleft", IN_LeanLeft_Down);
+    Command::AddRaw("-leanleft", IN_LeanLeft_Up);
 
-    Command::AddRaw("+leanright", IN_LeanRight_Down, true);
-    Command::AddRaw("-leanright", IN_LeanRight_Up, true);
+    Command::AddRaw("+leanright", IN_LeanRight_Down);
+    Command::AddRaw("-leanright", IN_LeanRight_Up);
 
     Events::OnClientCmdButtons(ApplyLeanFlags);
 
-    Utils::Hook(0x4A0C72, PM_UpdateLean_Stub, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4A0D72, PM_UpdateLean_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140092AC5, PM_UpdateLean_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140092C6C, PM_UpdateLean_Stub, HOOK_CALL).install()->quick();
 
     BGLean = Dvar::Register<bool>("bg_lean", true, Game::DVAR_CODINFO, "Enable CoD4 leaning");
   }

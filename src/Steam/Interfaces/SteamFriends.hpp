@@ -17,24 +17,36 @@ namespace Steam
     SteamID m_steamIDLobby;
   };
 
+  // Note that the game calls the methods of an interface by their slots,
+  // and x64 is built against a newer version of this one than x86. So we
+  // lay it out the way Steamworks SDK 1.20 does SteamFriends013, which is
+  // the earliest version whose slots match the ones that x64 calls. Why
+  // the earliest? The game gets its interfaces through steam_api's plain
+  // accessors (SteamFriends() and so on) and never names a version, so the
+  // slots it calls are all we have to go by. Any version that matches them
+  // would do, and the oldest one seems the least likely to add anything
+  // we don't need.
+  //
   class Friends
   {
   public:
     virtual const char* GetPersonaName();
-    virtual void SetPersonaName(const char *pchPersonaName);
+    virtual uint64_t SetPersonaName(const char *pchPersonaName);
     virtual int GetPersonaState();
-    virtual int GetFriendCount(int eFriendFlags);
+    virtual int GetFriendCount(int iFriendFlags);
     virtual SteamID* GetFriendByIndex(SteamID* result, int iFriend, int iFriendFlags);
     virtual int GetFriendRelationship(SteamID steamIDFriend);
     virtual int GetFriendPersonaState(SteamID steamIDFriend);
     virtual const char* GetFriendPersonaName(SteamID steamIDFriend);
-    virtual int GetFriendAvatar(SteamID steamIDFriend, int eAvatarSize);
     virtual bool GetFriendGamePlayed(SteamID steamIDFriend, FriendGameInfo *pFriendGameInfo);
     virtual const char* GetFriendPersonaNameHistory(SteamID steamIDFriend, int iPersonaName);
-    virtual bool HasFriend(SteamID steamIDFriend, int eFriendFlags);
+    virtual bool HasFriend(SteamID steamIDFriend, int iFriendFlags);
     virtual int GetClanCount();
     virtual SteamID* GetClanByIndex(SteamID* result, int iClan);
     virtual const char* GetClanName(SteamID steamIDClan);
+    virtual const char* GetClanTag(SteamID steamIDClan);
+    virtual bool GetClanActivityCounts(SteamID steamIDClan, int *pnOnline, int *pnInGame, int *pnChatting);
+    virtual uint64_t DownloadClanActivityCounts(SteamID *psteamIDClans, int cClansToRequest);
     virtual int GetFriendCountFromSource(SteamID steamIDSource);
     virtual SteamID* GetFriendFromSourceByIndex(SteamID* result, SteamID steamIDSource, int iFriend);
     virtual bool IsUserInSource(SteamID steamIDUser, SteamID steamIDSource);
@@ -42,8 +54,45 @@ namespace Steam
     virtual void ActivateGameOverlay(const char *pchDialog);
     virtual void ActivateGameOverlayToUser(const char *pchDialog, SteamID steamID);
     virtual void ActivateGameOverlayToWebPage(const char *pchURL);
-    virtual void ActivateGameOverlayToStore(unsigned int nAppID);
+    virtual void ActivateGameOverlayToStore(unsigned int nAppID, int eFlag);
     virtual void SetPlayedWith(SteamID steamIDUserPlayedWith);
+    virtual void ActivateGameOverlayInviteDialog(SteamID steamIDLobby);
+    virtual int GetSmallFriendAvatar(SteamID steamIDFriend);
+    virtual int GetMediumFriendAvatar(SteamID steamIDFriend);
+    virtual int GetLargeFriendAvatar(SteamID steamIDFriend);
+    virtual bool RequestUserInformation(SteamID steamIDUser, bool bRequireNameOnly);
+    virtual uint64_t RequestClanOfficerList(SteamID steamIDClan);
+    virtual SteamID* GetClanOwner(SteamID* result, SteamID steamIDClan);
+    virtual int GetClanOfficerCount(SteamID steamIDClan);
+    virtual SteamID* GetClanOfficerByIndex(SteamID* result, SteamID steamIDClan, int iOfficer);
+    virtual unsigned int GetUserRestrictions();
+    virtual bool SetRichPresence(const char *pchKey, const char *pchValue);
+    virtual void ClearRichPresence();
+    virtual const char* GetFriendRichPresence(SteamID steamIDFriend, const char *pchKey);
+    virtual int GetFriendRichPresenceKeyCount(SteamID steamIDFriend);
+    virtual const char* GetFriendRichPresenceKeyByIndex(SteamID steamIDFriend, int iKey);
+    virtual void RequestFriendRichPresence(SteamID steamIDFriend);
+    virtual bool InviteUserToGame(SteamID steamIDFriend, const char *pchConnectString);
+    virtual int GetCoplayFriendCount();
+    virtual SteamID* GetCoplayFriend(SteamID* result, int iCoplayFriend);
+    virtual int GetFriendCoplayTime(SteamID steamIDFriend);
+    virtual unsigned int GetFriendCoplayGame(SteamID steamIDFriend);
+    virtual uint64_t JoinClanChatRoom(SteamID steamIDClan);
+    virtual bool LeaveClanChatRoom(SteamID steamIDClan);
+    virtual int GetClanChatMemberCount(SteamID steamIDClan);
+    virtual SteamID* GetChatMemberByIndex(SteamID* result, SteamID steamIDClan, int iUser);
+    virtual bool SendClanChatMessage(SteamID steamIDClanChat, const char *pchText);
+    virtual int GetClanChatMessage(SteamID steamIDClanChat, int iMessage, void *prgchText, int cchTextMax, int *peChatEntryType, SteamID *pSteamIDChatter);
+    virtual bool IsClanChatAdmin(SteamID steamIDClanChat, SteamID steamIDUser);
+    virtual bool IsClanChatWindowOpenInSteam(SteamID steamIDClanChat);
+    virtual bool OpenClanChatWindowInSteam(SteamID steamIDClanChat);
+    virtual bool CloseClanChatWindowInSteam(SteamID steamIDClanChat);
+    virtual bool SetListenForFriendsMessages(bool bInterceptEnabled);
+    virtual bool ReplyToFriendMessage(SteamID steamIDFriend, const char *pchMsgToSend);
+    virtual int GetFriendMessage(SteamID steamIDFriend, int iMessageID, void *pvData, int cubData, int *peChatEntryType);
+    virtual uint64_t GetFollowerCount(SteamID steamID);
+    virtual uint64_t IsFollowing(SteamID steamID);
+    virtual uint64_t EnumerateFollowingList(unsigned int unStartIndex);
   };
 
   class Friends15

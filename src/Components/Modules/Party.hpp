@@ -1,7 +1,5 @@
 #pragma once
 
-extern "C" void Party_PartyMigrate_HandlePacket();
-
 namespace Components
 {
   class Party : public Component
@@ -37,6 +35,7 @@ namespace Components
 
     static SteamID GenerateLobbyId();
 
-    static DWORD UIDvarIntStub(char* dvar);
+    static const Game::dvar_t* UIDvarIntStub(const char* dvar);
+    static int PartyMigrate_HandlePacket();
   };
 }

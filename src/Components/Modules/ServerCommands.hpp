@@ -1,12 +1,5 @@
 #pragma once
 
-extern "C"
-{
-  void ServerCommands_CG_DeployServerCommand_Stub();
-
-  bool ServerCommands_OnServerCommand();
-}
-
 namespace Components
 {
   class ServerCommands : public Component
@@ -18,10 +11,13 @@ namespace Components
     static void OnCommand(std::int32_t cmd, const serverCommandHandler& callback);
 
   private:
-    friend bool (::ServerCommands_OnServerCommand)();
-
     static std::unordered_map<std::int32_t, serverCommandHandler> Commands;
 
     static bool OnServerCommand();
+
+    static bool CG_IsGameServerCommand(char id);
+
+    static void CG_DeployServerCommand_Hk(int localClientNum);
+    static void (*CG_DeployServerCommand_Original)(int localClientNum);
   };
 }

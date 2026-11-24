@@ -120,7 +120,7 @@ namespace Components::GSC
     // Allow printing to the console even when developer is 0
     Script::AddFunction("PrintConsole", [] // gsc: PrintConsole(<string>)
     {
-      for (std::size_t i = 0; i < Game::Scr_GetNumParam(); ++i)
+      for (unsigned int i = 0; i < Game::Scr_GetNumParam(); ++i)
       {
         const auto* str = Game::Scr_GetString(i);
         if (!str)
@@ -138,8 +138,11 @@ namespace Components::GSC
   {
     AddFunctions();
 
-    Utils::Hook(0x61E92E, ScriptExtension_VMExecuteInternalStub, HOOK_JUMP).install()->quick();
-    Utils::Hook::Nop(0x61E933, 1);
+    // Note that on x64 the code position is in rcx at this point, and we
+    // replace the fetch of the opcode and of the next position, which the
+    // stub then redoes.
+    //
+    Utils::Hook(0x140229FAB, ScriptExtension_VMExecuteInternalStub, HOOK_JUMP).install()->quick();
 
     Events::OnVMShutdown([]
     {

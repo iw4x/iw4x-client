@@ -1,4 +1,5 @@
 #include "StringTable.hpp"
+#include "AssetHandler.hpp"
 #include "Events.hpp"
 #include "FastFiles.hpp"
 

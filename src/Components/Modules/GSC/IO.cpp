@@ -246,11 +246,15 @@ namespace Components::GSC
 
     AddScriptFunctions();
 
-    Utils::Hook::Set<Game::BuiltinFunction>(0x79A858, GScr_OpenFile);
-    Utils::Hook::Set<int>(0x79A85C, 0);
+    // Note that on x64 the entries of the builtin function table are 24
+    // bytes: the name and the function, both 8-byte pointers, and then the
+    // type, which is why the addresses step by 0x18.
+    //
+    Utils::Hook::Set<Game::BuiltinFunction>(0x140421280, GScr_OpenFile);
+    Utils::Hook::Set<int>(0x140421288, 0);
 
-    Utils::Hook::Set<Game::BuiltinFunction>(0x79A864, GScr_CloseFile);
-    Utils::Hook::Set<int>(0x79A868, 0);
+    Utils::Hook::Set<Game::BuiltinFunction>(0x140421298, GScr_CloseFile);
+    Utils::Hook::Set<int>(0x1404212A0, 0);
 
     Events::OnVMShutdown([]
     {

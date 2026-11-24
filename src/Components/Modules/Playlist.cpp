@@ -41,6 +41,18 @@ namespace Components
     }
   }
 
+  // On x86 we jump to LoadPlaylist() at the end of Live_Init(). There x64
+  // sets a flag after its playlist download instead, so we load ours in
+  // place of the check whether the playlist fastfile exists. And we say that
+  // it does, so that the game doesn't go and try to download it. A bit of a
+  // white lie, but a harmless one since we disable the download anyway.
+  //
+  bool Playlist::LoadPlaylist_Hk()
+  {
+    LoadPlaylist();
+    return true;
+  }
+
   char* Playlist::Com_ParseOnLine_Hk(const char** data_p)
   {
     MapRelocation.clear();
@@ -142,7 +154,7 @@ namespace Components
 
   void Playlist::MapNameCopy(char* dest, const char* src, int destsize)
   {
-    Utils::Hook::Call<void(char*, const char*, int)>(0x4D6F80)(dest, src, destsize);
+    Game::I_strncpyz(dest, src, destsize);
     MapRelocation[dest] = src;
   }
 
@@ -171,40 +183,44 @@ namespace Components
   Playlist::Playlist()
   {
     // Default playlists
-    Utils::Hook::Set<const char*>(0x60B06E, "playlists_default.info");
+    //
+    // Note that x64 defaults to "playlists.patch2", which it loads through a
+    // RIP-relative operand, so we place our string where that can reach.
+    //
+    Utils::Hook::PlaceString(0x1401F4D31, 7, 0x14038B958, "playlists_default.info");
 
     // Disable playlist download function
-    Utils::Hook::Set<BYTE>(0x4D4790, 0xC3);
+    Utils::Hook::Set<BYTE>(0x1402A7140, 0xC3);
 
-    // Load playlist, but don't delete it
-    Utils::Hook::Nop(0x4D6EBB, 5);
-    Utils::Hook::Nop(0x4D6E67, 5);
-    Utils::Hook::Nop(0x4D6E71, 2);
+    // Note that on x86 we also keep Win_LoadPlaylistFastfile() from deleting
+    // the playlist, which is moot since we disable that function below
+    // anyway.
+    //
 
     // Disable Playlist_ValidatePlaylistNum
-    Utils::Hook::Set<BYTE>(0x4B1170, 0xC3);
+    Utils::Hook::Set<BYTE>(0x14025A5D0, 0xC3);
 
     // Disable playlist checking
-    Utils::Hook::Set<BYTE>(0x5B69E9, 0xEB); // Too new
-    Utils::Hook::Set<BYTE>(0x5B696E, 0xEB); // Too old
+    Utils::Hook::Set<BYTE>(0x14010CF8E, 0xEB); // Too new
+    Utils::Hook::Set<BYTE>(0x14010CF73, 0xEB); // Too old
 
     // Got playlists is true
-    //Utils::Hook::Set<bool>(0x1AD3680, true);
+    //Utils::Hook::Set<bool>(0x141BDDCE4, true);
 
-    Utils::Hook(0x497DB5, GetMapIndex, HOOK_CALL).install()->quick();
-    Utils::Hook(0x42A19D, MapNameCopy, HOOK_CALL).install()->quick();
-    Utils::Hook(0x4A6FEE, SetMapName, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140110AFC, GetMapIndex, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14025A0C1, MapNameCopy, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14025A4DC, SetMapName, HOOK_CALL).install()->quick();
 
     // Store playlist buffer on load
-    Utils::Hook(0x42961C, Com_ParseOnLine_Hk, HOOK_CALL).install()->quick(); // Playlist_ParsePlaylists
+    Utils::Hook(0x140259883, Com_ParseOnLine_Hk, HOOK_CALL).install()->quick(); // Playlist_ParsePlaylists
 
     //if (Dedicated::IsDedicated())
     {
       // Custom playlist loading
-      Utils::Hook(0x420B5A, LoadPlaylist, HOOK_JUMP).install()->quick();
+      Utils::Hook(0x1402A23E2, LoadPlaylist_Hk, HOOK_CALL).install()->quick(); // Live_Init
 
       // disable playlist.ff loading function (Win_LoadPlaylistFastfile)
-      Utils::Hook::Set<std::uint8_t>(0x4D6E60, 0xC3);
+      Utils::Hook::Set<std::uint8_t>(0x1402A74F0, 0xC3);
     }
 
     Network::OnClientPacket("getPlaylist", PlaylistRequest);

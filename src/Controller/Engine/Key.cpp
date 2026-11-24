@@ -160,7 +160,7 @@ namespace Controller
       const char*
       command_for (engine_key k) noexcept
       {
-        return playerKeys[local_client].keys[static_cast<int> (k)].binding;
+        return key_binding (playerKeys[local_client], static_cast<int> (k));
       }
 
       bool
@@ -566,7 +566,7 @@ namespace Controller
 
       ks.locSelInputState = LOC_SEL_INPUT_NONE;
 
-      const char* binding (ks.keys[key].binding);
+      const char* binding (key_binding (ks, key));
 
       char cmd[1024];
 
@@ -710,13 +710,13 @@ namespace Controller
     {
       if (k == engine_key::dpad_up)
       {
-        CG_ScrollScoreboardUp (Game::cgArray);
+        CG_ScrollScoreboardUp (local_client);
         return true;
       }
 
       if (k == engine_key::dpad_down)
       {
-        CG_ScrollScoreboardDown (Game::cgArray);
+        CG_ScrollScoreboardDown (local_client);
         return true;
       }
 

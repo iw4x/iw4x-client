@@ -26,6 +26,10 @@ namespace Game
 
   typedef unsigned __int16 scr_string_t;
 
+  // The file system handle, which is 64-bit on x64.
+  //
+  typedef int64_t fileHandle_t;
+
   struct scr_entref_t
   {
     unsigned __int16 entnum;
@@ -546,7 +550,9 @@ namespace Game
     CS_ITEMS = 4138, // Correct! CS_ITEMS is actually an item **COUNT**
 
     CS_LAST = CS_ITEMS,
-    MAX_CONFIGSTRINGS = 4139
+    CS_WEAPONFILES_EXTRA = 0x102B, // Weapons 1200 to 1399.
+    CS_WEAPONFILES_EXTRA_LAST = 0x10F2,
+    MAX_CONFIGSTRINGS = 0x10F3
   }; // Incomplete
 
   enum conChannel_t
@@ -681,12 +687,17 @@ namespace Game
   struct MenuEventHandlerSet;
   struct menuDef_t;
 
+  // Note that on x64 ParseConfigStringToStruct() reads the offset as a
+  // pointer-sized value, so a field is 0x18 bytes.
+  //
   struct cspField_t
   {
     const char* szName;
-    int iOffset;
+    std::intptr_t iOffset;
     int iFieldType;
   };
+
+  static_assert(sizeof(cspField_t) == 0x18);
 
   struct CmdArgs
   {
@@ -697,16 +708,13 @@ namespace Game
     const char** argv[8];
   };
 
-  static_assert(sizeof(CmdArgs) == 0x84);
+  static_assert(sizeof(CmdArgs) == 0xA8);
 
   struct cmd_function_s
   {
     cmd_function_s* next;
     const char* name;
-    const char* autoCompleteDir;
-    const char* autoCompleteExt;
     void(__cdecl* function)();
-    int flags;
   };
 
 #pragma pack(push, 4)
@@ -896,7 +904,7 @@ namespace Game
     UIMENU_MIGRATION = 0xB,
   };
 
-  struct alignas(4) PhysPreset
+  struct PhysPreset
   {
     const char* name;
     int type;
@@ -1002,7 +1010,7 @@ namespace Game
     unsigned __int16 _2[1];
   };
 
-  struct alignas(4) XAnimPartTransFrames
+  struct XAnimPartTransFrames
   {
     float mins[3];
     float size[3];
@@ -1023,7 +1031,7 @@ namespace Game
     XAnimPartTransData u;
   };
 
-  struct alignas(4) XAnimDeltaPartQuatDataFrames2
+  struct XAnimDeltaPartQuatDataFrames2
   {
     __int16(*frames)[2];
     XAnimDynamicIndices indices;
@@ -1041,7 +1049,7 @@ namespace Game
     XAnimDeltaPartQuatData2 u;
   };
 
-  struct alignas(4) XAnimDeltaPartQuatDataFrames
+  struct XAnimDeltaPartQuatDataFrames
   {
     __int16(*frames)[4];
     XAnimDynamicIndices indices;
@@ -1904,12 +1912,17 @@ namespace Game
     char buffer[256];
   };
 
+  // Note that x64 binds keys to command indices rather than strings (see
+  // Components::Bindings).
+  //
   struct KeyState
   {
     int down;
     int repeats;
-    const char* binding;
+    int binding;
   };
+
+  static_assert(sizeof(KeyState) == 0xC);
 
   struct PlayerKeyState
   {
@@ -1920,6 +1933,11 @@ namespace Game
     KeyState keys[256];
     LocSelInputState locSelInputState;
   };
+
+  static_assert(offsetof(PlayerKeyState, anyKeyDown) == 0x120);
+  static_assert(offsetof(PlayerKeyState, keys) == 0x124);
+  static_assert(offsetof(PlayerKeyState, locSelInputState) == 0xD24);
+  static_assert(sizeof(PlayerKeyState) == 0xD28);
 
   struct keyname_t
   {
@@ -2244,6 +2262,9 @@ namespace Game
     int corruptedTranslationFile;
     char translationVersion[256];
   };
+
+  static_assert(offsetof(clientActive_t, cmds) == 0x3244);
+  static_assert(offsetof(clientActive_t, cmdNumber) == 0x4644);
 
   struct MaterialTechnique
   {
@@ -2876,6 +2897,39 @@ namespace Game
     int max_stream_channels;
   };
 
+  // The header that SND_ParseStreamHeader() fills in for the stream thread.
+  //
+  struct StreamHeader
+  {
+    std::uint32_t dataOffset;
+    std::uint8_t pad04[12];
+    const std::uint8_t* data;
+    std::uint64_t size;
+    std::uint64_t readPosition;
+    std::int32_t rate;
+    std::int32_t dataSize;
+    std::int32_t samples;
+    std::int32_t averageBytes;
+    std::uint16_t channels;
+    std::uint16_t bits;
+    std::uint16_t blockAlign;
+    std::int8_t format;
+    std::uint8_t pad3F[41];
+    std::uint32_t seekCount;
+    std::uint8_t pad6C[4];
+    const std::uint8_t* seekTable;
+  };
+
+  static_assert(sizeof(StreamHeader) == 0x78);
+  static_assert(offsetof(StreamHeader, data) == 0x10);
+  static_assert(offsetof(StreamHeader, readPosition) == 0x20);
+  static_assert(offsetof(StreamHeader, rate) == 0x28);
+  static_assert(offsetof(StreamHeader, averageBytes) == 0x34);
+  static_assert(offsetof(StreamHeader, channels) == 0x38);
+  static_assert(offsetof(StreamHeader, format) == 0x3E);
+  static_assert(offsetof(StreamHeader, seekCount) == 0x68);
+  static_assert(offsetof(StreamHeader, seekTable) == 0x70);
+
   struct Poly
   {
     float(*pts)[3];
@@ -3035,7 +3089,7 @@ namespace Game
     char sunPrimaryLightIndex;
   };
 
-  struct alignas(4) MapEnts
+  struct MapEnts
   {
     const char* name;
     const char* entityString;
@@ -3058,6 +3112,13 @@ namespace Game
     DYNENT_TYPE_CLUTTER = 0x1,
     DYNENT_TYPE_DESTRUCT = 0x2,
     DYNENT_TYPE_COUNT = 0x3,
+  };
+
+  enum DynEntityDrawType
+  {
+    DYNENT_DRAW_MODEL = 0x0,
+    DYNENT_DRAW_BRUSH = 0x1,
+    DYNENT_DRAW_COUNT = 0x2,
   };
 
   struct GfxPlacement
@@ -3275,6 +3336,9 @@ namespace Game
     int contents;
   };
 
+  static_assert(sizeof(DynEntityDef) == 0x70);
+  static_assert(offsetof(DynEntityDef, destroyFx) == 0x30);
+
   struct DynEntityPose
   {
     GfxPlacement pose;
@@ -3283,11 +3347,18 @@ namespace Game
 
   struct DynEntityClient
   {
-    int physObjId;
+    intptr_t physObjId;
     unsigned __int16 flags;
     unsigned __int16 lightingHandle;
     int health;
   };
+
+  // Note that x64 keeps a pointer to the physics object where x86 keeps its
+  // handle.
+  //
+  static_assert(sizeof(DynEntityClient) == 0x10);
+  static_assert(offsetof(DynEntityClient, flags) == 0x8);
+  static_assert(offsetof(DynEntityClient, health) == 0xC);
 
   struct DynEntityColl
   {
@@ -3355,6 +3426,10 @@ namespace Game
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+  static_assert(offsetof(clipMap_t, dynEntDefList) == 0x150);
+  static_assert(offsetof(clipMap_t, dynEntPoseList) == 0x160);
+  static_assert(offsetof(clipMap_t, dynEntClientList) == 0x170);
 
   struct ComPrimaryLight
   {
@@ -3753,7 +3828,7 @@ namespace Game
     FxGlassSystem glassSys;
   };
 
-  struct alignas(4) GfxSky
+  struct GfxSky
   {
     int skySurfCount;
     int* skyStartSurfs;
@@ -4216,7 +4291,7 @@ namespace Game
     int exponent;
   };
 
-  struct alignas(4) GfxWorld
+  struct GfxWorld
   {
     const char* name;
     const char* baseName;
@@ -4263,7 +4338,7 @@ namespace Game
     char fogTypesAllowed;
   };
 
-  struct alignas(4) GfxLightImage
+  struct GfxLightImage
   {
     GfxImage* image;
     char samplerState;
@@ -4334,7 +4409,12 @@ namespace Game
     Material* background;
   };
 
-  static_assert(sizeof(windowDef_t) == 0xA4);
+  // Note that on x64 windowDef_t is 0xB0 bytes (0xA4 on x86). Menus checks
+  // it against OpenAssetTools' layout (see OAT/Shim.hpp), and the game's
+  // zone loader streams the menus and items that start with it as 0x1E8
+  // bytes, the same as OAT.
+  //
+  static_assert(sizeof(windowDef_t) == 0xB0);
 
   enum expDataType
   {
@@ -4606,12 +4686,11 @@ namespace Game
     float_limit vector;
   };
 
-  static_assert(sizeof(DvarLimits) == 0x8);
+  static_assert(sizeof(DvarLimits) == 0x10);
 
   struct dvar_t
   {
     const char* name;
-    const char* description;
     unsigned int flags;
     dvar_type type;
     bool modified;
@@ -4623,7 +4702,7 @@ namespace Game
     dvar_t* hashNext;
   };
 
-  static_assert(sizeof(dvar_t) == 0x50);
+  static_assert(sizeof(dvar_t) == 0x60);
 
   struct StaticDvar
   {
@@ -4691,7 +4770,7 @@ namespace Game
     SetLocalVarData* setLocalVarData;
   };
 
-  struct alignas(4) MenuEventHandler
+  struct MenuEventHandler
   {
     EventData eventData;
     char eventType;
@@ -5086,15 +5165,21 @@ namespace Game
     float colors[5][4];
   };
 
+  // Note that on x64 the offset is pointer-sized, and the game adds it to
+  // the address of the state that the field is part of.
+  //
   struct NetField
   {
     char* name;
-    int offset;
+    std::intptr_t offset;
     int bits;
     char changeHints;
   };
 
-  struct alignas(4) WeaponDef
+  static_assert(offsetof(NetField, bits) == 0x10);
+  static_assert(sizeof(NetField) == 0x18);
+
+  struct WeaponDef
   {
     const char* szOverlayName;
     XModel** gunXModel;
@@ -5647,7 +5732,7 @@ namespace Game
     LbColumnDef* columns;
   };
 
-  struct alignas(4) StructuredDataEnumEntry
+  struct StructuredDataEnumEntry
   {
     const char* string;
     unsigned __int16 index;
@@ -6038,7 +6123,6 @@ namespace Game
     XAsset asset;
     char zoneIndex;
     volatile char inuseMask;
-    bool printedMissingAsset;
     unsigned __int16 nextHash;
     unsigned __int16 nextOverride;
   };
@@ -6147,9 +6231,17 @@ namespace Game
     void* indexBuffer;
   };
 
+  struct DBFile
+  {
+    HANDLE handle;
+    char name[64];
+  };
+
+  static_assert(sizeof(DBFile) == 0x48);
+
   struct XZone
   {
-    int unk;
+    void* unk;
     char name[64];
     int flags;
     int allocType;
@@ -6157,6 +6249,11 @@ namespace Game
     int fileSize;
     char modZone;
   };
+
+  static_assert(offsetof(XZone, name) == 0x8);
+  static_assert(offsetof(XZone, allocType) == 0x4C);
+  static_assert(offsetof(XZone, mem.indexBuffer) == 0xE8);
+  static_assert(sizeof(XZone) == 0xF8);
 
   struct XNKID
   {
@@ -6234,6 +6331,18 @@ namespace Game
     char uiName[32];
   };
 
+  // An entry of the game type list that the server parses from
+  // maps/mp/gametypes.
+  //
+  struct scr_gameTypeInfo_t
+  {
+    char gameType[64];
+    char uiName[64];
+    int teamBased;
+  };
+
+  static_assert(sizeof(scr_gameTypeInfo_t) == 0x84);
+
   enum fsMode_t
   {
     FS_READ = 0x0,
@@ -6291,6 +6400,8 @@ namespace Game
     int streamed;
     char name[256];
   };
+
+  static_assert(sizeof(fileHandleData_t) == 0x130);
 
   struct directory_t
   {
@@ -6382,7 +6493,7 @@ namespace Game
 
   struct gameState_t
   {
-    int stringOffsets[4139];
+    int stringOffsets[MAX_CONFIGSTRINGS];
     char stringData[131072];
     int dataCount;
   };
@@ -6424,15 +6535,21 @@ namespace Game
     HunkUser* current;
     HunkUser* next;
     int maxSize;
-    int end;
-    int pos;
+    intptr_t end;
+    intptr_t pos;
     const char* name;
     bool fixed;
     int type;
-    char buf[1];
   };
 
-  static_assert(sizeof(HunkUser) == 36);
+  static_assert(sizeof(HunkUser) == 0x38);
+
+  // The offset of the first allocation in a hunk user.
+  //
+  // Note that x64 doesn't place it right after the last field, for reasons
+  // unknown.
+  //
+  constexpr int HUNK_USER_HEADER_SIZE = 0x40;
 
   struct VariableStackBuffer
   {
@@ -6538,14 +6655,27 @@ namespace Game
     VariableValue stack[2048];
   };
 
+  // Note that this is the x64 layout, which differs from x86's in more than
+  // the pointer sizes. There is no error_message and error_index, checksum
+  // comes after entId and entFieldName, and endScriptBuffer comes before
+  // programBuffer.
+  //
+  // We place the last two by what the game does with them: it sets the
+  // one at 0x60 to TempMalloc(0) when it starts loading the scripts and
+  // measures the program from there, and only later sets the one at 0x58.
+  // As for checksum, it's the field the game uses most there (157 times on
+  // x86, 166 on x64), and x64 multiplies it by 31, which looks like a hash.
+  // The other two we tell apart the same way in both: the game indexes the
+  // script variables with entId, and multiplies entFieldName by 101 for
+  // the hash that finds the field of that object, the way FindVariable()
+  // hashes a name and its parent.
+  //
   struct scrVarPub_t
   {
     const char* fieldBuffer;
     unsigned __int16 canonicalStrCount;
     bool developer_script;
     bool evaluate;
-    const char* error_message;
-    int error_index;
     int time;
     int timeArrayId;
     int pauseArrayId;
@@ -6560,17 +6690,25 @@ namespace Game
     bool bInited;
     unsigned __int16 savecount;
     unsigned __int16 savecountMark;
-    int checksum;
     int entId;
     int entFieldName;
+    int checksum;
     HunkUser* programHunkUser;
-    const char* programBuffer;
     const char* endScriptBuffer;
+    const char* programBuffer;
     unsigned __int16 saveIdMap[36864];
     unsigned __int16 saveIdMapRev[36864];
   };
 
-  static_assert(sizeof(scrVarPub_t) == 0x24060);
+  static_assert(offsetof(scrVarPub_t, developer_script) == 0xA);
+  static_assert(offsetof(scrVarPub_t, evaluate) == 0xB);
+  static_assert(offsetof(scrVarPub_t, bInited) == 0x3C);
+  static_assert(offsetof(scrVarPub_t, entId) == 0x44);
+  static_assert(offsetof(scrVarPub_t, entFieldName) == 0x48);
+  static_assert(offsetof(scrVarPub_t, checksum) == 0x4C);
+  static_assert(offsetof(scrVarPub_t, programHunkUser) == 0x50);
+  static_assert(offsetof(scrVarPub_t, programBuffer) == 0x60);
+  static_assert(sizeof(scrVarPub_t) == 0x24068);
 
   struct scrCompilePub_t
   {
@@ -6617,7 +6755,10 @@ namespace Game
     int profileUsage;
   };
 
-  static_assert(sizeof(OpcodeLookup) == 24);
+  // Note that the game never sees OpcodeLookup: ScriptError keeps the
+  // lookup in its own memory. So the size (24 on x86) doesn't have to
+  // match anything.
+  //
 
   struct SourceLookup
   {
@@ -6723,7 +6864,12 @@ namespace Game
     scr_block_t* block;
   };
 
-  static_assert(sizeof(sval_u) == 0x4);
+  // Note that on x64 sval_u is 8 bytes (4 on x86), since it can hold a
+  // pointer. EmitThreadInternal() reads the thread name at node + 8 and
+  // the next node at node + 0x10, so node[1] and node[2] are what they are
+  // on x86.
+  //
+  static_assert(sizeof(sval_u) == 8);
 
   struct stype_t
   {
@@ -6731,7 +6877,10 @@ namespace Game
     unsigned int pos;
   };
 
-  static_assert(sizeof(stype_t) == 0x8);
+  // Note that stype_t is 0x10 bytes on x64 (8 on x86) because sval_u is.
+  // Nothing of ours uses it, so we haven't checked it any further.
+  //
+  static_assert(sizeof(stype_t) == 0x10);
 
   struct scr_const_t
   {
@@ -7071,15 +7220,17 @@ namespace Game
     FS_LIST_ALL = 0x1,
   };
 
+  // Note that x64 numbers the server message ops the way the Steam game
+  // does, without svc_nop, while x86 numbers them from svc_nop.
+  //
   enum svc_ops_e
   {
-    svc_nop = 0x0,
-    svc_gamestate = 0x1,
-    svc_configstring = 0x2,
-    svc_serverCommand = 0x3,
+    svc_snapshot = 0x0,
+    svc_serverCommand = 0x1,
+    svc_gamestate = 0x2,
+    svc_configstring = 0x3,
     svc_matchdata = 0x4,
-    svc_snapshot = 0x5,
-    svc_EOF = 0x6,
+    svc_EOF = 0x5,
   };
 
   enum netsrc_t
@@ -7144,7 +7295,11 @@ namespace Game
     netProfileInfo_t prof;
   };
 
-  static_assert(sizeof(netchan_t) == 0x62C);
+  // Note that on x64 netchan_t is 0x638 bytes (0x62C on x86). We go by the
+  // client's connection, whose netchan the outgoing buffer follows that far
+  // in.
+  //
+  static_assert(sizeof(netchan_t) == 0x638);
 
   struct FxEditorElemAtlas
   {
@@ -7284,6 +7439,8 @@ namespace Game
     int toolFlags;
   };
 
+  static_assert(sizeof(infoParm_t) == 0x18);
+
   struct GfxImageFileHeader
   {
     char tag[3];
@@ -7306,12 +7463,15 @@ namespace Game
     int critSectCount;
     int value40;
     const char *zoneFiles[7];
-    bool defaultFullscreen;
-    unsigned __int16 defaultFullscreenFlags;
+    int defaultDisplayMode;
+    unsigned __int16 defaultDisplayModeFlags;
     int defaultMode;
     int value900;
     int value450;
   };
+
+  static_assert(offsetof(GfxConfiguration, defaultDisplayMode) == 0x58);
+  static_assert(sizeof(GfxConfiguration) == 0x70);
 
   struct GfxWindowParms
   {
@@ -7503,6 +7663,9 @@ namespace Game
     float spectateDefaultAngles[3];
   };
 
+  // Note that on x64 the fields we skip with __pad3 hold pointers, which
+  // makes it 8 bytes longer and pads the struct to 8-byte alignment.
+  //
   struct gclient_s
   {
     playerState_s ps;
@@ -7514,7 +7677,7 @@ namespace Game
     int oldbuttons; // 13220
     int latched_buttons; // 13224
     int buttonsSinceLastFrame; // 13228
-    unsigned char __pad3[324]; // 13232
+    unsigned char __pad3[332]; // 13232
     int visionDuration[5];
     char visionName[5][64];
     int lastStand;
@@ -7524,9 +7687,14 @@ namespace Game
     unsigned __int16 attachShieldTagName;
     hintType_t hintForcedType;
     int hintForcedString;
+    int __pad4;
   };
 
-  static_assert(sizeof(gclient_s) == 0x366C);
+  static_assert(offsetof(gclient_s, sess.score) == 0x3134);
+  static_assert(offsetof(gclient_s, flags) == 0x3394);
+  static_assert(offsetof(gclient_s, visionDuration) == 0x34FC);
+  static_assert(offsetof(gclient_s, visionName) == 0x3510);
+  static_assert(sizeof(gclient_s) == 0x3678);
 
   struct EntHandle
   {
@@ -7716,7 +7884,7 @@ namespace Game
     gclient_s* client; // 344
     void /*Turret*/* turret;
     void /*Vehicle*/* vehicle;
-    int physObjId;
+    intptr_t physObjId;
     unsigned __int16 model;
     unsigned char physicsObject;
     unsigned char takedamage;
@@ -7745,7 +7913,7 @@ namespace Game
     entity_data_t entData;
     EntHandle missileTargetEnt;
     EntHandle remoteControlledOwner;
-    int tagInfo;
+    void /*tagInfo_s*/* tagInfo;
     gentity_s* tagChildren;
     unsigned __int16 attachModelNames[19];
     unsigned __int16 attachTagNames[19];
@@ -7754,7 +7922,15 @@ namespace Game
     int birthTime;
   };
 
-  static_assert(sizeof(gentity_s) == 0x274);
+  static_assert(offsetof(gentity_s, client) == 0x158);
+  static_assert(offsetof(gentity_s, physObjId) == 0x170);
+  static_assert(offsetof(gentity_s, freeAfterEvent) == 0x17F);
+  static_assert(offsetof(gentity_s, classname) == 0x182);
+  static_assert(offsetof(gentity_s, eventTime) == 0x198);
+  static_assert(offsetof(gentity_s, tagInfo) == 0x228);
+  static_assert(offsetof(gentity_s, useCount) == 0x284);
+  static_assert(offsetof(gentity_s, nextFree) == 0x288);
+  static_assert(sizeof(gentity_s) == 0x298);
 
   enum
   {
@@ -7825,7 +8001,11 @@ namespace Game
     int migrationState;
   };
 
-  static_assert(sizeof(clientHeader_t) == 1624);
+  // Note that on x64 clientHeader_t is 0x668 bytes (1624 on x86), which is
+  // where the server keeps the client's drop reason, followed by its
+  // userinfo.
+  //
+  static_assert(sizeof(clientHeader_t) == 0x668);
 
   struct svscmd_info_t
   {
@@ -7903,7 +8083,9 @@ namespace Game
     clientSnapshot_t frames[32];
   };
 
-  static_assert(sizeof(client_s) == 0xA6790);
+  // Note that the server steps through its clients 0xA67B0 bytes at a time.
+  //
+  static_assert(sizeof(client_s) == 0xA67B0);
 
   enum CompassType
   {
@@ -7986,8 +8168,8 @@ namespace Game
     int isTimeDemo;
     int demowaiting;
     int(__cdecl* demoread)(void*, int, int);
-    int demofile;
-    int timeDemoLog;
+    fileHandle_t demofile;
+    fileHandle_t timeDemoLog;
     int timeDemoFrames;
     int timeDemoStart;
     int timeDemoPrev;
@@ -8000,7 +8182,14 @@ namespace Game
     int statPacketSendTime[7];
   };
 
-  static_assert(sizeof(clientConnection_t) == 0x615E8); // Size confirmed in CL_Migrate
+  static_assert(offsetof(clientConnection_t, isServerRestarting) == 0x40148);
+  static_assert(offsetof(clientConnection_t, demoplaying) == 0x40194);
+  static_assert(offsetof(clientConnection_t, netchan) == 0x401C8);
+
+  // Note that CL_Disconnect() clears the connection as 0x61600 bytes (0x615E8
+  // on x86).
+  //
+  static_assert(sizeof(clientConnection_t) == 0x61600);
 
   struct CModelAllocData
   {
@@ -8118,11 +8307,17 @@ namespace Game
     token_s token; //last read token
   };
 
-  AssertSize(token_s, 0x430);
-  AssertOffset(script_s, token, 0x78);
-  AssertOffset(script_s, next, 0x4A8);
-  AssertOffset(source_s, scriptstack, 0x84);
-  AssertOffset(source_s, token, 0xA0);
+  // Note that x64 compiles the precompiler out along with the menu parser,
+  // so there is nothing to check these structures against, and nothing in
+  // the x64 build uses them (see OAT/Shim.cpp for what takes its place). On
+  // x86 they are:
+  //
+  //    sizeof (token_s)                 == 0x430
+  //    offsetof (script_s, token)       == 0x78
+  //    offsetof (script_s, next)        == 0x4A8
+  //    offsetof (source_s, scriptstack) == 0x84
+  //    offsetof (source_s, token)       == 0xA0
+  //
 
   struct directive_s
   {
@@ -8402,7 +8597,7 @@ namespace Game
     unsigned __int16 argCount;
   };
 
-  struct alignas(4) GfxGlassSurf
+  struct GfxGlassSurf
   {
     GfxDrawGroupSetup drawGroup;
     char pad;
@@ -8762,9 +8957,13 @@ namespace Game
     GfxLightDef* def;
   };
 
+  // Note that on x64 GfxVisibleLight is 0x2008 bytes (0x2004 on x86): the
+  // game indexes the scene's visible lights by 0x2008 and reads an int at
+  // the start of each and the rest from 8 in.
+  //
   struct GfxVisibleLight
   {
-    char pad[0x2004];
+    char pad[0x2008];
   };
 
   struct GfxEntity
@@ -8894,7 +9093,7 @@ namespace Game
     char lod;
   };
 
-  struct alignas(4) GfxSceneBrush
+  struct GfxSceneBrush
   {
     BModelDrawInfo info;
     unsigned __int16 entnum;
@@ -8929,7 +9128,7 @@ namespace Game
     GfxEntCellRefInfo* entInfo[4];
   };
 
-  struct alignas(64) GfxScene
+  struct GfxScene
   {
     GfxCodeSurf codeEmissiveSurfs[2048];
     GfxCodeSurf codeTransSurfs[640];
@@ -8994,6 +9193,22 @@ namespace Game
     int updateSound;
     int allowAddDObj;
   };
+
+  // Note that we only reach GfxScene through the game's pointer, so the
+  // 64-byte alignment that the game gives it doesn't matter to us. We check
+  // the offsets of the fields that Renderer reads, along with the counts
+  // and the end, where the game's references fall.
+  //
+  static_assert(offsetof(GfxScene, addedLightCount) == 0x60D70);
+  static_assert(offsetof(GfxScene, visLight) == 0x616A0);
+  static_assert(offsetof(GfxScene, gfxEntCount) == 0x6B6D0);
+  static_assert(offsetof(GfxScene, sceneDObjCount) == 0x6BAD4);
+  static_assert(offsetof(GfxScene, sceneDObj) == 0x6BAE0);
+  static_assert(offsetof(GfxScene, sceneModelCount) == 0x7ED6C);
+  static_assert(offsetof(GfxScene, sceneModel) == 0x7ED78);
+  static_assert(offsetof(GfxScene, sceneBrushCount) == 0x96978);
+  static_assert(offsetof(GfxScene, dpvs) == 0x9DF90);
+  static_assert(offsetof(GfxScene, updateSound) == 0x9E000);
 
   enum TextRenderFlags
   {
@@ -9143,6 +9358,7 @@ namespace Game
     vidConfig_t vidConfig;
     clientDebug_t debug;
     int doVidRestart;
+    char downloadList[1024];
     ClientMatchData matchData;
     XNADDR xnaddrs[18];
     float debugRenderPos[3];
@@ -9159,7 +9375,17 @@ namespace Game
     entityState_s noDeltaEntities[1024];
   };
 
-  static_assert(sizeof(clientStatic_t) == 0xA7AEC);
+  // Note that x64 keeps a 1024-byte buffer before the match data that x86
+  // doesn't have. CL_ParseGamestate() fills it with the iwds that we lack
+  // and puts it in its error, so presumably it's Quake 3's download list.
+  // The game state also has room for x64's 4339 configstrings rather than
+  // x86's 4139.
+  //
+  static_assert(sizeof(clientStatic_t) == 0xA8260);
+  static_assert(offsetof(clientStatic_t, consoleFont) == 0x178);
+  static_assert(offsetof(clientStatic_t, matchData) == 0x64C);
+  static_assert(offsetof(clientStatic_t, cl_gameState) == 0x40D40);
+  static_assert(offsetof(clientStatic_t, noDeltaEntities) == 0x68260);
 
   struct ConDrawInputGlob
   {
@@ -9375,7 +9601,10 @@ namespace Game
     char pad2[4];
   };
 
-  static_assert(sizeof(FxEffect) == 0x90);
+  // Note that we only ever reach FxEffect through pointers the game gives
+  // us and never index an array of them, so its size (0x90 on x86, 0x98
+  // here) doesn't matter to us. We haven't checked it.
+  //
 
   struct CEntVehicleInfo
   {
@@ -9432,7 +9661,12 @@ namespace Game
     bool wasOverheat;
   };
 
-  static_assert(sizeof(CEntTurretInfo) == 0x24);
+  // Note that CEntTurretInfo and CEntPlayerInfo below only matter to us
+  // through the union in cpose_t, which CEntVehicleInfo (0x30) sizes on
+  // x64. The game steps through its client entities 0x220 bytes at a time,
+  // which is what we get (see cgEntity_s). Nothing of ours reads either of
+  // them, so we haven't checked their fields.
+  //
 
   struct clientControllers_t
   {
@@ -9447,7 +9681,6 @@ namespace Game
     unsigned __int8 tag[4];
   };
 
-  static_assert(sizeof(CEntPlayerInfo) == 0x8);
 
   union $79C409BC84BCEABA56F6D25E37F2711D
   {
@@ -9474,14 +9707,15 @@ namespace Game
     unsigned __int8 isRagdoll;
     int ragdollHandle;
     int killcamRagdollHandle;
-    int physObjId;
+    intptr_t physObjId;
     float origin[3];
     float angles[3];
     Game::GfxSkinCacheEntry skinCacheEntry;
     $79C409BC84BCEABA56F6D25E37F2711D ___u10;
   };
 
-  static_assert(sizeof(cpose_t) == 0x6C); // Why was this 0x60? This is not Xbox! On computer, we have a model cache, so this is 6C
+  static_assert(offsetof(cpose_t, origin) == 0x20);
+  static_assert(sizeof(cpose_t) == 0x78);
 
   struct centity_s
   {
@@ -9509,8 +9743,8 @@ namespace Game
   };
 
   static_assert(sizeof(entityState_s) == 0x100);
-  static_assert(sizeof(centity_s) == 0x200);
-  static_assert(sizeof(cgEntity_s) == 0x204);
+  static_assert(offsetof(centity_s, nextState) == 0xE8);
+  static_assert(sizeof(cgEntity_s) == 0x220);
 
   struct playerEntity_t
   {
@@ -9554,6 +9788,8 @@ namespace Game
     int serverCommandSequence;
   };
 
+  static_assert(offsetof(snapshot_s, snapFlags) == 0x311C);
+  static_assert(offsetof(snapshot_s, ping) == 0x3120);
   static_assert(sizeof(snapshot_s) == 0x339EC);
 
   struct RefdefView
@@ -9594,6 +9830,7 @@ namespace Game
   {
     playerState_s predictedPlayerState;
     centity_s predictedPlayerEntity;
+    char pad0[8];
     playerEntity_t playerEntity;
     int predictedErrorTime;
     float predictedError[3];
@@ -9605,7 +9842,6 @@ namespace Game
     int renderScreen;
     int latestSnapshotNum;
     int latestSnapshotTime;
-    char pad0[4];
     snapshot_s* snap;
     snapshot_s* nextSnap;
     snapshot_s activeSnapshots[2];
@@ -9633,30 +9869,55 @@ namespace Game
     float swayOffset[3];
     float recoilAngles[3];
     float recoilSpeed[3];
-    char _pad2[18600];
+    char _pad2[27088];
     int weaponSelect;
     int weaponSelectTime;
-    char _pad3[3416];
-    float compassMapWorldSize[2]; // + 0x73D64
-    char _pad4[0x74]; // + 0x73D6C
-    float selectedLocation[2]; // + 0x73DE0
+    char _pad3[3820];
+    float compassMapWorldSize[2];
+    char _pad4[0x80];
+    float selectedLocation[2];
     float selectedLocationAngle;
     float selectedAngleLocation[2];
     float selectedLocationPrev[2];
     float selectedLocationAnglePrev;
-    char _pad5[0x89740];
+    char _pad5[0x9A2B0];
   };
 
-  static_assert(sizeof(cg_s) == 0xFD540);
-  static_assert(offsetof(cg_s, predictedPlayerEntity) == 0x311C);
-  static_assert(offsetof(cg_s, playerEntity) == 0x331C);
-  static_assert(offsetof(cg_s, cubemapShot) == 0x3358);
-  static_assert(offsetof(cg_s, nextSnap) == 0x3374); // CONFIRMED CORRECT
-  static_assert(offsetof(cg_s, frameInterpolation) == 0x6A750);
-  static_assert(offsetof(cg_s, refdef) == 0x6A778); // CONFIRMED CORRECT
-  static_assert(offsetof(cg_s, refdefViewAngles) == 0x6E6D8);
-  static_assert(offsetof(cg_s, compassMapWorldSize) == 0x73D64);
-  static_assert(offsetof(cg_s, selectedLocation) == 0x73DE0);
+  // Note that the game gives the predicted player entity 0x220 bytes, the
+  // same as each of its client entities (see cgEntity_s), so playerEntity
+  // starts at 0x3340 rather than right after the 0x218 of centity_s. The
+  // game tests bPositionToADS there, subtracts predictedErrorTime at 0x3360
+  // from the time, and reads clientNum at 0x3370 more than any other field
+  // around it.
+  //
+  static_assert(offsetof(cg_s, predictedPlayerEntity) == 0x3120);
+  static_assert(offsetof(cg_s, playerEntity) == 0x3340);
+  static_assert(offsetof(cg_s, predictedErrorTime) == 0x3360);
+  static_assert(offsetof(cg_s, clientNum) == 0x3370);
+  static_assert(offsetof(cg_s, localClientNum) == 0x3374);
+  static_assert(offsetof(cg_s, cubemapShot) == 0x337C);
+  static_assert(offsetof(cg_s, latestSnapshotNum) == 0x3388);
+  static_assert(offsetof(cg_s, snap) == 0x3390);
+  static_assert(offsetof(cg_s, nextSnap) == 0x3398);
+  static_assert(offsetof(cg_s, activeSnapshots) == 0x33A0);
+  static_assert(offsetof(cg_s, frameInterpolation) == 0x6A778);
+  static_assert(offsetof(cg_s, latestSnapshotTime) == 0x338C);
+  static_assert(offsetof(cg_s, time) == 0x6A780);
+  static_assert(offsetof(cg_s, refdef.view.org) == 0x6A7B8);
+  static_assert(offsetof(cg_s, refdefViewAngles) == 0x6EEC8);
+  static_assert(offsetof(cg_s, landTime) == 0x6A798);
+  static_assert(offsetof(cg_s, weaponSelect) == 0x7591C);
+  static_assert(offsetof(cg_s, weaponSelectTime) == 0x75920);
+  static_assert(offsetof(cg_s, compassMapWorldSize) == 0x76810);
+  static_assert(offsetof(cg_s, selectedLocation) == 0x76898);
+  static_assert(offsetof(cg_s, selectedLocationAngle) == 0x768A0);
+  static_assert(offsetof(cg_s, selectedLocationAnglePrev) == 0x768B4);
+
+  // Note that x64 clears cg_s as 0x110B68 bytes, 0x10B70 more than x86's
+  // 0xFD540. Where the difference is past the fields above we don't know,
+  // so for now it's all in the tail padding.
+  //
+  static_assert(sizeof(cg_s) == 0x110B68);
 
   static constexpr auto MAX_GPAD_COUNT = 1;
 
@@ -9828,8 +10089,6 @@ namespace Game
   {
     float slowdownRegionWidth;
     float slowdownRegionHeight;
-    float autoAimRegionWidth;
-    float autoAimRegionHeight;
     float autoMeleeRegionWidth;
     float autoMeleeRegionHeight;
     float lockOnRegionWidth;
@@ -9881,13 +10140,6 @@ namespace Game
     float screenHeight;
     AimScreenTarget screenTargets[64];
     int screenTargetCount;
-    int autoAimTargetEnt;
-    bool autoAimPressed;
-    bool autoAimActive;
-    float autoAimPitch;
-    float autoAimPitchTarget;
-    float autoAimYaw;
-    float autoAimYawTarget;
     AutoMeleeState autoMeleeState;
     int autoMeleeTargetEnt;
     float autoMeleePitch;
@@ -9896,6 +10148,14 @@ namespace Game
     float autoMeleeYawTarget;
     int lockOnTargetEnt;
   };
+
+  static_assert(sizeof(AimScreenTarget) == 0x34);
+  static_assert(offsetof(AimAssistGlobals, tweakables) == 0xB8);
+  static_assert(offsetof(AimAssistGlobals, eyeOrigin) == 0xD0);
+  static_assert(offsetof(AimAssistGlobals, screenTargets) == 0x134);
+  static_assert(offsetof(AimAssistGlobals, autoMeleeState) == 0xE38);
+  static_assert(offsetof(AimAssistGlobals, lockOnTargetEnt) == 0xE50);
+  static_assert(sizeof(AimAssistGlobals) == 0xE60);
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -9957,6 +10217,8 @@ namespace Game
       bool affect;
     } movement;
   };
+
+  static_assert(sizeof(shellshock_parms_t) == 0x268);
 
   struct animation_s
   {
@@ -10044,7 +10306,7 @@ namespace Game
     unsigned int playerCardNameplate;
   };
 
-  static_assert(sizeof(clientInfo_t) == 0x52C);
+  static_assert(sizeof(clientInfo_t) == 0x548);
 
   struct cgs_t
   {
@@ -10063,10 +10325,6 @@ namespace Game
     int privateClients;
     char mapname[64];
     int gameEndTime;
-    int voteTime;
-    int voteYes;
-    int voteNo;
-    char voteString[256];
     XModel* gameModels[512];
     FxEffectDef* smokeGrenadeFx;
     shellshock_parms_t holdBreathParams;
@@ -10082,7 +10340,17 @@ namespace Game
     XAnim_s* helicopterAnims;
   };
 
-  static_assert(sizeof(cgs_t) == 0x3BA4);
+  static_assert(offsetof(cgs_t, serverCommandSequence) == 0x14);
+  static_assert(offsetof(cgs_t, processedSnapshotNum) == 0x18);
+  static_assert(offsetof(cgs_t, localServer) == 0x1C);
+  static_assert(offsetof(cgs_t, gameModels) == 0x190);
+  static_assert(offsetof(cgs_t, holdBreathParams) == 0x1198);
+  static_assert(offsetof(cgs_t, teamChatMsgs) == 0x1400);
+  static_assert(offsetof(cgs_t, teamChatMsgTimes) == 0x1900);
+  static_assert(offsetof(cgs_t, teamChatPos) == 0x1920);
+  static_assert(offsetof(cgs_t, corpseinfo) == 0x1938);
+  static_assert(offsetof(cgs_t, helicopterAnims) == 0x4380);
+  static_assert(sizeof(cgs_t) == 0x4388);
 
   struct ConversionArguments
   {
@@ -10116,7 +10384,12 @@ namespace Game
     bool walkable;
   };
 
-  static_assert(sizeof(trace_t) == 0x2C);
+  // Note that on x64 trace_t is 0x30 bytes (0x2C on x86), since the
+  // material is a pointer. PM_GroundTrace() copies one as 0x30 bytes and
+  // checks allsolid at 0x2C.
+  //
+  static_assert(sizeof(trace_t) == 0x30);
+  static_assert(offsetof(trace_t, allsolid) == 0x2C);
 
   struct pmove_s
   {
@@ -10140,8 +10413,12 @@ namespace Game
     unsigned char handler;
   };
 
-
-  static_assert(sizeof(pmove_s) == 296);
+  // Note that PM_GroundTrace() reads the trace handler at 0x128, which
+  // makes pmove_s 0x130 bytes on x64 (296 on x86).
+  //
+  static_assert(offsetof(pmove_s, tracemask) == 0x58);
+  static_assert(offsetof(pmove_s, handler) == 0x128);
+  static_assert(sizeof(pmove_s) == 0x130);
 
   struct pml_t
   {
@@ -10160,7 +10437,11 @@ namespace Game
     int holdrand;
   };
 
-  static_assert(sizeof(pml_t) == 0x84);
+  // Note that PM_GroundTrace() puts the ground trace at 0x38, the trace
+  // being 8-byte aligned on x64. That makes pml_t 0x88 bytes (0x84 on x86).
+  //
+  static_assert(offsetof(pml_t, groundTrace) == 0x38);
+  static_assert(sizeof(pml_t) == 0x88);
 
   enum EffectiveStance
   {
@@ -10386,7 +10667,7 @@ namespace Game
     gentity_s* firstFreeEnt;
     gentity_s* lastFreeEnt;
     Turret* turrets;
-    int logFile;
+    fileHandle_t logFile;
     int initializing;
     int clientIsSpawning;
     objective_t objectives[32];
@@ -10404,13 +10685,10 @@ namespace Game
     int manualNameChange;
     int numConnectedClients;
     int sortedClients[18];
-    char voteString[1024];
-    char voteDisplayString[1024];
-    int voteTime;
-    int voteExecuteTime;
-    int voteYes;
-    int voteNo;
-    int numVotingClients;
+
+    // Note that x64 drops the vote fields that x86 has here, so we keep them
+    // ourselves in Vote.
+    //
     SpawnVar spawnVar;
     int savepersist;
     EntHandle droppedWeaponCue[32];
@@ -10439,7 +10717,16 @@ namespace Game
     int hudElemLastAssignedSoundID;
   };
 
-  static_assert(sizeof(level_locals_t) == 0x2F78);
+  static_assert(offsetof(level_locals_t, logFile) == 0x30);
+  static_assert(offsetof(level_locals_t, maxclients) == 0x3C0);
+  static_assert(offsetof(level_locals_t, time) == 0x3C8);
+  static_assert(offsetof(level_locals_t, numConnectedClients) == 0x3FC);
+  static_assert(offsetof(level_locals_t, spawnVar) == 0x448);
+
+  // Note that the game clears level as 0x29A0 bytes when it starts a game
+  // (0x2F78 on x86).
+  //
+  static_assert(sizeof(level_locals_t) == 0x29A0);
 
   enum ScreenPlacementMode
   {
@@ -10844,7 +11131,10 @@ namespace Game
     char alliesWins;
   };
 
-  static_assert(sizeof(PartyData) == 0x23D8);
+  // Note that the game clears the lobby's PartyData as 0x2408 bytes (0x23D8
+  // on x86).
+  //
+  static_assert(sizeof(PartyData) == 0x2408);
 
   struct MessageLine
   {
@@ -10895,25 +11185,26 @@ namespace Game
     Message errorMessages[5];
   };
 
+  // The console state that x64 keeps. The console window went out with the
+  // in-game console, and so did the display line offset and the output
+  // visibility (see Game::Con_InitConsoleWindow()).
+  //
   struct Console
   {
-    MessageWindow consoleWindow;
-    MessageLine consoleLines[1024];
-    Message consoleMessages[1024];
-    char consoleText[65536];
     char textTempLine[512];
     unsigned int lineOffset;
-    int displayLineOffset;
     int prevChannel;
-    bool outputVisible;
     int fontHeight;
     int visibleLineCount;
     int visiblePixelWidth;
     float screenMin[2];
     float screenMax[2];
-    MessageBuffer messageBuffer[1];
-    float color[4];
   };
+
+  static_assert(offsetof(Console, lineOffset) == 0x200);
+  static_assert(offsetof(Console, fontHeight) == 0x208);
+  static_assert(offsetof(Console, screenMax) == 0x21C);
+  static_assert(sizeof(Console) == 0x224);
 
   enum clientMigState_t
   {
@@ -10975,14 +11266,23 @@ namespace Game
     bool cgameInitialized;
     bool cgameInitCalled;
     bool mapPreloaded;
-    unsigned char __pad0[0x9AB];
+    unsigned char __pad0[3];
+    int migrationState;
+    unsigned char __pad0b[0xB34];
     int keyCatchers;
     bool displayHUDWithKeycatchUI;
     connstate_t connectionState;
-    unsigned char __pad1[0x138];
+    unsigned char __pad1[0x144];
   };
 
-  static_assert(sizeof(clientUIActive_t) == 0xAF4);
+  // Note that x64 indexes the clients by 0xC90 bytes, which makes the tail
+  // 0x144 bytes where x86 has 0x138. What the extra 12 bytes hold we don't
+  // know.
+  //
+  static_assert(sizeof(clientUIActive_t) == 0xC90);
+  static_assert(offsetof(clientUIActive_t, migrationState) == 0x8);
+  static_assert(offsetof(clientUIActive_t, keyCatchers) == 0xB40);
+  static_assert(offsetof(clientUIActive_t, connectionState) == 0xB48);
 
   enum msgLocErrType_t
   {
@@ -11546,7 +11846,7 @@ namespace Game
     EVENT_SAVE = 0x5,
   };
 
-  struct alignas(4) DevGraph
+  struct DevGraph
   {
     float(*knots)[2];
     unsigned __int16* knotCount;
@@ -11567,7 +11867,11 @@ namespace Game
     RumbleDevguiGraphInfo devguiGraphInfo;
   };
 
-  static_assert(sizeof(RumbleGraph) == 236);
+  // Note that there is nothing on x64 to check RumbleGraph against: the
+  // Rumble component keeps its graphs in its own memory and never hands
+  // them to the game. So the size (236 on x86) doesn't have to match
+  // anything.
+  //
 
   struct RumbleInfo
   {
@@ -11582,7 +11886,8 @@ namespace Game
     dvar_t* loopDvar;
   };
 
-  static_assert(sizeof(RumbleInfo) == 36);
+  // The same goes for RumbleInfo (36 on x86).
+  //
 
 
   union RumbleSource
@@ -11898,7 +12203,14 @@ namespace Game
     unsigned __int16 tris;
   };
 
-  static_assert(sizeof(FxMark) == 0x40);
+  // Note that on x64 FxMark is 0x48 bytes (0x40 on x86), since the
+  // material is a pointer. The function at 0x14014F1C0 that fills in a new
+  // mark finds it at handle * 72 and stores the material at 0x30 and the
+  // context at 0x38.
+  //
+  static_assert(offsetof(FxMark, material) == 0x30);
+  static_assert(offsetof(FxMark, context) == 0x38);
+  static_assert(sizeof(FxMark) == 0x48);
 
   struct FxPointGroup
   {
@@ -11929,7 +12241,12 @@ namespace Game
     FxTriGroup item;
   };
 
-  static_assert(sizeof(FxTriGroupPool) == 68);
+  // Note that on x64 FxTriGroupPool is 0x48 bytes (68 on x86), since the
+  // union holds a pointer. The game turns a group into its handle by
+  // dividing its offset in the pool by 72, and the point groups' by 24.
+  //
+  static_assert(offsetof(FxTriGroup, next) == 0x40);
+  static_assert(sizeof(FxTriGroupPool) == 0x48);
 
   struct FxMarksSystem
   {
@@ -11946,8 +12263,12 @@ namespace Game
     FxTriGroupPool* triGroups;
   };
 
-  static_assert(offsetof(FxMarksSystem, firstFreePointGroup) == 0x1014);
-  static_assert(offsetof(FxMarksSystem, triGroups) == 0x1024);
+  // Note that the game has more fields past triGroups (from 0x1040), which
+  // we leave out since we only read the system through the game's pointer.
+  //
+  static_assert(offsetof(FxMarksSystem, firstFreePointGroup) == 0x1018);
+  static_assert(offsetof(FxMarksSystem, marks) == 0x1028);
+  static_assert(offsetof(FxMarksSystem, triGroups) == 0x1038);
 
   struct ClientEntSound
   {
@@ -12111,7 +12432,7 @@ namespace Game
     int fileLength;
   };
 
-  struct alignas(4) MssStreamReadInfo
+  struct MssStreamReadInfo
   {
     char path[256];
     int timeshift;
@@ -12266,6 +12587,10 @@ namespace Game
     FxEffectDef* fxs[256];
   };
 
+  static_assert(offsetof(cgMedia_t, lagometerMaterial) == 0x48);
+  static_assert(offsetof(cgMedia_t, smallDevFont) == 0x2C98);
+  static_assert(offsetof(cgMedia_t, bigDevFont) == 0x2CA0);
+
   struct CinematicHunk
   {
     void* base;
@@ -12282,6 +12607,9 @@ namespace Game
     HWND hwndInputLine;
     char errorString[512];
   };
+
+  static_assert(offsetof(WinConData, hwndInputLine) == 0x20);
+  static_assert(offsetof(WinConData, errorString) == 0x28);
 
   struct WinVars_t
   {

@@ -44,7 +44,6 @@ namespace Controller
     inline constexpr auto DVAR_ROM{Game::DVAR_ROM};
 
     using Game::Key_IsCatcherActive;
-    using Game::Key_SetBinding;
     using Game::UI_GetActiveMenu;
     using Game::UI_KeyEvent;
     using Game::Menu_GetFocused;
@@ -85,6 +84,31 @@ namespace Controller
     inline constexpr auto WEAPON_HAND_LEFT{Game::WEAPON_HAND_LEFT};
     inline constexpr auto CMD_BUTTON_ATTACK{Game::CMD_BUTTON_ATTACK};
     inline constexpr auto CMD_BUTTON_THROW{Game::CMD_BUTTON_THROW};
+
+    // Bind the key to the command, or unbind it if command is nullptr.
+    //
+    // Note that x64 binds keys to indices into its table of the commands a
+    // key can be bound to (see Components::Bindings). The lookup here only
+    // finds what's already in that table, so any other command unbinds the
+    // key. That's presumably fine for the controller, which only binds the
+    // game's own commands, but it's worth knowing before binding anything
+    // fancier through here.
+    //
+    inline void
+    Key_SetBinding (int client, int keynum, const char* command) noexcept
+    {
+      Game::Key_SetBinding (client,
+                            keynum,
+                            command != nullptr ? Game::Key_GetBindingForCmd (command) : 0);
+    }
+
+    // Return the command the key is bound to, or nullptr if it isn't.
+    //
+    inline const char*
+    key_binding (const PlayerKeyState& ks, int keynum) noexcept
+    {
+      return Game::Key_GetCmdForBinding (ks.keys[keynum].binding);
+    }
 
     inline float& view_pitch (int client) noexcept
     {

@@ -2,9 +2,19 @@
 
 #include "Loader.hpp"
 
-#include "Modules/ArenaLength.hpp"
 #include "Modules/Auth.hpp"
+#include "Modules/Exception.hpp"
+#include "Modules/IPCPipe.hpp"
+#include "Modules/Network.hpp"
+#include "Modules/Compatibility.hpp"
+#include "Modules/Logger.hpp"
+#include "Modules/Sentry.hpp"
+#include "Modules/UIScript.hpp"
+#include "Modules/ConfigStrings.hpp"
+#include "Modules/ArenaLength.hpp"
+#include "Modules/AssetHandler.hpp"
 #include "Modules/Bans.hpp"
+#include "Modules/Bindings.hpp"
 #include "Modules/Bots.hpp"
 #include "Modules/Branding.hpp"
 #include "Modules/Bullet.hpp"
@@ -17,31 +27,30 @@
 #include "Modules/ConnectProtocol.hpp"
 #include "Modules/Console.hpp"
 #include "Modules/Controller.hpp"
-#include "Modules/ConfigStrings.hpp"
 #include "Modules/D3D9Ex.hpp"
 #include "Modules/Debug.hpp"
+#include "Modules/Dedicated.hpp"
 #include "Modules/Discord.hpp"
 #include "Modules/Discovery.hpp"
 #include "Modules/Download.hpp"
 #include "Modules/Elevators.hpp"
 #include "Modules/Events.hpp"
-#include "Modules/Exception.hpp"
 #include "Modules/FastFiles.hpp"
 #include "Modules/ForceUAV.hpp"
-#include "Modules/Friends.hpp"
 #include "Modules/Huffman.hpp"
-#include "Modules/IPCPipe.hpp"
 #include "Modules/Lean.hpp"
+#include "Modules/Localization.hpp"
 #include "Modules/MapDump.hpp"
 #include "Modules/MapRotation.hpp"
+#include "Modules/Maps.hpp"
 #include "Modules/Materials.hpp"
 #include "Modules/Missile.hpp"
 #include "Modules/ModList.hpp"
 #include "Modules/ModelCache.hpp"
-#include "Modules/ModelSurfs.hpp"
 #include "Modules/NetworkDebug.hpp"
 #include "Modules/News.hpp"
 #include "Modules/Node.hpp"
+#include "Modules/Operator.hpp"
 #include "Modules/Party.hpp"
 #include "Modules/PlayerMovement.hpp"
 #include "Modules/PlayerName.hpp"
@@ -54,7 +63,6 @@
 #include "Modules/RemoteControl.hpp"
 #include "Modules/Rumble.hpp"
 #include "Modules/Security.hpp"
-#include "Modules/Sentry.hpp"
 #include "Modules/ServerCommands.hpp"
 #include "Modules/ServerDemo.hpp"
 #include "Modules/ServerInfo.hpp"
@@ -76,11 +84,8 @@
 #include "Modules/Vote.hpp"
 #include "Modules/Weapon.hpp"
 #include "Modules/Window.hpp"
-#include "Modules/WineD3D.hpp"
+#include "Modules/Renderer.hpp"
 #include "Modules/Sound.hpp"
-
-#include "Modules/BotLib/lPrecomp.hpp"
-#include "Modules/ViewModelFxSetup.hpp"
 
 namespace Components
 {
@@ -102,24 +107,28 @@ namespace Components
     Register(new ZoneConvert());
 
     // High priority
+    //
     Register(new Singleton());
 
+    // Note that Dvar has to come before any component that registers a dvar
+    // (Auth does), so that the dvar keeps its description (see
+    // Dvar::Dvar()).
+    //
+    Register(new Dvar());
     Register(new Auth());
     Register(new Command());
-    Register(new Dvar());
-    Register(new Exception()); // Install our exception handler as early as possible to get better debug dumps from startup crashes
+    Register(new Exception());
     Register(new IPCPipe());
     Register(new Network());
+    Register(new Compatibility());
     Register(new Logger());
     Register(new Sentry());
     Register(new UIScript());
-    Register(new ZoneBuilder());
-
-    Register(new ConfigStrings()); // Needs to be there early !! Before modelcache & weapons
-
+    Register(new ConfigStrings());
     Register(new ArenaLength());
     Register(new AssetHandler());
     Register(new Bans());
+    Register(new Bindings());
     Register(new Bots());
     Register(new Branding());
     Register(new Bullet());
@@ -143,7 +152,6 @@ namespace Components
     Register(new FastFiles());
     Register(new FileSystem());
     Register(new ForceUAV());
-    Register(new Friends());
     Register(new Rumble());
     Register(new Huffman());
     Register(new Lean());
@@ -156,10 +164,10 @@ namespace Components
     Register(new Missile());
     Register(new ModList());
     Register(new ModelCache());
-    Register(new ModelSurfs());
     Register(new NetworkDebug());
     Register(new News());
     Register(new Node());
+    Register(new Operator());
     Register(new Party());
     Register(new PlayerMovement());
     Register(new PlayerName());
@@ -195,12 +203,15 @@ namespace Components
     Register(new Vote());
     Register(new Weapon());
     Register(new Window());
-    Register(new WineD3D());
-    Register(new Zones());
 
     Register(new GSC::GSC());
 
-    Register(new BotLib::lPrecomp());
+    // Note that on x86 BotLib's precompiler goes right here. All it does is
+    // add #elifdef and #elifndef to the game's precompiler for the menus,
+    // which x64 parses with OpenAssetTools instead. So on x64 we add them
+    // there, and there is no component to register (see
+    // RewriteElifdef() in OAT/Shim.cpp).
+    //
     Register(new ViewModelFxSetup::Setup());
 
     Pregame = false;

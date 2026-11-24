@@ -2,8 +2,9 @@
 
 extern "C"
 {
-  int Sound_Init();
-  void Sound_Loop();
+  void Sound_ParseStreamHeaderStub ();
+
+  bool Sound_ParseStreamHeader (void* header, const std::uint8_t* data, std::uint32_t size, const std::uint8_t* stream);
 }
 
 namespace Components
@@ -12,11 +13,5 @@ namespace Components
   {
   public:
     Sound();
-
-  private:
-    static void __stdcall ReleaseDirectSound(IUnknown** slot);
-    static void PatchMiles();
-
-    static void CL_InitRenderer();
   };
 }

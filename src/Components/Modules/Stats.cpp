@@ -5,10 +5,42 @@
 
 namespace Components
 {
-  std::int64_t* Stats::GetStatsID()
+  namespace
   {
-    static std::int64_t id = 0x110000100001337;
-    return &id;
+    // The stats of the first controller. The player data is at 4, whether we
+    // have it at 0x2000, and whether it changed since we last wrote it at
+    // 0x2001.
+    //
+    constexpr std::uintptr_t LiveStorageStats = 0x141BD8BC0;
+    constexpr std::size_t PlayerDataSize = 0x1FFC;
+
+    struct StructuredDataLookup
+    {
+      void* def;
+      void* type;
+      std::uint64_t offset;
+    };
+
+    struct StructuredDataBuffer
+    {
+      std::uint8_t* data;
+      std::size_t size;
+    };
+
+    const auto StructuredData_GetPathFromArgs =
+      reinterpret_cast<bool (*) (Game::StructuredDataDef*, int (*) (), const char* (*) (int), StructuredDataLookup*, int*)> (0x1402801A0);
+
+    const auto StructuredData_SetResultStrings = reinterpret_cast<const char* const*> (0x140425938);
+
+    int CmdArgc ()
+    {
+      return Command::ClientParams ().size ();
+    }
+
+    const char* CmdArgv (int i)
+    {
+      return Command::ClientParams ().get (i);
+    }
   }
 
   bool Stats::IsMaxLevel()
@@ -20,7 +52,7 @@ namespace Components
   void Stats::SendStats()
   {
     // check if we're connected to a server...
-    if (*reinterpret_cast<std::uint32_t*>(0xB2C540) >= 7)
+    if (*reinterpret_cast<std::uint32_t*>(0x1406CCB78) >= 7)
     {
       for (unsigned char i = 0; i < 7; ++i)
       {
@@ -38,11 +70,11 @@ namespace Components
         char* statbuffer = nullptr;
         if (Game::LiveStorage_DoWeHaveStats(0))
         {
-          statbuffer = &Utils::Hook::Call<char* (int)>(0x4C49F0)(0)[1240 * i];
+          statbuffer = &Utils::Hook::Call<char* (int)>(0x1401F79E0)(0)[1240 * i];
         }
 
         // Client port?
-        Game::MSG_WriteShort(&msg, *reinterpret_cast<short*>(0xA1E878));
+        Game::MSG_WriteShort(&msg, *reinterpret_cast<short*>(0x140BF9620));
 
         // Stat packet index
         Game::MSG_WriteByte(&msg, i);
@@ -54,7 +86,7 @@ namespace Components
         }
 
         // send statpacket
-        Network::SendRaw(Game::NS_CLIENT1, *reinterpret_cast<Game::netadr_t*>(0xA1E888), std::string(reinterpret_cast<char*>(msg.data), msg.cursize));
+        Network::SendRaw(Game::NS_CLIENT1, *Game::connectedHost, std::string(reinterpret_cast<char*>(msg.data), msg.cursize));
       }
     }
   }
@@ -196,7 +228,7 @@ namespace Components
 
   uint32_t Stats::HashFilename()
   {
-    return 0xFC30D07E;
+    return STATS_HASH;
   }
 
   int Stats::LiveStorage_DataSetValue_Stub(void* state, void* ddlContext, const int unused, const char* value)
@@ -212,10 +244,77 @@ namespace Components
       }
     }
 
-    return Utils::Hook::Call<int(void*, void*, int, const char*)>(0x42C000)(state, ddlContext, unused, value);
+    return Utils::Hook::Call<int(void*, void*, int, const char*)>(0x1401F8BE0)(state, ddlContext, unused, value);
   }
 
-  // Set our stats as the server tells us to (the N server command).
+  // Set a field of our player data, given the path to it and then the
+  // value, the way the setPlayerData command does on x86.
+  //
+  // Note that on x86 we skip the warning the game prints when we set our
+  // player data while connected to a server.
+  //
+  void Stats::LiveStorage_DataSetCmd()
+  {
+    auto* stats (reinterpret_cast<std::uint8_t*> (LiveStorageStats));
+
+    if (!Game::LiveStorage_DoWeHaveStats (0))
+    {
+      Game::Com_PrintError (Game::CON_CHANNEL_CLIENT, "Cannot set data: we have not downloaded player stats\n");
+      return;
+    }
+
+    StructuredDataBuffer buffer {stats + 4, PlayerDataSize};
+
+    StructuredDataLookup lookup;
+    int count;
+    if (!StructuredData_GetPathFromArgs (Game::StructuredDataDef_GetAsset ("mp/playerdata.def", PlayerDataSize), CmdArgc, CmdArgv, &lookup, &count))
+      return;
+
+    const Command::ClientParams params;
+    const auto argc (params.size ());
+
+    if (count >= argc)
+    {
+      Game::Com_PrintError (Game::CON_CHANNEL_SYSTEM, "Not enough arguments to setPlayerData\n");
+      return;
+    }
+
+    if (count < argc - 1)
+    {
+      Game::Com_PrintError (Game::CON_CHANNEL_SYSTEM, "Too many arguments to setPlayerData\n");
+      return;
+    }
+
+    switch (const auto r = LiveStorage_DataSetValue_Stub (&lookup, &buffer, 0, params.get (count)))
+    {
+      case 0:
+      {
+        stats[0x2001] = 1;
+        break;
+      }
+      case 1:
+      {
+        break;
+      }
+      default:
+      {
+        Game::Com_PrintError (Game::CON_CHANNEL_SYSTEM, "setPlayerData: %s\n", StructuredData_SetResultStrings[r]);
+
+        std::string command ("Command was: ");
+        for (auto i (0); i < argc; ++i)
+        {
+          command += params.get (i);
+          command += ' ';
+        }
+
+        Game::Com_Printf (Game::CON_CHANNEL_SYSTEM, "%s\n", command.c_str ());
+        break;
+      }
+    }
+  }
+
+  // Set our stats as the server tells us to (the N server command, which
+  // is J on x64).
   //
   // The command is a list of offset and data pairs with each data byte
   // encoded as a hex pair or as Z or O for 0 or 1. The game writes the data
@@ -271,7 +370,7 @@ namespace Components
       }
     }
 
-    Utils::Hook::Call<void (int)> (0x593900) (localClientNum);
+    Utils::Hook::Call<void (int)> (0x1400E8AE0) (localClientNum);
   }
 
   // Record the items we unlocked since the last map before cgame forgets them.
@@ -289,13 +388,13 @@ namespace Components
     // Nothing to compare against if the snapshot wasn't taken or if we have
     // disconnected since.
     //
-    if (Utils::Hook::Get<bool> (0xB2C645))
+    if (Utils::Hook::Get<bool> (0x1406CCC7D))
     {
-      Utils::Hook::Call<void (int)> (0x60E160) (localClientNum); // Titles and icons.
-      Utils::Hook::Call<void (int)> (0x4DFF20) (localClientNum); // New items.
+      Utils::Hook::Call<void (int)> (0x1401FEA40) (localClientNum); // Titles and icons.
+      Utils::Hook::Call<void (int)> (0x1401FED40) (localClientNum); // New items.
     }
 
-    Utils::Hook::Call<void (int)> (0x483190) (localClientNum);
+    Utils::Hook::Call<void (int)> (0x1401FEBE0) (localClientNum);
   }
 
   Stats::Stats()
@@ -307,55 +406,93 @@ namespace Components
     UIScript::Add("UpdateClasses", UpdateClasses);
 
     // Allow playerdata to be changed while connected to a server
-    Utils::Hook::Set<BYTE>(0x4376FD, 0xEB);
+    Utils::Hook::Set<BYTE>(0x1401F6FCF, 0xEB);
 
-    Utils::Hook(0x4377EC, LiveStorage_DataSetValue_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401F7084, LiveStorage_DataSetValue_Stub, HOOK_CALL).install()->quick();
 
     // IW4x stats hashing used to be a constant because fs_game profiles were broken (Steam ID constant, filename constant)
     // Now they're fixed, and so the hash is no longer constant. This is a problem for backward compatibility
     // So we overwrite the function used specifically for Steam storage to return always the same hash
     // The one we used to have our steam ID/filename combination
-    Utils::Hook(0x682DB0, Stats_HashFilenameStub, HOOK_JUMP).install()->quick();
+    //
+    // Note that x64 inlines the hash into the write, where we patch it in
+    // along with the Steam ID below.
+    //
+    Utils::Hook(0x14024BD70, HashFilename, HOOK_JUMP).install()->quick(); // Read
 
     // TODO: Allow playerdata changes in setPlayerData UI script.
 
+    // x64 compiles out the setPlayerData command (presumably the later
+    // revision only changes player data through its backend), which our
+    // unlockstats runs, so we register it ourselves.
+    //
+    Command::Add("setPlayerData", LiveStorage_DataSetCmd);
+
     // Rename stat file
-    Utils::Hook::SetString(0x71C048, "%s");
-    Utils::Hook(0x4A5D85, SprintfLiveStorageFilename, HOOK_CALL).install()->quick(); // Non-Modded
-    Utils::Hook(0x4A5D9D, SprintfLiveStorageFilename, HOOK_CALL).install()->quick(); // Modded
+    //
+    // Note that x64 picks the format of the profile name with or without
+    // fs_game and makes it with a single call.
+    //
+    Utils::Hook::PlaceString(0x14024B452, 7, 0x14039F368, "%s"); // Read
+    Utils::Hook::PlaceString(0x14024BA98, 7, 0x14039F368, "%s"); // Write
+    Utils::Hook(0x1401F76B6, SprintfLiveStorageFilename, HOOK_CALL).install()->quick();
 
     // Patch stats steamid
-    Utils::Hook::Nop(0x682EBF, 20);
-    Utils::Hook::Nop(0x6830B1, 20);
+    //
+    // On x64 the read keeps the ID in r13 and the write keeps it in r14. In
+    // the write we also replace the inlined file name hash: the part it
+    // takes from the ID (in rdi) becomes zero and the rest our hash. That's a
+    // lot of bytes to write by hand, so if the stats ever stop reading after
+    // a change here, this is probably the first place to look.
+    //
+    {
+      constexpr std::uintptr_t read (0x14024B3C2);
+      Utils::Hook::Nop(read, 24);
+      Utils::Hook::Set<std::uint16_t>(read, 0xBD49); // mov r13, imm64
+      Utils::Hook::Set<std::uint64_t>(read + 2, STATS_ID);
 
-    Utils::Hook(0x682EBF, GetStatsID, HOOK_CALL).install()->quick();
-    Utils::Hook(0x6830B1, GetStatsID, HOOK_CALL).install()->quick();
+      constexpr std::uintptr_t write (0x14024B837);
+      constexpr std::uintptr_t writeHash (0x14024B885);
+      Utils::Hook::Nop(write, writeHash - write);
+      Utils::Hook::Set<std::uint16_t>(write, 0xBE49); // mov r14, imm64
+      Utils::Hook::Set<std::uint64_t>(write + 2, STATS_ID);
+      Utils::Hook::Set<std::uint16_t>(write + 10, 0xFF31); // xor edi, edi
+      Utils::Hook::Set<std::uint8_t>(write + 12, 0xB8); // mov eax, imm32
+      Utils::Hook::Set<std::uint32_t>(write + 13, STATS_HASH);
+      Utils::Hook::Set<std::uint8_t>(write + 17, 0xEB); // jmp short
+      Utils::Hook::Set<std::int8_t>(write + 18, static_cast<std::int8_t>(writeHash - (write + 19)));
+    }
 
-    // Set custom class names even when FS_Game is active
-    Utils::Hook::Nop(0x4B091B, 2);
-    Utils::Hook::Nop(0x60A48D, 2);
-    Utils::Hook::Nop(0x479A20, 2);
-    
+    // Note that on x86 we also set the custom class names when fs_game is
+    // set, which x64 always does anyway.
+    //
+
     // Never use remote stat saving
-    Utils::Hook::Set<BYTE>(0x682F39, 0xEB);
+    Utils::Hook::Set<BYTE>(0x14024BA6C, 0xEB);
 
     // Don't create stat backup
-    Utils::Hook::Nop(0x402CE6, 2);
+    Utils::Hook::Set<BYTE>(0x14024B769, 0xEB);
 
     AddScriptFunctions();
 
     // Skip silly Com_Error (LiveStorage_SetStat)
-    Utils::Hook::Set<BYTE>(0x4CC5F9, 0xEB);
+    Utils::Hook::Set<BYTE>(0x1401F8DD3, 0xEB);
 
     Scheduler::Once([](){
       MoveOldStatsToNewFolder();
     }, Components::Scheduler::Pipeline::MAIN);
 
-    Utils::Hook (0x594260, CG_SetStatsFromServer, HOOK_CALL).install ()->quick (); // CG_DeployServerCommand: N.
-    Utils::Hook (0x4E37C8, CG_InitUnlockedItems, HOOK_CALL).install ()->quick (); // CG_Init: snapshot unlocked items.
+    // Note that x64 sends the stats as the J server command.
+    //
+    Utils::Hook (0x1400E7090, CG_SetStatsFromServer, HOOK_CALL).install ()->quick (); // CG_DeployServerCommand: J.
+    Utils::Hook (0x1400D6B70, CG_InitUnlockedItems, HOOK_CALL).install ()->quick (); // CG_Init: snapshot unlocked items.
 
     // 'M' Seems to be used on Xbox only for parsing platform specific ranks
-    ServerCommands::OnCommand('M', [](const Command::Params* params)
+    //
+    // On x86 we take this as the M server command, but x64 uses M for one of
+    // its own, so here we take it as G (see Game::SV_SetClientStat()).
+    //
+    ServerCommands::OnCommand('G', [](const Command::Params* params)
       {
         const auto* arg1 = params->get(1);
         const auto* arg2 = params->get(2);

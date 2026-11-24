@@ -64,11 +64,14 @@ run ()
   fi
 }
 
+# Note that we only build the sources of OpenAssetTools that need none of its
+# own submodules.
+#
 update_submodules ()
 {
   run git submodule update --init
   run git submodule foreach --quiet \
-    'test $sm_path = deps/sentry-native || git submodule update --init --recursive'
+    'test $sm_path = deps/sentry-native || test $sm_path = deps/oat || git submodule update --init --recursive'
 }
 
 # Check whether the specified command exists. If the hint is provided, print it
@@ -513,7 +516,7 @@ upload_symbols ()
 {
   diag "info: uploading debug symbols to sentry"
 
-  bd="$owd/build/bin/Win32/$cfg"
+  bd="$owd/build/bin/x64/$cfg"
   sd="$(mktemp -d)"
 
   if test -z "$sd"; then
@@ -677,7 +680,7 @@ gen_vscode ()
       "defines":[],
       "cStandard": "c23",
       "cppStandard": "c++23",
-      "intelliSenseMode": "windows-msvc-x86",
+      "intelliSenseMode": "windows-msvc-x64",
       "forcedInclude":[
         "$owd/src/STDInclude.hpp"
       ]
@@ -722,7 +725,7 @@ compile ()
     error "solution file $sln not found"
   fi
 
-  args="/p:Configuration=$cfg"
+  args="/p:Configuration=$cfg /p:Platform=x64"
   if test "$verb" = true; then
     args="$args /verbosity:detailed"
   fi

@@ -38,6 +38,7 @@ namespace Components
 
     static const Game::dvar_t* sv_voice;
     static const Game::dvar_t* sv_alltalk;
+    static const Game::dvar_t* cl_showSend;
 
     static void SV_WriteVoiceDataToClient(int clientNum, Game::msg_t* msg);
     static void SV_SendClientVoiceData(Game::client_s* client);

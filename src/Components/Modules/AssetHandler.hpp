@@ -2,19 +2,9 @@
 
 extern "C"
 {
-  extern bool AssetHandler_ShouldSearchTempAssets;
-
-  void AssetHandler_FindAssetStub();
-  void AssetHandler_AddAssetStub();
   void AssetHandler_OverrideAssetStub();
-  void AssetHandler_StoreEmptyAssetStub();
 
-  int AssetHandler_HasThreadBypass();
-  Game::XAssetHeader AssetHandler_FindAsset(Game::XAssetType type, const char* filename);
-  Game::XAssetHeader AssetHandler_FindTemporaryAsset(Game::XAssetType type, const char* filename);
-  bool AssetHandler_IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset);
   bool AssetHandler_ShouldOverrideAsset(Game::XAssetType type);
-  void AssetHandler_StoreEmptyAsset(Game::XAssetType type, const char* name);
 }
 
 namespace Components
@@ -22,17 +12,6 @@ namespace Components
   class AssetHandler : public Component
   {
   public:
-    class IAsset
-    {
-    public:
-      virtual ~IAsset() {}
-      virtual Game::XAssetType getType() { return Game::XAssetType::ASSET_TYPE_INVALID; }
-      virtual void mark(Game::XAssetHeader /*header*/, ZoneBuilder::Zone* /*builder*/) {}
-      virtual void save(Game::XAssetHeader /*header*/, ZoneBuilder::Zone* /*builder*/) {}
-      virtual void dump(Game::XAssetHeader /*header*/) {}
-      virtual void load(Game::XAssetHeader* /*header*/, const std::string& /*name*/, ZoneBuilder::Zone* /*builder*/) {}
-    };
-
     typedef Game::XAssetHeader(Callback)(Game::XAssetType type, const std::string& name);
     typedef void(RestrictCallback)(Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* restrict);
 
@@ -42,48 +21,29 @@ namespace Components
     static void OnFind(Game::XAssetType type, Utils::Slot<Callback> callback);
     static std::function<void()> OnLoad(Utils::Slot<RestrictCallback> callback);
 
-    static void ClearRelocations();
-    static void Relocate(void* start, void* to, DWORD size = 4);
-
-    static void ZoneSave(Game::XAsset asset, ZoneBuilder::Zone* builder);
-    static void ZoneMark(Game::XAsset asset, ZoneBuilder::Zone* builder);
-
     static Game::XAssetHeader FindOriginalAsset(Game::XAssetType type, const char* filename);
-    static Game::XAssetHeader FindAssetForZone(Game::XAssetType type, const std::string& filename, ZoneBuilder::Zone* builder, bool isSubAsset = true);
-
-    static void ClearTemporaryAssets();
-    static void StoreTemporaryAsset(Game::XAssetType type, Game::XAssetHeader asset);
 
     static void ResetBypassState();
 
-    static void ExposeTemporaryAssets(bool expose);
-
-    static void OffsetToAlias(Utils::Stream::Offset* offset);
-
   private:
-    friend int ::AssetHandler_HasThreadBypass();
-    friend Game::XAssetHeader (::AssetHandler_FindAsset)(Game::XAssetType type, const char* filename);
-    friend Game::XAssetHeader (::AssetHandler_FindTemporaryAsset)(Game::XAssetType type, const char* filename);
-    friend bool ::AssetHandler_IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset);
     friend bool ::AssetHandler_ShouldOverrideAsset(Game::XAssetType type);
-    friend void ::AssetHandler_StoreEmptyAsset(Game::XAssetType type, const char* name);
 
     static thread_local int BypassState;
 
-    static std::map<std::string, Game::XAssetHeader> TemporaryAssets[Game::XAssetType::ASSET_TYPE_COUNT];
-
-    static std::map<Game::XAssetType, IAsset*> AssetInterfaces;
     static std::map<Game::XAssetType, Utils::Slot<Callback>> TypeCallbacks;
     static Utils::Signal<RestrictCallback> RestrictSignal;
 
-    static std::map<void*, void*> Relocations;
-
+    static std::mutex EmptyAssetsMutex;
     static std::vector<std::pair<Game::XAssetType, std::string>> EmptyAssets;
 
-    static void RegisterInterface(IAsset* iAsset);
+    static Game::XAssetHeader(*DB_FindXAssetHeader_Original)(Game::XAssetType type, const char* name);
+    static Game::XAssetEntry*(*DB_AddXAsset_Original)(Game::XAssetType type, Game::XAssetHeader* header);
+
+    static Game::XAssetHeader DB_FindXAssetHeader_Hk(Game::XAssetType type, const char* name);
+    static Game::XAssetEntry* DB_AddXAsset_Hk(Game::XAssetType type, Game::XAssetHeader* header);
+    static Game::XAssetEntry* DB_CreateDefaultEntry_Hk(Game::XAssetType type, const char* name);
 
     static Game::XAssetHeader FindAsset(Game::XAssetType type, const char* filename);
-    static Game::XAssetHeader FindTemporaryAsset(Game::XAssetType type, const char* filename);
     static bool IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset);
     static bool ShouldOverrideAsset(Game::XAssetType type);
 
@@ -94,8 +54,6 @@ namespace Components
     static int HasThreadBypass();
     static void SetBypassState(bool value);
 
-    static void MissingAssetError(int severity, const char* format, const char* type, const char* name);
-
-    void reallocateEntryPool();
+    static void ReallocateEntryPool();
   };
 }

@@ -2,7 +2,32 @@
 
 namespace Steam
 {
-  void GameServer::LogOn()
+  bool GameServer::InitGameServer(unsigned int /*unIP*/, unsigned short /*usGamePort*/, unsigned short /*usQueryPort*/, unsigned int /*unFlags*/, unsigned int /*nGameAppId*/, const char* /*pchVersionString*/)
+  {
+    return true;
+  }
+
+  void GameServer::SetProduct(const char* /*pszProduct*/)
+  {
+  }
+
+  void GameServer::SetGameDescription(const char* /*pszGameDescription*/)
+  {
+  }
+
+  void GameServer::SetModDir(const char* /*pszModDir*/)
+  {
+  }
+
+  void GameServer::SetDedicatedServer(bool /*bDedicated*/)
+  {
+  }
+
+  void GameServer::LogOn(const char* /*pszAccountName*/, const char* /*pszPassword*/)
+  {
+  }
+
+  void GameServer::LogOnAnonymous()
   {
   }
 
@@ -10,12 +35,12 @@ namespace Steam
   {
   }
 
-  bool GameServer::LoggedOn()
+  bool GameServer::BLoggedOn()
   {
     return true;
   }
 
-  bool GameServer::Secure()
+  bool GameServer::BSecure()
   {
     return false;
   }
@@ -24,6 +49,59 @@ namespace Steam
   {
     *result = SteamID();
     return result;
+  }
+
+  bool GameServer::WasRestartRequested()
+  {
+    return false;
+  }
+
+  void GameServer::SetMaxPlayerCount(int /*cPlayersMax*/)
+  {
+  }
+
+  void GameServer::SetBotPlayerCount(int /*cBotplayers*/)
+  {
+  }
+
+  void GameServer::SetServerName(const char* /*pszServerName*/)
+  {
+  }
+
+  void GameServer::SetMapName(const char* /*pszMapName*/)
+  {
+  }
+
+  void GameServer::SetPasswordProtected(bool /*bPasswordProtected*/)
+  {
+  }
+
+  void GameServer::SetSpectatorPort(unsigned short /*unSpectatorPort*/)
+  {
+  }
+
+  void GameServer::SetSpectatorServerName(const char* /*pszSpectatorServerName*/)
+  {
+  }
+
+  void GameServer::ClearAllKeyValues()
+  {
+  }
+
+  void GameServer::SetKeyValue(const char* /*pKey*/, const char* /*pValue*/)
+  {
+  }
+
+  void GameServer::SetGameTags(const char* /*pchGameTags*/)
+  {
+  }
+
+  void GameServer::SetGameData(const char* /*pchGameData*/)
+  {
+  }
+
+  void GameServer::SetRegion(const char* /*pszRegion*/)
+  {
   }
 
   bool GameServer::SendUserConnectAndAuthenticate(unsigned int /*unIPClient*/, const void* /*pvAuthBlob*/, unsigned int /*cubAuthBlobSize*/, SteamID* /*pSteamIDUser*/)
@@ -41,29 +119,35 @@ namespace Steam
   {
   }
 
-  bool GameServer::UpdateUserData(SteamID /*steamIDUser*/, const char* /*pchPlayerName*/, unsigned int /*uScore*/)
+  bool GameServer::BUpdateUserData(SteamID /*steamIDUser*/, const char* /*pchPlayerName*/, unsigned int /*uScore*/)
   {
     return true;
   }
 
-  bool GameServer::SetServerType(unsigned int /*unServerFlags*/, unsigned int /*unGameIP*/, unsigned short /*unGamePort*/, unsigned short /*unSpectatorPort*/, unsigned short /*usQueryPort*/, const char* /*pchGameDir*/, const char* /*pchVersion*/, bool /*bLANMode*/)
+  unsigned int GameServer::GetAuthSessionTicket(void* /*pTicket*/, int /*cbMaxTicket*/, unsigned int* /*pcbTicket*/)
   {
-    return true;
+    return 0;
   }
 
-  void GameServer::UpdateServerStatus(int /*cPlayers*/, int /*cPlayersMax*/, int /*cBotPlayers*/, const char* /*pchServerName*/, const char* /*pSpectatorServerName*/, const char* /*pchMapName*/)
+  int GameServer::BeginAuthSession(const void* /*pAuthTicket*/, int /*cbAuthTicket*/, SteamID /*steamID*/)
   {
+    return 0;
   }
 
-  void GameServer::UpdateSpectatorPort(unsigned short /*unSpectatorPort*/)
-  {
-  }
-
-  void GameServer::SetGameType(const char* /*pchGameType*/)
+  void GameServer::EndAuthSession(SteamID /*steamID*/)
   {
   }
 
-  bool GameServer::GetUserAchievementStatus(SteamID /*steamID*/, const char* /*pchAchievementName*/)
+  void GameServer::CancelAuthTicket(unsigned int /*hAuthTicket*/)
+  {
+  }
+
+  int GameServer::UserHasLicenseForApp(SteamID /*steamID*/, unsigned int /*appID*/)
+  {
+    return 0;
+  }
+
+  bool GameServer::RequestUserGroupStatus(SteamID /*steamIDUser*/, SteamID /*steamIDGroup*/)
   {
     return false;
   }
@@ -72,9 +156,9 @@ namespace Steam
   {
   }
 
-  bool GameServer::RequestUserGroupStatus(SteamID /*steamIDUser*/, SteamID /*steamIDGroup*/)
+  uint64_t GameServer::GetServerReputation()
   {
-    return false;
+    return 0;
   }
 
   unsigned int GameServer::GetPublicIP()
@@ -82,11 +166,34 @@ namespace Steam
     return 0;
   }
 
-  void GameServer::SetGameData(const char* /*pchGameData*/)
+  bool GameServer::HandleIncomingPacket(const void* /*pData*/, int /*cbData*/, unsigned int /*srcIP*/, unsigned short /*srcPort*/)
+  {
+    return false;
+  }
+
+  int GameServer::GetNextOutgoingPacket(void* /*pOut*/, int /*cbMaxOut*/, unsigned int* /*pNetAdr*/, unsigned short* /*pPort*/)
+  {
+    return 0;
+  }
+
+  void GameServer::EnableHeartbeats(bool /*bActive*/)
   {
   }
 
-  int GameServer::UserHasLicenseForApp(SteamID /*steamID*/, unsigned int /*appID*/)
+  void GameServer::SetHeartbeatInterval(int /*iHeartbeatInterval*/)
+  {
+  }
+
+  void GameServer::ForceHeartbeat()
+  {
+  }
+
+  uint64_t GameServer::AssociateWithClan(SteamID /*steamIDClan*/)
+  {
+    return 0;
+  }
+
+  uint64_t GameServer::ComputeNewPlayerCompatibility(SteamID /*steamIDNewPlayer*/)
   {
     return 0;
   }

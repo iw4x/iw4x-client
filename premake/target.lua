@@ -76,6 +76,7 @@ local setting_types =
   buildoptions = {apply = buildoptions, list = true},
   cdialect     = {apply = cdialect},
   cppdialect   = {apply = cppdialect},
+  rtti         = {apply = rtti},
   pchheader    = {apply = pchheader},
   pchsource    = {apply = pchsource,   path = true},
   files        = {apply = files,       path = true, list = true},
@@ -83,6 +84,7 @@ local setting_types =
   includedirs  = {apply = includedirs, external = externalincludedirs,
                   path = true, list = true},
   defines      = {apply = defines,     list = true},
+  undefines    = {apply = undefines,   list = true},
   libdirs      = {apply = libdirs,     path = true, list = true, link = true},
   links        = {apply = links,       list = true, link = true},
   linkoptions  = {apply = linkoptions, list = true},
@@ -99,12 +101,14 @@ local binary_settings =
   "buildoptions",
   "cdialect",
   "cppdialect",
+  "rtti",
   "pchheader",
   "pchsource",
   "files",
   "removefiles",
   "includedirs",
   "defines",
+  "undefines",
   "links",
   "linkoptions",
   "rules",
@@ -515,20 +519,25 @@ function target_set:shared_library (name, fields)
 end
 
 -- Run each description script in the directory, passing the set as its
--- argument.
+-- argument. Skip scripts whose names (without extension) are in excluded,
+-- if specified.
 --
-function target_set:load (directory)
+function target_set:load (directory, excluded)
   local fs = os.matchfiles (path.join (directory, "*.lua"))
   table.sort (fs)
 
   for _, f in ipairs (fs) do
-    local script, e = loadfile (f)
+    local n = path.getbasename (f)
 
-    if script == nil then
-      premake.error ("unable to load %s: %s", f, e)
+    if excluded == nil or not table.contains (excluded, n) then
+      local script, e = loadfile (f)
+
+      if script == nil then
+        premake.error ("unable to load %s: %s", f, e)
+      end
+
+      script (self)
     end
-
-    script (self)
   end
 end
 

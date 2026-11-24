@@ -24,7 +24,7 @@ local generated_directory = path.join (build_directory, "src")
 newoption
 {
   trigger     = "mingw",
-  description = "Generate a 32-bit MinGW-w64 GNU Make build"
+  description = "Generate a 64-bit MinGW-w64 GNU Make build"
 }
 
 newoption
@@ -109,17 +109,22 @@ if mingw and _OPTIONS["copy-to"] then
 end
 
 if mingw then
-  -- Premake adds /usr/lib32 for x86 GCC, which is a host directory and
+  -- Premake adds /usr/lib64 for x86_64 GCC, which is a host directory and
   -- should not be searched when cross-compiling with MinGW.
   --
-  premake.override (premake.tools.gcc.libraryDirectories.architecture, "x86",
+  premake.override (premake.tools.gcc.libraryDirectories.architecture,
+                    "x86_64",
                     function () return {} end)
 end
 
 -- Load the third-party targets.
 --
+-- Note that we skip iw4-open-formats: it describes 32-bit asset structures
+-- and only zone tools use it (see below).
+--
 local targets = target_set.new (path.join (_MAIN_SCRIPT_DIR, "deps"))
-targets:load (path.join (_MAIN_SCRIPT_DIR, "deps/premake"))
+targets:load (path.join (_MAIN_SCRIPT_DIR, "deps/premake"),
+              {"iw4-open-formats"})
 
 workspace "iw4x"
   location (build_directory)
@@ -127,22 +132,18 @@ workspace "iw4x"
   targetdir "%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}"
   startproject "iw4x"
 
-  -- The game is a 32-bit Windows executable, so this is the only platform.
+  -- The game is a 64-bit Windows executable, so this is the only platform.
   --
   configurations {"Debug", "Release"}
-  platforms {"Win32"}
-  architecture "x86"
+  platforms {"x64"}
+  architecture "x86_64"
   systemversion "latest"
 
   if mingw then
     system "windows"
     toolset "gcc"
-    gccprefix "i686-w64-mingw32-"
+    gccprefix "x86_64-w64-mingw32-"
     makesettings {".DELETE_ON_ERROR:"}
-    -- Callbacks may enter with a four-byte aligned stack, so
-    -- realign it on entry to functions compiled by GCC.
-    --
-    buildoptions {"-mstackrealign"}
     omitframepointer "Off"
     linkoptions {"-static"}
   end
@@ -198,7 +199,11 @@ workspace "iw4x"
     omitframepointer "Off"
     rtti "Off"
     defines {"NDEBUG"}
-    -- GCC can fail during LTO when linking the 32-bit MinGW DLL.
+
+    -- GCC failed during LTO when linking the 32-bit MinGW DLL.
+    --
+    -- @@ See if it links the 64-bit one.
+    --
     if not mingw then
       linktimeoptimization "On"
       linkoptions {"/IGNORE:4702"}
@@ -252,6 +257,64 @@ project "iw4x"
     "src/**.asm"
   }
 
+  -- Zone tools.
+  --
+  -- These read and write 32-bit IW4x zones. On x64 we load the stock
+  -- zones in place and ZoneConvert converts IW4x's own with OpenAssetTools
+  -- instead. Note that Zones and ModelSurfs only load what zone tools
+  -- produce.
+  --
+  removefiles
+  {
+    "src/Components/Modules/AssetInterfaces/**",
+    "src/Components/Modules/ModelSurfs.*",
+    "src/Components/Modules/ZoneBuilder.*",
+    "src/Components/Modules/Zones.*"
+  }
+
+  -- Steam friends.
+  --
+  -- Friends talks to the Steam client through the Steam proxy, which the
+  -- x64 build doesn't have, and so there is nothing for it to do.
+  --
+  removefiles
+  {
+    "src/Components/Modules/Friends.*"
+  }
+
+  -- OpenAssetTools shim.
+  --
+  -- The shim between OpenAssetTools and the client is C++23 like the rest
+  -- of OAT, and so the oat library builds it (see deps/premake/oat.lua).
+  --
+  removefiles
+  {
+    "src/Components/Modules/OAT/Shim.cpp"
+  }
+
+  -- WineD3D mapping budget.
+  --
+  -- WineD3D raises the 128 MiB buffer mapping budget that wined3d keeps in
+  -- a 32-bit process. A 64-bit wined3d has no such budget, and so nothing
+  -- for it to raise.
+  --
+  removefiles
+  {
+    "src/Components/Modules/WineD3D.*"
+  }
+
+  -- BotLib precompiler.
+  --
+  -- We leave the precompiler of the BotLib scripts out of the x64 build,
+  -- since x64 compiles the game's precompiler out. The two directives it
+  -- adds for the menus are in the OAT shim instead (see
+  -- RewriteElifdef() in src/Components/Modules/OAT/Shim.cpp).
+  --
+  removefiles
+  {
+    "src/Components/Modules/BotLib/**",
+  }
+
   -- Assemble the assembly sources with ml directly instead of through the
   -- MASM build customization, for two reasons. Firstly, the customization
   -- names the object after the file name without the extension, so Foo.asm
@@ -259,14 +322,10 @@ project "iw4x"
   -- XamlTaskFactory, which MSBuild under Wine doesn't have.
   --
   -- We also prefix the object name with the name of the source directory
-  -- since the objects all go into the same directory and, for example,
-  -- Game/FileSystem.asm and Components/Modules/FileSystem.asm would
-  -- otherwise both produce FileSystem.asm.obj.
+  -- since the objects all go into the same directory and two assembly
+  -- sources with the same name would otherwise produce the same object.
   --
-  -- Note that we assemble with SafeSEH (/safeseh): without it the linker
-  -- silently omits the table of safe exception handlers from the image as
-  -- soon as one object lacks the marking. The custom build step passes its
-  -- .obj outputs to the linker.
+  -- Note that the custom build step passes its outputs to the linker.
   --
   local asm_object = "%{cfg.objdir}/%{file.directory:match ('[^/]+$')}." ..
                      "%{file.basename}.asm." .. (mingw and "o" or "obj")
@@ -277,12 +336,12 @@ project "iw4x"
     if mingw then
       buildcommands
       {
-        '"$(UASM)" -q -coff -Fo"' .. asm_object .. '" "%{file.relpath}"'
+        '"$(UASM)" -q -win64 -Fo"' .. asm_object .. '" "%{file.relpath}"'
       }
     else
       buildcommands
       {
-        "ml.exe /nologo /c /safeseh /Zi /W3 /WX " ..
+        "ml64.exe /nologo /c /Zi /W3 /WX " ..
         "/Fo\"" .. asm_object .. "\" \"%{file.relpath}\""
       }
     end
@@ -375,11 +434,11 @@ project "iw4x"
     "discord-rpc",
     "fonts",
     "gsl",
-    "iw4-open-formats",
     "json",
     "libtomcrypt",
     "libtommath",
     "mongoose",
+    "oat",
     "pdcurses",
     "protobuf",
     "rapidjson",
@@ -387,7 +446,6 @@ project "iw4x"
     "sqlite",
     "stb",
     "tracy",
-    "udis86",
     "zlib"
   }
 

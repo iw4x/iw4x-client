@@ -30,17 +30,11 @@ namespace Game
   typedef void(*CG_ExecuteNewServerCommands_t)(int localClientNum, int latestSequence);
   extern CG_ExecuteNewServerCommands_t CG_ExecuteNewServerCommands;
 
-  typedef void(*CG_DrawDisconnect_t)(int localClientNum);
-  extern CG_DrawDisconnect_t CG_DrawDisconnect;
-
   typedef void(*CG_LocationalTrace_t)(trace_t *results, const float *start, const float *end, int passEntityNum, int contentMask);
   extern  CG_LocationalTrace_t CG_LocationalTrace;
 
   typedef void(*CG_WorldTrace_t)(trace_t *results, const float *start, const float *end, Bounds *bounds, int brushmask);
   extern  CG_WorldTrace_t CG_WorldTrace;
-
-  typedef void(*CG_NextWeapon_f_t)();
-  extern CG_NextWeapon_f_t CG_NextWeapon_f;
 
   typedef int(*CG_GetClientNum_t)();
   extern CG_GetClientNum_t CG_GetClientNum;
@@ -51,7 +45,7 @@ namespace Game
   typedef const DObj*(*CG_GetBoneIndex_t)(int localClientNum, unsigned int boneName, char* boneIndex);
   extern CG_GetBoneIndex_t CG_GetBoneIndex;
 
-  typedef int(__cdecl* DObjGetBoneIndex_t)(int a1, int a2, unsigned char* a3);
+  typedef int(*DObjGetBoneIndex_t)(const DObj* obj, unsigned int name, unsigned char* index);
   extern DObjGetBoneIndex_t DObjGetBoneIndex;
 
   typedef DObj* (__cdecl* Com_GetClientDObj_t)(int handle, int localClientNum);
@@ -68,15 +62,6 @@ namespace Game
 
   typedef void(*CG_ScoresDown_f_t)();
   extern CG_ScoresDown_f_t CG_ScoresDown_f;
-
-  typedef void(*CG_ScoresUp_f_t)();
-  extern CG_ScoresUp_f_t CG_ScoresUp_f;
-
-  typedef void(*CG_ScrollScoreboardUp_t)(cg_s* cgameGlob);
-  extern CG_ScrollScoreboardUp_t CG_ScrollScoreboardUp;
-
-  typedef void(*CG_ScrollScoreboardDown_t)(cg_s* cgameGlob);
-  extern CG_ScrollScoreboardDown_t CG_ScrollScoreboardDown;
 
   typedef void(*CG_CompassDrawEnemies_t)(int localClientNum, CompassType compassType, const rectDef_s* parentRect, const rectDef_s* rect, float* color);
   extern CG_CompassDrawEnemies_t CG_CompassDrawEnemies;
@@ -96,7 +81,7 @@ namespace Game
   typedef int(*CL_GetSnapshot_t)(int localClientNum, int snapshotNumber, Game::snapshot_s* snapshot);
   extern CL_GetSnapshot_t CL_GetSnapshot;
 
-  typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function)(), cmd_function_s* allocedCmd, int isKey);
+  typedef void(*Cmd_AddCommand_t)(const char* cmdName, void(*function)(), cmd_function_s* allocedCmd);
   extern Cmd_AddCommand_t Cmd_AddCommand;
 
   typedef void(*Cmd_AddServerCommand_t)(const char* name, void(*callback)(), cmd_function_s* data);
@@ -105,35 +90,14 @@ namespace Game
   typedef void(*Cmd_ExecuteSingleCommand_t)(int localClientNum, int controllerIndex, const char* cmd);
   extern Cmd_ExecuteSingleCommand_t Cmd_ExecuteSingleCommand;
 
-  typedef void(*Cmd_ForEach_t)(void(*callback)(const char* str));
-  extern Cmd_ForEach_t Cmd_ForEach;
-
-  typedef char*(*Con_DrawMiniConsole_t)(int localClientNum, int xPos, int yPos, float alpha);
-  extern Con_DrawMiniConsole_t Con_DrawMiniConsole;
-
-  typedef void (*Con_DrawSolidConsole_t)();
-  extern Con_DrawSolidConsole_t Con_DrawSolidConsole;
-
-  typedef bool(*Con_CancelAutoComplete_t)();
-  extern Con_CancelAutoComplete_t Con_CancelAutoComplete;
-
-  typedef bool(*Con_IsDvarCommand_t)(const char* cmd);
-  extern Con_IsDvarCommand_t Con_IsDvarCommand;
-
   typedef bool(*Encode_Init_t)(const char* );
   extern Encode_Init_t Encode_Init;
 
   typedef void(*Field_Clear_t)(void* field);
   extern Field_Clear_t Field_Clear;
 
-  typedef void(*FreeMemory_t)(void* buffer);
-  extern FreeMemory_t FreeMemory;
-
   typedef void(*Free_String_t)(const char* string);
   extern Free_String_t Free_String;
-
-  typedef void(*Svcmd_EntityList_f_t)();
-  extern Svcmd_EntityList_f_t Svcmd_EntityList_f;
 
   typedef int(*Reader_t)(char const*, int *);
 
@@ -158,8 +122,36 @@ namespace Game
   typedef bool(*Key_IsCatcherActive_t)(int localClientNum, int mask);
   extern Key_IsCatcherActive_t Key_IsCatcherActive;
 
-  typedef void(*Key_SetBinding_t)(int localClientNum, int keynum, const char* binding);
+  // Note that x64 binds a key to the index of its command in the table of
+  // the commands a key can be bound to, with 0 for none (see
+  // Components::Bindings).
+  //
+  typedef void(*Key_SetBinding_t)(int localClientNum, int keynum, int binding);
   extern Key_SetBinding_t Key_SetBinding;
+
+  typedef int(*Key_StringToKeynum_t)(const char* str);
+  extern Key_StringToKeynum_t Key_StringToKeynum;
+
+  typedef const char*(*Key_KeynumToString_t)(int keynum, int translate);
+  extern Key_KeynumToString_t Key_KeynumToString;
+
+  // Return the binding of the command, or 0 if no key can be bound to it.
+  //
+  typedef int(*Key_GetBindingForCmd_t)(const char* cmd);
+  extern Key_GetBindingForCmd_t Key_GetBindingForCmd;
+
+  // Return the command of the binding, or nullptr if there is none.
+  //
+  const char* Key_GetCmdForBinding(int binding);
+
+  typedef bool(*CG_ScoreboardKeyEvent_t)(int localClientNum, int key);
+  extern CG_ScoreboardKeyEvent_t CG_ScoreboardKeyEvent;
+
+  // Note that x64 inlines these into CG_ScoreboardKeyEvent(), so we scroll
+  // with the keys that scroll the scoreboard there.
+  //
+  void CG_ScrollScoreboardUp(int localClientNum);
+  void CG_ScrollScoreboardDown(int localClientNum);
 
   typedef void(*LargeLocalInit_t)();
   extern LargeLocalInit_t LargeLocalInit;
@@ -173,9 +165,6 @@ namespace Game
   typedef void(*Load_XModelPtr_t)(bool atStreamStart);
   extern Load_XModelPtr_t Load_XModelPtr;
 
-  typedef void(*Load_XModelSurfsFixup_t)(XModelSurfs**, XModelLodInfo*);
-  extern Load_XModelSurfsFixup_t Load_XModelSurfsFixup;
-
   typedef void(*Load_XStringArray_t)(bool atStreamStart, int count);
   extern Load_XStringArray_t Load_XStringArray;
 
@@ -184,9 +173,6 @@ namespace Game
 
   typedef void(*Load_FxEffectDefHandle_t)(bool atStreamStart);
   extern Load_FxEffectDefHandle_t Load_FxEffectDefHandle;
-
-  typedef void(*Load_FxElemDef_t)(bool atStreamStart);
-  extern Load_FxElemDef_t Load_FxElemDef;
 
   typedef void(*Load_GfxImagePtr_t)(bool atStreamStart);
   extern Load_GfxImagePtr_t Load_GfxImagePtr;
@@ -211,9 +197,6 @@ namespace Game
 
   typedef void(*Load_TracerDefPtr_t)(bool atStreamStart);
   extern Load_TracerDefPtr_t Load_TracerDefPtr;
-
-  typedef void(*Load_snd_alias_list_nameArray_t)(bool atStreamStart, int count);
-  extern Load_snd_alias_list_nameArray_t Load_snd_alias_list_nameArray;
 
   typedef void(*Menus_CloseAll_t)(UiContext* dc);
   extern Menus_CloseAll_t Menus_CloseAll;
@@ -250,9 +233,6 @@ namespace Game
 
   typedef void(*UI_ReplaceConversions_t)(const char* sourceString, ConversionArguments* arguments, char* outputString, size_t outputStringSize);
   extern UI_ReplaceConversions_t UI_ReplaceConversions;
-
-  typedef int(*UI_ParseInfos_t)(const char* buf, int max, char** infos);
-  extern UI_ParseInfos_t UI_ParseInfos;
 
   typedef const char*(*UI_GetMapDisplayName_t)(const char* pszMap);
   extern UI_GetMapDisplayName_t UI_GetMapDisplayName;
@@ -317,7 +297,7 @@ namespace Game
   typedef bool(*MSG_ReadDeltaUsercmdKey_t)(msg_t* msg, int key, const usercmd_s* from, usercmd_s* to);
   extern MSG_ReadDeltaUsercmdKey_t MSG_ReadDeltaUsercmdKey;
 
-  typedef int(*MSG_ReadBitsCompress_t)(const unsigned char* from, unsigned char* to, int size);
+  typedef int(*MSG_ReadBitsCompress_t)(const unsigned char* from, int fromSize, unsigned char* to, int toSize);
   extern MSG_ReadBitsCompress_t MSG_ReadBitsCompress;
 
   typedef int(*MSG_WriteBitsCompress_t)(bool trainHuffman, const unsigned char* from, unsigned char* to, int size);
@@ -329,9 +309,6 @@ namespace Game
   typedef void(*NetadrToSockadr_t)(netadr_t *a, sockaddr *s);
   extern NetadrToSockadr_t NetadrToSockadr;
 
-  typedef const char*(*NET_AdrToString_t)(netadr_t adr);
-  extern NET_AdrToString_t NET_AdrToString;
-
   typedef bool(*NET_CompareAdr_t)(netadr_t a, netadr_t b);
   extern NET_CompareAdr_t NET_CompareAdr;
 
@@ -340,9 +317,6 @@ namespace Game
 
   typedef void(*NET_DeferPacketToClient_t)(netadr_t*, msg_t*);
   extern NET_DeferPacketToClient_t NET_DeferPacketToClient;
-
-  typedef const char* (*NET_ErrorString_t)();
-  extern NET_ErrorString_t NET_ErrorString;
 
   typedef void(*NET_Init_t)();
   extern NET_Init_t NET_Init;
@@ -361,9 +335,6 @@ namespace Game
 
   typedef int(*NET_OutOfBandVoiceData_t)(netsrc_t sock, netadr_t adr, unsigned char* format, int len, bool voiceData);
   extern NET_OutOfBandVoiceData_t NET_OutOfBandVoiceData;
-
-  typedef void(*Live_MPAcceptInvite_t)(_XSESSION_INFO *hostInfo, int controllerIndex, bool fromGameInvite);
-  extern Live_MPAcceptInvite_t Live_MPAcceptInvite;
 
   typedef int(*Live_GetMapIndex_t)(const char* mapname);
   extern Live_GetMapIndex_t Live_GetMapIndex;
@@ -410,6 +381,12 @@ namespace Game
   typedef int(*Party_InParty_t)(PartyData* party);
   extern Party_InParty_t Party_InParty;
 
+  typedef void(*Party_StopParty_t)(PartyData* party);
+  extern Party_StopParty_t Party_StopParty;
+
+  typedef void(*LiveStorage_EndGame_t)(int controllerIndex);
+  extern LiveStorage_EndGame_t LiveStorage_EndGame;
+
   typedef void(*Playlist_ParsePlaylists_t)(const char* data);
   extern Playlist_ParsePlaylists_t Playlist_ParsePlaylists;
 
@@ -421,6 +398,9 @@ namespace Game
 
   typedef void (*PM_Weapon_t)(Game::pmove_s* pm, Game::pml_t* pml);
   extern PM_Weapon_t PM_Weapon;
+
+  typedef void(*PlayerCmd_SwitchToWeapon_t)(scr_entref_t entref);
+  extern PlayerCmd_SwitchToWeapon_t PlayerCmd_SwitchToWeapon;
 
   typedef Font_s*(*R_RegisterFont_t)(const char* asset, int safe);
   extern R_RegisterFont_t R_RegisterFont;
@@ -452,26 +432,8 @@ namespace Game
   typedef int(*R_TextHeight_t)(Font_s* font);
   extern R_TextHeight_t R_TextHeight;
 
-  typedef void(*R_FlushSun_t)();
-  extern R_FlushSun_t R_FlushSun;
-
   typedef GfxWorld*(*R_SortWorldSurfaces_t)();
   extern R_SortWorldSurfaces_t R_SortWorldSurfaces;
-
-  typedef void* (*GetMemory_t)(unsigned int size);
-  extern GetMemory_t GetMemory;
-
-  typedef void*(*GetClearedMemory_t)(unsigned int size);
-  extern GetClearedMemory_t GetClearedMemory;
-
-  typedef void(*PS_CreatePunctuationTable_t)(script_s* script, punctuation_s* punctuations);
-  extern PS_CreatePunctuationTable_t PS_CreatePunctuationTable;
-
-  typedef void(*free_expression_t)(Statement_s* statement);
-  extern free_expression_t free_expression;
-
-  typedef char*(*SE_Load_t)(const char* psFileName, bool forceEnglish);
-  extern SE_Load_t SE_Load;
 
   typedef char*(*SEH_StringEd_GetString_t)(const char* string);
   extern SEH_StringEd_GetString_t SEH_StringEd_GetString;
@@ -488,12 +450,6 @@ namespace Game
   typedef void(*SND_Init_t)(int a1, int a2, int a3);
   extern SND_Init_t SND_Init;
 
-  typedef void(*SND_InitDriver_t)();
-  extern SND_InitDriver_t SND_InitDriver;
-
-  typedef void(*SND_SetHWND_t)(HWND hwnd);
-  extern SND_SetHWND_t SND_SetHWND;
-
   typedef void(*SockadrToNetadr_t)(sockaddr *s, netadr_t *a);
   extern SockadrToNetadr_t SockadrToNetadr;
 
@@ -508,9 +464,6 @@ namespace Game
 
   typedef uiMenuCommand_t(*UI_GetActiveMenu_t)(int localClientNum);
   extern UI_GetActiveMenu_t UI_GetActiveMenu;
-
-  typedef char*(*UI_CheckStringTranslation_t)(char*, char*);
-  extern UI_CheckStringTranslation_t UI_CheckStringTranslation;
 
   typedef MenuList*(*UI_LoadMenus_t)(const char* menuFile, int imageTrack);
   extern UI_LoadMenus_t UI_LoadMenus;
@@ -530,6 +483,12 @@ namespace Game
   typedef int(*UI_TextWidth_t)(const char* text, int maxChars, Font_s* font, float scale);
   extern UI_TextWidth_t UI_TextWidth;
 
+  typedef Material*(*Material_RegisterHandle_t)(const char* name, int imageTrack);
+  extern Material_RegisterHandle_t Material_RegisterHandle;
+
+  typedef int(*Live_NecessaryBandwidth_t)(int clientCount);
+  extern Live_NecessaryBandwidth_t Live_NecessaryBandwidth;
+
   typedef int(*UI_TextHeight_t)(Font_s* font, float scale);
   extern UI_TextHeight_t UI_TextHeight;
 
@@ -539,8 +498,17 @@ namespace Game
   typedef Font_s*(*UI_GetFontHandle_t)(ScreenPlacement* scrPlace, int fontEnum, float scale);
   extern UI_GetFontHandle_t UI_GetFontHandle;
 
+  typedef void(*UI_PaintMenus_t)(int localClientNum);
+  extern UI_PaintMenus_t UI_PaintMenus;
+
   typedef void(*ScrPlace_ApplyRect_t)(const ScreenPlacement* scrPlace, float* x, float* y, float* w, float* h, int horzAlign, int vertAlign);
   extern ScrPlace_ApplyRect_t ScrPlace_ApplyRect;
+
+  typedef float(*ScrPlace_ApplyX_t)(const ScreenPlacement* scrPlace, float x, int horzAlign);
+  extern ScrPlace_ApplyX_t ScrPlace_ApplyX;
+
+  typedef float(*ScrPlace_ApplyY_t)(const ScreenPlacement* scrPlace, float y, int vertAlign);
+  extern ScrPlace_ApplyY_t ScrPlace_ApplyY;
 
   typedef const char*(*Win_GetLanguage_t)();
   extern Win_GetLanguage_t Win_GetLanguage;
@@ -553,9 +521,6 @@ namespace Game
 
   typedef float(*AngleNormalize360_t)(float val);
   extern AngleNormalize360_t AngleNormalize360;
-
-  typedef void(*_VectorMA_t)(float* va, float scale, float* vb, float* vc);
-  extern _VectorMA_t _VectorMA;
 
   typedef void(*unzClose_t)(void* handle);
   extern unzClose_t unzClose;
@@ -575,17 +540,29 @@ namespace Game
   typedef int(*RandWithSeed_t)(int* seed);
   extern RandWithSeed_t RandWithSeed;
 
-  typedef void(*GetDecayingLetterInfo_t)(unsigned int letter, int* randSeed, int decayTimeElapsed, int fxBirthTime, int fxDecayDuration, unsigned __int8 alpha, bool* resultSkipDrawing, char* resultAlpha, unsigned int* resultLetter, bool* resultDrawExtraFxChar);
-  extern GetDecayingLetterInfo_t GetDecayingLetterInfo;
-
   typedef void(*Field_Draw_t)(int localClientNum, field_t* edit, int x, int y, int horzAlign, int vertAlign);
   extern Field_Draw_t Field_Draw;
 
   typedef void(*Field_AdjustScroll_t)(ScreenPlacement* scrPlace, field_t* edit);
   extern Field_AdjustScroll_t Field_AdjustScroll;
 
-  typedef void(*AimAssist_ApplyAutoMelee_t)(const AimInput* input, AimOutput* output);
-  extern AimAssist_ApplyAutoMelee_t AimAssist_ApplyAutoMelee;
+  typedef ScreenPlacement*(*ScrPlace_GetViewPlacement_t)(int localClientNum);
+  extern ScrPlace_GetViewPlacement_t ScrPlace_GetViewPlacement;
+
+  typedef void(*vectoangles_t)(const float* vec, float* angles);
+  extern vectoangles_t vectoangles;
+
+  typedef float(*DiffTrackAngle_t)(float tgt, float cur, float rate, float deltaTime);
+  extern DiffTrackAngle_t DiffTrackAngle;
+
+  typedef int(*CG_DObjGetWorldTagPos_t)(const centity_s* cent, const DObj* obj, unsigned int tagName, float* pos);
+  extern CG_DObjGetWorldTagPos_t CG_DObjGetWorldTagPos;
+
+  // Return true if the local player is using a turret whose weapon has an
+  // overlay.
+  //
+  typedef bool(*CG_UsingTurretOverlay_t)(int localClientNum);
+  extern CG_UsingTurretOverlay_t CG_UsingTurretOverlay;
 
   typedef gentity_s*(*Weapon_RocketLauncher_Fire_t)(gentity_s* ent, unsigned int weaponIndex, float spread, weaponParms* wp, const float* gunVel, lockonFireParms* lockParms, bool magicBullet);
   extern Weapon_RocketLauncher_Fire_t Weapon_RocketLauncher_Fire;
@@ -601,9 +578,6 @@ namespace Game
 
   typedef BOOL(*IN_RecenterMouse_t)();
   extern IN_RecenterMouse_t IN_RecenterMouse;
-
-  typedef void(*IN_MouseMove_t)();
-  extern IN_MouseMove_t IN_MouseMove;
 
   typedef void(*IN_Init_t)();
   extern IN_Init_t IN_Init;
@@ -626,17 +600,20 @@ namespace Game
   typedef float(*Vec3Normalize_t)(float* v);
   extern Vec3Normalize_t Vec3Normalize;
 
-  typedef void(*Vec3NormalizeFast_t)(float* v);
-  extern Vec3NormalizeFast_t Vec3NormalizeFast;
-
   typedef float(*Vec2Normalize_t)(float* v);
   extern Vec2Normalize_t Vec2Normalize;
 
-  typedef void(*Vec2NormalizeFast_t)(float* v);
-  extern Vec2NormalizeFast_t Vec2NormalizeFast;
+  typedef float(*Vec3NormalizeTo_t)(const float* v, float* out);
+  extern Vec3NormalizeTo_t Vec3NormalizeTo;
 
   typedef void(*I_strncpyz_t)(char* dest, const char* src, int destsize);
   extern I_strncpyz_t I_strncpyz;
+
+  typedef int(*I_stricmp_t)(const char* s0, const char* s1);
+  extern I_stricmp_t I_stricmp;
+
+  typedef char*(*I_strlwr_t)(char* s);
+  extern I_strlwr_t I_strlwr;
 
   typedef char*(*I_CleanStr_t)(char* string);
   extern I_CleanStr_t I_CleanStr;
@@ -653,11 +630,8 @@ namespace Game
   typedef bool(*Voice_IsClientTalking_t)(int clientNum);
   extern Voice_IsClientTalking_t Voice_IsClientTalking;
 
-  typedef int(*LargeLocalBegin_t)(int size);
-  extern LargeLocalBegin_t LargeLocalBegin;
-
-  typedef int(*LargeLocalBeginRight_t)(int size);
-  extern LargeLocalBeginRight_t LargeLocalBeginRight;
+  typedef void(*LargeLocalConstruct_t)(void* largeLocal, int size);
+  extern LargeLocalConstruct_t LargeLocalConstruct;
 
   typedef void(*LargeLocalReset_t)();
   extern LargeLocalReset_t LargeLocalReset;
@@ -705,11 +679,8 @@ namespace Game
 
   extern float* cgameFOVSensitivityScale;
 
-  extern source_s** sourceFiles;
-
   extern UiContext* uiContext;
   extern UiContext* cgDC;
-  extern const ExpressionSupportingData* menuSupportingData;
 
   extern int* arenaCount;
   extern mapArena_t* arenas;
@@ -744,30 +715,31 @@ namespace Game
   extern TracerDef*** varTracerDefPtr;
   extern XModel*** varXModelPtr;
   extern XModel** varXModel;
-  extern PathData** varPathData;
   extern const char** varConstChar;
   extern Material*** varMaterialHandle;
   extern FxEffectDef*** varFxEffectDefHandle;
   extern PhysCollmap*** varPhysCollmapPtr;
   extern PhysPreset*** varPhysPresetPtr;
-  extern MaterialPass** varMaterialPass;
   extern snd_alias_list_t*** varsnd_alias_list_name;
   extern MaterialVertexShader** varMaterialVertexShader;
 
-  extern FxElemField* s_elemFields;
-
   extern visField_t* visionDefFields;
+
+  // Parse the token into the field of settings that visionDefFields
+  // describes at fieldNum. Return true if the token holds a value of the
+  // field's type.
+  //
+  // Note that x64 inlines this into LoadVisionFile(), so we reimplement it
+  // from the x86 game.
+  //
+  bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings);
 
   extern infoParm_t* infoParams;
 
   extern GfxScene* scene;
 
-  extern Console* con;
-  extern ConDrawInputGlob* conDrawInputGlob;
-
   extern int* g_console_field_width;
   extern float* g_console_char_height;
-  extern field_t* g_consoleField;
 
   extern sharedUiInfo_t* sharedUiInfo;
   extern ScreenPlacement* scrPlaceFull;
@@ -780,11 +752,16 @@ namespace Game
   extern PlayerKeyState* playerKeys;
   extern kbutton_t* playersKb;
   extern AimAssistGlobals* aaGlobArray;
+  extern infoParm_t* infoParms;
 
   constexpr auto KEY_NAME_COUNT = 95;
   constexpr auto LOCALIZED_KEY_NAME_COUNT = 95;
   extern keyname_t* keyNames;
   extern keyname_t* localizedKeyNames;
+
+  constexpr auto KEY_BINDING_COMMAND_COUNT = 78;
+  extern const char** keyBindingCommands;
+  extern int keyBindingCommandCount;
 
   constexpr auto AIM_ASSIST_GRAPH_COUNT = 4u;
   extern GraphFloat* aaInputGraph;
@@ -813,6 +790,15 @@ namespace Game
 
   extern Game::cgMedia_t* cgMedia;
 
+  // The team balance of the party, formatted as "(axis:allies)".
+  //
+  extern char* partyTeamCounts;
+
+  // The number of free DObj handles out of DOBJ_HANDLE_COUNT.
+  //
+  constexpr int DOBJ_HANDLE_COUNT = 0x800;
+  extern int* dobjFreeCount;
+
   extern unsigned long* g_dwTlsIndex;
 
   extern bgs_t* level_bgs;
@@ -823,11 +809,9 @@ namespace Game
 
   extern uiInfo_s* uiInfoArray;
 
-  extern int* logfile;
-
   extern GamerSettingState* gamerSettings;
 
-  extern unsigned char* g_largeLocalBuf;
+  extern unsigned char** g_largeLocalBuf;
   extern int* g_largeLocalPos;
   extern int* g_largeLocalRightPos;
 
@@ -835,16 +819,11 @@ namespace Game
   extern int* ui_numArenas;
   extern int* ui_arenaBufPos;
 
-  extern punctuation_s* default_punctuations;
-  extern int* numtokens;
-
   extern bool* s_havePlaylists;
 
   extern huffman_t* msgHuff;
 
   extern FxMarksSystem* fx_marksSystemPool;
-
-  extern const char* logFileName;
 
   constexpr auto MAX_MSGLEN = 0x20000;
 
@@ -853,59 +832,114 @@ namespace Game
 
   void UI_FilterStringForButtonAnimation(char* str, unsigned int strMaxSize);
 
-  extern "C" void Menu_FreeItem(itemDef_s* item);
-  extern "C" void Menu_SetNextCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
-  extern "C" void Menu_SetPrevCursorItem(UiContext* ctx, menuDef_t* currentMenu, int unk = 1);
+  typedef void(*Menu_SetNextCursorItem_t)(UiContext* ctx, menuDef_t* currentMenu, int unk);
+  extern Menu_SetNextCursorItem_t Menu_SetNextCursorItem;
+  typedef void(*Menu_SetPrevCursorItem_t)(UiContext* ctx, menuDef_t* currentMenu, int unk);
+  extern Menu_SetPrevCursorItem_t Menu_SetPrevCursorItem;
   const char* TableLookup(StringTable* stringtable, int row, int column);
   const char* UI_LocalizeGameType(const char* gameType);
-  extern "C" float UI_GetScoreboardLeft(void*);
-
-  extern "C" bool PM_IsAdsAllowed(playerState_s* ps);
 
   void ShowMessageBox(const std::string& message, const std::string& title);
 
   unsigned int R_HashString(const char* string);
   unsigned int R_HashString(const char* string, size_t maxLen);
-  extern "C" void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
-  extern "C" void R_SetSunFromDvars(sunflare_t* sun);
+  typedef void(*R_SetSunFromDvars_t)(sunflare_t* sun);
+  extern R_SetSunFromDvars_t R_SetSunFromDvars;
 
-  extern "C" void IN_KeyUp(kbutton_t* button);
-  extern "C" void IN_KeyDown(kbutton_t* button);
+  typedef int(*Com_LoadDvarsFromBuffer_t)(const char* const* dvarNames, unsigned int numDvars, const char* buffer, const char* debugFilename);
+  extern Com_LoadDvarsFromBuffer_t Com_LoadDvarsFromBuffer;
+
+  // The names of the sun dvars, in the order the sun files list them.
+  //
+  extern const char* const* r_sunDvarNames;
+  constexpr unsigned int R_SUN_DVAR_COUNT = 21;
+
+  // Set the sun dvars from the map's sun file (sun/<mapname>.sun) and then
+  // the sun from them. Print a warning if there is no such file.
+  //
+  // Note that x64 inlines this function into the r_loadSun command and
+  // compiles out the warning there.
+  //
+  void R_LoadSunThroughDvars(const char* mapname, sunflare_t* sun);
+
+  // Press or release the button for the key number and time that are the
+  // first and second arguments of the current command, the way the key code
+  // runs a command bound to a key.
+  //
+  // Note that on x64 the key code passes the key number and time of its own
+  // buttons to these functions directly, so they don't read them from the
+  // command. Here we read them and pass them on, which is what lets
+  // Components::Bindings run such a command the x86 way.
+  //
+  void IN_KeyDown(kbutton_t* button);
+  void IN_KeyUp(kbutton_t* button);
 
   void Load_IndexBuffer(void* data, IDirect3DIndexBuffer9** storeHere, int count);
-  extern "C" void Load_VertexBuffer(void* data, IDirect3DVertexBuffer9** where, int len);
 
-  extern "C" void Image_Setup(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
+  typedef void(*Image_Setup_t)(GfxImage* image, unsigned int width, unsigned int height, unsigned int depth, unsigned int flags, _D3DFORMAT format);
+  extern Image_Setup_t Image_Setup;
 
   void Vec2UnpackTexCoords(const PackedTexCoords in, vec2_t* out);
   void MatrixVecMultiply(const float(&mulMat)[3][3], const vec3_t& mulVec, vec3_t& solution);
   void QuatRot(vec3_t* vec, const vec4_t* quat);
   void QuatMultiply(const vec4_t* q1, const vec4_t* q2, vec4_t* res);
 
-  void SortWorldSurfaces(GfxWorld* world);
-  extern "C" void R_AddDebugLine(float* color, float* v1, float* v2);
-  extern "C" void R_AddDebugString(float *color, float *pos, float scale, const char *str);
-  void R_AddDebugBounds(float* color, Bounds* b);
-  void R_AddDebugBounds(float* color, Bounds* b, const float(*quat)[4]);
+  // Draw a debug line or string in the world as the first local client
+  // sees it. R_AddDebugBounds() draws the edges of the bounds instead,
+  // rotated by quat if there is one.
+  //
+  // Note that on x86 these add to the debug lines and strings that the
+  // renderer draws along with the scene, which x64 compiles out. So we draw
+  // them ourselves with the 2D commands of the frame, projected through the
+  // client's refdef. This means they draw over the scene rather than in it,
+  // which is a bit of a cheat but good enough for debugging. It also means
+  // they may only be called where the frame's 2D commands are added, such
+  // as the renderer pipeline of Components::Scheduler.
+  //
+  void R_AddDebugLine(const float* color, const float* start, const float* end);
+  void R_AddDebugString(const float* color, const float* pos, float scale, const char* text);
+  void R_AddDebugBounds(const float* color, const Bounds* b);
+  void R_AddDebugBounds(const float* color, const Bounds* b, const float(*quat)[4]);
 
-  extern "C" Glyph* R_GetCharacterGlyph(Font_s* font, unsigned int letter);
-  extern "C" bool SetupPulseFXVars(const char* text, int maxLength, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, bool* resultDrawRandChar, int* resultRandSeed, int* resultMaxLength, bool* resultDecaying, int* resultDecayTimeElapsed);
-  extern "C" void RB_DrawChar(Material* material, float x, float y, float w, float h, float sinAngle, float cosAngle, Glyph* glyph, unsigned int color);
-  extern "C" void RB_DrawStretchPicRotate(Material* material, float x, float y, float w, float h, float s0, float t0, float s1, float t1, float sinAngle, float cosAngle, unsigned int color);
-  extern "C" char ModulateByteColors(char colorA, char colorB);
+  void SortWorldSurfaces(GfxWorld* world);
+
+  typedef Glyph*(*R_GetCharacterGlyph_t)(Font_s* font, unsigned int letter);
+  extern R_GetCharacterGlyph_t R_GetCharacterGlyph;
+  typedef void(*RB_DrawChar_t)(Material* material, float x, float y, float w, float h, float sinAngle, float cosAngle, Glyph* glyph, unsigned int color);
+  extern RB_DrawChar_t RB_DrawChar;
+  typedef void(*RB_DrawStretchPicRotate_t)(Material* material, float x, float y, float w, float h, float s0, float t0, float s1, float t1, float sinAngle, float cosAngle, unsigned int color);
+  extern RB_DrawStretchPicRotate_t RB_DrawStretchPicRotate;
+
+  // The pulse effect of DrawText2D(). The letters type in one after another
+  // with a random letter at the end, and later decay away at random times.
+  //
+  // Note that x64 inlines these into DrawText2D(), so we reimplement them
+  // from the x86 game.
+  //
+  bool SetupPulseFXVars(const char* text, int maxLength, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, bool* resultDrawRandChar, int* resultRandSeed, int* resultMaxLength, bool* resultDecaying, int* resultDecayTimeElapsed);
+  void GetDecayingLetterInfo(unsigned int letter, int* randSeed, int decayTimeElapsed, int fxBirthTime, int fxDecayDuration, unsigned char alpha, bool* resultSkipDrawing, char* resultAlpha, unsigned int* resultLetter, bool* resultDrawExtraFxChar);
+  char ModulateByteColors(char colorA, char colorB);
 
   float GraphGetValueFromFraction(int knotCount, const float(*knots)[2], float fraction);
   float GraphFloat_GetValue(const GraphFloat* graph, const float fraction);
 
-  extern "C" void AimAssist_UpdateTweakables(int localClientNum);
-  extern "C" void AimAssist_UpdateAdsLerp(const AimInput* input);
-
-  extern "C" bool ApplyTokenToField(unsigned int fieldNum, const char* token, visionSetVars_t* settings);
-
-  extern "C" int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType);
+  // Copy the translation of the reference into token, which has room for
+  // 1024 characters, and return true. If there is no translation, copy the
+  // reference marked as unlocalized instead, or return false without
+  // copying anything if errType is LOCMSG_NOERR.
+  //
+  // Note that x64 inlines this function into SEH_LocalizeTextMessage().
+  //
+  int SEH_GetLocalizedTokenReference(char* token, const char* reference, const char* messageType, msgLocErrType_t errType);
 
   void I_strncpyz_s(char* dest, std::size_t destsize, const char* src, std::size_t count);
   void I_strcpy(char* dest, std::size_t destsize, const char* src);
 
-  extern "C" void Player_SwitchToWeapon(gentity_s* player);
+  // Return the address as text in a static buffer. This is our version of
+  // the x86 function, which x64 compiles out.
+  //
+  // Note that we print the port of an IP address unsigned, as x86 does once
+  // Components::Network has patched it.
+  //
+  const char* NET_AdrToString(netadr_t a);
 }

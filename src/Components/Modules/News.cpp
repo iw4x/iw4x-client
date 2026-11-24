@@ -100,7 +100,7 @@ namespace Components
 
   News::News()
   {
-    if (ZoneBuilder::IsEnabled() || Dedicated::IsEnabled()) return; // Maybe also dedi?
+    if (Dedicated::IsEnabled()) return; // Maybe also dedi?
 
     Dvar::Register<bool>("g_firstLaunch", true, Game::DVAR_ARCHIVE, "");
 
@@ -124,11 +124,11 @@ namespace Components
     Localization::Set("MPUI_MOTD_TEXT", NEWS_MOTD_DEFAULT);
 
     // make newsfeed (ticker) menu items not cut off based on safe area
-    Utils::Hook::Nop(0x63892D, 5);
+    Utils::Hook::Nop(0x14025FDD7, 5);
 
     // hook for getting the news ticker string
-    Utils::Hook::Nop(0x6388BB, 2); // skip the "if (item->text[0] == '@')" localize check
-    Utils::Hook(0x6388C1, GetNewsText, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x14025FD3D, 2); // skip the "if (item->text[0] == '@')" localize check
+    Utils::Hook(0x14025FD43, GetNewsText, HOOK_CALL).install()->quick();
 
     const auto result = Utils::Cache::GetFile("/info");
     if (result.empty())

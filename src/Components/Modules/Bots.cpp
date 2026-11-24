@@ -12,9 +12,6 @@ namespace Components
 {
   constexpr std::size_t MAX_NAME_LENGTH = 16;
 
-  Game::dvar_t** Bots::aim_automelee_range = reinterpret_cast<Game::dvar_t**>(0x7A2F98);
-  Game::dvar_t** Bots::perk_extendedMeleeRange = reinterpret_cast<Game::dvar_t**>(0x7BDD60);
-
   const Game::dvar_t* Bots::sv_randomBotNames;
   const Game::dvar_t* Bots::sv_replaceBots;
 
@@ -22,6 +19,8 @@ namespace Components
 
   std::vector<Bots::botData> Bots::RemoteBotNames;
   bool Bots::AwaitingRemoteBotNames = false;
+
+  void(*Bots::G_SelectWeaponIndex_Original)(int clientNum, unsigned int iWeaponIndex);
 
   struct BotMovementInfo
   {
@@ -123,8 +122,15 @@ namespace Components
     return result;
   }
 
-  int Bots::BuildConnectString(char* buffer, const char* connectString, int num, int, int protocol, int checksum, int statVer, int stats, int port)
+  int Bots::BuildConnectString(char* buffer, const char*, int num, int, int protocol, int checksum, int statVer, int stats, int port)
   {
+    // Note that we format with our own string (it has the clan tag) rather
+    // than point the game at it. The game reaches its string through a 32-bit
+    // displacement, and our module is probably too far away for that, so it
+    // is easier to replace the whole sprintf() call.
+    //
+    constexpr const char* connectString = "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\clanAbbrev\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"";
+
     std::string botName;
     std::string clanName;
 
@@ -328,13 +334,13 @@ namespace Components
         return;
       }
 
-      if (!(*perk_extendedMeleeRange))
+      if (!Game::perk_extendedMeleeRange)
       {
         Game::Scr_Error("BotMeleeParams: perk_extendedMeleeRange is not registered!");
         return;
       }
 
-      if (!(*aim_automelee_range))
+      if (!Game::aim_automelee_range)
       {
         Game::Scr_Error("BotMeleeParams: aim_automelee_range is not registered!");
         return;
@@ -345,8 +351,8 @@ namespace Components
       constexpr auto minDist = static_cast<int>(std::numeric_limits<unsigned char>::min());
       const bool isExtendedMelee = BG_HasPerk(ent->client->ps.perks, Game::PERK_EXTENDEDMELEE);
       const auto maxDist = isExtendedMelee
-        ? static_cast<int>((*perk_extendedMeleeRange)->current.value)
-        : static_cast<int>((*aim_automelee_range)->current.value);
+        ? static_cast<int>(Game::perk_extendedMeleeRange->current.value)
+        : static_cast<int>(Game::aim_automelee_range->current.value);
       const auto meleeDist = std::clamp<int>(dist, minDist, maxDist);
 
       g_botai[entref.entnum].meleeYaw = yaw;
@@ -392,20 +398,20 @@ namespace Components
     });
   }
 
-  void Bots::BotAiAction(Game::client_s* cl)
+  bool Bots::BotAiAction(Game::client_s* cl)
   {
     if (!cl->gentity)
     {
-      return;
+      return false;
     }
 
     auto clientNum = cl - Game::svs_clients;
 
     // Keep test client functionality
+    //
     if (!g_botai[clientNum].active)
     {
-      Game::SV_BotUserMove(cl);
-      return;
+      return false;
     }
 
     Game::usercmd_s userCmd;
@@ -428,6 +434,13 @@ namespace Components
     userCmd.angles[2] = ANGLE2SHORT(g_botai[clientNum].angles[2] - cl->gentity->client->ps.delta_angles[2]);
 
     Game::SV_ClientThink(cl, &userCmd);
+    return true;
+  }
+
+  void Bots::G_SelectWeaponIndex_Hk(int clientNum, unsigned int iWeaponIndex)
+  {
+    G_SelectWeaponIndex(clientNum, iWeaponIndex);
+    G_SelectWeaponIndex_Original(clientNum, iWeaponIndex);
   }
 
   void Bots::G_SelectWeaponIndex(int clientNum, unsigned int iWeaponIndex)
@@ -564,7 +577,7 @@ namespace Components
 
       Logger::Print("Spawning {} {}\n", count, (count == 1 ? "bot" : "bots"));
 
-      Spawn(count);
+      Spawn(static_cast<unsigned int>(count));
     });
   }
 
@@ -575,25 +588,44 @@ namespace Components
 
   Bots::Bots()
   {
-    AssertOffset(Game::client_s, bIsTestClient, 0x41AF0);
-    AssertOffset(Game::client_s, ping, 0x212C8);
-    AssertOffset(Game::client_s, gentity, 0x212A0);
+    AssertOffset(Game::client_s, bIsTestClient, 0x41B0C);
+    AssertOffset(Game::client_s, ping, 0x212E4);
+    AssertOffset(Game::client_s, gentity, 0x212B8);
+    AssertSize(Game::usercmd_s, 0x28);
+    AssertOffset(Game::usercmd_s, weapon, 0x14);
+    AssertOffset(Game::usercmd_s, forwardmove, 0x1A);
+    AssertOffset(Game::gentity_s, client, 0x158);
+    AssertOffset(Game::playerState_s, delta_angles, 0x60);
+    AssertOffset(Game::WeaponCompleteDef, altWeaponIndex, 0x58);
+    AssertOffset(Game::WeaponDef, inventoryType, 0x60);
 
-    // Replace connect string
-    Utils::Hook::Set<const char*>(0x48ADA6, "connect bot%d \"\\cg_predictItems\\1\\cl_anonymous\\0\\color\\4\\head\\default\\model\\multi\\snaps\\20\\rate\\5000\\name\\%s\\clanAbbrev\\%s\\protocol\\%d\\checksum\\%d\\statver\\%d %u\\qport\\%d\"");
+    // Build the test client's connect string ourselves, in place of the
+    // game's sprintf() (see BuildConnectString()).
+    //
+    Utils::Hook(0x1402352DB, BuildConnectString, HOOK_CALL).install()->quick();
 
-    // Intercept sprintf for the connect string
-    Utils::Hook(0x48ADAB, BuildConnectString, HOOK_CALL).install()->quick();
+    // x64 inlines SV_BotUserMove() into its caller (presumably SV_UpdateBots()),
+    // so unlike x86 there is no call to hook. Instead we jump to our stub from
+    // where the inlined copy starts building the user command. See
+    // Bots_SV_BotUserMoveStub for what it expects to find in the registers.
+    //
+    Utils::Hook(0x14023BC41, Bots_SV_BotUserMoveStub, HOOK_JUMP).install()->quick();
 
-    Utils::Hook(0x627021, Bots_SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x627241, Bots_SV_BotUserMove_Hk, HOOK_CALL).install()->quick();
-
-    Utils::Hook(0x441B80, Bots_G_SelectWeaponIndex_Hk, HOOK_JUMP).install()->quick();
+    // G_SelectWeaponIndex() starts with 'push rbx; sub rsp, 20h', which is six
+    // bytes and what the detour moves.
+    //
+    G_SelectWeaponIndex_Original = Utils::Hook::Detour(0x1401886F0, 6, &Bots::G_SelectWeaponIndex_Hk);
 
     // fix bots using objects (SV_IsClientBot)
-    Utils::Hook(0x4D79C5, Player_UpdateActivate_stub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14018BDE3, Player_UpdateActivate_stub, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x459654, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
+    // x64 calls SV_GetClientPing() from two copies of the scoreboard code: the
+    // score command, which it inlines into ClientCommand() (0x140199080), and
+    // the function that sends the same scores from elsewhere (0x140199900,
+    // probably Cmd_Score_f()). So we hook both.
+    //
+    Utils::Hook(0x1401991E9, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140199986, SV_GetClientPing_Hk, HOOK_CALL).install()->quick();
 
     sv_randomBotNames = Game::Dvar_RegisterBool("sv_randomBotNames", false, Game::DVAR_NONE, "Randomize the bots' names");
     sv_replaceBots = Game::Dvar_RegisterBool("sv_replaceBots", false, Game::DVAR_NONE, "Test clients will be replaced by connecting players when the server is full.");
@@ -663,12 +695,7 @@ namespace Components
   }
 }
 
-void Bots_BotAiAction(Game::client_s* cl)
+bool Bots_BotAiAction(Game::client_s* cl)
 {
-  Components::Bots::BotAiAction(cl);
-}
-
-void Bots_G_SelectWeaponIndex(int clientNum, unsigned int iWeaponIndex)
-{
-  Components::Bots::G_SelectWeaponIndex(clientNum, iWeaponIndex);
+  return Components::Bots::BotAiAction(cl);
 }

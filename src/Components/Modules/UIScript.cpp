@@ -71,7 +71,7 @@ namespace Components
     return false;
   }
 
-  void UIScript::OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key)
+  int UIScript::OwnerDrawHandleKeyStub(int ownerDraw, int flags, float *special, int key)
   {
     if (key == 200 || key == 201) // mouse buttons
     {
@@ -84,20 +84,30 @@ namespace Components
       }
     }
 
-    Utils::Hook::Call<void(int, int, float*, int)>(0x4F58A0)(ownerDraw, flags, special, key);
+    return Utils::Hook::Call<int(int, int, float*, int)>(0x14026EE10)(ownerDraw, flags, special, key);
   }
 
   UIScript::UIScript()
   {
-    AssertSize(Game::uiInfo_s, 0x22FC);
+    AssertSize(Game::uiInfo_s, 0x3948);
 
     if (Dedicated::IsEnabled()) return;
 
     // Install handler
-    Utils::Hook::RedirectJump(0x45EC59, reinterpret_cast<void*>(UIScript_RunMenuScriptStub));
+    //
+    // We jump to the stub where UI_RunMenuScript() goes on past its
+    // "StartServer" case. The stub passes the script's name (at rbp+30h)
+    // and the rest of its arguments (through rbx) to our handler. If one of
+    // ours took the script, then it jumps to where the game is done with it,
+    // and otherwise it redoes the store we replaced and lets the game look
+    // further. Note that this means the game's own scripts up to
+    // "StartServer" always win over ours, which so far seems to be what we
+    // want.
+    //
+    Utils::Hook(0x1402703E7, UIScript_RunMenuScriptStub, HOOK_JUMP).install()->quick();
 
     // Install ownerdraw handler
-    Utils::Hook(0x63D233, OwnerDrawHandleKeyStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14025DB9B, OwnerDrawHandleKeyStub, HOOK_CALL).install()->quick();
   }
 
   UIScript::~UIScript()

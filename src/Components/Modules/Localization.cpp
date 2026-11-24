@@ -1,5 +1,6 @@
 #include "Localization.hpp"
 #include "ArenaLength.hpp"
+#include "AssetHandler.hpp"
 #include "Controller.hpp"
 #include "GSC/Script.hpp"
 
@@ -7,6 +8,7 @@ namespace Components
 {
   std::recursive_mutex Localization::LocalizeMutex;
   Dvar::Var Localization::UseLocalization;
+  void(*Localization::SEH_UpdateLanguageInfo_Original)();
   std::unordered_map<std::string, Game::LocalizeEntry*> Localization::LocalizeMap;
 
   std::optional<std::string> Localization::PrefixOverride;
@@ -97,9 +99,25 @@ namespace Components
     return key;
   }
 
-  void __stdcall Localization::SetStringStub(const char* psLocalReference, const char* psNewString, [[maybe_unused]] int bSentenceIsEnglish)
+  // Return an entry whose value is whatever Get() finds for the key.
+  //
+  // On x86 we replace SEH_StringEd_GetString() with Get() outright, but x64
+  // inlines it into each of its callers. So instead we hook the lookup of
+  // the entry in each copy, which then reads the value from what we return.
+  // The entry is thread-local since the copies may well run on different
+  // threads, and presumably each caller is done with it before it looks up
+  // the next one.
+  //
+  Game::XAssetHeader Localization::DB_FindLocalizeEntry_Hk([[maybe_unused]] Game::XAssetType type, const char* key)
   {
-    Set(psLocalReference, psNewString);
+    thread_local Game::LocalizeEntry entry;
+
+    entry.value = Get(key);
+    entry.name = key;
+
+    Game::XAssetHeader header;
+    header.localize = &entry;
+    return header;
   }
 
   void Localization::ParseOutput(const std::function<void(Game::LocalizeEntry*)>& callback)
@@ -238,7 +256,7 @@ namespace Components
 
       if (pszIn > pszTokenStart)
       {
-        auto iTokenLen = pszIn - pszTokenStart;
+        auto iTokenLen = static_cast<int>(pszIn - pszTokenStart);
         Game::I_strncpyz_s(szTokenBuf, sizeof(szTokenBuf), pszTokenStart, pszIn - pszTokenStart);
         if (bLocOn)
         {
@@ -247,7 +265,7 @@ namespace Components
             return nullptr;
           }
 
-          iTokenLen = std::strlen(szTokenBuf);
+          iTokenLen = static_cast<int>(std::strlen(szTokenBuf));
         }
 
         if (iTokenLen + iLen >= szStringSize)
@@ -399,6 +417,261 @@ namespace Components
   }
 
 
+  namespace
+  {
+    // Return the next line of a string file, without its trailing blanks and
+    // its comment, which starts at a "//" outside of quotes.
+    //
+    // Note that the line ends at a '\n' and the next one starts past any '\r'
+    // and '\n' that follow, presumably so that both kinds of line endings
+    // work (empty lines get skipped along the way).
+    //
+    std::string_view ReadLine(std::string_view& text)
+    {
+      auto line (text.substr(0, text.find('\n')));
+      text.remove_prefix(line.size());
+
+      while (!text.empty() && (text.front() == '\r' || text.front() == '\n'))
+      {
+        text.remove_prefix(1);
+      }
+
+      auto trim ([&line]
+      {
+        while (!line.empty() && std::isspace(static_cast<unsigned char>(line.back())))
+        {
+          line.remove_suffix(1);
+        }
+      });
+
+      trim();
+
+      auto quoted (false);
+      for (std::size_t i (0); i + 1 < line.size(); ++i)
+      {
+        if (line[i] == '"')
+        {
+          quoted = !quoted;
+        }
+        else if (!quoted && line[i] == '/' && line[i + 1] == '/')
+        {
+          line = line.substr(0, i);
+          trim();
+          break;
+        }
+      }
+
+      return line;
+    }
+
+    // If the line starts with the keyword, in any case, then skip it and the
+    // blanks after it and return true.
+    //
+    // Note that, like the game, we don't check that the keyword ends there,
+    // so REFERENCEX would pass for REFERENCE. Probably nobody ever writes
+    // that, but this way we read the same files the same way.
+    //
+    bool ReadKeyword(std::string_view& line, std::string_view keyword)
+    {
+      if (line.size() < keyword.size() || _strnicmp(line.data(), keyword.data(), keyword.size()) != 0)
+      {
+        return false;
+      }
+
+      line.remove_prefix(keyword.size());
+
+      while (!line.empty() && (line.front() == ' ' || line.front() == '\t'))
+      {
+        line.remove_prefix(1);
+      }
+
+      return true;
+    }
+
+    // Return the value that follows a keyword, without its blanks and quotes.
+    //
+    std::string ReadValue(std::string_view line)
+    {
+      while (!line.empty() && (line.front() == ' ' || line.front() == '\t'))
+      {
+        line.remove_prefix(1);
+      }
+
+      if (!line.empty() && line.front() == '"')
+      {
+        line.remove_prefix(1);
+      }
+
+      while (!line.empty() && (line.back() == ' ' || line.back() == '\t'))
+      {
+        line.remove_suffix(1);
+      }
+
+      if (!line.empty() && line.back() == '"')
+      {
+        line.remove_suffix(1);
+      }
+
+      return std::string(line);
+    }
+
+    // Return true if each "&&N" placeholder in the string is a digit from 1 to
+    // 9 used once, which is what the game's formatting expects.
+    //
+    bool IsFormatValid(std::string_view value)
+    {
+      std::array<bool, 9> used{};
+
+      for (auto i (value.find("&&")); i != std::string_view::npos; i = value.find("&&", i + 3))
+      {
+        const auto digit (i + 2 < value.size() ? value[i + 2] : '\0');
+
+        if (digit < '1' || digit > '9' || std::exchange(used[digit - '1'], true))
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+  }
+
+  std::optional<std::string> Localization::LoadStringFile(const std::string& path, bool forceEnglish)
+  {
+    FileSystem::File file(path);
+
+    if (!file.exists())
+    {
+      return std::format("Unable to load \"{}\"!", path);
+    }
+
+    std::string_view text(file.getBuffer());
+    std::string reference;
+    auto ended (false);
+
+    // Parse one line, returning the error if there is one.
+    //
+    auto parse ([&](std::string_view line) -> std::optional<std::string>
+    {
+      if (ReadKeyword(line, "VERSION"))
+      {
+        if (const auto version = std::atol(ReadValue(line).c_str()); version != 1)
+        {
+          return std::format("Unexpected version number {}, expecting {}!", version, 1);
+        }
+      }
+      else if (ReadKeyword(line, "CONFIG") || ReadKeyword(line, "FILENOTES") || ReadKeyword(line, "NOTES") || ReadKeyword(line, "FLAGS"))
+      {
+      }
+      else if (ReadKeyword(line, "REFERENCE"))
+      {
+        reference = ReadValue(line);
+      }
+      else if (ReadKeyword(line, "ENDMARKER"))
+      {
+        ended = true;
+      }
+      else if (line.size() >= 5 && _strnicmp(line.data(), "LANG_", 5) == 0)
+      {
+        if (reference.empty())
+        {
+          return "Error parsing file: Unexpected \"LANG_\"";
+        }
+
+        line.remove_prefix(5);
+
+        const auto language (line.substr(0, std::min(line.find_first_of(" \t"), line.size())));
+        line.remove_prefix(language.size());
+
+        auto string (ReadValue(line));
+        Utils::String::Replace(string, "\\n", "\n");
+
+        if (!IsFormatValid(string))
+        {
+          return std::format("Illegal string format \"{}\"", string);
+        }
+
+        const auto english (language.size() == 7 && _strnicmp(language.data(), "english", 7) == 0);
+
+        if (english || !forceEnglish)
+        {
+          Set(reference, string);
+        }
+      }
+      else
+      {
+        return std::format("Unknown keyword at linestart: \"{}\"", line);
+      }
+
+      return std::nullopt;
+    });
+
+    while (!text.empty())
+    {
+      if (const auto line = ReadLine(text); !line.empty())
+      {
+        if (const auto error = parse(line))
+        {
+          return std::format("{} in {}", *error, path);
+        }
+      }
+    }
+
+    if (!ended)
+    {
+      return std::format("Truncated file, failed to find \"{}\" at file end!", "ENDMARKER");
+    }
+
+    return std::nullopt;
+  }
+
+  void Localization::ListStringFiles(const std::string& path, std::vector<std::string>& files)
+  {
+    for (const auto& folder : FileSystem::GetFileList(path, "/"))
+    {
+      if (!folder.empty() && folder.front() != '.')
+      {
+        ListStringFiles(path + "/" + folder, files);
+      }
+    }
+
+    for (const auto& name : FileSystem::GetFileList(path, "str"))
+    {
+      files.push_back(path + "/" + name);
+    }
+  }
+
+  void Localization::SEH_UpdateLanguageInfo_Hk()
+  {
+    SEH_UpdateLanguageInfo_Original();
+
+    const auto* language (*reinterpret_cast<const Game::dvar_t* const*>(0x14651EF98)); // loc_language
+    const auto* forceEnglish (*reinterpret_cast<const Game::dvar_t* const*>(0x14651EFA0)); // loc_forceEnglish
+
+    // Note that the game falls back to English if no language is available,
+    // and then it doesn't load any strings for it, so neither do we.
+    //
+    const auto index (language->current.integer);
+    const auto available (*reinterpret_cast<const int*>(0x140424020 + 0x18 * index + 8));
+
+    if (!available)
+    {
+      return;
+    }
+
+    std::vector<std::string> files;
+    ListStringFiles("localizedstrings", files);
+
+    for (const auto& path : files)
+    {
+      if (const auto error = LoadStringFile(path, forceEnglish->current.enabled))
+      {
+        Logger::Print(Game::CON_CHANNEL_SYSTEM, "WARNING: Could not load localization strings for {}: {}\n", Game::SEH_GetLanguageName(index), *error);
+        return;
+      }
+    }
+  }
+
   Localization::Localization()
   {
     SetCredits();
@@ -417,13 +690,14 @@ namespace Components
     });
 
     // Resolving hook
-    Utils::Hook(0x629B90, Get, HOOK_JUMP).install()->quick();
+    //
+    // There are three copies of SEH_StringEd_GetString() on x64. The third is
+    // in SEH_LocalizeTextMessage(), which we replace altogether below.
+    //
+    Utils::Hook(0x14024D819, DB_FindLocalizeEntry_Hk, HOOK_CALL).install()->quick(); // SEH_StringEd_GetString
+    Utils::Hook(0x14024D71E, DB_FindLocalizeEntry_Hk, HOOK_CALL).install()->quick(); // SE_GetString
 
-    // Overwrite SetString
-    Utils::Hook(0x4CE5EE, SetStringStub, HOOK_CALL).install()->quick();
-
-    Utils::Hook(0x49D4A0, SEH_LocalizeTextMessageStub, HOOK_JUMP).install()->quick();
-    Utils::Hook::Nop(0x49D4A5, 1);
+    Utils::Hook(0x14024D0B0, SEH_LocalizeTextMessageStub, HOOK_JUMP).install()->quick();
 
     UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::DVAR_NONE, "Use localization strings");
 
@@ -445,6 +719,18 @@ namespace Components
         }
       }
     });
+
+    // Read the string files in localizedstrings (a mod's, for one) whenever
+    // the game reads its language.
+    //
+    // x64 compiles out the reading of these files. On x86 we take the strings
+    // from them by replacing the game's SetString(), but here there is nothing
+    // left to replace, so we read them ourselves the way the game does on
+    // x86. That is, we only read them for a language that is available (and
+    // with loc_forceEnglish only the English ones), stopping at the first
+    // error.
+    //
+    SEH_UpdateLanguageInfo_Original = Utils::Hook::Detour(0x14024D840, 5, SEH_UpdateLanguageInfo_Hk);
 
     // gsc: LocalizeText(key)  (e.g. MP_MIDDLE_SQUAD)
     Components::GSC::Script::AddFunction("LocalizeText", GSCr_LocalizeText);

@@ -1,26 +1,28 @@
-.686
-.model flat, C
 option casemap:none
 
-EXTERN Elevators_PM_CorrectAllSolid:PROC
+EXTERN Elevators_PM_Trace:PROC
 
 .code
 
-Elevators_PM_CorrectAllSolidStub PROC
-  push    eax
-  pushad
+Elevators_PM_TraceStub PROC
+  push    rbx
+  sub     rsp, 30h
 
-  push    dword ptr [esp+8h+24h]
-  push    dword ptr [esp+8h+24h]
-  push    eax
-  call    Elevators_PM_CorrectAllSolid
-  add     esp, 0Ch
+  mov     rbx, rcx
 
-  mov     [esp+20h], eax
-  popad
-  pop     eax
+  mov     eax, [rsp+60h]
+  mov     [rsp+20h], eax
+  mov     eax, [rsp+68h]
+  mov     [rsp+28h], eax
 
+  call    qword ptr [rbp+r10*8]
+
+  mov     rcx, rbx
+  call    Elevators_PM_Trace
+
+  add     rsp, 30h
+  pop     rbx
   ret
-Elevators_PM_CorrectAllSolidStub ENDP
+Elevators_PM_TraceStub ENDP
 
 END

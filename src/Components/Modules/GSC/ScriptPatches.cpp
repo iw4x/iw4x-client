@@ -50,7 +50,7 @@ namespace Components::GSC
   //
   std::string ScriptPatches::DescribeFrames ()
   {
-    const auto& fs (*reinterpret_cast<Game::function_stack_t*> (0x2040CD4));
+    const auto& fs (*reinterpret_cast<Game::function_stack_t*> (0x142287F78));
 
     std::string r (ScriptError::DescribeCodePos (fs.pos));
     for (int i (Game::scrVmPub->function_count - 1); i > 0; --i)
@@ -92,7 +92,7 @@ namespace Components::GSC
   //
   unsigned int ScriptPatches::VM_ArchiveStack_Hk()
   {
-    const auto& fs (*reinterpret_cast<Game::function_stack_t*> (0x2040CD4));
+    const auto& fs (*reinterpret_cast<Game::function_stack_t*> (0x142287F78));
 
     if (fs.top < fs.startTop)
     {
@@ -107,7 +107,7 @@ namespace Components::GSC
       ReportCorruptState ("script_stack", details);
     }
 
-    return Utils::Hook::Call<unsigned int ()> (0x61DB70) ();
+    return Utils::Hook::Call<unsigned int ()> (0x1402299C0) ();
   }
 
   // Report the id passed to RemoveRefToObject() that can't be an object and
@@ -120,7 +120,7 @@ namespace Components::GSC
   // where the bad id comes from (or at least passes through). If a script is
   // running, we also describe its frames, which is where to look next.
   //
-  void ScriptPatches::RemoveRefToObject_Bad (unsigned int id, unsigned int caller)
+  void ScriptPatches::RemoveRefToObject_Bad (unsigned int id, uintptr_t caller)
   {
     const auto frames (Game::scrVmPub->function_count > 0
                        ? DescribeFrames ()
@@ -146,14 +146,11 @@ namespace Components::GSC
     // the address space and commits what it uses, so this costs us nothing
     // unless a mod actually needs it.
     //
-    Utils::Hook::Set<DWORD>(0x4E1EDA, 0x1000000);
+    Utils::Hook::Replace32(0x14021C0C4, 5, 0x180000, 0x1000000);
 
-    // Fix format string in Scr_RandomFloatRange
-    Utils::Hook::Set<const char*>(0x5F10C6, "Scr_RandomFloatRange parms: %f %f ");
-
-    Utils::Hook (0x6206C8, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: wait.
-    Utils::Hook (0x62080B, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: waittillframeend.
-    Utils::Hook (0x62101C, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: waittill.
+    Utils::Hook (0x14022B80E, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: wait.
+    Utils::Hook (0x14022B8AE, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: waittillframeend.
+    Utils::Hook (0x14022BE68, VM_ArchiveStack_Hk, HOOK_CALL).install ()->quick (); // VM_Execute: waittill.
 
     // Make sure the id passed to RemoveRefToObject() is an object, that is,
     // it is in the parent part of the variable list (child ids start at
@@ -161,11 +158,10 @@ namespace Components::GSC
     // in memory and, if we are lucky, crashes. Should RemoveRefToObject_Bad()
     // return, the stub skips the call rather than crash.
     //
-    Utils::Hook (0x437190, ScriptPatches_RemoveRefToObject_Stub, HOOK_JUMP).install ()->quick ();
-    Utils::Hook::Nop (0x437195, 1);
+    Utils::Hook (0x1402233A0, ScriptPatches_RemoveRefToObject_Stub, HOOK_JUMP).install ()->quick ();
 
     // Correct builtin function pointer
-    Utils::Hook::Set<Game::BuiltinFunction>(0x79A90C, Scr_TableLookupIStringByRow_Hk);
+    Utils::Hook::Set<Game::BuiltinFunction>(0x1404213E8, Scr_TableLookupIStringByRow_Hk);
 
     Script::AddMethod("ClearHudText", [](Game::scr_entref_t entref) -> void
     {
@@ -180,7 +176,7 @@ namespace Components::GSC
   }
 }
 
-void ScriptPatches_RemoveRefToObject_Bad(unsigned int id, unsigned int caller)
+void ScriptPatches_RemoveRefToObject_Bad(unsigned int id, uintptr_t caller)
 {
   Components::GSC::ScriptPatches::RemoveRefToObject_Bad(id, caller);
 }

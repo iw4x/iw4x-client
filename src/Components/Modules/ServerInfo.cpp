@@ -1,7 +1,6 @@
 #include <Utils/InfoString.hpp>
 
 #include "ServerInfo.hpp"
-#include "Friends.hpp"
 #include "Controller.hpp"
 #include "Party.hpp"
 #include "ServerList.hpp"
@@ -16,7 +15,7 @@ namespace Components
 
   unsigned int ServerInfo::GetPlayerCount()
   {
-    return PlayerContainer.playerList.size();
+    return static_cast<unsigned int>(PlayerContainer.playerList.size());
   }
 
   const char* ServerInfo::GetPlayerText(unsigned int index, int column)
@@ -101,13 +100,26 @@ namespace Components
     const auto x = 320.0f - (*Game::cg_scoreboardWidth)->current.value * 0.5f;
     const auto x2 = 320.0f + (*Game::cg_scoreboardWidth)->current.value * 0.5f;
 
-    // Draw only when stream friendly ui is not enabled
-    if (!Friends::UIStreamFriendly.get<bool>())
+    // Note that on x86 we only draw this when the stream friendly UI of
+    // Components::Friends is off. x64 doesn't have Friends, so we always
+    // draw.
+    //
     {
+      // The host name in cgs, as CG_ParseServerInfo() copies it there.
+      //
+      const auto* hostname(reinterpret_cast<const char*>(0x1405853D0));
+      constexpr float white[4] {1.0f, 1.0f, 1.0f, 1.0f};
+
       constexpr auto fontSize = 0.35f;
-      Game::UI_DrawText(cxt, reinterpret_cast<const char*>(0x7ED3F8), std::numeric_limits<int>::max(), font, x, y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
-      Game::UI_DrawText(cxt, addressText.data(), std::numeric_limits<int>::max(), font, x2 - Game::UI_TextWidth(addressText.data(), 0, font, fontSize), y, 0, 0, fontSize, reinterpret_cast<float*>(0x747F34), 3);
+      Game::UI_DrawText(cxt, hostname, std::numeric_limits<int>::max(), font, x, y, 0, 0, fontSize, white, 3);
+      Game::UI_DrawText(cxt, addressText.data(), std::numeric_limits<int>::max(), font, x2 - Game::UI_TextWidth(addressText.data(), 0, font, fontSize), y, 0, 0, fontSize, white, 3);
     }
+  }
+
+  void ServerInfo::CG_DrawScoreboard_Players_Hk(int localClientNum, float alpha)
+  {
+    DrawScoreboardInfo(localClientNum);
+    Utils::Hook::Call<void(int, float)>(0x1400E4800)(localClientNum, alpha);
   }
 
   Utils::InfoString ServerInfo::GetHostInfo()
@@ -176,11 +188,11 @@ namespace Components
     PlayerContainer.currentPlayer = 0;
 
     // Draw IP and hostname on the scoreboard
-    Utils::Hook(0x4FC6EA, ServerInfo_DrawScoreboardStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400E40EF, CG_DrawScoreboard_Players_Hk, HOOK_CALL).install()->quick();
 
-    // Ignore native getStatus implementation
-    Utils::Hook::Nop(0x62654E, 6);
-
+    // Note that on x86 we also skip the native getstatus handler, which x64
+    // compiles out.
+    //
     // Add uiscript
     UIScript::Add("ServerStatus", ServerStatus);
 
@@ -219,7 +231,7 @@ namespace Components
         else
         {
           // Score and ping are irrelevant
-          const auto* namePtr = Game::PartyHost_GetMemberName(reinterpret_cast<Game::PartyData*>(0x1081C00), i);
+          const auto* namePtr = Game::PartyHost_GetMemberName(Game::g_lobbyData, static_cast<int>(i));
           if (!namePtr || !*namePtr) continue;
 
           if (Game::svs_clients[i].header.state >= Game::CS_ACTIVE &&
@@ -337,9 +349,4 @@ namespace Components
   {
     PlayerContainer.playerList.clear();
   }
-}
-
-void ServerInfo_DrawScoreboardInfo(int localClientNum)
-{
-  Components::ServerInfo::DrawScoreboardInfo(localClientNum);
 }

@@ -1,5 +1,6 @@
 #include "Renderer.hpp"
 #include "Events.hpp"
+#include "Maps.hpp"
 
 namespace Components
 {
@@ -89,17 +90,35 @@ namespace Components
 
   int Renderer::Width()
   {
-    return reinterpret_cast<LPPOINT>(0x66E1C68)->x;
+    return reinterpret_cast<LPPOINT>(0x148CCA788)->x;
   }
 
   int Renderer::Height()
   {
-    return reinterpret_cast<LPPOINT>(0x66E1C68)->y;
+    return reinterpret_cast<LPPOINT>(0x148CCA788)->y;
   }
 
   void Renderer::PreVidRestart()
   {
     Renderer::BeginRecoverDeviceSignal();
+  }
+
+  // On x86 we begin vid_restart at an empty call right before R_Shutdown()
+  // in CL_Vid_Restart_f(). x64 drops that call, so we begin it in place of
+  // R_Shutdown() instead, which should come down to the same.
+  //
+  void Renderer::R_Shutdown_Hk(int destroyWindow)
+  {
+    PreVidRestart();
+
+    Utils::Hook::Call<void(int)>(0x140032BF0)(destroyWindow);
+  }
+
+  void Renderer::CL_InitRenderer_Hk()
+  {
+    PostVidRestart();
+
+    Utils::Hook::Call<void()>(0x1400FBD40)();
   }
 
   void Renderer::PostVidRestart()
@@ -163,12 +182,6 @@ namespace Components
       state->passIndex,
       state->pixelShader && state->pixelShader->name ? state->pixelShader->name : "NULL"
     );
-  }
-
-  int Renderer::DrawTechsetForMaterial(int a1, float a2, float a3, const char* material, Game::vec4_t* color, int a6)
-  {
-    auto mat = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_MATERIAL, Utils::String::VA("wc/%s", material)).material;
-    return Utils::Hook::Call<int(int, float, float, const char*, Game::vec4_t*, int)>(0x005033E0)(a1, a2, a3, Utils::String::VA("%s (^3%s^7)", mat->info.name, mat->techniqueSet->name), color, a6);
   }
 
   void Renderer::DebugDrawTriggers()
@@ -440,7 +453,10 @@ namespace Components
       return;
     }
 
-    auto* fxSystem = reinterpret_cast<Game::FxSystem*>(0x173F200);
+    AssertSize(Game::FxSystem, 0xB18);
+    AssertSize(Game::ClientEntSound, 0x18);
+
+    auto* fxSystem = reinterpret_cast<Game::FxSystem*>(0x141659C80);
 
     if (fxSystem)
     {
@@ -454,8 +470,8 @@ namespace Components
       }
     }
 
-    auto soundCount = *reinterpret_cast<int*>(0x7C5C90);
-    auto* sounds = reinterpret_cast<Game::ClientEntSound*>(0x7C5CA0);
+    auto soundCount = *reinterpret_cast<int*>(0x140460D7C);
+    auto* sounds = reinterpret_cast<Game::ClientEntSound*>(0x140461D80);
 
     for (auto i = 0; i < soundCount; i++)
     {
@@ -470,8 +486,12 @@ namespace Components
   {
     if (!r_drawAABBTrees.get<bool>()) return;
 
-    Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
-    if (!clipMap) return;
+    // Note that on x86 we read the clip map through a pointer at 0x7998E0,
+    // which the game never seems to set (so presumably the AABB trees never
+    // drew there). Here we use the clip map itself.
+    //
+    Game::clipMap_t* clipMap = Game::cm;
+    if (!clipMap->name) return;
 
     for (unsigned short i = 0; i < clipMap->smodelNodeCount; ++i)
     {
@@ -488,8 +508,8 @@ namespace Components
   {
     auto val = r_drawClipmap.get<int>();
 
-    Game::clipMap_t* clipMap = *reinterpret_cast<Game::clipMap_t**>(0x7998E0);
-    if (!clipMap) return;
+    Game::clipMap_t* clipMap = Game::cm;
+    if (!clipMap->name) return;
 
     auto clientNum = Game::CG_GetClientNum();
     auto* clientEntity = &Game::g_entities[clientNum];
@@ -573,7 +593,7 @@ namespace Components
 
     if (forceTechnique > 0)
     {
-      Utils::Hook::Set(0x6FABDF4, forceTechnique);
+      Utils::Hook::Set(0x149139284, forceTechnique);
     }
   }
 
@@ -584,7 +604,7 @@ namespace Components
       return;
     }
 
-    static auto* source = reinterpret_cast<Game::GfxCmdBufSourceState*>(0x6CAF080);
+    static auto* source = reinterpret_cast<Game::GfxCmdBufSourceState*>(0x148F0B8A0);
 
     auto* font = Game::R_RegisterFont("fonts/smallFont", 0);
     auto height = Game::R_TextHeight(font);
@@ -688,7 +708,7 @@ namespace Components
 
   int Renderer::FixSunShadowPartitionSize(Game::GfxCamera* camera, Game::GfxSunShadowMapMetrics* mapMetrics, Game::GfxSunShadow* sunShadow, Game::GfxSunShadowClip* clip, float* partitionFraction)
   {
-    auto result = Utils::Hook::Call<int(Game::GfxCamera*, Game::GfxSunShadowMapMetrics*, Game::GfxSunShadow*, Game::GfxSunShadowClip*, float*)>(0x5463B0)(camera, mapMetrics, sunShadow, clip, partitionFraction);
+    auto result = Utils::Hook::Call<int(Game::GfxCamera*, Game::GfxSunShadowMapMetrics*, Game::GfxSunShadow*, Game::GfxSunShadowClip*, float*)>(0x14005DD00)(camera, mapMetrics, sunShadow, clip, partitionFraction);
 
     if (Maps::IsCustomMap())
     {
@@ -754,6 +774,9 @@ namespace Components
   {
     if (Dedicated::IsEnabled()) return;
 
+    // Note that the debug draws go through our own R_AddDebugLine() and
+    // R_AddDebugString() (see Game).
+    //
     Scheduler::Loop([]
     {
       if (Game::CL_IsCgameInitialized())
@@ -771,54 +794,69 @@ namespace Components
       }
     }, Scheduler::Pipeline::RENDERER);
 
-#ifdef _DEBUG
-    // Disable ATI Radeon 4000 optimization that crashes Pixwin
-    Utils::Hook::Set(0x5066F8, D3DFMT_UNKNOWN);
-#endif
+    // Note that on x86 we also disable an ATI Radeon 4000 optimization that
+    // crashes PIX in debug builds (0x5066F8). x64 doesn't probe for it.
+    //
 
     // COD4 Map Fixes
     // The day map porting is perfect we should be able to remove these
-    Utils::Hook(0x546A09, FixSunShadowPartitionSize, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14005E800, FixSunShadowPartitionSize, HOOK_CALL).install()->quick();
 
     // Log broken materials
-    Utils::Hook(0x0054CAAA, Renderer_StoreGfxBufContextPtrStub1, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x0054CF8D, Renderer_StoreGfxBufContextPtrStub2, HOOK_JUMP).install()->quick();
+    //
+    // The log reports these fields, so they had better be where we think.
+    //
+    AssertOffset(Game::GfxCmdBufState, material, 0x120);
+    AssertOffset(Game::GfxCmdBufState, techType, 0x128);
+    AssertOffset(Game::GfxCmdBufState, technique, 0x130);
+    AssertOffset(Game::GfxCmdBufState, passIndex, 0x140);
+    AssertOffset(Game::GfxCmdBufState, pixelShader, 0xB68);
+    Utils::Hook(0x14006B1DB, Renderer_TextureFromCodeErrorStub1, HOOK_CALL).install()->quick();
+    Utils::Hook(0x14006BABF, Renderer_TextureFromCodeErrorStub2, HOOK_CALL).install()->quick();
 
-    // Enhance cg_drawMaterial
-    Utils::Hook::Set(0x005086DA, "^3solid^7");
-    Utils::Hook(0x00580F53, Renderer::DrawTechsetForMaterial, HOOK_CALL).install()->quick();
+    // Note that on x86 we also enhance cg_drawMaterial (0x5086DA,
+    // 0x580F53). x64 registers the dvar but never reads it, which is a bit
+    // of a mystery, so there is nothing to enhance.
+    //
 
-    Utils::Hook(0x536A80, Renderer_BackendFrameStub, HOOK_JUMP).install()->quick();
+    // Note that x64 inlines the present function we hook on x86 into
+    // RB_SwapBuffers().
+    //
+    Utils::Hook(0x14004FD00, Renderer_BackendFrameStub, HOOK_JUMP).install()->quick();
+    Utils::Hook::Nop(0x14004FD05, 2);
 
     // Begin device recovery (not D3D9Ex)
-    Utils::Hook(0x508298, []
+    Utils::Hook(0x1400336BB, []
     {
       Game::DB_BeginRecoverLostDevice();
       Renderer::BeginRecoverDeviceSignal();
     }, HOOK_CALL).install()->quick();
 
     // End device recovery (not D3D9Ex)
-    Utils::Hook(0x508355, []
+    Utils::Hook(0x140033997, []
     {
       Renderer::EndRecoverDeviceSignal();
       Game::DB_EndRecoverLostDevice();
     }, HOOK_CALL).install()->quick();
 
     // Close the video before freeing its memory in R_Cinematic_Shutdown
-    Utils::Hook(0x51C966, Renderer::R_Cinematic_FreeMemory, HOOK_CALL).install()->quick();
+    //
+    // Note that x64 inlines R_Cinematic_Shutdown() into R_Shutdown().
+    //
+    Utils::Hook(0x140032EAE, Renderer::R_Cinematic_FreeMemory, HOOK_CALL).install()->quick();
 
     // Keep the display mode dvars in sync with the modes we enumerated
-    Utils::Hook(0x507162, Renderer::RegisterDisplayModeDvar, HOOK_CALL).install()->quick(); // r_mode
-    Utils::Hook(0x5071EA, Renderer::RegisterDisplayModeDvar, HOOK_CALL).install()->quick(); // r_displayRefresh
+    Utils::Hook(0x140031960, Renderer::RegisterDisplayModeDvar, HOOK_CALL).install()->quick(); // r_mode
+    Utils::Hook(0x140031A4F, Renderer::RegisterDisplayModeDvar, HOOK_CALL).install()->quick(); // r_displayRefresh
 
     // Begin vid_restart
-    Utils::Hook(0x4CA2FD, Renderer::PreVidRestart, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400FDCAC, Renderer::R_Shutdown_Hk, HOOK_CALL).install()->quick();
 
     // End vid_restart
-    Utils::Hook(0x4CA3A7, Renderer_PostVidRestartStub, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400FDE57, Renderer::CL_InitRenderer_Hk, HOOK_CALL).install()->quick();
 
-    Utils::Hook (0x536AA4, Renderer_RB_SwapBuffers_PresentFailedStub, HOOK_JUMP).install ()->quick (); // RB_SwapBuffers
-    Utils::Hook::Nop (0x536AA9, 2);
+    Utils::Hook (0x14004FD4D, Renderer_RB_SwapBuffers_PresentFailedStub, HOOK_JUMP).install ()->quick (); // RB_SwapBuffers
+    Utils::Hook::Nop (0x14004FD52, 2);
 
     Events::OnDvarInit([]
     {
@@ -863,11 +901,6 @@ void Renderer_BackendFrameHandler()
 bool Renderer_RB_RecoverDevice(HRESULT result)
 {
   return Components::Renderer::RB_RecoverDevice(result);
-}
-
-void Renderer_PostVidRestart()
-{
-  Components::Renderer::PostVidRestart();
 }
 
 void Renderer_R_TextureFromCodeError(const char* sampler, Game::GfxCmdBufState* state, int samplerCode)

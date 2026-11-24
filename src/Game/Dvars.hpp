@@ -39,6 +39,12 @@ namespace Game
   typedef const dvar_t*(*Dvar_SetFromStringByNameFromSource_t)(const char* dvarName, const char* string, DvarSetSource source);
   extern Dvar_SetFromStringByNameFromSource_t Dvar_SetFromStringByNameFromSource;
 
+  typedef void(*Dvar_SetFromStringFromSource_t)(const dvar_t* dvar, const char* string, DvarSetSource source);
+  extern Dvar_SetFromStringFromSource_t Dvar_SetFromStringFromSource;
+
+  typedef void(*Dvar_SetVariant_t)(dvar_t* dvar, DvarValue value, DvarSetSource source);
+  extern Dvar_SetVariant_t Dvar_SetVariant;
+
   typedef void(*Dvar_SetStringByName_t)(const char* dvarName, const char* value);
   extern Dvar_SetStringByName_t Dvar_SetStringByName;
 
@@ -87,7 +93,43 @@ namespace Game
   typedef void (*Dvar_ClearModified_t) (const dvar_t* dvar);
   extern Dvar_ClearModified_t Dvar_ClearModified;
 
+  // The pool that the game allocates its dvars from, in the order they were
+  // registered.
+  //
+  constexpr int DVAR_COUNT = 0x1000;
+
+  extern dvar_t* dvarPool;
+
+  // Register a new dvar, or register an existing one again, which is what
+  // every Dvar_Register*() function comes down to.
+  //
+  // Note that the type is a byte on x64, and that the value and the domain
+  // are passed by pointer.
+  //
+  typedef dvar_t*(*Dvar_RegisterNew_t)(const char* dvarName, unsigned char type, unsigned int flags, const DvarValue* value, const DvarLimits* domain, const char* description);
+  extern Dvar_RegisterNew_t Dvar_RegisterNew;
+
+  typedef void(*Dvar_Reregister_t)(dvar_t* dvar, const char* dvarName, unsigned char type, unsigned int flags, const DvarValue* resetValue, const DvarLimits* domain, const char* description);
+  extern Dvar_Reregister_t Dvar_Reregister;
+
+  // Return the description of the dvar, or nullptr if it has none.
+  //
+  // Note that x64 drops the description field from dvar_t, even though
+  // every registration still passes one down to Dvar_RegisterNew() and
+  // Dvar_Reregister(), which simply ignore it. So we keep the descriptions
+  // ourselves, in a table that parallels the pool, and Components::Dvar
+  // fills it in from those two functions (see Dvar_SetDescription()).
+  //
+  const char* Dvar_GetDescription(const dvar_t* dvar);
+
+  // Set the description of the dvar. Like x86, we keep the pointer rather
+  // than a copy, so it has to outlive the dvar, which every caller's string
+  // literal does.
+  //
+  void Dvar_SetDescription(const dvar_t* dvar, const char* description);
+
   extern const dvar_t** com_developer;
+  extern const dvar_t** com_logfile;
   extern const dvar_t** com_developer_script;
   extern const dvar_t** com_timescale;
   extern const dvar_t** com_maxFrameTime;
@@ -101,7 +143,16 @@ namespace Game
 
   extern const dvar_t** dev_timescale;
 
-  extern const dvar_t** dvar_cheats;
+  // Note that x64 compiles out the registration of sv_cheats, which the
+  // Dvar component restores.
+  //
+  extern const dvar_t* dvar_cheats;
+
+  // Note that x64 also compiles out party_host, along with setting it when
+  // we start hosting a party or stop being in one. The Dvar component
+  // restores both.
+  //
+  extern const dvar_t* party_host;
 
   extern const dvar_t** fs_cdpath;
   extern const dvar_t** fs_basepath;
@@ -112,32 +163,54 @@ namespace Game
   extern const dvar_t** sv_hostname;
   extern const dvar_t** sv_gametype;
   extern const dvar_t** sv_mapname;
-  extern const dvar_t** sv_mapRotation;
-  extern const dvar_t** sv_mapRotationCurrent;
   extern const dvar_t** sv_maxclients;
-  extern const dvar_t** sv_cheats;
+  extern const dvar_t** onlinegame;
+  extern const dvar_t** com_sv_running;
   extern const dvar_t** sv_voiceQuality;
 
   extern const dvar_t** nextmap;
 
-  extern const dvar_t** cl_showSend;
+  extern const dvar_t** perk_diveVelocity;
+  extern const dvar_t** perk_diveDistanceCheck;
+
   extern const dvar_t** cl_voice;
   extern const dvar_t** cl_ingame;
   extern const dvar_t** cl_shownet;
 
-  extern const dvar_t** g_cheats;
   extern const dvar_t** g_giveAll;
   extern const dvar_t** g_deadChat;
   extern const dvar_t** g_allowVote;
-  extern const dvar_t** g_oldVoting;
   extern const dvar_t** g_gametype;
   extern const dvar_t** g_password;
   extern const dvar_t** g_log;
 
   extern const dvar_t** cg_chatHeight;
+  extern const dvar_t** cg_drawMaterial;
+  extern const dvar_t** cg_nopredict;
+  extern const dvar_t** g_synchronousClients;
+  extern const dvar_t** drawLagometer;
+  extern const dvar_t** drawEntityCount;
+  extern const dvar_t** drawEntityCountPos;
+  extern const dvar_t** drawEntityCountSize;
+  extern const dvar_t** drawServerBandwidth;
+  extern const dvar_t** drawServerBandwidthPos;
+
+  // Note that the game registers drawServerBandwidthSize under the name
+  // drawEntityCountSize, so the two graphs end up sharing the dvar.
+  // Presumably a copy and paste slip, but we leave it be.
+  //
+  extern const dvar_t** drawServerBandwidthSize;
+  extern const dvar_t** drawKillcamData;
+  extern const dvar_t** drawKillcamDataPos;
+  extern const dvar_t** drawKillcamDataSize;
+  extern const dvar_t** cg_hudVotePosition;
   extern const dvar_t** cg_chatTime;
   extern const dvar_t** cg_scoreboardHeight;
   extern const dvar_t** cg_scoreboardWidth;
+  extern const dvar_t** cg_drawFPS;
+  extern const dvar_t** cg_drawFPSLabels;
+  extern const dvar_t** cg_drawSnapshot;
+  extern const dvar_t** cg_drawViewpos;
 
   extern const dvar_t** version;
   /// <summary>
@@ -160,10 +233,8 @@ namespace Game
 
   extern const dvar_t** party_minplayers;
   extern const dvar_t** party_maxplayers;
+  extern const dvar_t** party_hostname;
 
   extern const dvar_t** ip;
   extern const dvar_t** port;
-
-  extern "C" void Dvar_SetVariant(dvar_t* dvar, DvarValue value, DvarSetSource source);
-  extern "C" void Dvar_SetFromStringFromSource(const dvar_t* dvar, const char* string, DvarSetSource source);
 }

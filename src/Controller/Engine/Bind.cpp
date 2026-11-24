@@ -121,7 +121,7 @@ namespace Controller
 
       for (const engine_key k: mapping::keys ())
       {
-        const char* const command (ks.keys[static_cast<int> (k)].binding);
+        const char* const command (key_binding (ks, static_cast<int> (k)));
 
         if (command != nullptr && command[0] != '\0')
           t.bind (k, command);
@@ -168,7 +168,7 @@ namespace Controller
         if (!mapping::is_controller_key (key))
           continue;
 
-        const char* const command (ks.keys[key].binding);
+        const char* const command (key_binding (ks, key));
 
         if (command == nullptr)
           continue;
@@ -231,7 +231,7 @@ namespace Controller
         if (mapping::is_controller_key (key) != controller_in_use)
           continue;
 
-        const char* const bound (ks.keys[key].binding);
+        const char* const bound (key_binding (ks, key));
 
         if (bound == nullptr || std::strcmp (bound, lookup) != 0)
           continue;

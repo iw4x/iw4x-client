@@ -3,12 +3,11 @@
 extern "C"
 {
   void ClanTags_ClientUserinfoChanged_Stub();
+  void ClanTags_ClientConnectUserinfo_Stub();
   void ClanTags_DrawPlayerNameOnScoreboard();
-  void ClanTags_PlayerCards_SetCachedPlayerData_Stub();
 
   void ClanTags_ClientUserinfoChanged(const char* s, int clientNum);
   const char* ClanTags_GetClanTagWithName(int clientNum, const char* playerName);
-  void ClanTags_PlayerCards_SetCachedPlayerData(Game::PlayerCardData* data, int clientNum);
 }
 
 namespace Components
@@ -28,7 +27,6 @@ namespace Components
 
   private:
     friend void (::ClanTags_ClientUserinfoChanged)(const char* s, int clientNum);
-    friend void (::ClanTags_PlayerCards_SetCachedPlayerData)(Game::PlayerCardData* data, int clientNum);
 
     static const Game::dvar_t* ClanName;
 
@@ -49,7 +47,8 @@ namespace Components
     static int PartyClient_Frame_Stub(const char* s0, const char* s1);
     static void Party_UpdateClanName_Stub(Game::PartyData* party, const char* clanAbbrev);
 
-    static void PlayerCards_SetCachedPlayerData(Game::PlayerCardData* data, int clientNum);
+    static void (*PlayerCards_SetCachedPlayerData_Original)(int localClientNum, int clientNum, int cardIndex);
+    static void PlayerCards_SetCachedPlayerData_Stub(int localClientNum, int clientNum, int cardIndex);
 
     static Game::PlayerCardData* PlayerCards_GetLiveProfileDataForClient_Stub(unsigned int clientIndex);
     static Game::PlayerCardData* PlayerCards_GetLiveProfileDataForController_Stub(unsigned int controllerIndex);

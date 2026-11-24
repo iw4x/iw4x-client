@@ -49,7 +49,7 @@ namespace Components
 
   unsigned int ModList::GetItemCount()
   {
-    return ModList::Mods.size();
+    return static_cast<unsigned int>(ModList::Mods.size());
   }
 
   const char* ModList::GetItemText(unsigned int index, int /*column*/)
@@ -104,7 +104,12 @@ namespace Components
 
   CHAR * ModList::StructuredData_GetString(Game::StructuredDataLookup *lookup, Game::StructuredDataBuffer *buffer)
   {
-    CHAR* result = Utils::Hook::Call<CHAR*(Game::StructuredDataLookup*, Game::StructuredDataBuffer*)>(0x4D1CE0)(lookup, buffer);
+    AssertOffset(Game::StructuredDataLookup, type, 8);
+    AssertOffset(Game::StructuredDataLookup, offset, 0x10);
+    AssertOffset(Game::StructuredDataLookup, error, 0x14);
+    AssertOffset(Game::StructuredDataType, u, 4);
+
+    CHAR* result = Utils::Hook::Call<CHAR*(Game::StructuredDataLookup*, Game::StructuredDataBuffer*)>(0x14027FBB0)(lookup, buffer); // StructuredData_GetString
 
     if (lookup->error == Game::LOOKUP_ERROR_NONE &&
       lookup->type->type == Game::StructuredDataTypeCategory::DATA_STRING &&
@@ -152,7 +157,10 @@ namespace Components
   {
     if (Dedicated::IsEnabled()) return;
 
-    Utils::Hook(0x62C1A1, StructuredData_GetString, HOOK_CALL).install()->quick();
+    // Note that the GetClientMatchData expression looks its strings up the
+    // same way. We leave that one alone, the same as x86 does.
+    //
+    Utils::Hook(0x1402503D5, StructuredData_GetString, HOOK_CALL).install()->quick(); // GetPlayerData
 
     // The "IWNET storage" system has a "caching" system that, just assumes any file requested twice
     //  is identical between the two accesses if less than 500ms elapsed between them
@@ -161,7 +169,7 @@ namespace Components
     //  because IWNet Storage simply assumes it didn't move!
     // Breaking with a debugger (for more than 500ms) makes the bug disappear.... nasty!
     // This Nop removes that caching mechanism.
-    Utils::Hook::Nop(0x60A6DB, 6);
+    Utils::Hook::Nop(0x1401FA6E0, 6);
 
 
     ModList::CurrentMod = 0;

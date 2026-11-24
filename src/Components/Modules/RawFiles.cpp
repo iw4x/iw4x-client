@@ -1,10 +1,18 @@
 #include "RawFiles.hpp"
 
+extern "C"
+{
+  char* RawFiles_GetMenuBuffer(const char* filename)
+  {
+    return Components::RawFiles::GetMenuBuffer(filename);
+  }
+}
+
 namespace Components
 {
   char* RawFiles::ReadRawFile(const char* filename, char* buf, int size)
   {
-    auto fileHandle = 0;
+    Game::fileHandle_t fileHandle = 0;
     auto fileSize = Game::FS_FOpenFileRead(filename, &fileHandle);
 
     if (fileHandle)
@@ -33,7 +41,7 @@ namespace Components
 
   char* RawFiles::GetMenuBuffer(const char* filename)
   {
-    auto fileHandle = 0;
+    Game::fileHandle_t fileHandle = 0;
     auto fileSize = Game::FS_FOpenFileRead(filename, &fileHandle);
 
     if (fileHandle)
@@ -64,7 +72,7 @@ namespace Components
 
   char* RawFiles::Com_LoadInfoString_LoadObj(const char* fileName, const char* fileDesc, const char* ident, char* loadBuffer)
   {
-    auto fileHandle = 0;
+    Game::fileHandle_t fileHandle = 0;
 
     const auto fileLen = Game::FS_FOpenFileByMode(fileName, &fileHandle, Game::FS_READ);
     if (fileLen < 0)
@@ -128,11 +136,18 @@ namespace Components
 
   RawFiles::RawFiles()
   {
-    // remove fs_game check for moddable rawfiles - allows non-fs_game to modify rawfiles
-    Utils::Hook::Nop(0x61AB76, 2);
+    // Note that on x86 we also remove the fs_game check of Scr_ReadFile(),
+    // which lets scripts be modded from disk without fs_game. x64 only reads
+    // scripts from the fastfiles, so there is no such check to remove. Does
+    // that mean script mods on disk don't work on x64? Not entirely,
+    // presumably, since GSC/Script loads custom scripts from disk itself.
+    //
+    Utils::Hook(0x14012F350, ReadRawFile, HOOK_JUMP).install()->quick();
 
-    Utils::Hook(0x4DA0D0, ReadRawFile, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x631640, GetMenuBuffer, HOOK_JUMP).install()->quick();
+    // Note that x64 inlines UI_GetMenuBuffer() into UI_LoadGameTypes(), which
+    // is where we jump from.
+    //
+    Utils::Hook(0x14026D598, RawFiles_GetMenuBufferStub, HOOK_JUMP).install()->quick();
     Utils::Hook(Game::Com_LoadInfoString, Com_LoadInfoString_Hk, HOOK_JUMP).install()->quick();
 
     Command::Add("dumpraw", [](const Command::Params* params)

@@ -1,16 +1,14 @@
 #include <Utils/Compression.hpp>
 
+#include "Events.hpp"
 #include "QuickPatch.hpp"
 #include "TextRenderer.hpp"
 #include "Toast.hpp"
 
-extern "C"
-{
-  Game::dvar_t* QuickPatch_g_antilag;
-}
-
 namespace Components
 {
+  Game::dvar_t* QuickPatch::g_antilag;
+
   Dvar::Var QuickPatch::UIMousePitch;
 
   Dvar::Var QuickPatch::r_customAspectRatio;
@@ -82,34 +80,27 @@ namespace Components
   void QuickPatch::SetAspectRatio()
   {
     // set the aspect ratio
-    Utils::Hook::Set<float>(0x66E1C78, r_customAspectRatio.get<float>());
+    Utils::Hook::Set<float>(0x148CCA798, r_customAspectRatio.get<float>());
   }
 
-  BOOL QuickPatch::IsDynClassname_Stub(const char* classname)
+  void QuickPatch::FireWeapon_Hk(Game::gentity_s* ent, int gameTime, int eventParm)
   {
-    const auto version = Zones::Version();
-
-    if (version >= VERSION_LATEST_CODO)
+    if (!g_antilag->current.enabled)
     {
-      for (auto i = 0; i < Game::spawnVars->numSpawnVars; i++)
-      {
-        char** kvPair = Game::spawnVars->spawnVars[i];
-        const auto* key = kvPair[0];
-        const auto* val = kvPair[1];
-
-        auto isSpecOps = std::strncmp(key, "script_specialops", 17) == 0;
-        auto isSpecOpsOnly = (val[0] == '1') && (val[1] == '\0');
-
-        if (isSpecOps && isSpecOpsOnly)
-        {
-          // This will prevent spawning of any entity that contains "script_specialops: '1'"
-          // It removes extra hitboxes / meshes on 461+ CODO multiplayer maps
-          return TRUE;
-        }
-      }
+      gameTime = Game::level->time;
     }
 
-    return Utils::Hook::Call<BOOL(const char*)>(0x444810)(classname); // IsDynClassname
+    Utils::Hook::Call<void(Game::gentity_s*, int, int)>(0x1401877D0)(ent, gameTime, eventParm);
+  }
+
+  void QuickPatch::FireWeaponMelee_Hk(Game::gentity_s* ent, int gameTime)
+  {
+    if (!g_antilag->current.enabled)
+    {
+      gameTime = Game::level->time;
+    }
+
+    Utils::Hook::Call<void(Game::gentity_s*, int)>(0x140187DC0)(ent, gameTime);
   }
 
   void QuickPatch::CL_KeyEvent_OnEscape()
@@ -138,6 +129,36 @@ namespace Components
     {
       imageList->image[imageList->count++] = header.image;
     }
+  }
+
+  int QuickPatch::SND_GetAliasOffset(const Game::snd_alias_t* alias)
+  {
+    // The game looks up the alias's list by its name and walks it without
+    // checking that it found one. Note that x64 takes the default asset when
+    // there is none, and so do we.
+    //
+    const auto* list = Game::DB_FindXAssetHeader(Game::ASSET_TYPE_SOUND, alias->aliasName).sound;
+
+    if (Game::DB_IsXAssetDefault(Game::ASSET_TYPE_SOUND, alias->aliasName))
+    {
+      list = nullptr;
+    }
+
+    if (!list)
+    {
+      Game::Com_Error(Game::ERR_DROP, "SND_GetAliasOffset: Could not find sound alias '%s'", alias->aliasName);
+      return 0;
+    }
+
+    for (auto i = 0u; i < list->count; ++i)
+    {
+      if (&list->head[i] == alias)
+      {
+        return static_cast<int>(i);
+      }
+    }
+
+    return 0;
   }
 
   void QuickPatch::Sys_SpawnQuitProcess_Hk()
@@ -211,31 +232,42 @@ namespace Components
     return Game::FX_ImpactMarkCallback(context, pointCount, points, triCount, tris, origin, texCoordAxis);
   }
 
-  Game::dvar_t* QuickPatch::Dvar_RegisterConMinicon(const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
+  Game::dvar_t* QuickPatch::Dvar_RegisterScoreboardPingText(const char* dvarName, [[maybe_unused]] bool value, [[maybe_unused]] unsigned __int16 flags, const char* description)
   {
-#ifdef _DEBUG
-    constexpr auto value_ = true;
-#else
-    constexpr auto value_ = false;
-#endif
-    return Game::Dvar_RegisterBool(dvarName, value_, flags, description);
+    return Game::Dvar_RegisterBool(dvarName, true, Game::DVAR_CHEAT, description);
   }
+
+#ifdef DEBUG
+  Game::dvar_t* QuickPatch::Dvar_RegisterDeveloper(const char* dvarName, [[maybe_unused]] int value, int min, int max, unsigned __int16 flags, const char* description)
+  {
+    return Game::Dvar_RegisterInt(dvarName, 2, min, max, flags, description);
+  }
+
+  Game::dvar_t* QuickPatch::Dvar_RegisterDeveloperScript(const char* dvarName, [[maybe_unused]] bool value, unsigned __int16 flags, const char* description)
+  {
+    return Game::Dvar_RegisterBool(dvarName, true, flags, description);
+  }
+#endif
 
   void QuickPatch::CL_InitRef_Hk(Game::GfxConfiguration* config)
   {
-    // CL_InitRef() creates a GfxConfiguration with defaultFullscreen = true,
-    // which r_fullscreen inherits as the default value. We override the field
-    // here to force windowed startup on first launch.
-    config->defaultFullscreen = false;
+    // CL_InitRef() creates a GfxConfiguration with the fullscreen display
+    // mode, which r_displayMode then inherits as its default value. So we
+    // override the field here to start windowed on the first launch.
+    //
+    // Note that on x86 the field is a bool that r_fullscreen inherits. x64
+    // has the r_displayMode enum in its place, where 2 is windowed.
+    //
+    config->defaultDisplayMode = 2;
 
     // Call original R_ConfigureRenderer()
-    return Utils::Hook::Call<void(Game::GfxConfiguration* config)>(0x508040)(config);
+    return Utils::Hook::Call<void(Game::GfxConfiguration* config)>(0x1400334B0)(config);
   }
 
   void QuickPatch::R_EnumDisplayModes_Hk(unsigned int adapterIndex)
   {
     // Call original R_EnumDisplayModes() to let it register and save available display modes in r_mode
-    Utils::Hook::Call<void(unsigned int adapterIndex)>(0x506F10)(adapterIndex);
+    Utils::Hook::Call<void(unsigned int adapterIndex)>(0x1400316D0)(adapterIndex);
 
     if (Dvar::Var("g_firstLaunch").get<bool>() == false)
     {
@@ -296,24 +328,32 @@ namespace Components
 
   QuickPatch::QuickPatch()
   {
-    // QuickPatch.asm has its own copy of this offset.
+    // Note that on x86 we also filter the entities of the CODO maps that are
+    // meant for Spec Ops, which only the zones that Zones loads have. The x64
+    // build doesn't have Zones.
     //
-    AssertOffset(Game::dvar_t, current, 0x10);
 
-    // Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
-    Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
-
-    // Hook escape handling on open console to change behaviour to close the console instead of only canceling autocomplete
-    Utils::Hook(0x4F66A3, QuickPatch_CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
+    // Hook escape handling on open console to change behaviour to close the
+    // console instead of only canceling autocomplete.
+    //
+    // Note that x64 compiles out the call of Con_CancelAutoComplete() here,
+    // which the Console component puts back with a stub of its own. We take
+    // that place over from it, which is a bit fragile: if the two ever get
+    // installed in the other order, then presumably the console's stub wins.
+    //
+    Utils::Hook(0x1400EE95D, QuickPatch_CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
 
     // Intermission time dvar
     Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_NONE, "Time in seconds before match server loads the next map");
 
-    QuickPatch_g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
-    Utils::Hook(0x5D6D56, QuickPatch_ClientEventsFireWeapon_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook(0x5D6D6A, QuickPatch_ClientEventsFireWeaponMelee_Stub, HOOK_JUMP).install()->quick();
+    // Note that x64 passes the client events on to FireWeapon() and
+    // FireWeaponMelee() as tail calls, which is why these hooks are jumps.
+    //
+    g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
+    Utils::Hook(0x140194EBF, FireWeapon_Hk, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x140194EDA, FireWeaponMelee_Hk, HOOK_JUMP).install()->quick();
 
-    // Fix out-of-bounds crash at 0x42854A
+    // Fix out-of-bounds crash in the vehicle effects (0x14029A314)
     //
     // The problem here is that vehicle playerIndex is packed and transmitted
     // as a 5-bit field, which naturally allows for values up to 31 whereas the
@@ -331,40 +371,83 @@ namespace Components
     // may not fully resolve the problem depending on underlying conditions not
     // yet accounted for.
     //
-    Utils::Hook(0x428541, QuickPatch_VehicleFx_PlayerIndexCheck_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook::Nop(0x428546, 12);
-    Utils::Hook(0x679EA6, QuickPatch_VehicleCl_SetPlayerIndex_UpdateEntity_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook::Nop(0x679EAB, 1);
-    Utils::Hook(0x679E2C, QuickPatch_VehicleCl_SetPlayerIndex_ResetEntity_Stub, HOOK_JUMP).install()->quick();
-    Utils::Hook::Nop(0x679E31, 3);
+    Utils::Hook(0x14029A30D, QuickPatch_VehicleFx_PlayerIndexCheck_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x14029A312, 10);
+    Utils::Hook(0x140296DE8, QuickPatch_VehicleCl_SetPlayerIndex_UpdateEntity_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x140296DED, 9);
+    Utils::Hook(0x1402967AC, QuickPatch_VehicleCl_SetPlayerIndex_ResetEntity_Stub, HOOK_CALL).install()->quick();
+    Utils::Hook::Nop(0x1402967B1, 4);
 
-    // Fix crash when impact marks run out of room (0x5CC9D3)
-    Utils::Hook::Set<Game::FX_ImpactMarkCallback_t>(0x5CFDFA, QuickPatch::FX_ImpactMarkCallback_Hk);
+    // Fix crash when impact marks run out of room.
+    //
+    // Note that x64 has a second copy of the caller, which passes the
+    // callback as well.
+    //
+    for (const auto place : {0x140151E8C, 0x1401521D5})
+    {
+      Utils::Hook::Displace(place, 7, 0x140152570, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(place + 7, reinterpret_cast<void*>(QuickPatch::FX_ImpactMarkCallback_Hk))));
+    }
 
     // Add ultrawide support
-    Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
-    Utils::Hook(0x5063F3, QuickPatch_SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
+    Utils::Hook(0x14002FF75, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140031E8D, QuickPatch_SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
 
     // Disable fullscreen mode on first launch
-    Utils::Hook(0x4A6B14, QuickPatch::CL_InitRef_Hk, HOOK_CALL).install()->quick();
-    Utils::Hook(0x507443, QuickPatch::R_EnumDisplayModes_Hk, HOOK_CALL).install()->quick();
+    //
+    // Note that x64 inlines CL_InitRef() into CL_Vid_Restart_f(), so we hook
+    // both of the R_ConfigureRenderer() calls.
+    //
+    Utils::Hook(0x1400FBD1D, QuickPatch::CL_InitRef_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400FDE44, QuickPatch::CL_InitRef_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook(0x140032772, QuickPatch::R_EnumDisplayModes_Hk, HOOK_CALL).install()->quick();
 
-    Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
+    // x64 compiles out con_minicon along with the mini console, so we
+    // register it the way CG_RegisterDvars() does on x86 (see
+    // Game::Con_DrawMiniConsole()). As there, it defaults to on in debug
+    // builds.
+    //
+    Events::OnDvarInit([]
+    {
+#ifdef _DEBUG
+      constexpr auto value = true;
+#else
+      constexpr auto value = false;
+#endif
+      Game::con_minicon = Game::Dvar_RegisterBool("con_minicon", value, Game::DVAR_ARCHIVE, "Display the mini console on screen");
+    });
 
-    Utils::Hook::Set<void(*)(Game::XAssetHeader, void*)>(0x51FCDD, QuickPatch::R_AddImageToList_Hk);
+    // Note that x64 has two copies of the imagelist command's walk over the
+    // images.
+    //
+    for (const auto place : {0x1400382FD, 0x14003836C})
+    {
+      Utils::Hook::Displace(place, 7, 0x140037640, reinterpret_cast<uintptr_t>(Utils::Hook::Relay(place + 7, reinterpret_cast<void*>(QuickPatch::R_AddImageToList_Hk))));
+    }
 
-    Utils::Hook::Set<const char*>(0x41DB8C, "iw4x-sp.exe");
-    Utils::Hook(0x4D6989, QuickPatch::Sys_SpawnQuitProcess_Hk, HOOK_CALL).install()->quick();
+    Utils::Hook::PlaceString(0x1400FE0F0, 7, 0x140377EC8, "iw4x-sp.exe");
+    Utils::Hook(0x1402A3DBD, QuickPatch::Sys_SpawnQuitProcess_Hk, HOOK_CALL).install()->quick();
 
     // Fix crash as nullptr goes unchecked
-    Utils::Hook(0x437CAD, QuickPatch_SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
+    //
+    AssertSize(Game::snd_alias_t, 0x88);
+    Utils::Hook(0x14027F090, QuickPatch::SND_GetAliasOffset, HOOK_JUMP).install()->quick();
 
     // remove system pre-init stuff (improper quit, disk full)
-    Utils::Hook::Set<BYTE>(0x411350, 0xC3);
+    //
+    // Note that WinMain() only goes on if this returns nonzero. On x86 we
+    // leave that to whatever eax happens to hold, which apparently works
+    // out. Here we would rather not count on our luck, so we return 1.
+    //
+    Utils::Hook::Set<BYTE>(0x1402A2E00, 0xB8); // mov eax, 1
+    Utils::Hook::Set<DWORD>(0x1402A2E01, 1);
+    Utils::Hook::Set<BYTE>(0x1402A2E05, 0xC3); // ret
 
     // Don't delete config files if corrupted
-    Utils::Hook::Set<BYTE>(0x47DCB3, 0xEB);
-    Utils::Hook::Set<BYTE>(0x4402B6, 0);
+    //
+    // Note that on x86 we also clear a flag that the "Invalid external
+    // archiving" check sets, but x64 compiles that check out.
+    //
+    Utils::Hook::Set<BYTE>(0x1401F3EC6, 0xEB);
 
     // Don't offer to set optimal settings when the hardware seems to have
     // changed. The game compares it to what the config recorded, so it asks
@@ -372,148 +455,219 @@ namespace Components
     // ends up hidden behind the splash screen, which looks like a hang. Note
     // that the game still records the new hardware, we only skip asking.
     //
-    Utils::Hook::Set<DWORD>(0x64D346, 0xC3C032); // xor al, al; retn
+    // x64 inlines the prompt into the check, so we return false right where
+    // the prompt starts.
+    //
+    Utils::Hook::Set<DWORD>(0x1402A4056, 0x2EEBC030); // xor al, al; jmp 0x1402A4088
 
     // hopefully allow alt-tab during game, used at least in alt-enter handling
-    Utils::Hook::Set<DWORD>(0x45ACE0, 0xC301B0);
+    Utils::Hook::Set<BYTE>(0x1402A2B50, 0xB0); // mov al, 1
+    Utils::Hook::Set<BYTE>(0x1402A2B51, 1);
+    Utils::Hook::Set<BYTE>(0x1402A2B52, 0xC3); // ret
 
     // fs_basegame
-    Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
+    Utils::Hook::PlaceString(0x14027638F, 7, 0x1403C9110, BASEGAME);
 
     // window title
-    Utils::Hook::Set<const char*>(0x5076A0, "IW4x: Multiplayer");
+    Utils::Hook::PlaceString(0x140032832, 7, 0x1403DEBC0, "IW4x: Multiplayer");
 
     // sv_hostname
-    Utils::Hook::Set<const char*>(0x4D378B, "IW4Host");
+    Utils::Hook::PlaceString(0x14023897A, 7, 0x14039D290, "IW4Host");
 
     // console logo
-    Utils::Hook::Set<const char*>(0x428A66, BASEGAME "/images/logo.bmp");
+    Utils::Hook::PlaceString(0x1402A7CB5, 7, 0x1403A8A40, BASEGAME "/images/logo.bmp");
 
     // splash logo
-    Utils::Hook::Set<const char*>(0x475F9E, BASEGAME "/images/splash.bmp");
+    Utils::Hook::PlaceString(0x1402A6E87, 7, 0x1403A8978, BASEGAME "/images/splash.bmp");
 
     // Numerical ping (cg_scoreboardPingText 1)
-    Utils::Hook::Set<BYTE>(0x45888E, 1);
-    Utils::Hook::Set<BYTE>(0x45888C, Game::DVAR_CHEAT);
+    //
+    // Note that x64 passes the flags in all of r8d, so we register the dvar
+    // ourselves.
+    //
+    Utils::Hook(0x1400E56B4, QuickPatch::Dvar_RegisterScoreboardPingText, HOOK_CALL).install()->quick();
 
     // increase font sizes for chat on higher resolutions
-    static float float13 = 13.0f;
-    static float float10 = 10.0f;
-    Utils::Hook::Set<float*>(0x5814AE, &float13);
-    Utils::Hook::Set<float*>(0x5814C8, &float10);
+    constexpr auto float13 = 13.0f;
+    constexpr auto float10 = 10.0f;
+    Utils::Hook::PlaceData(0x1400D1322, 9, 0x1403E2CD4, &float13, sizeof(float13));
+    Utils::Hook::PlaceData(0x1400D134B, 9, 0x1403E2CD0, &float10, sizeof(float10));
 
     // Enable commandline arguments
-    Utils::Hook::Set<BYTE>(0x464AE4, 0xEB);
+    //
+    // Note that x64 inlines the check into Com_Init().
+    //
+    Utils::Hook::Set<BYTE>(0x1401F501E, 0xEB);
+
+    // x64 drops the connection to a server that sends no list of its iwds,
+    // as IW4x servers with sv_pure 0 do, with 'Server has modified files'.
+    // It also drops it if we lack one of the server's referenced iwds, or
+    // hold it in another version, with '<iwd> is different from the
+    // server'. x86 has neither check, and an x86 server references its own
+    // iwds, which an x64 client never has. Could we teach the check which
+    // iwds to ignore instead? Perhaps, but x86 gets by without it just fine,
+    // so we make the jumps past both errors unconditional (see also
+    // Compatibility).
+    //
+    Utils::Hook::Set<BYTE>(0x1401002B5, 0xEB); // CL_ParseGamestate
+    Utils::Hook::Set<BYTE>(0x1400F88D1, 0xEB); // CL_ParseGamestate (its iwd check)
 
     // remove limit on IWD file loading
-    Utils::Hook::Set<BYTE>(0x642BF3, 0xEB);
+    Utils::Hook::Nop(0x14027338F, 2);
+
+    // x64 also only loads an iwd that isn't localized if it's named
+    // iw_NN.iwd with NN at most 23. Presumably that's how the later revision
+    // keeps stray iwds out, but x86 doesn't check it, and the check would
+    // leave out all of ours. So we jump over it, straight to where the iwd
+    // gets loaded.
+    //
+    Utils::Hook::Set<BYTE>(0x14027357F, 0xEB); // jmp 0x1402735FD
+    Utils::Hook::Set<BYTE>(0x140273580, 0x1402735FD - (0x14027357F + 2));
 
     // Fix stats sleeping
-    Utils::Hook::Set<BYTE>(0x6832BA, 0xEB);
-    Utils::Hook::Set<BYTE>(0x4BD190, 0xC3);
+    //
+    // On x86 we return from the DNS lookup of the stats server. x64 inlines
+    // the frame that follows it into the lookup, so we skip to that instead.
+    //
+    Utils::Hook::Set<BYTE>(0x14024B307, 0xEB);
+    Utils::Hook(0x1401ADD54, 0x1401ADEC8, HOOK_JUMP).install()->quick();
 
-    // remove 'impure stats' checking
-    Utils::Hook::Set<BYTE>(0x4BB250, 0x33);
-    Utils::Hook::Set<BYTE>(0x4BB251, 0xC0);
-    Utils::Hook::Set<DWORD>(0x4BB252, 0xC3909090);
+    // Note that on x86 we also remove the 'impure stats' check, which x64
+    // compiles out. And there we remove the activeAction execution and the
+    // bind protection, neither of which x64 has.
+    //
 
-    // default sv_pure to 0
-    Utils::Hook::Set<BYTE>(0x4D3A74, 0);
-
-    // remove activeAction execution (exploit in mods)
-    Utils::Hook::Set<BYTE>(0x5A1D43, 0xEB);
-
-    // disable bind protection
-    Utils::Hook::Set<BYTE>(0x4DACA2, 0xEB);
-
-    // require Windows 6 (Vista)
-    Utils::Hook::Set<BYTE>(0x467ADF, 6);
-    Utils::Hook::Set<char>(0x6DF5D6, '6');
-
-    // disable 'ignoring asset' notices
-    Utils::Hook::Nop(0x5BB902, 5);
-
-    // disable migration_dvarErrors
-    Utils::Hook::Set<BYTE>(0x60BDA7, 0);
-
-    // allow joining 'developer 1' servers
-    Utils::Hook::Set<BYTE>(0x478BA2, 0xEB);
-
-    // fs_game fixes
-    Utils::Hook::Set<BYTE>(0x4081FD, 0xEB); // defaultweapon
-
-    // filesystem init default_mp.cfg check
-    Utils::Hook::Nop(0x461A9E, 5);
-    Utils::Hook::Nop(0x461AAA, 5);
-    Utils::Hook::Set<BYTE>(0x461AB4, 0xEB);
-
-    // vid_restart when ingame
-    Utils::Hook::Nop(0x4CA1FA, 6);
-
-    // Filter log (initially com_logFilter, but I don't see why that dvar print is needed)
-    // Seems like it's needed for B3, so there is a separate handling for dedicated servers in Dedicated.cpp
-    if (!Dedicated::IsEnabled())
+    // Bring back sv_pure, defaulting to 0 the same as on x86.
+    //
+    // x64 compiles the dvar out but not the checks, which now read a
+    // constant 1 through a pointer (0x140423E48), so every server is pure.
+    // A pure server lists its iwds and drops any client that references an
+    // iwd outside the list (EXE_UNPURECLIENTDETECTED). And since reading a
+    // file other than a .cfg, .menu, and the like from one of our iwds counts
+    // as referencing it, which the raw weapon files do, even the host's own
+    // client of a private match ends up dropped. So we register the dvar the
+    // way x86 does and point the game at its value instead.
+    //
+    // Note that the pointer at 0x14041F030 refers to the same constant, but
+    // as far as we can tell it's another folded dvar that merely happens to
+    // be 1 as well, so we leave it alone.
+    //
     {
-      Utils::Hook::Nop(0x647466, 5); // 'dvar set' lines
-      Utils::Hook::Nop(0x5DF4F2, 5); // 'sending splash open' lines
+      auto* sv_pure (Dvar::Register<bool>("sv_pure", false, Game::DVAR_CODINFO | Game::DVAR_SERVERINFO, "Cannot use modified IWD files").get<Game::dvar_t*>());
+      Utils::Hook::Set<bool*>(0x140423E48, &sv_pure->current.enabled);
     }
 
+    // require Windows 6 (Vista)
+    Utils::Hook::Set<BYTE>(0x1402A3B1B, 6);
+    Utils::Hook::Set<char>(0x1403A8496, '6');
+
+    // Note that on x86 we also disable the 'ignoring asset' notices, which
+    // x64 doesn't print in the first place.
+    //
+
+    // disable migration_dvarErrors
+    Utils::Hook::Set<BYTE>(0x1401F552E, 0);
+
+    // allow joining 'developer 1' servers
+    Utils::Hook::Set<BYTE>(0x140196156, 0xEB);
+
+    // fs_game fixes
+    //
+    // Note that on x86 we make G_GetWeaponIndexForName() load the weapons
+    // from the fastfiles with fs_game set too, where the game would load
+    // them from the raw files. x64 has no raw file loading for them and
+    // always does so in BG_GetWeaponIndexForName().
+    //
+
+    // filesystem init default_mp.cfg check
+    Utils::Hook::Nop(0x1402765E5, 5);
+    Utils::Hook::Nop(0x1402765F6, 5);
+    Utils::Hook::Set<WORD>(0x1402765FD, 0xE990);
+
+    // vid_restart when ingame
+    Utils::Hook::Nop(0x1400FDB85, 6);
+
+    // Note that on x86 we also filter the 'dvar set' and 'sending splash
+    // open' lines out of the log, which x64 compiles out.
+    //
+
     // intro stuff
-    Utils::Hook::Nop(0x60BEE9, 5); // Don't show legals
-    Utils::Hook::Nop(0x60BEF6, 5); // Don't reset the intro dvar
-    Utils::Hook::Set<const char*>(0x60BED2, "cinematic IW_logo\n");
-    Utils::Hook::Set<const char*>(0x51C2A4, "%s/" BASEGAME "/video/%s.bik");
-    Utils::Hook::Set<DWORD>(0x51C2C2, 0x78A0AC);
+    Utils::Hook::Nop(0x1401F568B, 5); // Don't show legals
+    Utils::Hook::Nop(0x1401F5699, 5); // Don't reset the intro dvar
+    Utils::Hook::Displace(0x1401F566F, 7, 0x14038B2E0, 0x14038B2E4); // "cinematic IW_logo\n"
+    Utils::Hook::PlaceString(0x140035C6C, 7, 0x1403DED28, "%s/" BASEGAME "/video/%s.bik");
+    Utils::Hook::Displace(0x140035CAA, 7, 0x1403DED40, 0x1403DED28);
 
     // Redirect logs
-    Utils::Hook::Set<const char*>(0x5E44D8, "logs/games_mp.log");
-    Utils::Hook::Set<const char*>(0x60A90C, "logs/console_mp.log");
-    Utils::Hook::Set<const char*>(0x60A918, "logs/console_mp.log");
+    //
+    // Note that x64 compiles out the console log, which we bring back in its
+    // place (see Game::Com_PrintMessage()).
+    //
+    Utils::Hook::PlaceString(0x14019D8FD, 7, 0x140386E68, "logs/games_mp.log");
+    Game::logFileName = "logs/console_mp.log";
 
     // Rename config
-    Utils::Hook::Set<const char*>(0x461B4B, CLIENT_CONFIG);
-    Utils::Hook::Set<const char*>(0x47DCBB, CLIENT_CONFIG);
-    Utils::Hook::Set<const char*>(0x6098F8, CLIENT_CONFIG);
-    Utils::Hook::Set<const char*>(0x60B279, CLIENT_CONFIG);
-    Utils::Hook::Set<const char*>(0x60BBD4, CLIENT_CONFIG);
+    for (const auto place : {0x1401E7216, 0x1401F3ECF, 0x1401F3F4C, 0x1401F51A7, 0x1402766A7})
+    {
+      Utils::Hook::PlaceString(place, 7, 0x14038ABB0, CLIENT_CONFIG);
+    }
 
     // Disable profile system
-//      Utils::Hook::Nop(0x60BEB1, 5); // GamerProfile_InitAllProfiles - Causes an error, when calling a harrier killstreak.
-//      Utils::Hook::Nop(0x60BEB8, 5); // GamerProfile_LogInProfile
-//      Utils::Hook::Nop(0x4059EA, 5); // GamerProfile_RegisterCommands
-    Utils::Hook::Nop(0x4059EF, 5); // GamerProfile_RegisterDvars
-    Utils::Hook::Nop(0x47DF9A, 5); // GamerProfile_UpdateSystemDvars
-    Utils::Hook::Set<BYTE>(0x5AF0D0, 0xC3); // GamerProfile_SaveProfile
-    Utils::Hook::Set<BYTE>(0x4E6870, 0xC3); // GamerProfile_UpdateSystemVarsFromProfile
-    Utils::Hook::Set<BYTE>(0x4C37F0, 0xC3); // GamerProfile_UpdateProfileAndSaveIfNeeded
-    Utils::Hook::Set<BYTE>(0x633CA0, 0xC3); // GamerProfile_SetPercentCompleteMP
+    //
+    // Note that on x86 the patch for GamerProfile_SetPercentCompleteMP is
+    // really at the fadein menu script handler, which we patch the same way.
+    // The label looks like a mistake, but we kept the patch rather than
+    // guess.
+    //
+    // @@ That presumably meant 0x450A80 (0x1400F15B0 on x64), which only
+    //    saves through GamerProfile_SaveProfile.
+    //
+    Utils::Hook::Nop(0x1400FBC10, 5); // GamerProfile_RegisterDvars
+    Utils::Hook::Nop(0x1401F439A, 5); // GamerProfile_UpdateSystemDvars
+    Utils::Hook::Set<BYTE>(0x1400F1190, 0xC3); // GamerProfile_SaveProfile
+    Utils::Hook::Set<BYTE>(0x1400F1820, 0xC3); // GamerProfile_UpdateSystemVarsFromProfile
+    Utils::Hook::Set<BYTE>(0x1400F0CD0, 0xC3); // GamerProfile_UpdateProfileAndSaveIfNeeded
+    Utils::Hook::Set<BYTE>(0x14025AC60, 0xC3); // fadein
 
-    Utils::Hook::Nop(0x5AF1EC, 5); // Profile loading error
-    Utils::Hook::Set<BYTE>(0x5AE212, 0xC3); // Profile reading
+    // Profile reading
+    //
+    // x64 inlines the reading into GamerProfile_LogInProfile() and doesn't
+    // print its error. On x86 the reading fails, which marks the profile as
+    // unread and skips parsing it. So we do the same by hand and skip to
+    // where it leaves the critical section. Messing with a critical section
+    // like this feels a bit risky, which is why we make sure to still leave
+    // it.
+    //
+    Utils::Hook::Set<DWORD>(0x1400F0B81, 0x0146C641); // mov byte ptr [r14+1], 1
+    Utils::Hook::Set<BYTE>(0x1400F0B85, 1);
+    Utils::Hook(0x1400F0B86, 0x1400F0C73, HOOK_JUMP).install()->quick();
 
     // GamerProfile_RegisterCommands
-    // Some random function used as nullsub :P
-    Utils::Hook::Set<DWORD>(0x45B868, 0x5188FB); // profile_menuDvarsSetup
-    Utils::Hook::Set<DWORD>(0x45B87E, 0x5188FB); // profile_menuDvarsFinish
-    Utils::Hook::Set<DWORD>(0x45B894, 0x5188FB); // profile_toggleInvertedPitch
-    Utils::Hook::Set<DWORD>(0x45B8AA, 0x5188FB); // profile_setViewSensitivity
-    Utils::Hook::Set<DWORD>(0x45B8C3, 0x5188FB); // profile_setButtonsConfig
-    Utils::Hook::Set<DWORD>(0x45B8D9, 0x5188FB); // profile_setSticksConfig
-    Utils::Hook::Set<DWORD>(0x45B8EF, 0x5188FB); // profile_toggleAutoAim
-    Utils::Hook::Set<DWORD>(0x45B905, 0x5188FB); // profile_SetHasEverPlayed_MainMenu
-    Utils::Hook::Set<DWORD>(0x45B91E, 0x5188FB); // profile_SetHasEverPlayed_SP
-    Utils::Hook::Set<DWORD>(0x45B934, 0x5188FB); // profile_SetHasEverPlayed_SO
-    Utils::Hook::Set<DWORD>(0x45B94A, 0x5188FB); // profile_SetHasEverPlayed_MP
-    Utils::Hook::Set<DWORD>(0x45B960, 0x5188FB); // profile_setVolume
-    Utils::Hook::Set<DWORD>(0x45B979, 0x5188FB); // profile_setGamma
-    Utils::Hook::Set<DWORD>(0x45B98F, 0x5188FB); // profile_setBlacklevel
-    Utils::Hook::Set<DWORD>(0x45B9A5, 0x5188FB); // profile_toggleCanSkipOffensiveMissions
+    //
+    // Note that x64 has 10 of the 15 profile commands, which we point at
+    // nullsub_1.
+    //
+    for (const auto& [place, handler] : {std::pair{0x1400F0F6B, 0x1400F0D40}, // profile_menuDvarsSetup
+                                         std::pair{0x1400F0F85, 0x1400F0CD0}, // profile_menuDvarsFinish
+                                         std::pair{0x1400F0F9F, 0x1400F1870}, // profile_toggleInvertedPitch
+                                         std::pair{0x1400F0FB9, 0x1400F2100}, // profile_setViewSensitivity
+                                         std::pair{0x1400F0FD3, 0x1400F2060}, // profile_setButtonsConfig
+                                         std::pair{0x1400F0FED, 0x1400F20C0}, // profile_setSticksConfig
+                                         std::pair{0x1400F1007, 0x1400F03D0}, // profile_toggleAutoAim
+                                         std::pair{0x1400F1021, 0x1400F20A0}, // profile_SetHasEverPlayed_MainMenu
+                                         std::pair{0x1400F103B, 0x1400F2160}, // profile_setVolume
+                                         std::pair{0x1400F1055, 0x1400F21D0}}) // profile_toggleCanSkipOffensiveMissions
+    {
+      Utils::Hook::Displace(place, 7, handler, 0x140080E30);
+    }
 
     // Patch SV_IsClientUsingOnlineStatsOffline
-    Utils::Hook::Set<DWORD>(0x46B710, 0x90C3C033);
+    Utils::Hook::Set<BYTE>(0x140236F00, 0x33); // xor eax, eax
+    Utils::Hook::Set<BYTE>(0x140236F01, 0xC0);
+    Utils::Hook::Set<BYTE>(0x140236F02, 0xC3); // ret
 
     // Fix mouse lag
-    Utils::Hook::Nop(0x4731F5, 8);
+    Utils::Hook::Nop(0x1402A90C8, 6);
     Scheduler::Loop([]
     {
       SetThreadExecutionState(ES_DISPLAY_REQUIRED);
@@ -535,178 +689,19 @@ namespace Components
 
     Command::Add("unlockstats", QuickPatch::UnlockStats);
 
-    Command::Add("dumptechsets", [](const Command::Params* param)
+    // The x64 build doesn't register quit (not sure why, the string is gone
+    // too). Com_Quit_f() itself is still there, so we bring the command back
+    // as x86 has it.
+    //
+    Command::Add("quit", []
     {
-      if (param->size() != 2)
-      {
-        Logger::Print("usage: dumptechsets <fastfile> | all\n");
-        return;
-      }
-
-      std::vector<std::string> fastFiles;
-      if (std::strcmp(param->get(1), "all") == 0)
-      {
-        for (const auto* group : {"english", "dlc", "patch"})
-        {
-          const auto directory = ZoneConvert::SearchPath(group);
-
-          if (!Utils::IO::DirectoryExists(directory))
-            continue;
-
-          for (const auto& entry : Utils::IO::ListFiles(directory, false))
-          {
-            if (entry.path().extension() == ".ff")
-              fastFiles.emplace_back(entry.path().stem().string());
-          }
-        }
-      }
-      else
-      {
-        fastFiles.emplace_back(param->get(1));
-      }
-
-      auto count = 0;
-
-      // Install the hook once and only act while a dump is running, so that
-      // fastfiles loaded later (e.g., downloaded mods or usermaps) never reach
-      // it. Ideally we would disconnect it instead, but Signal::disconnect()
-      // can't tell lambda slots apart.
-      //
-      static auto dumpActive = false;
-      static auto hookInstalled = false;
-
-      if (!hookInstalled)
-      {
-        hookInstalled = true;
-        AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
-        {
-          if (!dumpActive)
-          {
-            return;
-          }
-
-          // they're basically the same right?
-          if (type == Game::ASSET_TYPE_PIXELSHADER || type == Game::ASSET_TYPE_VERTEXSHADER)
-          {
-            // Make sure the name can't take us out of the dump directory. It
-            // comes straight from the fastfile.
-            //
-            if (name.empty() || name.find("..") != std::string::npos || name.find_first_of(":/\\") != std::string::npos)
-            {
-              Logger::Print("Skipping shader with invalid name '{}'\n", name);
-              return;
-            }
-
-            Utils::IO::CreateDir("userraw/shader_bin");
-
-            const auto* extension = (type == Game::ASSET_TYPE_PIXELSHADER) ? "ps" : "vs";
-            const auto path = std::format("userraw/shader_bin/{}.{}", name, extension);
-            if (Utils::IO::FileExists(path)) return;
-
-            Utils::Stream buffer(0x1000);
-            auto* dest = buffer.dest<Game::MaterialPixelShader>();
-            buffer.save(asset.pixelShader);
-
-            if (asset.pixelShader->prog.loadDef.program)
-            {
-              buffer.saveArray(asset.pixelShader->prog.loadDef.program, asset.pixelShader->prog.loadDef.programSize);
-              Utils::Stream::ClearPointer(&dest->prog.loadDef.program);
-            }
-
-            Utils::IO::WriteFile(path, buffer.toBuffer());
-          }
-
-          if (type == Game::ASSET_TYPE_TECHNIQUE_SET)
-          {
-            Utils::IO::CreateDir("userraw/techsets");
-            Utils::Stream buffer(0x1000);
-            auto* dest = buffer.dest<Game::MaterialTechniqueSet>();
-            buffer.save(asset.techniqueSet);
-
-            if (asset.techniqueSet->name)
-            {
-              buffer.saveString(asset.techniqueSet->name);
-              Utils::Stream::ClearPointer(&dest->name);
-            }
-
-            for (std::size_t i = 0; i < ARRAYSIZE(Game::MaterialTechniqueSet::techniques); ++i)
-            {
-              auto* technique = asset.techniqueSet->techniques[i];
-
-              if (technique)
-              {
-                // Size-check is obsolete, as the structure is dynamic
-                buffer.align(Utils::Stream::ALIGN_4);
-
-                auto* destTechnique = buffer.dest<Game::MaterialTechnique>();
-                buffer.save(technique, 8);
-
-                // Save_MaterialPassArray
-                auto* destPasses = buffer.dest<Game::MaterialPass>();
-                buffer.saveArray(technique->passArray, technique->passCount);
-
-                for (std::uint16_t j = 0; j < technique->passCount; ++j)
-                {
-                  AssertSize(Game::MaterialPass, 20);
-
-                  Game::MaterialPass* destPass = &destPasses[j];
-                  Game::MaterialPass* pass = &technique->passArray[j];
-
-                  if (pass->vertexDecl)
-                  {
-
-                  }
-
-                  if (pass->args)
-                  {
-                    buffer.align(Utils::Stream::ALIGN_4);
-                    buffer.saveArray(pass->args, pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount);
-                    Utils::Stream::ClearPointer(&destPass->args);
-                  }
-                }
-
-                if (technique->name)
-                {
-                  buffer.saveString(technique->name);
-                  Utils::Stream::ClearPointer(&destTechnique->name);
-                }
-
-                Utils::Stream::ClearPointer(&dest->techniques[i]);
-              }
-            }
-          }
-        });
-      }
-
-      dumpActive = true;
-
-      for (const auto& fastFile : fastFiles)
-      {
-        if (!Game::DB_IsZoneLoaded(fastFile.data()))
-        {
-          Game::XZoneInfo info;
-          info.name = fastFile.data();
-          info.allocFlags = 0x20;
-          info.freeFlags = 0;
-
-          Game::DB_LoadXAssets(&info, 1, true);
-        }
-
-        // unload the fastfiles so we don't run out of memory or asset pools
-        if (count % 5)
-        {
-          Game::XZoneInfo info;
-          info.name = nullptr;
-          info.allocFlags = 0x0;
-          info.freeFlags = 0x20;
-          Game::DB_LoadXAssets(&info, 1, true);
-        }
-
-        count++;
-      }
-
-      dumpActive = false;
+      Game::Com_Quit_f();
     });
+
+    // Note that on x86 we also have the dumptechsets command, which writes
+    // the shaders and techsets in the x86 zone layout for ZoneBuilder. The
+    // x64 build doesn't have ZoneBuilder.
+    //
 
 #ifdef DEBUG_MAT_LOG
     AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& /*name*/, bool* /*restrict*/)
@@ -731,23 +726,31 @@ namespace Components
     //Utils::Hook::Set<bool>(0x6312E0, true);
 
     // developer 2
-    Utils::Hook::Set<BYTE>(0x4FA425, 2);
-    Utils::Hook::Set<BYTE>(0x51B087, 2);
-    Utils::Hook::Set<BYTE>(0x60AE13, 2);
+    //
+    // Note that x64 has the default value in all of edx, so we register the
+    // dvars ourselves.
+    //
+    Utils::Hook(0x14002FE74, QuickPatch::Dvar_RegisterDeveloper, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1400D8EC2, QuickPatch::Dvar_RegisterDeveloper, HOOK_CALL).install()->quick();
+    Utils::Hook(0x1401F4A2A, QuickPatch::Dvar_RegisterDeveloper, HOOK_CALL).install()->quick();
 
     // developer_Script 1
-    Utils::Hook::Set<bool>(0x60AE2B, true);
+    Utils::Hook(0x1401F4A49, QuickPatch::Dvar_RegisterDeveloperScript, HOOK_CALL).install()->quick();
 
     // Disable cheat protection for dvars
-    Utils::Hook::Set<BYTE>(0x646515, 0xEB); // Dvar_IsCheatProtected
+    //
+    // Note that x64 inlines Dvar_IsCheatProtected() into Dvar_SetVariant().
+    //
+    Utils::Hook::Set<BYTE>(0x1402860CF, 0xEB);
 #else
-    // Remove missing tag message
-    Utils::Hook::Nop(0x4EBF1A, 5);
+    // Note that on x86 we also remove the missing tag message, which x64
+    // compiles out.
+    //
 #endif
 
     if (Flags::HasFlag("nointro"))
     {
-      Utils::Hook::Set<BYTE>(0x60BECF, 0xEB);
+      Utils::Hook::Set<BYTE>(0x1401F566D, 0xEB);
     }
   }
 }

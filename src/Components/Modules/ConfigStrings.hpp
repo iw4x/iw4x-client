@@ -1,30 +1,46 @@
 #pragma once
 
-extern "C"
-{
-  void ConfigStrings_CG_ParseConfigStrings();
-
-  int ConfigStrings_CG_ParseExtraConfigStrings();
-}
-
 #include "Weapon.hpp"
 #include "ModelCache.hpp"
-#include "Controller.hpp"
 
 namespace Components
 {
   class ConfigStrings : public Component
   {
   public:
+    // Our configstrings past the game's. A client and a server refer to
+    // configstrings by index, and either of them can be x86, so we lay ours
+    // out exactly the way x86 does.
+    //
+    // As it happens, that works out nicely for the weapons. x86 starts its
+    // extra weapons at its own end (4139), and x64 already keeps its weapons
+    // 1200 to 1399 from that very index (CS_WEAPONFILES_EXTRA). So we just let
+    // the weapons carry on from there past the game's end, followed by the
+    // extra models and then the rumbles.
+    //
+    // Note that the rumbles start one past the end of the models
+    // (EXTRA_MODELCACHE_LAST is already one past the last model). That looks
+    // like an off-by-one, but it's what x86 does, so we keep it.
+    //
     static const int BASEGAME_MAX_CONFIGSTRINGS = Game::MAX_CONFIGSTRINGS;
-    static const int MAX_CONFIGSTRINGS =
-      (BASEGAME_MAX_CONFIGSTRINGS
-        + Weapon::ADDED_WEAPONS
-        + ModelCache::ADDITIONAL_GMODELS
-        + Controller::RUMBLE_CONFIGSTRINGS_COUNT
-      );
 
-    static_assert(MAX_CONFIGSTRINGS < USHRT_MAX);
+    static const int EXTRA_WEAPONS_FIRST = Game::CS_WEAPONFILES_EXTRA;
+    static const int EXTRA_WEAPONS_LAST = EXTRA_WEAPONS_FIRST + Weapon::WEAPON_LIMIT - Weapon::EXTRA_CONFIGSTRING_WEAPONS_FIRST - 1;
+
+    static const int EXTRA_MODELCACHE_FIRST = EXTRA_WEAPONS_LAST + 1;
+    static const int EXTRA_MODELCACHE_LAST = EXTRA_MODELCACHE_FIRST + ModelCache::ADDITIONAL_GMODELS;
+
+    static const int RUMBLE_CONFIGSTRINGS_COUNT = 32;
+    static const int RUMBLE_FIRST = EXTRA_MODELCACHE_LAST + 1;
+    static const int RUMBLE_LAST = RUMBLE_FIRST + RUMBLE_CONFIGSTRINGS_COUNT - 1;
+
+    static const int MAX_CONFIGSTRINGS = EXTRA_MODELCACHE_FIRST + ModelCache::ADDITIONAL_GMODELS + RUMBLE_CONFIGSTRINGS_COUNT;
+
+    static_assert(EXTRA_WEAPONS_LAST > Game::CS_WEAPONFILES_EXTRA_LAST);
+
+    // The gamestate sends an index in 13 bits (see SV_SendClientGameState()).
+    //
+    static_assert(MAX_CONFIGSTRINGS <= 1 << 13);
 
     ConfigStrings();
 
@@ -36,23 +52,26 @@ namespace Components
     static void SV_SetRumbleConfigString(int index, const char* data);
 
   private:
-    friend int (::ConfigStrings_CG_ParseExtraConfigStrings)();
-
     static void PatchConfigStrings();
 
-    static void SV_SetConfigString(int index, const char* data, Game::ConfigString basegameLastPosition, int extendedFirstPosition);
+    // Get or set the configstring of a model or weapon, mapping the ones past
+    // the game's to our extra configstrings that follow them.
+    //
     static unsigned int SV_GetConfigString(int index, Game::ConfigString basegameLastPosition, int extendedFirstPosition);
+    static void SV_SetConfigString(int index, const char* data, Game::ConfigString basegameLastPosition, int extendedFirstPosition);
     static const char* CL_GetConfigString(int index, Game::ConfigString basegameLastPosition, int extendedFirstPosition);
 
-    static const char* CL_GetCachedModelConfigString(int index);
-    static int SV_GetCachedModelConfigStringConst(int index);
+    static unsigned int SV_GetCachedModelConfigStringConst(int index);
     static void SV_SetCachedModelConfigString(int index, const char* data);
+    static const char* CL_GetCachedModelConfigString(int index);
 
-    static const char* CL_GetWeaponConfigString(int index);
-    static int SV_GetWeaponConfigStringConst(int index);
-    static void SV_SetWeaponConfigString(int index, const char* data);
+    // Handle a change of one of our extra configstrings, which the game knows
+    // nothing about. Return true if we handled it and false to leave it to the
+    // game.
+    //
+    static bool CG_ParseExtraConfigStrings();
+    static void CG_ConfigStringModified_Hk(int localClientNum);
 
-    static int CG_ParseExtraConfigStrings();
-    static int SV_ClearConfigStrings(void* dest, int value, int size);
+    static void* SV_ClearServer(void* dest, int value, size_t size);
   };
 }

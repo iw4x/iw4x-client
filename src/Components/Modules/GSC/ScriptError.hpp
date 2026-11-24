@@ -2,10 +2,9 @@
 
 extern "C"
 {
-  void ScriptError_EmitThreadInternal_Stub();
+  void ScriptError_VM_ErrorStub();
 
-  void ScriptError_AddThreadStartOpcodePos(unsigned int sourcePos);
-  void ScriptError_RecordThreadStart(const Game::sval_u* node);
+  void ScriptError_VM_Error(const char* codePos);
 }
 
 namespace Components::GSC
@@ -30,10 +29,14 @@ namespace Components::GSC
     //
     static std::string DescribeCodePos (const char* pos);
 
-  private:
-    friend void (::ScriptError_AddThreadStartOpcodePos)(unsigned int sourcePos);
-    friend void (::ScriptError_RecordThreadStart)(const Game::sval_u* node);
+    static void VM_Error(const char* codePos);
 
+    // Print the source position of the code position. On x86 this replaces
+    // the game's own function, which x64 doesn't have.
+    //
+    static void Scr_PrintPrevCodePos(int channel, const char* codePos, unsigned int index);
+
+  private:
     struct ThreadStart
     {
       const char* pos;
@@ -60,7 +63,6 @@ namespace Components::GSC
     static void Scr_CopyFormattedLine(char* line, const char* rawLine);
     static int Scr_GetLineNumInternal(const char* buf, unsigned int sourcePos, const char** startLine, int* col, Game::SourceBufferInfo* binfo);
     static unsigned int Scr_GetSourceBuffer(const char* codePos);
-    static void Scr_PrintPrevCodePos(int channel, const char* codePos, unsigned int index);
     static int Scr_GetLineInfo(const char* buf, unsigned int sourcePos, int* col, char* line, Game::SourceBufferInfo* binfo);
     static void Scr_PrintSourcePos(int channel, const char* filename, const char* buf, unsigned int sourcePos);
 
@@ -80,9 +82,11 @@ namespace Components::GSC
     static char* Scr_ReadFile_LoadObj(const char* filename, const char* extFilename, const char* codePos, bool archive);
     static char* Scr_ReadFile(const char* filename, const char* extFilename, const char* codePos, bool archive);
     static char* Scr_AddSourceBuffer(const char* filename, const char* extFilename, const char* codePos, bool archive);
-    static unsigned int Scr_LoadScriptInternal_Hk(const char* filename, Game::PrecacheEntry* entries, int entriesCount);
+    static void EmitThreadInternal_Hk(void* node, unsigned int sourcePos, void* a3, void* a4);
+    static inline void (*EmitThreadInternal_Original)(void* node, unsigned int sourcePos, void* a3, void* a4);
 
-    static void Scr_Settings_Hk(int developer, int developer_script, int abort_on_error);
+    static unsigned int Scr_LoadScriptInternal_Hk(const char* filename, Game::PrecacheEntry* entries, int entriesCount);
+    static unsigned int Scr_LoadScript_Hk(const char* filename);
 
     static void MT_Reset_Stub();
     static void SL_ShutdownSystem_Stub(unsigned int user);
