@@ -589,7 +589,7 @@ namespace Components
 
     auto* weapEnt = Game::G_Spawn();
     std::memcpy(weapEnt->r.currentOrigin, ent->r.currentOrigin, sizeof(std::float_t[3]));
-    Game::G_GetItemClassname(static_cast<int>(weaponIndex), weapEnt);
+    Game::G_GetItemClassname(weapEnt, static_cast<int>(weaponIndex));
     Game::G_SpawnItem(weapEnt, static_cast<int>(weaponIndex));
 
     weapEnt->active = 1;
