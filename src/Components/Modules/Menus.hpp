@@ -40,6 +40,12 @@ namespace Components
 
     static std::vector<std::string> CustomIW4xMenus;
 
+    // Whether we last reloaded the menus with the mod's fastfile loaded, and
+    // whether the UI is up to begin with.
+    //
+    static bool ReloadedWithModZone;
+    static bool UIInitialized;
+
     static Utils::Memory::Allocator Allocator;
 
     static bool MenuAlreadyExists(const std::string& name);

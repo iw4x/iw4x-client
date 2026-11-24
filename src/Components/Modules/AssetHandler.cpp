@@ -153,8 +153,14 @@ namespace Components
 
     // Only let mod.ff replace these
     //
+    // Menus are among them since the stock UI zones that have most of the
+    // menus a mod would want to replace (localized_ui_mp has main_text, for
+    // one) have a higher priority than mod.ff, so its menus would otherwise
+    // only ever end up behind theirs.
+    //
     case Game::ASSET_TYPE_STRINGTABLE:
     case Game::ASSET_TYPE_STRUCTURED_DATA_DEF:
+    case Game::ASSET_TYPE_MENU:
       return FastFiles::Current() == "mod";
 
     // Our localized zone loads after the stock ones and is there to replace
