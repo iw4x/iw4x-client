@@ -589,7 +589,7 @@ namespace Components
 
     auto* weapEnt = Game::G_Spawn();
     std::memcpy(weapEnt->r.currentOrigin, ent->r.currentOrigin, sizeof(std::float_t[3]));
-    Game::G_GetItemClassname(static_cast<int>(weaponIndex), weapEnt);
+    G_GetItemClassname(static_cast<int>(weaponIndex), weapEnt);
     Game::G_SpawnItem(weapEnt, static_cast<int>(weaponIndex));
 
     weapEnt->active = 1;
@@ -694,6 +694,21 @@ namespace Components
         break;
       }
     }
+  }
+
+  // On x86 we call the game's G_GetItemClassname() (0x492630), but x64 has no
+  // copy of it: it is inlined into the weapon drop at 0x14016C2E0, which spawns
+  // an entity of its own. So we do what x86 does here, splitting the item by
+  // our weapon limit since Weapon patches the game to split it that way.
+  //
+  void ClientCommand::G_GetItemClassname(const int item, Game::gentity_s* ent)
+  {
+    char classname[256];
+    Game::Com_sprintf(classname, sizeof(classname), "weapon_%s",
+      Game::BG_GetWeaponName(static_cast<unsigned int>(item % Weapon::WEAPON_LIMIT)));
+
+    Game::G_SetString(&ent->script_classname, classname);
+    Game::G_SetString(&ent->classname, classname);
   }
 
   bool ClientCommand::HasGiveAll(const Game::playerState_s* ps)

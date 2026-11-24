@@ -53,6 +53,7 @@ namespace Components
     static void GiveMaxAmmo(Game::gentity_s* ent);
     static void GiveAllWeapons(Game::gentity_s* ent);
     static void SetOffhandClass(Game::gentity_s* ent, unsigned int weaponIndex);
+    static void G_GetItemClassname(int item, Game::gentity_s* ent);
 
     enum class GiveAllSource
     {

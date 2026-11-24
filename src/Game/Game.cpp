@@ -11,7 +11,7 @@ namespace Game
   G_SpawnItem_t G_SpawnItem = G_SpawnItem_t(0x14016D530);
   G_TempEntity_t G_TempEntity = G_TempEntity_t(0x1401AC800);
   G_AddEvent_t G_AddEvent = G_AddEvent_t(0x1401AA250);
-  G_GetItemClassname_t G_GetItemClassname = G_GetItemClassname_t(0x14016C2E0);
+  G_SetString_t G_SetString = G_SetString_t(0x1401AC220);
 
   G_LocalizedStringIndex_t G_LocalizedStringIndex = G_LocalizedStringIndex_t(0x1401ABD60);
 

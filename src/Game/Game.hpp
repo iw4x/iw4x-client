@@ -50,8 +50,8 @@ namespace Game
   typedef void(*G_SpawnItem_t)(gentity_s* ent, int item);
   extern G_SpawnItem_t G_SpawnItem;
 
-  typedef void(*G_GetItemClassname_t)(int item, gentity_s* ent);
-  extern G_GetItemClassname_t G_GetItemClassname;
+  typedef void(*G_SetString_t)(scr_string_t* to, const char* from);
+  extern G_SetString_t G_SetString;
 
   typedef int(*G_LocalizedStringIndex_t)(const char* string);
   extern G_LocalizedStringIndex_t G_LocalizedStringIndex;
