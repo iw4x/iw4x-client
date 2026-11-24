@@ -1,4 +1,5 @@
 #include "FastFiles.hpp"
+#include "Events.hpp"
 #include "Maps.hpp"
 #include "Renderer.hpp"
 #include "Sentry.hpp"
@@ -24,6 +25,8 @@ namespace Components
 
   std::atomic<unsigned int> FastFiles::CurrentZone;
   std::atomic<unsigned int> FastFiles::MaxZones;
+
+  std::atomic<int> FastFiles::ModZone = -1;
 
   // This has to be called only once, when the game starts
   void FastFiles::LoadInitialZones(Game::XZoneInfo* zoneInfo, unsigned int zoneCount, int sync)
@@ -146,10 +149,31 @@ namespace Components
     return (Game::Sys_IsDatabaseReady() && Game::Sys_IsDatabaseReady2());
   }
 
-  int FastFiles::ModZoneIndex()
+  int FastFiles::FindModZoneIndex()
   {
     const auto index = Game::DB_GetZoneIndex("mod");
     return index > 0 ? index : -1;
+  }
+
+  // Localization::Get() asks for this with every string it looks up, so we
+  // keep the index rather than going through the zones each time. We look
+  // again whenever the database has loaded something (see the constructor),
+  // and in between we only make sure the zone we kept is still the mod's:
+  // unloading a zone clears its name, so a kept index that no longer names
+  // "mod" means the mod's zone went away (or moved).
+  //
+  int FastFiles::ModZoneIndex()
+  {
+    const auto index = ModZone.load();
+
+    if (index < 0 || !std::strcmp(Game::g_zones[index].name, "mod"))
+    {
+      return index;
+    }
+
+    const auto found = FindModZoneIndex();
+    ModZone = found;
+    return found;
   }
 
   Game::XAssetHeader FastFiles::FindModZoneAsset(const Game::XAssetType type, const char* name)
@@ -504,6 +528,15 @@ namespace Components
     g_loadingInitialZones = Dvar::Register<bool>("g_loadingInitialZones", true, Game::DVAR_NONE, "Is loading initial zones");
 
     FastFiles::ReallocateZoneList();
+
+    // Look for the mod's zone again each time the database has loaded
+    // something (see ModZoneIndex()). Note that this may run on the render
+    // thread.
+    //
+    Events::AfterDatabaseLoaded([]
+    {
+      ModZone = FindModZoneIndex();
+    });
 
     Utils::Hook(0x14012FA7B, Sys_CreateFile_Stub, HOOK_CALL).install()->quick();
     Utils::Hook (0x14012FAFE, Sys_Error_MissingZone, HOOK_CALL).install ()->quick ();
