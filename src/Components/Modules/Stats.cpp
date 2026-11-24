@@ -433,8 +433,6 @@ namespace Components
     //
     Utils::Hook(0x14024BD70, HashFilename, HOOK_JUMP).install()->quick(); // Read
 
-    // TODO: Allow playerdata changes in setPlayerData UI script.
-
     // x64 compiles out the setPlayerData command (presumably the later
     // revision only changes player data through its backend), which our
     // unlockstats runs, so we register it ourselves.
