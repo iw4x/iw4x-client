@@ -463,6 +463,13 @@ namespace zone
     // arranging IW4x files, though some of the fastfiles in it are
     // Steam's.
     //
+    // Note also that Steam's files are not necessarily in the x64 layout.
+    // An installation of the older, x86 game has the same map packs in the
+    // same place, only in the x86 layout, and these the x64 game cannot
+    // load (it reads their asset lists with the x64 stride and crashes on
+    // the first header). So for these we go by the layout rather than by
+    // the name (see plan_conversion()).
+    //
     // Perhaps the easiest way to represent this is to give each group
     // an optional test for such shared files. A null test means there
     // are none. Anything under zone that is not in this table is
@@ -505,7 +512,8 @@ namespace zone
     enum class action
     {
       copy,    // Copy the file, leaving the original where it is.
-      convert  // Convert the file and write the result to `to`.
+      convert, // Convert the file and write the result to `to`.
+      remove   // Remove the file (`to` is empty).
     };
 
     // A step is one such operation, from one file to another.
@@ -596,9 +604,15 @@ namespace zone
     // A fastfile can again be in both places, in which case the one in the
     // group is the copy installed later and so the one we convert.
     //
-    // Note that Steam's map packs in dlc are in the x64 layout and the game
-    // reads them where Steam put them. Their x86 copies under source_root
-    // are, naturally, of no use to us.
+    // Steam's map packs in dlc are a little different. With the current game
+    // they are in the x64 layout and the game reads them where Steam put
+    // them. With an older installation, however, they are in the x86 layout
+    // and need converting like the rest. So we look at the layout of these
+    // as well. Note that since we walk the group before source_root, it is
+    // the file in the group that decides, which is the one the game would
+    // otherwise read. The x86 game writes x86 copies of the x64 map packs
+    // under source_root, and converting those back would be rather
+    // pointless.
     //
     void
     plan_conversion (plan& p)
@@ -619,18 +633,40 @@ namespace zone
 
             string n (e.path ().filename ().generic_string ());
 
-            if ((g.shared != nullptr && g.shared (n)) || !seen.insert (n).second)
+            if (!seen.insert (n).second)
               continue;
 
             // An old IW4x fastfile is something the game would refuse to load
-            // whatever its layout, and anything that isn't in the x86 layout
-            // is not something this conversion knows what to do with. Either
-            // way, better to leave it alone than to guess.
+            // whatever its layout. Better to leave it alone than to guess.
             //
-            if (outdated (e.path ()) || probe (e.path ()) != arch::x86)
+            if (outdated (e.path ()))
               continue;
 
+            optional<arch> a (probe (e.path ()));
             fs::path t (converted_root / g.name / n);
+
+            // If one of Steam's files is in the x64 layout, then the game
+            // reads it in place. That is, unless we converted an x86 version
+            // of it earlier, since converted_root comes first in the search
+            // path. This happens when Steam brings the x64 map packs into an
+            // older installation (with an update, say), and we don't want the
+            // old copy to shadow them, so we drop it.
+            //
+            if (a == arch::x64 && g.shared != nullptr && g.shared (n))
+            {
+              error_code ec;
+
+              if (fs::exists (t, ec))
+                p.push_back ({action::remove, move (t), {}});
+
+              continue;
+            }
+
+            // Anything that isn't in the x86 layout is not something this
+            // conversion knows what to do with.
+            //
+            if (a != arch::x86)
+              continue;
 
             if (stale (e.path (), t))
               p.push_back ({action::convert, e.path (), move (t)});
@@ -1105,6 +1141,22 @@ namespace zone
               s.from.generic_string (), s.to.generic_string (), ec.message ());
     }
 
+    void
+    do_remove (const step& s)
+    {
+      // Note that a file we cannot remove would keep shadowing the one the
+      // game should read, so this is as fatal as a failed copy.
+      //
+      error_code ec;
+      fs::remove (s.from, ec);
+
+      if (ec)
+        fail ("\"{}\" could not be removed: {}.\n\n"
+              "The game would read this file instead of the one that replaces it, "
+              "so it cannot start until the file is gone.",
+              s.from.generic_string (), ec.message ());
+    }
+
     // Most actions are things we can do here and now. Conversion is a
     // little different since doing it means starting Unlinker and
     // waiting for it later.
@@ -1125,7 +1177,8 @@ namespace zone
     //
     const action_type actions[] = {
       {"copying",    &do_copy},
-      {"converting", nullptr}
+      {"converting", nullptr},
+      {"dropping",   &do_remove}
     };
 
     const action_type&
