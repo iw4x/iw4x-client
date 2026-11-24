@@ -91,6 +91,7 @@ namespace Components
 
   std::unordered_map<std::string, Game::menuDef_t*> Menus::MenusFromDisk;
   std::unordered_map<std::string, Game::MenuList*> Menus::MenuListsFromDisk;
+  std::unordered_map<std::string, Game::menuDef_t*> Menus::MenusFromModZone;
   std::unordered_map<Game::menuDef_t*, std::shared_ptr<void>> Menus::MenuFiles;
 
   std::unordered_map<std::string, Game::menuDef_t*> Menus::OverridenMenus;
@@ -215,6 +216,13 @@ namespace Components
       {
         if (Game::uiContext->menuCount >= 0 && static_cast<std::size_t>(Game::uiContext->menuCount) < ARRAYSIZE(Game::uiContext->Menus))
         {
+          // Keep track of it as a new menu, so that reloading takes it out
+          // again (see ReloadDiskMenus()). Otherwise it would stay in the UI
+          // until the next UI_Init(), even with the mod's fastfile gone.
+          //
+          OverridenMenus[modMenu->window.name] = nullptr;
+          MenusFromModZone[modMenu->window.name] = modMenu;
+
           Game::uiContext->Menus[Game::uiContext->menuCount] = modMenu;
           Game::uiContext->menuCount++;
         }
@@ -563,6 +571,7 @@ namespace Components
     //  which contains the whole UIContext, and that destroys all pointers there
     // The game doesn't care about memory because it uses LargeLocalReset to free it all.. from what i've seen
     OverridenMenus.clear();
+    MenusFromModZone.clear();
     UIInitialized = true;
 
     // Note that on x86 we also clear our copy of the game's supporting data
@@ -613,6 +622,16 @@ namespace Components
     for (const auto& element : menusFromDisk)
     {
       UnloadMenuFromDisk(element.first);
+    }
+
+    // The menus of the mod's fastfile we added go the same way, except that
+    // the fastfile keeps their memory.
+    //
+    const auto menusFromModZone = MenusFromModZone;
+    for (const auto& element : menusFromModZone)
+    {
+      PrepareToUnloadMenu(element.second);
+      MenusFromModZone.erase(element.first);
     }
 
 #if DEBUG

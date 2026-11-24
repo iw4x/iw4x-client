@@ -20,6 +20,12 @@ namespace Components
     static std::unordered_map<std::string, Game::menuDef_t*> MenusFromDisk;
     static std::unordered_map<std::string, Game::MenuList*> MenuListsFromDisk;
 
+    // The menus of the mod's fastfile that we added to the UI in place of
+    // their copy from disk (see LoadScriptMenu()). The fastfile owns their
+    // memory, so all we free is their place in the UI.
+    //
+    static std::unordered_map<std::string, Game::menuDef_t*> MenusFromModZone;
+
     // The memory of the file each menu from disk was compiled from.
     //
     // On x86 we free the menus from disk one by one, since the game's parser
