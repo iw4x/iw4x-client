@@ -414,6 +414,10 @@ namespace Components
     // players pick a calling card or emblem in game does nothing. We replace
     // the call that checks the state with "mov al, 1".
     //
+    // Note that this only changes our own stats. The server keeps its copy
+    // until we send ours again, so such a menu should probably run the
+    // UpdateClasses UI script after it.
+    //
     Utils::Hook::Set<BYTE>(0x140266B54, 0xB0);
     Utils::Hook::Set<BYTE>(0x140266B55, 0x01);
     Utils::Hook::Nop(0x140266B56, 3);
