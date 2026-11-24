@@ -289,6 +289,69 @@ namespace Components
     return 0; // Found
   }
 
+  // Run the command line's "set <dvar> <value>" (or seta) for the dvar that
+  // matches, or for every dvar if match is NULL.
+  //
+  // x64 compiles Com_StartupVariable() out, so this is the x86 one
+  // (0x4C92E0), down to letting the set command's handler, Dvar_Set_f(), do
+  // the setting.
+  //
+  void FileSystem::Com_StartupVariable(const char* match)
+  {
+    const auto Dvar_Set_f(reinterpret_cast<void (*)()>(0x1401FC430));
+
+    for (int i = 0; i < *Game::com_numConsoleLines; ++i)
+    {
+      Game::Cmd_TokenizeString(Game::com_consoleLines[i]);
+
+      Command::ClientParams params;
+
+      if (!match || !std::strcmp(params[1], match))
+      {
+        if (!_stricmp(params[0], "set"))
+        {
+          Dvar_Set_f();
+        }
+        else if (!_stricmp(params[0], "seta"))
+        {
+          Logger::Print(Game::CON_CHANNEL_SYSTEM,
+            "\"SetA\" is deprecated.  Forcing \"{}\" to be a \"Set\" command, instead.\n",
+            Game::com_consoleLines[i]);
+
+          Dvar_Set_f();
+        }
+      }
+
+      Game::Cmd_EndTokenizedString();
+    }
+  }
+
+  // x86 runs the command line's file system and language dvars at the start
+  // of FS_InitFilesystem(), before SEH_InitLanguage() and FS_Startup() get to
+  // them, but x64 leaves these calls out. So, for example, a +set fs_game of
+  // the command line misses the first FS_Startup(): the mod's directory is
+  // left out, FastFiles::LoadInitialZones() doesn't load its mod.ff, and a
+  // map started from the command line (+map, +devmap) then hangs on the mod's
+  // scripts. The same goes for fs_basepath and the rest, so we put all of
+  // x86's calls back in front of SEH_InitLanguage().
+  //
+  // Note that none of these dvars is registered yet (SEH_InitLanguage() and
+  // FS_Startup() do that). Dvar_SetCommand() then creates them as external
+  // dvars and the registration keeps their value, which is also how it works
+  // on x86.
+  //
+  void FileSystem::FS_InitFilesystem_SEH_InitLanguage_Hk()
+  {
+    Com_StartupVariable("fs_cdpath");
+    Com_StartupVariable("fs_basepath");
+    Com_StartupVariable("fs_homepath");
+    Com_StartupVariable("fs_game");
+    Com_StartupVariable("fs_copyfiles");
+    Com_StartupVariable("loc_language");
+
+    Utils::Hook::Call<void()>(0x14024CFA0)(); // SEH_InitLanguage
+  }
+
   void FileSystem::FsStartupSync(const char* a1)
   {
     std::lock_guard _(FSMutex);
@@ -649,6 +712,11 @@ namespace Components
     //
     Utils::Hook(0x14027DCA2, 0x14027DD09, HOOK_JUMP).install()->quick();
 
+    // Run the command line's startup dvars (see
+    // FS_InitFilesystem_SEH_InitLanguage_Hk()).
+    //
+    Utils::Hook(0x140275356, FS_InitFilesystem_SEH_InitLanguage_Hk, HOOK_CALL).install()->quick(); // FS_InitFilesystem
+
     // Synchronize filesystem starts
     Utils::Hook(0x140275362, FsStartupSync, HOOK_CALL).install()->quick(); // FS_InitFilesystem
     Utils::Hook(0x1402765CF, FsStartupSync, HOOK_CALL).install()->quick(); // FS_Restart
@@ -768,83 +836,7 @@ namespace Components
 
 bool FileSystem_VidRestarted = false;
 
-namespace
-{
-  // The fs_game that the command line sets, the way Com_StartupVariable()
-  // finds it: each '+' starts a command, and we are after "set fs_game <dir>"
-  // (or seta).
-  //
-  std::string GetStartupFsGame()
-  {
-    std::string fsGame;
-
-    for (const auto& line : Utils::String::Split(GetCommandLineA(), '+'))
-    {
-      std::vector<std::string> tokens;
-      std::string token;
-      auto quoted = false;
-
-      for (const auto c : line)
-      {
-        if (c == '"')
-        {
-          quoted = !quoted;
-        }
-        else if (!quoted && std::isspace(static_cast<unsigned char>(c)))
-        {
-          if (!token.empty())
-          {
-            tokens.emplace_back(std::move(token));
-            token.clear();
-          }
-        }
-        else
-        {
-          token += c;
-        }
-      }
-
-      if (!token.empty())
-      {
-        tokens.emplace_back(std::move(token));
-      }
-
-      if (tokens.size() >= 3 &&
-        (Utils::String::ToLower(tokens[0]) == "set" || Utils::String::ToLower(tokens[0]) == "seta") &&
-        Utils::String::ToLower(tokens[1]) == "fs_game")
-      {
-        fsGame = tokens[2];
-      }
-    }
-
-    return fsGame;
-  }
-}
-
 void FileSystem_RegisterFolders()
 {
-  // Note that on x64 the +set fs_game of the command line isn't applied yet
-  // when the file system first starts (x86 has it by then), so FS_Startup()
-  // leaves the mod's directory out and FastFiles::LoadInitialZones() doesn't
-  // load its mod.ff. A map from the command line (+map, +devmap) then loads
-  // without it and hangs on the mod's scripts. So we apply it ourselves, right
-  // before FS_Startup() gets to fs_game. Only the first time, though, so as
-  // to not undo someone unloading the mod later on.
-  //
-  static auto appliedStartupFsGame = false;
-
-  if (!appliedStartupFsGame)
-  {
-    appliedStartupFsGame = true;
-
-    if (*Game::fs_gameDirVar && !*(*Game::fs_gameDirVar)->current.string)
-    {
-      if (const auto fsGame = GetStartupFsGame(); !fsGame.empty())
-      {
-        Game::Dvar_SetString(*Game::fs_gameDirVar, fsGame.data());
-      }
-    }
-  }
-
   Components::FileSystem::RegisterFolders();
 }

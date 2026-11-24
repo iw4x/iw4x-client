@@ -142,6 +142,8 @@ namespace Components
     static void RegisterFolders();
     static int Cmd_Exec_f_Stub(const char* s0, const char* s1);
 
+    static void Com_StartupVariable(const char* match);
+    static void FS_InitFilesystem_SEH_InitLanguage_Hk();
     static void FsStartupSync(const char* a1);
     static void FsRestartSync(int localClientNum, int checksumFeed);
     static bool FS_ConditionalRestart(int localClientNum, int checksumFeed);

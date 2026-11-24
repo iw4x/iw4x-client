@@ -777,7 +777,8 @@ namespace Game
 
   extern float (*penetrationDepthTable)[PENETRATE_TYPE_COUNT][SURF_TYPE_COUNT];
 
-  extern char (*com_consoleLines)[32];
+  extern char** com_consoleLines;
+  extern int* com_numConsoleLines;
 
   extern WinMouseVars_t* s_wmv;
 
