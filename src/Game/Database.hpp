@@ -103,6 +103,12 @@ namespace Game
 
   extern XZone* g_zones;
 
+  // The zones that are loaded, as indices into g_zones, in the order they
+  // were loaded.
+  //
+  extern int* g_zoneCount;
+  extern unsigned char* g_zoneHandles;
+
   // The file the database thread is loading a zone from, or null between
   // loads.
   //
