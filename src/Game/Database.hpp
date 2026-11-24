@@ -40,6 +40,9 @@ namespace Game
   typedef float(*DB_GetLoadedFraction_t)();
   extern DB_GetLoadedFraction_t DB_GetLoadedFraction;
 
+  typedef void(*DB_SyncXAssets_t)();
+  extern DB_SyncXAssets_t DB_SyncXAssets;
+
   typedef int(*DB_IsXAssetDefault_t)(XAssetType type, const char* name);
   extern DB_IsXAssetDefault_t DB_IsXAssetDefault;
 

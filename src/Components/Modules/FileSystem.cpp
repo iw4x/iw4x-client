@@ -298,16 +298,14 @@ namespace Components
   void FileSystem::FsRestartSync(int localClientNum, int checksumFeed)
   {
     // Let the database thread finish what it's loading before we take the
-    // lock. FS_Restart() waits for it anyway, but the database thread reads
-    // the images of the zones it loads through us (see LoadTextureSync()), so
-    // waiting with the lock held deadlocks. Which is what happens when the
-    // command line starts a map (+map) while the startup zones, mod.ff among
-    // them, are still loading.
+    // lock. FS_Restart() starts by doing the same (DB_SyncXAssets()), but the
+    // database thread reads the images of the zones it loads through us (see
+    // LoadTextureSync()), so waiting with the lock held deadlocks. Which is
+    // what happens when the command line starts a map (+map) while the
+    // startup zones, mod.ff among them, are still loading. FS_Restart()'s
+    // own call then has nothing left to wait for.
     //
-    while (!Game::Sys_IsDatabaseReady())
-    {
-      std::this_thread::sleep_for(1ms);
-    }
+    Game::DB_SyncXAssets();
 
     std::lock_guard _(FSMutex);
     Maps::GetUserMap()->freeIwd();
