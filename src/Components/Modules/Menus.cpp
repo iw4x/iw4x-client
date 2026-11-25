@@ -826,31 +826,5 @@ namespace Components
 
       return names;
     });
-
-    // Define custom menus here
-    Add("ui_mp/changelog.menu");
-    Add("ui_mp/iw4x_credits.menu");
-    Add("ui_mp/menu_first_launch.menu");
-    Add("ui_mp/mod_download_popmenu.menu");
-    Add("ui_mp/pc_options_game.menu");
-    Add("ui_mp/pc_options_gamepad.menu");
-    Add("ui_mp/pc_options_gamepad_advanced.menu");
-    Add("ui_mp/pc_options_gamepad_sticks.menu");
-    Add("ui_mp/pc_options_gamepad_triggers.menu");
-    Add("ui_mp/pc_options_gamepad_response.menu");
-    Add("ui_mp/pc_options_gamepad_feedback.menu");
-    Add("ui_mp/pc_options_gamepad_timing.menu");
-    Add("ui_mp/pc_options_multi.menu");
-    Add("ui_mp/popup_customclan.menu");
-    Add("ui_mp/popup_customtitle.menu");
-    Add("ui_mp/popup_friends.menu");
-    Add("ui_mp/popup_servername_filter.menu");
-    Add("ui_mp/resetclass.menu");
-    Add("ui_mp/security_increase_popmenu.menu");
-    Add("ui_mp/startup_messages.menu");
-    Add("ui_mp/stats_reset.menu");
-    Add("ui_mp/stats_unlock.menu");
-    Add("ui_mp/stats_mod_warning.menu");
-    Add("ui_mp/theater_menu.menu");
   }
 }
