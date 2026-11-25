@@ -24,6 +24,11 @@ namespace Components
     //
     static std::unordered_map<std::string, Game::menuDef_t*> MenusFromModZone;
 
+    // The menus that LoadZoneMenuLists() put into the UI. The zones keep
+    // their memory, so all we ever take back is their place in the UI.
+    //
+    static std::unordered_map<std::string, Game::menuDef_t*> MenusFromZones;
+
     // The memory of the file each menu from disk was compiled from.
     //
     // On x86 we free the menus from disk one by one, since the game's parser
@@ -48,12 +53,21 @@ namespace Components
     static bool ReloadedWithModZone;
     static bool UIInitialized;
 
+    // The zones of OurZones() that were loaded when we last reloaded the
+    // menus.
+    //
+    static std::vector<std::string> ZonesAtReload;
+
     static Utils::Memory::Allocator Allocator;
 
     static bool MenuAlreadyExists(const std::string& name);
 
     static void PrepareToUnloadMenu(Game::menuDef_t* menu);
+    static void InstallMenu(Game::menuDef_t* menu);
     static void AfterLoadedMenuFromDisk(Game::menuDef_t* menu);
+
+    static void LoadZoneMenuLists();
+    static std::vector<std::string> OurZones();
 
     static void FreeMenuListOnly(Game::MenuList* menuList);
     static void FreeMenuOnly(Game::menuDef_t* menu);

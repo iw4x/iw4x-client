@@ -30,41 +30,6 @@ namespace Components
     static_assert(sizeof(Game::listBoxDef_s) == Layout::listBoxDef_s);
     static_assert(sizeof(Game::multiDef_s) == Layout::multiDef_s);
 
-    // Our UI zone and its menu list (the server browser, its popups, and so
-    // on).
-    //
-    constexpr const char* MenuListZone = "iw4x_ui_mp";
-    constexpr const char* MenuList = "ui_mp/iw4x_ui_mp.txt";
-
-    // Add our menu list to the UI after patch_mp_menus.txt, the way UI_Init()
-    // adds that one after menus.txt.
-    //
-    // We could ship ours as menus.txt, but the database keeps one menu list
-    // per name, so ours would replace IW4's menus.txt (and with it every menu
-    // it loads) instead of adding to it.
-    //
-    // Note that UI_Init() doesn't wait for the UI zones to load, but
-    // DB_FindXAssetHeader() (which UI_LoadMenus() looks the list up with)
-    // does, for as long as the database is still loading. Our zone loads
-    // along with ui_mp (see FastFiles::LoadDLCUIZones()), so by asking for our
-    // list here we wait for it the same way IW4 waits for menus.txt.
-    //
-    // Note also that UI_Init() skips its main menu lists in game, and since
-    // we replace its patch_mp_menus.txt call, we skip with them.
-    //
-    void UI_AddMenuList_Hk(Game::UiContext* dc, Game::MenuList* list, int close)
-    {
-      Game::UI_AddMenuList(dc, list, close);
-
-      // Without our zone UI_LoadMenus() would only hand us the default menu
-      // list (and complain about it).
-      //
-      if (FastFiles::Exists(MenuListZone))
-      {
-        Game::UI_AddMenuList(dc, Game::UI_LoadMenus(MenuList, 3), close);
-      }
-    }
-
     // Clip each cell of the server browser's listbox to its column.
     //
     // Item_ListBox_PaintTextElem() draws one cell of a listbox and the only
@@ -145,6 +110,7 @@ namespace Components
 
   bool Menus::ReloadedWithModZone = false;
   bool Menus::UIInitialized = false;
+  std::vector<std::string> Menus::ZonesAtReload;
 
   Dvar::Var Menus::PrintMenuDebug;
 
@@ -156,6 +122,7 @@ namespace Components
   std::unordered_map<std::string, Game::menuDef_t*> Menus::MenusFromDisk;
   std::unordered_map<std::string, Game::MenuList*> Menus::MenuListsFromDisk;
   std::unordered_map<std::string, Game::menuDef_t*> Menus::MenusFromModZone;
+  std::unordered_map<std::string, Game::menuDef_t*> Menus::MenusFromZones;
   std::unordered_map<Game::menuDef_t*, std::shared_ptr<void>> Menus::MenuFiles;
 
   std::unordered_map<std::string, Game::menuDef_t*> Menus::OverridenMenus;
@@ -298,6 +265,26 @@ namespace Components
           Logger::PrintError(Game::CON_CHANNEL_UI, "Cannot add menu {}: MAX_MENUS exceeded\n", modMenu->window.name);
         }
       }
+
+      FreeMenuOnly(menus[i]);
+      menus.erase(menus.begin() + i);
+      i--;
+    }
+
+    // Also leave out the menus that our zones' menu lists already have (see
+    // LoadZoneMenuLists()). A menu that is both on disk and in one of our
+    // zones is presumably one that the zone was made to replace (a loose
+    // copy left in an IWD, say), so we let the zone win. If a mod ever needs
+    // to replace one of these from disk, then we will have to revisit this.
+    //
+    for (int i = 0; i < static_cast<int>(menus.size()); i++)
+    {
+      if (!MenusFromZones.contains(menus[i]->window.name))
+      {
+        continue;
+      }
+
+      DebugPrint("Skipped menu {} from disk, a zone's menu list has it", menus[i]->window.name);
 
       FreeMenuOnly(menus[i]);
       menus.erase(menus.begin() + i);
@@ -507,12 +494,22 @@ namespace Components
 
   void Menus::AfterLoadedMenuFromDisk(Game::menuDef_t* menu)
   {
-    const std::string name = menu->window.name;
-
     DebugPrint("Loaded menu {} at {:X} from disk",
-      name,
+      menu->window.name,
       reinterpret_cast<std::uintptr_t>(menu)
     );
+
+    InstallMenu(menu);
+  }
+
+  // Put the menu into the UI in place of each menu of the same name that the
+  // UI has, the open ones included, and after the other menus if there is no
+  // such menu. Save what it replaces in OverridenMenus, which is where
+  // PrepareToUnloadMenu() looks to put it back.
+  //
+  void Menus::InstallMenu(Game::menuDef_t* menu)
+  {
+    const std::string name = menu->window.name;
 
     bool overrode = false;
 
@@ -534,12 +531,12 @@ namespace Components
             OverridenMenus[name] = context->menuStack[i];
           }
 
-          context->menuStack[i] = MenusFromDisk[name];
+          context->menuStack[i] = menu;
 
           DebugPrint("In stack - Overrode menu {} ({:X} => {:X})",
             name,
             reinterpret_cast<std::uintptr_t>(OverridenMenus[name]),
-            reinterpret_cast<std::uintptr_t>(MenusFromDisk[name])
+            reinterpret_cast<std::uintptr_t>(menu)
           );
         }
       }
@@ -558,12 +555,12 @@ namespace Components
             OverridenMenus[name] = context->Menus[i];
           }
 
-          context->Menus[i] = MenusFromDisk[name];
+          context->Menus[i] = menu;
 
           DebugPrint("In context - Overrode menu {} ({:X} => {:X})",
             name,
             reinterpret_cast<std::uintptr_t>(OverridenMenus[name]),
-            reinterpret_cast<std::uintptr_t>(MenusFromDisk[name])
+            reinterpret_cast<std::uintptr_t>(menu)
           );
 
           overrode = true;
@@ -585,9 +582,132 @@ namespace Components
       // A brand new menu! How fancy!
       // We add it to the standard uiContext
       OverridenMenus[name] = nullptr;
-      Game::uiContext->Menus[Game::uiContext->menuCount] = MenusFromDisk[name];
+      Game::uiContext->Menus[Game::uiContext->menuCount] = menu;
       Game::uiContext->menuCount++;
     }
+  }
+
+  // Put the menus of our zones' menu lists into the UI.
+  //
+  // IW4 only adds a menu list to the UI by name: UI_Init() adds code.txt,
+  // menus.txt, and patch_mp_menus.txt, and once a match loads, ingame.txt
+  // and the HUD lists follow. Our zones can replace a menu that these lists
+  // have, since we let them override stock menus (see
+  // AssetHandler::ShouldOverrideAsset()), but they can't add one. Adding the
+  // menu to a copy of menus.txt in our zone doesn't work: our copy loads
+  // after IW4's, yet the database keeps IW4's list, even though
+  // ShouldOverrideAsset() asks for menu lists to be overridden as well. We
+  // haven't found out why. So a menu that IW4 doesn't have goes into a list
+  // that our zone names after itself (ui_mp/iw4x_localized_ui_mp.txt, say),
+  // and these are the lists we go through here.
+  //
+  // Note that a zone also has a menu list for each .menu file it was built
+  // from, named after the file (ui_mp/main.menu, say). The stock zones have
+  // hundreds of these, the in-game script menus among them, which we don't
+  // want in the UI on the main menu. So we only take the .txt lists of the
+  // zones whose name starts with iw4x_, and skip IW4's names.
+  //
+  // Note also that our menus replace the ones of the same name instead of
+  // going after them, the way UI_AddMenuList() would add them. The open
+  // menu script command opens the first menu of a name that the UI has, so
+  // the one IW4 added would always win.
+  //
+  void Menus::LoadZoneMenuLists()
+  {
+    static constexpr std::array<std::string_view, 6> own
+    {
+      "ui_mp/code.txt",
+      "ui_mp/menus.txt",
+      "ui_mp/patch_mp_menus.txt",
+      "ui_mp/ingame.txt",
+      "ui_mp/hud_480.txt",
+      "ui_mp/hud_720.txt"
+    };
+
+    std::vector<Game::MenuList*> lists;
+    Game::DB_EnumXAssets(Game::ASSET_TYPE_MENULIST, [](Game::XAssetHeader header, void* data)
+    {
+      static_cast<std::vector<Game::MenuList*>*>(data)->push_back(header.menuList);
+    }, &lists, false);
+
+    // Sort the lists by name. The database enumerates them in the hash table
+    // order, and if two lists have a menu of the same name, then the order
+    // decides which one we take (see below).
+    //
+    std::ranges::sort(lists, [](const Game::MenuList* x, const Game::MenuList* y)
+    {
+      return std::strcmp(x->name, y->name) < 0;
+    });
+
+    // Return the index of the zone that the active asset of the specified
+    // type and name comes from, and -1 if there is no such asset.
+    //
+    const auto zoneOf = [](Game::XAssetType type, const char* name)
+    {
+      Game::Sys_LockRead(Game::db_hashCritSect);
+      const auto* entry = Game::DB_FindXAssetEntry(type, name);
+      const int zone = entry ? static_cast<unsigned char>(entry->zoneIndex) : -1;
+      Game::Sys_UnlockRead(Game::db_hashCritSect);
+
+      return zone;
+    };
+
+    for (const auto* list : lists)
+    {
+      if (!list->name                                                   ||
+          !std::string_view(list->name).ends_with(".txt")               ||
+          std::ranges::find(own, std::string_view(list->name)) != own.end())
+      {
+        continue;
+      }
+
+      const int zone = zoneOf(Game::ASSET_TYPE_MENULIST, list->name);
+
+      if (zone < 0 || !std::string_view(Game::g_zones[zone].name).starts_with("iw4x_"))
+      {
+        continue;
+      }
+
+      DebugPrint("Loading menu list {} from zone {}", list->name, Game::g_zones[zone].name);
+
+      for (int i = 0; i < list->menuCount; i++)
+      {
+        auto* menu = list->menus[i];
+
+        if (!menu || !menu->window.name)
+        {
+          continue;
+        }
+
+        // If an earlier list already had a menu of this name, then keep that
+        // one. We don't expect two of our lists to share a menu, so we warn
+        // about it.
+        //
+        if (MenusFromZones.contains(menu->window.name))
+        {
+          Logger::Warning(Game::CON_CHANNEL_UI, "Menu {} of menu list {} is already in another menu list, skipping\n", menu->window.name, list->name);
+          continue;
+        }
+
+        MenusFromZones[menu->window.name] = menu;
+        InstallMenu(menu);
+      }
+    }
+  }
+
+  // Return the loaded zones whose menus we put into the UI ourselves, that
+  // is, mod.ff and ours, in the order they were loaded.
+  //
+  std::vector<std::string> Menus::OurZones()
+  {
+    auto zones = Game::DB_GetLoadedZones();
+
+    std::erase_if(zones, [](const std::string& zone)
+    {
+      return zone != "mod" && !zone.starts_with("iw4x_");
+    });
+
+    return zones;
   }
 
   void Menus::FreeMenuListOnly(Game::MenuList* menuList)
@@ -695,6 +815,15 @@ namespace Components
       MenusFromModZone.erase(element.first);
     }
 
+    // Take the menus of our zones' menu lists out of the UI as well.
+    //
+    const auto menusFromZones = MenusFromZones;
+    for (const auto& element : menusFromZones)
+    {
+      PrepareToUnloadMenu(element.second);
+      MenusFromZones.erase(element.first);
+    }
+
 #if DEBUG
     if (Allocator.empty() || allowStrayMenus)
     {
@@ -717,7 +846,12 @@ namespace Components
       OverridenMenus.clear();
     }
 
-    // Step 2: Load everything
+    // Step 2: load everything. Do our zones' menu lists first, since
+    // LoadScriptMenu() looks at MenusFromZones to tell which of the menus on
+    // disk to skip.
+    //
+    LoadZoneMenuLists();
+
     {
       const auto menus = FileSystem::GetFileList("ui_mp", "menu", Game::FS_LIST_ALL);
 
@@ -759,6 +893,13 @@ namespace Components
     // has. So we do this all over again once it has (see the constructor).
     //
     ReloadedWithModZone = FastFiles::ModZoneIndex() >= 0 && FastFiles::Ready();
+
+    // Remember which of our zones we saw. UI_Init() doesn't wait for the
+    // database to finish loading, so one of our zones may still be loading
+    // when the UI comes up, and its menus would then be missing until the
+    // next reload (see the constructor).
+    //
+    ZonesAtReload = OurZones();
 
     // Step 3 - Keep supporting data around
 
@@ -827,8 +968,6 @@ namespace Components
     Utils::Hook::Set<Game::DB_DynamicCloneXAssetHandler_t>(
       &Game::DB_DynamicCloneXAssetHandler[Game::ASSET_TYPE_MENU], nullptr);
 
-    Utils::Hook(0x14026DB05, UI_AddMenuList_Hk, HOOK_CALL).install()->quick(); // UI_Init
-
     // Clip the server browser's cells to their columns (see
     // Item_ListBox_PaintTextElem_Hk() for details).
     //
@@ -843,17 +982,29 @@ namespace Components
     Components::Events::OnCGameInit(ReloadDiskMenus_OnCGameStart);
     Components::Events::AfterUIInit(ReloadDiskMenus_OnUIInitialization);
 
-    // Reload once more after the mod's fastfile finished loading, so that we
-    // can tell which menus it has (see LoadScriptMenu()). The database may
-    // tell us so on the render thread, so the reload goes to the main one.
+    // Reload once more when the mod's fastfile finishes loading, so that we
+    // can tell which menus it has (see LoadScriptMenu()), and whenever our
+    // zones changed since the last reload, so that their menu lists get into
+    // the UI. The database may tell us on the render thread, so we reload on
+    // the main one.
     //
     Events::AfterDatabaseLoaded([]
     {
       Scheduler::Once([]
       {
-        if (UIInitialized && !ReloadedWithModZone && FastFiles::ModZoneIndex() >= 0 && FastFiles::Ready())
+        if (!UIInitialized || !FastFiles::Ready())
+        {
+          return;
+        }
+
+        if (!ReloadedWithModZone && FastFiles::ModZoneIndex() >= 0)
         {
           DebugPrint("The mod's fastfile finished loading, reloading menus");
+          ReloadDiskMenus();
+        }
+        else if (OurZones() != ZonesAtReload)
+        {
+          DebugPrint("Our zones changed since the last reload, reloading menus");
           ReloadDiskMenus();
         }
       }, Scheduler::Pipeline::MAIN);
