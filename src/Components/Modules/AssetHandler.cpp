@@ -143,6 +143,8 @@ namespace Components
 
   bool AssetHandler::ShouldOverrideAsset(Game::XAssetType type)
   {
+    const auto zone (FastFiles::Current());
+
     switch (type)
     {
     // The game itself always overrides these on async loads (see the stub at
@@ -160,9 +162,26 @@ namespace Components
     // only ever end up behind theirs.
     //
     case Game::ASSET_TYPE_STRINGTABLE:
-    case Game::ASSET_TYPE_STRUCTURED_DATA_DEF:
     case Game::ASSET_TYPE_MENU:
-      return FastFiles::Current() == "mod";
+      return zone == "mod";
+
+    // Let iw4x_code_post_gfx_mp replace IW4's mp/playerdata.def with ours.
+    //
+    // We use 15 custom classes (see StructuredData), but IW4's def only has
+    // room for 10, so writing to any of the other five fails with "Error
+    // setting persistent data". Our def adds the IW4x versions that have the
+    // extra classes. On x86 ZoneBuilder patches them into IW4's def when it
+    // builds the zones, but x64 has no ZoneBuilder, which is why our zone
+    // ships the whole def instead. And since DB_AddXAsset() keeps the first
+    // def it gets, which is IW4's, ours only takes effect if we let it
+    // override.
+    //
+    // Note that mod.ff seems to load after our zone (see
+    // R_LoadGraphicsAssets()), so a mod can still replace the def with its
+    // own.
+    //
+    case Game::ASSET_TYPE_STRUCTURED_DATA_DEF:
+      return zone == "mod" || zone == "iw4x_code_post_gfx_mp";
 
     // Our localized zone loads after the stock ones and is there to replace
     // some of their strings, not only to add new ones. Note that some of the
@@ -172,7 +191,7 @@ namespace Components
     // every such replacement is silently ignored.
     //
     case Game::ASSET_TYPE_LOCALIZE_ENTRY:
-      return FastFiles::Current().starts_with("iw4x_localized_");
+      return zone.starts_with("iw4x_localized_");
 
     default:
       return false;
