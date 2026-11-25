@@ -21,6 +21,7 @@ namespace Components
   thread_local int AssetHandler::BypassState = 0;
   std::map<Game::XAssetType, Utils::Slot<AssetHandler::Callback>> AssetHandler::TypeCallbacks;
   Utils::Signal<AssetHandler::RestrictCallback> AssetHandler::RestrictSignal;
+  Utils::Signal<AssetHandler::AddCallback> AssetHandler::AddSignal;
 
   std::mutex AssetHandler::EmptyAssetsMutex;
   std::vector<std::pair<Game::XAssetType, std::string>> AssetHandler::EmptyAssets;
@@ -183,6 +184,11 @@ namespace Components
     AssetHandler::TypeCallbacks[type] = callback;
   }
 
+  void AssetHandler::OnAdd(Utils::Slot<AssetHandler::AddCallback> callback)
+  {
+    AssetHandler::AddSignal.connect(callback);
+  }
+
   std::function<void()> AssetHandler::OnLoad(Utils::Slot<AssetHandler::RestrictCallback> callback)
   {
     AssetHandler::RestrictSignal.connect(callback);
@@ -226,7 +232,15 @@ namespace Components
   {
     if (AssetHandler::IsAssetEligible(type, header))
     {
-      return DB_AddXAsset_Original(type, header);
+      const Game::XAssetHeader loaded = *header;
+      Game::XAssetEntry* entry = DB_AddXAsset_Original(type, header);
+
+      if (entry)
+      {
+        AssetHandler::AddSignal(type, loaded, entry->asset.header);
+      }
+
+      return entry;
     }
 
     // We've decided to keep this asset out of the database, but the callers
@@ -404,6 +418,7 @@ namespace Components
   AssetHandler::~AssetHandler()
   {
     AssetHandler::RestrictSignal.clear();
+    AssetHandler::AddSignal.clear();
     AssetHandler::TypeCallbacks.clear();
   }
 }
