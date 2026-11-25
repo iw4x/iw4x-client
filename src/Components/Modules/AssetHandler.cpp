@@ -165,10 +165,16 @@ namespace Components
     case Game::ASSET_TYPE_IMPACT_FX:
       return true;
 
-    // Only let mod.ff replace these.
+    // Let mod.ff and our zones replace stock stringtables.
+    //
+    // On x86 we ship our tables as loose files, which StringTable reads from
+    // disk before it looks in the database. The x64 install doesn't have
+    // these files, so our tables come in our zones instead (say,
+    // mp/cardIconTable.csv with our card icons), and they only take effect
+    // if they override IW4's.
     //
     case Game::ASSET_TYPE_STRINGTABLE:
-      return zone == "mod";
+      return zone == "mod" || zone.starts_with("iw4x_");
 
     // Let mod.ff and our zones replace the stock menus, along with the menu
     // lists that load them.
