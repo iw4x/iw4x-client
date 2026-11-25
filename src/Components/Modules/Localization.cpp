@@ -736,6 +736,30 @@ namespace Components
 
     UseLocalization = Dvar::Register<bool>("ui_localize", true, Game::DVAR_NONE, "Use localization strings");
 
+    // Keep the strings that localized_code_post_gfx_mp brings out of the
+    // database when we have iw4x_localized_ui_mp, which brings the same
+    // strings (with ours added) and loads later in the same batch.
+    //
+    // If ours replaced them instead (see AssetHandler::ShouldOverrideAsset()),
+    // then DB_AddXAsset() would record each replacement in g_copyInfo, which
+    // only has room for 2048 entries (see 0x14012EA36). Presumably that is
+    // how IW4 puts the replaced assets back when the zone unloads. With over
+    // 6000 strings in that zone, IW4 then fails the load with "g_copyInfo
+    // exceeded".
+    //
+    // Note that we only drop the strings. The zone also brings fonts and
+    // sounds, which we leave to IW4.
+    //
+    AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader /*asset*/, const std::string& /*name*/, bool* restrict)
+    {
+      if (type == Game::ASSET_TYPE_LOCALIZE_ENTRY              &&
+          FastFiles::Current() == "localized_code_post_gfx_mp" &&
+          FastFiles::Exists("iw4x_localized_ui_mp"))
+      {
+        *restrict = true;
+      }
+    });
+
     // Generate localized entries for custom classes above 10
     AssetHandler::OnLoad([](Game::XAssetType type, Game::XAssetHeader asset, const std::string& name, bool* /*restrict*/)
     {
