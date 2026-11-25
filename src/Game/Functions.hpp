@@ -99,7 +99,7 @@ namespace Game
   typedef void(*Free_String_t)(const char* string);
   extern Free_String_t Free_String;
 
-  typedef int(*Reader_t)(char const*, int *);
+  typedef int(*Reader_t)(char const*, fileHandle_t*);
 
   typedef bool(*Image_LoadFromFileWithReader_t)(GfxImage* image, Reader_t reader);
   extern Image_LoadFromFileWithReader_t Image_LoadFromFileWithReader;

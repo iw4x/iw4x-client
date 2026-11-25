@@ -462,8 +462,7 @@ namespace Controller
         image->delayLoadPixels = false;
         image->name = name;
 
-        if (!Game::Image_LoadFromFileWithReader (
-              image, reinterpret_cast<Game::Reader_t> (Game::FS_FOpenFileReadDatabase)))
+        if (!Game::Image_LoadFromFileWithReader (image, Game::FS_FOpenFileReadDatabase))
         {
           Utils::Memory::GetAllocator ()->free (image);
           return nullptr;
