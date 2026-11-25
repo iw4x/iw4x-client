@@ -791,6 +791,42 @@ namespace Components
         Game::Menus_OpenByName(Game::uiContext, menuName);
       });
 
+    // Complete the argument of openmenu with the menus it can open,
+    // that is, the ones in the UI right now. These change with every
+    // menu reload, so we collect them each time the console asks. Could
+    // we keep a list and update it on reload instead? We could, but
+    // that would only save a few hundred compares per frame while
+    // typing, which doesn't seem worth the trouble of keeping the two
+    // in sync.
+    //
+    // Note that the UI may have two menus of the same name since IW4
+    // appends the menu lists it loads rather than replace the menus it
+    // has. Presumably Menus_OpenByName() opens the first one, so we
+    // only list each name once.
+    //
+    Game::Cmd_SetArgumentCompletion("openmenu", []
+    {
+      auto menus = std::span(Game::uiContext->Menus, Game::uiContext->menuCount)
+                 | std::views::filter([](const Game::menuDef_t* m) { return m && m->window.name; })
+                 | std::views::transform([](const Game::menuDef_t* m) { return std::string(m->window.name); });
+
+      std::vector<std::string> names(menus.begin(), menus.end());
+
+      std::ranges::sort(names, [](const std::string& x, const std::string& y)
+      {
+        return _stricmp(x.c_str(), y.c_str()) < 0;
+      });
+
+      const auto [first, last] = std::ranges::unique(names, [](const std::string& x, const std::string& y)
+      {
+        return _stricmp(x.c_str(), y.c_str()) == 0;
+      });
+
+      names.erase(first, last);
+
+      return names;
+    });
+
     // Define custom menus here
     Add("ui_mp/changelog.menu");
     Add("ui_mp/iw4x_credits.menu");
