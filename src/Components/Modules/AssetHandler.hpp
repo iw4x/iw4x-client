@@ -4,7 +4,7 @@ extern "C"
 {
   void AssetHandler_OverrideAssetStub();
 
-  bool AssetHandler_ShouldOverrideAsset(Game::XAssetType type);
+  bool AssetHandler_ShouldOverrideAsset(Game::XAssetType type, const Game::XAssetEntry* entry);
 }
 
 namespace Components
@@ -34,7 +34,7 @@ namespace Components
     static void ResetBypassState();
 
   private:
-    friend bool ::AssetHandler_ShouldOverrideAsset(Game::XAssetType type);
+    friend bool ::AssetHandler_ShouldOverrideAsset(Game::XAssetType type, const Game::XAssetEntry* entry);
 
     static thread_local int BypassState;
 
@@ -54,7 +54,7 @@ namespace Components
 
     static Game::XAssetHeader FindAsset(Game::XAssetType type, const char* filename);
     static bool IsAssetEligible(Game::XAssetType type, Game::XAssetHeader* asset);
-    static bool ShouldOverrideAsset(Game::XAssetType type);
+    static bool ShouldOverrideAsset(Game::XAssetType type, const Game::XAssetEntry* entry);
 
     static void StoreEmptyAsset(Game::XAssetType type, const char* name);
 

@@ -107,6 +107,13 @@ namespace Game
     return -1;
   }
 
+  // Return the name of the zone that the asset entry comes from.
+  //
+  std::string_view DB_GetZoneName(const XAssetEntry& entry)
+  {
+    return g_zones[static_cast<unsigned char>(entry.zoneIndex)].name;
+  }
+
   bool DB_IsZoneLoaded(const char* zone)
   {
     for (int i = 0; i < *g_zoneCount; ++i)

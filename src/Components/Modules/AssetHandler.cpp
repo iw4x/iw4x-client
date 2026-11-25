@@ -141,9 +141,20 @@ namespace Components
     return (!restrict);
   }
 
-  bool AssetHandler::ShouldOverrideAsset(Game::XAssetType type)
+  // Return true if the zone we are loading should replace the asset that
+  // entry refers to, the one already in the database.
+  //
+  bool AssetHandler::ShouldOverrideAsset(Game::XAssetType type, const Game::XAssetEntry* entry)
   {
     const auto zone (FastFiles::Current());
+
+    // Never let our zones replace what mod.ff brings. With an override the
+    // zone that loads last wins, and our UI zones load again whenever the UI
+    // restarts (after a mod change, say), possibly after mod.ff. So without
+    // this they would take the mod's menus back.
+    //
+    if (zone.starts_with("iw4x_") && Game::DB_GetZoneName(*entry) == "mod")
+      return false;
 
     switch (type)
     {
@@ -154,16 +165,28 @@ namespace Components
     case Game::ASSET_TYPE_IMPACT_FX:
       return true;
 
-    // Only let mod.ff replace these
-    //
-    // Menus are among them since the stock UI zones that have most of the
-    // menus a mod would want to replace (localized_ui_mp has main_text, for
-    // one) have a higher priority than mod.ff, so its menus would otherwise
-    // only ever end up behind theirs.
+    // Only let mod.ff replace these.
     //
     case Game::ASSET_TYPE_STRINGTABLE:
-    case Game::ASSET_TYPE_MENU:
       return zone == "mod";
+
+    // Let mod.ff and our zones replace the stock menus, along with the menu
+    // lists that load them.
+    //
+    // Without an override DB_AddXAsset() keeps the menu that came first. If
+    // the new menu's zone has the same flags, it drops the new one, and
+    // otherwise it chains the new one behind, where nothing looks for it.
+    // In both cases the stock menu stays, since the stock UI zones load before
+    // ours (and have a higher priority than mod.ff to begin with).
+    //
+    // With an override our menu goes into the stock menu's slot, so whatever
+    // already points to the stock menu (the UI, the stock menu lists) gets
+    // ours. Which also means our zones only need to ship the menus they
+    // change.
+    //
+    case Game::ASSET_TYPE_MENU:
+    case Game::ASSET_TYPE_MENULIST:
+      return zone == "mod" || zone.starts_with("iw4x_");
 
     // Let iw4x_code_post_gfx_mp replace IW4's mp/playerdata.def with ours.
     //
@@ -432,6 +455,17 @@ namespace Components
     Game::ReallocateAssetPool(Game::ASSET_TYPE_WEAPON, Weapon::WEAPON_LIMIT);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_STRINGTABLE, 800);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_IMPACT_FX, 8);
+
+    // Double the stock menu pools, which x86 leaves alone.
+    //
+    // While our zones load, DB_AddXAsset() takes a slot for every menu it
+    // comes across and only then decides to override the stock one (see
+    // ShouldOverrideAsset()). So for a while we need room for both copies,
+    // and with as many stock menus as our zones replace, the stock pools
+    // presumably wouldn't be enough.
+    //
+    Game::ReallocateAssetPool(Game::ASSET_TYPE_MENULIST, 128 * 2);
+    Game::ReallocateAssetPool(Game::ASSET_TYPE_MENU, 740 * 2);
   }
 
   AssetHandler::~AssetHandler()
@@ -442,7 +476,7 @@ namespace Components
   }
 }
 
-bool AssetHandler_ShouldOverrideAsset(Game::XAssetType type)
+bool AssetHandler_ShouldOverrideAsset(Game::XAssetType type, const Game::XAssetEntry* entry)
 {
-  return Components::AssetHandler::ShouldOverrideAsset(type);
+  return Components::AssetHandler::ShouldOverrideAsset(type, entry);
 }

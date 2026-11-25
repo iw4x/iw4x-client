@@ -10,6 +10,7 @@ AssetHandler_OverrideAssetStub PROC
   sub     rsp, 20h
 
   mov     ecx, ebp
+  mov     rdx, rbx
   call    AssetHandler_ShouldOverrideAsset
 
   add     rsp, 20h
