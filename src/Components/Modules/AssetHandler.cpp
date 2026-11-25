@@ -188,6 +188,17 @@ namespace Components
     case Game::ASSET_TYPE_MENULIST:
       return zone == "mod" || zone.starts_with("iw4x_");
 
+    // Let our zones replace stock images. This is how we change the cursor,
+    // for example: the stock ui_cursor material draws 3_cursor3, so once our
+    // image takes that slot, the material draws ours.
+    //
+    // Note that each override takes an entry in g_copyInfo, which only has
+    // room for 2048 (see Localization). Our zones only bring the images they
+    // change, though, so presumably this stays far below that.
+    //
+    case Game::ASSET_TYPE_IMAGE:
+      return zone.starts_with("iw4x_");
+
     // Let iw4x_code_post_gfx_mp replace IW4's mp/playerdata.def with ours.
     //
     // We use 15 custom classes (see StructuredData), but IW4's def only has
