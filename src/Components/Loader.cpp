@@ -71,6 +71,7 @@
 #include "Modules/SlowMotion.hpp"
 #include "Modules/StartupMessages.hpp"
 #include "Modules/Stats.hpp"
+#include "Modules/Streaming.hpp"
 #include "Modules/StringTable.hpp"
 #include "Modules/StructuredData.hpp"
 #include "Modules/TextRenderer.hpp"
@@ -190,6 +191,7 @@ namespace Components
     Register(new Sound());
     Register(new StartupMessages());
     Register(new Stats());
+    Register(new streaming());
     Register(new StringTable());
     Register(new StructuredData());
     Register(new TextRenderer());
