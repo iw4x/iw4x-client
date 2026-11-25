@@ -29,6 +29,41 @@ namespace Components
     static_assert(sizeof(Game::MenuList) == Layout::MenuList);
     static_assert(sizeof(Game::listBoxDef_s) == Layout::listBoxDef_s);
     static_assert(sizeof(Game::multiDef_s) == Layout::multiDef_s);
+
+    // Our UI zone and its menu list (the server browser, its popups, and so
+    // on).
+    //
+    constexpr const char* MenuListZone = "iw4x_ui_mp";
+    constexpr const char* MenuList = "ui_mp/iw4x_ui_mp.txt";
+
+    // Add our menu list to the UI after patch_mp_menus.txt, the way UI_Init()
+    // adds that one after menus.txt.
+    //
+    // We could ship ours as menus.txt, but the database keeps one menu list
+    // per name, so ours would replace IW4's menus.txt (and with it every menu
+    // it loads) instead of adding to it.
+    //
+    // Note that UI_Init() doesn't wait for the UI zones to load, but
+    // DB_FindXAssetHeader() (which UI_LoadMenus() looks the list up with)
+    // does, for as long as the database is still loading. Our zone loads
+    // along with ui_mp (see FastFiles::LoadDLCUIZones()), so by asking for our
+    // list here we wait for it the same way IW4 waits for menus.txt.
+    //
+    // Note also that UI_Init() skips its main menu lists in game, and since
+    // we replace its patch_mp_menus.txt call, we skip with them.
+    //
+    void UI_AddMenuList_Hk(Game::UiContext* dc, Game::MenuList* list, int close)
+    {
+      Game::UI_AddMenuList(dc, list, close);
+
+      // Without our zone UI_LoadMenus() would only hand us the default menu
+      // list (and complain about it).
+      //
+      if (FastFiles::Exists(MenuListZone))
+      {
+        Game::UI_AddMenuList(dc, Game::UI_LoadMenus(MenuList, 3), close);
+      }
+    }
   }
 
   bool Menus::ReloadedWithModZone = false;
@@ -714,6 +749,8 @@ namespace Components
     // from being copied between unrelated items when the layouts differ.
     Utils::Hook::Set<Game::DB_DynamicCloneXAssetHandler_t>(
       &Game::DB_DynamicCloneXAssetHandler[Game::ASSET_TYPE_MENU], nullptr);
+
+    Utils::Hook(0x14026DB05, UI_AddMenuList_Hk, HOOK_CALL).install()->quick(); // UI_Init
 
     Components::Events::OnCGameInit(ReloadDiskMenus_OnCGameStart);
     Components::Events::AfterUIInit(ReloadDiskMenus_OnUIInitialization);
