@@ -593,13 +593,19 @@ namespace Components
   // menus.txt, and patch_mp_menus.txt, and once a match loads, ingame.txt
   // and the HUD lists follow. Our zones can replace a menu that these lists
   // have, since we let them override stock menus (see
-  // AssetHandler::ShouldOverrideAsset()), but they can't add one. Adding the
-  // menu to a copy of menus.txt in our zone doesn't work: our copy loads
-  // after IW4's, yet the database keeps IW4's list, even though
-  // ShouldOverrideAsset() asks for menu lists to be overridden as well. We
-  // haven't found out why. So a menu that IW4 doesn't have goes into a list
-  // that our zone names after itself (ui_mp/iw4x_localized_ui_mp.txt, say),
-  // and these are the lists we go through here.
+  // AssetHandler::ShouldOverrideAsset()), but they can't add one.
+  //
+  // Adding the menu to a copy of menus.txt in our zone doesn't work. The
+  // database does override IW4's list with ours, but while the zones load,
+  // DB_AddXAsset() only records the override in g_copyInfo, and the copy
+  // into IW4's slot happens once the batch is done. By then UI_Init() has
+  // already added IW4's list, which means copying its menu pointers into
+  // the UI. The menus that IW4 has still change, since their slots get our
+  // copies, but a new menu is only in our list, which the UI never reads.
+  //
+  // So a menu that IW4 doesn't have goes into a list that our zone names
+  // after itself (ui_mp/iw4x_localized_ui_mp.txt, say), and these are the
+  // lists we go through here.
   //
   // Note that a zone also has a menu list for each .menu file it was built
   // from, named after the file (ui_mp/main.menu, say). The stock zones have
