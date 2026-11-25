@@ -685,9 +685,6 @@ namespace Components
     ClientCommand::Add("callvote", Cmd_CallVote_f);
     ClientCommand::Add("vote", Cmd_Vote_f);
 
-    Menus::Add("ui_mp/scriptmenus/callvote.menu");
-    Menus::Add("ui_mp/scriptmenus/kickplayer.menu");
-
     UIScript::Add("voteKick", []([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
     {
       if (info->playerIndex >= 0 && info->playerIndex < Game::sharedUiInfo->playerCount)
