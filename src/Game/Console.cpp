@@ -1084,34 +1084,95 @@ namespace Game
       }
     }
 
-    // Return the list of files that the command completes its argument from,
-    // or nullptr if it doesn't complete one.
+    // The functions set with Cmd_SetArgumentCompletion(), along with
+    // the names of their commands. We look them up every frame while
+    // the console shows a hint, but there is only openmenu's for now,
+    // so a plain vector seems good enough.
     //
-    const char** Cmd_GetAutoCompleteFileList(const char* cmdName, int* fileCount, int allocTrackType)
-    {
-      *fileCount = 0;
+    std::vector<std::pair<std::string, Cmd_ArgumentCompletion>> cmdArgumentCompletions;
 
+    // Return the choices that the command completes its argument from,
+    // and an empty list if it completes none.
+    //
+    // The x86 table commands complete a file, which we return without
+    // the extension since that's how these commands take it (map
+    // mp_rust, say). Could we set them with Cmd_SetArgumentCompletion()
+    // as well and drop the table? Probably, but the table is x86's own
+    // and we would rather keep it recognizable, at least for now.
+    //
+    // Note that, like x86, we only complete the argument of a command
+    // that IW4 has.
+    //
+    std::vector<std::string> Cmd_GetArgumentChoices(const char* cmdName)
+    {
       cmd_function_s* cmd(*cmd_functions);
 
-      while (cmd != nullptr && std::strcmp(cmdName, cmd->name) != 0)
+      while (cmd != nullptr && I_stricmp(cmdName, cmd->name) != 0)
       {
         cmd = cmd->next;
       }
 
       if (cmd == nullptr)
       {
-        return nullptr;
+        return {};
       }
 
       for (const CmdAutoComplete& a: cmdAutoCompletes)
       {
-        if (std::strcmp(a.cmdName, cmd->name) == 0)
+        if (I_stricmp(a.cmdName, cmd->name) != 0)
         {
-          return FS_ListFiles(a.dir, a.ext, FS_LIST_PURE_ONLY, fileCount, allocTrackType);
+          continue;
+        }
+
+        int fileCount(0);
+        const char** files(FS_ListFiles(a.dir, a.ext, FS_LIST_PURE_ONLY, &fileCount, ALLOC_TRACK_CONSOLE));
+
+        std::vector<std::string> r;
+        r.reserve(fileCount);
+
+        for (int i(0); i < fileCount; ++i)
+        {
+          std::string name(files[i]);
+          Com_StripExtension(name.c_str(), name.data());
+          name.resize(std::strlen(name.c_str()));
+
+          r.push_back(std::move(name));
+        }
+
+        if (fileCount != 0)
+        {
+          FS_FreeFileList(files, ALLOC_TRACK_CONSOLE);
+        }
+
+        return r;
+      }
+
+      for (const auto& [name, f]: cmdArgumentCompletions)
+      {
+        if (I_stricmp(name.c_str(), cmd->name) == 0)
+        {
+          return f();
         }
       }
 
-      return nullptr;
+      return {};
+    }
+
+    // Return pointers to the strings for the functions that, like x86, take
+    // an array of C strings. Note that the pointers are only valid as long as
+    // the strings are.
+    //
+    std::vector<const char*> Con_StringPointers(const std::vector<std::string>& strings)
+    {
+      std::vector<const char*> r;
+      r.reserve(strings.size());
+
+      for (const std::string& s: strings)
+      {
+        r.push_back(s.c_str());
+      }
+
+      return r;
     }
 
     // Return the number of lines of the description.
@@ -1210,13 +1271,12 @@ namespace Game
         return;
       }
 
-      int fileCount;
-      const char** files(Cmd_GetAutoCompleteFileList(str, &fileCount, ALLOC_TRACK_CONSOLE));
+      const std::vector<std::string> choices(Cmd_GetArgumentChoices(str));
 
-      if (fileCount != 0)
+      if (!choices.empty())
       {
-        ConDrawInput_AutoCompleteArg(files, fileCount);
-        FS_FreeFileList(files, ALLOC_TRACK_CONSOLE);
+        std::vector<const char*> list(Con_StringPointers(choices));
+        ConDrawInput_AutoCompleteArg(list.data(), static_cast<int>(list.size()));
       }
     }
 
@@ -1820,20 +1880,19 @@ namespace Game
 
       const char* arg(Cmd_Argv(1));
 
-      int fileCount;
-      const char** files(Cmd_GetAutoCompleteFileList(cmd, &fileCount, ALLOC_TRACK_CONSOLE));
+      const std::vector<std::string> choices(Cmd_GetArgumentChoices(cmd));
 
       Cmd_EndTokenizedString();
 
-      if (fileCount == 0)
+      if (choices.empty())
       {
         return;
       }
 
+      std::vector<const char*> list(Con_StringPointers(choices));
+
       char completion[256];
-      Con_ShortestMatchInList(files, fileCount, arg, completion, sizeof(completion));
-      FS_FreeFileList(files, ALLOC_TRACK_CONSOLE);
-      Com_StripExtension(completion, completion);
+      Con_ShortestMatchInList(list.data(), static_cast<int>(list.size()), arg, completion, sizeof(completion));
 
       Con_ReplaceArgument(completion, static_cast<int>(std::strlen(arg)));
     }
@@ -2108,6 +2167,20 @@ namespace Game
     consoleWindow.firstLineIndex = 0;
     consoleWindow.activeLineCount = 0;
     consoleWindow.messageIndex = 0;
+  }
+
+  void Cmd_SetArgumentCompletion(const char* cmdName, Cmd_ArgumentCompletion f)
+  {
+    for (auto& [name, g]: cmdArgumentCompletions)
+    {
+      if (I_stricmp(name.c_str(), cmdName) == 0)
+      {
+        g = std::move(f);
+        return;
+      }
+    }
+
+    cmdArgumentCompletions.emplace_back(cmdName, std::move(f));
   }
 
   void Con_InitInput()

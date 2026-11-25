@@ -286,6 +286,22 @@ namespace Game
   extern void (*Con_DrawInputOverlay)(int localClientNum, field_t* field, float x);
   extern bool (*Console_KeyFilter)(int localClientNum, int key, field_t* field);
 
+  // Complete the argument of the command from the choices that f
+  // returns, the same way as the console completes the map of devmap.
+  //
+  // Note that we ask for them every time we need them, which is every
+  // frame while the console shows the command's hint. Presumably this
+  // means f has to stay cheap, though a few hundred names seem to be
+  // fine in practice.
+  //
+  // Note also that we match the name without regard to case, the same
+  // as the console matches what we type against the commands. Setting a
+  // function for the same command again replaces the one we have.
+  //
+  using Cmd_ArgumentCompletion = std::function<std::vector<std::string>()>;
+
+  void Cmd_SetArgumentCompletion(const char* cmdName, Cmd_ArgumentCompletion f);
+
   // Handle a character while the console takes the input.
   //
   void CL_CharEvent(int localClientNum, int key);
