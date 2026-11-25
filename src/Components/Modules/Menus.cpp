@@ -31,9 +31,6 @@ namespace Components
     static_assert(sizeof(Game::multiDef_s) == Layout::multiDef_s);
   }
 
-  /// This variable dispenses us from the horror of having a text file in IWD containing the menus we want to load
-  std::vector<std::string> Menus::CustomIW4xMenus;
-
   bool Menus::ReloadedWithModZone = false;
   bool Menus::UIInitialized = false;
 
@@ -481,12 +478,6 @@ namespace Components
     }
   }
 
-  void Menus::Add(const std::string& menu)
-  {
-    CustomIW4xMenus.push_back(menu);
-  }
-
-
   void Menus::FreeMenuListOnly(Game::MenuList* menuList)
   {
     DebugPrint("Freeing only menuList {} at {:X}",
@@ -648,12 +639,6 @@ namespace Components
       {
         const std::string fullPath = std::format("ui_mp\\{}", filename);
         LoadScriptMenu(fullPath.c_str(), true);
-      }
-
-      // "code.txt" for IW4x
-      for (const auto& menuName : CustomIW4xMenus)
-      {
-        LoadScriptMenu(menuName.c_str(), true);
       }
     }
 

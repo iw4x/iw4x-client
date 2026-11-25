@@ -12,8 +12,6 @@ namespace Components
   public:
     Menus();
 
-    static void Add(const std::string& menu);
-
     static std::vector<Game::menuDef_t*> LoadMenuByName_Recursive(const std::string& menu);
 
   private:
@@ -43,8 +41,6 @@ namespace Components
 
     // Those two point to the ORIGINAL reference of the menu or menu list that was overriden
     static std::unordered_map<std::string, Game::menuDef_t*> OverridenMenus;
-
-    static std::vector<std::string> CustomIW4xMenus;
 
     // Whether we last reloaded the menus with the mod's fastfile loaded, and
     // whether the UI is up to begin with.
