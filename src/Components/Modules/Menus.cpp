@@ -64,6 +64,83 @@ namespace Components
         Game::UI_AddMenuList(dc, Game::UI_LoadMenus(MenuList, 3), close);
       }
     }
+
+    // Clip each cell of the server browser's listbox to its column.
+    //
+    // Item_ListBox_PaintTextElem() draws one cell of a listbox and the only
+    // limit it puts on the text is the column's maxChars, which counts
+    // characters with no regard to how wide they are. That was presumably
+    // good enough for the lists IW4 ships, but server names come with color
+    // codes and inline material icons, so in the server browser they
+    // routinely run into the map names next to them.
+    //
+    // IW4 has no notion of clipping a cell, but its renderer does have a
+    // scissor, which the UI already uses in a couple of places (see the calls
+    // at 0x14025FDD7 and 0x1402688E3). So what we do is set the scissor to the
+    // cell's rect, let IW4 draw the cell, and clear the scissor again. The
+    // rect is in the item's coordinates and UI_SetScissor() turns it into
+    // screen ones the same way IW4 does for the cell's text, which means we
+    // also get to clip the icons in the icon columns.
+    //
+    // We only do this for the server browser, though. The menus IW4 ships
+    // count on the text spilling over. The party list, for example, declares
+    // its name column 16 units wide, so clipping it leaves the first two
+    // letters of a name. And since the browser is the only list we know of
+    // with this problem, let's keep it at that instead of extending the menu
+    // syntax.
+    //
+    // Note that clearing the scissor turns it off altogether instead of going
+    // back to whatever was there before. So if IW4 ever drew a listbox inside
+    // some other scissor, whatever it drew after the listbox would no longer
+    // be clipped. We don't know of a case where it does that, so let's not
+    // worry about it for now.
+    //
+    using Item_ListBox_PaintTextElem_t = void (*) (Game::UiContext* dc,
+                                                   Game::itemDef_s* item,
+                                                   int index,
+                                                   int column,
+                                                   int max_chars,
+                                                   int alignment,
+                                                   float x,
+                                                   float y,
+                                                   float width,
+                                                   float height,
+                                                   bool selected);
+
+    Item_ListBox_PaintTextElem_t Item_ListBox_PaintTextElem_Original;
+
+    void Item_ListBox_PaintTextElem_Hk(Game::UiContext* dc,
+                                       Game::itemDef_s* item,
+                                       int index,
+                                       int column,
+                                       int max_chars,
+                                       int alignment,
+                                       float x,
+                                       float y,
+                                       float width,
+                                       float height,
+                                       bool selected)
+    {
+      if (item->parent == nullptr || std::strcmp(item->parent->window.name, "pc_join_unranked") != 0)
+      {
+        Item_ListBox_PaintTextElem_Original(dc, item, index, column, max_chars, alignment, x, y, width, height, selected);
+        return;
+      }
+
+      const Game::rectDef_s& r (item->window.rect);
+
+      Game::UI_SetScissor(Game::ScrPlace_GetActivePlacement(dc->localClientNum),
+                          x,
+                          y,
+                          width,
+                          height,
+                          r.horzAlign,
+                          r.vertAlign);
+
+      Item_ListBox_PaintTextElem_Original(dc, item, index, column, max_chars, alignment, x, y, width, height, selected);
+
+      Game::UI_ClearScissor();
+    }
   }
 
   bool Menus::ReloadedWithModZone = false;
@@ -751,6 +828,17 @@ namespace Components
       &Game::DB_DynamicCloneXAssetHandler[Game::ASSET_TYPE_MENU], nullptr);
 
     Utils::Hook(0x14026DB05, UI_AddMenuList_Hk, HOOK_CALL).install()->quick(); // UI_Init
+
+    // Clip the server browser's cells to their columns (see
+    // Item_ListBox_PaintTextElem_Hk() for details).
+    //
+    // Note that the first 5 bytes, which the detour moves into the
+    // trampoline, are mov rax, rsp followed by two pushes. One would expect
+    // trouble here since IW4 builds the rest of its frame from rax, but the
+    // trampoline runs that mov with rsp exactly where IW4 would have it, so
+    // we end up with the same rax.
+    //
+    Item_ListBox_PaintTextElem_Original = Utils::Hook::Detour(0x14025F4A0, 5, &Item_ListBox_PaintTextElem_Hk);
 
     Components::Events::OnCGameInit(ReloadDiskMenus_OnCGameStart);
     Components::Events::AfterUIInit(ReloadDiskMenus_OnUIInitialization);

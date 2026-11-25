@@ -498,6 +498,12 @@ namespace Game
   typedef void(*UI_DrawText_t)(const ScreenPlacement* scrPlace, const char* text, int maxChars, Font_s* font, float x, float y, int horzAlign, int vertAlign, float scale, const float* color, int style);
   extern UI_DrawText_t UI_DrawText;
 
+  typedef void(*UI_SetScissor_t)(const ScreenPlacement* scrPlace, float x, float y, float w, float h, int horzAlign, int vertAlign);
+  extern UI_SetScissor_t UI_SetScissor;
+
+  typedef void(*UI_ClearScissor_t)();
+  extern UI_ClearScissor_t UI_ClearScissor;
+
   typedef Font_s*(*UI_GetFontHandle_t)(ScreenPlacement* scrPlace, int fontEnum, float scale);
   extern UI_GetFontHandle_t UI_GetFontHandle;
 
