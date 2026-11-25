@@ -84,6 +84,11 @@ namespace Components
       void seek(int offset, int origin) const;
 
     private:
+      // Held for as long as the file is open through the database thread's
+      // only file handle (see FSMutex).
+      //
+      std::unique_lock<std::recursive_mutex> lock;
+
       Game::fileHandle_t handle;
       int size;
       std::string name;
@@ -126,11 +131,18 @@ namespace Components
     static bool FileWrapper_Rotate(const char* ospath);
     static bool FileRotate(const std::string& filename);
 
+    // Held while IW4 reads images (see LoadTextureSync()) and while the
+    // file system changes under it (see FsRestartSync()). Note that the
+    // image reads go through the database thread's only file handle, so
+    // whoever else reads through that handle has to hold this as well
+    // (texture streaming does).
+    //
+    static std::recursive_mutex FSMutex;
+
   private:
     friend void (::FileSystem_RegisterFolders)();
 
     static std::mutex Mutex;
-    static std::recursive_mutex FSMutex;
     static Utils::Memory::Allocator MemAllocator;
 
     static int ReadFile(const char* path, char** buffer);

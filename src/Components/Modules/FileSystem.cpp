@@ -52,8 +52,17 @@ namespace Components
     Game::DB_GetRawBuffer(rawfile, this->buffer.data(), static_cast<int>(this->buffer.size()));
   }
 
+  // Note that on the database thread we open the file through the thread's
+  // only file handle, which IW4 also reads images through, so we keep the
+  // others off it until we close the file (see FSMutex).
+  //
   FileSystem::FileReader::FileReader(std::string file) : handle(0), name(std::move(file))
   {
+    if (Game::Sys_IsDatabaseThread())
+    {
+      this->lock = std::unique_lock(FSMutex);
+    }
+
     this->size = Game::FS_FOpenFileReadCurrentThread(this->name.data(), &this->handle);
   }
 

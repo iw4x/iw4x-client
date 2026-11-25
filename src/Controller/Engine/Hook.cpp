@@ -447,6 +447,11 @@ namespace Controller
         //
         const std::string path ("images/" + std::string (name) + ".iwi");
 
+        // Both go through the database thread's only file handle, which
+        // the database thread may be reading an image through right now.
+        //
+        std::lock_guard lock (Components::FileSystem::FSMutex);
+
         Game::fileHandle_t file (0);
         Game::FS_FOpenFileReadDatabase (path.c_str (), &file);
 
