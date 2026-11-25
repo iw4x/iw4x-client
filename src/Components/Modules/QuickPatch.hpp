@@ -22,6 +22,12 @@ namespace Components
     static void UnlockStats();
 
   private:
+    static void ForEachAward(const std::function<void(const char* award)>& f);
+    static void ForEachKillstreak(const std::function<void(const char* killstreak)>& f);
+    static void ForEachCompletedChallenge(const std::function<void(const char* challenge, int state, int progress)>& f);
+    static bool CanUnlockStats();
+    static void UpdateCanUnlockStats();
+
     friend void (::QuickPatch_SetAspectRatio)();
     friend void (::QuickPatch_CL_KeyEvent_OnEscape)();
 

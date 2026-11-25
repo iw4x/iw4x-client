@@ -11,6 +11,14 @@ namespace Components
 
     static bool IsMaxLevel();
 
+    // Return the integer field (int, short, byte, and bool) at the specified
+    // path in our player data, where the path is what setPlayerData takes
+    // (e.g., challengeState ch_marksman_m4). Return nullopt if the stats are
+    // not loaded yet, if there is no such field, and if the field is not an
+    // integer.
+    //
+    static std::optional<int> GetPlayerData(const std::vector<std::string>& path);
+
   private:
     static void UpdateClasses([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
 

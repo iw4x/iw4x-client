@@ -41,12 +41,90 @@ namespace Components
     {
       return Command::ClientParams ().get (i);
     }
+
+    // The path for StructuredData_GetPathFromArgs() to read through
+    // PathArgc() and PathArgv() below. It only takes plain function
+    // pointers, so all we can do is hand the path over in a global, which
+    // GetPlayerData() sets for the duration of the lookup.
+    //
+    const std::vector<std::string>* PathArgs;
+
+    int PathArgc ()
+    {
+      return static_cast<int> (PathArgs->size ());
+    }
+
+    const char* PathArgv (int i)
+    {
+      return (*PathArgs)[i].c_str ();
+    }
   }
 
   bool Stats::IsMaxLevel()
   {
     // 2516000 should be the max experience.
     return (Game::Live_GetXp(0) >= Game::CL_GetMaxXP());
+  }
+
+  // We look the field up the same way setPlayerData does, with
+  // StructuredData_GetPathFromArgs(), which gives us the field's type and its
+  // offset in the player data. It expects the arguments of a command, which is
+  // why we put getPlayerData in front of the path.
+  //
+  // Note that the lookup can stop before the end of the path, in which case
+  // the path goes on below the field it found. We say there is no such field
+  // then, since the caller presumably got the path wrong and reading the
+  // field would only hide that. Note also that a bool is a single bit, so
+  // its offset is in bits instead of bytes.
+  //
+  std::optional<int> Stats::GetPlayerData(const std::vector<std::string>& path)
+  {
+    if (!Game::LiveStorage_DoWeHaveStats (0))
+      return std::nullopt;
+
+    std::vector<std::string> args {"getPlayerData"};
+    args.insert (args.end (), path.begin (), path.end ());
+
+    StructuredDataLookup lookup;
+    int count;
+
+    PathArgs = &args;
+    const bool found (StructuredData_GetPathFromArgs (Game::StructuredDataDef_GetAsset ("mp/playerdata.def", PlayerDataSize), PathArgc, PathArgv, &lookup, &count));
+    PathArgs = nullptr;
+
+    if (!found || count != static_cast<int> (args.size ()))
+      return std::nullopt;
+
+    const auto* base (reinterpret_cast<const std::uint8_t*> (LiveStorageStats) + 4);
+    const auto* data (base + lookup.offset);
+
+    switch (static_cast<const Game::StructuredDataType*> (lookup.type)->type)
+    {
+      case Game::DATA_INT:
+      {
+        std::int32_t v;
+        std::memcpy (&v, data, sizeof (v));
+        return v;
+      }
+      case Game::DATA_SHORT:
+      {
+        std::int16_t v;
+        std::memcpy (&v, data, sizeof (v));
+        return v;
+      }
+      case Game::DATA_BYTE:
+      {
+        return *data;
+      }
+      case Game::DATA_BOOL:
+      {
+        return (base[lookup.offset >> 3] >> (lookup.offset & 7)) & 1;
+      }
+      default:
+      {
+        return std::nullopt;
+      }
+    }
   }
 
   void Stats::SendStats()

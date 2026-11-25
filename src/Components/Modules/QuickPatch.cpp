@@ -2,6 +2,7 @@
 
 #include "Events.hpp"
 #include "QuickPatch.hpp"
+#include "Stats.hpp"
 #include "TextRenderer.hpp"
 #include "Toast.hpp"
 
@@ -13,6 +14,33 @@ namespace Components
 
   Dvar::Var QuickPatch::r_customAspectRatio;
 
+  // Unlock everything that a player can unlock.
+  //
+  // IW4 keeps all of it in the player data, and the menus decide what is
+  // locked by reading the player data. So what we do is write the values that
+  // a player who has done it all would have, through setPlayerData, the same
+  // way the menus change them (see Stats for why x64 has the command at all).
+  // That starts with the highest prestige and rank, which take care of most of
+  // it, and then goes through the tables for the rest.
+  //
+  // The rank doesn't cover challenges, which we take past their last tier. It
+  // doesn't quite cover killstreaks, since a killstreak that the rank makes
+  // available still has to be unlocked in the killstreak menu
+  // (popup_unlockconfirm sets killstreakUnlocked when the player confirms).
+  // And accolades are not about rank at all: the barracks shows an award as
+  // locked for as long as its count is 0. For those we only raise a count of 0
+  // to 1, since the other counts are the player's real record and we see no
+  // reason to touch them.
+  //
+  // Then there is the barracks button, which should go away once there is
+  // nothing left to unlock. But how would the menu know? It can check the
+  // prestige with getplayerdata(), but there are several hundred challenges
+  // and menu expressions have no loops. So we work it out here (see
+  // CanUnlockStats()) and keep the answer in ui_canUnlockStats, which the
+  // barracks has us update with updateCanUnlockStats when it opens. We also
+  // update it ourselves once we are done, so that the button goes away right
+  // after the player confirms.
+  //
   void QuickPatch::UnlockStats()
   {
     if (Dedicated::IsEnabled()) return;
@@ -27,33 +55,172 @@ namespace Components
     Command::Execute("setPlayerData experience 2516000");
     Command::Execute("setPlayerData iconUnlocked cardicon_prestige10_02 1");
 
-    // Unlock challenges
-    Game::StringTable* challengeTable = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_STRINGTABLE, "mp/allchallengestable.csv").stringTable;
-
-    if (challengeTable)
+    ForEachCompletedChallenge([](const char* challenge, int state, int progress)
     {
-      for (int i = 0; i < challengeTable->rowCount; ++i)
+      Command::Execute(Utils::String::VA("setPlayerData challengeState %s %d", challenge, state));
+      Command::Execute(Utils::String::VA("setPlayerData challengeProgress %s %d", challenge, progress));
+    });
+
+    ForEachKillstreak([](const char* killstreak)
+    {
+      Command::Execute(Utils::String::VA("setPlayerData killstreakUnlocked %s 1", killstreak));
+    });
+
+    ForEachAward([](const char* award)
+    {
+      const auto count = Stats::GetPlayerData({"awards", award});
+
+      if (count && *count < 1)
       {
-        // Find challenge
-        const char* challenge = Game::TableLookup(challengeTable, i, 0);
+        Command::Execute(Utils::String::VA("setPlayerData awards %s 1", award));
+      }
+    });
 
-        int maxState = 0;
-        int maxProgress = 0;
+    UpdateCanUnlockStats();
+  }
 
-        // Find correct tier and progress
-        for (int j = 0; j < 10; ++j)
-        {
-          int progress = atoi(Game::TableLookup(challengeTable, i, 6 + j * 2));
-          if (!progress) break;
+  // Call f with the name of each award in mp/awardTable.csv, which is the list
+  // that the barracks shows as accolades.
+  //
+  void QuickPatch::ForEachAward(const std::function<void(const char* award)>& f)
+  {
+    Game::StringTable* awardTable = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_STRINGTABLE, "mp/awardTable.csv").stringTable;
 
-          maxState = j + 2;
-          maxProgress = progress;
-        }
+    if (!awardTable)
+    {
+      return;
+    }
 
-        Command::Execute(Utils::String::VA("setPlayerData challengeState %s %d", challenge, maxState));
-        Command::Execute(Utils::String::VA("setPlayerData challengeProgress %s %d", challenge, maxProgress));
+    for (int i = 0; i < awardTable->rowCount; ++i)
+    {
+      const char* award = Game::TableLookup(awardTable, i, 1);
+
+      if (*award)
+      {
+        f(award);
       }
     }
+  }
+
+  // Call f with the name of each killstreak that a player can pick. These are
+  // the rows of mp/killstreakTable.csv with a positive index in the first
+  // column: index 0 is "none" and IW4 doesn't seem to use the rows without
+  // an index.
+  //
+  void QuickPatch::ForEachKillstreak(const std::function<void(const char* killstreak)>& f)
+  {
+    Game::StringTable* killstreakTable = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_STRINGTABLE, "mp/killstreakTable.csv").stringTable;
+
+    if (!killstreakTable)
+    {
+      return;
+    }
+
+    for (int i = 0; i < killstreakTable->rowCount; ++i)
+    {
+      if (atoi(Game::TableLookup(killstreakTable, i, 0)) > 0)
+      {
+        f(Game::TableLookup(killstreakTable, i, 1));
+      }
+    }
+  }
+
+  // Call f with each challenge in mp/allchallengestable.csv, along with the
+  // state and the progress that make it completed.
+  //
+  // A row has the targets of up to 10 tiers in every other column from 6 on,
+  // and the first empty column ends them. The state is the tier that the
+  // challenge is in, counting from 1 (the menus treat anything lower as 1,
+  // so 0 presumably means not started), which makes a completed challenge
+  // one tier past the last, with that tier's target as its progress.
+  //
+  void QuickPatch::ForEachCompletedChallenge(const std::function<void(const char* challenge, int state, int progress)>& f)
+  {
+    Game::StringTable* challengeTable = Game::DB_FindXAssetHeader(Game::XAssetType::ASSET_TYPE_STRINGTABLE, "mp/allchallengestable.csv").stringTable;
+
+    if (!challengeTable)
+    {
+      return;
+    }
+
+    for (int i = 0; i < challengeTable->rowCount; ++i)
+    {
+      const char* challenge = Game::TableLookup(challengeTable, i, 0);
+
+      int maxState = 0;
+      int maxProgress = 0;
+
+      for (int j = 0; j < 10; ++j)
+      {
+        int progress = atoi(Game::TableLookup(challengeTable, i, 6 + j * 2));
+        if (!progress) break;
+
+        maxState = j + 2;
+        maxProgress = progress;
+      }
+
+      f(challenge, maxState, maxProgress);
+    }
+  }
+
+  // Return true if unlockstats would still change something (see UnlockStats()
+  // for what it changes).
+  //
+  // Note that we can't tell without our stats, in which case we say yes and
+  // let unlockstats deal with it. Note also that we only count what the
+  // player data can store. A table could name something that is missing from
+  // the player data (a mod's table, perhaps), and unlockstats can't set that,
+  // so counting it would keep the barracks button around for good.
+  //
+  bool QuickPatch::CanUnlockStats()
+  {
+    if (!Game::LiveStorage_DoWeHaveStats(0))
+    {
+      return true;
+    }
+
+    const auto prestige = Stats::GetPlayerData({"prestige"});
+
+    if (!prestige || *prestige < Stats::MAX_PRESTIGE || !Stats::IsMaxLevel())
+    {
+      return true;
+    }
+
+    bool r = false;
+
+    ForEachCompletedChallenge([&r](const char* challenge, int state, int)
+    {
+      if (!r)
+      {
+        const auto current = Stats::GetPlayerData({"challengeState", challenge});
+        r = current && *current < state;
+      }
+    });
+
+    ForEachKillstreak([&r](const char* killstreak)
+    {
+      if (!r)
+      {
+        const auto unlocked = Stats::GetPlayerData({"killstreakUnlocked", killstreak});
+        r = unlocked && !*unlocked;
+      }
+    });
+
+    ForEachAward([&r](const char* award)
+    {
+      if (!r)
+      {
+        const auto count = Stats::GetPlayerData({"awards", award});
+        r = count && *count < 1;
+      }
+    });
+
+    return r;
+  }
+
+  void QuickPatch::UpdateCanUnlockStats()
+  {
+    Dvar::Var("ui_canUnlockStats").set(CanUnlockStats());
   }
 
   Game::dvar_t* QuickPatch::Dvar_RegisterAspectRatioDvar(const char* dvarName, const char** /*valueList*/, int defaultIndex, unsigned __int16 flags, const char* description)
@@ -688,6 +855,9 @@ namespace Components
     });
 
     Command::Add("unlockstats", QuickPatch::UnlockStats);
+
+    Dvar::Register<bool>("ui_canUnlockStats", true, Game::DVAR_NONE, "Whether unlockStats has anything left to unlock");
+    Command::Add("updateCanUnlockStats", QuickPatch::UpdateCanUnlockStats);
 
     // The x64 build doesn't register quit (not sure why, the string is gone
     // too). Com_Quit_f() itself is still there, so we bring the command back
