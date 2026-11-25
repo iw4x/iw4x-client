@@ -2,6 +2,8 @@
 
 #include <proto/party.pb.h>
 
+#include "Events.hpp"
+#include "FastFiles.hpp"
 #include "Playlist.hpp"
 #include "Party.hpp"
 
@@ -11,45 +13,83 @@ namespace Components
   std::string Playlist::ReceivedPlaylistBuffer;
   std::unordered_map<const void*, std::string> Playlist::MapRelocation;
 
-  void Playlist::LoadPlaylist()
+  namespace
   {
-    // Check if playlist already loaded
-    if (*Game::s_havePlaylists) return;
+    // The zone that ships the playlist as a rawfile.
+    //
+    constexpr const char* PlaylistZone = "iw4x_code_post_gfx_mp";
+  }
 
-    // Don't load playlists when dedi and no party
+  // Load the playlist, unless we have it already, and return true if we have
+  // it afterwards.
+  //
+  // The playlist comes from disk if there is one there (in an IWD, say), so
+  // that a mod can still bring its own. Otherwise we take the rawfile from
+  // our zone, but only once IW4 has loaded it, since before then
+  // DB_FindXAssetHeader() would hand us the default asset (and complain about
+  // it).
+  //
+  bool Playlist::LoadPlaylist()
+  {
+    if (*Game::s_havePlaylists)
+      return true;
+
+    // A dedicated server without a party has no use for the playlist, so we
+    // pretend it has one.
+    //
     if (Dedicated::IsEnabled() && !Party::IsEnabled())
     {
       *Game::s_havePlaylists = true;
       Dvar::Var("xblive_privateserver").set(true);
-      return;
+      return true;
     }
 
     Dvar::Var("xblive_privateserver").set(false);
 
-    const auto playlistFilename = Dvar::Var("playlistFilename").get<std::string>();
-    FileSystem::File playlist(playlistFilename);
+    const auto name (Dvar::Var("playlistFilename").get<std::string>());
 
-    if (playlist.exists())
+    FileSystem::File file (name);
+    FileSystem::RawFile rawfile;
+
+    FileSystem::AbstractFile* playlist (&file);
+
+    if (!file.exists())
     {
-      Logger::Print("Parsing playlist '{}'...\n", playlist.getName());
-      Game::Playlist_ParsePlaylists(playlist.getBuffer().data());
-      *Game::s_havePlaylists = true;
+      if (!Game::DB_IsZoneLoaded(PlaylistZone))
+        return false;
+
+      rawfile = FileSystem::RawFile(name);
+      playlist = &rawfile;
     }
-    else
-    {
-      Logger::Print("Unable to load playlist '{}'!\n", playlist.getName());
-    }
+
+    if (!playlist->exists())
+      return false;
+
+    Logger::Print("Parsing playlist '{}'...\n", name);
+    Game::Playlist_ParsePlaylists(playlist->getBuffer().data());
+    *Game::s_havePlaylists = true;
+
+    return true;
   }
 
   // On x86 we jump to LoadPlaylist() at the end of Live_Init(). There x64
   // sets a flag after its playlist download instead, so we load ours in
-  // place of the check whether the playlist fastfile exists. And we say that
-  // it does, so that the game doesn't go and try to download it. A bit of a
-  // white lie, but a harmless one since we disable the download anyway.
+  // place of the check whether the playlist fastfile exists, and say that it
+  // does so that IW4 doesn't go and try to download it. A white lie, though a
+  // harmless one since we disable the download anyway.
+  //
+  // Note that Live_Init() comes before IW4 loads any zone, so here only a
+  // playlist on disk can turn up. If there is none and the installation
+  // doesn't have our zone, then we are not going to get one later, so let's
+  // say so right away.
   //
   bool Playlist::LoadPlaylist_Hk()
   {
-    LoadPlaylist();
+    if (!LoadPlaylist() && !FastFiles::Exists(PlaylistZone))
+    {
+      Logger::Print("Unable to load playlist '{}'!\n", Dvar::Var("playlistFilename").get<std::string>());
+    }
+
     return true;
   }
 
@@ -222,6 +262,31 @@ namespace Components
       // disable playlist.ff loading function (Win_LoadPlaylistFastfile)
       Utils::Hook::Set<std::uint8_t>(0x1402A74F0, 0xC3);
     }
+
+    // Otherwise we load the playlist from our zone as soon as IW4 has loaded
+    // it (see LoadPlaylist()). The database tells us whenever it has loaded
+    // something, possibly on another thread, so we look for the zone on the
+    // main one. We only try once: if the zone is in and we still have no
+    // playlist, then the zone doesn't ship one, and trying again on every
+    // later load (a map, say) would only repeat the complaint.
+    //
+    Events::AfterDatabaseLoaded([]
+    {
+      Scheduler::Once([]
+      {
+        static bool tried (false);
+
+        if (tried || !Game::DB_IsZoneLoaded(PlaylistZone))
+          return;
+
+        tried = true;
+
+        if (!LoadPlaylist())
+        {
+          Logger::Print("Unable to load playlist '{}'!\n", Dvar::Var("playlistFilename").get<std::string>());
+        }
+      }, Scheduler::Pipeline::MAIN);
+    });
 
     Network::OnClientPacket("getPlaylist", PlaylistRequest);
     Network::OnClientPacket("playlistResponse", PlaylistResponse);

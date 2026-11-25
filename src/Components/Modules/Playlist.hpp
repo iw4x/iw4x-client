@@ -9,7 +9,7 @@ namespace Components
 
     Playlist();
 
-    static void LoadPlaylist();
+    static bool LoadPlaylist();
     static bool LoadPlaylist_Hk();
 
     static std::string ReceivedPlaylistBuffer;
