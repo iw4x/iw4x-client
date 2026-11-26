@@ -6724,7 +6724,6 @@ namespace Game
     const char* in_ptr;
     bool in_ptr_valid;
     const char* parseBuf;
-    bool script_loading;
     bool allowedBreakpoint;
     int developer_statement;
     char* opcodePos;
