@@ -8500,11 +8500,6 @@ namespace Game
     unsigned int scissorY;
     unsigned int scissorW;
     unsigned int scissorH;
-    unsigned int pixPrimarySortKey;
-    unsigned int pixSceneLightIndex;
-    Material* pixMaterial;
-    MaterialTechnique* pixTechnique;
-    int pixCombine;
     GfxViewport viewport;
     GfxRenderTargetId renderTargetId;
     Material* origMaterial;
@@ -9057,6 +9052,7 @@ namespace Game
     GfxViewParms viewParms;
     float eyeOffset[4];
     GfxMatrix shadowLookupMatrix;
+    char unknown[12];
     unsigned __int16 constVersions[132];
     unsigned __int16 matrixVersions[14];
     unsigned int sceneLightForShadowLookupMatrix;
