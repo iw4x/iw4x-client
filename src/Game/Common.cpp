@@ -328,6 +328,36 @@ namespace Game
     Com_PrintMessage(channel, msg, 3);
   }
 
+  void Com_StartupVariable(const char* match)
+  {
+    for (int i = 0; i < *com_numConsoleLines; ++i)
+    {
+      Cmd_TokenizeString(com_consoleLines[i]);
+
+      const int n = cmd_args->nesting;
+      const int argc = cmd_args->argc[n];
+      const char** argv = cmd_args->argv[n];
+
+      if (argc > 1 && (!match || !std::strcmp(argv[1], match)))
+      {
+        if (!_stricmp(argv[0], "set"))
+        {
+          Dvar_Set_f();
+        }
+        else if (!_stricmp(argv[0], "seta"))
+        {
+          Com_Printf(CON_CHANNEL_SYSTEM,
+            "\"SetA\" is deprecated.  Forcing \"%s\" to be a \"Set\" command, instead.\n",
+            com_consoleLines[i]);
+
+          Dvar_Set_f();
+        }
+      }
+
+      Cmd_EndTokenizedString();
+    }
+  }
+
   void Com_ClientPacketEvent()
   {
     // The loopback packets of a socket, then the packets the network thread

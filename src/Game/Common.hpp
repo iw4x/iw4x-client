@@ -18,6 +18,15 @@ namespace Game
   //
   void Com_ClientPacketEvent();
 
+  // Run the command line's "set <dvar> <value>" (and seta) for the dvar that
+  // matches, or for every dvar if match is NULL.
+  //
+  // Note that x64 compiles this out, so this is the x86 one (0x4C92E0),
+  // down to letting the set command's handler, Dvar_Set_f(), do the
+  // setting.
+  //
+  void Com_StartupVariable(const char* match);
+
   typedef void(*Com_Error_t)(errorParm_t type, const char* message, ...);
   extern Com_Error_t Com_Error;
 

@@ -78,6 +78,12 @@ namespace Game
   typedef dvar_t*(*Dvar_FindVar_t)(const char* dvarName);
   extern Dvar_FindVar_t Dvar_FindVar;
 
+  // The set command's handler, which sets the dvar of the tokenized
+  // command's arguments.
+  //
+  typedef void(*Dvar_Set_f_t)();
+  extern Dvar_Set_f_t Dvar_Set_f;
+
   typedef char*(*Dvar_InfoString_Big_t)(int bit);
   extern Dvar_InfoString_Big_t Dvar_InfoString_Big;
 

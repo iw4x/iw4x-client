@@ -17,6 +17,7 @@ namespace Game
   Dvar_GetString_t Dvar_GetString = Dvar_GetString_t(0x140283780);
   Dvar_GetVariantString_t Dvar_GetVariantString = Dvar_GetVariantString_t(0x1402838A0);
   Dvar_FindVar_t Dvar_FindVar = Dvar_FindVar_t(0x140283520);
+  Dvar_Set_f_t Dvar_Set_f = Dvar_Set_f_t(0x1401FC430);
   Dvar_InfoString_Big_t Dvar_InfoString_Big = Dvar_InfoString_Big_t(0x1401FC1C0);
   Dvar_SetCommand_t Dvar_SetCommand = Dvar_SetCommand_t(0x140285750);
   Dvar_DisplayableValue_t Dvar_DisplayableValue = Dvar_DisplayableValue_t(0x140283490);

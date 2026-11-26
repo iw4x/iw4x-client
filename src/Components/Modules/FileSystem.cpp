@@ -298,43 +298,6 @@ namespace Components
     return 0; // Found
   }
 
-  // Run the command line's "set <dvar> <value>" (or seta) for the dvar that
-  // matches, or for every dvar if match is NULL.
-  //
-  // x64 compiles Com_StartupVariable() out, so this is the x86 one
-  // (0x4C92E0), down to letting the set command's handler, Dvar_Set_f(), do
-  // the setting.
-  //
-  void FileSystem::Com_StartupVariable(const char* match)
-  {
-    const auto Dvar_Set_f(reinterpret_cast<void (*)()>(0x1401FC430));
-
-    for (int i = 0; i < *Game::com_numConsoleLines; ++i)
-    {
-      Game::Cmd_TokenizeString(Game::com_consoleLines[i]);
-
-      Command::ClientParams params;
-
-      if (!match || !std::strcmp(params[1], match))
-      {
-        if (!_stricmp(params[0], "set"))
-        {
-          Dvar_Set_f();
-        }
-        else if (!_stricmp(params[0], "seta"))
-        {
-          Logger::Print(Game::CON_CHANNEL_SYSTEM,
-            "\"SetA\" is deprecated.  Forcing \"{}\" to be a \"Set\" command, instead.\n",
-            Game::com_consoleLines[i]);
-
-          Dvar_Set_f();
-        }
-      }
-
-      Game::Cmd_EndTokenizedString();
-    }
-  }
-
   // x86 runs the command line's file system and language dvars at the start
   // of FS_InitFilesystem(), before SEH_InitLanguage() and FS_Startup() get to
   // them, but x64 leaves these calls out. So, for example, a +set fs_game of
@@ -351,12 +314,12 @@ namespace Components
   //
   void FileSystem::FS_InitFilesystem_SEH_InitLanguage_Hk()
   {
-    Com_StartupVariable("fs_cdpath");
-    Com_StartupVariable("fs_basepath");
-    Com_StartupVariable("fs_homepath");
-    Com_StartupVariable("fs_game");
-    Com_StartupVariable("fs_copyfiles");
-    Com_StartupVariable("loc_language");
+    Game::Com_StartupVariable("fs_cdpath");
+    Game::Com_StartupVariable("fs_basepath");
+    Game::Com_StartupVariable("fs_homepath");
+    Game::Com_StartupVariable("fs_game");
+    Game::Com_StartupVariable("fs_copyfiles");
+    Game::Com_StartupVariable("loc_language");
 
     Utils::Hook::Call<void()>(0x14024CFA0)(); // SEH_InitLanguage
   }
