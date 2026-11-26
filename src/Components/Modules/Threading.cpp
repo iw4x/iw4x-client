@@ -243,6 +243,21 @@ namespace Components
     //
     timeBeginPeriod(1);
 
+    // Let the engine's threads run on any processor.
+    //
+    // At startup the engine counts the processors of the process affinity
+    // mask (0x140208BA0) but then pretends there are at most 4, picking one
+    // of them for each of its thread slots. It then pins some of its threads
+    // to their slot's processor (0x140209A20) unless sys_lockThreads says
+    // not to, which its default doesn't: the main thread and one other end
+    // up pinned. On a machine with more cores that keeps them off all the
+    // others, and shares their processors with whatever else the system runs
+    // there. So we give every thread the process affinity mask instead,
+    // which is what the function does for the threads it doesn't pin, and
+    // let the scheduler place them.
+    //
+    Utils::Hook::Set<std::uint8_t>(0x140209A44, 0xEB);
+
     // Keep the engine threading model intact.
     //
     // It may be tempting to make the server frame run through the main frame.
