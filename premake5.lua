@@ -149,7 +149,7 @@ workspace "iw4x"
   end
 
   language "C++"
-  cppdialect "C++20"
+  cppdialect "C++23"
   characterset "ASCII"
   staticruntime "On"
   defines {"_WINDOWS", "WIN32"}
@@ -284,8 +284,9 @@ project "iw4x"
 
   -- OpenAssetTools shim.
   --
-  -- The shim between OpenAssetTools and the client is C++23 like the rest
-  -- of OAT, and so the oat library builds it (see deps/premake/oat.lua).
+  -- The shim between OpenAssetTools and the client compiles with OAT's
+  -- include directories and definitions, and so the oat library builds it
+  -- (see deps/premake/oat.lua).
   --
   removefiles
   {

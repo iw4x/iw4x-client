@@ -24,7 +24,7 @@ To use the `iw4x.dll`, you must have a valid Modern Warfare 2 installation with 
 
 ### Cross-compiling with MinGW-w64
 
-On Linux, we can cross-compile IW4x using MinGW-w64. This requires a native Premake 5.0.0-beta8 or later, GNU Make 4.3 or later, UASM, and a 64-bit MinGW-w64 GCC toolchain with POSIX threads and C++20 `<format>` support. The latter should provide `x86_64-w64-mingw32-g++` and `x86_64-w64-mingw32-windres`.
+On Linux, we can cross-compile IW4x using MinGW-w64. This requires a native Premake 5.0.0-beta8 or later, GNU Make 4.3 or later, UASM, and a 64-bit MinGW-w64 GCC toolchain with POSIX threads and C++23 support. The latter should provide `x86_64-w64-mingw32-g++` and `x86_64-w64-mingw32-windres`.
 
 We can then build IW4x as follows:
 

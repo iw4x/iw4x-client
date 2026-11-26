@@ -2,9 +2,10 @@
 -- that we load the raw menus and weapons with (see
 -- src/Components/Modules/OAT/).
 --
--- Note that OAT needs C++23, so we also compile the shim between it and
--- the client here (see Shim.cpp), behind a header that is C++20. The shim
--- also takes the place of OAT's console log and of IParserLineStream.cpp.
+-- Note that we also compile the shim between OAT and the client here (see
+-- Shim.cpp), since it needs OAT's include directories and definitions. The
+-- shim also takes the place of OAT's console log and of
+-- IParserLineStream.cpp.
 --
 -- Note also that OAT templates its menu converter for each IW4 flavor at
 -- its own build time (see src/ObjLoading/Menu/*.template). We expand the

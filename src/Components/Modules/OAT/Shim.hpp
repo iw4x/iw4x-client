@@ -27,11 +27,11 @@
 // game's file system finds it, and then hand the menus over to Menus,
 // which does the rest the same way as x86.
 //
-// The catch is that OAT needs C++23 while the client is C++20. So the shim
-// is compiled as part of the oat target (see deps/premake/oat.lua) and this
-// header is the only thing the two sides share. That's why it keeps to
-// what C++20 has and only declares the few game types it mentions rather
-// than include anything from OAT.
+// The catch is that OAT builds with include directories and definitions
+// that the client doesn't have. So the oat target compiles the shim (see
+// deps/premake/oat.lua) and this header is the only thing the two sides
+// share. That's why it only declares the few game types it mentions and
+// includes nothing from OAT.
 //
 // It also means that neither side can see both definitions of a menu
 // structure, so neither can check by itself that OAT lays them out the
