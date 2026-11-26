@@ -79,7 +79,7 @@ namespace Components
       return (d >= m ? 0 : m - d);
     }
 
-    int ComFrameWait(int m)
+    int ComFrameWait([[maybe_unused]] int m)
     {
       static Dvar::Var v ("com_maxfps");
       auto f (v.get<int>());
@@ -113,10 +113,13 @@ namespace Components
       }
       else
       {
-        // For uncapped FPS, we don't care about the drift and just want to get
-        // back to work as soon as possible. (wait time is effectively 0)
+        // For uncapped FPS, we don't wait at all. Note that the game passes us
+        // a minimum of 1ms here, which would cap us at 1000 FPS. Since its
+        // clock counts whole milliseconds, a faster frame simply takes 0ms:
+        // the game's time doesn't advance, but we still render it (with the
+        // latest input) again.
         //
-        t = *Game::com_frameTime + m;
+        t = *Game::com_frameTime;
       }
 
       // Select/Sleep resolution is often too coarse (>1ms) to hit high targets
