@@ -31,6 +31,28 @@ namespace Components
     Game::Sys_Error ("%s", *format != '\0' ? format : Game::com_errorMessage);
   }
 
+  // A failed assert(). The C runtime would show it in a message box of
+  // its own, which says little once the game is fullscreen and nothing
+  // in the console log. So we print it to the log and the debugger, then
+  // end with IW4's fatal error, which shows the same message.
+  //
+  void Exception::Assert_Hk (const wchar_t* expression, const wchar_t* file, unsigned line)
+  {
+    const std::string m (std::format ("assertion failed: {} ({}:{})",
+                                      Utils::String::Convert (expression),
+                                      Utils::String::Convert (file),
+                                      line));
+
+    Logger::Print ("{}\n", m);
+    OutputDebugStringA ((m + '\n').c_str ());
+
+    Game::Sys_Error ("%s", m.c_str ());
+
+    // Sys_Error() doesn't return, but make sure we don't either.
+    //
+    std::abort ();
+  }
+
   LONG WINAPI Exception::ExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
   {
     // Pass on harmless errors
@@ -78,6 +100,11 @@ namespace Components
     SetFilterHook.install();
 
     ::SetUnhandledExceptionFilter(&ExceptionFilter);
+
+    // Route the client's failed assert()s through IW4 (see Assert_Hk()).
+    // The runtime is linked statically, so _wassert() is ours to patch.
+    //
+    Utils::Hook (reinterpret_cast<void*> (&_wassert), reinterpret_cast<void*> (&Assert_Hk), HOOK_JUMP).install ()->quick ();
 
     Utils::Hook(0x1401F3797, LongJmp_Internal_Stub, HOOK_CALL).install()->quick(); // Com_Error()
     Utils::Hook(0x1401F35A3, Sys_Error_Recursive_Hk, HOOK_CALL).install()->quick(); // Com_Error()
