@@ -824,7 +824,6 @@ namespace Components::GSC
     char extFilename[MAX_QPATH];
     Game::sval_u parseData{};
 
-    assert(Game::scrCompilePub->script_loading);
     assert(std::strlen(filename) < MAX_QPATH);
 
     const auto name = Game::Scr_CreateCanonicalFilename(filename);
@@ -917,6 +916,13 @@ namespace Components::GSC
 
   ScriptError::ScriptError()
   {
+    // x64 has no script_loading (x86 only kept it for its asserts), which
+    // puts allowedBreakpoint where x86 has script_loading.
+    //
+    AssertOffset(Game::scrCompilePub_t, allowedBreakpoint, 0x20038);
+    AssertOffset(Game::scrCompilePub_t, developer_statement, 0x2003C);
+    AssertOffset(Game::scrCompilePub_t, opcodePos, 0x20040);
+
 #ifdef SCRIPT_ERROR_PATCH
     Utils::Hook(0x14021BC6B, MT_Reset_Stub, HOOK_CALL).install()->quick(); // Scr_BeginLoadScripts
     Utils::Hook(0x14021BFD8, SL_ShutdownSystem_Stub, HOOK_CALL).install()->quick(); // Scr_FreeScripts
