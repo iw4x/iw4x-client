@@ -29,6 +29,7 @@
 #include "Modules/Controller.hpp"
 #include "Modules/Debug.hpp"
 #include "Modules/Dedicated.hpp"
+#include "Modules/Direct3D11.hpp"
 #include "Modules/Discord.hpp"
 #include "Modules/Discovery.hpp"
 #include "Modules/Download.hpp"
@@ -141,6 +142,7 @@ namespace Components
     Register(new ConnectProtocol());
     Register(new Console());
     Register(new Controller());
+    Register(new direct3d11());
     Register(new Debug());
     Register(new Dedicated());
     Register(new Discord());
