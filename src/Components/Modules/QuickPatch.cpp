@@ -748,7 +748,14 @@ namespace Components
     //
 #endif
 
-    if (Flags::HasFlag("nointro"))
+    // Skip the intro if asked to, and if the command line starts a map
+    // (+map, +devmap): the player wants to play it, not watch the intro first.
+    //
+    const std::string_view commandLine(GetCommandLineA());
+
+    if (Flags::HasFlag("nointro")                           ||
+        commandLine.find("+map ") != std::string_view::npos ||
+        commandLine.find("+devmap ") != std::string_view::npos)
     {
       Utils::Hook::Set<BYTE>(0x1401F566D, 0xEB);
     }
