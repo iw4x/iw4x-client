@@ -1,6 +1,14 @@
 #include "Exception.hpp"
 #include "AssetHandler.hpp"
 
+// The runtime's assert() handler (see Assert_Hk()), which <assert.h> only
+// declares without NDEBUG, while the runtime has it in all builds.
+//
+#ifdef NDEBUG
+extern "C" void __cdecl
+_wassert (const wchar_t* message, const wchar_t* file, unsigned line);
+#endif
+
 namespace Components
 {
   Utils::Hook Exception::SetFilterHook;
