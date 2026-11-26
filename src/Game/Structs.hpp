@@ -7475,7 +7475,7 @@ namespace Game
 
   struct GfxWindowParms
   {
-    HWND *hwnd;
+    HWND hwnd;
     int hz;
     bool fullscreen;
     int x;
