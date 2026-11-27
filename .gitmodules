@@ -38,12 +38,24 @@
 [submodule "deps/sentry-native"]
 	path = deps/sentry-native
 	url = https://github.com/getsentry/sentry-native.git
+[submodule "deps/SPIRV-Headers"]
+	path = deps/SPIRV-Headers
+	url = https://github.com/KhronosGroup/SPIRV-Headers.git
 [submodule "deps/sqlite"]
 	path = deps/sqlite
 	url = https://github.com/build2-packaging/sqlite.git
 [submodule "deps/tracy"]
 	path = deps/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "deps/vkd3d"]
+	path = deps/vkd3d
+	url = https://github.com/iw4x/vkd3d.git
+[submodule "deps/volk"]
+	path = deps/volk
+	url = https://github.com/zeux/volk.git
+[submodule "deps/Vulkan-Headers"]
+	path = deps/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 [submodule "deps/zlib"]
 	path = deps/zlib
 	url = https://github.com/madler/zlib.git

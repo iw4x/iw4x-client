@@ -222,6 +222,12 @@ project "iw4x"
   -- from the DirectX SDK with Visual Studio (see deps/premake/dxsdk.lua)
   -- and from MinGW-w64 itself otherwise.
   --
+  -- The Vulkan renderer (see the vulkan project below). Note that it comes
+  -- before vkd3d and volk, which it uses, for the linkers that care about
+  -- the order.
+  --
+  links {"vulkan"}
+
   links
   {
     "advapi32",
@@ -314,6 +320,16 @@ project "iw4x"
   removefiles
   {
     "src/Components/Modules/BotLib/**",
+  }
+
+  -- Vulkan renderer.
+  --
+  -- The vulkan library builds the renderer without the precompiled header
+  -- (see below).
+  --
+  removefiles
+  {
+    "src/Vulkan/**"
   }
 
   -- Assemble the assembly sources with ml directly instead of through the
@@ -447,6 +463,8 @@ project "iw4x"
     "sqlite",
     "stb",
     "tracy",
+    "vkd3d",
+    "volk",
     "zlib"
   }
 
@@ -513,6 +531,26 @@ project "iw4x"
       copy ("*.dll")
     }
   end
+
+-- Vulkan renderer, which implements Direct3D 9 over Vulkan (see
+-- src/Vulkan/).
+--
+-- Note that the renderer doesn't use the client's precompiled header,
+-- which includes all of <windows.h> and the game's types. So we build it
+-- as a separate library.
+--
+project "vulkan"
+  kind "StaticLib"
+
+  files
+  {
+    "src/Vulkan/**.hpp",
+    "src/Vulkan/**.cpp"
+  }
+
+  includedirs {"src"}
+
+  targets:import_interface ({"vkd3d", "volk"}, "vulkan")
 
 group "External Dependencies"
   targets:define ()

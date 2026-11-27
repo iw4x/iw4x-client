@@ -187,6 +187,46 @@ to save 30 seconds into `iw4x.tracy`:
 tracy-capture -o iw4x.tracy -a 127.0.0.1 -s 30
 ```
 
+## Running under Wine without DXVK
+
+Some distributions replace Wine's own Direct3D 9 with DXVK through
+`/etc/alternatives`. Fedora's `wine-dxvk` packages, for example, point
+Wine's built-in `d3d9.dll` (and `dxgi.dll`) at DXVK's. So
+`WINEDLLOVERRIDES=d3d9=b` still loads DXVK, which makes Wine's Direct3D 9
+(wined3d) unavailable for comparing against. We can check where
+the built-in `d3d9.dll` points with:
+
+```sh
+readlink -f /usr/lib64/wine-wow64/wine/x86_64-windows/d3d9.dll
+```
+
+Note that the directory depends on the distribution and the Wine package.
+
+If this prints `dxvk-d3d9.dll`, we can switch the whole system back to
+Wine's own version and later return to the default:
+
+```sh
+sudo alternatives --set 'wine-d3d9(x86-64)' /usr/lib64/wine-wow64/wine/x86_64-windows/wine-d3d9.dll
+sudo alternatives --auto 'wine-d3d9(x86-64)'
+```
+
+To leave the system as it is, we can instead give the game directory a
+copy of Wine's `d3d9.dll`. Wine refuses to load its DLLs as
+native, which it recognizes by the "Wine builtin DLL" marker at offset
+`0x40`. So we clear the marker in the copy and override `d3d9` to native:
+
+```sh
+cp /usr/lib64/wine-wow64/wine/x86_64-windows/wine-d3d9.dll d3d9.dll
+printf '\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0' | dd of=d3d9.dll bs=1 seek=64 conv=notrunc
+WINEDLLOVERRIDES=d3d9=n wine iw4x.exe
+```
+
+While the game runs, none of its threads should be DXVK's:
+
+```sh
+cat /proc/"$(pgrep -x iw4x.exe)"/task/*/comm | grep dxvk
+```
+
 ## Disclaimer
 
 This software has been created purely for the purposes of
