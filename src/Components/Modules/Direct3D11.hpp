@@ -12,11 +12,11 @@ namespace Components
   //
   // The main difficulty is the shaders. Direct3D 11 can't run IW4's Shader
   // Model 3 bytecode, so every IW4 shader is translated to Shader Model 5
-  // ahead of time (with dexilifier and fxc) into a shader pack that ships
-  // as iw4x-d3d11.pack next to iw4x.dll. When IW4 creates a shader, we look
-  // up its translation in the pack by the hash of its bytecode. A shader
-  // that isn't in the pack (one from a custom zone that was never added to
-  // it, say) is logged and its draws are skipped.
+  // ahead of time (with dexilifier and fxc) into a shader pack embedded into
+  // iw4x.dll. When IW4 creates a shader, we look up its translation in the
+  // pack by the hash of its bytecode. A shader that isn't in the pack (one
+  // from a custom zone that was never added to it, say) is logged and its
+  // draws are skipped.
   //
   // Set the IW4X_D3D11_DEBUG environment variable to enable the Direct3D 11
   // debug layer, if installed.

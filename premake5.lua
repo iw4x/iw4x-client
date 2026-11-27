@@ -381,7 +381,8 @@ project "iw4x"
       {
         path.join (generated_directory, "version.h"),
         path.join (generated_directory, "version.hpp"),
-        "src/iw4x.manifest"
+        "src/iw4x.manifest",
+        "src/iw4x-d3d11.pack.z"
       }
       buildoutputs {resource_object}
 

@@ -6,9 +6,9 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <filesystem>
 #include <map>
 #include <span>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -28,7 +28,10 @@ namespace Components
     // offline (see DeXILifierCli's --pack option), and we look them up here
     // when the game creates its D3D9 shaders.
     //
-    // The pack is a single file that we map into memory:
+    // The pack is embedded into iw4x.dll as the IW4X_D3D11_SHADERS resource,
+    // compressed with zlib (which takes it from about 60MB down to 8MB),
+    // and we inflate it into memory on first use. Uncompressed, it looks
+    // like this:
     //
     //   char     magic[8];       // "DXBCPACK"
     //   uint32_t version;        // 1
@@ -40,6 +43,10 @@ namespace Components
     //     uint32_t size;
     //   } entries[count];        // Sorted by key.
     //   ...                      // The DXBC, each aligned to 4 bytes.
+    //
+    // Note that src/iw4x-d3d11.pack.z is generated: to update it, rebuild
+    // the pack and compress it with zlib (Python's zlib.compress() at level
+    // 9, say).
     //
     // The key covers the D3D9 bytecode up to and including its end token,
     // comments too, which is everything CreateVertexShader() and
@@ -53,13 +60,11 @@ namespace Components
       shader_pack (const shader_pack&) = delete;
       shader_pack& operator= (const shader_pack&) = delete;
 
-      ~shader_pack ();
-
-      // Map the pack. Return false (and log why) if it's missing or
+      // Inflate the compressed pack. Return false (and log why) if it's
       // malformed.
       //
       bool
-      open (const std::filesystem::path&);
+      open (std::span<const std::byte> compressed);
 
       // Return the DXBC for the key. Return an empty span if the pack has
       // no such shader.
@@ -81,17 +86,14 @@ namespace Components
         uint32_t size;
       };
 
-      HANDLE           file_    = INVALID_HANDLE_VALUE;
-      HANDLE           mapping_ = nullptr;
-      const std::byte* view_    = nullptr;
-      size_t           bytes_   = 0;
-      const entry*     entries_ = nullptr;
-      size_t           count_   = 0;
+      std::string  data_;
+      const entry* entries_ = nullptr;
+      size_t       count_   = 0;
     };
 
-    // Return the shader pack that ships next to the client (iw4x-d3d11.pack
-    // in the directory of iw4x.dll), opening it on first use. If it fails
-    // to open, then the pack is empty and every shader is missing.
+    // Return the shader pack embedded into the client, opening it on first
+    // use. If it fails to open, then the pack is empty and every shader is
+    // missing.
     //
     const shader_pack&
     shaders ();

@@ -13,6 +13,8 @@
 
 ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "iw4x.manifest"
 
+IW4X_D3D11_SHADERS RCDATA "iw4x-d3d11.pack.z"
+
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 

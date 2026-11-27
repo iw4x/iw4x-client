@@ -1,3 +1,5 @@
+#include <Utils/Compression.hpp>
+
 #include "Shaders.hpp"
 
 #include "Device.hpp"
@@ -6,6 +8,7 @@
 #include <algorithm> // ranges::lower_bound(), ranges::is_sorted(), ranges::find_if()
 #include <cstring>   // memcmp(), memcpy()
 #include <set>
+#include <string>
 
 using namespace std;
 
@@ -15,69 +18,40 @@ namespace Components
   {
     // shader_pack
     //
-    shader_pack::
-    ~shader_pack ()
-    {
-      if (view_ != nullptr)
-        UnmapViewOfFile (view_);
-
-      if (mapping_ != nullptr)
-        CloseHandle (mapping_);
-
-      if (file_ != INVALID_HANDLE_VALUE)
-        CloseHandle (file_);
-    }
-
     bool shader_pack::
-    open (const filesystem::path& p)
+    open (span<const std::byte> compressed)
     {
-      auto fail ([&p] (const char* why)
+      auto fail ([] (const char* why)
       {
         Logger::Warning (Game::CON_CHANNEL_GFX,
-                         "Couldn't load the shader pack '{}': {}\n",
-                         p.string (),
+                         "Couldn't load the shader pack: {}\n",
                          why);
         return false;
       });
 
-      file_ = CreateFileW (p.c_str (),
-                           GENERIC_READ,
-                           FILE_SHARE_READ,
-                           nullptr,
-                           OPEN_EXISTING,
-                           FILE_ATTRIBUTE_NORMAL,
-                           nullptr);
-      if (file_ == INVALID_HANDLE_VALUE)
-        return fail ("no such file");
+      data_ = Utils::Compression::ZLib::Decompress (
+        string (reinterpret_cast<const char*> (compressed.data ()),
+                compressed.size ()));
 
-      LARGE_INTEGER n;
-      if (!GetFileSizeEx (file_, &n) || n.QuadPart < 16)
-        return fail ("file too small");
+      if (data_.size () < 16)
+        return fail ("unable to inflate");
 
-      bytes_ = static_cast<size_t> (n.QuadPart);
+      const auto* d (reinterpret_cast<const std::byte*> (data_.data ()));
 
-      mapping_ = CreateFileMappingW (file_, nullptr, PAGE_READONLY, 0, 0, nullptr);
-      if (mapping_ == nullptr)
-        return fail ("unable to map the file");
-
-      view_ = static_cast<const std::byte*> (MapViewOfFile (mapping_, FILE_MAP_READ, 0, 0, 0));
-      if (view_ == nullptr)
-        return fail ("unable to map the file");
-
-      if (memcmp (view_, "DXBCPACK", 8) != 0)
+      if (memcmp (d, "DXBCPACK", 8) != 0)
         return fail ("not a shader pack");
 
       uint32_t version, count;
-      memcpy (&version, view_ + 8, 4);
-      memcpy (&count, view_ + 12, 4);
+      memcpy (&version, d + 8, 4);
+      memcpy (&count, d + 12, 4);
 
       if (version != 1)
         return fail ("unsupported version");
 
-      if (16 + static_cast<size_t> (count) * sizeof (entry) > bytes_)
+      if (16 + static_cast<size_t> (count) * sizeof (entry) > data_.size ())
         return fail ("truncated table");
 
-      entries_ = reinterpret_cast<const entry*> (view_ + 16);
+      entries_ = reinterpret_cast<const entry*> (d + 16);
       count_   = count;
 
       const span<const entry> es (entries_, count_);
@@ -87,7 +61,7 @@ namespace Components
 
       for (const entry& e: es)
       {
-        if (static_cast<size_t> (e.offset) + e.size > bytes_)
+        if (static_cast<size_t> (e.offset) + e.size > data_.size ())
           return fail ("entry out of bounds");
       }
 
@@ -103,13 +77,15 @@ namespace Components
       if (i == es.end () || i->key != key)
         return {};
 
-      return span<const std::byte> (view_ + i->offset, i->size);
+      return span<const std::byte> (
+        reinterpret_cast<const std::byte*> (data_.data ()) + i->offset,
+        i->size);
     }
 
     namespace
     {
-      // Open the pack next to our own module, which is iw4x.dll whatever
-      // it's named.
+      // Open the pack embedded into our own module, which is iw4x.dll
+      // whatever it's named.
       //
       bool
       open_pack (shader_pack& p)
@@ -120,29 +96,24 @@ namespace Components
                             reinterpret_cast<LPCWSTR> (&open_pack),
                             &m);
 
-        wstring s (MAX_PATH, L'\0');
-        for (;;)
+        HRSRC r (FindResourceA (m, "IW4X_D3D11_SHADERS", RT_RCDATA));
+        HGLOBAL g (r != nullptr ? LoadResource (m, r) : nullptr);
+        const void* b (g != nullptr ? LockResource (g) : nullptr);
+
+        if (b == nullptr)
         {
-          const DWORD n (GetModuleFileNameW (m, s.data (), static_cast<DWORD> (s.size ())));
-
-          if (n < s.size ())
-          {
-            s.resize (n);
-            break;
-          }
-
-          s.resize (s.size () * 2);
+          Logger::Warning (Game::CON_CHANNEL_GFX,
+                           "Couldn't load the shader pack: no such resource\n");
+          return false;
         }
 
-        const filesystem::path f (filesystem::path (s).parent_path () / L"iw4x-d3d11.pack");
-
-        if (!p.open (f))
+        if (!p.open (span<const std::byte> (static_cast<const std::byte*> (b),
+                                            SizeofResource (m, r))))
           return false;
 
         Logger::Print (Game::CON_CHANNEL_GFX,
-                       "Loaded {} Direct3D 11 shaders from '{}'\n",
-                       p.size (),
-                       f.string ());
+                       "Loaded {} Direct3D 11 shaders\n",
+                       p.size ());
         return true;
       }
     }
