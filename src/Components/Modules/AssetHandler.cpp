@@ -483,6 +483,11 @@ namespace Components
     //
     Game::ReallocateAssetPool(Game::ASSET_TYPE_MENULIST, 128 * 2);
     Game::ReallocateAssetPool(Game::ASSET_TYPE_MENU, 740 * 2);
+
+    // double rawfile asset pool
+    // loading iw4x_patch_mp.ff exhausts the entire rawfile pool, as
+    // rawfiles from iw4x_00.iwd have been moved to iw4x_patch_mp.ff
+    Game::ReallocateAssetPool(Game::ASSET_TYPE_RAWFILE, 1024 * 2);
   }
 
   AssetHandler::~AssetHandler()
