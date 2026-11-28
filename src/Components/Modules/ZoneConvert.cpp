@@ -472,8 +472,20 @@ namespace zone
     //
     // Perhaps the easiest way to represent this is to give each group
     // an optional test for such shared files. A null test means there
-    // are none. Anything under zone that is not in this table is
-    // treated as a language directory and left to the game.
+    // are none.
+    //
+    // What about the language directories? These hold the stock
+    // fastfiles, but IW4x has localized fastfiles as well
+    // (iw4x_localized_ui_mp, say), which the launcher installs under
+    // source_root next to the other groups. So we list the languages too,
+    // the same ones that IW4 has in its language table, and let the layout
+    // decide what needs converting. A current Steam installation has the
+    // stock files in the x64 layout, which plan_conversion() leaves alone.
+    // An older installation has them in the x86 layout, which x64 IW4
+    // cannot load (it crashes on the first header), so these are converted
+    // along with ours, like Steam's map packs in dlc. Note that this means
+    // probing every stock localized fastfile on every start, but that is
+    // only a few bytes each.
     //
     struct group_type
     {
@@ -484,7 +496,22 @@ namespace zone
     const group_type own_groups[] = {
       {"zonebuilder", nullptr},
       {"patch",       nullptr},
-      {"dlc",         &official_dlc}
+      {"dlc",         &official_dlc},
+      {"english",     nullptr},
+      {"french",      nullptr},
+      {"german",      nullptr},
+      {"italian",     nullptr},
+      {"spanish",     nullptr},
+      {"british",     nullptr},
+      {"russian",     nullptr},
+      {"polish",      nullptr},
+      {"korean",      nullptr},
+      {"taiwanese",   nullptr},
+      {"japanese",    nullptr},
+      {"chinese",     nullptr},
+      {"thai",        nullptr},
+      {"leet",        nullptr},
+      {"czech",       nullptr}
     };
 
   }

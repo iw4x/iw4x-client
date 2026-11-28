@@ -106,21 +106,20 @@ namespace Components
     std::vector<Game::XZoneInfo> data;
     Utils::Merge(&data, zoneInfo, zoneCount);
 
-    Game::XZoneInfo info = { nullptr, 4, 0 };
-
-    // Not sure how they should be loaded :S
-    std::string langZone = Utils::String::VA("iw4x_localized_%s", Game::Win_GetLanguage());
-
-    if (FastFiles::Exists(langZone))
+    // Load our localized zone after the zones that IW4 asked for, so that
+    // its strings (and menus) replace the stock ones.
+    //
+    // Note that every language has a zone by this name, each in a directory
+    // named after the language, the same way as IW4's localized zones. The
+    // copy that we load is up to GetZoneLocation(), which looks in the
+    // current language's directory. Older IW4x had a zone per language
+    // (iw4x_localized_english, say), but the assets have since moved to the
+    // stock arrangement.
+    //
+    if (FastFiles::Exists("iw4x_localized_ui_mp"))
     {
-      info.name = langZone.data();
+      data.push_back({ "iw4x_localized_ui_mp", 4, 0 });
     }
-    else if (FastFiles::Exists("iw4x_localized_english")) // Fallback
-    {
-      info.name = "iw4x_localized_english";
-    }
-
-    data.push_back(info);
 
     Game::DB_LoadXAssets(data.data(), static_cast<unsigned int>(data.size()), sync);
 
@@ -220,6 +219,13 @@ namespace Components
 
     Utils::Merge(&paths, FastFiles::ZonePaths);
 
+    // Our localized zones come converted like the rest of ours (see
+    // ZoneConvert), but the language that we want is only known once IW4
+    // has its loc_language, so we can't add the path up front like the
+    // others. So we look in the language's converted directory here, before
+    // the stock one.
+    //
+    paths.push_back(ZoneConvert::SearchPath(Game::Win_GetLanguage()));
     paths.push_back(ZoneDirectory(Game::Win_GetLanguage()));
 
     for (auto& path : paths)
