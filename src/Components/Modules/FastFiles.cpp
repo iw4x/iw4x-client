@@ -113,12 +113,23 @@ namespace Components
     // named after the language, the same way as IW4's localized zones. The
     // copy that we load is up to GetZoneLocation(), which looks in the
     // current language's directory. Older IW4x had a zone per language
-    // (iw4x_localized_english, say), but the assets have since moved to the
-    // stock arrangement.
+    // (iw4x_localized_english, say), and the rawfiles still ship those, so
+    // until the assets are released we fall back to them.
     //
+    const std::string language_zone(
+      std::format("iw4x_localized_{}", Game::Win_GetLanguage()));
+
     if (FastFiles::Exists("iw4x_localized_ui_mp"))
     {
       data.push_back({ "iw4x_localized_ui_mp", 4, 0 });
+    }
+    else if (FastFiles::Exists(language_zone))
+    {
+      data.push_back({ language_zone.c_str(), 4, 0 });
+    }
+    else if (FastFiles::Exists("iw4x_localized_english"))
+    {
+      data.push_back({ "iw4x_localized_english", 4, 0 });
     }
 
     Game::DB_LoadXAssets(data.data(), static_cast<unsigned int>(data.size()), sync);
