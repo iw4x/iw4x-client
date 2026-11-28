@@ -196,6 +196,8 @@ namespace Game
   Live_NecessaryBandwidth_t Live_NecessaryBandwidth = Live_NecessaryBandwidth_t(0x1401FB430);
   UI_TextHeight_t UI_TextHeight = UI_TextHeight_t(0x140271570);
   UI_DrawText_t UI_DrawText = UI_DrawText_t(0x14026B5E0);
+  UI_SetScissor_t UI_SetScissor = UI_SetScissor_t(0x140271460);
+  UI_ClearScissor_t UI_ClearScissor = UI_ClearScissor_t(0x14026A4C0);
   UI_GetFontHandle_t UI_GetFontHandle = UI_GetFontHandle_t(0x14026D330);
   UI_PaintMenus_t UI_PaintMenus = UI_PaintMenus_t(0x14026F170);
   ScrPlace_ApplyRect_t ScrPlace_ApplyRect = ScrPlace_ApplyRect_t(0x1400F2390);
