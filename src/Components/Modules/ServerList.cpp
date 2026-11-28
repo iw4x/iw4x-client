@@ -171,6 +171,11 @@ namespace Components
 
     case Column::Hostname:
     {
+      if (!sorting && !Dvar::Var("ui_browserShowColors").get<bool>())
+      {
+        return Utils::String::VA("%s", TextRenderer::StripColors(server->hostname).data());
+      }
+
       return server->hostname.data();
     }
 
@@ -1589,6 +1594,8 @@ namespace Components
 
         Dvar::Register<const char*>("ui_serverFilter", "",
           Game::DVAR_NONE, "Filter the server browser by server name");
+        Dvar::Register<bool>("ui_browserShowColors", true,
+          Game::DVAR_ARCHIVE, "Show server name colors in the server browser");
       });
 
     // Fix ui_netsource dvar
