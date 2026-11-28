@@ -460,6 +460,14 @@ namespace Components
     //
     Utils::Hook::Set<DWORD>(0x1402A4056, 0x2EEBC030); // xor al, al; jmp 0x1402A4088
 
+    // Don't offer to set optimal settings when configure_mp.csv seems to have
+    // changed. IW4 compares the file's checksum to sys_configSum, which the
+    // config records, so a config saved while a mod's configure_mp.csv was
+    // loaded probably gets us this prompt on a later start. As above, IW4
+    // still records the new checksum, we only skip asking.
+    //
+    Utils::Hook::Set<BYTE>(0x1402A39DF, 0xEB); // jmp 0x1402A3A1E
+
     // hopefully allow alt-tab during game, used at least in alt-enter handling
     Utils::Hook::Set<BYTE>(0x1402A2B50, 0xB0); // mov al, 1
     Utils::Hook::Set<BYTE>(0x1402A2B51, 1);
