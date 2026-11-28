@@ -37,6 +37,37 @@ namespace Components
                   LocalizedToastText(key, fallback),
                   3000);
     }
+
+    // Chinese hostnames come in GBK, which IW4 can't draw: it takes each
+    // byte for a Windows-1252 character, so the name turns into a row of
+    // accented Latin letters. So we don't list such servers.
+    //
+    // GBK puts the common Chinese characters in byte pairs, the first byte
+    // in 0xB0-0xF7 and the second in 0xA1-0xFE. A Latin-1 name has its
+    // accented letters next to ASCII ones, so two such pairs are enough to
+    // tell. Note that a Cyrillic name in Windows-1251 pairs up the same way,
+    // and IW4 turns it into Latin letters too.
+    //
+    bool IsChineseHostname(const std::string& hostname)
+    {
+      std::size_t pairs (0);
+
+      for (std::size_t i (0); i + 1 < hostname.size(); ++i)
+      {
+        const auto lead (static_cast<unsigned char>(hostname[i]));
+        const auto trail (static_cast<unsigned char>(hostname[i + 1]));
+
+        if (lead >= 0xB0 && lead <= 0xF7 && trail >= 0xA1 && trail <= 0xFE)
+        {
+          if (++pairs == 2)
+            return true;
+
+          ++i;
+        }
+      }
+
+      return false;
+    }
   }
 
   bool ServerList::SortAsc = false;
@@ -367,6 +398,9 @@ namespace Components
 
       // Filter by server name
       if (!MatchesFilter(serverInfo->hostname)) continue;
+
+      // Filter servers with Chinese names (see IsChineseHostname())
+      if (IsChineseHostname(serverInfo->hostname)) continue;
 
       VisibleList.push_back(i);
     }
